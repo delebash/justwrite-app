@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-26_09-15-04-gpu",
+  "leg": "gpu-uncensored-ez",
+  "model": "gemma-4-26b-a4b-uncensored-ez",
+  "attempt": 2,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-uncensored-ez",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-uncensored-ez",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-26T09:28:29.526Z",
+  "label": "Character chat",
+  "wallMs": 3972,
+  "ttftMs": 405,
+  "output": "I used to think I just wanted a quiet life—a steady paycheck from the Commission, a lamp to mend, and enough silence to keep my teeth from ringing [3]. But now... I think I just want to know if I can stand the weight of it. I'm afraid that if I answer that call, if I stop hiding the hum, there won't be any quiet left in the world for me [4].",
+  "outputChars": 343,
+  "usage": {
+    "promptTokens": 2565,
+    "completionTokens": 89,
+    "model": "gemma-4-26b-a4b-uncensored-ez",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

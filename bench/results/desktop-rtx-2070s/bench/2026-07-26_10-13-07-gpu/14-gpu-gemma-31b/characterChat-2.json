@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-26_10-13-07-gpu",
+  "leg": "gpu-gemma-31b",
+  "model": "gemma-4-31b-qat",
+  "attempt": 2,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-31b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-31b-qat",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-26T10:20:43.625Z",
+  "label": "Character chat",
+  "wallMs": 118647,
+  "ttftMs": 1142,
+  "output": "I want a quiet life. Just a steady pay-packet from the Hall, a workbench that doesn't shake, and to be left alone enough that no one looks too close at my work [3]. I've spent years making myself small, like a shim tucked into a loose joint to stop the rattling.\n\nBut now... [1]. I've heard the note. I know what it is.\n\nAs for what I'm afraid of—I'm afraid of the Wardens. I'm afraid of that grey-on-grey look they give you, the kind that says they can see the sickness in your blood [3, 5]. For a long time, I thought the hum in my head was just that—a defect, a flaw in the casting that needed to be cut out. I'm terrified that if I answer that call, I'm not fixing the world, I'm just breaking myself wide open.",
+  "outputChars": 715,
+  "usage": {
+    "promptTokens": 2565,
+    "completionTokens": 197,
+    "model": "gemma-4-31b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

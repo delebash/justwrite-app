@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-26_09-37-45-gpu",
+  "leg": "gpu-gemma-31b",
+  "model": "gemma-4-31b-qat",
+  "attempt": 1,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-31b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-31b-qat",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-26T09:44:57.998Z",
+  "label": "Character chat",
+  "wallMs": 87472,
+  "ttftMs": 17290,
+  "output": "I want a quiet life. Just a clean job, a steady pay, and to be left alone at the Hall—something like a well-fitted joint that doesn't rattle when you shake it [2]. \n\nBut right now... I'm afraid of the noise. I've spent my whole life pretending I can't hear the hum, because the Wardens treat it like a sickness you have to cut out [3]. Now I'm holding something that makes the whole broken wheel of the world lean toward me [4], and I don't know if answering that note is the same thing as breaking myself.",
+  "outputChars": 506,
+  "usage": {
+    "promptTokens": 2565,
+    "completionTokens": 130,
+    "model": "gemma-4-31b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

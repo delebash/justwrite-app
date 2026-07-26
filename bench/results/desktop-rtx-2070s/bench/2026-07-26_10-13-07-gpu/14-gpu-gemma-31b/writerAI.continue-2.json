@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-26_10-13-07-gpu",
+  "leg": "gpu-gemma-31b",
+  "model": "gemma-4-31b-qat",
+  "attempt": 2,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-31b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-31b-qat",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-26T10:44:34.725Z",
+  "label": "Continue",
+  "wallMs": 206401,
+  "ttftMs": 1584,
+  "output": "Cael stood for a moment in the sudden silence of the street, the door heavy and cold against her shoulder. The hum of the token had settled into a rhythmic thrum, a heartbeat that didn't belong to her. She looked back at the corner where Nettle had vanished, half-expecting to see a ripple in the air or a lingering shadow, but there was only the blue light of the lamps and the distant, rhythmic slap of the harbor tide against the stone piers.\n\nInside, the glimmerworks smelled of ozone and old grease. She didn't light a lamp; she didn't need to. The token in her pocket was casting a faint, subterranean glow through the fabric of her trousers, illuminating the dust motes that danced in the stagnant air. It was pulling her toward the back room, toward the vault where the rest of the haul lay waiting, a magnetic tug that felt less like a physical force and more like a memory of a place she had never been.\n\nShe reached the vault and pressed her palm against the iron door. The hum spiked, vibrating through her marrow, and for a heartbeat, the wall ceased to be solid. She felt the architecture of the building shift, the hidden geometries of the Ash District aligning in a way that made her stomach churn. Behind the iron, something was breathing—not a person, but the building itself, exhaling a slow, metallic sigh that echoed the pulse in her hand.\n\nCael pulled her hand away and leaned her forehead against the cool metal. She thought of Nettle's river-worn bead and the way the girl had leaped across a void that shouldn't have been crossable. The winter was coming, and the four of them were hungry, but as the token continued to sing against her hip, Cael wondered if the price of the job was something more than just the risk of the climb.",
+  "outputChars": 1756,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 386,
+    "model": "gemma-4-31b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

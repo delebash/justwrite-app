@@ -1,0 +1,121 @@
+{
+  "runId": "2026-07-26_09-15-04-gpu",
+  "leg": "gpu-styletune",
+  "model": "gryphe-styletune-v2",
+  "attempt": 1,
+  "args": {
+    "question": "What is this book about, and who is the protagonist?",
+    "k": 6,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "chat",
+    "action": "chat",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "chat",
+  "ok": true,
+  "started": "2026-07-26T09:15:41.456Z",
+  "label": "Ask the book",
+  "wallMs": 14435,
+  "ttftMs": 5303,
+  "output": "The book follows Cael Ferren, a brass-rank magitech artificer who has spent her life hiding her ability to secretly feel the deep, forbidden \"Facets\" of magic [1, 2, 5]. The story's premise involves Cael taking a routine guild job in a ruin that is stuck in a single looping hour and is folded out of space [1]. The narrative is structured in two parts: first, the party takes the \"Nine\" and discovers something is wrong, and second, the story explores the loop, a survivor, the Keystone, and a choice [3].\n\nThe protagonist is Cael Ferren [2, 5]. She is a 26-year-old artificer who desires an unremarkable career at the Commission Hall but must eventually confront the truth that her ability to feel the \"hum\" is not a sickness, but a compass to a magic that the world broke on purpose [5].",
+  "outputChars": 790,
+  "usage": {
+    "promptTokens": 1915,
+    "completionTokens": 194,
+    "model": "gryphe-styletune-v2",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What is this book about, and who is the protagonist?",
+    "k": 6,
+    "citations": [
+      {
+        "index": 1,
+        "chunkId": "card:architecture:premise",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 2,
+        "chunkId": "card:cast:main",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 3,
+        "chunkId": "card:architecture:fabula",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 4,
+        "chunkId": "card:architecture:setting",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 5,
+        "chunkId": "card:character:c1:p1",
+        "score": 0.40488342852794756,
+        "pinned": false
+      },
+      {
+        "index": 6,
+        "chunkId": "card:character:c2:p1",
+        "score": 0.2753121776768573,
+        "pinned": false
+      },
+      {
+        "index": 7,
+        "chunkId": "ch2:scn_ch2_1:p3",
+        "score": 0.28189390404565895,
+        "pinned": false
+      },
+      {
+        "index": 8,
+        "chunkId": "ch3:scn_ch3_3:p3",
+        "score": 0.28102924869900703,
+        "pinned": false
+      },
+      {
+        "index": 9,
+        "chunkId": "ch2:scn_ch2_2:p3",
+        "score": 0.2643302530668414,
+        "pinned": false
+      }
+    ]
+  },
+  "error": null
+}

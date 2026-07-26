@@ -1,0 +1,96 @@
+{
+  "runId": "2026-07-26_10-13-07-gpu",
+  "leg": "gpu-gemma-31b",
+  "model": "gemma-4-31b-qat",
+  "attempt": 2,
+  "args": {
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-31b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "critique",
+    "action": "critique",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-31b-qat",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "critique",
+  "ok": true,
+  "started": "2026-07-26T10:38:28.101Z",
+  "label": "Chapter critique",
+  "wallMs": 189699,
+  "ttftMs": null,
+  "output": "{\n  \"notes\": [\n    {\n      \"severity\": \"info\",\n      \"category\": \"voice\",\n      \"message\": \"The prose is exceptionally polished, with a strong rhythmic sense and a distinct, atmospheric tone.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"characterization\",\n      \"message\": \"The relationship dynamics between Cael, Brick, and Nettle are established efficiently through small, telling actions like the apple seedless middle.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"exposition\",\n      \"message\": \"The term 'Concern-made' is used early; adding a tiny bit more clarity on whether the 'Concern' is a company, a government body, or a guild would ground the world-building faster.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"show-don't-tell\",\n      \"message\": \"The internal monologue 'Because you and I are the same' is a bit on-the-nose; the subtext is already clear from their shared secrets and would be more powerful if left unsaid.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"tension\",\n      \"message\": \"The mirroring of the lamp's 'hum' and the token's 'hum' creates a satisfying and immediate narrative hook.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"clarity\",\n      \"message\": \"Clarify the physical nature of the 'Facets' mentioned during the lamp analysis to ensure the reader understands the metaphysical stakes of the 'deeper one'.\"\n    }\n  ]\n}",
+  "outputChars": 1436,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "chapterNum": 1,
+    "chapterWords": 2600,
+    "noteCount": 6,
+    "notes": [
+      {
+        "id": "note_ms1o4efc_0",
+        "severity": "info",
+        "category": "voice",
+        "message": "The prose is exceptionally polished, with a strong rhythmic sense and a distinct, atmospheric tone."
+      },
+      {
+        "id": "note_ms1o4efc_1",
+        "severity": "info",
+        "category": "characterization",
+        "message": "The relationship dynamics between Cael, Brick, and Nettle are established efficiently through small, telling actions like the apple seedless middle."
+      },
+      {
+        "id": "note_ms1o4efc_2",
+        "severity": "suggest",
+        "category": "exposition",
+        "message": "The term 'Concern-made' is used early; adding a tiny bit more clarity on whether the 'Concern' is a company, a government body, or a guild would ground the world-building faster."
+      },
+      {
+        "id": "note_ms1o4efc_3",
+        "severity": "suggest",
+        "category": "show-don't-tell",
+        "message": "The internal monologue 'Because you and I are the same' is a bit on-the-nose; the subtext is already clear from their shared secrets and would be more powerful if left unsaid."
+      },
+      {
+        "id": "note_ms1o4efc_4",
+        "severity": "info",
+        "category": "tension",
+        "message": "The mirroring of the lamp's 'hum' and the token's 'hum' creates a satisfying and immediate narrative hook."
+      },
+      {
+        "id": "note_ms1o4efc_5",
+        "severity": "suggest",
+        "category": "clarity",
+        "message": "Clarify the physical nature of the 'Facets' mentioned during the lamp analysis to ensure the reader understands the metaphysical stakes of the 'deeper one'."
+      }
+    ],
+    "model": "gemma-4-31b-qat"
+  },
+  "error": null
+}

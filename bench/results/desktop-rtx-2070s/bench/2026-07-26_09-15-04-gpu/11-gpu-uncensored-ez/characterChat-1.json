@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-26_09-15-04-gpu",
+  "leg": "gpu-uncensored-ez",
+  "model": "gemma-4-26b-a4b-uncensored-ez",
+  "attempt": 1,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-uncensored-ez",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-uncensored-ez",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-26T09:28:19.633Z",
+  "label": "Character chat",
+  "wallMs": 9890,
+  "ttftMs": 5828,
+  "output": "I used to think I just wanted a quiet life—a steady job at the Hall, a clean desk, and enough scrip to keep the hunger away. Just a brass-rank life where nothing ever rings too loud. \n\nBut now? Now I'm standing in the middle of a broken wheel, and I'm afraid that if I answer this call, there won't be any quiet left for me. I'm afraid that once I stop hiding the hum, I can't ever go back to being just a lamp-mender.",
+  "outputChars": 418,
+  "usage": {
+    "promptTokens": 2565,
+    "completionTokens": 115,
+    "model": "gemma-4-26b-a4b-uncensored-ez",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

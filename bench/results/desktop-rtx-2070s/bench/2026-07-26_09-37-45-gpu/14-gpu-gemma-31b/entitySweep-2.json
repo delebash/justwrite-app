@@ -1,0 +1,69 @@
+{
+  "runId": "2026-07-26_09-37-45-gpu",
+  "leg": "gpu-gemma-31b",
+  "model": "gemma-4-31b-qat",
+  "attempt": 2,
+  "args": {
+    "timeoutMs": 1200000,
+    "chapterCap": 3
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-31b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "entitySweep",
+    "action": "entitySweep",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-31b-qat",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "entitySweep",
+  "ok": true,
+  "started": "2026-07-26T09:56:44.029Z",
+  "label": "Entity sweep",
+  "wallMs": 465111,
+  "ttftMs": 162875,
+  "output": "{\n  \"characters\": [\n    {\n      \"name\": \"Lumen Concern\",\n      \"role\": \"Organization\",\n      \"kind\": \"\",\n      \"oneLiner\": \"A powerful entity that manufactures lamps and owns various industrial properties.\",\n      \"note\": \"\",\n      \"evidence\": \"A Concern seal on a clearance meant the Concern wanted a receipt\",\n      \"aliases\": [\n        \"the Concern\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Old Sedge\",\n      \"role\": \"Road-warden\",\n      \"kind\": \"\",\n      \"oneLiner\": \"A pensioner and road-warden who keeps a ledger of those entering the Nine.\",\n      \"note\": \"\",\n      \"evidence\": \"Old Sedge, the plate on the hut said\",\n      \"aliases\": [\n        \"Sedge\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Gattick line\",\n      \"role\": \"family lineage\",\n      \"kind\": \"\",\n      \"oneLiner\": \"A family line mentioned by Ode as something she wishes to know more about.\",\n      \"note\": \"\",\n      \"evidence\": \"I'll want to know about the Gattick line while we walk\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ],\n  \"locations\": [\n    {\n      \"name\": \"Ash District\",\n      \"role\": \"\",\n      \"kind\": \"City District\",\n      \"oneLiner\": \"\",\n      \"note\": \"A less desirable area of Threnn where Manufactory Nine is located.\",\n      \"evidence\": \"Manufactory Nine, Ash District.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        },\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        },\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Kettle Lane\",\n      \"role\": \"\",\n      \"kind\": \"Street\",\n      \"oneLiner\": \"\",\n      \"note\": \"The street leading to Cael's home and the glimmerworks.\",\n      \"evidence\": \"Nettle walked her home, which meant Nettle appeared beside her on Kettle Lane\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Cutwater\",\n      \"role\": \"\",\n      \"kind\": \"Waterway\",\n      \"oneLiner\": \"\",\n      \"note\": \"A location Nettle previously crossed with an impossible jump.\",\n      \"evidence\": \"the one over the Cutwater last spring\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Nine Road\",\n      \"role\": \"\",\n      \"kind\": \"Road\",\n      \"oneLiner\": \"\",\n      \"note\": \"The path leading toward Manufactory Nine characterized by thinning lumen-lamps.\",\n      \"evidence\": \"the lumen-lamps along the Nine Road stood at long intervals\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"East Gallery\",\n      \"role\": \"\",\n      \"kind\": \"room\",\n      \"oneLiner\": \"\",\n      \"note\": \"A part of the manufactory where the third party is trapped in a loop.\",\n      \"evidence\": \"They're still in the east gallery.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ],\n  \"objects\": [\n    {\n      \"name\": \"Lying Lamp\",\n      \"role\": \"\",\n      \"kind\": \"Artifice\",\n      \"oneLiner\": \"\",\n      \"note\": \"A Concern-made lamp tuned to listen for a deeper Facet.\",\n      \"evidence\": \"The lamp on Cael's bench was lying\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Whole\",\n      \"role\": \"\",\n      \"kind\": \"metaphysical entity/art\",\n      \"oneLiner\": \"\",\n      \"note\": \"The original, unbroken state of the Facets before they were tiered and separated.\",\n      \"evidence\": \"so that no one would ever again hold the Whole.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Hour\",\n      \"role\": \"\",\n      \"kind\": \"temporal anomaly\",\n      \"oneLiner\": \"\",\n      \"note\": \"A time loop that resets matter and memory every hour.\",\n      \"evidence\": \"The Hour pulls everything back to the start of the loop.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Sundering\",\n      \"role\": \"\",\n      \"kind\": \"historical event\",\n      \"oneLiner\": \"\",\n      \"note\": \"The act of breaking the 'wheel' of the Facets into a 'ladder' of separate disciplines.\",\n      \"evidence\": \"The histories in the Cloister call it the Sundering.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ]\n}",
+  "outputChars": 5363,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "counts": {
+      "characters": 3,
+      "locations": 5,
+      "objects": 4
+    },
+    "scanned": 3,
+    "totalChapters": 3,
+    "skipped": [],
+    "cancelled": false,
+    "chapterIds": [
+      "ch1",
+      "ch2",
+      "ch3"
+    ],
+    "chapterCap": 3
+  },
+  "error": null
+}

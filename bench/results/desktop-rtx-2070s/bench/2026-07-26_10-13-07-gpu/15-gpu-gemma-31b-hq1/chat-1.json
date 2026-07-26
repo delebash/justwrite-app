@@ -1,0 +1,109 @@
+{
+  "runId": "2026-07-26_10-13-07-gpu",
+  "leg": "gpu-gemma-31b-hq1",
+  "model": "gemma-4-31b-qat",
+  "attempt": 1,
+  "args": {
+    "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+    "k": 6,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-31b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "chat",
+    "action": "chat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-31b-qat",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "chat",
+  "ok": true,
+  "started": "2026-07-26T11:00:51.087Z",
+  "label": "Ask the book",
+  "wallMs": 177426,
+  "ttftMs": 18891,
+  "output": "Before the party reaches Manufactory Nine, several early signs connect the commission-token to the nature of the site and imply that the job is not as \"straightforward\" as claimed:\n\n*   **The Token's Physical Sensation:** When Cael receives the brass commission-token, she notes that it \"hummed\" with a sound that was \"low, and level, and wrong\" [5].\n*   **The Nature of the Seal:** The token bears a Concern seal [5]. Cael views such a seal on a clearance job with suspicion, believing it implies the Concern is more interested in a \"receipt\" (a licensed party certifying they \"found nothing\") than the actual work [4].\n*   **The Job's History and Pay:** Nettle points out that the job has remained on the slate board for eleven weeks despite paying double wages [3]. She concludes that this is not a standard \"brass job,\" but rather \"a job somebody wants gone\" [3].\n*   **Suspicious Oversight:** While the party accepts the token, Cael notices a Concern clerk and a Warden watching the board and the room [4].\n\nThese signs imply that the job is deceptive; while the Mistress of Commissions describes it as a \"dull\" and \"straightforward\" structural survey of a building lost to a collapse nine years ago [4], the narrative notes that the routine job \"turns out to be anything but\" [2] and that the party eventually finds the site to be \"wrong\" [6].",
+  "outputChars": 1349,
+  "usage": {
+    "promptTokens": 1740,
+    "completionTokens": 317,
+    "model": "gemma-4-31b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
+    "k": 6,
+    "citations": [
+      {
+        "index": 1,
+        "chunkId": "card:location:l4",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 2,
+        "chunkId": "card:strand:s1",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 3,
+        "chunkId": "ch1:scn_ch1_2:p1",
+        "score": 0.6641128209080697,
+        "pinned": false
+      },
+      {
+        "index": 4,
+        "chunkId": "ch1:scn_ch1_2:p2",
+        "score": 0.5073706106976006,
+        "pinned": false
+      },
+      {
+        "index": 5,
+        "chunkId": "ch1:scn_ch1_2:p3",
+        "score": 0.5317976319795348,
+        "pinned": false
+      },
+      {
+        "index": 6,
+        "chunkId": "card:architecture:fabula",
+        "score": 0.5509620576677146,
+        "pinned": false
+      },
+      {
+        "index": 7,
+        "chunkId": "ch4:scn_ch4_3:p1",
+        "score": 0.5396747448611406,
+        "pinned": false
+      }
+    ]
+  },
+  "error": null
+}

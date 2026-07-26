@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-26_09-15-04-gpu",
+  "leg": "gpu-styletune",
+  "model": "gryphe-styletune-v2",
+  "attempt": 1,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-26T09:19:33.894Z",
+  "label": "Continue",
+  "wallMs": 12603,
+  "ttftMs": 2133,
+  "output": "Cael stood alone before the door, the key heavy and cold in her palm. The silence that followed Nettle's departure was not empty; it was filled with the residual vibration of the token, a low-frequency thrum that seemed to synchronize with the pulse in her own wrist. The alleyway felt suddenly thinner, as if the brickwork itself were stretched too tight across some unseen hollow.\n\nInside, the glimmerworks smelled of burnt oil and stale copper. She moved through the dark without lighting a lamp, navigating by the memory of the floorboards and the familiar bite of the evening chill. The token's hum intensified as she passed the workbench, its pitch rising until it scraped against the back of her teeth.\n\nReaching the small cot in the corner, Cael finally drew the object from her pocket. In the absolute darkness, the seal didn't glow, but it felt brighter, a point of impossible density that drew the shadows toward it. She pressed her thumb against the carved sigil, trying to force the vibration down, to smother the sound before it could wake the rest of the house.",
+  "outputChars": 1076,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 228,
+    "model": "gryphe-styletune-v2",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

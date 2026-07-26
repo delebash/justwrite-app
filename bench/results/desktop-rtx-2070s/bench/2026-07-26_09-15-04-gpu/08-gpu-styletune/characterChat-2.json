@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-26_09-15-04-gpu",
+  "leg": "gpu-styletune",
+  "model": "gryphe-styletune-v2",
+  "attempt": 2,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-26T09:16:18.296Z",
+  "label": "Character chat",
+  "wallMs": 7217,
+  "ttftMs": 366,
+  "output": "Right now? I want a clean job that pays in scrip and leaves me alone—nothing complicated, nothing that makes my teeth ring. I just want to be a brass-rank lamp-mender who doesn't notice what's underneath the floorboards.\n\nWhat I'm afraid of is... well, it's like a hairline fracture in a pressure vessel. You can pretend it's not there, but eventually, the whole thing's going to blow. I'm afraid of what happens if I answer that note—if I let them see that the hum isn't a sickness, but something I can't unlearn once I've started.",
+  "outputChars": 532,
+  "usage": {
+    "promptTokens": 2565,
+    "completionTokens": 140,
+    "model": "gryphe-styletune-v2",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}

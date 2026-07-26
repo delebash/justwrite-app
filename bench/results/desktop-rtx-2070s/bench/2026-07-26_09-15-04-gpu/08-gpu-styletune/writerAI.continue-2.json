@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-26_09-15-04-gpu",
+  "leg": "gpu-styletune",
+  "model": "gryphe-styletune-v2",
+  "attempt": 2,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-26T09:19:46.500Z",
+  "label": "Continue",
+  "wallMs": 14295,
+  "ttftMs": 261,
+  "output": "Cael stood alone before the locked door, the key cool and unyielding between her fingers. The silence of the street pressed against her ears, heavier than it had been moments before. Only the token remained, vibrating with a low-frequency insistence that seemed to pulse in time with her own heartbeat.\n\nShe turned the key, the mechanism clicking through the tumblers with a metallic bite that sounded far too loud in the empty alley. Inside, the workshop smelled of burnt oil and stale copper, a familiar, stagnant air that usually offered some comfort. Tonight, however, the darkness between the workbenches felt hollowed out, as though something had been scooped from the center of the room.\n\nThe humming intensified as she crossed the threshold. It wasn't just a vibration now; it was a pressure, a thrumming resonance that made the teeth in her gums ache. Cael dropped her bag onto the scarred wooden table and reached into her pocket, pulling the token into the dim light filtering through the grimy window. Even in the gloom, the metal seemed to hold its own sickly glow, pulsing faintly as it drank in the blue lamplight from the street.\n\nShe set the token down, but the surface of the table continued to shudder where it rested. Cael watched, breathless, as the shadows in the corners of the room began to deepen, stretching toward the object like fingers reaching for heat.",
+  "outputChars": 1383,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 287,
+    "model": "gryphe-styletune-v2",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

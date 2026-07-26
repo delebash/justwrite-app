@@ -1,0 +1,56 @@
+{
+  "runId": "2026-07-26_09-37-45-gpu",
+  "leg": "gpu-gemma-31b",
+  "model": "gemma-4-31b-qat",
+  "attempt": 1,
+  "args": {
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-31b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "critique",
+    "action": "critique",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-31b-qat",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "critique",
+  "ok": false,
+  "started": "2026-07-26T10:04:29.143Z",
+  "label": "Chapter critique",
+  "wallMs": 5328,
+  "ttftMs": null,
+  "output": "",
+  "outputChars": 0,
+  "usage": null,
+  "flags": [
+    "error"
+  ],
+  "extra": {
+    "timeoutMs": 1200000
+  },
+  "error": "Couldn't reach the LLM. network error"
+}

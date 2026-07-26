@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-26_09-15-04-gpu",
+  "leg": "gpu-uncensored-ez",
+  "model": "gemma-4-26b-a4b-uncensored-ez",
+  "attempt": 2,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-uncensored-ez",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-uncensored-ez",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-26T09:30:44.396Z",
+  "label": "Continue",
+  "wallMs": 13529,
+  "ttftMs": 251,
+  "output": "Cael stood alone in the damp shadow of the doorway, the heavy iron key cold against her palm. The silence that followed Nettle’s departure was not a true silence; it was a hollow, ringing quiet that seemed to amplify the low, rhythmic thrumming vibrating from her pocket. The token was singing harder now, its vibration traveling up her thigh, a frantic, tiny heartbeat pressed against her skin.\n\nShe entered the glimmerworks, the air inside smelling of ozone and stale grease. She didn't turn on the lamps. To light the room was to invite the eyes of the district to peer through the frosted glass, and Cael wasn't ready to be seen yet. She moved through the familiar clutter of tools and scrap metal, her boots making no sound on the floorboards, guided by a memory of where she had left her coat.\n\nThe token’s hum shifted, moving from a vibration to a pitch, a sound so high it was nearly a needle prick in the ear. Cael froze, her hand hovering over the workbench. It wasn't just a sound; it was a pull, a physical tugging toward the cellar door, toward the dark, unlit depths where the foundation stones met the river silt.\n\nShe reached into her pocket and gripped the metal tight, trying to stifle the song with her own heat. The token pulsed once, a sharp, violent jerk against her fingers, as if it were trying to leap from her hand toward the dark. It knew something about the Ash District, and Cael realized with a sudden, sinking dread that the winter might be much shorter than the coin would allow.",
+  "outputChars": 1511,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 335,
+    "model": "gemma-4-26b-a4b-uncensored-ez",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

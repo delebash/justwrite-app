@@ -1,0 +1,109 @@
+{
+  "runId": "2026-07-26_10-13-07-gpu",
+  "leg": "gpu-gemma-31b-hq2",
+  "model": "gemma-4-31b-qat",
+  "attempt": 1,
+  "args": {
+    "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+    "k": 6,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-31b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "chat",
+    "action": "chat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-31b-qat",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "chat",
+  "ok": true,
+  "started": "2026-07-26T11:10:16.183Z",
+  "label": "Ask the book",
+  "wallMs": 146765,
+  "ttftMs": 14035,
+  "output": "The three earlier parties never left Manufactory Nine because they were caught in a time loop that lasts a little under an hour [2]. The mechanism of the loop is as follows:\n\n*   **The Cause:** The Lumen Concern struck a \"shard of the Whole\" (the Keystone) while digging for lumen, which caused space to fold and time to \"catch\" [5].\n*   **The Effect:** When the hour ends, it resets [2]. Anyone inside the loop who \"can't feel it\" forgets the entire turn and lives it fresh [2]. Consequently, the previous parties are not dead, but have been \"walking in\" every hour for nine years [2].\n*   **The Reset:** When the hour turns, people who cannot \"hold the deep Facets back\" are reset to the threshold [7]. This is demonstrated when characters like Vasht and Warden Kell vanish mid-word and are reset to the threshold, forgetting they had ever reached the candle [3].\n\nOdeline Marran can remember every turn because she is a \"survivor\" who has been living the same hour for nine years [6]. Unlike the other parties, she can \"feel\" the loop [2] and has spent those years observing the environment—such as watching the shaft fold and unfold \"a thousand times\"—to determine how to reach the Keystone [5, 7].",
+  "outputChars": 1202,
+  "usage": {
+    "promptTokens": 2039,
+    "completionTokens": 286,
+    "model": "gemma-4-31b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+    "k": 6,
+    "citations": [
+      {
+        "index": 1,
+        "chunkId": "card:location:l4",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 2,
+        "chunkId": "ch3:scn_ch3_1:p3",
+        "score": 0.608908312600809,
+        "pinned": false
+      },
+      {
+        "index": 3,
+        "chunkId": "ch4:scn_ch4_3:p1",
+        "score": 0.6045136887932692,
+        "pinned": false
+      },
+      {
+        "index": 4,
+        "chunkId": "ch2:scn_ch2_2:p1",
+        "score": 0.6021205789986583,
+        "pinned": false
+      },
+      {
+        "index": 5,
+        "chunkId": "ch3:scn_ch3_3:p2",
+        "score": 0.5300476281294432,
+        "pinned": false
+      },
+      {
+        "index": 6,
+        "chunkId": "card:character:c5",
+        "score": 0.5901837813806269,
+        "pinned": false
+      },
+      {
+        "index": 7,
+        "chunkId": "ch4:scn_ch4_1:p1",
+        "score": 0.5150065096548487,
+        "pinned": false
+      }
+    ]
+  },
+  "error": null
+}

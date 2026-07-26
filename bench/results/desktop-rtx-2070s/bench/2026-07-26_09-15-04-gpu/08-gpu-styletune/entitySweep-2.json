@@ -1,0 +1,69 @@
+{
+  "runId": "2026-07-26_09-15-04-gpu",
+  "leg": "gpu-styletune",
+  "model": "gryphe-styletune-v2",
+  "attempt": 2,
+  "args": {
+    "timeoutMs": 1200000,
+    "chapterCap": 3
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "entitySweep",
+    "action": "entitySweep",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "entitySweep",
+  "ok": true,
+  "started": "2026-07-26T09:17:42.021Z",
+  "label": "Entity sweep",
+  "wallMs": 59609,
+  "ttftMs": 22136,
+  "output": "{\n  \"characters\": [\n    {\n      \"name\": \"Threll\",\n      \"role\": \"Mistress of Commissions\",\n      \"kind\": \"\",\n      \"oneLiner\": \"A grey-coated official who manages job assignments at the Commission Hall.\",\n      \"note\": \"\",\n      \"evidence\": \"Mistress of Commissions, grey-coated, a face like a closed ledger.\",\n      \"aliases\": [\n        \"Haldane Threll\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Old Sedge\",\n      \"role\": \"road-warden\",\n      \"kind\": \"\",\n      \"oneLiner\": \"A retired road-warden who maintains a ledger of travelers passing through the Ash District.\",\n      \"note\": \"\",\n      \"evidence\": \"Old Sedge, the plate on the hut, said\",\n      \"aliases\": [\n        \"Sedge\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    }\n  ],\n  \"locations\": [\n    {\n      \"name\": \"Ash District\",\n      \"role\": \"\",\n      \"kind\": \"District\",\n      \"oneLiner\": \"\",\n      \"note\": \"A place where dangerous or undesirable jobs are posted.\",\n      \"evidence\": \"Manufactory Nine, Ash District.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        },\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        },\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Kettle Lane\",\n      \"role\": \"\",\n      \"kind\": \"Street\",\n      \"oneLiner\": \"\",\n      \"note\": \"A lane lined with blue-lit lamps where Cael and Nettle walk.\",\n      \"evidence\": \"Nettle walked her home, which meant Nettle appeared beside her on Kettle Lane\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Nine Road\",\n      \"role\": \"\",\n      \"kind\": \"road\",\n      \"oneLiner\": \"\",\n      \"note\": \"A road lined with failing lumen-lamps leading to the Nine.\",\n      \"evidence\": \"the lumen-lamps along the Nine Road stood at long intervals\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"East Gallery\",\n      \"role\": \"\",\n      \"kind\": \"Room\",\n      \"oneLiner\": \"\",\n      \"note\": \"A location within the factory where previous parties remain trapped.\",\n      \"evidence\": \"They're still in the east gallery.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ],\n  \"objects\": [\n    {\n      \"name\": \"Concern-made lamp\",\n      \"role\": \"\",\n      \"kind\": \"Artifact\",\n      \"oneLiner\": \"\",\n      \"note\": \"A brass lamp that has been unnaturally tuned to a specific frequency.\",\n      \"evidence\": \"It was a good lamp — Concern-made\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Gran's bead\",\n      \"role\": \"\",\n      \"kind\": \"Charm\",\n      \"oneLiner\": \"\",\n      \"note\": \"A river-worn charm worn by Nettle around her throat.\",\n      \"evidence\": \"My gran's bead.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch1\",\n          \"num\": 1,\n          \"title\": \"Brass Rank\"\n        }\n      ]\n    },\n    {\n      \"name\": \"the fork\",\n      \"role\": \"\",\n      \"kind\": \"artifact\",\n      \"oneLiner\": \"\",\n      \"note\": \"A grey steel device that has begun screaming and reacting violently to the Fold.\",\n      \"evidence\": \"The fork in her satchel—wrapped, deaf enough, silent for a decade\",\n      \"aliases\": [\n        \"the resonance fork\"\n      ],\n      \"originChapters\": [\n        {\n          \"id\": \"ch2\",\n          \"num\": 2,\n          \"title\": \"Bigger Inside\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Nine\",\n      \"role\": \"\",\n      \"kind\": \"Historical Entity\",\n      \"oneLiner\": \"\",\n      \"note\": \"A historical event or group whose arrival marked a significant turning point.\",\n      \"evidence\": \"the year the Nine came down.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"The Sundering\",\n      \"role\": \"\",\n      \"kind\": \"Historical Event\",\n      \"oneLiner\": \"\",\n      \"note\": \"The historical breaking of the Whole into separate Facets.\",\n      \"evidence\": \"The histories in the Cloister call it the Sundering.\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    },\n    {\n      \"name\": \"Lumen-well\",\n      \"role\": \"\",\n      \"kind\": \"Industrial Structure\",\n      \"oneLiner\": \"\",\n      \"note\": \"A shaft dug by the Concern to tap into lumen.\",\n      \"evidence\": \"if you built a manufactory over that spot and dug a lumen-well deep enough\",\n      \"aliases\": [],\n      \"originChapters\": [\n        {\n          \"id\": \"ch3\",\n          \"num\": 3,\n          \"title\": \"The Same Hour\"\n        }\n      ]\n    }\n  ]\n}",
+  "outputChars": 5336,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "counts": {
+      "characters": 2,
+      "locations": 4,
+      "objects": 6
+    },
+    "scanned": 3,
+    "totalChapters": 3,
+    "skipped": [],
+    "cancelled": false,
+    "chapterIds": [
+      "ch1",
+      "ch2",
+      "ch3"
+    ],
+    "chapterCap": 3
+  },
+  "error": null
+}

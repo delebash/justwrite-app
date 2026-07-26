@@ -1,0 +1,108 @@
+{
+  "runId": "2026-07-26_09-15-04-gpu",
+  "leg": "gpu-styletune",
+  "model": "gryphe-styletune-v2",
+  "attempt": 1,
+  "args": {
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "critique",
+    "action": "critique",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "critique",
+  "ok": true,
+  "started": "2026-07-26T09:18:41.632Z",
+  "label": "Chapter critique",
+  "wallMs": 28355,
+  "ttftMs": null,
+  "output": "{\n  \"notes\": [\n    {\n      \"severity\": \"info\",\n      \"category\": \"voice\",\n      \"message\": \"The prose has a lovely, melancholic texture, particularly in the opening metaphor about the lamp lying 'beautifully.'\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"opening\",\n      \"message\": \"The first line 'A lamp that will not lie' feels like a stray title fragment that hasn't been integrated into the prose.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"characterization\",\n      \"message\": \"Cael's 'sensory' magic—the pressure under the back teeth—is a strong, physical way to establish her abilities without exposition.\"\n    },\n    {\n      \"severity\": \"flag\",\n      \"category\": \"clarity\",\n      \"message\": \"The transition between scenes uses asterisks but lacks clear spatial distinction between the shop, the Hall, and the walk home.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"dialogue\",\n      \"message\": \"Brick's dialogue ('We eat brass wages') is excellent, but Iven's opening lines feel slightly generic compared to the rest of the cast.\"\n    },\n    {\n      \"severity\": \"info\",\n      \"category\": \"setting\",\n      \"message\": \"The 'lumen-cell' and 'Concern-made' details establish the world's technology and social hierarchy effectively through small details.\"\n    },\n    {\n      \"severity\": \"flag\",\n      \"category\": \"pacing\",\n      \"message\": \"The internal monologue during the walk with Nettle ('Because you and I are the same...') is a bit heavy-handed for a first chapter reveal.\"\n    },\n    {\n      \"severity\": \"suggest\",\n      \"category\": \"show-don't-tell\",\n      \"message\": \"Instead of stating Nettle disappeared 'faster than a person could go,' let her physical movement alone convey the supernatural slip.\"\n    }\n  ]\n}",
+  "outputChars": 1775,
+  "usage": null,
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "chapterNum": 1,
+    "chapterWords": 2600,
+    "noteCount": 8,
+    "notes": [
+      {
+        "id": "note_ms1l6co3_0",
+        "severity": "info",
+        "category": "voice",
+        "message": "The prose has a lovely, melancholic texture, particularly in the opening metaphor about the lamp lying 'beautifully.'"
+      },
+      {
+        "id": "note_ms1l6co3_1",
+        "severity": "suggest",
+        "category": "opening",
+        "message": "The first line 'A lamp that will not lie' feels like a stray title fragment that hasn't been integrated into the prose."
+      },
+      {
+        "id": "note_ms1l6co3_2",
+        "severity": "info",
+        "category": "characterization",
+        "message": "Cael's 'sensory' magic—the pressure under the back teeth—is a strong, physical way to establish her abilities without exposition."
+      },
+      {
+        "id": "note_ms1l6co3_3",
+        "severity": "flag",
+        "category": "clarity",
+        "message": "The transition between scenes uses asterisks but lacks clear spatial distinction between the shop, the Hall, and the walk home."
+      },
+      {
+        "id": "note_ms1l6co3_4",
+        "severity": "suggest",
+        "category": "dialogue",
+        "message": "Brick's dialogue ('We eat brass wages') is excellent, but Iven's opening lines feel slightly generic compared to the rest of the cast."
+      },
+      {
+        "id": "note_ms1l6co3_5",
+        "severity": "info",
+        "category": "setting",
+        "message": "The 'lumen-cell' and 'Concern-made' details establish the world's technology and social hierarchy effectively through small details."
+      },
+      {
+        "id": "note_ms1l6co3_6",
+        "severity": "flag",
+        "category": "pacing",
+        "message": "The internal monologue during the walk with Nettle ('Because you and I are the same...') is a bit heavy-handed for a first chapter reveal."
+      },
+      {
+        "id": "note_ms1l6co3_7",
+        "severity": "suggest",
+        "category": "show-don't-tell",
+        "message": "Instead of stating Nettle disappeared 'faster than a person could go,' let her physical movement alone convey the supernatural slip."
+      }
+    ],
+    "model": "gryphe-styletune-v2"
+  },
+  "error": null
+}

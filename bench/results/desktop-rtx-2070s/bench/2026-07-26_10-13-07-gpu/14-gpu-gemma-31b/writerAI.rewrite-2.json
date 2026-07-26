@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-26_10-13-07-gpu",
+  "leg": "gpu-gemma-31b",
+  "model": "gemma-4-31b-qat",
+  "attempt": 2,
+  "args": {
+    "passageChars": 1200,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-31b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.rewrite",
+    "action": "writerAI.rewrite",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-31b-qat",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.rewrite",
+  "ok": true,
+  "started": "2026-07-26T10:50:08.179Z",
+  "label": "Rewrite",
+  "wallMs": 133535,
+  "ttftMs": 1518,
+  "output": "\"The ones on the roofs, the one over the Cutwater last spring—six feet of open air, and you were on the far side of it before you jumped.\"\n\nNettle's stride hitched, a microscopic fracture in her poise, the first ungraceful thing Cael had ever seen her do. \"Luck,\" she said. \"Good feet. My gran's bead.\" She touched the river-worn charm at her throat, a reflex so ingrained she plainly didn't know she was doing it. \"Why?\"\n\n\"No reason. Long day.\" *Because you and I are the same*, Cael did not say. *Because whatever you feel when you cross a gap that isn't there, I feel when I press my palm to a lamp listening to something under the world, and neither of us is supposed to, and one of us has learned to hide it while the other hasn't noticed she has anything to hide.*\n\nThey walked. The token hummed against her hip. Somewhere behind them, a soft, cold-blue lamp caught the edge of the vibration and guttered once, then steadied, telling no one anything.\n\n\"Ash District tomorrow,\" Nettle said at the door of the glimmerworks. She flashed a grin and was gone before Cael's key had even found the lock—not vanished, nothing so grand, just around a corner faster than a person could go, slipping into a gap in the evening that closed behind her like water.",
+  "outputChars": 1255,
+  "usage": {
+    "promptTokens": 420,
+    "completionTokens": 307,
+    "model": "gemma-4-31b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 1200
+  },
+  "error": null
+}

@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-26_09-15-04-gpu",
+  "leg": "gpu-uncensored-ez",
+  "model": "gemma-4-26b-a4b-uncensored-ez",
+  "attempt": 1,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-uncensored-ez",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-uncensored-ez",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-26T09:30:33.986Z",
+  "label": "Continue",
+  "wallMs": 10408,
+  "ttftMs": 2025,
+  "output": "Cael stood in the threshold, the silence of the hallway pressing against her ears where Nettle's presence had been a second before. The token was a frantic, rhythmic vibration now, a pulse that seemed to sync with the thudding of her own heart. She fumbled with the key, her fingers slick with the sudden, cold sweat of anticipation.\n\nShe entered the room and did not turn on the lamps. The darkness was thick and smelled of ozone and stale grease, a familiar weight that usually brought rest. Tonight, it felt like a shroud. She sat on the edge of her cot, the frame creaking under her weight, and pulled the token from her pocket.\n\nIt glowed with a faint, sickly pallor, a light that didn't illuminate the room so much as it bruised the shadows. Cael stared at it, waiting for the hum to settle, waiting for the sensation of something watching from the corners of the ceiling to pass. But the token only grew warmer, its vibration turning into a low, rhythmic thrum that vibrated through her bones, as if the thing beneath the world was finally answering her.",
+  "outputChars": 1061,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 234,
+    "model": "gemma-4-26b-a4b-uncensored-ez",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

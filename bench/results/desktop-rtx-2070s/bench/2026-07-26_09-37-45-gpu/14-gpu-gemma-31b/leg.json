@@ -1,0 +1,710 @@
+{
+  "leg": {
+    "label": "Gemma 4 31B dense — QUALITY probe on the 8 GB card (the 24 GB tier's default question)",
+    "gguf": "",
+    "repo": "",
+    "tunables": {
+      "temperature": 0.7,
+      "think": false
+    },
+    "launch": {},
+    "llamaBench": {
+      "p": [
+        512,
+        2048
+      ],
+      "n": 128,
+      "reps": 2
+    },
+    "features": null,
+    "repeats": null,
+    "timeoutMinutes": null,
+    "featureArgs": null,
+    "id": "gpu-gemma-31b",
+    "_why": [
+      "BEST-EFFORT (flagged 2026-07-24): a 31B dense (~17.3 GB) on an 8 GB card runs mostly",
+      "on CPU via computed partial offload — expect single-digit tok/s and LONG walls. That",
+      "is fine: QUALITY is speed-independent, and this leg's captures are what decide whether",
+      "the 31B earns the 24 GB-tier default over the 26B MoE ('Writing rank pending a Lab A/B",
+      "against the 26B-A4B' — its own seed note). Speed on a real 24 GB card is NOT measured",
+      "here (fully-resident dense will be far faster); the fit engine's honest partial-offload",
+      "number is still recorded by llamaBench. If the load refuses outright, this leg fails",
+      "loudly — fall back to a manual llama-cli probe and tell the planner. ~17.3 GB download."
+    ],
+    "model": "gemma-4-31b-qat",
+    "effectiveFeatures": [
+      "chat",
+      "characterChat",
+      "entitySweep",
+      "critique",
+      "writerAI.continue",
+      "writerAI.rewrite"
+    ],
+    "effectiveRepeats": 2,
+    "effectiveTimeoutMs": 1200000,
+    "effectiveFeatureArgs": {
+      "chat": {
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6
+      },
+      "characterChat": {
+        "question": "What do you want most right now, and what are you afraid of?"
+      },
+      "writerAI.continue": {
+        "passageChars": 2000
+      },
+      "writerAI.rewrite": {
+        "passageChars": 1200
+      }
+    }
+  },
+  "runId": "2026-07-26_09-37-45-gpu",
+  "band": "gpu",
+  "fingerprint": "5baa081de2a6",
+  "env": {
+    "engineBuild": "b10107",
+    "engineGpu": "cuda12",
+    "appSha": "f83ff14",
+    "cpu": "AMD Ryzen 7 5700X 8-Core Processor             ",
+    "gpus": [
+      {
+        "name": "NVIDIA GeForce RTX 2070 SUPER",
+        "totalMb": 8192,
+        "driver": "610.62"
+      }
+    ],
+    "book": "prj_sample_ninth_facet"
+  },
+  "startedAt": "2026-07-26T09:39:22.970Z",
+  "runs": [
+    {
+      "featureKey": "chat",
+      "ok": true,
+      "started": "2026-07-26T09:41:17.903Z",
+      "label": "Ask the book",
+      "wallMs": 121920,
+      "ttftMs": 13435,
+      "outputChars": 896,
+      "usage": {
+        "promptTokens": 1915,
+        "completionTokens": 225,
+        "model": "gemma-4-31b-qat",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6,
+        "citations": [
+          {
+            "index": 1,
+            "chunkId": "card:architecture:premise",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 2,
+            "chunkId": "card:cast:main",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 3,
+            "chunkId": "card:architecture:fabula",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 4,
+            "chunkId": "card:architecture:setting",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 5,
+            "chunkId": "card:character:c1:p1",
+            "score": 0.4046409220352502,
+            "pinned": false
+          },
+          {
+            "index": 6,
+            "chunkId": "card:character:c2:p1",
+            "score": 0.2725526197695046,
+            "pinned": false
+          },
+          {
+            "index": 7,
+            "chunkId": "ch2:scn_ch2_1:p3",
+            "score": 0.2776880420838002,
+            "pinned": false
+          },
+          {
+            "index": 8,
+            "chunkId": "ch3:scn_ch3_3:p3",
+            "score": 0.2756802664055923,
+            "pinned": false
+          },
+          {
+            "index": 9,
+            "chunkId": "ch2:scn_ch2_2:p3",
+            "score": 0.26056512058017317,
+            "pinned": false
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "featureKey": "chat",
+      "ok": true,
+      "started": "2026-07-26T09:43:19.847Z",
+      "label": "Ask the book",
+      "wallMs": 98148,
+      "ttftMs": 1247,
+      "outputChars": 834,
+      "usage": {
+        "promptTokens": 1915,
+        "completionTokens": 211,
+        "model": "gemma-4-31b-qat",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What is this book about, and who is the protagonist?",
+        "k": 6,
+        "citations": [
+          {
+            "index": 1,
+            "chunkId": "card:architecture:premise",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 2,
+            "chunkId": "card:cast:main",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 3,
+            "chunkId": "card:architecture:fabula",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 4,
+            "chunkId": "card:architecture:setting",
+            "score": 0,
+            "pinned": true
+          },
+          {
+            "index": 5,
+            "chunkId": "card:character:c1:p1",
+            "score": 0.40643981012042685,
+            "pinned": false
+          },
+          {
+            "index": 6,
+            "chunkId": "card:character:c2:p1",
+            "score": 0.2732401512947909,
+            "pinned": false
+          },
+          {
+            "index": 7,
+            "chunkId": "ch2:scn_ch2_1:p3",
+            "score": 0.27918828994589406,
+            "pinned": false
+          },
+          {
+            "index": 8,
+            "chunkId": "ch3:scn_ch3_3:p3",
+            "score": 0.2777417769523724,
+            "pinned": false
+          },
+          {
+            "index": 9,
+            "chunkId": "ch2:scn_ch2_2:p3",
+            "score": 0.2615118545781219,
+            "pinned": false
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "featureKey": "characterChat",
+      "ok": true,
+      "started": "2026-07-26T09:44:57.998Z",
+      "label": "Character chat",
+      "wallMs": 87472,
+      "ttftMs": 17290,
+      "outputChars": 506,
+      "usage": {
+        "promptTokens": 2565,
+        "completionTokens": 130,
+        "model": "gemma-4-31b-qat",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What do you want most right now, and what are you afraid of?",
+        "k": 6,
+        "characterId": "c1",
+        "character": "Cael Ferren",
+        "citationCount": 6
+      },
+      "error": null
+    },
+    {
+      "featureKey": "characterChat",
+      "ok": true,
+      "started": "2026-07-26T09:46:25.472Z",
+      "label": "Character chat",
+      "wallMs": 105633,
+      "ttftMs": 1221,
+      "outputChars": 700,
+      "usage": {
+        "promptTokens": 2565,
+        "completionTokens": 183,
+        "model": "gemma-4-31b-qat",
+        "cost": 0
+      },
+      "flags": [
+        "temperature-fixed-by-caller"
+      ],
+      "extra": {
+        "bibleOnly": false,
+        "question": "What do you want most right now, and what are you afraid of?",
+        "k": 6,
+        "characterId": "c1",
+        "character": "Cael Ferren",
+        "citationCount": 6
+      },
+      "error": null
+    },
+    {
+      "featureKey": "entitySweep",
+      "ok": true,
+      "started": "2026-07-26T09:48:11.108Z",
+      "label": "Entity sweep",
+      "wallMs": 512919,
+      "ttftMs": 218959,
+      "outputChars": 5695,
+      "usage": null,
+      "flags": [],
+      "extra": {
+        "counts": {
+          "characters": 3,
+          "locations": 6,
+          "objects": 4
+        },
+        "scanned": 3,
+        "totalChapters": 3,
+        "skipped": [],
+        "cancelled": false,
+        "chapterIds": [
+          "ch1",
+          "ch2",
+          "ch3"
+        ],
+        "chapterCap": 3
+      },
+      "error": null
+    },
+    {
+      "featureKey": "entitySweep",
+      "ok": true,
+      "started": "2026-07-26T09:56:44.029Z",
+      "label": "Entity sweep",
+      "wallMs": 465111,
+      "ttftMs": 162875,
+      "outputChars": 5363,
+      "usage": null,
+      "flags": [],
+      "extra": {
+        "counts": {
+          "characters": 3,
+          "locations": 5,
+          "objects": 4
+        },
+        "scanned": 3,
+        "totalChapters": 3,
+        "skipped": [],
+        "cancelled": false,
+        "chapterIds": [
+          "ch1",
+          "ch2",
+          "ch3"
+        ],
+        "chapterCap": 3
+      },
+      "error": null
+    },
+    {
+      "featureKey": "critique",
+      "ok": false,
+      "started": "2026-07-26T10:04:29.143Z",
+      "label": "Chapter critique",
+      "wallMs": 5328,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "error"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "Couldn't reach the LLM. network error"
+    },
+    {
+      "featureKey": "critique",
+      "ok": false,
+      "started": "2026-07-26T10:04:34.477Z",
+      "label": "Chapter critique",
+      "wallMs": 2296,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "error"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "Couldn't reach the LLM. Failed to fetch"
+    },
+    {
+      "featureKey": "writerAI.continue",
+      "ok": false,
+      "started": "2026-07-26T10:04:36.849Z",
+      "label": "Continue",
+      "wallMs": 1670,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "error"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "Couldn't reach the LLM. Failed to fetch"
+    },
+    {
+      "featureKey": "writerAI.continue",
+      "ok": false,
+      "started": "2026-07-26T10:04:38.520Z",
+      "label": "Continue",
+      "wallMs": 348,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "error"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "Couldn't reach the LLM. Failed to fetch"
+    },
+    {
+      "featureKey": "writerAI.rewrite",
+      "ok": false,
+      "started": "2026-07-26T10:04:38.871Z",
+      "label": "Rewrite",
+      "wallMs": 1663,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "error"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "Couldn't reach the LLM. Failed to fetch"
+    },
+    {
+      "featureKey": "writerAI.rewrite",
+      "ok": false,
+      "started": "2026-07-26T10:04:40.536Z",
+      "label": "Rewrite",
+      "wallMs": 366,
+      "ttftMs": null,
+      "outputChars": 0,
+      "usage": null,
+      "flags": [
+        "error"
+      ],
+      "extra": {
+        "timeoutMs": 1200000
+      },
+      "error": "Couldn't reach the LLM. Failed to fetch"
+    }
+  ],
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-31b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "load": {
+    "ok": true,
+    "waitedMs": 23436,
+    "model": {
+      "id": "gemma-4-31b-qat",
+      "status": "loaded",
+      "nParams": 30697345596,
+      "sizeBytes": 17271834864,
+      "nCtx": 4096,
+      "vramMb": 549
+    },
+    "resident": {
+      "router": true,
+      "modelsMax": 2,
+      "sleepIdleSeconds": 900,
+      "vramTotalMb": 8192,
+      "committedMb": 1250,
+      "remainingMb": 6942,
+      "models": [
+        {
+          "id": "gemma-4-12b-qat",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "gemma-4-26b-a4b-qat",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "gemma-4-26b-a4b-uncensored-ez",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "gemma-4-31b-qat",
+          "status": "loaded",
+          "nParams": 30697345596,
+          "sizeBytes": 17271834864,
+          "nCtx": 4096,
+          "vramMb": 549
+        },
+        {
+          "id": "gryphe-styletune-v2",
+          "status": "unloaded",
+          "nParams": null,
+          "sizeBytes": null,
+          "nCtx": null,
+          "vramMb": null
+        },
+        {
+          "id": "qwen3-embedding-4b",
+          "status": "loaded",
+          "nParams": 4021774336,
+          "sizeBytes": 2490754804,
+          "nCtx": 8192,
+          "vramMb": 701
+        }
+      ]
+    }
+  },
+  "measure": {
+    "ok": true,
+    "modelId": "gemma-4-31b-qat",
+    "tokensPerSec": 2.1,
+    "completionTokens": 192,
+    "ms": 91188,
+    "vramTotalMb": 8192,
+    "ramTotalMb": 32692,
+    "draftN": 171,
+    "draftNAccepted": 105,
+    "draftAcceptance": 0.614
+  },
+  "routes": {
+    "chat": {
+      "feature": "chat",
+      "action": "chat",
+      "providerId": "local-llamacpp",
+      "model": "gemma-4-31b-qat",
+      "presetId": "9702aec5c31a",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "characterChat": {
+      "feature": "characterChat",
+      "action": "characterChat",
+      "providerId": "local-llamacpp",
+      "model": "gemma-4-31b-qat",
+      "presetId": "9702aec5c31a",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "entitySweep": {
+      "feature": "entitySweep",
+      "action": "entitySweep",
+      "providerId": "local-llamacpp",
+      "model": "gemma-4-31b-qat",
+      "presetId": "9702aec5c31a",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "critique": {
+      "feature": "critique",
+      "action": "critique",
+      "providerId": "local-llamacpp",
+      "model": "gemma-4-31b-qat",
+      "presetId": "9702aec5c31a",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "writerAI.continue": {
+      "feature": "writerAI.continue",
+      "action": "writerAI.continue",
+      "providerId": "local-llamacpp",
+      "model": "gemma-4-31b-qat",
+      "presetId": "9702aec5c31a",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    },
+    "writerAI.rewrite": {
+      "feature": "writerAI.rewrite",
+      "action": "writerAI.rewrite",
+      "providerId": "local-llamacpp",
+      "model": "gemma-4-31b-qat",
+      "presetId": "9702aec5c31a",
+      "presetName": "Bench",
+      "presetSource": "assigned",
+      "think": false,
+      "level": "",
+      "reasoningWord": "",
+      "value": null,
+      "valueSource": "",
+      "configured": true,
+      "detail": ""
+    }
+  },
+  "engineQuiet": {
+    "quiet": true,
+    "waitedMs": 552,
+    "lastRssMb": null
+  },
+  "llamaBench": {
+    "ok": true,
+    "args": [
+      "-m",
+      "E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--unsloth--gemma-4-31B-it-qat-GGUF\\snapshots\\43cc1aeb31adf47ec06a854507ce552cd9862e6f\\gemma-4-31B-it-qat-UD-Q4_K_XL.gguf",
+      "-p",
+      "512,2048",
+      "-n",
+      "128",
+      "-r",
+      "2",
+      "-o",
+      "json"
+    ],
+    "retriedWithout": [],
+    "exitCode": 0,
+    "timedOut": false,
+    "wallMs": 390136,
+    "format": "json",
+    "rows": [
+      {
+        "test": "pp512",
+        "tokensPerSec": 60.330433,
+        "stddev": 0.132845,
+        "model": "E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--unsloth--gemma-4-31B-it-qat-GGUF\\snapshots\\43cc1aeb31adf47ec06a854507ce552cd9862e6f\\gemma-4-31B-it-qat-UD-Q4_K_XL.gguf"
+      },
+      {
+        "test": "pp2048",
+        "tokensPerSec": 49.112534,
+        "stddev": 0.2835,
+        "model": "E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--unsloth--gemma-4-31B-it-qat-GGUF\\snapshots\\43cc1aeb31adf47ec06a854507ce552cd9862e6f\\gemma-4-31B-it-qat-UD-Q4_K_XL.gguf"
+      },
+      {
+        "test": "tg128",
+        "tokensPerSec": 1.232413,
+        "stddev": 0.000197,
+        "model": "E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--unsloth--gemma-4-31B-it-qat-GGUF\\snapshots\\43cc1aeb31adf47ec06a854507ce552cd9862e6f\\gemma-4-31B-it-qat-UD-Q4_K_XL.gguf"
+      }
+    ],
+    "derived": {
+      "ttft512Ms": 8487,
+      "ttft2048Ms": 41700
+    },
+    "error": null,
+    "stdout": "[\r\n  {\r\n    \"build_commit\": \"c0bc8591e\",\r\n    \"build_number\": 10107,\r\n    \"cpu_info\": \"AMD Ryzen 7 5700X 8-Core Processor             \",\r\n    \"gpu_info\": \"NVIDIA GeForce RTX 2070 SUPER\",\r\n    \"backends\": \"CUDA\",\r\n    \"model_filename\": \"E:\\\\Dev\\\\Web\\\\justwrite-app\\\\src-tauri\\\\target\\\\debug\\\\data\\\\ai-cache\\\\hf\\\\models--unsloth--gemma-4-31B-it-qat-GGUF\\\\snapshots\\\\43cc1aeb31adf47ec06a854507ce552cd9862e6f\\\\gemma-4-31B-it-qat-UD-Q4_K_XL.gguf\",\r\n    \"model_type\": \"gemma4 31B Q4_0\",\r\n    \"model_size\": 17271834864,\r\n    \"model_n_params\": 30697345596,\r\n    \"n_batch\": 2048,\r\n    \"n_ubatch\": 512,\r\n    \"n_threads\": 8,\r\n    \"cpu_mask\": \"0x0\",\r\n    \"cpu_strict\": false,\r\n    \"poll\": 50,\r\n    \"type_k\": \"f16\",\r\n    \"type_v\": \"f16\",\r\n    \"n_gpu_layers\": -1,\r\n    \"n_cpu_moe\": 0,\r\n    \"split_mode\": \"layer\",\r\n    \"main_gpu\": 0,\r\n    \"no_kv_offload\": false,\r\n    \"flash_attn\": -1,\r\n    \"devices\": \"auto\",\r\n    \"tensor_split\": \"0.00\",\r\n    \"tensor_buft_overrides\": \"none\",\r\n    \"load_mode\": \"mmap\",\r\n    \"embeddings\": false,\r\n    \"no_op_offload\": 0,\r\n    \"no_host\": false,\r\n    \"fit_target\": 0,\r\n    \"fit_min_ctx\": 0,\r\n    \"n_prompt\": 512,\r\n    \"n_gen\": 0,\r\n    \"n_depth\": 0,\r\n    \"test_time\": \"2026-07-26T10:05:07Z\",\r\n    \"avg_ns\": 8486616450,\r\n    \"stddev_ns\": 18687205,\r\n    \"avg_ts\": 60.330433,\r\n    \"stddev_ts\": 0.132845,\r\n    \"samples_ns\": [ 8499830300, 8473402600 ],\r\n    \"samples_ts\": [ 60.2365, 60.4244 ]\r\n  },\r\n  {\r\n    \"build_commit\": \"c0bc8591e\",\r\n    \"build_number\": 10107,\r\n    \"cpu_info\": \"AMD Ryzen 7 5700X 8-Core Processor             \",\r\n    \"gpu_info\": \"NVIDIA GeForce RTX 2070 SUPER\",\r\n    \"backends\": \"CUDA\",\r\n    \"model_filename\": \"E:\\\\Dev\\\\Web\\\\justwrite-app\\\\src-tauri\\\\target\\\\debug\\\\data\\\\ai-cache\\\\hf\\\\models--unsloth--gemma-4-31B-it-qat-GGUF\\\\snapshots\\\\43cc1aeb31adf47ec06a854507ce552cd9862e6f\\\\gemma-4-31B-it-qat-UD-Q4_K_XL.gguf\",\r\n    \"model_type\": \"gemma4 31B Q4_0\",\r\n    \"model_size\": 17271834864,\r\n    \"model_n_params\": 30697345596,\r\n    \"n_batch\": 2048,\r\n    \"n_ubatch\": 512,\r\n    \"n_threads\": 8,\r\n    \"cpu_mask\": \"0x0\",\r\n    \"cpu_strict\": false,\r\n    \"poll\": 50,\r\n    \"type_k\": \"f16\",\r\n    \"type_v\": \"f16\",\r\n    \"n_gpu_layers\": -1,\r\n    \"n_cpu_moe\": 0,\r\n    \"split_mode\": \"layer\",\r\n    \"main_gpu\": 0,\r\n    \"no_kv_offload\": false,\r\n    \"flash_attn\": -1,\r\n    \"devices\": \"auto\",\r\n    \"tensor_split\": \"0.00\",\r\n    \"tensor_buft_overrides\": \"none\",\r\n    \"load_mode\": \"mmap\",\r\n    \"embeddings\": false,\r\n    \"no_op_offload\": 0,\r\n    \"no_host\": false,\r\n    \"fit_target\": 0,\r\n    \"fit_min_ctx\": 0,\r\n    \"n_prompt\": 2048,\r\n    \"n_gen\": 0,\r\n    \"n_depth\": 0,\r\n    \"test_time\": \"2026-07-26T10:05:34Z\",\r\n    \"avg_ns\": 41700843800,\r\n    \"stddev_ns\": 240715977,\r\n    \"avg_ts\": 49.112534,\r\n    \"stddev_ts\": 0.283500,\r\n    \"samples_ns\": [ 41530631900, 41871055700 ],\r\n    \"samples_ts\": [ 49.313, 48.9121 ]\r\n  },\r\n  {\r\n    \"build_commit\": \"c0bc8591e\",\r\n    \"build_number\": 10107,\r\n    \"cpu_info\": \"AMD Ryzen 7 5700X 8-Core Processor             \",\r\n    \"gpu_info\": \"NVIDIA GeForce RTX 2070 SUPER\",\r\n    \"backends\": \"CUDA\",\r\n    \"model_filename\": \"E:\\\\Dev\\\\Web\\\\justwrite-app\\\\src-tauri\\\\target\\\\debug\\\\data\\\\ai-cache\\\\hf\\\\models--unsloth--gemma-4-31B-it-qat-GGUF\\\\snapshots\\\\43cc1aeb31adf47ec06a854507ce552cd9862e6f\\\\gemma-4-31B-it-qat-UD-Q4_K_XL.gguf\",\r\n    \"model_type\": \"gemma4 31B Q4_0\",\r\n    \"model_size\": 17271834864,\r\n    \"model_n_params\": 30697345596,\r\n    \"n_batch\": 2048,\r\n    \"n_ubatch\": 512,\r\n    \"n_threads\": 8,\r\n    \"cpu_mask\": \"0x0\",\r\n    \"cpu_strict\": false,\r\n    \"poll\": 50,\r\n    \"type_k\": \"f16\",\r\n    \"type_v\": \"f16\",\r\n    \"n_gpu_layers\": -1,\r\n    \"n_cpu_moe\": 0,\r\n    \"split_mode\": \"layer\",\r\n    \"main_gpu\": 0,\r\n    \"no_kv_offload\": false,\r\n    \"flash_attn\": -1,\r\n    \"devices\": \"auto\",\r\n    \"tensor_split\": \"0.00\",\r\n    \"tensor_buft_overrides\": \"none\",\r\n    \"load_mode\": \"mmap\",\r\n    \"embeddings\": false,\r\n    \"no_op_offload\": 0,\r\n    \"no_host\": false,\r\n    \"fit_target\": 0,\r\n    \"fit_min_ctx\": 0,\r\n    \"n_prompt\": 0,\r\n    \"n_gen\": 128,\r\n    \"n_depth\": 0,\r\n    \"test_time\": \"2026-07-26T10:07:39Z\",\r\n    \"avg_ns\": 103861297900,\r\n    \"stddev_ns\": 16594381,\r\n    \"avg_ts\": 1.232413,\r\n    \"stddev_ts\": 0.000197,\r\n    \"samples_ns\": [ 103849563900, 103873031900 ],\r\n    \"samples_ts\": [ 1.23255, 1.23227 ]\r\n  }\r\n]\r\n",
+    "stderr": "ggml_cuda_init: found 1 CUDA devices (Total VRAM: 8191 MiB):\r\n  Device 0: NVIDIA GeForce RTX 2070 SUPER, compute capability 7.5, VMM: yes, VRAM: 8191 MiB\r\nload_backend: loaded CUDA backend from E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\llamacpp\\b10107\\cuda12\\ggml-cuda.dll\r\nload_backend: loaded RPC backend from E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\llamacpp\\b10107\\cuda12\\ggml-rpc.dll\r\nload_backend: loaded CPU backend from E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\llamacpp\\b10107\\cuda12\\ggml-cpu-haswell.dll\r\n",
+    "gguf": "gemma-4-31B-it-qat-UD-Q4_K_XL.gguf",
+    "ggufPath": "E:\\Dev\\Web\\justwrite-app\\src-tauri\\target\\debug\\data\\ai-cache\\hf\\models--unsloth--gemma-4-31B-it-qat-GGUF\\snapshots\\43cc1aeb31adf47ec06a854507ce552cd9862e6f\\gemma-4-31B-it-qat-UD-Q4_K_XL.gguf"
+  },
+  "peaks": {
+    "peakVramMb": 7720,
+    "peakRssMb": 24989,
+    "samples": 952
+  },
+  "finishedAt": "2026-07-26T10:11:11.606Z"
+}

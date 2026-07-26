@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-26_09-15-04-gpu",
+  "leg": "gpu-uncensored-ez",
+  "model": "gemma-4-26b-a4b-uncensored-ez",
+  "attempt": 2,
+  "args": {
+    "passageChars": 1200,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-26b-a4b-uncensored-ez",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.rewrite",
+    "action": "writerAI.rewrite",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-26b-a4b-uncensored-ez",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.rewrite",
+  "ok": true,
+  "started": "2026-07-26T09:31:07.321Z",
+  "label": "Rewrite",
+  "wallMs": 11030,
+  "ttftMs": 231,
+  "output": "\"the ones on the roofs, the one over the Cutwater last spring—six feet of nothing but empty air, and you were on the far side of it before you even realized you'd jumped.\"\n\nNettle's stride hitched, a microscopic tremor, the first ungraceful movement Cael had ever seen her make. \"Luck,\" she said. \"Good feet. My gran's bead.\" She fingered the river-worn charm at her throat, a reflex so ingrained she didn't even seem to notice the movement. \"Why.\"\n\n\"No reason. Long day.\" Because you and I are the same, Cael did not say. Because whatever vertigo you feel when you cross a gap that isn't there, I feel when I press my palm against a lamp that's listening to something beneath the world; and neither of us is supposed to be able to, and one of us has learned to mask it while the other hasn't even realized she has anything to hide.\n\nThey walked. The token hummed a low, rhythmic vibration against her hip. Somewhere behind them, a soft, cobalt lamp caught the glint of the charm; it guttered once, a dying spark, then steadied itself, offering no secrets to the dark.\n\n\"Ash District tomorrow,\" Nettle said, leaning against the doorframe of the glimmerworks. She flashed a grin and was gone before Cael could turn the key in the lock—not a disappearance, nothing so theatrical, just a movement around a corner faster than a human should manage, slipping into a seam in the evening that closed behind her like water.",
+  "outputChars": 1415,
+  "usage": {
+    "promptTokens": 420,
+    "completionTokens": 335,
+    "model": "gemma-4-26b-a4b-uncensored-ez",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 1200
+  },
+  "error": null
+}

@@ -1,0 +1,109 @@
+{
+  "runId": "2026-07-26_09-15-04-gpu",
+  "leg": "gpu-styletune-hq2",
+  "model": "gryphe-styletune-v2",
+  "attempt": 1,
+  "args": {
+    "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+    "k": 6,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gryphe-styletune-v2",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "chat",
+    "action": "chat",
+    "providerId": "local-llamacpp",
+    "model": "gryphe-styletune-v2",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "chat",
+  "ok": true,
+  "started": "2026-07-26T09:26:40.870Z",
+  "label": "Ask the book",
+  "wallMs": 19553,
+  "ttftMs": 5160,
+  "output": "The three earlier parties never left Manufactory Nine because they were trapped in a temporal loop that lasts approximately one hour [2]. When the loop ends, anyone inside who cannot \"feel\" the loop forgets the entire turn and begins the hour again fresh [2]. Because the loop resets before these parties can exit, they continue to walk into the factory every hour, effectively trapped for nine years without realizing they have never left [2].\n\nThe mechanism behind this phenomenon is as follows:\n*   **Cause:** The Lumen Concern attempted to dig for lumen and instead struck \"the Whole,\" causing space to fold and time to become caught [5]. This resulted in the building collapsing during the first turn of the loop, a collapse that has repeated every turn since [5].\n*   **The Loop:** The loop begins when someone crosses the threshold and ends after less than an hour [2]. Inside the loop, time does not pass on the outside; the interior exists as a single hour that simply turns and repeats [3].\n*   **Memory and Resetting:** The loop resets everyone who is unable to \"hold the deep Facets back\" to the top of the stairs, causing them to forget previous attempts [7]. Odeline Marran is able to remember every turn because she is one of the few who can resist this reset; she has been living the same hour for nine years, watching the shaft fold and unfold enough times to know the timing of the loop to the breath [6, 7].",
+  "outputChars": 1426,
+  "usage": {
+    "promptTokens": 2039,
+    "completionTokens": 306,
+    "model": "gryphe-styletune-v2",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
+    "k": 6,
+    "citations": [
+      {
+        "index": 1,
+        "chunkId": "card:location:l4",
+        "score": 0,
+        "pinned": true
+      },
+      {
+        "index": 2,
+        "chunkId": "ch3:scn_ch3_1:p3",
+        "score": 0.608908312600809,
+        "pinned": false
+      },
+      {
+        "index": 3,
+        "chunkId": "ch4:scn_ch4_3:p1",
+        "score": 0.6045136887932692,
+        "pinned": false
+      },
+      {
+        "index": 4,
+        "chunkId": "ch2:scn_ch2_2:p1",
+        "score": 0.6021205789986583,
+        "pinned": false
+      },
+      {
+        "index": 5,
+        "chunkId": "ch3:scn_ch3_3:p2",
+        "score": 0.5300476281294432,
+        "pinned": false
+      },
+      {
+        "index": 6,
+        "chunkId": "card:character:c5",
+        "score": 0.5901837813806269,
+        "pinned": false
+      },
+      {
+        "index": 7,
+        "chunkId": "ch4:scn_ch4_1:p1",
+        "score": 0.5150065096548487,
+        "pinned": false
+      }
+    ]
+  },
+  "error": null
+}

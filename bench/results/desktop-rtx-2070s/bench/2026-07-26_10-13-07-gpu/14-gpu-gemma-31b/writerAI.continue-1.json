@@ -1,0 +1,61 @@
+{
+  "runId": "2026-07-26_10-13-07-gpu",
+  "leg": "gpu-gemma-31b",
+  "model": "gemma-4-31b-qat",
+  "attempt": 1,
+  "args": {
+    "passageChars": 2000,
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-31b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "writerAI.continue",
+    "action": "writerAI.continue",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-31b-qat",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "writerAI.continue",
+  "ok": true,
+  "started": "2026-07-26T10:41:37.803Z",
+  "label": "Continue",
+  "wallMs": 176920,
+  "ttftMs": 7302,
+  "output": "Cael stood for a moment in the sudden silence of the street, the key still cold in her grip. The hum of the token had shifted, dropping an octave into a vibration that rattled her teeth. It wasn't just a signal anymore; it was a tether. She looked back toward the corner where Nettle had disappeared, half-expecting to see a ripple in the air or a lingering shadow, but there was only the rhythmic pulse of the blue lamps and the distant, brine-thick scent of the harbor.\n\nInside, the glimmerworks smelled of ozone and old grease. The furnace beneath the floorboards breathed a dry, sulfurous heat that seeped through the soles of her boots, warming the ache in her joints. She didn't light a lamp. Instead, she leaned against the heavy oak door and let her eyes drift shut, sliding back into that quiet place behind her vision where the world stopped being solid and started being a map of frequencies.\n\nThere, in the dark, she could feel the token. It wasn't a piece of metal anymore, but a screaming point of light in a sea of gray. It was calling to something deeper than the Ash District, something that lived in the marrow of the city and woke only when the right hand touched the right lock. Cael shivered despite the heat of the furnace. She had spent years pretending she was just lucky, just intuitive, but the humming in her pocket was a truth she could no longer outrun.",
+  "outputChars": 1382,
+  "usage": {
+    "promptTokens": 636,
+    "completionTokens": 304,
+    "model": "gemma-4-31b-qat",
+    "cost": 0
+  },
+  "flags": [],
+  "extra": {
+    "chapterId": "ch1",
+    "passageChars": 2000
+  },
+  "error": null
+}

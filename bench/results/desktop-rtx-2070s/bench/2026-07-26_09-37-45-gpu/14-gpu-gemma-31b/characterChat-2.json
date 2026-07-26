@@ -1,0 +1,67 @@
+{
+  "runId": "2026-07-26_09-37-45-gpu",
+  "leg": "gpu-gemma-31b",
+  "model": "gemma-4-31b-qat",
+  "attempt": 2,
+  "args": {
+    "question": "What do you want most right now, and what are you afraid of?",
+    "timeoutMs": 1200000
+  },
+  "preset": {
+    "id": "9702aec5c31a",
+    "name": "Bench",
+    "providerId": "",
+    "model": "gemma-4-31b-qat",
+    "temperature": 0.7,
+    "topP": null,
+    "maxTokens": 0,
+    "reasoningEffort": "",
+    "think": false,
+    "samplers": [],
+    "builtIn": false,
+    "position": 10,
+    "factoryModel": ""
+  },
+  "route": {
+    "feature": "characterChat",
+    "action": "characterChat",
+    "providerId": "local-llamacpp",
+    "model": "gemma-4-31b-qat",
+    "presetId": "9702aec5c31a",
+    "presetName": "Bench",
+    "presetSource": "assigned",
+    "think": false,
+    "level": "",
+    "reasoningWord": "",
+    "value": null,
+    "valueSource": "",
+    "configured": true,
+    "detail": ""
+  },
+  "featureKey": "characterChat",
+  "ok": true,
+  "started": "2026-07-26T09:46:25.472Z",
+  "label": "Character chat",
+  "wallMs": 105633,
+  "ttftMs": 1221,
+  "output": "I just wanted a clean job. A dull one. I wanted to stay brass rank, keep my head down at the Hall, and be left alone to mend lamps and eat [2]. \n\nBut now... it's like a gear that's finally slotted into place after years of grinding. I can feel the whole broken wheel of the world leaning toward me [4]. I want to know why that note—the one that's been screaming under everything since I was a girl—is finally still [1].\n\nAs for the fear... it's the grey. The Wardens [2]. For a long time, I thought the hum in my head was just a sickness they were right to cut out. If Warden Kell looks at me and sees exactly what I am, I don't know if I'm the one holding the tool or the one being disassembled [5].",
+  "outputChars": 700,
+  "usage": {
+    "promptTokens": 2565,
+    "completionTokens": 183,
+    "model": "gemma-4-31b-qat",
+    "cost": 0
+  },
+  "flags": [
+    "temperature-fixed-by-caller"
+  ],
+  "extra": {
+    "bibleOnly": false,
+    "question": "What do you want most right now, and what are you afraid of?",
+    "k": 6,
+    "characterId": "c1",
+    "character": "Cael Ferren",
+    "citationCount": 6
+  },
+  "error": null
+}
