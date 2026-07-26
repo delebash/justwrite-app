@@ -288,9 +288,15 @@ try {
     const pf = await page.evaluate(() => ({
       engine: !!document.querySelector(".lu-eng"),
       catalog: !!document.querySelector(".lu-mcat"),
-      // Search box + the sortable column headers (2026-07-22: the Sort dropdown was replaced
-      // by click-to-sort <th> buttons — .lu-th-btn — so the toolbar no longer has a select).
-      search: !!document.querySelector(".lu-mcat-bar input") && !!document.querySelector(".lu-mgrid .lu-th-btn"),
+      // Search box + the sortable column headers. The header selector was `.lu-th-btn`
+      // (the hand-rolled click-to-sort buttons of 2026-07-22) and went STALE on
+      // 2026-07-24, when the grid moved to the shared UiTable — which owns the header
+      // markup and renders `<th class="is-sortable">`. `.lu-th-btn` exists nowhere in the
+      // kit any more (grep: zero hits), so this half was permanently false and the whole
+      // provider-form line had been red for a reason that was not a defect. Measured
+      // 2026-07-26: `.lu-mcat-bar input` present, `.lu-th-btn` count 0, `th.is-sortable`
+      // present. A gate that cries wolf gets ignored, which is the actual damage.
+      search: !!document.querySelector(".lu-mcat-bar input") && !!document.querySelector(".lu-mgrid th.is-sortable"),
       noPointer: !document.querySelector(".lu-pf-modelsptr"),
     }));
     await page.evaluate(() => [...document.querySelectorAll(".lu-mcat button, .lu-mcat .lu-btn")].find((b) => /add model/i.test(b.textContent))?.click());

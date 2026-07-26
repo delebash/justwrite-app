@@ -305,8 +305,8 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   splash's own "Continue without waiting" escape if it is up, and reports which state it
   reached (or TIMED OUT) instead of hiding a stall. The shell-structure guard now SKIPS when
   there is no project open, which is what produced the known-false failure every run.
-  **Not yet run** — the box was mid-battery and the smoke would fight it for port 1420; run
-  it next time the app is free.
+  **RUN + GREEN 2026-07-26** (see the `npm run smoke` item above): boot resolves on `shell`,
+  and with a project seeded the structure guard runs for real rather than skipping.
 - ✅ **UNCENSORED A/B — CLOSED 2026-07-25: EZForever kept, HauhauCS removed.** Your "test
   both, keep the winner" ruling, settled on the deflection evidence (run
   `2026-07-25_12-12-36-gpu`, committed: on the violence probe HauhauCS cut the ROPE exactly
@@ -443,9 +443,31 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   and the shared resolver returns the PAGE ORIGIN for any other port, so on :1421 the
   renderer would send its API calls to the vite server. `npm run smoke` therefore refuses to
   start when 1420 is held (probed on `localhost`, `127.0.0.1` AND `[::1]` — `npm run dev`
-  binds ::1 only on this box, so a v4-only probe reports it free). **Consequence: the smoke
-  was NOT run for the CharactersView change — your app was up on ::1:1420. Run
-  `npm run smoke` with the app closed.**
+  binds ::1 only on this box, so a v4-only probe reports it free).
+  **RUN 2026-07-26 the moment your app freed the port — `HEADLESS SMOKE PASSED`, the first
+  fully green run.** The proof the hole is closed is in the numbers: boot now reports
+  `shell` (not onboarding), the shell-structure guard actually RUNS instead of skipping, and
+  every route reports a DISTINCT char count — 945 · 1118 · 2016 · 1323 · 1172 · 1072 · 1968 ·
+  813 · 1124 · 3044 … where the empty-dir run reported the same ~1024 over and over. That
+  also served as the runtime gate CharactersView was owed: `#/characters chars=2016 errors=0`
+  against the real catalog.
+- ✅ **The smoke's `provider-form` red was a STALE ASSERTION, not a defect — FIXED 2026-07-26.**
+  It had been failing on `search=false`, which is ONE boolean over TWO selectors, so it never
+  said which half. Probed: `.lu-mcat-bar input` is present and correct; `.lu-th-btn` matches
+  **zero** elements — and greps to zero hits in the whole kit. The class belonged to the
+  hand-rolled click-to-sort buttons of 2026-07-22 and died on 2026-07-24 when the grid moved
+  to the shared `UiTable` (`LuModelCatalog.vue:1005-1012`), which owns the header markup and
+  renders `<th class="is-sortable">`. So the gate had been red for two days for a reason that
+  was not a bug — the real damage being that a gate which cries wolf gets ignored. Selector
+  updated to `.lu-mgrid th.is-sortable`; the line is green and still asserts the same thing.
+- ⚠ **`[intlify] Detected HTML in '…' message` — two warnings, by design, worth your ruling.**
+  `settings.intro` and `characters.intro` are rendered with `v-html` so the inline `<strong>`
+  emphasis keeps the sentence as ONE translatable unit instead of splitting it around markup.
+  vue-i18n warns because HTML in a message is an XSS vector *when the message is
+  user-supplied* — these are ours, from the shipped catalog, so the risk is nil today. The
+  alternative is i18n-t with named slots (no HTML in the message, more markup per sentence).
+  Flagging rather than deciding: it is a house-style call, and it will multiply as more
+  intro paragraphs convert.
 - 🎯 **Single-source text system + i18n / translation — THE NEXT BIG TASK** (the user's
   roadmap ruling 2026-07-26: "the main goal is to completely finish JW and all AI stuff,
   then we will work on JV… 12 we need to do and do the full translation research on how we
