@@ -265,8 +265,22 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   if we bundle) + the watchlist (Harrier-27B GGUF · the KaLM trial on your 32 GB card). Also flagged (§34): the
   autostarted venv python re-exec'd into a `F:\Python312` child that owned the
   llama-servers — ran green, cause unverified, sits on the "which Python runs" trap.
-- 🔴 **QuickSetup: the EMBEDDING dropdown is never set — ROOT-CAUSED 2026-07-26, one-line fix,
-  awaiting your go.** Your screenshot after the workspace reset shows the banner *"Couldn't
+- ✅ **QuickSetup: the EMBEDDING dropdown is never set — FIXED 2026-07-26 on your go**
+  (runner: `estVramById` added to `useCatalogMeta.js`'s return list; JW: the contract test
+  below). The fix is the one line the diagnosis named. What landed WITH it, because the
+  defect class is the real hazard: **`useCatalogMeta.contract.test.js`** scans every kit
+  consumer of `useCatalogMeta()` — both `const { … } =` destructures and `const meta = …` +
+  `meta.x` member access — and asserts each name it takes is actually on the returned
+  object. Nothing else could catch this: destructuring an absent key is legal JS
+  (`undefined`, not an error), Biome checks no cross-module shapes, `build:vite` compiles
+  the SFC without resolving the identifier, and the smoke never opens the wizard — and even
+  if it did, the throw is CAUGHT and rendered as a banner, so "zero JS errors" still passes.
+  Verified to BITE: reverting the one-liner failed 2 of 3 assertions and named the culprit
+  (`estVramById (wanted by views/QuickSetup.vue)`), then restored byte-identically. Gates:
+  439 unit tests (+3), build clean. **Not run: the wizard itself** — that needs the GUI, so
+  reopen the Quick Setup modal on your box and confirm EMBEDDING is populated and the banner
+  is gone. Original diagnosis, kept for the record:
+  Your screenshot after the workspace reset shows the banner *"Couldn't
   finish reading your setup — Cannot read properties of undefined (reading 'value')"* with
   EMBEDDING blank. Exact cause, verified at file:line, not inferred:
   `useCatalogMeta()`'s **returned object omits `estVramById`**
@@ -282,9 +296,8 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   **Note this was INVISIBLE until 2026-07-26** — the `finally { step.value = "confirm" }`
   guard shipped that day (runner `e24f4c7`) is what turned a permanently-spinning "Probing
   your hardware…" into a readable error. The stall fix did not cause this bug; it exposed it.
-  Regression cover to add with the fix: a unit assertion that every identifier QuickSetup
-  destructures from `useCatalogMeta()` is actually returned — a missing key is `undefined`,
-  never a build or lint error, which is exactly how this shipped.
+  (Regression cover — a unit assertion that every identifier a consumer destructures from
+  `useCatalogMeta()` is actually returned — SHIPPED with the fix; see the ✅ above.)
 - ✅ **Headless smoke splash-aware wait — FIXED 2026-07-26.** The blind `sleep(1500)` raced
   boot, and since the splash landed it could measure the overlay instead of the app. Now
   `waitForBoot()` resolves on a real settled state — the shell (`.app`) or onboarding
