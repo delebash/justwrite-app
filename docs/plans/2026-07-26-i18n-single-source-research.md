@@ -116,10 +116,22 @@ documented alternative.
 ## THE SHAPE RULING (the user, 2026-07-26, mid-research): a SHARED autotranslate system
 
 *"We should build an autotranslate system that works with any app with this stack or Vue —
-we should be able to use this on JV."* So the pipeline is NOT a JW script: it is a small,
-app-agnostic package living in the shared-stack repo (`just-llm-runner`, beside the kit —
-working name `tools/autotranslate/`), and any Vue app points it at its `i18n/locales/` dir.
-What it owns, ONCE, for every consumer:
+we should be able to use this on JV."* And clarified same day: *"not just JV/JW — if we
+build another app with Vue we should be able to use the system too."* So the pipeline is
+NOT a JW script and not even a JW/JV-shared script: it is a standalone, generic package
+(living in the shared-stack repo beside the kit — working name `tools/autotranslate/` —
+but importable/runnable on its own, npx-style). **The genericity contract, explicit:**
+
+- ZERO coupling to this stack: no kit import, no runner assumption, no JW/JV path baked
+  in. The engine is "any OpenAI-compatible URL, or a DeepL key" — our bundled runner is
+  merely the default VALUE in JW's config, never a dependency of the tool.
+- Works on any app whose locales are keyed JSON (vue-i18n's shape — which is also
+  react-i18next's shape, so future non-Vue apps ride free too). The per-app config file
+  is the ONLY app-specific artifact.
+- The one genuinely Vue-specific piece — the `no-raw-text` lint guard — is per-app
+  tooling, shipped as the documented Vue recipe beside the tool, not inside it.
+
+What the package owns, ONCE, for every consumer:
 
 - a one-file config per app (locales dir · source lang · target langs · glossary path ·
   engine endpoint — the bundled runner's OpenAI-compatible URL by default, DeepL-free as

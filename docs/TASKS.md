@@ -355,12 +355,16 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   tool, with placeholder protection + glossaries; DeepL-free as the quality baseline;
   `@intlify/eslint-plugin-vue-i18n no-raw-text` as the permanent guard), the build order
   (coverage → hints bridge → translate → switcher), and the six-decision sheet for the
-  user. **SHAPE RULED (your word, 2026-07-26): a SHARED autotranslate system** — "works
-  with any app with this stack or Vue… we should be able to use this on JV" — so the
-  pipeline is an app-agnostic package in the shared-stack repo (config: locales dir ·
-  langs · glossary · engine endpoint), JW consumer #1, JV consumer #2 at its convergence
-  pass. **Pending:** the 40-key ES prototype (runner vs DeepL-free) the moment the bench
-  frees the GPU — it picks the default engine. Then plan → build on gos.
+  user. **SHAPE RULED (your word, 2026-07-26): a GENERIC autotranslate system** — "works
+  with any app with this stack or Vue… we should be able to use this on JV", clarified:
+  "not just JV/JW — if we build another app with Vue we should be able to use the system
+  too." So: a standalone package (in the shared repo, importable on its own) with ZERO
+  coupling to our stack — engine = any OpenAI-compatible URL or DeepL key (our runner is
+  just JW's default config value), works on any keyed-JSON locales (vue-i18n's shape),
+  per-app config as the only app-specific artifact, the Vue lint guard shipped as a recipe
+  beside it. JW consumer #1, JV consumer #2, any future app free. **Pending:** the 40-key
+  ES prototype (runner vs DeepL-free) the moment the bench frees the GPU — it picks the
+  default engine. Then plan → build on gos.
 - ✅ **The PER-BAND model survey — DONE 2026-07-25** (Parts 1+2; the record, candidate
   table with URLs, and the two open user decisions live in
   `docs/plans/2026-07-25-per-band-model-survey.md`; the seeds are the section-B band
