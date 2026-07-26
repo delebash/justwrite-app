@@ -165,6 +165,44 @@ No TTS here — audio lives in JustVoice.
 
 Hash router (`createWebHashHistory`) — see `router/index.js` for the full route list, including each route's `meta.undoDomains` (the #235 page-related-undo map). Global shortcuts: ⌘F focuses search, ⌘\ toggles sidebar, ⌘Z / ⌘⇧Z (or ⌘Y) page-scoped undo/redo (inert on routes with no `undoDomains`; disabled inside the rich editor — TipTap owns its own history there).
 
+### i18n (UI strings)
+
+**`src/renderer/src/i18n/locales/en.json` is the world** — every user-facing English string
+belongs there, and the renderer reads it through vue-i18n (`i18n/index.js`, Composition mode,
+`globalInjection` so `$t` works in templates without an import). Coverage is being brought up
+view by view; the sweep is not finished, so expect raw strings still in unconverted files.
+
+```bash
+npm run i18n:lint      # @intlify no-raw-text over src/renderer/src/**/*.vue — finds English
+                       # still hard-coded in templates. "warn" during the sweep; it flips to
+                       # "error" once coverage completes. Config: eslint.i18n.config.mjs
+                       # (i18n rules ONLY — Biome remains the style linter).
+npm run i18n:report    # vue-i18n-extract: keys referenced but missing from the catalog, and
+                       # catalog keys nobody references. MISSING must always be zero.
+npm run i18n:pseudo    # writes locales/qps.json — accented +30%-padded English, to expose
+                       # unconverted strings and overflow. NOT registered in the app yet
+                       # (i18n/index.js lists locales explicitly); the switcher phase wires it.
+```
+
+Rules when adding or converting a string:
+
+- **Reuse before minting.** Search `en.json` for the exact English first — `common.*` (Save,
+  Cancel, Delete, Close…), `nav.*`, and the `sidebar.actions.*` dialog cluster already carry a
+  lot of shared vocabulary. Never create a second key for the same English.
+- **Semantic keys, namespaced by section** — `settings.<section>.<semanticLeaf>`, e.g.
+  `settings.appearance.editorFontSizeLabel`. The leaf says what the string IS, never the first
+  few words of the sentence (`settings.thisFreesSizeOf` is the wrong shape).
+- **Runtime values are interpolations**, never concatenation: `$t('k', { n })` with `{n}` in
+  the value.
+- **`v-for="t in …"` shadows the setup `t`.** Inside such a loop use `$t`, never the
+  destructured `t` — `build:vite` will not catch the shadowing.
+- **Locale-dependent constant arrays must be `computed()`**, or they freeze at module load and
+  never re-translate when the language changes (see `SECTIONS` in `SettingsView.vue`).
+- **Not translated:** thrown `Error` messages, console/debug strings, data values / ids / enum
+  strings, and DB-seeded text (seeded defaults stay English in v1).
+- **Kit strings are a separate, later batch** — `@delebash/llm-ui` does not take vue-i18n as a
+  peer dep yet. Don't convert kit components from here.
+
 ## Conventions
 
 - **The `@renderer` alias** resolves to `src/renderer/src/` (see `vite.config.js`). Prefer relative imports for files in the same directory, `@renderer/...` for cross-tree imports.
