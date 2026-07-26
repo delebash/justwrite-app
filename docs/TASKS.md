@@ -64,8 +64,9 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
 
 ### B. Open — needs your go
 
-- **"PC class config" — the rename + the every-model class visibility — BUILT 2026-07-26, NOT
-  COMMITTED (awaiting your diff review and your commit word).** Resolves the long-open question
+- **"PC class config" — the rename + the every-model class visibility — SHIPPED 2026-07-26**
+  (planner diff-review passed; committed on the user's word as runner `8bb7d22` + JW `854e0f9`;
+  the LOOK pass below is what remains). Resolves the long-open question
   of whether the "Hardware/model class default" chip wording stays: it does not — you ruled the
   rename on 2026-07-26 ("we keep getting it wrong"), which supersedes your own QC-19 anchor from
   2026-07-08. Copy/display only, no schema/server/wire change: the library, badge, both modal
