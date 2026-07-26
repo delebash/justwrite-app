@@ -369,8 +369,13 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   the prototype's verdict · central catalogs. **BUILD STARTED same day** — Phase 1a
   (tooling + the three worst views) delegated to an Opus executor on a decision-free
   plan: `docs/plans/2026-07-26-i18n-phase1-coverage-plan.md` (wait-gated behind the
-  running bench so HMR can't kill it a third time). **Pending:** the 40-key ES prototype
-  when the GPU frees — it picks the default engine.
+  running bench so HMR can't kill it a third time). **Scope confirmed (your ask,
+  2026-07-26): the plan now includes the HINTS CONTENT PASS** — after the docs bridge
+  lands, every surface gets its one-sentence lede and every non-obvious field/control a
+  short hint, authored in the docs so they translate like everything else; existing hints
+  are the style precedent; a surface→lede/hints coverage table makes "everywhere"
+  checkable. **Pending:** the 40-key ES prototype when the GPU frees — it picks the
+  default engine.
 - ✅ **The PER-BAND model survey — DONE 2026-07-25** (Parts 1+2; the record, candidate
   table with URLs, and the two open user decisions live in
   `docs/plans/2026-07-25-per-band-model-survey.md`; the seeds are the section-B band

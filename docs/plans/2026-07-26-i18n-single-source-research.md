@@ -234,7 +234,16 @@ specifically so translation composes — and that is a composition choice, not a
    hardcoded strings glow as plain English, and length-overflow breaks now instead of
    after paying for translations. This IS the completion test for phase 1.
 3. **Single-source hints/ledes third** (the docs bridge) — kills the CharactersView/docs
-   drift and buys the automatic "Learn more" deep-links.
+   drift and buys the automatic "Learn more" deep-links. **3b — THE HINTS CONTENT PASS
+   (the user's explicit ask, 2026-07-26: "this includes adding hints — small instruction
+   or what this feature does — everywhere in the app; we have some already"):** once the
+   bridge exists, a surface-by-surface CONTENT audit — every view gets its one-sentence
+   lede (the don't-cram law: ONE lede max, detail behind `?`), every non-obvious field
+   and control gets a short hint, written IN THE DOCS front-matter so they flow through
+   the bridge translated like everything else. The existing hints (character sheet,
+   scattered tooltips, the current ledes) are the style precedent — this pass fills the
+   gaps to that standard, it does not re-write what exists. Output is a coverage table
+   (surface → lede ✓/hint count) so "everywhere" is checkable, not vibes.
 4. **Translation fourth** — the shared autotranslate package + glossary + languages.
 5. Language switcher (title-bar vs Settings — JV precedent is Settings) + `setUiLocale`
    re-call wiring, last.
