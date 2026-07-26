@@ -38,6 +38,7 @@ import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
+import { findChrome } from "../lib/smoke-common.js";
 const { chromium } = require("playwright");
 
 const BASE = process.env.JW_BASE || "http://localhost:1420";
@@ -54,20 +55,10 @@ const STUB_PORT = 8977;
 // If the sample's prose changes again, re-verify those four with a grep over
 // samples/the-ninth-facet/book.json before touching any assertion.
 const DEMO_ID = "prj_sample_ninth_facet";
-const EMBED_MODEL = "nomic-embed-text"; // seeded catalog id — its template row must fire
+// The seeded embed default — its template row must fire. Moved off nomic-embed-text
+// 2026-07-26: that row left the catalog in the 2026-07-25 embed trim (5 rows → 3).
+const EMBED_MODEL = "qwen3-embedding-4b";
 
-function findChrome() {
-  if (process.env.JW_CHROME && existsSync(process.env.JW_CHROME)) return process.env.JW_CHROME;
-  for (const root of ["/opt/pw-browsers", `${process.env.HOME || ""}/.cache/ms-playwright`]) {
-    if (!existsSync(root)) continue;
-    for (const dir of readdirSync(root)) {
-      if (!dir.startsWith("chromium") || dir.includes("headless_shell")) continue;
-      const exe = `${root}/${dir}/chrome-linux/chrome`;
-      if (existsSync(exe)) return exe;
-    }
-  }
-  return undefined;
-}
 
 const results = [];
 const check = (name, ok, note = "") => {

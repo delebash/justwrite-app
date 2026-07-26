@@ -106,14 +106,43 @@ let failed = 0;
   }
 }
 
+// Wait for a REAL boot signal instead of a blind sleep (2026-07-26 — the "splash-aware
+// wait"). The old `sleep(1500)` raced the boot: bootStorage + hydrate + mount can exceed
+// it, and since 2026-07-24 the boot SPLASH (`.jw-bootwarm`) overlays the shell while a
+// warm model load runs — so the shell-structure guard below could look for `.app` before
+// it existed and report a FALSE failure. Resolves as soon as the app reaches EITHER
+// settled state: the shell (`.app`, a project is open) or the onboarding view
+// (`.onboarding`, no project — what the smoke's isolated empty data dir produces). If the
+// splash is up it takes the splash's OWN always-present escape ("Continue without
+// waiting" — it never traps), then keeps waiting. Returns which state it reached so the
+// log tells the truth rather than hiding a stall behind a timeout.
+async function waitForBoot(timeoutMs = 20000) {
+  const deadline = Date.now() + timeoutMs;
+  let last = { shell: false, onboarding: false, splash: false };
+  while (Date.now() < deadline) {
+    last = await page.evaluate(() => ({
+      shell: !!document.querySelector(".app"),
+      onboarding: !!document.querySelector(".ob-stage"),   // OnboardingShell's root
+      splash: !!document.querySelector(".jw-bootwarm"),
+    }));
+    if ((last.shell || last.onboarding) && !last.splash) return last;
+    if (last.splash) await page.evaluate(() => document.querySelector(".jw-bw-skip")?.click());
+    await sleep(200);
+  }
+  return { ...last, timedOut: true };
+}
+
 try {
   await page.goto(APP, { waitUntil: "networkidle" });
-  await sleep(1500); // bootStorage + Vue mount
+  const boot = await waitForBoot();
   let mark = errors.length;
   const bootChars = await page.evaluate(() => document.body?.innerText?.length || 0);
-  let ok = bootChars > 0 && errors.length === mark;
+  let ok = bootChars > 0 && errors.length === mark && !boot.timedOut;
   if (!ok) failed++;
-  console.log(`${ok ? "✓" : "✗"} boot${" ".repeat(16)}chars=${bootChars} errors=${errors.length - mark}`);
+  const bootState = boot.timedOut
+    ? `TIMED OUT (shell=${boot.shell} onboarding=${boot.onboarding} splash=${boot.splash})`
+    : boot.shell ? "shell" : "onboarding (no project)";
+  console.log(`${ok ? "✓" : "✗"} boot${" ".repeat(16)}${bootState} chars=${bootChars} errors=${errors.length - mark}`);
   errors.slice(mark, mark + 5).forEach((e) => console.log("    " + e));
 
   // ── App-shell structure guard (the keep-alike discipline shared with
@@ -134,7 +163,12 @@ try {
       };
     });
     const problems = [];
-    if (s.missing) problems.push(".app-stage / .app / .sidebar missing");
+    // No project open ⇒ OnboardingShell renders instead of the shell, so `.app`/`.sidebar`
+    // are legitimately absent — that is a STATE, not a regression (2026-07-26: this is the
+    // false failure the smoke reported every run in its isolated empty data dir). The
+    // structure guard only applies to the shell it exists to guard.
+    if (!boot.shell) console.log("· shell-structure   skipped (onboarding — no project open)");
+    else if (s.missing) problems.push(".app-stage / .app / .sidebar missing");
     else {
       if (Math.abs(s.stageH - s.vh) > 2) problems.push(`shell ${s.stageH}px != viewport ${s.vh}px (dead space — use a height:100% chain, not 100vh)`);
       if (Math.abs(s.railH - s.bodyH) > 2) problems.push(`rail ${s.railH}px != body ${s.bodyH}px (rail not full-height — nav would jump between views)`);

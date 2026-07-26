@@ -179,13 +179,18 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   pushed — tracker staleness the 2026-07-25 audit caught. Verified: the server drops terminal
   rows, tests cover per-id and cancel-all, UI Dismiss is terminal-only). Your-box glance is
   all that's left.
-- **Feed the engine's `uma: 0/1` flag into `mem_arch`** — the ONE real detection gap. The old
-  "iGPU detection fixes ①–③" item is CLOSED (audit 2026-07-25: detection is not broken —
-  `runner/hardware.py:123-133` classifies by platform + vendor + a physical signal,
-  deliberately no name matching; adding iGPU name patterns would regress that design). What
-  remains: a unified-memory NVIDIA box (DGX Spark) falls through to "discrete"; the engine
-  already reports `uma: 0/1` (confirmed laptop 1 / 2070S 0) and nothing reads it
-  (`hardware.py`: zero refs).
+- **Feed the engine's `uma: 0/1` flag into `mem_arch` — NEEDS A DESIGN CALL, not a build**
+  (investigated 2026-07-26, deliberately NOT built blind). The gap is real and narrow: a
+  unified-memory NVIDIA box (DGX Spark) has the CUDA runtime, so `mem_arch` classifies it
+  "discrete" — its own docstring names this as the known fall-through. The clean signal is
+  the engine's `uma` flag. **The blocker:** nothing in the runner asks the engine for device
+  info — there is no `--list-devices` call anywhere (grepped), and detection's stated design
+  is "platform + vendor, NO heavy deps". Reading `uma` means spawning the engine binary
+  during hardware detection (or caching a probe), which is a real architecture change to a
+  module built to avoid exactly that. Weighed against: it fixes hardware NOBODY here owns and
+  cannot be verified by us. **Rec: leave it until a unified-NVIDIA box actually appears**, at
+  which point the probe-and-cache design gets decided properly. The 'Use for this PC'
+  hardware-class override already lets such a user correct it by hand today.
 - ✅ **The catalog trim + embed re-survey — SHIPPED 2026-07-25** (your rulings, full record
   in the survey doc's closing sections): 35B MoE and E2B dropped; embeds reshaped 5 → 3
   (**4B default everywhere · 8B proven big-card · KaLM-Gemma3-12B as the 2026 contender**,
@@ -196,7 +201,21 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   (#274, `modelPick.js:134-145`) — my "still open" claim was stale. Catalog: 8 chat + 3
   embeds. WATCHLIST: Harrier-27B (MIT, real, no GGUF yet); the KaLM trial fits your 32 GB
   card when it arrives.
-- **#256 spell-check** — not yet scoped.
+- **THE WRITER'S-EDITOR FEATURE AUDIT (expanded from "#256 spell-check" on the user's ruling,
+  2026-07-26: "that should be expanded to what our editor has and what a writer might need,
+  Word has a bunch of features for our novel writing software — do we need to add any
+  features, like the missing spell check, any AI features that might be missing").** A
+  research pass, findings-first, no building: (a) inventory what OUR editor actually does
+  today (read `RichEditor.vue` + the scene strip + the AI menu — not from memory); (b) compare
+  against what novelists expect from Word/Scrivener/Atticus-class tools — spell-check as the
+  known gap, plus grammar/style, find-and-replace across a book, word-count goals, comments/
+  annotations, track-changes (we have AI strikethroughs — how far do they go?), autocorrect,
+  dictionary/custom words for invented names, readability, focus/typewriter mode, snapshots;
+  (c) the AI side — what a writing AI should offer that we don't (continuity checking,
+  character-voice consistency, pacing analysis, repetition/crutch-word detection, timeline
+  sanity); (d) for each gap: does it belong in a novel tool, is there a maintained library
+  (the survey-first rule), and what would it cost. Output = a ranked gap table for the user to
+  pick from, NOT a build. Feeds `docs/IDEAS.md`.
 
 ### C. Waiting on you to run
 
@@ -218,7 +237,15 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
      `npm run bench:gpu -- --legs gpu-styletune,gpu-styletune-hq1,gpu-styletune-hq2,gpu-uncensored-ez,gpu-uncensored-ez-hq1,gpu-uncensored-ez-hq2,gpu-gemma-31b,gpu-gemma-31b-hq1,gpu-gemma-31b-hq2`
   5. Hand back the run dir → I judge → the final catalog curation (31B as a 24-tier
      alternative or not · 70B/GLM keep-or-remove · the survey's two open decisions). §19.
-- **Headless smoke needs a splash-aware wait** — one known-false failure every run.
+- ✅ **Headless smoke splash-aware wait — FIXED 2026-07-26.** The blind `sleep(1500)` raced
+  boot, and since the splash landed it could measure the overlay instead of the app. Now
+  `waitForBoot()` resolves on a real settled state — the shell (`.app`) or onboarding
+  (`.ob-stage`, what the smoke's empty isolated data dir actually produces) — takes the
+  splash's own "Continue without waiting" escape if it is up, and reports which state it
+  reached (or TIMED OUT) instead of hiding a stall. The shell-structure guard now SKIPS when
+  there is no project open, which is what produced the known-false failure every run.
+  **Not yet run** — the box was mid-battery and the smoke would fight it for port 1420; run
+  it next time the app is free.
 - ✅ **UNCENSORED A/B — CLOSED 2026-07-25: EZForever kept, HauhauCS removed.** Your "test
   both, keep the winner" ruling, settled on the deflection evidence (run
   `2026-07-25_12-12-36-gpu`, committed: on the violence probe HauhauCS cut the ROPE exactly
@@ -310,10 +337,25 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
 
 ## Research (each needs a research pass → plan → build, on its own go)
 
-- **Single-source text system + i18n / translation** — one authored source (the docs) feeding the
-  `?` help drawer, inline hints, **and** translations so they can't drift; plus a language
-  switcher, a `$t()`-vs-hardcoded coverage audit, and tooling. Whole-system (JW + JV + kit).
-  Grounding + the open questions: `docs/IDEAS.md` → "Single-source text system + i18n".
+- 🎯 **Single-source text system + i18n / translation — THE NEXT BIG TASK** (the user's
+  roadmap ruling 2026-07-26: "the main goal is to completely finish JW and all AI stuff,
+  then we will work on JV… 12 we need to do and do the full translation research on how we
+  do it automatically… this should be next big task after you finish the test and your
+  items"). One authored source (the docs) feeding the `?` help drawer, inline hints, **and**
+  translations so they can't drift; plus a language switcher and a `$t()`-vs-hardcoded
+  coverage audit. Whole-system (JW + JV + kit).
+  **Research status — PARTIAL, do not restart from zero.** The 2026-07-19 pass
+  (`docs/IDEAS.md` → "Single-source text system") already grounded the current state
+  (vue-i18n ^11.4.6 + a 389-line `en.json`, English only, partial coverage, no in-app
+  switcher, JW and JV i18n not unified) and named first candidates: **json-autotranslate**
+  (free DeepL / local-AI backend), **json-translator**, and the on-brand question of whether
+  **our own bundled runner** can do the translating locally. What the FULL pass still owes,
+  per the user's "several ways to automate translation": a real survey of the automation
+  routes (translate-at-build vs translate-at-runtime vs a vendored locale pipeline; machine
+  vs LLM vs human-review hybrids), what each costs in quality and maintenance, how a
+  novelist-facing app should handle terms that must NOT be translated (character names,
+  invented words), and the CI guard that keeps keys and translations in lockstep. Then a
+  plan, then the build — each on its own go.
 - ✅ **The PER-BAND model survey — DONE 2026-07-25** (Parts 1+2; the record, candidate
   table with URLs, and the two open user decisions live in
   `docs/plans/2026-07-25-per-band-model-survey.md`; the seeds are the section-B band
@@ -334,16 +376,37 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
     — the literal "View task queue" button + ✕ dismiss the item asked for).
   - ✅ **B6-2 `return_progress` — BUILT** (`llm_runner/llm/openai_compat.py:219-222` sets
     `body["return_progress"] = True`; `base.py:47` documents the `prompt_progress` frames).
-  - **B5-2 JW stale-surface audit** — genuinely open (a sweep task, no code to check).
+  - ✅ **B5-2 JW stale-surface audit — SWEPT 2026-07-26, essentially CLEAN.** What was
+    looked for and what came back: pre-shared-stack `Jw*` components or local `components/ui/`
+    imports → **one hit, and it is a stale COMMENT** (`PaneHeader.vue:7` says "JwHelpDrawer";
+    the component is the kit's `HelpDrawer` now); the retired local services
+    (`openai-compat`, the gateway, `embedApi`, `aiFeature`, `aiErrors`, `ModelPicker`,
+    `useModelList`, `useFeaturePin`) → **all gone**, the only survivors being comments that
+    explain their removal; `components/ui/` → **empty**, as designed; orphaned components
+    (a `.vue` imported nowhere) → **none**. The convergence work of the last month actually
+    landed. Only the one comment name is worth fixing, and it is cosmetic.
   - **B5-4 nav prominence for Ask the Book** — genuinely open (a visual treatment; nothing
     special found in the nav, but this one is a design call, not a code check).
   Original list: `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` §8.
 - **QC queue (§9)** — the live findings you drop while QC-ing on your box; discussion-first, each
   needs its own go. Same doc, §9.
-- **I2 — cloud prompt caching** — the Anthropic/Gemini adapters send no caching hints; never
-  built, never decided. Worth a decision only when cloud usage matters. Ledger §I2.
+- **I2 — cloud prompt caching — RESEARCH IT, then decide** (the user's ruling 2026-07-26: "i
+  think we should do this as i have no idea what users would do, as far as i can tell it is
+  recommended but research if we should build it"). Verified 2026-07-26: the Anthropic and
+  Gemini adapters still send NO caching hints (no `cache_control` anywhere in either). The
+  research pass owes: what each vendor's caching actually is today (Anthropic explicit
+  `cache_control` breakpoints vs Gemini implicit/explicit context caching — read the live
+  docs, they change), what it costs and saves, whether OUR request shapes even benefit (a
+  novel's story bible + long manuscript context is the strongest case; short writer actions
+  are the weakest), the minimum-TTL and minimum-token thresholds, and whether it can be
+  wrong-in-a-costly-way (paying to cache what is never reused). Output = a recommendation
+  with numbers, then the user's build/skip call. Ledger §I2.
 
-## JustVoice
+## JustVoice — AFTER JustWrite (the user's roadmap ruling, 2026-07-26)
+
+*"The main goal is to completely finish JW and all AI stuff, then we will work on JV."* So
+everything below is deliberately parked behind the JW/AI-stack work and the i18n task above —
+listed for shape, not queued.
 
 - **F1 — convergence onto the current shared stack (THE big one)** — JV can't even import today's
   `llm_runner` (`models.py` imports `LLMRolesSettings`, gone from the shared schema; 30 tests die
@@ -376,9 +439,10 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
 - **19 probe scripts still carry a Linux-only `findChrome()`** — they cannot find a browser on
   Windows at all. Convert them to the shared `tests/lib/smoke-common.js` import, or delete the
   dead ones. `docs/plans/2026-07-19-llm-bench-harness.md`.
-- **Provider SDK pivot** — Gemini/Claude/Ollama were box-checked good 2026-07-20; **OpenAI, xAI
-  and Mistral stay live-unverified until you have funded keys.** Connect them then.
-  `just-llm-runner/docs/plans/2026-07-17-provider-native-dialects-plan.md`.
+- ✅ **Provider SDK pivot — CLOSED 2026-07-26** (the user: "close 3 i dont have keys").
+  Gemini/Claude/Ollama were box-checked good 2026-07-20; OpenAI, xAI and Mistral ship wired
+  but live-unverified, and stay that way — no keys, no check, not a tracked task. Re-open only
+  if funded keys ever appear. `just-llm-runner/docs/plans/2026-07-17-provider-native-dialects-plan.md`.
 - **Unit 2 reasoning acceptance** — one local High chat run stopping at the hardware cap · one
   new-Anthropic run with reasoning words on the wire, no 400. Ledger §G.
 - **Ledger §G1–G6** — Plan B on-device gates · portable data folder · the RTX 2070S spawn failure

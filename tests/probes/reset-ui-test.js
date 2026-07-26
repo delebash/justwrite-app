@@ -3,6 +3,7 @@
 import { createRequire } from "node:module";
 import { existsSync, readdirSync } from "node:fs";
 const require = createRequire("/home/user/justwrite-app/");
+import { findChrome } from "../lib/smoke-common.js";
 const { chromium } = require("playwright");
 
 const APP = "http://localhost:1420";
@@ -14,21 +15,9 @@ async function waitReady(url, n = 60) { for (let i = 0; i < n; i++) { try { cons
 await waitReady(SERVER + "/v1/health");
 await waitReady(APP);
 
-// Auto-locate the prebuilt Chromium (the binary lives in a VERSIONED dir,
-// /opt/pw-browsers/chromium-<ver>/chrome-linux/chrome — NOT /opt/pw-browsers/chromium/).
-// Same logic as scripts/headless-smoke.js; override with JW_CHROME. Never hardcode.
-function findChrome() {
-  if (process.env.JW_CHROME && existsSync(process.env.JW_CHROME)) return process.env.JW_CHROME;
-  for (const root of ["/opt/pw-browsers", `${process.env.HOME || ""}/.cache/ms-playwright`]) {
-    if (!existsSync(root)) continue;
-    for (const d of readdirSync(root)) {
-      if (!d.startsWith("chromium") || d.includes("headless_shell")) continue;
-      const e = `${root}/${d}/chrome-linux/chrome`;
-      if (existsSync(e)) return e;
-    }
-  }
-  return undefined;
-}
+// Auto-locate the prebuilt Chromium via the ONE shared resolver
+// (tests/lib/smoke-common.js — Linux/Windows/macOS layouts, JW_CHROME override).
+// Never hardcode a browser path.
 const exe = findChrome();
 const browser = await chromium.launch({ executablePath: exe || undefined, headless: true, args: ["--no-sandbox"] });
 const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });

@@ -16,6 +16,7 @@ import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
+import { findChrome } from "../lib/smoke-common.js";
 const { chromium } = require("playwright");
 const OUT = "/tmp/claude-0/-home-user/3cfd68b9-10db-5b2c-8f07-e258fb196800/scratchpad";
 
@@ -32,18 +33,6 @@ writeFileSync(FAKE_GGUF, "GGUF-probe-fake");
 const cleanupFake = () => { try { rmSync(FAKE_GGUF); rmSync(FAKE_DIR, { recursive: true }); } catch { /* gone */ } };
 process.on("exit", cleanupFake);
 
-function findChrome() {
-  if (process.env.JW_CHROME && existsSync(process.env.JW_CHROME)) return process.env.JW_CHROME;
-  for (const root of ["/opt/pw-browsers", `${process.env.HOME || ""}/.cache/ms-playwright`]) {
-    if (!existsSync(root)) continue;
-    for (const dir of readdirSync(root)) {
-      if (!dir.startsWith("chromium") || dir.includes("headless_shell")) continue;
-      const exe = `${root}/${dir}/chrome-linux/chrome`;
-      if (existsSync(exe)) return exe;
-    }
-  }
-  return undefined;
-}
 
 const results = [];
 const check = (name, ok, note = "") => {

@@ -9,7 +9,7 @@
 
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
-import { friendlyAiError, embedTexts } from "@delebash/llm-ui";
+import { friendlyAiError, embedTexts, ensureEmbeddingReady } from "@delebash/llm-ui";
 import { chunkProjectAsync } from "./chunker.js";
 import { clear, diff, putVectors, removeIds, shas, status } from "./vectorStore.js";
 
@@ -119,6 +119,19 @@ export async function buildOrUpdateIndex({ signal, onProgress, provider, model }
     throw new Error("No embedding provider configured. Open AI Settings and set an embedding provider.");
   }
   const resolvedModel = resolveModel(ai, resolvedProvider, model);
+  if (!resolvedModel) {
+    // No embedding MODEL chosen (a fresh workspace ships the catalog full and every
+    // selection empty, by design). Say THAT — the old path went ahead and embedded
+    // into a provider with no model, and the user got "Bad gateway" (2026-07-26).
+    throw new Error("No embedding model is set yet. Open AI Settings and choose one (Quick Setup picks it for you).");
+  }
+  // Make the bundled runner RESIDENT before the first batch (2026-07-26). The kit's
+  // ensure exists for exactly this and JW never called it: on a cold boot nothing has
+  // spawned the engine, so batch 1 hit a dead port and surfaced as "Bad gateway — the
+  // provider's upstream is unreachable". It is a no-op for cloud/BYO providers, and it
+  // registers a visible "Preparing the embedding model" task so a minutes-long first
+  // load reads as progress instead of a hang.
+  await ensureEmbeddingReady(resolvedProvider.id, resolvedProvider.type, { signal, model: resolvedModel });
   const projectId = project.activeProjectId;
 
   if (onProgress) onProgress({ phase: "chunking" });
@@ -152,6 +165,19 @@ export async function rebuildIndex({ signal, onProgress, provider, model } = {})
     throw new Error("No embedding provider configured. Open AI Settings and set an embedding provider.");
   }
   const resolvedModel = resolveModel(ai, resolvedProvider, model);
+  if (!resolvedModel) {
+    // No embedding MODEL chosen (a fresh workspace ships the catalog full and every
+    // selection empty, by design). Say THAT — the old path went ahead and embedded
+    // into a provider with no model, and the user got "Bad gateway" (2026-07-26).
+    throw new Error("No embedding model is set yet. Open AI Settings and choose one (Quick Setup picks it for you).");
+  }
+  // Make the bundled runner RESIDENT before the first batch (2026-07-26). The kit's
+  // ensure exists for exactly this and JW never called it: on a cold boot nothing has
+  // spawned the engine, so batch 1 hit a dead port and surfaced as "Bad gateway — the
+  // provider's upstream is unreachable". It is a no-op for cloud/BYO providers, and it
+  // registers a visible "Preparing the embedding model" task so a minutes-long first
+  // load reads as progress instead of a hang.
+  await ensureEmbeddingReady(resolvedProvider.id, resolvedProvider.type, { signal, model: resolvedModel });
   const projectId = project.activeProjectId;
 
   if (onProgress) onProgress({ phase: "chunking" });

@@ -9,22 +9,10 @@ import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
+import { findChrome } from "../lib/smoke-common.js";
 const { chromium } = require("playwright");
 const APP = process.env.JW_APP || "http://localhost:1420";
 
-function findChrome() {
-  if (process.env.JW_CHROME && existsSync(process.env.JW_CHROME)) return process.env.JW_CHROME;
-  const roots = ["/opt/pw-browsers", `${process.env.HOME || ""}/.cache/ms-playwright`];
-  for (const root of roots) {
-    if (!existsSync(root)) continue;
-    for (const dir of readdirSync(root)) {
-      if (!dir.startsWith("chromium") || dir.includes("headless_shell")) continue;
-      const exe = `${root}/${dir}/chrome-linux/chrome`;
-      if (existsSync(exe)) return exe;
-    }
-  }
-  return undefined;
-}
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const browser = await chromium.launch({ executablePath: findChrome(), args: ["--no-sandbox"] });

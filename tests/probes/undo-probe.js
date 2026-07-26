@@ -27,20 +27,9 @@ import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
+import { findChrome } from "../lib/smoke-common.js";
 const { chromium } = require("playwright");
 
-function findChrome() {
-  if (process.env.JW_CHROME && existsSync(process.env.JW_CHROME)) return process.env.JW_CHROME;
-  for (const root of ["/opt/pw-browsers"]) {
-    if (!existsSync(root)) continue;
-    for (const dir of readdirSync(root)) {
-      if (!dir.startsWith("chromium") || dir.includes("headless_shell")) continue;
-      const exe = `${root}/${dir}/chrome-linux/chrome`;
-      if (existsSync(exe)) return exe;
-    }
-  }
-  return undefined;
-}
 
 const BASE = process.env.JW_BASE || "http://localhost:1420";
 const API = process.env.JW_API || "http://127.0.0.1:17495";

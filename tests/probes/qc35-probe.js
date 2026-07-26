@@ -6,15 +6,9 @@
 // Run: node scripts/qc35-probe.js   (JW_BASE / JW_CHROME override)
 import { execSync } from "node:child_process";
 import { chromium } from "playwright-core";
+import { findChrome } from "../lib/smoke-common.js";
 
 const BASE = process.env.JW_BASE || "http://localhost:1420";
-function findChrome() {
-  if (process.env.JW_CHROME) return process.env.JW_CHROME;
-  const hits = execSync("ls -d /opt/pw-browsers/chromium-*/chrome-linux/chrome 2>/dev/null")
-    .toString().trim().split("\n").filter(Boolean);
-  if (!hits.length) throw new Error("No chromium found under /opt/pw-browsers — set JW_CHROME.");
-  return hits[0];
-}
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let failures = 0;
