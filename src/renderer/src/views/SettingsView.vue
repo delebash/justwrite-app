@@ -134,9 +134,9 @@ function diskSize(n) {
 async function clearModelsCache() {
   const size = fmtBytes(diskUsage.value?.modelsCache) || "0 MB";
   const yes = await confirmDialog({
-    title: "Clear downloaded models?",
-    message: `This frees ${size} of downloaded model files. Your models stay in the catalog, and your default and per-task model choices are kept — each re-downloads automatically the next time it's used.`,
-    confirmLabel: "Clear models cache",
+    title: t("settings.storage.clearModelsTitle"),
+    message: t("settings.storage.clearModelsMessage", { size }),
+    confirmLabel: t("settings.storage.clearModelsConfirm"),
   });
   if (!yes) return;
   diskBusy.value = "models";
@@ -146,11 +146,11 @@ async function clearModelsCache() {
     if (res?.ok === false) {
       diskErr.value =
         res.detail === "unload models first"
-          ? "A model is loaded — unload it first (AI page → Unload), then try again."
-          : res.detail || "Couldn't clear the models cache.";
+          ? t("settings.storage.clearModelsLoadedError")
+          : res.detail || t("settings.storage.clearModelsError");
     }
   } catch {
-    diskErr.value = "Couldn't clear the models cache.";
+    diskErr.value = t("settings.storage.clearModelsError");
   } finally {
     diskBusy.value = "";
     await loadDiskUsage();
@@ -167,7 +167,7 @@ async function clearSpawnLogs() {
   try {
     await post("/v1/llm-runner/spawn-logs/clear");
   } catch {
-    diskErr.value = "Couldn't clear the engine logs.";
+    diskErr.value = t("settings.storage.clearSpawnLogsError");
   } finally {
     diskBusy.value = "";
     await loadDiskUsage();
@@ -179,12 +179,12 @@ async function clearSpawnLogs() {
 watch(active, (a) => { if (a === "storage") { loadStorageRoot(); loadDiskUsage(); } }, { immediate: true });
 
 async function changeFolder() {
-  const picked = await window.justwrite?.shell?.pickDirectory?.({ title: "Choose a data folder" });
+  const picked = await window.justwrite?.shell?.pickDirectory?.({ title: t("settings.storage.chooseFolderTitle") });
   if (!picked) return;
   const yes = await confirmDialog({
-    title: "Move all app data?",
-    message: `Everything JustWrite saves — projects, images, the AI engine and models, and logs — moves to:\n\n${picked}\n\nThe app restarts when the move finishes.`,
-    confirmLabel: "Move & restart",
+    title: t("settings.storage.moveDataTitle"),
+    message: t("settings.storage.moveDataMessage", { path: picked }),
+    confirmLabel: t("settings.storage.moveDataConfirm"),
   });
   if (!yes) return;
   relocating.value = true;
@@ -193,7 +193,7 @@ async function changeFolder() {
   if (res?.ok) {
     window.location.reload();
   } else {
-    storageErr.value = res?.error || "Move failed.";
+    storageErr.value = res?.error || t("settings.storage.moveFailed");
     relocating.value = false;
   }
 }
@@ -206,8 +206,8 @@ async function exportThisProject() {
   transferBusy.value = "export";
   try {
     const res = await exportProject(project._activeId, project.project.title);
-    if (res?.ok) ui.showToast({ message: "Book exported." });
-    else if (res && !res.cancelled) transferErr.value = res.error || "Export failed.";
+    if (res?.ok) ui.showToast({ message: t("settings.backups.bookExported") });
+    else if (res && !res.cancelled) transferErr.value = res.error || t("settings.backups.exportFailed");
   } catch (err) {
     transferErr.value = err.message || String(err);
   } finally {
@@ -222,7 +222,7 @@ async function importAProject() {
     const meta = await importProject();
     if (meta?.id) {
       await project.openImportedProject(meta);
-      ui.showToast({ message: `Imported “${meta.title || "book"}”.` });
+      ui.showToast({ message: t("settings.backups.bookImported", { title: meta.title || t("settings.backups.untitledBook") }) });
     }
   } catch (err) {
     transferErr.value = err.message || String(err);
@@ -293,7 +293,7 @@ async function onPickCover(e) {
   e.target.value = "";
   if (!file) return;
   if (!/^image\//.test(file.type)) {
-    coverError.value = "That doesn't look like an image file.";
+    coverError.value = t("settings.coverImage.notAnImage");
     return;
   }
   coverError.value = null;
@@ -309,8 +309,8 @@ async function onPickCover(e) {
 }
 async function removeCover() {
   const yes = await confirmDialog({
-    title: "Remove the book cover image?",
-    confirmLabel: "Remove cover",
+    title: t("settings.coverImage.removeTitle"),
+    confirmLabel: t("settings.coverImage.removeConfirm"),
     danger: true,
   });
   if (!yes) return;
@@ -322,21 +322,21 @@ async function removeCover() {
 // imported from services/appearance.js so Settings offers exactly what the
 // apply step understands. `ap` is the live appearance config.
 const ap = computed(() => ui.appearance);
-const THEMES = [
-  { id: "system", label: "Match system", hint: "Follow your OS dark/light preference." },
-  { id: "light",  label: "Light",        hint: "Bright surfaces, warm neutrals." },
-  { id: "dark",   label: "Dark",         hint: "Deep slate surfaces for night writing." },
-];
+const THEMES = computed(() => [
+  { id: "system", label: t("settings.appearance.themeSystem"), hint: t("settings.appearance.themeSystemHint") },
+  { id: "light",  label: t("settings.appearance.themeLight"),  hint: t("settings.appearance.themeLightHint") },
+  { id: "dark",   label: t("settings.appearance.themeDark"),   hint: t("settings.appearance.themeDarkHint") },
+]);
 const SURFACE_TINT_LIST = Object.entries(SURFACE_TINTS).map(([key, t]) => ({ key, ...t }));
 const PAPER_TINT_LIST = Object.entries(PAPER_TINTS).map(([key, t]) => ({ key, ...t }));
 const INK_PALETTE_LIST = Object.entries(INK_PALETTES).map(([key, t]) => ({ key, ...t }));
 const SIDEBAR_HEADING_STYLE_LIST = Object.entries(SIDEBAR_HEADING_STYLES).map(([key, t]) => ({ key, ...t }));
 const NAV_ITEM_STYLE_LIST = Object.entries(NAV_ITEM_STYLES).map(([key, t]) => ({ key, ...t }));
-const EDITOR_FONT_SIZES = [
-  { value: "small",  label: "Small",  px: "15px" },
-  { value: "medium", label: "Medium", px: "18px" },
-  { value: "big",    label: "Big",    px: "21px" },
-];
+const EDITOR_FONT_SIZES = computed(() => [
+  { value: "small",  label: t("settings.appearance.fontSizeSmall"),  px: "15px" },
+  { value: "medium", label: t("settings.appearance.fontSizeMedium"), px: "18px" },
+  { value: "big",    label: t("settings.appearance.fontSizeBig"),    px: "21px" },
+]);
 const EDITOR_LINE_OPTIONS = [1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 2];
 const EDITOR_PARA_OPTIONS = [0, 0.3, 0.5, 0.8, 1];
 
@@ -350,13 +350,13 @@ const SH_STYLE_OPTIONS = SIDEBAR_HEADING_STYLE_LIST.map((s) => ({ value: s.key, 
 const SH_SIZE_OPTIONS  = SIDEBAR_HEADING_SIZES.map((s) => ({ value: s.value, label: s.label }));
 const NAV_STYLE_OPTIONS = NAV_ITEM_STYLE_LIST.map((s) => ({ value: s.key, label: s.label }));
 const NAV_SIZE_OPTIONS  = NAV_ITEM_SIZES.map((s) => ({ value: s.value, label: s.label }));
-const FONT_SIZE_OPTIONS = EDITOR_FONT_SIZES.map((s) => ({ value: s.value, label: s.label, sublabel: s.px }));
+const FONT_SIZE_OPTIONS = computed(() => EDITOR_FONT_SIZES.value.map((s) => ({ value: s.value, label: s.label, sublabel: s.px })));
 const LINE_OPTIONS  = EDITOR_LINE_OPTIONS.map((v) => ({ value: v, label: String(v) }));
 const PARA_OPTIONS  = EDITOR_PARA_OPTIONS.map((v) => ({ value: v, label: v === 0 ? "0" : `${v}em` }));
-const INDENT_OPTIONS = [
-  { value: true,  label: "Indent" },
-  { value: false, label: "No indent" },
-];
+const INDENT_OPTIONS = computed(() => [
+  { value: true,  label: t("settings.appearance.indentOn") },
+  { value: false, label: t("settings.appearance.indentOff") },
+]);
 
 function isCustomHex(v) { return typeof v === "string" && v.startsWith("#"); }
 function inkSwatch(t) {
@@ -374,25 +374,25 @@ function tintColor(t) { return t.var ? t.var : t[modeNow()]; }
 
 // Custom presets — save the current look, rename, delete.
 async function saveCurrentPreset() {
-  const name = await promptDialog({ title: "Save preset", label: "Preset name", placeholder: "e.g. Night Study", confirmLabel: "Save preset" });
+  const name = await promptDialog({ title: t("settings.appearance.savePresetTitle"), label: t("settings.appearance.presetNameLabel"), placeholder: t("settings.appearance.presetNamePlaceholder"), confirmLabel: t("settings.appearance.savePresetConfirm") });
   if (!name) return;
   ui.saveCustomPreset(name);
 }
 async function renameCustomPreset(p) {
-  const name = await promptDialog({ title: "Rename preset", label: "Preset name", defaultValue: p.name, confirmLabel: "Rename" });
+  const name = await promptDialog({ title: t("settings.appearance.renamePresetTitle"), label: t("settings.appearance.presetNameLabel"), defaultValue: p.name, confirmLabel: t("settings.appearance.renamePresetConfirm") });
   if (!name) return;
   ui.renameCustomPreset(p.id, name);
 }
 async function removeCustomPreset(p) {
-  const yes = await confirmDialog({ title: `Delete "${p.name}"?`, message: "Removes this custom preset. Your current appearance stays as it is.", confirmLabel: "Delete", danger: true });
+  const yes = await confirmDialog({ title: t("settings.appearance.deletePresetTitle", { name: p.name }), message: t("settings.appearance.deletePresetMessage"), confirmLabel: t("common.delete"), danger: true });
   if (!yes) return;
   ui.deleteCustomPreset(p.id);
 }
 async function resetAppearance() {
   const yes = await confirmDialog({
-    title: "Reset appearance to defaults?",
-    message: "Returns every appearance setting — including light/dark mode — to the default look. Your saved custom presets are kept.",
-    confirmLabel: "Reset",
+    title: t("settings.appearance.resetTitle"),
+    message: t("settings.appearance.resetMessage"),
+    confirmLabel: t("common.reset"),
   });
   if (!yes) return;
   ui.resetAppearance();
@@ -428,7 +428,7 @@ async function changeAutosaveFolder() {
   try {
     const defaultPath = autosaveDir.value || (await chooserDir("autosave"));
     const picked = await window.justwrite.shell.pickDirectory({
-      title: "Choose an autosave folder",
+      title: t("settings.backups.chooseAutosaveFolderTitle"),
       defaultPath,
     });
     if (!picked) return;
@@ -456,7 +456,7 @@ watchEffect(() => {
 // after restoring workspace keys we need a reload for them to take effect.
 // Flush any pending IDB writes first so the reload sees the new values.
 function scheduleWorkspaceReload() {
-  ui.showToast({ message: "Reloading to apply workspace settings…" });
+  ui.showToast({ message: t("settings.backups.reloadingWorkspace") });
   flushPending();
   setTimeout(() => location.reload(), 700);
 }
@@ -497,9 +497,9 @@ async function removeSelectedAutosaves() {
   const keys = selectedAutosaveKeys.value;
   if (!keys.length) return;
   const yes = await confirmDialog({
-    title: `Delete ${keys.length} autosave${keys.length === 1 ? "" : "s"}?`,
-    message: "The selected on-disk autosave files are permanently removed. This can't be undone.",
-    confirmLabel: "Delete",
+    title: t("settings.backups.deleteSelectedTitle", { n: keys.length }, keys.length),
+    message: t("settings.backups.deleteSelectedMessage"),
+    confirmLabel: t("common.delete"),
     danger: true,
   });
   if (!yes) return;
@@ -515,9 +515,9 @@ async function removeSelectedAutosaves() {
 async function removeAllAutosaves() {
   if (!autosaveList.value.length) return;
   const yes = await confirmDialog({
-    title: "Delete all autosaves?",
-    message: "Every on-disk autosave file is permanently removed. This can't be undone.",
-    confirmLabel: "Delete all",
+    title: t("settings.backups.deleteAllTitle"),
+    message: t("settings.backups.deleteAllMessage"),
+    confirmLabel: t("settings.backups.deleteAllConfirm"),
     danger: true,
   });
   if (!yes) return;
@@ -532,11 +532,11 @@ async function removeAllAutosaves() {
 
 async function restoreFromAutosave(entry) {
   backupError.value = null;
-  const when = entry.savedAt ? new Date(entry.savedAt).toLocaleString() : "unknown time";
+  const when = entry.savedAt ? new Date(entry.savedAt).toLocaleString() : t("settings.backups.unknownTime");
   const yes = await confirmDialog({
-    title: `Restore "${entry.title || "project"}" from ${entry.generation}?`,
-    message: `Saved at ${when}. Your current workspace will be overwritten — every project, chapter body, and AI provider. Export a backup first if you want to keep what you have.`,
-    confirmLabel: "Restore from autosave",
+    title: t("settings.backups.restoreTitle", { title: entry.title || t("settings.backups.untitledProject"), generation: entry.generation }),
+    message: t("settings.backups.restoreMessage", { when }),
+    confirmLabel: t("settings.backups.restoreConfirm"),
     danger: true,
   });
   if (!yes) return;
@@ -546,7 +546,7 @@ async function restoreFromAutosave(entry) {
       throw new Error("Couldn't read the autosave file.");
     }
     const { workspaceRestored } = project.loadSnapshot(snap) || {};
-    ui.showToast({ message: `Restored "${snap.project.title || "project"}".` });
+    ui.showToast({ message: t("settings.backups.restoredToast", { title: snap.project.title || t("settings.backups.untitledProject") }) });
     if (workspaceRestored) scheduleWorkspaceReload();
   } catch (err) {
     backupError.value = err.message || String(err);
@@ -554,18 +554,18 @@ async function restoreFromAutosave(entry) {
 }
 
 function autosaveLabel(when) {
-  if (!when) return "Unknown time";
+  if (!when) return t("settings.backups.unknownTimeLabel");
   try { return new Date(when).toLocaleString(); } catch { return when; }
 }
 function generationLabel(gen) {
-  if (gen === "current") return "Current";
-  if (gen === "prev")    return "Previous";
-  if (gen === "prev2")   return "Earlier";
+  if (gen === "current") return t("settings.backups.generationCurrent");
+  if (gen === "prev")    return t("settings.backups.generationPrevious");
+  if (gen === "prev2")   return t("settings.backups.generationEarlier");
   return gen || "";
 }
 
 const lastAutosaveLabel = computed(() => {
-  if (!lastAutosaveAt.value) return "Pending — will fire within 10s of the next edit.";
+  if (!lastAutosaveAt.value) return t("settings.backups.autosavePending");
   try { return new Date(lastAutosaveAt.value).toLocaleString(); } catch { return lastAutosaveAt.value; }
 });
 
@@ -573,8 +573,8 @@ const lastAutosaveLabel = computed(() => {
 // ── About ──────────────────────────────────────────────────────────
 const platformLabel = computed(() => {
   const jw = window.justwrite;
-  if (jw?.platform === "tauri") return `Tauri (${jw.version || "2"})`;
-  return "Browser";
+  if (jw?.platform === "tauri") return t("settings.about.runtimeTauri", { version: jw.version || "2" });
+  return t("settings.about.runtimeBrowser");
 });
 
 const stats = computed(() => {
@@ -602,9 +602,9 @@ function renameStatus(id, label) { project.updateStatusDef(id, { label }); }
 function recolorStatus(id, color) { project.updateStatusDef(id, { color }); editingColorId.value = null; }
 async function deleteStatus(s) {
   const yes = await confirmDialog({
-    title: `Delete status "${s.label}"?`,
-    message: "Items using it will show as unset in the sidebar. No items are deleted.",
-    confirmLabel: "Delete status",
+    title: t("settings.statuses.deleteTitle", { label: s.label }),
+    message: t("settings.statuses.deleteMessage"),
+    confirmLabel: t("settings.statuses.deleteConfirm"),
     danger: true,
   });
   if (!yes) return;
@@ -637,15 +637,15 @@ function parseHueFromOklch(s) {
 }
 async function deleteCategory(c) {
   if (project.worldbuildingCategories.length <= 1) {
-    ui.showToast({ message: "Keep at least one category." });
+    ui.showToast({ message: t("settings.wbCategories.keepOne") });
     return;
   }
   const count = project.worldbuilding.filter((a) => a.category === c.id).length;
   const into = project.worldbuildingCategories.find((x) => x.id !== c.id)?.label;
   const yes = await confirmDialog({
-    title: `Delete category "${c.label}"?`,
-    message: count ? `Its ${count} article${count === 1 ? "" : "s"} will move to "${into}".` : "It has no articles.",
-    confirmLabel: "Delete category",
+    title: t("settings.wbCategories.deleteTitle", { label: c.label }),
+    message: count ? t("settings.wbCategories.deleteMessage", { n: count, into }, count) : t("settings.wbCategories.deleteMessageEmpty"),
+    confirmLabel: t("sidebar.actions.deleteWbCategoryConfirm"),
     danger: true,
   });
   if (!yes) return;
@@ -658,14 +658,7 @@ async function deleteCategory(c) {
   <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('settings.title')" help-key="appearance" />
   <div class="pane-card">
     <div class="scrollarea" style="padding:22px">
-    <p class="set-desc">
-      <strong>Settings</strong> is divided into sections — <strong>Project</strong> (metadata,
-      goals, statuses, deadlines), <strong>Appearance</strong> (themes, fonts, colours, density),
-      <strong>General</strong> (data location &amp; connection), and <strong>Backups</strong> (autosave,
-      full backup / restore, and workspace reset). AI providers, routing, usage, and
-      writing-AI settings live in the <strong>AI</strong> menu. Nothing here touches your
-      manuscript prose.
-    </p>
+    <p class="set-desc" v-html="$t('settings.intro')"></p>
     <div class="settings-layout">
       <!-- Section tabs — horizontal strip, full width (matches JV's settings) -->
       <nav class="set-tabs">
@@ -679,31 +672,31 @@ async function deleteCategory(c) {
         <div class="card">
           <div class="card-title">{{ $t('settings.project.cardTitle') }}</div>
           <p class="t-muted" style="font-size:12px;margin:0 0 14px;line-height:1.55">
-            Edits flow through the same undo/redo history as your manuscript — ⌘Z restores the previous value.
+            {{ $t('settings.project.editsUndoHint') }}
           </p>
           <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
             <span class="t-muted">{{ $t('settings.project.fieldTitle') }}</span>
             <UiInput :model-value="project.project.title"
-              @update:model-value="(v) => setMeta('title', v)" placeholder="Working title" />
+              @update:model-value="(v) => setMeta('title', v)" :placeholder="$t('settings.project.fieldTitlePlaceholder')" />
             <span class="t-muted">{{ $t('settings.project.fieldAuthor') }}</span>
             <UiInput :model-value="project.project.author"
-              @update:model-value="(v) => setMeta('author', v)" placeholder="Pen name or legal name" />
+              @update:model-value="(v) => setMeta('author', v)" :placeholder="$t('settings.project.fieldAuthorPlaceholder')" />
             <span class="t-muted">{{ $t('settings.project.fieldSubtitle') }}</span>
             <UiInput :model-value="project.project.subtitle"
-              @update:model-value="(v) => setMeta('subtitle', v)" placeholder="Optional" />
+              @update:model-value="(v) => setMeta('subtitle', v)" :placeholder="$t('settings.project.fieldSubtitlePlaceholder')" />
             <span class="t-muted">{{ $t('settings.project.fieldGenre') }}</span>
             <UiInput :model-value="project.project.genre"
-              @update:model-value="(v) => setMeta('genre', v)" placeholder="Literary, mystery, sci-fi…" />
+              @update:model-value="(v) => setMeta('genre', v)" :placeholder="$t('settings.project.fieldGenrePlaceholder')" />
             <span class="t-muted">{{ $t('settings.project.fieldStarted') }}</span>
             <UiInput :model-value="project.project.startedOn"
-              @update:model-value="(v) => setMeta('startedOn', v)" placeholder="e.g. March 11, 2026" />
+              @update:model-value="(v) => setMeta('startedOn', v)" :placeholder="$t('settings.project.fieldStartedPlaceholder')" />
             <span class="t-muted">{{ $t('settings.project.fieldDeadline') }}</span>
             <UiInput :model-value="project.project.deadline"
-              @update:model-value="(v) => setMeta('deadline', v)" placeholder="e.g. December 1, 2026" />
+              @update:model-value="(v) => setMeta('deadline', v)" :placeholder="$t('settings.project.fieldDeadlinePlaceholder')" />
             <span class="t-muted" style="align-self:start;padding-top:6px">{{ $t('settings.project.fieldPremise') }}</span>
             <UiTextarea auto-resize rows="3" :model-value="project.project.premise"
               @update:model-value="(v) => setMeta('premise', v)"
-              placeholder="One- or two-sentence pitch. Used on the Home dashboard and exports." />
+              :placeholder="$t('settings.project.fieldPremisePlaceholder')" />
           </div>
         </div>
         <div class="card">
@@ -730,12 +723,12 @@ async function deleteCategory(c) {
         <div class="card">
           <div class="card-title">{{ $t('settings.statuses.cardTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-            A shared palette used by chapters, architecture, the story-world entities, and narrative strands. Each status shows in its color beside items in the sidebar. Rename, recolor, or remove freely — deleting one leaves items that used it unset.
+            {{ $t('settings.statuses.hint') }}
           </p>
           <div style="display:flex;flex-direction:column;gap:8px">
             <div v-for="s in project.statuses" :key="s.id" style="display:flex;align-items:center;gap:10px">
               <div style="position:relative">
-                <button type="button" v-tooltip.bottom="'Change color'"
+                <button type="button" v-tooltip.bottom="$t('settings.statuses.changeColorTooltip')"
                   :style="`width:24px;height:24px;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:${s.color}`"
                   @click="editingColorId = editingColorId === s.id ? null : s.id" />
                 <div v-if="editingColorId === s.id"
@@ -743,7 +736,7 @@ async function deleteCategory(c) {
                   <button v-for="c in STATUS_SWATCHES" :key="c" type="button"
                     :style="`width:20px;height:20px;border-radius:5px;border:0;cursor:pointer;background:${c};box-shadow:${c === s.color ? '0 0 0 2px var(--surface),0 0 0 4px var(--accent)' : 'inset 0 0 0 1px rgba(0,0,0,.08)'}`"
                     @click="recolorStatus(s.id, c)" />
-                  <label title="Custom color"
+                  <label :title="$t('settings.statuses.customColor')"
                     style="position:relative;width:20px;height:20px;border-radius:5px;display:grid;place-items:center;border:1px dashed var(--border-strong);cursor:pointer;color:var(--muted)">
                     <input type="color" style="position:absolute;inset:0;opacity:0;cursor:pointer;border:0;padding:0"
                       @input="recolorStatus(s.id, $event.target.value)" />
@@ -752,15 +745,15 @@ async function deleteCategory(c) {
                 </div>
               </div>
               <UiInput style="max-width:220px" :model-value="s.label"
-                @update:model-value="(v) => renameStatus(s.id, v)" placeholder="Status name" />
+                @update:model-value="(v) => renameStatus(s.id, v)" :placeholder="$t('settings.statuses.namePlaceholder')" />
               <span :style="`font-size:11px;font-weight:600;text-transform:lowercase;color:${s.color}`">{{ s.label }}</span>
-              <UiButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="'Delete status'" @click="deleteStatus(s)">
+              <UiButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="$t('settings.statuses.deleteConfirm')" @click="deleteStatus(s)">
                 <template #icon><Icon name="Trash" :size="13" /></template>
               </UiButton>
             </div>
-            <div v-if="!project.statuses.length" class="t-muted" style="font-size:12.5px;font-style:italic">No statuses yet — add one below.</div>
+            <div v-if="!project.statuses.length" class="t-muted" style="font-size:12.5px;font-style:italic">{{ $t('settings.statuses.empty') }}</div>
           </div>
-          <UiButton label="Add status" intent="ghost" style="margin-top:12px" @click="addStatus">
+          <UiButton :label="$t('settings.statuses.addStatus')" intent="ghost" style="margin-top:12px" @click="addStatus">
             <template #icon><Icon name="Plus" :size="13" /></template>
           </UiButton>
         </div>
@@ -769,23 +762,23 @@ async function deleteCategory(c) {
         <div class="card">
           <div class="card-title">{{ $t('settings.wbCategories.cardTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-            Group your worldbuilding articles — these drive the sidebar sections and the category picker. Pick a color for each. Deleting one moves its articles into another category.
+            {{ $t('settings.wbCategories.hint') }}
           </p>
           <div style="display:flex;flex-direction:column;gap:8px">
             <div v-for="c in project.worldbuildingCategories" :key="c.id" style="display:flex;align-items:center;gap:10px">
               <UiInput style="max-width:220px" :model-value="c.label"
-                @update:model-value="(v) => renameCategory(c.id, v)" placeholder="Category name" />
+                @update:model-value="(v) => renameCategory(c.id, v)" :placeholder="$t('sidebar.actions.newWbCategoryLabel')" />
               <UiColorPicker :presets="PRESET_COLORS"
                 :model-value="`oklch(0.62 0.13 ${c.hue})`"
-                aria-label="Category color"
+                :aria-label="$t('settings.wbCategories.colorAriaLabel')"
                 @update:model-value="(v) => recolorCategory(c.id, parseHueFromOklch(v))" />
-              <UiButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="'Delete category'" @click="deleteCategory(c)">
+              <UiButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="$t('sidebar.actions.deleteWbCategoryConfirm')" @click="deleteCategory(c)">
                 <template #icon><Icon name="Trash" :size="13" /></template>
               </UiButton>
             </div>
-            <div v-if="!project.worldbuildingCategories.length" class="t-muted" style="font-size:12.5px;font-style:italic">No categories yet — add one below.</div>
+            <div v-if="!project.worldbuildingCategories.length" class="t-muted" style="font-size:12.5px;font-style:italic">{{ $t('settings.wbCategories.empty') }}</div>
           </div>
-          <UiButton label="Add category" intent="ghost" style="margin-top:12px" @click="addCategory">
+          <UiButton :label="$t('settings.wbCategories.addCategory')" intent="ghost" style="margin-top:12px" @click="addCategory">
             <template #icon><Icon name="Plus" :size="13" /></template>
           </UiButton>
         </div>
@@ -829,13 +822,13 @@ async function deleteCategory(c) {
         <div class="card">
           <div class="card-title">{{ $t('settings.coverImage.cardTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-            Shows up as the book cover in EPUB and PDF exports. Recommended size: 1600 × 2400 px (2:3 ratio), JPEG or PNG.
+            {{ $t('settings.coverImage.hint') }}
           </p>
 
           <div style="display:grid;grid-template-columns:minmax(0,140px) minmax(0,1fr);gap:18px;align-items:start">
             <!-- Preview -->
             <div class="cover-frame" :class="{ empty: !coverSrc }">
-              <img v-if="coverSrc" :src="coverSrc" alt="Book cover" />
+              <img v-if="coverSrc" :src="coverSrc" :alt="$t('settings.coverImage.coverAlt')" />
               <Icon v-else name="Image" :size="32" />
             </div>
 
@@ -843,11 +836,11 @@ async function deleteCategory(c) {
               <div v-if="project.project.coverImage" style="font-size:12.5px">
                 <div><b>{{ project.project.coverImage.name || "cover" }}</b></div>
                 <div class="t-muted" style="font-size:11.5px;margin-top:2px">
-                  {{ project.project.coverImage.serverId ? "JustWrite server" : "Stored inline" }}
+                  {{ project.project.coverImage.serverId ? $t('settings.coverImage.storedServer') : $t('settings.coverImage.storedInline') }}
                 </div>
               </div>
               <div v-else class="t-muted" style="font-size:12.5px;font-style:italic">
-                No cover set — the EPUB will export without a cover page.
+                {{ $t('settings.coverImage.empty') }}
               </div>
 
               <div v-if="coverError" class="banner danger">
@@ -857,15 +850,15 @@ async function deleteCategory(c) {
               <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
                 <UiButton as="label" intent="primary" :disabled="coverUploading">
                   <Icon name="Image" :size="13" />
-                  {{ coverUploading ? "Uploading…" : (project.project.coverImage ? "Replace…" : "Choose image…") }}
+                  {{ coverUploading ? $t('settings.coverImage.uploading') : (project.project.coverImage ? $t('settings.coverImage.replace') : $t('settings.coverImage.choose')) }}
                   <input type="file" accept="image/*" style="display:none" @change="onPickCover" :disabled="coverUploading" />
                 </UiButton>
-                <UiButton v-if="project.project.coverImage" label="Remove" intent="ghost" @click="removeCover" />
+                <UiButton v-if="project.project.coverImage" :label="$t('common.remove')" intent="ghost" @click="removeCover" />
               </div>
 
               <div class="t-muted" style="font-size:11px;display:inline-flex;gap:5px;align-items:center;font-family:var(--font-mono)">
                 <Icon name="Check" :size="11" />
-                Cover is saved with your project.
+                {{ $t('settings.coverImage.savedNote') }}
               </div>
             </div>
           </div>
@@ -894,11 +887,11 @@ async function deleteCategory(c) {
         <div class="card">
           <div class="card-title">{{ $t('settings.appearance.presetCardTitle') }}
             <UiButton :label="$t('settings.appearance.resetToDefaults')" intent="ghost" size="small" style="margin-left:auto" @click="resetAppearance"
-              v-tooltip.bottom="'Reset every appearance setting to the default look'">
+              v-tooltip.bottom="$t('settings.appearance.resetTooltip')">
               <template #icon><Icon name="Refresh" :size="12" /></template>
             </UiButton>
           </div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Start from a curated look, then fine-tune anything below.</p>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">{{ $t('settings.appearance.presetsHint') }}</p>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px">
             <button v-for="p in THEME_PRESETS" :key="p.id"
               class="preset-tile" :class="{ active: ap.preset === p.id }"
@@ -913,17 +906,17 @@ async function deleteCategory(c) {
               class="preset-tile is-saved" :class="{ active: ap.preset === p.id }"
               @click="applyPreset(p)">
               <b>{{ p.name }}</b>
-              <span class="t-muted">Saved preset</span>
+              <span class="t-muted">{{ $t('settings.appearance.savedPresetTag') }}</span>
               <div class="preset-actions">
-                <button class="preset-act" v-tooltip.bottom="'Rename'" @click.stop="renameCustomPreset(p)"><Icon name="Pencil" :size="12" /></button>
-                <button class="preset-act danger" v-tooltip.bottom="'Delete'" @click.stop="removeCustomPreset(p)"><Icon name="Trash" :size="12" /></button>
+                <button class="preset-act" v-tooltip.bottom="$t('settings.appearance.renamePresetConfirm')" @click.stop="renameCustomPreset(p)"><Icon name="Pencil" :size="12" /></button>
+                <button class="preset-act danger" v-tooltip.bottom="$t('common.delete')" @click.stop="removeCustomPreset(p)"><Icon name="Trash" :size="12" /></button>
               </div>
             </div>
 
             <button v-if="ap.preset === 'custom'" class="preset-tile is-save" @click="saveCurrentPreset">
               <Icon name="Plus" :size="15" />
-              <b>Save current…</b>
-              <span class="t-muted">Keep this mix as a preset</span>
+              <b>{{ $t('settings.appearance.savePresetCurrent') }}</b>
+              <span class="t-muted">{{ $t('settings.appearance.savePresetCurrentHint') }}</span>
             </button>
           </div>
         </div>
@@ -934,24 +927,24 @@ async function deleteCategory(c) {
           <div class="card-title">{{ $t('settings.appearance.previewCardTitle') }}</div>
           <div class="appear-preview" :data-layout="ap.editorLayout">
             <div class="ap-side">
-              <div class="ap-brand">JustWrite</div>
-              <div class="ap-section">Manuscript</div>
-              <div class="ap-nav active">Chapters</div>
-              <div class="ap-nav">Characters</div>
-              <div class="ap-section">Project</div>
-              <div class="ap-nav">Settings</div>
+              <div class="ap-brand">{{ $t('welcome.wordmark') }}</div>
+              <div class="ap-section">{{ $t('sidebar.sections.manuscript') }}</div>
+              <div class="ap-nav active">{{ $t('nav.chapters') }}</div>
+              <div class="ap-nav">{{ $t('nav.characters') }}</div>
+              <div class="ap-section">{{ $t('sidebar.sections.project') }}</div>
+              <div class="ap-nav">{{ $t('settings.title') }}</div>
             </div>
             <div class="ap-main">
               <div class="ap-page">
-                <div v-if="ap.editorLayout === 'page'" class="ap-runninghead">The Ninth Facet</div>
-                <div class="ap-eyebrow">Chapter 12</div>
-                <div class="ap-h">The First Crossing</div>
-                <p class="ap-prose">She pressed her thumb to the vellum where the coastline should have been, and felt only the cold weave of the cloth.</p>
-                <p class="ap-prose">Above her, the deck complained in its joints — and the fog, she now understood, was not weather.</p>
+                <div v-if="ap.editorLayout === 'page'" class="ap-runninghead">{{ $t('settings.appearance.previewRunningHead') }}</div>
+                <div class="ap-eyebrow">{{ $t('settings.appearance.previewEyebrow') }}</div>
+                <div class="ap-h">{{ $t('settings.appearance.previewTitle') }}</div>
+                <p class="ap-prose">{{ $t('settings.appearance.previewProse1') }}</p>
+                <p class="ap-prose">{{ $t('settings.appearance.previewProse2') }}</p>
                 <div class="ap-ornament">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
                 <div class="ap-controls">
-                  <UiButton intent="primary" size="small">Accent</UiButton>
-                  <span class="chip" style="background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-line)">Selected</span>
+                  <UiButton intent="primary" size="small">{{ $t('settings.appearance.previewAccent') }}</UiButton>
+                  <span class="chip" style="background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-line)">{{ $t('settings.appearance.previewSelected') }}</span>
                 </div>
               </div>
             </div>
@@ -961,7 +954,7 @@ async function deleteCategory(c) {
         <!-- Mode -->
         <div class="card">
           <div class="card-title">{{ $t('settings.appearance.modeCardTitle') }}</div>
-          <div class="settings-mode-grid" style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:10px" role="radiogroup" aria-label="Theme">
+          <div class="settings-mode-grid" style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:10px" role="radiogroup" :aria-label="$t('settings.appearance.modeAriaLabel')">
             <button v-for="t in THEMES" :key="t.id"
               role="radio" :aria-checked="ap.mode === t.id"
               class="theme-tile" :class="{ active: ap.mode === t.id }"
@@ -981,7 +974,7 @@ async function deleteCategory(c) {
         <!-- Typography -->
         <div class="card">
           <div class="card-title">{{ $t('settings.appearance.typographyCardTitle') }}</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Choose the typeface for each part of the app, scale the overall size, and tune the sidebar's heading + menu styles.</p>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px">{{ $t('settings.appearance.typographyHint') }}</p>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px">
             <button v-for="p in PAIRINGS" :key="p.id"
               class="pairing-tile" :class="{ active: ap.fontPairing === p.id }"
@@ -995,75 +988,75 @@ async function deleteCategory(c) {
             </button>
           </div>
           <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:14px">
-            <label class="field"><span class="field-l">UI font</span>
+            <label class="field"><span class="field-l">{{ $t('settings.appearance.uiFontLabel') }}</span>
               <UiSelect :model-value="ap.uiFont" @update:model-value="(v) => setAp({ uiFont: v })"
                 :options="UI_FONTS.map(f => ({ label: f.label, value: f.label }))"
                 optionLabel="label" optionValue="value" />
-              <span class="field-hint">Buttons, menus, and labels.</span>
+              <span class="field-hint">{{ $t('settings.appearance.uiFontHint') }}</span>
             </label>
-            <label class="field"><span class="field-l">Display font</span>
+            <label class="field"><span class="field-l">{{ $t('settings.appearance.displayFontLabel') }}</span>
               <UiSelect :model-value="ap.displayFont" @update:model-value="(v) => setAp({ displayFont: v })"
                 :options="DISPLAY_FONTS.map(f => ({ label: f.label, value: f.label }))"
                 optionLabel="label" optionValue="value" />
-              <span class="field-hint">Page titles, big numbers, serif headings.</span>
+              <span class="field-hint">{{ $t('settings.appearance.displayFontHint') }}</span>
             </label>
-            <label class="field"><span class="field-l">Editor body font</span>
+            <label class="field"><span class="field-l">{{ $t('settings.appearance.editorBodyFontLabel') }}</span>
               <UiSelect :model-value="ap.editorBodyFont" @update:model-value="(v) => setAp({ editorBodyFont: v })"
                 :options="DISPLAY_FONTS.map(f => ({ label: f.label, value: f.label }))"
                 optionLabel="label" optionValue="value" />
-              <span class="field-hint">Manuscript prose. Per-document choice can override this in the editor's ⚙ Writing settings.</span>
+              <span class="field-hint">{{ $t('settings.appearance.editorBodyFontHint') }}</span>
             </label>
           </div>
           <div class="size-row">
-            <span class="field-l">Size</span>
+            <span class="field-l">{{ $t('settings.appearance.sizeLabel') }}</span>
             <UiSegmented
               class="size-seg" variant="connected"
               :model-value="ap.uiScale"
               :options="UI_SCALE_OPTIONS"
-              aria-label="UI scale"
+              :aria-label="$t('settings.appearance.uiScaleAriaLabel')"
               @update:model-value="setAp({ uiScale: $event })" />
-            <p class="size-hint">Scales every label, control, and the prose together.</p>
+            <p class="size-hint">{{ $t('settings.appearance.uiScaleHint') }}</p>
           </div>
           <div class="size-row">
-            <span class="field-l">Section heading</span>
+            <span class="field-l">{{ $t('settings.appearance.sectionHeadingLabel') }}</span>
             <UiSegmented
               class="size-seg" variant="connected"
               :model-value="ap.sidebarHeadingStyle"
               :options="SH_STYLE_OPTIONS"
-              aria-label="Sidebar heading style"
+              :aria-label="$t('settings.appearance.shStyleAriaLabel')"
               @update:model-value="setAp({ sidebarHeadingStyle: $event })" />
             <UiSegmented
               class="size-seg size-seg-narrow" variant="connected"
               :model-value="ap.sidebarHeadingSize"
               :options="SH_SIZE_OPTIONS"
-              aria-label="Sidebar heading size"
+              :aria-label="$t('settings.appearance.shSizeAriaLabel')"
               @update:model-value="setAp({ sidebarHeadingSize: $event })" />
-            <p class="size-hint">The small labels that group the sidebar nav (e.g. <em>Manuscript</em>, <em>Story world</em>).</p>
+            <p class="size-hint" v-html="$t('settings.appearance.sectionHeadingHint')"></p>
           </div>
           <div class="size-row">
-            <span class="field-l">Menu item</span>
+            <span class="field-l">{{ $t('settings.appearance.menuItemLabel') }}</span>
             <UiSegmented
               class="size-seg" variant="connected"
               :model-value="ap.navItemStyle"
               :options="NAV_STYLE_OPTIONS"
-              aria-label="Menu item style"
+              :aria-label="$t('settings.appearance.navStyleAriaLabel')"
               @update:model-value="setAp({ navItemStyle: $event })" />
             <UiSegmented
               class="size-seg size-seg-narrow" variant="connected"
               :model-value="ap.navItemSize"
               :options="NAV_SIZE_OPTIONS"
-              aria-label="Menu item size"
+              :aria-label="$t('settings.appearance.navSizeAriaLabel')"
               @update:model-value="setAp({ navItemSize: $event })" />
-            <p class="size-hint">Each sidebar entry — <em>Home</em>, <em>Chapters</em>, <em>Characters</em>, and so on.</p>
+            <p class="size-hint" v-html="$t('settings.appearance.menuItemHint')"></p>
           </div>
         </div>
 
         <!-- Accents (primary + second) -->
         <div class="card">
           <div class="card-title">{{ $t('settings.appearance.accentsCardTitle') }}</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 12px">Accent drives selection, the active nav item, buttons and links. Accent 2 is the secondary — rings, rules, peak markers, and the <code>accent2</code> intent on buttons and tags.</p>
-          <div class="swatch-row" role="radiogroup" aria-label="Accent">
-            <span class="swatch-label">Accent</span>
+          <p class="t-muted" style="font-size:12px;margin:0 0 12px" v-html="$t('settings.appearance.accentsHint')"></p>
+          <div class="swatch-row" role="radiogroup" :aria-label="$t('settings.appearance.accentLabel')">
+            <span class="swatch-label">{{ $t('settings.appearance.accentLabel') }}</span>
             <button v-for="p in ACCENT_PRESETS" :key="p.hue"
               role="radio" :aria-checked="ap.accentHue === p.hue" :aria-label="p.name"
               class="accent-swatch" :class="{ active: ap.accentHue === p.hue }"
@@ -1074,8 +1067,8 @@ async function deleteCategory(c) {
             <UiNumber :min="0" :max="360" style="width:74px"
               :model-value="ap.accentHue" @update:model-value="(v) => setAp({ accentHue: clampHue(v) })" />
           </div>
-          <div class="swatch-row" style="margin-top:8px" role="radiogroup" aria-label="Accent 2">
-            <span class="swatch-label">Accent 2</span>
+          <div class="swatch-row" style="margin-top:8px" role="radiogroup" :aria-label="$t('settings.appearance.accent2Label')">
+            <span class="swatch-label">{{ $t('settings.appearance.accent2Label') }}</span>
             <button v-for="p in GOLD_PRESETS" :key="p.hue"
               role="radio" :aria-checked="ap.goldHue === p.hue" :aria-label="p.name"
               class="accent-swatch" :class="{ active: ap.goldHue === p.hue }"
@@ -1088,8 +1081,8 @@ async function deleteCategory(c) {
           </div>
           <!-- Live preview — the button + tag both track the Accent 2 hue. -->
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-soft)">
-            <UiButton intent="accent2" size="small" label="Accent 2" />
-            <UiTag intent="accent2" value="Accent 2" />
+            <UiButton intent="accent2" size="small" :label="$t('settings.appearance.accent2Label')" />
+            <UiTag intent="accent2" :value="$t('settings.appearance.accent2Label')" />
           </div>
         </div>
 
@@ -1135,13 +1128,13 @@ async function deleteCategory(c) {
           </div>
           <!-- Live preview — buttons and tags re-skin from the hues above (banners + status chips use the same shades). -->
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--border-soft)">
-            <UiButton intent="success" size="small" label="Success" />
-            <UiButton intent="danger" size="small" label="Danger" />
-            <UiButton intent="info" size="small" label="Info" />
+            <UiButton intent="success" size="small" :label="$t('settings.appearance.successLabel')" />
+            <UiButton intent="danger" size="small" :label="$t('settings.appearance.dangerLabel')" />
+            <UiButton intent="info" size="small" :label="$t('settings.appearance.infoLabel')" />
             <span style="width:8px" />
-            <UiTag intent="success" value="Done" />
-            <UiTag intent="danger" value="Error" />
-            <UiTag intent="info" value="Note" />
+            <UiTag intent="success" :value="$t('settings.appearance.tagDone')" />
+            <UiTag intent="danger" :value="$t('settings.appearance.tagError')" />
+            <UiTag intent="info" :value="$t('settings.appearance.tagNote')" />
           </div>
         </div>
 
@@ -1150,13 +1143,13 @@ async function deleteCategory(c) {
           <div class="card-title">{{ $t('settings.appearance.buttonIntentsCardTitle') }}</div>
           <p class="t-muted" style="font-size:12px;margin:0 0 12px" v-html="$t('settings.appearance.buttonIntentsHint')"></p>
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-            <UiButton intent="primary"   size="small" label="Primary" />
-            <UiButton intent="secondary" size="small" label="Secondary" />
-            <UiButton intent="ghost"     size="small" label="Ghost" />
-            <UiButton intent="success"   size="small" label="Success" />
-            <UiButton intent="danger"    size="small" label="Danger" />
-            <UiButton intent="info"      size="small" label="Info" />
-            <UiButton intent="accent2"   size="small" label="Accent 2" />
+            <UiButton intent="primary"   size="small" :label="$t('settings.appearance.intentPrimary')" />
+            <UiButton intent="secondary" size="small" :label="$t('settings.appearance.intentSecondary')" />
+            <UiButton intent="ghost"     size="small" :label="$t('settings.appearance.intentGhost')" />
+            <UiButton intent="success"   size="small" :label="$t('settings.appearance.successLabel')" />
+            <UiButton intent="danger"    size="small" :label="$t('settings.appearance.dangerLabel')" />
+            <UiButton intent="info"      size="small" :label="$t('settings.appearance.infoLabel')" />
+            <UiButton intent="accent2"   size="small" :label="$t('settings.appearance.accent2Label')" />
           </div>
         </div>
 
@@ -1319,10 +1312,10 @@ async function deleteCategory(c) {
           </div>
           <div style="display:flex;gap:10px;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-soft)">
             <span class="t-muted" style="font-size:11.5px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.08em">{{ $t('settings.appearance.previewLabel') }}</span>
-            <UiButton intent="primary" label="Save" />
-            <UiButton intent="secondary" label="Cancel" />
-            <UiButton intent="ghost" label="Skip" />
-            <UiButton intent="danger" label="Delete" />
+            <UiButton intent="primary" :label="$t('common.save')" />
+            <UiButton intent="secondary" :label="$t('common.cancel')" />
+            <UiButton intent="ghost" :label="$t('common.skip')" />
+            <UiButton intent="danger" :label="$t('common.delete')" />
           </div>
         </div>
 
@@ -1331,64 +1324,62 @@ async function deleteCategory(c) {
       <!-- ── STORAGE (the portable data root — one folder for ALL app data) ─── -->
       <div v-else-if="active === 'storage'" style="display:flex;flex-direction:column;gap:14px">
         <div class="card">
-          <div class="card-title">Data location</div>
+          <div class="card-title">{{ $t('settings.storage.dataLocationTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:4px 0 10px;line-height:1.5">
-            One folder holds everything JustWrite saves — your projects, images, the AI engine and
-            downloaded models, and logs. Changing it moves all of that to the new folder and restarts the app.
+            {{ $t('settings.storage.dataLocationHint') }}
           </p>
           <div style="display:grid;grid-template-columns:140px 1fr;gap:8px 14px;font-size:13px;align-items:center">
-            <span class="t-muted">Folder</span>
+            <span class="t-muted">{{ $t('settings.storage.folderLabel') }}</span>
             <code style="word-break:break-all">{{ (storageRoot && storageRoot.root) || dataDir || "—" }}</code>
             <template v-if="storageRoot">
-              <span class="t-muted">Type</span>
-              <span>{{ storageRoot.portable ? "Portable — beside the app" : "User folder" }}</span>
+              <span class="t-muted">{{ $t('settings.storage.typeLabel') }}</span>
+              <span>{{ storageRoot.portable ? $t('settings.storage.typePortable') : $t('settings.storage.typeUser') }}</span>
             </template>
           </div>
           <div v-if="storageRoot" style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            <UiButton intent="secondary" size="small" :loading="relocating" @click="changeFolder">Change folder…</UiButton>
-            <span v-if="relocating" class="t-muted" style="font-size:12.5px">Moving your data — the app will restart…</span>
+            <UiButton intent="secondary" size="small" :loading="relocating" @click="changeFolder">{{ $t('settings.storage.changeFolder') }}</UiButton>
+            <span v-if="relocating" class="t-muted" style="font-size:12.5px">{{ $t('settings.storage.moving') }}</span>
           </div>
-          <p v-else class="t-muted" style="font-size:12px;margin:10px 0 0">Changing the folder is available in the desktop app.</p>
+          <p v-else class="t-muted" style="font-size:12px;margin:10px 0 0">{{ $t('settings.storage.desktopOnly') }}</p>
           <p v-if="storageErr" style="font-size:12.5px;color:var(--danger,#b91c1c);margin:8px 0 0">{{ storageErr }}</p>
         </div>
 
         <!-- Disk usage — where the data folder's space goes + the reclaim actions
              (sizes from GET /v1/disk/usage; deletes via the runner endpoints). -->
         <div class="card">
-          <div class="card-title">Disk usage</div>
+          <div class="card-title">{{ $t('settings.storage.diskUsageTitle') }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:4px 0 10px;line-height:1.5">
-            Where your data folder's space goes. Downloaded models and engine logs can be cleared to
-            reclaim space — your projects, settings and work are never touched.
+            {{ $t('settings.storage.diskUsageHint') }}
           </p>
           <div style="display:grid;grid-template-columns:140px 1fr;gap:10px 14px;font-size:13px;align-items:center">
-            <span class="t-muted">Models cache</span>
+            <span class="t-muted">{{ $t('settings.storage.modelsCacheLabel') }}</span>
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
               <span>{{ diskSize(diskUsage?.modelsCache) }}</span>
-              <UiButton intent="secondary" size="small" :loading="diskBusy === 'models'" :disabled="!!diskBusy" @click="clearModelsCache">Clear…</UiButton>
+              <UiButton intent="secondary" size="small" :loading="diskBusy === 'models'" :disabled="!!diskBusy" @click="clearModelsCache">{{ $t('settings.storage.clearShort') }}</UiButton>
             </div>
 
-            <span class="t-muted">Engine builds</span>
+            <span class="t-muted">{{ $t('settings.storage.engineBuildsLabel') }}</span>
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
               <span>{{ diskSize(diskUsage?.engineBuilds) }}</span>
-              <span class="t-muted" style="font-size:12px">Managed on the AI page</span>
+              <span class="t-muted" style="font-size:12px">{{ $t('settings.storage.managedOnAiPage') }}</span>
             </div>
 
-            <span class="t-muted">Server logs</span>
+            <span class="t-muted">{{ $t('settings.storage.serverLogsLabel') }}</span>
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
               <span>{{ diskSize(diskUsage?.appLogs) }}</span>
-              <span class="t-muted" style="font-size:12px">Managed in the Logs section</span>
+              <span class="t-muted" style="font-size:12px">{{ $t('settings.storage.managedInLogs') }}</span>
             </div>
 
-            <span class="t-muted">Engine spawn logs</span>
+            <span class="t-muted">{{ $t('settings.storage.spawnLogsLabel') }}</span>
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
               <span>{{ diskSize(diskUsage?.spawnLogs) }}</span>
-              <UiButton intent="secondary" size="small" :loading="diskBusy === 'spawn'" :disabled="!!diskBusy" @click="clearSpawnLogs">Clear…</UiButton>
+              <UiButton intent="secondary" size="small" :loading="diskBusy === 'spawn'" :disabled="!!diskBusy" @click="clearSpawnLogs">{{ $t('settings.storage.clearShort') }}</UiButton>
             </div>
 
-            <span class="t-muted">Database</span>
+            <span class="t-muted">{{ $t('settings.storage.databaseLabel') }}</span>
             <span>{{ diskSize(diskUsage?.database) }}</span>
 
-            <span class="t-muted">Free disk space</span>
+            <span class="t-muted">{{ $t('settings.storage.freeSpaceLabel') }}</span>
             <span>{{ diskSize(diskUsage?.diskFree) }}</span>
           </div>
           <p v-if="diskErr" style="font-size:12.5px;color:var(--danger,#b91c1c);margin:10px 0 0">{{ diskErr }}</p>
@@ -1432,31 +1423,24 @@ async function deleteCategory(c) {
       <div v-else-if="active === 'backups'" style="display:flex;flex-direction:column;gap:14px">
         <div v-if="autosaveDir" class="card">
           <div class="card-title">{{ $t('settings.backups.autosaveCardTitle') }}</div>
-          <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55">
-            Every edit is also mirrored to a JSON file on disk within ~10s. Two prior generations
-            are kept (<code>.prev.json</code> / <code>.prev2.json</code>) so a bad write or accidental
-            reset can be recovered without a manual export. Each file is a full workspace bundle —
-            project, AI providers, sessions — so restoring one file brings everything back.
-            By default it lives inside your data folder (shown below); anything OneDrive / Time Machine /
-            your backup tool watches in this folder will pick it up automatically.
-          </p>
+          <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55" v-html="$t('settings.backups.autosaveHint')"></p>
           <div style="display:grid;grid-template-columns:140px 1fr;gap:10px 14px;font-size:13px;align-items:center;margin-bottom:12px">
-            <span class="t-muted">Folder</span>
+            <span class="t-muted">{{ $t('settings.storage.folderLabel') }}</span>
             <code style="word-break:break-all">{{ autosaveDir }}</code>
-            <span class="t-muted">Last autosave</span>
+            <span class="t-muted">{{ $t('settings.backups.lastAutosaveLabel') }}</span>
             <span>{{ lastAutosaveLabel }}</span>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <UiButton :label="autosaveListShown ? 'Hide autosaves' : 'Restore from autosave…'" intent="primary" :disabled="autosaveListBusy" @click="toggleAutosaveList">
+            <UiButton :label="autosaveListShown ? $t('settings.backups.hideAutosaves') : $t('settings.backups.showAutosaves')" intent="primary" :disabled="autosaveListBusy" @click="toggleAutosaveList">
               <template #icon><Icon name="Folder" :size="13" /></template>
             </UiButton>
-            <UiButton v-if="canPickAutosaveFolder" label="Change folder…" intent="secondary" :disabled="autosaveDirBusy" @click="changeAutosaveFolder" />
+            <UiButton v-if="canPickAutosaveFolder" :label="$t('settings.storage.changeFolder')" intent="secondary" :disabled="autosaveDirBusy" @click="changeAutosaveFolder" />
           </div>
           <div v-if="backupError" class="banner danger" style="margin-top:10px">{{ backupError }}</div>
           <div v-if="autosaveListShown" style="margin-top:12px">
-            <div v-if="autosaveListBusy" class="t-muted" style="font-size:12.5px">Loading…</div>
+            <div v-if="autosaveListBusy" class="t-muted" style="font-size:12.5px">{{ $t('common.loading') }}</div>
             <div v-else-if="!autosaveList.length" class="t-muted" style="font-size:12.5px">
-              No autosaves on disk yet. They start appearing after the first edit.
+              {{ $t('settings.backups.emptyList') }}
             </div>
             <ul v-else style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
               <li
@@ -1469,15 +1453,15 @@ async function deleteCategory(c) {
                   @update:model-value="(v) => (autosaveSelected[entry.key] = v)"
                 />
                 <div style="flex:1;min-width:0">
-                  <div><b>{{ entry.title || "Untitled" }}</b> <span class="t-muted">— {{ generationLabel(entry.generation) }}</span></div>
+                  <div><b>{{ entry.title || $t('sidebar.projectSwitcher.untitled') }}</b> <span class="t-muted">— {{ generationLabel(entry.generation) }}</span></div>
                   <div class="t-muted" style="font-size:12px">{{ autosaveLabel(entry.savedAt) }}</div>
                 </div>
-                <UiButton label="Restore" intent="primary" @click="restoreFromAutosave(entry)" />
+                <UiButton :label="$t('common.restore')" intent="primary" @click="restoreFromAutosave(entry)" />
               </li>
             </ul>
             <div v-if="autosaveList.length && !autosaveListBusy" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-              <UiButton label="Delete selected" intent="danger" size="small" :disabled="!selectedAutosaveKeys.length" @click="removeSelectedAutosaves" />
-              <UiButton label="Delete all" intent="danger" size="small" @click="removeAllAutosaves" />
+              <UiButton :label="$t('settings.backups.deleteSelectedButton')" intent="danger" size="small" :disabled="!selectedAutosaveKeys.length" @click="removeSelectedAutosaves" />
+              <UiButton :label="$t('settings.backups.deleteAllConfirm')" intent="danger" size="small" @click="removeAllAutosaves" />
             </div>
           </div>
         </div>
@@ -1487,10 +1471,10 @@ async function deleteCategory(c) {
              this root). The relocate control has ONE home now — Settings → Storage —
              so this deep-links there instead of duplicating the live chooser. -->
         <div v-if="storageRoot" class="card">
-          <div class="card-title">Data folder</div>
+          <div class="card-title">{{ $t('settings.backups.dataFolderTitle') }}</div>
           <p style="font-size:13px;margin:0 0 8px;line-height:1.6">
             <code style="word-break:break-all">{{ storageRoot.root }}</code>
-            <span class="t-muted" style="font-size:11px;margin-left:6px">{{ storageRoot.portable ? "· portable, beside the app" : "· user folder" }}</span>
+            <span class="t-muted" style="font-size:11px;margin-left:6px">{{ storageRoot.portable ? $t('settings.backups.portableSuffix') : $t('settings.backups.userFolderSuffix') }}</span>
           </p>
           <p class="t-muted" style="font-size:12.5px;margin:0;line-height:1.5">
             Everything JustWrite saves lives here — your books, images, the AI engine and models, and
@@ -1503,24 +1487,20 @@ async function deleteCategory(c) {
              (book.json + images/ inside). Desktop-only (native save/open dialog);
              the browser shows a note. -->
         <div class="card">
-          <div class="card-title">This book</div>
-          <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55">
-            <strong>Export</strong> the current book as a single <code>.zip</code> — its text, structure, and
-            images — to move it to another computer or share it, then <strong>Import</strong> a
-            <code>.zip</code> back as a new book. Each chooser remembers where you last saved.
-          </p>
+          <div class="card-title">{{ $t('settings.backups.thisBookTitle') }}</div>
+          <p class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55" v-html="$t('settings.backups.thisBookHint')"></p>
           <div v-if="transferErr" class="banner danger" style="margin-bottom:10px">{{ transferErr }}</div>
           <div v-if="canTransferBooks" style="display:flex;gap:10px;flex-wrap:wrap">
             <UiButton intent="primary" :disabled="!!transferBusy || !project._activeId" @click="exportThisProject()">
               <template #icon><Icon name="Download" :size="13" /></template>
-              {{ transferBusy === 'export' ? 'Exporting…' : 'Export this book…' }}
+              {{ transferBusy === 'export' ? $t('settings.backups.exporting') : $t('settings.backups.exportButton') }}
             </UiButton>
             <UiButton intent="secondary" :disabled="!!transferBusy" @click="importAProject()">
               <template #icon><Icon name="Folder" :size="13" /></template>
-              {{ transferBusy === 'import' ? 'Importing…' : 'Import a book…' }}
+              {{ transferBusy === 'import' ? $t('settings.backups.importing') : $t('settings.backups.importButton') }}
             </UiButton>
           </div>
-          <p v-else class="t-muted" style="font-size:12px;margin:0">Available in the desktop app.</p>
+          <p v-else class="t-muted" style="font-size:12px;margin:0">{{ $t('settings.backups.desktopOnly') }}</p>
         </div>
 
         <!-- Backup / restore / reset — the shared full-DB module (same code +
@@ -1544,12 +1524,12 @@ async function deleteCategory(c) {
         <div class="card">
           <div class="card-title">{{ $t('settings.about.appCardTitle') }}</div>
           <p style="font-size:13px;margin:0 0 12px;line-height:1.6">
-            A local-first writing studio for novels — chapters, cast, and world, all stored on your machine.
+            {{ $t('settings.about.tagline') }}
           </p>
           <div style="display:grid;grid-template-columns:160px 1fr;gap:8px 14px;font-size:13px">
-            <span class="t-muted">Runtime</span><span>{{ platformLabel }}</span>
-            <span class="t-muted">Renderer</span><span>Vue 3 + Pinia</span>
-            <span class="t-muted">Image storage</span><span>JustWrite server</span>
+            <span class="t-muted">{{ $t('settings.about.runtimeLabel') }}</span><span>{{ platformLabel }}</span>
+            <span class="t-muted">{{ $t('settings.about.rendererLabel') }}</span><span>{{ $t('settings.about.rendererValue') }}</span>
+            <span class="t-muted">{{ $t('settings.about.imageStorageLabel') }}</span><span>{{ $t('settings.coverImage.storedServer') }}</span>
           </div>
         </div>
 
@@ -1558,27 +1538,27 @@ async function deleteCategory(c) {
           <div class="settings-stats-grid" style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:14px">
             <div class="stat-tile">
               <div class="stat-num">{{ stats.chapters }}</div>
-              <div class="stat-label">Chapters</div>
+              <div class="stat-label">{{ $t('nav.chapters') }}</div>
             </div>
             <div class="stat-tile">
               <div class="stat-num">{{ stats.characters }}</div>
-              <div class="stat-label">Characters</div>
+              <div class="stat-label">{{ $t('nav.characters') }}</div>
             </div>
             <div class="stat-tile">
               <div class="stat-num">{{ stats.locations }}</div>
-              <div class="stat-label">Locations</div>
+              <div class="stat-label">{{ $t('nav.locations') }}</div>
             </div>
             <div class="stat-tile">
               <div class="stat-num">{{ stats.objects }}</div>
-              <div class="stat-label">Objects</div>
+              <div class="stat-label">{{ $t('nav.objects') }}</div>
             </div>
             <div class="stat-tile">
               <div class="stat-num">{{ stats.worldbuilding }}</div>
-              <div class="stat-label">Worldbuilding</div>
+              <div class="stat-label">{{ $t('nav.worldbuilding') }}</div>
             </div>
             <div class="stat-tile">
               <div class="stat-num">{{ stats.trashTotal }}</div>
-              <div class="stat-label">In trash</div>
+              <div class="stat-label">{{ $t('settings.about.inTrashLabel') }}</div>
             </div>
           </div>
         </div>
@@ -1586,10 +1566,10 @@ async function deleteCategory(c) {
         <div class="card">
           <div class="card-title">{{ $t('settings.about.shortcutsCardTitle') }}</div>
           <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 18px;font-size:12.5px">
-            <kbd class="kbd-pill">⌘F</kbd><span>Focus search</span>
-            <kbd class="kbd-pill">⌘\</kbd><span>Toggle sidebar</span>
-            <kbd class="kbd-pill">⌘Z</kbd><span>Undo (outside the rich editor)</span>
-            <kbd class="kbd-pill">⌘⇧Z / ⌘Y</kbd><span>Redo</span>
+            <kbd class="kbd-pill">⌘F</kbd><span>{{ $t('settings.about.shortcutFocusSearch') }}</span>
+            <kbd class="kbd-pill">⌘\</kbd><span>{{ $t('sidebar.tooltips.toggleSidebar') }}</span>
+            <kbd class="kbd-pill">⌘Z</kbd><span>{{ $t('settings.about.shortcutUndo') }}</span>
+            <kbd class="kbd-pill">⌘⇧Z / ⌘Y</kbd><span>{{ $t('common.redo') }}</span>
           </div>
         </div>
       </div>
