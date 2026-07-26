@@ -557,6 +557,23 @@
     }
   },
   "chapters": {
+    "index": {
+      "intro": "{chapters} is the writing surface — the editor itself. {edit} is where you write, showing a chapter's scenes as a {listView} or {cardView}; {outline} lays out every part, chapter and scene in order; {read} is a clean pass over the whole manuscript. Type {at} to mention any Story Bible entity; the {ai} button in the scene strip opens rewrite, continue and line-edit actions; the {links} panel ties each scene to its characters, location and strands.",
+      "searchPlaceholder": "Search chapters…",
+      "noMatches": "No chapters match your search.",
+      "columns": {
+        "num": "#",
+        "title": "Title",
+        "part": "Part",
+        "status": "Status",
+        "scenes": "Scenes",
+        "words": "Words"
+      },
+      "facets": {
+        "status": "Status",
+        "part": "Part"
+      }
+    },
     "header": {
       "chapterTitle": "Chapter {num} · {title}",
       "askTheBookTooltip": "Ask the book about chapter {num}",
@@ -572,10 +589,7 @@
       "read": "Read"
     },
     "outline": {
-      "intro": "{chapters} is the writing surface — the editor itself, with {outline} / {cards} / {read} view modes that switch your lens on the same manuscript. Type {at} to mention any Story Bible entity; the {ai} button in the scene strip opens rewrite, continue, and line-edit actions; the {links} panel ties each scene to its characters, location, and strands.",
-      "introTerms": {
-        "cards": "Cards"
-      },
+      "intro": "Outline is the manuscript's skeleton — every part, chapter and scene in order. Rename titles in place, move parts with the row arrows, and click any scene to jump straight into it.",
       "partN": "Part {n}",
       "alreadyFirstPart": "Already the first part",
       "movePartUp": "Move part up",

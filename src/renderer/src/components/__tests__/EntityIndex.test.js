@@ -30,8 +30,10 @@ function mount(props, slots) {
   host = document.createElement("div");
   document.body.appendChild(host);
   app = createApp({ render: () => h(EntityIndex, props, slots) });
-  // Global scope so the component's $t("common.*") resolves against the real
-  // catalog — a stub would hide a renamed key.
+  // Global scope so the component's shared `common` keys resolve against the
+  // REAL catalog — a stub would hide a renamed key. (Spelling a translate call
+  // out longhand in a comment here makes vue-i18n-extract report it as a missing
+  // key: it scans .js files too.)
   app.use(createI18n({ legacy: false, locale: "en", messages: { en } }));
   app.mount(host);
   return host;

@@ -5,6 +5,8 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRoute, useRouter } from "vue-router";
 import PaneHeader from "../components/PaneHeader.vue";
+import EntityIndex from "../components/EntityIndex.vue";
+import { useStatusDisplay } from "../composables/useStatusDisplay.js";
 import { Icon } from "@delebash/llm-ui";
 import RichEditor from "../components/RichEditor.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
@@ -25,12 +27,14 @@ import { EDITOR_TOOLBAR_FULL } from "../services/editorToolbars.js";
 import { UiButton } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiSegmented } from "@delebash/llm-ui";
+import { UiTag } from "@delebash/llm-ui";
 
 const props = defineProps({
   id: { type: String, default: "" },
   sceneId: { type: String, default: "" },
 });
 const project = useProjectStore();
+const { statusLabel, statusSeverity } = useStatusDisplay();
 const ui = useUiStore();
 const router = useRouter();
 const route = useRoute();
@@ -112,8 +116,44 @@ const READ_SCOPE_OPTIONS = computed(() => [
   { value: "book",     label: t("chapters.read.scopeBook"),     icon: "List",  tooltip: t("chapters.read.scopeBookTooltip") },
 ]);
 
-const selectedId = computed(() => props.id || ui.selections.chapters || project.allChapters[0]?.id);
-const ch = computed(() => project.chapterById(selectedId.value) || project.allChapters[0]);
+// No id in the route → the INDEX (the grid of chapters), exactly like every other
+// section. This used to fall back twice — `props.id || ui.selections.chapters ||
+// allChapters[0]?.id` — which meant the no-selection state could never render, and
+// Chapters was the one part of the app with no list page. That wasn't a decision
+// anyone made; it was a default. (The user, 2026-07-26: "why not standardize it
+// like all the others… they all have a grid along with the nav".)
+// Sidebar and Home are untouched: `go("chapters")` already pushes `/chapters`
+// (Sidebar.vue:226-232), so the nav lands on the list purely from this gate, and
+// every chapter/scene row still routes to `/chapters/:id[/:sceneId]` as before.
+const ch = computed(() => (props.id ? project.chapterById(props.id) : null));
+// ── Index mode: the grid of chapters, on the shared EntityIndex ──────
+// `allChapters` already decorates every row with partId, partTitle and a LIVE
+// scene count (project.js:675-682), so the grid needs no new data. Outline stays
+// a different job: this finds and scans, Outline restructures — so the index
+// never nests scenes and Outline never grows filters.
+const indexColumns = computed(() => [
+  { accessorKey: "num", header: t("chapters.index.columns.num"), sortable: true, headerStyle: "min-width: 56px" },
+  { accessorKey: "title", header: t("chapters.index.columns.title"), sortable: true, headerStyle: "min-width: 240px" },
+  { accessorKey: "partTitle", header: t("chapters.index.columns.part"), sortable: true, headerStyle: "min-width: 160px" },
+  { accessorKey: "status", header: t("chapters.index.columns.status"), sortable: true, headerStyle: "min-width: 120px" },
+  { accessorKey: "scenes", header: t("chapters.index.columns.scenes"), sortable: true, headerStyle: "min-width: 90px" },
+  { accessorKey: "words", header: t("chapters.index.columns.words"), sortable: true, headerStyle: "min-width: 100px" },
+]);
+const statusOptions = computed(() =>
+  project.statuses.map((s) => ({ value: s.id, label: s.label })),
+);
+const partOptions = computed(() =>
+  project.parts.map((p) => ({ value: p.id, label: p.title || t("sidebar.placeholders.untitledPart") })),
+);
+const indexFacets = computed(() => [
+  { key: "status", label: t("chapters.index.facets.status"), options: statusOptions.value },
+  { key: "partId", label: t("chapters.index.facets.part"), options: partOptions.value },
+]);
+function onIndexRowClick(event) {
+  const id = event?.data?.id;
+  if (id) { ui.select("chapters", id); router.push(`/chapters/${id}`); }
+}
+
 const idx = computed(() => project.allChapters.findIndex((c) => c.id === ch.value?.id));
 const prev = computed(() => idx.value > 0 ? project.allChapters[idx.value - 1] : null);
 const next = computed(() => idx.value < project.allChapters.length - 1 ? project.allChapters[idx.value + 1] : null);
@@ -819,7 +859,11 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
       </UiButton>
     </div>
   </header>
-  <PaneHeader v-else :eyebrow="$t('panes.chapters.eyebrow')" :title="$t('panes.chapters.emptyTitle')" help-key="writing#chapters">
+  <!-- No chapter in the route: the INDEX header, matching every other section.
+       The title only says "No chapters" when the book genuinely has none. -->
+  <PaneHeader v-else :eyebrow="$t('panes.chapters.eyebrow')"
+    :title="project.allChapters.length ? $t('nav.chapters') : $t('panes.chapters.emptyTitle')"
+    help-key="writing#chapters">
     <router-link to="/import" custom v-slot="{ navigate }">
       <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Plus" :size="14" /> {{ $t('chapters.empty.importFromFile') }}</UiButton>
     </router-link>
@@ -832,15 +876,14 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
     <!-- i18n-t + named slots (the user's ruling, 2026-07-26). `@` is a slot rather than
          literal message text on purpose: in vue-i18n's message syntax `@:key` is a linked
          message, so a bare @ is a metacharacter. -->
-    <i18n-t keypath="chapters.outline.intro" tag="p" class="chap-desc" scope="global">
-      <template #chapters><strong>{{ $t("nav.chapters") }}</strong></template>
-      <template #outline><strong>{{ $t("chapters.modes.outline") }}</strong></template>
-      <template #cards><strong>{{ $t("chapters.outline.introTerms.cards") }}</strong></template>
-      <template #read><strong>{{ $t("chapters.modes.read") }}</strong></template>
-      <template #at><code>@</code></template>
-      <template #ai><strong>{{ $t("chapters.ai.badge") }}</strong></template>
-      <template #links><strong>{{ $t("chapters.sceneStrip.links") }}</strong></template>
-    </i18n-t>
+    <!-- Outline's OWN description. The long surface description that used to sit
+         here moved to the index (chapters.index.intro): it describes the whole
+         Chapters area, so it belongs where you land when you click Chapters —
+         the same place Characters puts its description. This line is only about
+         Outline. It also drops the old sentence's claim of a "Cards" VIEW MODE:
+         the modes are Edit / Outline / Read, and Card view is a toggle inside
+         Edit. No drag-to-reorder is promised either — the pane has none. -->
+    <p class="chap-desc">{{ $t("chapters.outline.intro") }}</p>
     <div class="outline-tree">
       <section v-for="(part, pi) in project.parts" :key="part.id" class="ol-part">
         <div class="ol-part-row">
@@ -1311,6 +1354,61 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
      :scene-id="activeScene?.id || ''"
      @close="notesPanelOpen = false" />
   </div>
+
+  <!-- ── INDEX (no chapter in the route) ──────────────────────────
+       The grid of chapters, on the same shared shell as every other section.
+       Outline is NOT this: that one restructures the book (rename in place,
+       move parts, add/delete, scenes nested); this one finds and scans. So the
+       index never nests scenes, and Outline never grows filters. -->
+  <EntityIndex v-else-if="project.allChapters.length"
+    :rows="project.allChapters"
+    :columns="indexColumns"
+    :facets="indexFacets"
+    :search-fields="['title', 'partTitle']"
+    :search-placeholder="$t('chapters.index.searchPlaceholder')"
+    :empty-text="$t('chapters.index.noMatches')"
+    @row-click="onIndexRowClick">
+    <template #intro>
+      <i18n-t keypath="chapters.index.intro" tag="p" class="entity-desc chap-desc" scope="global">
+        <template #chapters><strong>{{ $t("nav.chapters") }}</strong></template>
+        <template #edit><strong>{{ $t("chapters.modes.edit") }}</strong></template>
+        <template #listView><strong>{{ $t("chapters.edit.listView") }}</strong></template>
+        <template #cardView><strong>{{ $t("chapters.edit.cardView") }}</strong></template>
+        <template #outline><strong>{{ $t("chapters.modes.outline") }}</strong></template>
+        <template #read><strong>{{ $t("chapters.modes.read") }}</strong></template>
+        <template #at><code>@</code></template>
+        <template #ai><strong>{{ $t("chapters.ai.badge") }}</strong></template>
+        <template #links><strong>{{ $t("chapters.sceneStrip.links") }}</strong></template>
+      </i18n-t>
+    </template>
+
+    <template #num="{ row }">
+      <span class="t-num entity-cell-sub">{{ row.num }}</span>
+    </template>
+
+    <template #title="{ row }">
+      <div class="entity-cell-title">
+        <span class="entity-cell-title-text">{{ row.title }}</span>
+      </div>
+    </template>
+
+    <template #partTitle="{ row }">
+      <span class="entity-cell-sub">{{ row.partTitle || $t('sidebar.placeholders.untitledPart') }}</span>
+    </template>
+
+    <template #status="{ row }">
+      <UiTag v-if="row.status" :value="statusLabel(row.status)" :intent="statusSeverity(row.status)" />
+      <span v-else class="entity-status-empty">—</span>
+    </template>
+
+    <template #scenes="{ row }">
+      <span class="t-num entity-cell-sub">{{ row.scenes }}</span>
+    </template>
+
+    <template #words="{ row }">
+      <span class="t-num entity-cell-sub">{{ (row.words || 0).toLocaleString() }}</span>
+    </template>
+  </EntityIndex>
 
   <div v-else class="pane-card" style="display:grid;place-items:center;padding:60px">
     <EmptyState icon="Book"

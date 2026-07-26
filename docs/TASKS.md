@@ -64,6 +64,22 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
 
 ### B. Open — needs your go
 
+- **"PC class config" — the rename + the every-model class visibility — BUILT 2026-07-26, NOT
+  COMMITTED (awaiting your diff review and your commit word).** Resolves the long-open question
+  of whether the "Hardware/model class default" chip wording stays: it does not — you ruled the
+  rename on 2026-07-26 ("we keep getting it wrong"), which supersedes your own QC-19 anchor from
+  2026-07-08. Copy/display only, no schema/server/wire change: the library, badge, both modal
+  titles, the Tune grid heading and every "class config/default" shorthand now say **PC class
+  config**; each chat catalog row STATES its floors (*"5.6 GB · needs ~11 GB VRAM + 14 GB RAM"*)
+  so the list answers "what runs this?" without a hover; the Fit hover says "Estimated" and, when
+  untuned, "not yet tested on your PC class"; and the class panel now lists EVERY chat model,
+  the untested ones bare ("no switches") behind one collapsed line with an Add switches button.
+  Twelve kit files + `docs/models.md`; Biome 0, JW vitest 458/50 green, `build:vite` green,
+  runner pytest 667 passed with only the documented Windows lspci known-bad. Full record:
+  `docs/plans/2026-07-22-igpu-research-and-cpu-band-recovery.md` §24 — including two of the plan's
+  own doc claims that proved FALSE and were deliberately not acted on (`ARCHITECTURE.md:198`
+  "Model class defaults" is the model-FAMILY thinking table, not a PC-class section; there is no
+  TASKS item #214), each needing a call.
 - ~~**Migrate the six hand-rolled kit tables to `UiTable` (TanStack).**~~ **DONE 2026-07-24,
   CONFIRMED GOOD ON YOUR BOX 2026-07-25** ("the whole table sweep all good") — shipped as runner
   `40737fe`. The your-box look check this needed is now closed. It shipped as THREE migrations,
@@ -310,20 +326,33 @@ and the per-row beat/scene counts are computed once per data change instead of p
 **Notes** stores ONE `tag` per row, not an array, so its multi-select facet tests equality
 rather than array membership. Characters exercises the whole surface — five facet rows
 including the boolean `main`.
-⚠ **The renderer smoke did NOT run for this batch** — your app held port 1420 throughout.
-Build, 458 unit tests, the 8 EntityIndex mount tests and i18n lint are all green, and every
-view's intro-paragraph count was diffed against pre-refactor HEAD to prove nothing was
-dropped, but **seven list pages want a human click-through**. They are live in your running
-app via HMR.
+**Phase 3 — CHAPTERS HAS AN INDEX. SHIPPED 2026-07-26.** `/chapters` with no id now renders
+the grid (**# · Title · Part · Status · Scenes · Words**, facets Status + Part) instead of
+silently falling into a chapter. The one-line cause is gone: `ch` is now
+`props.id ? chapterById(props.id) : null`, like the other seven. **Sidebar and Home were not
+touched** (your words) — `go("chapters")` already pushed `/chapters`, so the nav lands on the
+list from the view's gate alone, and every chapter/scene row still routes as before. The
+"No chapters" header title now only appears when the book genuinely has none.
+The surface description moved to the index (`chapters.index.intro`), reworded so it names
+controls that exist: **Edit** (with **List view** / **Card view**), **Outline**, **Read** —
+the old sentence advertised a "Cards" VIEW MODE that never existed and never mentioned Edit.
+Outline got its own short line, and its dead `introTerms.cards` key is deleted.
+`useStatusDisplay()` was extracted rather than copied for the eighth time — the seven
+existing copies are a drop-in swap whenever the audit sweep runs.
 
-**Remaining.** Give Chapters its index: `/chapters` with no id → the grid (**# · Title · Part · Status ·
-Scenes · Words**, facets Status + Part — `allChapters` already decorates rows with `partId`,
-`partTitle` and a live `scenes` count, `project.js:675-682`). The surface description moves
-there, matching `characters.intro`, and Outline keeps a short line of its own. **Sidebar and
-Home stay exactly as they are** (your words): `go("chapters")` already pushes `/chapters`
-(`Sidebar.vue:226-232`), so the nav lands on the list purely from the view's gate. Outline
-stays a distinct job — the grid finds and scans, the outline restructures; the rule to hold is
-that the index never nests scenes and the outline never grows filters.
+**VERIFIED BY CLICKING, all green:** `HEADLESS SMOKE PASSED` (and `#/chapters` went
+chars=945 → 1356, the index rendering instead of a chapter), plus an 18-check probe —
+Chapters stays on the index, 4 rows, the six columns exactly, the description present and
+naming the real controls, the phantom "Cards" mode gone, Status+Part facets, a Part chip
+filtering 4→2, a row click opening `#/chapters/ch1`, Outline showing its own line and NOT
+duplicating the long one, and all seven other indexes still rendering rows
+(characters 8 · locations 7 · objects 6 · groups 5 · notes 4 · strands 5 · worldbuilding 8).
+0 JS errors. 458 unit tests, 0 missing keys, build clean.
+
+**The rule to hold from here:** Outline and the index are distinct jobs — the grid FINDS and
+SCANS, Outline RESTRUCTURES (rename in place, move parts, add/delete, scenes nested). So the
+index must never nest scenes, and Outline must never grow filters. If either drifts we will
+have built two of the same page, which is the failure this whole item existed to undo.
 
 ⚠ **A whole-repo "extraction vs copies" audit is OWED** — your call, 2026-07-26: *"remember
 this extraction vs copies example, this is the kind of refactoring audit we need to do at some
@@ -689,6 +718,13 @@ listed for shape, not queued.
 - **F2 — speaker-attribution task scaffolding** — meaningful only after F1. Ledger §F2.
 
 ## Your-box checks (only the Windows / 2070S machine can finish these)
+
+- **LOOK at the four new "PC class config" surfaces** (2026-07-26, built but never seen running —
+  your eyes are the look gate): the catalog row's needs line beside the download size · the Fit
+  hover's "Estimated —" / "not yet tested on your PC class" · the renamed badge with your class
+  after it · the class panel's collapsed *"N more models — not tested on this class"* line, its
+  "no switches" rows, and whether **Add switches** really opens the editor already on that model.
+  Detail: `docs/plans/2026-07-22-igpu-research-and-cpu-band-recovery.md` §24.
 
 - ✅ **Warm the default local model into VRAM on startup — CONFIRMED BY DAILY USE 2026-07-26**
   (the user: "whenever i restart my app it says loading model as long as i have already set a
