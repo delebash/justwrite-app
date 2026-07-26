@@ -332,11 +332,16 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
 
 ## Your-box checks (only the Windows / 2070S machine can finish these)
 
-- **Warm the default local model into VRAM on startup** — with the engine installed + the default
-  model downloaded + built-in as default, launch and confirm residency on first chat (the task
-  shows during load); toggle `warmDefaultOnStartup` off → confirm a cold start. Can't be
-  exercised in-container (no engine/GPU). Detail:
-  `just-llm-runner/docs/plans/2026-07-21-builtin-row-engine-update-and-warm-load.md` Part 2.
+- ✅ **Warm the default local model into VRAM on startup — CONFIRMED BY DAILY USE 2026-07-26**
+  (the user: "whenever i restart my app it says loading model as long as i have already set a
+  model default, i can cancel load if i want" — that IS warm-start, working). The path:
+  `services/warmStartup.js` `startWarmOnBoot` (from `main.js`) reads the toggle → resolves the
+  default LOCAL chat model (empty ⇒ cloud default ⇒ no-op) → calls the SAME `retryLoad` a load
+  button runs, with `warmModelId` driving the boot splash's shared DownloadBar (hence the
+  visible, cancellable "loading"). The toggle-off half is a one-line guard
+  (`warmStartup.js:29`) and needs no tracked check. Also proven the negative way 2026-07-26:
+  after a workspace reset with routing empty there was no default to warm, so nothing loaded —
+  which is exactly why the bench's first embed hit a dead router.
 - **Bench harness — the restore fire-test** — one deliberate mid-leg kill →
   `npm run bench -- --restore bench/results/<run-id>` → confirm the Routing tab shows the original
   assignments (the escape proven to FIRE). The harness has now run end-to-end many times, but
