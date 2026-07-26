@@ -68,6 +68,54 @@ page.on("requestfailed", (req) => failedRequests.push({ url: req.url(), err: req
 
 let failed = 0;
 
+// ── Seed a REAL project before the sweep (the user's ruling, 2026-07-26: "just
+// call the api to load the tutorial project same as me clicking it").
+//
+// WHY this is load-bearing, not a convenience: with no project open the app
+// renders OnboardingShell for EVERY hash route, so every ✓ in the sweep below
+// was asserting the WELCOME SCREEN, not the view named on the line — measured
+// 2026-07-26, an identical chars=1024 route after route, while the run reported
+// "all routes rendered". A gate that green-lights the wrong page is worse than
+// no gate, because it is trusted.
+//
+// This is exactly what clicking "Try the tutorial project" does, minus the UI:
+// projectApi.createDemoProject() (projectApi.js:106) → POST /v1/projects/demo
+// (projects.py:44 — a FIXED id, idempotent: the server returns the existing book
+// instead of duplicating it), then project.switchProject() (project.js:2260) →
+// writeSetting("activeProjectId", id) (settings.js:42) → PATCH /v1/settings. The
+// registry needs no write: it is DERIVED from the projects table (CLAUDE.md,
+// "State"). JW_SEED=0 sweeps the no-project onboarding state instead.
+async function seedTutorialProject() {
+  const call = async (path, init) => {
+    const r = await fetch(`${SERVER}${path}`, {
+      headers: { "content-type": "application/json" },
+      ...init,
+    });
+    if (!r.ok) throw new Error(`${init?.method || "GET"} ${path} → HTTP ${r.status}`);
+    return r.status === 204 ? null : r.json();
+  };
+  const meta = await call("/v1/projects/demo", { method: "POST", body: "{}" });
+  if (!meta?.id) throw new Error("demo response carried no id");
+  await call("/v1/settings", { method: "PATCH", body: JSON.stringify({ activeProjectId: meta.id }) });
+  return meta;
+}
+
+let seeded = false;
+if (process.env.JW_SEED === "0") {
+  console.log("· seed              skipped (JW_SEED=0) — sweeping the no-project onboarding state");
+} else {
+  try {
+    const meta = await seedTutorialProject();
+    seeded = true;
+    console.log(`✓ seed              open: ${meta.title || meta.id}`);
+  } catch (e) {
+    // FAIL, never warn: a silent seed failure sends the whole sweep back to
+    // asserting the welcome screen, which is the exact blind spot this closes.
+    failed++;
+    console.log(`✗ seed              FAILED (${String(e.message || e).slice(0, 140)}) — the sweep below would assert the welcome screen`);
+  }
+}
+
 // ── Static REUSE gates (jobs design §17.1): the copy-paste discipline a behavior
 // test can't enforce — "a professional extracts one reusable component instead of
 // copying code." (1) the kit's shared-picker check: a job picker may live ONLY in
@@ -137,11 +185,14 @@ try {
   const boot = await waitForBoot();
   let mark = errors.length;
   const bootChars = await page.evaluate(() => document.body?.innerText?.length || 0);
-  let ok = bootChars > 0 && errors.length === mark && !boot.timedOut;
+  // When the seed succeeded, landing on ONBOARDING is a failure, not a state:
+  // it means the project the seed opened did not survive to the renderer, and
+  // every route assertion below would be measuring the welcome screen again.
+  let ok = bootChars > 0 && errors.length === mark && !boot.timedOut && (!seeded || boot.shell);
   if (!ok) failed++;
   const bootState = boot.timedOut
     ? `TIMED OUT (shell=${boot.shell} onboarding=${boot.onboarding} splash=${boot.splash})`
-    : boot.shell ? "shell" : "onboarding (no project)";
+    : boot.shell ? "shell" : seeded ? "ONBOARDING despite a seeded project — routes below are the welcome screen" : "onboarding (no project)";
   console.log(`${ok ? "✓" : "✗"} boot${" ".repeat(16)}${bootState} chars=${bootChars} errors=${errors.length - mark}`);
   errors.slice(mark, mark + 5).forEach((e) => console.log("    " + e));
 

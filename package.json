@@ -19,6 +19,7 @@
     "release:linux": "npm run release -- --platform linux",
     "screenshots": "node e2e/capture-direct.js",
     "test": "npm test --prefix e2e",
+    "smoke": "node scripts/smoke.js",
     "test:unit": "vitest run",
     "test:server": "cd server && node ../scripts/py.js -m pytest -q",
     "test:fast": "npm run test:unit && npm run build:vite && npm run test:server",

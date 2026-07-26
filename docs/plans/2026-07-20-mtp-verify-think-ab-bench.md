@@ -1923,3 +1923,42 @@ but small prose edge on the open-ended feature only, nothing on constrained feat
 StyleTune/EZ verdicts are the TASKS.md ✅ items of 2026-07-25. **Reverse:** the user's rulings
 overwrite recommendations 1-2; a future GGUF/hardware change reopens 3's watches.
 **Open:** the three rulings above; the venv re-exec oddity look; the licence flag on bundling.
+
+## 35. THE RULINGS — taken, and executed (2026-07-26)
+
+The user's word was "your rec on bench judging": recommendations 1-3 of §34 adopted as written.
+What that changed, and what it deliberately did not:
+
+**① The 31B row is REMOVED.** `llm_runner/llm/seed.py` — the `gemma-4-31b-qat` entry is
+replaced by a removal comment carrying the evidence (the E2B / Qwen3.6-35B / HauhauCS
+precedent for a catalog trim), and its twin `STALE_SEED_VALUES` draft-path heal left with it,
+exactly as the HauhauCS heal did on 2026-07-25 — a heal only ever applies to a row the seeder
+still carries. `tests/test_identity.py` had three references: the "download-derived size
+survives a reseed" fixture moved to `gemma-4-12b-qat` (any row with a seeded `size_bytes`
+exercises that path identically) and the embedding-flag exhibit list simply drops the id.
+`bench/harness/configs/gpu.json` loses its three 31B legs (`gpu-gemma-31b`, `-hq1`, `-hq2`;
+18 legs → 15) — the same disposition the removed hauhau/E2B/35B arms got, so a future full run
+cannot fail on a model the catalog no longer offers. Verified: runner suite **708 passed**, the
+single failure being the known-on-Windows `test_hardware.py::test_pci_gpus_linux_lspci_name_match`;
+bench-harness units **51 passed**; the config re-parses at 15 legs.
+
+**HONEST LIMIT, and it matters for the user's own box:** the model-catalog seeder is
+insert/fill-only — it does **not** prune (unlike the engine-preset seeder, which does; see the
+"RETIRED built-ins are PRUNED" path). So this removes the 31B from **fresh installs only**. A
+database that already carries the row — the user's does — keeps it, along with its stale draft
+path, until it is deleted in the catalog UI. Nothing about this change touches an existing DB.
+
+**② The 70B/GLM rows stay.** No edit: the keep IS the action. They remain the named precedent
+for availability-vs-recommendation — research-grounded rows for hardware nobody here owns
+(42 / 67 GB against a 32 GB ceiling), so the >24 GB classes are not left empty.
+
+**③ The stale "two open decisions" pointer is corrected** in `docs/TASKS.md`. What genuinely
+remains from the surveys is two WATCHES, not decisions: the **licence flag** (Goetia/SuperGemma
+claim apache/MIT while being Gemma-4 derivatives under Google's Gemma ToU — live only if we ever
+BUNDLE weights, and explicitly the user's call) and the **watchlist** (Harrier-27B if a GGUF
+lands · the KaLM trial when the 32 GB card arrives).
+
+**Still open after this section:** the venv re-exec oddity (the autostarted venv python re-exec'd
+into an `F:\Python312` child that owned the llama-servers — ran green, cause unverified, and it
+sits squarely on the "which Python runs" trap); and the licence flag, if bundling is ever on the
+table.

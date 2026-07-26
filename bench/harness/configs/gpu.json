@@ -305,63 +305,6 @@
       }
     },
     {
-      "id": "gpu-gemma-31b",
-      "label": "Gemma 4 31B dense — QUALITY probe on the 8 GB card (the 24 GB tier's default question)",
-      "_why": [
-        "BEST-EFFORT (flagged 2026-07-24): a 31B dense (~17.3 GB) on an 8 GB card runs mostly",
-        "on CPU via computed partial offload — expect single-digit tok/s and LONG walls. That",
-        "is fine: QUALITY is speed-independent, and this leg's captures are what decide whether",
-        "the 31B earns the 24 GB-tier default over the 26B MoE ('Writing rank pending a Lab A/B",
-        "against the 26B-A4B' — its own seed note). Speed on a real 24 GB card is NOT measured",
-        "here (fully-resident dense will be far faster); the fit engine's honest partial-offload",
-        "number is still recorded by llamaBench. If the load refuses outright, this leg fails",
-        "loudly — fall back to a manual llama-cli probe and tell the planner. ~17.3 GB download."
-      ],
-      "model": "gemma-4-31b-qat",
-      "tunables": { "temperature": 0.7, "think": false },
-      "launch": {},
-      "llamaBench": { "p": [512, 2048], "n": 128, "reps": 2 }
-    },
-    {
-      "id": "gpu-gemma-31b-hq1",
-      "label": "HARD Q1, think OFF — 31B dense (judge vs the gpu-gemma-26b-hq1 ANSWER KEY)",
-      "_why": [
-        "Same hard Q1 + key as gpu-gemma-26b-hq1 — the 31B's reasoning vs the 26B MoE's.",
-        "Slow leg (partial offload); repeats 3 like the other hq legs, run overnight."
-      ],
-      "model": "gemma-4-31b-qat",
-      "tunables": { "temperature": 0.7, "think": false },
-      "launch": {},
-      "llamaBench": null,
-      "features": ["chat"],
-      "repeats": 3,
-      "featureArgs": {
-        "chat": {
-          "question": "Before the party ever reaches Manufactory Nine, what early signs connect the commission-token to what is inside the Nine, and what do those signs imply about the job? Cite the excerpts.",
-          "k": 6
-        }
-      }
-    },
-    {
-      "id": "gpu-gemma-31b-hq2",
-      "label": "HARD Q2, think OFF — 31B dense (judge vs the gpu-gemma-26b-hq2 ANSWER KEY)",
-      "_why": [
-        "Same hard Q2 + key as gpu-gemma-26b-hq2."
-      ],
-      "model": "gemma-4-31b-qat",
-      "tunables": { "temperature": 0.7, "think": false },
-      "launch": {},
-      "llamaBench": null,
-      "features": ["chat"],
-      "repeats": 3,
-      "featureArgs": {
-        "chat": {
-          "question": "Why did the three earlier parties never come out of Manufactory Nine, and why can Ode Marran remember every turn of the loop when they cannot? Explain the mechanism. Cite the excerpts.",
-          "k": 6
-        }
-      }
-    },
-    {
       "id": "gpu-refusal-stock",
       "label": "Refusal probe — STOCK QAT (the control: what a safety-tuned Gemma declines)",
       "_why": [

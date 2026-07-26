@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, watch, nextTick } from "vue";
+import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRoute, useRouter } from "vue-router";
@@ -32,6 +33,7 @@ import PaneHeader from "../components/PaneHeader.vue";
 import { saveImage } from "../services/imageStore.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
+const { t } = useI18n({ useScope: "global" });
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
@@ -50,10 +52,12 @@ async function onSweepCommitted(payload) {
   const ids = payload?.characterIds || [];
   if (!ids.length) return;
   const ok = await confirmDialog({
-    title: "Draft profiles now?",
-    message: `${ids.length} character${ids.length === 1 ? "" : "s"} joined the story bible with scene links. Run Fill from book on ${ids.length === 1 ? "it" : "them"} now — profile + voice, 2 calls each?`,
-    confirmLabel: "Draft now",
-    cancelLabel: "Later",
+    title: t("characters.sweepPrompt.title"),
+    // One whole sentence per plural form (the singular also swaps "it"/"them"),
+    // so a translator is never asked to assemble a sentence from fragments.
+    message: t("characters.sweepPrompt.message", { n: ids.length }, ids.length),
+    confirmLabel: t("characters.sweepPrompt.confirmLabel"),
+    cancelLabel: t("characters.sweepPrompt.cancelLabel"),
   });
   if (ok) { batchFillIds.value = ids; batchFillOpen.value = true; }
 }
@@ -63,28 +67,30 @@ const ch = computed(() => props.id ? project.characterById(props.id) : null);
 const extras = computed(() => project.characterExtras[ch.value?.id]);
 const modal = ref(null);
 
+// Copy lives in the catalog, keyed by the DATA MODEL — `characters.fields.<extras
+// group>.<field key>.{label,hint}` — so these descriptor arrays stay pure data
+// (no locale text to freeze at module load) and the template resolves the words
+// with $t. Every (group, key) pair is unique across these and the eight v3 field
+// arrays below, which is what lets one flat tree serve them all.
 const MOTIVATIONS = [
-  { k: "want",  label: "Wants",            ex: "e.g. win the guild seat; get her sister out of debt",   color: "var(--trait-want-ink)",  bg: "var(--trait-want-bg)" },
-  { k: "need",  label: "Needs",            ex: "e.g. to forgive himself; to stop performing for everyone", color: "var(--trait-need-ink)",  bg: "var(--trait-need-bg)" },
-  { k: "lie",   label: "Lie they believe", ex: "e.g. “love has to be earned”; “fear gets you killed”",   color: "var(--trait-lie-ink)",   bg: "var(--trait-lie-bg)" },
-  { k: "truth", label: "Truth they meet",  ex: "e.g. “they stayed anyway”; “needing people isn't weakness”", color: "var(--trait-truth-ink)", bg: "var(--trait-truth-bg)" },
+  { k: "want",  color: "var(--trait-want-ink)",  bg: "var(--trait-want-bg)" },
+  { k: "need",  color: "var(--trait-need-ink)",  bg: "var(--trait-need-bg)" },
+  { k: "lie",   color: "var(--trait-lie-ink)",   bg: "var(--trait-lie-bg)" },
+  { k: "truth", color: "var(--trait-truth-ink)", bg: "var(--trait-truth-bg)" },
 ];
-const ARC_STEPS = [
-  { k: "start",    label: "Beginning", ex: "e.g. hiding the gift, keeping her head down" },
-  { k: "midpoint", label: "Midpoint",  ex: "e.g. forced to use it in the open" },
-  { k: "end",      label: "End",       ex: "e.g. leads openly — or doubles down and loses them" },
-];
-const LIFE_STATUS_OPTIONS = [
-  // The empty sentinel — a neutral "unset", NOT a repeat of the field label
-  // (the label above already says "Life status"; "Life status…" here read as
-  // both redundant and truncated).
-  { value: "",          label: "Not set" },
-  { value: "alive",     label: "Alive" },
-  { value: "deceased",  label: "Deceased" },
-  { value: "missing",   label: "Missing" },
-  { value: "unknown",   label: "Unknown" },
-];
-const LIFE_STATUS_LABEL = Object.fromEntries(LIFE_STATUS_OPTIONS.map((o) => [o.value, o.label]));
+const ARC_STEPS = [{ k: "start" }, { k: "midpoint" }, { k: "end" }];
+// computed(), not a module const: a plain array captures the labels at import
+// and never re-translates when the language changes (the SettingsView SECTIONS
+// precedent). The empty sentinel is a neutral "unset", NOT a repeat of the field
+// label (the label above already says "Life status"; "Life status…" here read as
+// both redundant and truncated).
+const LIFE_STATUS_OPTIONS = computed(() => [
+  { value: "",         label: t("characters.lifeStatus.notSet") },
+  { value: "alive",    label: t("characters.lifeStatus.alive") },
+  { value: "deceased", label: t("characters.lifeStatus.deceased") },
+  { value: "missing",  label: t("characters.lifeStatus.missing") },
+  { value: "unknown",  label: t("characters.lifeStatus.unknown") },
+]);
 
 // The detail name input, focused + selected when we arrive via "+ New"
 // (?new=1) so the first keystroke replaces the default "Untitled …"; the
@@ -161,7 +167,7 @@ async function onAvatarDrop(e) {
   dropError.value = null;
   const files = Array.from(e.dataTransfer.files || []).filter((f) => f.type.startsWith("image/"));
   if (!files.length) {
-    if ((e.dataTransfer.files || []).length) dropError.value = "Only image files can be dropped here.";
+    if ((e.dataTransfer.files || []).length) dropError.value = t("characters.detail.onlyImageFiles");
     return;
   }
   for (const f of files) {
@@ -193,71 +199,73 @@ function countExtras(pairs) {
 
 // v3 field descriptors — plain fields grouped by section. Rendered as a
 // labeled .ch-field (UiInput for single-line facts, UiTextarea for anything
-// sentence-shaped); `hint` is the one-line summary shown muted by the label.
+// sentence-shaped). Label + hint come from `characters.fields.<group>.<k>` in
+// the catalog (see the note above MOTIVATIONS), so what lives here is only the
+// shape: which extras group owns the field, its key, and how to render it.
 // The existing colored Motivation grid, Arc card, Voice grid, and Backstory
 // keep their bespoke rendering; these are the NEW v3 fields that join them.
 const IDENTITY_FIELDS = [
-  { group: "identity", k: "classOrigin", label: "Class origin → now", hint: "Where they started vs. where they are — the gap is characterization. e.g. dockworker's kid → guild master.", type: "input" },
-  { group: "identity", k: "education", label: "Education", hint: "Formal or otherwise — it sets vocabulary and what they notice. e.g. street-taught; convent schooling; self-read.", type: "input" },
+  { group: "identity", k: "classOrigin", type: "input" },
+  { group: "identity", k: "education", type: "input" },
 ];
 const CORE_ENGINE_FIELDS = [
-  { group: "motivation", k: "fear", label: "Core fear", hint: "What they organize their life to avoid — the lie's shadow. e.g. being exposed as a fraud; being left again.", type: "textarea" },
-  { group: "motivation", k: "lieOrigin", label: "Where the lie began", hint: "Write it as a scene: where, who said what, what they decided. e.g. the night her father called her gift a curse.", type: "textarea" },
-  { group: "motivation", k: "contradiction", label: "Central contradiction", hint: "Two things both true about them that don't fit. e.g. brutally honest with strangers, lies to those she loves.", type: "textarea" },
-  { group: "motivation", k: "values", label: "Values under pressure", hint: "Three values, ranked — the higher wins until the crisis tests it. e.g. loyalty > truth > safety.", type: "input" },
-  { group: "motivation", k: "heuristic", label: "Decision heuristic", hint: "One line: “under pressure, they choose ___ over ___.” e.g. protects the crew over the mission.", type: "input" },
-  { group: "motivation", k: "stakes", label: "Stakes", hint: "What breaks — for them and others — if they fail. e.g. the harbor floods; his daughter loses her name.", type: "textarea" },
+  { group: "motivation", k: "fear", type: "textarea" },
+  { group: "motivation", k: "lieOrigin", type: "textarea" },
+  { group: "motivation", k: "contradiction", type: "textarea" },
+  { group: "motivation", k: "values", type: "input" },
+  { group: "motivation", k: "heuristic", type: "input" },
+  { group: "motivation", k: "stakes", type: "textarea" },
 ];
 const VOICE_FIELDS = [
-  { group: "voice", k: "register", label: "Register", hint: "Formal ↔ casual — where they sit, and when they slip. e.g. courtly in public, gutter-blunt alone.", type: "input" },
-  { group: "voice", k: "rhythm", label: "Rhythm", hint: "Clipped or flowing; do they interrupt or trail off? e.g. short sentences, always interrupting.", type: "input" },
-  { group: "voice", k: "forbidden", label: "Forbidden words", hint: "Words this character would never say. e.g. never “sorry”, never “please”.", type: "input" },
-  { group: "voice", k: "subtext", label: "Subtext habit", hint: "How they avoid saying the real thing. e.g. answers a hard question with a joke.", type: "input" },
-  { group: "voice", k: "humor", label: "Humor style", hint: "Dry / absent / cruel / self-deprecating — “none” is a choice too. e.g. deadpan, never laughs at his own.", type: "input" },
-  { group: "voice", k: "languages", label: "Languages", hint: "What they speak or read — who can they understand that others can't? e.g. reads Old Parian; speaks the trade cant.", type: "input" },
-  { group: "voice", k: "sampleAngry", label: "Sample line — angry", hint: "An actual furious line they'd say. e.g. “You had one job. One.”", type: "textarea" },
-  { group: "voice", k: "sampleLying", label: "Sample line — lying", hint: "A line they say while covering or deflecting. e.g. “I was never near the place.”", type: "textarea" },
+  { group: "voice", k: "register", type: "input" },
+  { group: "voice", k: "rhythm", type: "input" },
+  { group: "voice", k: "forbidden", type: "input" },
+  { group: "voice", k: "subtext", type: "input" },
+  { group: "voice", k: "humor", type: "input" },
+  { group: "voice", k: "languages", type: "input" },
+  { group: "voice", k: "sampleAngry", type: "textarea" },
+  { group: "voice", k: "sampleLying", type: "textarea" },
 ];
 const PRESENCE_FIELDS = [
-  { group: "presence", k: "physicality", label: "How they occupy space", hint: "Posture, gait, stillness or motion — one line a scene can borrow. e.g. still and watchful; takes up no space.", type: "textarea" },
-  { group: "presence", k: "presentation", label: "Presentation", hint: "What their appearance choices signal — the message, not the looks. e.g. an expensive coat kept deliberately shabby.", type: "textarea" },
-  { group: "presence", k: "stressTells", label: "Baseline & stress tells", hint: "Their normal state, and how fear or lying leaks through. e.g. over-precise hands; goes very quiet.", type: "textarea" },
+  { group: "presence", k: "physicality", type: "textarea" },
+  { group: "presence", k: "presentation", type: "textarea" },
+  { group: "presence", k: "stressTells", type: "textarea" },
 ];
 const FUNCTION_FIELDS = [
-  { group: "function", k: "theme", label: "Thematic argument", hint: "The side of the story's central question they embody. e.g. lives out “mercy is weakness” — and is proven wrong.", type: "textarea" },
-  { group: "function", k: "protagonistRelation", label: "Relation to protagonist", hint: "Opposition / mirror / temptation / ally / measuring stick. e.g. mirror — same wound, opposite choice.", type: "input" },
-  { group: "function", k: "selfImage", label: "Self-image", hint: "Who they believe they are. e.g. “a realist” (really a coward).", type: "textarea" },
-  { group: "function", k: "persona", label: "Public persona", hint: "Who they perform being. e.g. the unflappable captain.", type: "textarea" },
-  { group: "function", k: "privateTruth", label: "Private truth", hint: "Who they actually are — the gaps between these three are engines. e.g. terrified he's becoming his father.", type: "textarea" },
-  { group: "function", k: "buttons", label: "Buttons", hint: "What reliably provokes them — levers other characters can pull. e.g. mention his brother; call her naive.", type: "textarea" },
-  { group: "function", k: "allegiances", label: "Allegiances & obligations", hint: "Groups they belong to — and what membership demands. e.g. sworn to the Order; owes a smuggler a life.", type: "textarea" },
-  { group: "function", k: "escalation", label: "How they escalate", hint: "Aggression, withdrawal, sabotage, going over heads… e.g. goes cold and starts quietly planning.", type: "input" },
-  { group: "function", k: "cornered", label: "Cornered behavior", hint: "What they do with no good options — who they really are. e.g. burns it down rather than kneel.", type: "textarea" },
+  { group: "function", k: "theme", type: "textarea" },
+  { group: "function", k: "protagonistRelation", type: "input" },
+  { group: "function", k: "selfImage", type: "textarea" },
+  { group: "function", k: "persona", type: "textarea" },
+  { group: "function", k: "privateTruth", type: "textarea" },
+  { group: "function", k: "buttons", type: "textarea" },
+  { group: "function", k: "allegiances", type: "textarea" },
+  { group: "function", k: "escalation", type: "input" },
+  { group: "function", k: "cornered", type: "textarea" },
 ];
 const CAPABILITY_FIELDS = [
-  { group: "capabilities", k: "abilities", label: "Abilities", hint: "Magic, tech, training — what can they actually do? e.g. reads emotions; deadly with a thrown knife.", type: "textarea" },
-  { group: "capabilities", k: "costs", label: "Costs", hint: "What each use takes — energy, sanity, time, moral weight. e.g. every casting costs a day of her life.", type: "textarea" },
-  { group: "capabilities", k: "limits", label: "Hard limits", hint: "What they can never do — limits make more plot than powers. e.g. can't lie while touching cold iron.", type: "textarea" },
-  { group: "capabilities", k: "conditions", label: "Conditions", hint: "What the ability requires — tools, materials, states. e.g. needs moonlight; needs the true name.", type: "input" },
-  { group: "capabilities", k: "whoKnows", label: "Who knows", hint: "Who is aware of these capabilities. e.g. only her old mentor knows.", type: "input" },
+  { group: "capabilities", k: "abilities", type: "textarea" },
+  { group: "capabilities", k: "costs", type: "textarea" },
+  { group: "capabilities", k: "limits", type: "textarea" },
+  { group: "capabilities", k: "conditions", type: "input" },
+  { group: "capabilities", k: "whoKnows", type: "input" },
 ];
 const CONTINUITY_FIELDS = [
-  { group: "continuity", k: "physicalConstants", label: "Physical constants", hint: "Only features that appear on the page. e.g. burn scar on the left hand; limps in the cold.", type: "textarea" },
-  { group: "continuity", k: "health", label: "Conditions & disabilities", hint: "Anything that changes what's possible in a scene. e.g. deaf in one ear; needs the tonic daily.", type: "textarea" },
-  { group: "continuity", k: "timelineAnchors", label: "Timeline anchors", hint: "Birth year + dated events — do the math once. e.g. born 1147; the fire was year 12.", type: "input" },
-  { group: "continuity", k: "knows", label: "Knows at story start", hint: "What they already know as the story opens. e.g. knows the king is dead; knows who the traitor is.", type: "textarea" },
-  { group: "continuity", k: "doesntKnow", label: "Doesn't know", hint: "What they don't know yet — and might act against. e.g. doesn't know she's being followed.", type: "textarea" },
-  { group: "continuity", k: "believesWrongly", label: "Believes wrongly", hint: "The top source of continuity errors and POV leaks. e.g. believes her brother is still alive.", type: "textarea" },
-  { group: "continuity", k: "secrets", label: "Secrets", hint: "One per line: the secret — who else knows — the reveal. e.g. “killed the steward — only Mira suspects”.", type: "textarea" },
-  { group: "continuity", k: "possessions", label: "Possessions with story weight", hint: "Objects that will matter — and where each one is. e.g. the dead brother's watch (in her coat).", type: "textarea" },
+  { group: "continuity", k: "physicalConstants", type: "textarea" },
+  { group: "continuity", k: "health", type: "textarea" },
+  { group: "continuity", k: "timelineAnchors", type: "input" },
+  { group: "continuity", k: "knows", type: "textarea" },
+  { group: "continuity", k: "doesntKnow", type: "textarea" },
+  { group: "continuity", k: "believesWrongly", type: "textarea" },
+  { group: "continuity", k: "secrets", type: "textarea" },
+  { group: "continuity", k: "possessions", type: "textarea" },
 ];
 const DEPTH_FIELDS = [
-  { group: "depth", k: "regrets", label: "Regrets", hint: "Compressed backstory plus motivation in one line. e.g. the letter he never sent.", type: "textarea" },
-  { group: "depth", k: "family", label: "Family / upbringing", hint: "Who raised them and what it cost. e.g. estranged from a father who runs the guild.", type: "textarea" },
-  { group: "depth", k: "skills", label: "Skills & ceiling", hint: "Competence AND its ceiling, so solutions stay fair. e.g. brilliant tactician, hopeless liar.", type: "textarea" },
-  { group: "depth", k: "routines", label: "Routines & habits", hint: "Useful mainly for disruption when broken. e.g. tea at dawn, always the same cracked cup.", type: "input" },
-  { group: "depth", k: "appearance", label: "Appearance beyond the constants", hint: "The changeable look, beyond the fixed constants. e.g. tall, ink-stained fingers, never quite still.", type: "textarea" },
-  { group: "depth", k: "tastes", label: "Tastes & quirks", hint: "Small preferences that make them a person. e.g. hates music; collects old maps.", type: "input" },
+  { group: "depth", k: "regrets", type: "textarea" },
+  { group: "depth", k: "family", type: "textarea" },
+  { group: "depth", k: "skills", type: "textarea" },
+  { group: "depth", k: "routines", type: "input" },
+  { group: "depth", k: "appearance", type: "textarea" },
+  { group: "depth", k: "tastes", type: "input" },
 ];
 
 // Per-section filled-field counts — drive the header count chip + initial open
@@ -361,18 +369,20 @@ const hasActiveFacets = computed(() =>
 const allLifeStatuses = computed(() => {
   const set = new Set();
   for (const c of project.characters) if (c.lifeStatus) set.add(c.lifeStatus);
-  return LIFE_STATUS_OPTIONS.filter((o) => o.value && set.has(o.value));
+  return LIFE_STATUS_OPTIONS.value.filter((o) => o.value && set.has(o.value));
 });
 
-const columns = [
-  { accessorKey: "name",     header: "Name",     sortable: true, headerStyle: "min-width: 200px" },
-  { accessorKey: "role",     header: "Role",     sortable: true, headerStyle: "min-width: 140px" },
-  { accessorKey: "gender",   header: "Gender",   sortable: true, headerStyle: "min-width: 100px" },
-  { accessorKey: "pronouns", header: "Pronouns", sortable: true, headerStyle: "min-width: 110px" },
-  { accessorKey: "tags",     header: "Tags",     sortable: false, headerStyle: "min-width: 140px", enableGlobalFilter: true },
-  { accessorKey: "status",   header: "Status",   sortable: true, headerStyle: "min-width: 110px" },
-  { accessorKey: "main",     header: "Main",     sortable: true, headerStyle: "min-width: 70px" },
-];
+// computed() for the same reason as LIFE_STATUS_OPTIONS: a module-const header
+// row would freeze the column names in the boot language.
+const columns = computed(() => [
+  { accessorKey: "name",     header: t("characters.columns.name"),     sortable: true, headerStyle: "min-width: 200px" },
+  { accessorKey: "role",     header: t("characters.columns.role"),     sortable: true, headerStyle: "min-width: 140px" },
+  { accessorKey: "gender",   header: t("characters.columns.gender"),   sortable: true, headerStyle: "min-width: 100px" },
+  { accessorKey: "pronouns", header: t("characters.columns.pronouns"), sortable: true, headerStyle: "min-width: 110px" },
+  { accessorKey: "tags",     header: t("characters.columns.tags"),     sortable: false, headerStyle: "min-width: 140px", enableGlobalFilter: true },
+  { accessorKey: "status",   header: t("characters.columns.status"),   sortable: true, headerStyle: "min-width: 110px" },
+  { accessorKey: "main",     header: t("characters.columns.main"),     sortable: true, headerStyle: "min-width: 70px" },
+]);
 
 function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
 function statusSeverity(id) {
@@ -393,19 +403,19 @@ function onRowClick(event) {
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!ch && !id">
     <PaneHeader :eyebrow="$t('panes.characters.eyebrow')" :title="$t('nav.characters')" help-key="story-bible#characters">
-      <UiButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Entity sweep — scan the whole manuscript for new characters, locations, and objects'">
-        <Icon name="Sparkle" :size="13" /> Entity sweep
+      <UiButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="$t('characters.header.entitySweepTooltip')">
+        <Icon name="Sparkle" :size="13" /> {{ $t("chapters.header.entitySweep") }}
       </UiButton>
-      <UiButton intent="ghost" size="small" @click="auditOpen = true" v-tooltip.bottom="'Check whether each main character acts in line with their established psychology'">
-        <Icon name="Users" :size="13" /> Audit consistency
+      <UiButton intent="ghost" size="small" @click="auditOpen = true" v-tooltip.bottom="$t('characters.header.auditConsistencyTooltip')">
+        <Icon name="Users" :size="13" /> {{ $t("characters.header.auditConsistency") }}
       </UiButton>
-      <UiButton intent="ghost" size="small" @click="relationshipArcOpen = true" v-tooltip.bottom="'Track how the relationship between two characters moves across the book'">
-        <Icon name="Network" :size="13" /> Relationship arc
+      <UiButton intent="ghost" size="small" @click="relationshipArcOpen = true" v-tooltip.bottom="$t('characters.header.relationshipArcTooltip')">
+        <Icon name="Network" :size="13" /> {{ $t("characters.header.relationshipArc") }}
       </UiButton>
-      <UiButton intent="ghost" size="small" @click="batchFillOpen = true" v-tooltip.bottom="'Draft profiles and voice for several characters at once from the scenes that feature them — review before anything saves, or opt into auto-fill of empty fields'">
-        <Icon name="Book" :size="13" /> Fill from book
+      <UiButton intent="ghost" size="small" @click="batchFillOpen = true" v-tooltip.bottom="$t('characters.header.fillFromBookTooltip')">
+        <Icon name="Book" :size="13" /> {{ $t("characters.header.fillFromBook") }}
       </UiButton>
-      <UiButton label="New character" intent="primary" size="small" @click="addCharacter">
+      <UiButton :label="$t('characters.header.newCharacter')" intent="primary" size="small" @click="addCharacter">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </UiButton>
     </PaneHeader>
@@ -413,40 +423,37 @@ function onRowClick(event) {
     <!-- Empty state -->
     <div v-if="project.characters.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center;max-width:420px">
-        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No characters yet.</div>
-        <div style="font-size:12.5px;margin-bottom:14px">Characters appear across your chapters and story bible, and link scenes to who's in them.</div>
-        <UiButton intent="primary" @click="addCharacter"><Icon name="Plus" :size="14" /> Create your first character</UiButton>
+        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">{{ $t("characters.empty.title") }}</div>
+        <div style="font-size:12.5px;margin-bottom:14px">{{ $t("characters.empty.message") }}</div>
+        <UiButton intent="primary" @click="addCharacter"><Icon name="Plus" :size="14" /> {{ $t("characters.empty.action") }}</UiButton>
       </div>
     </div>
 
     <div v-else class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
-        <p class="entity-desc ch-desc">
-          A <strong>character</strong> is anyone in your story worth tracking — protagonist,
-          antagonist, side cast. Fill in motivation, arc, voice, and backstory as you need them;
-          every field is optional. Characters feed the <strong>Relations</strong> graph, the
-          <strong>Cast presence</strong> heatmap, and AI features that draw on story-world context.
-        </p>
+        <!-- v-html: the sentence carries inline <strong> emphasis, so it stays ONE
+             translatable unit rather than being split around the markup. -->
+        <p class="entity-desc ch-desc" v-html="$t('characters.intro')"></p>
         <!-- Toolbar -->
         <div class="entity-toolbar">
           <span class="entity-search">
             <Icon name="Search" :size="13" class="entity-search-icon" />
             <UiInput
               :value="globalQuery"
-              placeholder="Search characters…"
+              :placeholder="$t('characters.list.searchPlaceholder')"
               @input="onGlobalInput"
               class="entity-search-input"
             />
           </span>
-          <UiButton v-if="globalQuery || hasActiveFacets" label="Clear filters" intent="ghost" size="small" @click="clearAllFilters" />
-          <span class="entity-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+          <UiButton v-if="globalQuery || hasActiveFacets" :label="$t('common.clearFilters')" intent="ghost" size="small" @click="clearAllFilters" />
+          <span class="entity-count">{{ $t("common.countOf", { shown: filteredRows.length, total: rows.length }) }}</span>
         </div>
 
         <!-- Facets -->
         <div class="entity-facets" v-if="statusOptions.length || allTags.length">
           <div v-if="statusOptions.length" class="entity-facet">
-            <span class="entity-facet-label">Status</span>
-            <button class="entity-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">All</button>
+            <span class="entity-facet-label">{{ $t("characters.facets.status") }}</span>
+            <button class="entity-chip" :class="{ active: selectedStatus === null }" @click="selectedStatus = null">{{ $t("common.all") }}</button>
             <button v-for="s in statusOptions" :key="s.value"
               class="entity-chip" :class="{ active: selectedStatus === s.value }"
               @click="selectedStatus = selectedStatus === s.value ? null : s.value">
@@ -454,14 +461,14 @@ function onRowClick(event) {
             </button>
           </div>
           <div class="entity-facet">
-            <span class="entity-facet-label">Main</span>
-            <button class="entity-chip" :class="{ active: selectedMain === null }" @click="selectedMain = null">All</button>
-            <button class="entity-chip" :class="{ active: selectedMain === true }" @click="selectedMain = selectedMain === true ? null : true">Yes</button>
-            <button class="entity-chip" :class="{ active: selectedMain === false }" @click="selectedMain = selectedMain === false ? null : false">No</button>
+            <span class="entity-facet-label">{{ $t("characters.facets.main") }}</span>
+            <button class="entity-chip" :class="{ active: selectedMain === null }" @click="selectedMain = null">{{ $t("common.all") }}</button>
+            <button class="entity-chip" :class="{ active: selectedMain === true }" @click="selectedMain = selectedMain === true ? null : true">{{ $t("common.yes") }}</button>
+            <button class="entity-chip" :class="{ active: selectedMain === false }" @click="selectedMain = selectedMain === false ? null : false">{{ $t("common.no") }}</button>
           </div>
           <div v-if="allGenders.length" class="entity-facet">
-            <span class="entity-facet-label">Gender</span>
-            <button class="entity-chip" :class="{ active: selectedGender === null }" @click="selectedGender = null">All</button>
+            <span class="entity-facet-label">{{ $t("characters.facets.gender") }}</span>
+            <button class="entity-chip" :class="{ active: selectedGender === null }" @click="selectedGender = null">{{ $t("common.all") }}</button>
             <button v-for="g in allGenders" :key="g"
               class="entity-chip" :class="{ active: selectedGender === g }"
               @click="selectedGender = selectedGender === g ? null : g">
@@ -469,8 +476,8 @@ function onRowClick(event) {
             </button>
           </div>
           <div v-if="allLifeStatuses.length" class="entity-facet">
-            <span class="entity-facet-label">Life status</span>
-            <button class="entity-chip" :class="{ active: selectedLifeStatus === null }" @click="selectedLifeStatus = null">All</button>
+            <span class="entity-facet-label">{{ $t("characters.facets.lifeStatus") }}</span>
+            <button class="entity-chip" :class="{ active: selectedLifeStatus === null }" @click="selectedLifeStatus = null">{{ $t("common.all") }}</button>
             <button v-for="o in allLifeStatuses" :key="o.value"
               class="entity-chip" :class="{ active: selectedLifeStatus === o.value }"
               @click="selectedLifeStatus = selectedLifeStatus === o.value ? null : o.value">
@@ -478,7 +485,9 @@ function onRowClick(event) {
             </button>
           </div>
           <div v-if="allTags.length" class="entity-facet">
-            <span class="entity-facet-label">Tags</span>
+            <span class="entity-facet-label">{{ $t("characters.facets.tags") }}</span>
+            <!-- `v-for="t in allTags"` SHADOWS the setup `t` — anything inside this
+                 loop must use $t, never the destructured t (build:vite won't catch it). -->
             <button v-for="t in allTags" :key="t"
               class="entity-chip" :class="{ active: selectedTags.has(t) }"
               @click="toggleTag(t)">
@@ -499,7 +508,7 @@ function onRowClick(event) {
           @row-click="onRowClick"
         >
           <template #empty>
-            <div class="entity-empty">No characters match your search.</div>
+            <div class="entity-empty">{{ $t("characters.list.noMatches") }}</div>
           </template>
 
           <template #name="{ row }">
@@ -536,7 +545,7 @@ function onRowClick(event) {
           </template>
 
           <template #main="{ row }">
-            <UiTag v-if="row.main" value="Yes" intent="info" />
+            <UiTag v-if="row.main" :value="$t('common.yes')" intent="info" />
             <span v-else class="entity-status-empty">—</span>
           </template>
         </UiTable>
@@ -548,50 +557,47 @@ function onRowClick(event) {
   <template v-else-if="ch">
     <header class="pane-header entity-pane-header">
       <div class="pane-title">
-        <Breadcrumb :segments="[{ label: ch.main ? 'Main character' : 'Secondary character', to: '/characters' }]" />
+        <Breadcrumb :segments="[{ label: ch.main ? $t('characters.detail.mainCharacter') : $t('characters.detail.secondaryCharacter'), to: '/characters' }]" />
         <input class="entity-name" ref="nameInput"
           :value="ch.name"
-          placeholder="Character name"
+          :placeholder="$t('characters.detail.namePlaceholder')"
           @input="updateField('name', $event.target.value)" />
       </div>
       <div class="pane-actions">
         <UiButton intent="ghost" size="small" data-panel-toggle @click="talkToCharacter"
-          v-tooltip.bottom="`Open chat in character mode, pre-set to ${ch.name}`">
-          <Icon name="Sparkle" :size="14" /> Talk to {{ ch.name?.split(/\s+/)[0] || "character" }}
+          v-tooltip.bottom="$t('characters.detail.talkToTooltip', { name: ch.name })">
+          <Icon name="Sparkle" :size="14" /> {{ $t("characters.detail.talkTo", { name: ch.name?.split(/\s+/)[0] || $t("characters.detail.talkToFallback") }) }}
         </UiButton>
         <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
-          v-tooltip.bottom="`Ask the book about ${ch.name}`">
-          <Icon name="Chat" :size="14" /> Ask the book
+          v-tooltip.bottom="$t('characters.detail.askTheBookTooltip', { name: ch.name })">
+          <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
         </UiButton>
         <UiButton intent="ghost" size="small" @click="modal = 'profileFill'"
-          v-tooltip.bottom="`Draft ${ch.name}'s profile (identity, motivation, arc, backstory) AND their voice — from lines they actually speak — out of the scenes that feature them. You review before anything saves`">
-          <Icon name="Book" :size="14" /> Fill from book
+          v-tooltip.bottom="$t('characters.detail.fillFromBookTooltip', { name: ch.name })">
+          <Icon name="Book" :size="14" /> {{ $t("characters.header.fillFromBook") }}
         </UiButton>
-        <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</UiButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> {{ $t("characters.detail.images") }}</UiButton>
         <router-link :to="`/characters/${ch.id}/events`" custom v-slot="{ navigate }">
-          <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</UiButton>
+          <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> {{ $t("characters.detail.events") }}</UiButton>
         </router-link>
-        <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</UiButton>
-        <UiButton intent="ghost" size="small" @click="deleteCharacter">Delete</UiButton>
-        <UiButton intent="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</UiButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> {{ $t("nav.groups") }}</UiButton>
+        <UiButton intent="ghost" size="small" @click="deleteCharacter">{{ $t("common.delete") }}</UiButton>
+        <UiButton intent="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> {{ $t("characters.header.newCharacter") }}</UiButton>
         <StatusSelect :model-value="ch.status || ''" @update:model-value="(v) => updateField('status', v)" />
-        <HelpTrigger slug="character-sheet" label="Character sheet" />
+        <HelpTrigger slug="character-sheet" :label="$t('characters.detail.helpLabel')" />
       </div>
     </header>
 
     <div class="pane-card">
       <div class="scrollarea" style="padding:24px 28px 40px">
-        <p class="entity-desc ch-desc">
-          A <strong>character</strong> is anyone in your story worth tracking — protagonist,
-          antagonist, side cast. Fill in motivation, arc, voice, and backstory as you need them;
-          every field is optional. Characters feed the <strong>Relations</strong> graph, the
-          <strong>Cast presence</strong> heatmap, and AI features that draw on story-world context.
-        </p>
+        <!-- v-html: the sentence carries inline <strong> emphasis, so it stays ONE
+             translatable unit rather than being split around the markup. -->
+        <p class="entity-desc ch-desc" v-html="$t('characters.intro')"></p>
         <div class="character-hero">
           <div
             class="avatar-drop"
             :class="{ 'avatar-drop-hot': isFileDragging, 'avatar-drop-saving': dropSaving > 0 }"
-            :title="avatarImage ? 'Drop an image to replace the avatar' : 'Drop an image to set the avatar'"
+            :title="avatarImage ? $t('characters.detail.avatarDropReplace') : $t('characters.detail.avatarDropSet')"
             @dragenter="onAvatarDragEnter"
             @dragover="onAvatarDragOver"
             @dragleave="onAvatarDragLeave"
@@ -599,9 +605,9 @@ function onRowClick(event) {
             <Avatar :name="ch.name" :image="avatarImage" :size="96" />
             <div v-if="isFileDragging" class="avatar-drop-overlay">
               <Icon name="Image" :size="22" />
-              <span>Drop image</span>
+              <span>{{ $t("characters.detail.dropImage") }}</span>
             </div>
-            <div v-else-if="dropSaving > 0" class="avatar-drop-overlay saving">Saving…</div>
+            <div v-else-if="dropSaving > 0" class="avatar-drop-overlay saving">{{ $t("characters.detail.saving") }}</div>
           </div>
           <div class="character-hero-fields">
             <!-- Labels on top for every hero field (the Voice-grid `t-muted`
@@ -613,43 +619,43 @@ function onRowClick(event) {
                  truncates. -->
             <div class="ch-hero-row">
               <div class="ch-field">
-                <span class="ch-field-label">Role</span>
+                <span class="ch-field-label">{{ $t("characters.detail.role") }}</span>
                 <UiInput width="id" :model-value="ch.role" @update:model-value="updateField('role', $event)" />
               </div>
               <div class="ch-field">
-                <span class="ch-field-label">Gender</span>
+                <span class="ch-field-label">{{ $t("characters.detail.gender") }}</span>
                 <UiInput width="token" :model-value="ch.gender" @update:model-value="updateField('gender', $event)" />
               </div>
               <div class="ch-field">
-                <span class="ch-field-label">Pronouns</span>
+                <span class="ch-field-label">{{ $t("characters.detail.pronouns") }}</span>
                 <UiInput width="token" :model-value="ch.pronouns" @update:model-value="updateField('pronouns', $event)" />
               </div>
               <div class="ch-field">
-                <span class="ch-field-label">Age</span>
+                <span class="ch-field-label">{{ $t("characters.detail.age") }}</span>
                 <UiNumber width="num" :use-grouping="false"
                   :model-value="ch.age ?? null" @update:model-value="updateField('age', $event ?? null)" />
               </div>
               <div class="ch-field">
-                <span class="ch-field-label">Life status</span>
+                <span class="ch-field-label">{{ $t("characters.detail.lifeStatus") }}</span>
                 <UiSelect width="id"
                   :model-value="ch.lifeStatus || ''"
                   @update:model-value="(v) => updateField('lifeStatus', v)"
                   :options="LIFE_STATUS_OPTIONS"
-                  aria-label="Life status" />
+                  :aria-label="$t('characters.detail.lifeStatus')" />
               </div>
               <label class="chip ch-hero-chip" style="cursor:pointer;gap:6px">
                 <UiCheckbox :model-value="ch.main" @update:model-value="updateField('main', $event)" />
-                Main character
+                {{ $t("characters.detail.mainCharacter") }}
               </label>
               <label class="chip ch-hero-chip" style="cursor:pointer;gap:6px"
-                v-tooltip.bottom="'Hides this entity from any AI feature that pulls in story-world context.'">
+                v-tooltip.bottom="$t('characters.detail.excludeFromAiTooltip')">
                 <UiCheckbox :model-value="!!ch.excludeFromAi" @update:model-value="(v) => updateField('excludeFromAi', v)" />
-                Exclude from AI
+                {{ $t("characters.detail.excludeFromAi") }}
               </label>
             </div>
             <div class="ch-field" style="margin-top:14px">
-              <span class="ch-field-label">One-liner
-                <span class="ch-field-hint">Not traits — tension. "A pacifist who keeps ending up in fights."</span>
+              <span class="ch-field-label">{{ $t("characters.detail.oneLiner") }}
+                <span class="ch-field-hint">{{ $t("characters.detail.oneLinerHint") }}</span>
               </span>
               <UiTextarea rows="2" style="font-family:var(--font-serif);font-style:italic"
                 :model-value="ch.oneLiner" @update:model-value="updateField('oneLiner', $event)" />
@@ -663,7 +669,7 @@ function onRowClick(event) {
           :curated="project.tagVocabularies.characters"
           @update:model-value="(v) => updateField('tags', v)" />
 
-        <div class="t-eyebrow ch-aliases-label">Also known as</div>
+        <div class="t-eyebrow ch-aliases-label">{{ $t("characters.detail.alsoKnownAs") }}</div>
         <TagEditor
           :model-value="ch.aliases || []"
           :pool="aliasPool"
@@ -674,27 +680,27 @@ function onRowClick(event) {
              new v3 fields are labeled .ch-field rows. Each section is keyed on
              ch.id so an empty character opens collapsed, a filled one expands. -->
         <CharacterSheetSection :key="`identity-${ch.id}`"
-          title="Identity & core engine"
-          hint="The engine — fill this before anything else."
+          :title="$t('characters.sections.identity.title')"
+          :hint="$t('characters.sections.identity.hint')"
           :count="identityCount">
           <div class="ch-grid-2">
             <div v-for="f in IDENTITY_FIELDS" :key="f.k" class="ch-field">
-              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
               <UiInput :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
             </div>
           </div>
           <div class="motivation-grid" style="display:grid;gap:10px;margin-top:16px">
             <div v-for="i in MOTIVATIONS" :key="i.k"
               :style="`padding:14px;border-radius:10px;background:${i.bg};border:1px solid color-mix(in oklab, ${i.color}, white 60%)`">
-              <div :style="`font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:${i.color};margin-bottom:2px`">{{ i.label }}</div>
-              <div class="ch-field-hint" style="margin-bottom:6px">{{ i.ex }}</div>
+              <div :style="`font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:${i.color};margin-bottom:2px`">{{ $t(`characters.fields.motivation.${i.k}.label`) }}</div>
+              <div class="ch-field-hint" style="margin-bottom:6px">{{ $t(`characters.fields.motivation.${i.k}.hint`) }}</div>
               <UiTextarea rows="2" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14.5px;line-height:1.5"
                 :model-value="extras?.motivation?.[i.k] || ''" @update:model-value="updateMotivation(i.k, $event)" />
             </div>
           </div>
           <div class="ch-fieldset">
             <div v-for="f in CORE_ENGINE_FIELDS" :key="f.k" class="ch-field">
-              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
               <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
             </div>
@@ -702,8 +708,8 @@ function onRowClick(event) {
         </CharacterSheetSection>
 
         <CharacterSheetSection :key="`arc-${ch.id}`"
-          title="Arc"
-          hint="Frame it as evidence for and against the lie."
+          :title="$t('characters.sections.arc.title')"
+          :hint="$t('characters.sections.arc.hint')"
           :count="arcCount">
           <div class="card tight" style="padding:0;overflow:hidden">
             <div class="arc-grid" style="display:grid">
@@ -711,9 +717,9 @@ function onRowClick(event) {
                 :style="`padding:14px;${i < 2 ? 'border-right:1px solid var(--border);' : ''}`">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
                   <span :style="`width:18px;height:18px;border-radius:50%;background:${i === 0 ? 'var(--surface-3)' : i === 1 ? 'var(--accent-soft)' : 'var(--accent)'};color:${i === 2 ? 'white' : 'var(--ink-2)'};display:grid;place-items:center;font-family:var(--font-serif);font-style:italic;font-size:11px;font-weight:600`">{{ i + 1 }}</span>
-                  <span class="t-eyebrow">{{ s.label }}</span>
+                  <span class="t-eyebrow">{{ $t(`characters.fields.arc.${s.k}.label`) }}</span>
                 </div>
-                <div class="ch-field-hint" style="margin-bottom:6px">{{ s.ex }}</div>
+                <div class="ch-field-hint" style="margin-bottom:6px">{{ $t(`characters.fields.arc.${s.k}.hint`) }}</div>
                 <UiTextarea rows="3" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14px;line-height:1.55"
                   :model-value="extras?.arc?.[s.k] || ''" @update:model-value="updateArc(s.k, $event)" />
               </div>
@@ -722,51 +728,51 @@ function onRowClick(event) {
         </CharacterSheetSection>
 
         <CharacterSheetSection :key="`voice-${ch.id}`"
-          title="Voice & presence"
-          hint="How they sound and move — the calibration set."
+          :title="$t('characters.sections.voice.title')"
+          :hint="$t('characters.sections.voice.hint')"
           :count="voiceCount">
           <div class="card tight voice-grid" style="padding:16px;gap:10px 18px;font-size:12.5px">
             <div>
-              <div class="t-muted">Accent</div>
-              <div class="ch-field-hint" style="margin:2px 0 4px">e.g. soft Southern drawl; clipped city vowels; none</div>
+              <div class="t-muted">{{ $t("characters.fields.voice.accent.label") }}</div>
+              <div class="ch-field-hint" style="margin:2px 0 4px">{{ $t("characters.fields.voice.accent.hint") }}</div>
               <UiInput :model-value="extras?.voice?.accent || ''" @update:model-value="updateVoice('accent', $event)" />
             </div>
             <div>
-              <div class="t-muted">Vocabulary</div>
-              <div class="ch-field-hint" style="margin:2px 0 4px">words they favor. e.g. nautical slang; courtroom Latin</div>
+              <div class="t-muted">{{ $t("characters.fields.voice.vocabulary.label") }}</div>
+              <div class="ch-field-hint" style="margin:2px 0 4px">{{ $t("characters.fields.voice.vocabulary.hint") }}</div>
               <UiInput :model-value="extras?.voice?.vocabulary || ''" @update:model-value="updateVoice('vocabulary', $event)" />
             </div>
             <div style="grid-column:1/-1">
-              <div class="t-muted">Speech tic</div>
-              <div class="ch-field-hint" style="margin:2px 0 4px">a verbal habit. e.g. starts sentences with “Look,”</div>
+              <div class="t-muted">{{ $t("characters.fields.voice.tic.label") }}</div>
+              <div class="ch-field-hint" style="margin:2px 0 4px">{{ $t("characters.fields.voice.tic.hint") }}</div>
               <UiInput :model-value="extras?.voice?.tic || ''" @update:model-value="updateVoice('tic', $event)" />
             </div>
             <div style="grid-column:1/-1">
-              <div class="t-muted">Sample line — calm</div>
-              <div class="ch-field-hint" style="margin:2px 0 4px">an ordinary line, in their voice. e.g. “Chart it or lose it.”</div>
+              <div class="t-muted">{{ $t("characters.fields.voice.sample.label") }}</div>
+              <div class="ch-field-hint" style="margin:2px 0 4px">{{ $t("characters.fields.voice.sample.hint") }}</div>
               <UiTextarea rows="2" :model-value="extras?.voice?.sample || ''" @update:model-value="updateVoice('sample', $event)" />
             </div>
           </div>
           <div class="ch-fieldset">
             <div v-for="f in VOICE_FIELDS" :key="f.k" class="ch-field">
-              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
               <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
             </div>
             <div v-for="f in PRESENCE_FIELDS" :key="f.k" class="ch-field">
-              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
               <UiTextarea auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
             </div>
           </div>
         </CharacterSheetSection>
 
         <CharacterSheetSection :key="`function-${ch.id}`"
-          title="Function in the story"
-          hint="What they're FOR in the cast."
+          :title="$t('characters.sections.function.title')"
+          :hint="$t('characters.sections.function.hint')"
           :count="functionCount">
           <div class="ch-fieldset">
             <div v-for="f in FUNCTION_FIELDS" :key="f.k" class="ch-field">
-              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
               <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
             </div>
@@ -774,12 +780,12 @@ function onRowClick(event) {
         </CharacterSheetSection>
 
         <CharacterSheetSection :key="`capabilities-${ch.id}`"
-          title="Capabilities & limits"
-          hint="Genre module — skip for realist fiction."
+          :title="$t('characters.sections.capabilities.title')"
+          :hint="$t('characters.sections.capabilities.hint')"
           :count="capabilitiesCount">
           <div class="ch-fieldset">
             <div v-for="f in CAPABILITY_FIELDS" :key="f.k" class="ch-field">
-              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
               <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
             </div>
@@ -787,12 +793,12 @@ function onRowClick(event) {
         </CharacterSheetSection>
 
         <CharacterSheetSection :key="`continuity-${ch.id}`"
-          title="Continuity ledger"
-          hint="Facts that must never drift."
+          :title="$t('characters.sections.continuity.title')"
+          :hint="$t('characters.sections.continuity.hint')"
           :count="continuityCount">
           <div class="ch-fieldset">
             <div v-for="f in CONTINUITY_FIELDS" :key="f.k" class="ch-field">
-              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
               <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
             </div>
@@ -800,17 +806,17 @@ function onRowClick(event) {
         </CharacterSheetSection>
 
         <CharacterSheetSection :key="`depth-${ch.id}`"
-          title="Backstory & depth"
-          hint="Fill only what will surface on the page."
+          :title="$t('characters.sections.depth.title')"
+          :hint="$t('characters.sections.depth.hint')"
           :count="depthCount">
           <div class="ch-field">
-            <span class="ch-field-label">Backstory<span class="ch-field-hint">Past facts only — beats that will surface on the page.</span></span>
+            <span class="ch-field-label">{{ $t("characters.detail.backstory") }}<span class="ch-field-hint">{{ $t("characters.detail.backstoryHint") }}</span></span>
             <UiTextarea rows="5" style="font-family:var(--font-serif);font-size:15px;line-height:1.65"
               :model-value="extras?.backstory || ''" @update:model-value="updateBackstory($event)" />
           </div>
           <div class="ch-fieldset">
             <div v-for="f in DEPTH_FIELDS" :key="f.k" class="ch-field">
-              <span class="ch-field-label">{{ f.label }}<span v-if="f.hint" class="ch-field-hint">{{ f.hint }}</span></span>
+              <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
               <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
             </div>
@@ -818,13 +824,13 @@ function onRowClick(event) {
         </CharacterSheetSection>
 
         <div style="margin-top:22px">
-          <div class="t-eyebrow" style="margin-bottom:10px">Appears in scenes</div>
+          <div class="t-eyebrow" style="margin-bottom:10px">{{ $t("characters.detail.appearsInScenes") }}</div>
           <SceneRefList field="characters" :entity-id="ch.id"
-            empty-text="No scenes link this character yet. Open a scene → Links → Characters to add one." />
+            :empty-text="$t('characters.detail.sceneRefEmpty')" />
         </div>
 
         <div style="margin-top:22px">
-          <div class="t-eyebrow" style="margin-bottom:10px">Mentioned in prose</div>
+          <div class="t-eyebrow" style="margin-bottom:10px">{{ $t("characters.detail.mentionedInProse") }}</div>
           <MentionRefList :entity-id="ch.id" />
         </div>
       </div>
@@ -839,17 +845,17 @@ function onRowClick(event) {
   <template v-else>
     <header class="pane-header entity-pane-header">
       <div class="pane-title">
-        <Breadcrumb :segments="[{ label: 'Character', to: '/characters' }]" />
-        <h1 class="pane-h1">Character not found</h1>
+        <Breadcrumb :segments="[{ label: $t('characters.notFound.breadcrumb'), to: '/characters' }]" />
+        <h1 class="pane-h1">{{ $t("characters.notFound.title") }}</h1>
       </div>
       <div class="pane-actions">
-        <UiButton intent="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> New character</UiButton>
+        <UiButton intent="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> {{ $t("characters.header.newCharacter") }}</UiButton>
       </div>
     </header>
     <div class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center">
-        This character no longer exists.<br />
-        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/characters')">Back to characters</UiButton>
+        {{ $t("characters.notFound.message") }}<br />
+        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/characters')">{{ $t("characters.notFound.back") }}</UiButton>
       </div>
     </div>
   </template>

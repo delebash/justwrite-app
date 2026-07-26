@@ -43,6 +43,8 @@
     "reset": "Reset",
     "clear": "Clear",
     "clearFilters": "Clear filters",
+    "all": "All",
+    "countOf": "{shown} of {total}",
     "new": "New",
     "undo": "Undo",
     "redo": "Redo"
@@ -695,6 +697,378 @@
       "message": "Create the first chapter to start writing, or import an existing manuscript from a file.",
       "actionLabel": "Create your first chapter",
       "importFromFile": "Import from file"
+    }
+  },
+  "characters": {
+    "header": {
+      "entitySweepTooltip": "Entity sweep — scan the whole manuscript for new characters, locations, and objects",
+      "auditConsistency": "Audit consistency",
+      "auditConsistencyTooltip": "Check whether each main character acts in line with their established psychology",
+      "relationshipArc": "Relationship arc",
+      "relationshipArcTooltip": "Track how the relationship between two characters moves across the book",
+      "fillFromBook": "Fill from book",
+      "fillFromBookTooltip": "Draft profiles and voice for several characters at once from the scenes that feature them — review before anything saves, or opt into auto-fill of empty fields",
+      "newCharacter": "New character"
+    },
+    "intro": "A <strong>character</strong> is anyone in your story worth tracking — protagonist, antagonist, side cast. Fill in motivation, arc, voice, and backstory as you need them; every field is optional. Characters feed the <strong>Relations</strong> graph, the <strong>Cast presence</strong> heatmap, and AI features that draw on story-world context.",
+    "empty": {
+      "title": "No characters yet.",
+      "message": "Characters appear across your chapters and story bible, and link scenes to who's in them.",
+      "action": "Create your first character"
+    },
+    "list": {
+      "searchPlaceholder": "Search characters…",
+      "noMatches": "No characters match your search."
+    },
+    "facets": {
+      "status": "Status",
+      "main": "Main",
+      "gender": "Gender",
+      "lifeStatus": "Life status",
+      "tags": "Tags"
+    },
+    "columns": {
+      "name": "Name",
+      "role": "Role",
+      "gender": "Gender",
+      "pronouns": "Pronouns",
+      "tags": "Tags",
+      "status": "Status",
+      "main": "Main"
+    },
+    "lifeStatus": {
+      "notSet": "Not set",
+      "alive": "Alive",
+      "deceased": "Deceased",
+      "missing": "Missing",
+      "unknown": "Unknown"
+    },
+    "sweepPrompt": {
+      "title": "Draft profiles now?",
+      "message": "1 character joined the story bible with scene links. Run Fill from book on it now — profile + voice, 2 calls each? | {n} characters joined the story bible with scene links. Run Fill from book on them now — profile + voice, 2 calls each?",
+      "confirmLabel": "Draft now",
+      "cancelLabel": "Later"
+    },
+    "detail": {
+      "mainCharacter": "Main character",
+      "secondaryCharacter": "Secondary character",
+      "namePlaceholder": "Character name",
+      "talkTo": "Talk to {name}",
+      "talkToFallback": "character",
+      "talkToTooltip": "Open chat in character mode, pre-set to {name}",
+      "askTheBookTooltip": "Ask the book about {name}",
+      "fillFromBookTooltip": "Draft {name}'s profile (identity, motivation, arc, backstory) AND their voice — from lines they actually speak — out of the scenes that feature them. You review before anything saves",
+      "images": "Images",
+      "events": "Events",
+      "helpLabel": "Character sheet",
+      "avatarDropReplace": "Drop an image to replace the avatar",
+      "avatarDropSet": "Drop an image to set the avatar",
+      "dropImage": "Drop image",
+      "saving": "Saving…",
+      "onlyImageFiles": "Only image files can be dropped here.",
+      "role": "Role",
+      "gender": "Gender",
+      "pronouns": "Pronouns",
+      "age": "Age",
+      "lifeStatus": "Life status",
+      "excludeFromAi": "Exclude from AI",
+      "excludeFromAiTooltip": "Hides this entity from any AI feature that pulls in story-world context.",
+      "oneLiner": "One-liner",
+      "oneLinerHint": "Not traits — tension. \"A pacifist who keeps ending up in fights.\"",
+      "alsoKnownAs": "Also known as",
+      "backstory": "Backstory",
+      "backstoryHint": "Past facts only — beats that will surface on the page.",
+      "appearsInScenes": "Appears in scenes",
+      "sceneRefEmpty": "No scenes link this character yet. Open a scene → Links → Characters to add one.",
+      "mentionedInProse": "Mentioned in prose"
+    },
+    "sections": {
+      "identity": {
+        "title": "Identity & core engine",
+        "hint": "The engine — fill this before anything else."
+      },
+      "arc": {
+        "title": "Arc",
+        "hint": "Frame it as evidence for and against the lie."
+      },
+      "voice": {
+        "title": "Voice & presence",
+        "hint": "How they sound and move — the calibration set."
+      },
+      "function": {
+        "title": "Function in the story",
+        "hint": "What they're FOR in the cast."
+      },
+      "capabilities": {
+        "title": "Capabilities & limits",
+        "hint": "Genre module — skip for realist fiction."
+      },
+      "continuity": {
+        "title": "Continuity ledger",
+        "hint": "Facts that must never drift."
+      },
+      "depth": {
+        "title": "Backstory & depth",
+        "hint": "Fill only what will surface on the page."
+      }
+    },
+    "notFound": {
+      "breadcrumb": "Character",
+      "title": "Character not found",
+      "message": "This character no longer exists.",
+      "back": "Back to characters"
+    },
+    "fields": {
+      "identity": {
+        "classOrigin": {
+          "label": "Class origin → now",
+          "hint": "Where they started vs. where they are — the gap is characterization. e.g. dockworker's kid → guild master."
+        },
+        "education": {
+          "label": "Education",
+          "hint": "Formal or otherwise — it sets vocabulary and what they notice. e.g. street-taught; convent schooling; self-read."
+        }
+      },
+      "motivation": {
+        "want": {
+          "label": "Wants",
+          "hint": "e.g. win the guild seat; get her sister out of debt"
+        },
+        "need": {
+          "label": "Needs",
+          "hint": "e.g. to forgive himself; to stop performing for everyone"
+        },
+        "lie": {
+          "label": "Lie they believe",
+          "hint": "e.g. “love has to be earned”; “fear gets you killed”"
+        },
+        "truth": {
+          "label": "Truth they meet",
+          "hint": "e.g. “they stayed anyway”; “needing people isn't weakness”"
+        },
+        "fear": {
+          "label": "Core fear",
+          "hint": "What they organize their life to avoid — the lie's shadow. e.g. being exposed as a fraud; being left again."
+        },
+        "lieOrigin": {
+          "label": "Where the lie began",
+          "hint": "Write it as a scene: where, who said what, what they decided. e.g. the night her father called her gift a curse."
+        },
+        "contradiction": {
+          "label": "Central contradiction",
+          "hint": "Two things both true about them that don't fit. e.g. brutally honest with strangers, lies to those she loves."
+        },
+        "values": {
+          "label": "Values under pressure",
+          "hint": "Three values, ranked — the higher wins until the crisis tests it. e.g. loyalty > truth > safety."
+        },
+        "heuristic": {
+          "label": "Decision heuristic",
+          "hint": "One line: “under pressure, they choose ___ over ___.” e.g. protects the crew over the mission."
+        },
+        "stakes": {
+          "label": "Stakes",
+          "hint": "What breaks — for them and others — if they fail. e.g. the harbor floods; his daughter loses her name."
+        }
+      },
+      "arc": {
+        "start": {
+          "label": "Beginning",
+          "hint": "e.g. hiding the gift, keeping her head down"
+        },
+        "midpoint": {
+          "label": "Midpoint",
+          "hint": "e.g. forced to use it in the open"
+        },
+        "end": {
+          "label": "End",
+          "hint": "e.g. leads openly — or doubles down and loses them"
+        }
+      },
+      "voice": {
+        "accent": {
+          "label": "Accent",
+          "hint": "e.g. soft Southern drawl; clipped city vowels; none"
+        },
+        "vocabulary": {
+          "label": "Vocabulary",
+          "hint": "words they favor. e.g. nautical slang; courtroom Latin"
+        },
+        "tic": {
+          "label": "Speech tic",
+          "hint": "a verbal habit. e.g. starts sentences with “Look,”"
+        },
+        "sample": {
+          "label": "Sample line — calm",
+          "hint": "an ordinary line, in their voice. e.g. “Chart it or lose it.”"
+        },
+        "register": {
+          "label": "Register",
+          "hint": "Formal ↔ casual — where they sit, and when they slip. e.g. courtly in public, gutter-blunt alone."
+        },
+        "rhythm": {
+          "label": "Rhythm",
+          "hint": "Clipped or flowing; do they interrupt or trail off? e.g. short sentences, always interrupting."
+        },
+        "forbidden": {
+          "label": "Forbidden words",
+          "hint": "Words this character would never say. e.g. never “sorry”, never “please”."
+        },
+        "subtext": {
+          "label": "Subtext habit",
+          "hint": "How they avoid saying the real thing. e.g. answers a hard question with a joke."
+        },
+        "humor": {
+          "label": "Humor style",
+          "hint": "Dry / absent / cruel / self-deprecating — “none” is a choice too. e.g. deadpan, never laughs at his own."
+        },
+        "languages": {
+          "label": "Languages",
+          "hint": "What they speak or read — who can they understand that others can't? e.g. reads Old Parian; speaks the trade cant."
+        },
+        "sampleAngry": {
+          "label": "Sample line — angry",
+          "hint": "An actual furious line they'd say. e.g. “You had one job. One.”"
+        },
+        "sampleLying": {
+          "label": "Sample line — lying",
+          "hint": "A line they say while covering or deflecting. e.g. “I was never near the place.”"
+        }
+      },
+      "presence": {
+        "physicality": {
+          "label": "How they occupy space",
+          "hint": "Posture, gait, stillness or motion — one line a scene can borrow. e.g. still and watchful; takes up no space."
+        },
+        "presentation": {
+          "label": "Presentation",
+          "hint": "What their appearance choices signal — the message, not the looks. e.g. an expensive coat kept deliberately shabby."
+        },
+        "stressTells": {
+          "label": "Baseline & stress tells",
+          "hint": "Their normal state, and how fear or lying leaks through. e.g. over-precise hands; goes very quiet."
+        }
+      },
+      "function": {
+        "theme": {
+          "label": "Thematic argument",
+          "hint": "The side of the story's central question they embody. e.g. lives out “mercy is weakness” — and is proven wrong."
+        },
+        "protagonistRelation": {
+          "label": "Relation to protagonist",
+          "hint": "Opposition / mirror / temptation / ally / measuring stick. e.g. mirror — same wound, opposite choice."
+        },
+        "selfImage": {
+          "label": "Self-image",
+          "hint": "Who they believe they are. e.g. “a realist” (really a coward)."
+        },
+        "persona": {
+          "label": "Public persona",
+          "hint": "Who they perform being. e.g. the unflappable captain."
+        },
+        "privateTruth": {
+          "label": "Private truth",
+          "hint": "Who they actually are — the gaps between these three are engines. e.g. terrified he's becoming his father."
+        },
+        "buttons": {
+          "label": "Buttons",
+          "hint": "What reliably provokes them — levers other characters can pull. e.g. mention his brother; call her naive."
+        },
+        "allegiances": {
+          "label": "Allegiances & obligations",
+          "hint": "Groups they belong to — and what membership demands. e.g. sworn to the Order; owes a smuggler a life."
+        },
+        "escalation": {
+          "label": "How they escalate",
+          "hint": "Aggression, withdrawal, sabotage, going over heads… e.g. goes cold and starts quietly planning."
+        },
+        "cornered": {
+          "label": "Cornered behavior",
+          "hint": "What they do with no good options — who they really are. e.g. burns it down rather than kneel."
+        }
+      },
+      "capabilities": {
+        "abilities": {
+          "label": "Abilities",
+          "hint": "Magic, tech, training — what can they actually do? e.g. reads emotions; deadly with a thrown knife."
+        },
+        "costs": {
+          "label": "Costs",
+          "hint": "What each use takes — energy, sanity, time, moral weight. e.g. every casting costs a day of her life."
+        },
+        "limits": {
+          "label": "Hard limits",
+          "hint": "What they can never do — limits make more plot than powers. e.g. can't lie while touching cold iron."
+        },
+        "conditions": {
+          "label": "Conditions",
+          "hint": "What the ability requires — tools, materials, states. e.g. needs moonlight; needs the true name."
+        },
+        "whoKnows": {
+          "label": "Who knows",
+          "hint": "Who is aware of these capabilities. e.g. only her old mentor knows."
+        }
+      },
+      "continuity": {
+        "physicalConstants": {
+          "label": "Physical constants",
+          "hint": "Only features that appear on the page. e.g. burn scar on the left hand; limps in the cold."
+        },
+        "health": {
+          "label": "Conditions & disabilities",
+          "hint": "Anything that changes what's possible in a scene. e.g. deaf in one ear; needs the tonic daily."
+        },
+        "timelineAnchors": {
+          "label": "Timeline anchors",
+          "hint": "Birth year + dated events — do the math once. e.g. born 1147; the fire was year 12."
+        },
+        "knows": {
+          "label": "Knows at story start",
+          "hint": "What they already know as the story opens. e.g. knows the king is dead; knows who the traitor is."
+        },
+        "doesntKnow": {
+          "label": "Doesn't know",
+          "hint": "What they don't know yet — and might act against. e.g. doesn't know she's being followed."
+        },
+        "believesWrongly": {
+          "label": "Believes wrongly",
+          "hint": "The top source of continuity errors and POV leaks. e.g. believes her brother is still alive."
+        },
+        "secrets": {
+          "label": "Secrets",
+          "hint": "One per line: the secret — who else knows — the reveal. e.g. “killed the steward — only Mira suspects”."
+        },
+        "possessions": {
+          "label": "Possessions with story weight",
+          "hint": "Objects that will matter — and where each one is. e.g. the dead brother's watch (in her coat)."
+        }
+      },
+      "depth": {
+        "regrets": {
+          "label": "Regrets",
+          "hint": "Compressed backstory plus motivation in one line. e.g. the letter he never sent."
+        },
+        "family": {
+          "label": "Family / upbringing",
+          "hint": "Who raised them and what it cost. e.g. estranged from a father who runs the guild."
+        },
+        "skills": {
+          "label": "Skills & ceiling",
+          "hint": "Competence AND its ceiling, so solutions stay fair. e.g. brilliant tactician, hopeless liar."
+        },
+        "routines": {
+          "label": "Routines & habits",
+          "hint": "Useful mainly for disruption when broken. e.g. tea at dawn, always the same cracked cup."
+        },
+        "appearance": {
+          "label": "Appearance beyond the constants",
+          "hint": "The changeable look, beyond the fixed constants. e.g. tall, ink-stained fingers, never quite still."
+        },
+        "tastes": {
+          "label": "Tastes & quirks",
+          "hint": "Small preferences that make them a person. e.g. hates music; collects old maps."
+        }
+      }
     }
   },
   "welcome": {

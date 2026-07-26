@@ -237,23 +237,54 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
 
 ### C. Waiting on you to run
 
-- **The full-catalog test campaign — RUN + JUDGED 2026-07-26; awaiting your rulings.** The
+- ✅ **The full-catalog test campaign — RULED + EXECUTED 2026-07-26** (your "your rec on bench
+  judging" = §34 recommendations 1-3 adopted as written; execution record: bench doc **§35**).
+  ① **31B REMOVED** — row + its stale-draft heal out of `llm_runner/llm/seed.py`, three legs out
+  of `bench/harness/configs/gpu.json` (18→15), three refs updated in `tests/test_identity.py`.
+  Runner suite 708 passed (the one failure is the known-on-Windows lspci test); harness units 51
+  passed. **⚠ Your box still has the row:** the model-catalog seeder is insert/fill-only and does
+  NOT prune, so this affects FRESH installs only — delete it in the catalog UI if you want it gone
+  locally. ② **70B/GLM KEPT** — no edit; they stay the named availability-vs-recommendation
+  precedent. ③ the stale pointer is corrected below. Still open: the venv re-exec oddity; the
+  LICENCE flag (Gemma-ToU propagation — only if we ever bundle weights). Historical detail of the
+  run itself:
+- **The full-catalog test campaign — RUN + JUDGED 2026-07-26.** The
   battery ran on your box as four resume runs (bible · StyleTune · EZ · 31B; final run
   `2026-07-26_10-13-07-gpu`: `BENCH DONE — 3 leg(s), 0 failed feature run(s)`, 18/18 ok,
   engine b10107). Full judging record: the bench doc §34
   (`docs/plans/2026-07-20-mtp-verify-think-ab-bench.md`). The `--autostart` drive.js check
   is CLOSED — the "nothing answering" branch verifiably fired (process tree: the harness
-  owns the server cmd, same-second spawn; `findPython` picked the venv). **Your three
-  rulings owed (§34 recommendations, nothing executed):** ① **31B** — rec REMOVE (quality
+  owns the server cmd, same-second spawn; `findPython` picked the venv). **The three
+  recommendations, all now RULED (see the ✅ above):** ① **31B** — REMOVE (quality
   TIES the flagship on both §7 keys across all six hq captures, prose edge small and
-  `continue`-only; the 24 GB band already holds flagship + the 27B); ② **70B/GLM** — rec
+  `continue`-only; the 24 GB band already holds flagship + the 27B); ② **70B/GLM** —
   KEEP (your availability-vs-recommendation ruling names these rows as its precedent; no
   owned box can test them); ③ the old "survey's two open decisions" pointer here was STALE
-  — both closed 2026-07-25 (27B seeded · 8|16 band → 12B by measurement); genuinely open
-  instead: the LICENCE flag (Gemma-ToU propagation — matters only if we bundle) + the
-  watchlist (Harrier-27B GGUF · the KaLM trial on your 32 GB card). Also flagged (§34): the
+  — both closed 2026-07-25 (27B seeded · 8|16 band → 12B by measurement); what is genuinely
+  open is two WATCHES, not decisions: the LICENCE flag (Gemma-ToU propagation — matters only
+  if we bundle) + the watchlist (Harrier-27B GGUF · the KaLM trial on your 32 GB card). Also flagged (§34): the
   autostarted venv python re-exec'd into a `F:\Python312` child that owned the
   llama-servers — ran green, cause unverified, sits on the "which Python runs" trap.
+- 🔴 **QuickSetup: the EMBEDDING dropdown is never set — ROOT-CAUSED 2026-07-26, one-line fix,
+  awaiting your go.** Your screenshot after the workspace reset shows the banner *"Couldn't
+  finish reading your setup — Cannot read properties of undefined (reading 'value')"* with
+  EMBEDDING blank. Exact cause, verified at file:line, not inferred:
+  `useCatalogMeta()`'s **returned object omits `estVramById`**
+  (`ui/src/composables/useCatalogMeta.js:105` returns `…, minVramById, tierById, refresh` —
+  while `estVramById` IS defined and module-exported at `:80`). So
+  `QuickSetup.vue:77`'s destructure binds it to `undefined`, and `wizardLeftoverMb()`
+  (`QuickSetup.vue:130`) evaluates `estVramById.value[…]` → the exact TypeError above. It is
+  thrown from `bestEmbedId()` inside `openWizard`'s reconcile, i.e. AFTER the chat default
+  is chosen and exactly WHERE the embed default would be filled — which is why the chat
+  model is picked, the embed is not, and one banner explains both.
+  **Fix:** add `estVramById` to the return list at `useCatalogMeta.js:105`. QuickSetup is its
+  only consumer, so nothing else changes.
+  **Note this was INVISIBLE until 2026-07-26** — the `finally { step.value = "confirm" }`
+  guard shipped that day (runner `e24f4c7`) is what turned a permanently-spinning "Probing
+  your hardware…" into a readable error. The stall fix did not cause this bug; it exposed it.
+  Regression cover to add with the fix: a unit assertion that every identifier QuickSetup
+  destructures from `useCatalogMeta()` is actually returned — a missing key is `undefined`,
+  never a build or lint error, which is exactly how this shipped.
 - ✅ **Headless smoke splash-aware wait — FIXED 2026-07-26.** The blind `sleep(1500)` raced
   boot, and since the splash landed it could measure the overlay instead of the app. Now
   `waitForBoot()` resolves on a real settled state — the shell (`.app`) or onboarding
@@ -354,29 +385,54 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
 
 ## Research (each needs a research pass → plan → build, on its own go)
 
-- **i18n PHASE 1a — 2 of 3 views SHIPPED 2026-07-26** (tooling `7dba767` · SettingsView
-  `078ed88` · ChaptersView `f198229`). Tooling: `i18n:lint` (@intlify no-raw-text),
-  `i18n:report` (vue-i18n-extract), `i18n:pseudo` (the maintained `pseudo-localization`
-  package wrapped so `{…}`/`<…>` survive — pinned by `scripts/i18n-pseudo.test.js`).
-  Baselines: lint 1879 warnings / 70 files; report 0 missing / 111 unused. SettingsView
-  190→8 leftover warnings, ChaptersView 112→1 (all deliberate: decorative glyphs, keycaps,
-  one component-in-sentence block). **REMAINING: CharactersView** (83 template warnings +
-  the 8 script field-descriptor arrays, ~47 entries × label+hint, which must become
-  `computed()`). Plan + all seven rulings:
+- **i18n PHASE 1a — ALL 3 VIEWS SHIPPED 2026-07-26** (tooling `7dba767` · SettingsView
+  `078ed88` · ChaptersView `f198229` · CharactersView + the smoke-seeding fix, this commit).
+  Tooling: `i18n:lint` (@intlify no-raw-text), `i18n:report` (vue-i18n-extract),
+  `i18n:pseudo` (the maintained `pseudo-localization` package wrapped so `{…}`/`<…>`
+  survive — pinned by `scripts/i18n-pseudo.test.js`). Baselines: lint 1879 warnings / 70
+  files; report 0 missing. SettingsView 190→8 leftover warnings, ChaptersView 112→1,
+  **CharactersView 83→0**. The catalog is now 825 leaves (+200 for `characters.*`).
+  CharactersView's shape is worth reusing for the other entity views: the eight v3
+  descriptor arrays stay PURE DATA (`{group, k, type}`) and the template resolves copy with
+  a computed key — ``$t(`characters.fields.${f.group}.${f.k}.label`)`` — keyed by the data
+  model, so nothing freezes at import and there is no per-array `computed()` to maintain.
+  `LIFE_STATUS_OPTIONS` + `columns` DID become `computed()` (their labels are consumed as
+  props, not rendered). Two shared keys minted for every entity list: `common.all`,
+  `common.countOf`. Dead code removed: `LIFE_STATUS_LABEL` (declared, never read).
+  **New gate — `src/renderer/src/i18n/characterFieldKeys.test.js`:** the dynamic key form is
+  invisible to every other check (vue-i18n-extract sees no literal; `missingWarn:false`
+  means a typo renders an EMPTY STRING with no console error, so even the smoke passes), so
+  this test parses the view's descriptor arrays and asserts a non-blank label+hint for each,
+  plus the reverse (no orphan catalog entry). Verified to BITE: typo'ing one key failed 2 of
+  3 assertions, then restored byte-identically. Plan + all seven rulings:
   `docs/plans/2026-07-26-i18n-phase1-coverage-plan.md`. **Your veto is still open on the
   key-naming style and on the first `|` plural pipes now in `en.json`.**
-- ⚠ **THE HEADLESS SMOKE HAS A COVERAGE HOLE — found 2026-07-26, not yet fixed.** It runs
-  against an EMPTY isolated data dir, and with no project the app renders the WELCOME
-  screen for every plain hash route — which is why nearly every route reports the same
-  `chars=1024`. Its per-route `errors=0` therefore proves "no JS error on the welcome
-  screen", NOT that the route's view mounted. Proven by probe: asserting converted
-  SettingsView/ChaptersView text failed on all four checks against the empty dir and passed
-  on all six once the tutorial project was loaded first (click "Try the tutorial project",
-  wait for `.app`). **Fix to consider:** have the smoke seed the tutorial project before the
-  route sweep, so the gate actually exercises the views. Until then a green smoke is weaker
-  evidence than it reads, and any renderer change needs a seeded probe alongside it — the
-  one used here is in the session scratchpad (`i18n-nonempty-probe.mjs`), promote it to
-  `tests/` if this becomes a standing guard.
+- ✅ **THE HEADLESS SMOKE'S COVERAGE HOLE — FIXED 2026-07-26** (your ruling: "why arent you
+  using the app directory with its models and setup with its data db? just call the api to
+  load the tutorial project sam as me clicking it"). It ran against an EMPTY isolated data
+  dir, and with no project the app renders the WELCOME screen for every plain hash route —
+  which is why nearly every route reported the same `chars=1024`. Its per-route `errors=0`
+  therefore proved "no JS error on the welcome screen", NOT that the route's view mounted.
+  Two halves, both shipped:
+  1. **The seed.** `headless-smoke.js` now calls `POST /v1/projects/demo` +
+     `PATCH /v1/settings {activeProjectId}` before the sweep — precisely what clicking "Try
+     the tutorial project" does (`projectApi.js:106` → `project.js:2260` → `settings.js:42`);
+     the registry needs no write, being derived from the projects table. A seed failure is a
+     FAILURE, not a warning, and reaching onboarding WITH a seeded project now fails the boot
+     line — otherwise the blind spot silently returns. `JW_SEED=0` sweeps onboarding on purpose.
+  2. **Real data.** New `npm run smoke` (`scripts/smoke.js`) boots server + vite + the sweep
+     and tears them down. Its data dir is a `sqlite3.backup()` SNAPSHOT of the live root
+     (found via the running server's `/v1/health.dataDir`, else the `dataroot.txt` pointer /
+     `<exe_dir>/data` per `lib.rs:298`), so the gate sees the real providers, catalog,
+     presets and settings — while the smoke's own writes (`activeProjectId`, kv, autosave)
+     can never land in the live workspace, and a mid-write source can't tear.
+  **CONSTRAINT — vite must be 1420:** `services/serverApi.js:17` declares `devPorts:["1420"]`
+  and the shared resolver returns the PAGE ORIGIN for any other port, so on :1421 the
+  renderer would send its API calls to the vite server. `npm run smoke` therefore refuses to
+  start when 1420 is held (probed on `localhost`, `127.0.0.1` AND `[::1]` — `npm run dev`
+  binds ::1 only on this box, so a v4-only probe reports it free). **Consequence: the smoke
+  was NOT run for the CharactersView change — your app was up on ::1:1420. Run
+  `npm run smoke` with the app closed.**
 - 🎯 **Single-source text system + i18n / translation — THE NEXT BIG TASK** (the user's
   roadmap ruling 2026-07-26: "the main goal is to completely finish JW and all AI stuff,
   then we will work on JV… 12 we need to do and do the full translation research on how we
