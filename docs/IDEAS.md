@@ -16,21 +16,25 @@ through).
 
 ## AI / authoring
 
-### The writer's-editor gap table — 6 ranked candidates awaiting picks (2026-07-26)
+### The writer's-editor gap table — 5 ranked candidates, executor plan written (2026-07-26)
 
 **The itch:** finish the editor to Word/Scrivener parity where it actually matters for
-novelists. The research is DONE — full inventory + field survey + adoption table in
-`docs/plans/2026-07-26-writers-editor-gap-research.md`; these are its rows, held here
-until the user picks (none scheduled): **1)** spelling+grammar that knows the story bible
-(adopt Harper — Apache-2.0, offline WASM, `importWords()` auto-fed from the project's
-characters/locations/coined words; medium), **2)** thesaurus (local public-domain `moby`
-dataset + an AI "synonyms in context" escalation on the runner; small-medium), **3)**
-prose highlights / linguistic focus (surface the styleMetrics + aiTellScanner catalogs we
-already own as toggleable editor decorations; small, best value-per-work on the list),
-**4)** name generator (tiny writerAI-style feature, saves into Characters), **5)**
-session/per-chapter word targets (small UI over data we already record), **6)** dictation
-(whisper.cpp — parked, unscheduled). Rejected-with-reasons (autocorrect, track changes,
-footnotes, read-aloud→JV) are in the doc §5 so they don't come back as "missing".
+novelists. The research is DONE and same-day CORRECTED (the user caught that "name
+generator" was never a gap — Brainstorm's default category IS character names, 7
+categories with like-steering, `BrainstormView.vue:18-65`) — full inventory + field
+survey + adoption table in `docs/plans/2026-07-26-writers-editor-gap-research.md`. The
+surviving rows: **1)** spelling+grammar that knows the story bible (adopt Harper 2.4.0 —
+Apache-2.0, offline WASM, `importWords()` auto-fed from the project's
+characters/locations/coined words; medium, spike-gated), **2)** thesaurus (vendored
+public-domain Moby DATA — the npm wrappers are node-only — + a Brainstorm deep-link for
+AI alternatives; small-medium), **3)** prose highlights / linguistic focus (surface the
+styleMetrics + aiTellScanner catalogs we already own as toggleable editor decorations;
+small, best value-per-work on the list), **4)** session word target (small UI over data
+we already record; per-chapter targets deliberately not in v1), **5)** dictation
+(whisper.cpp — parked, unscheduled). **The decision-closed executor plan for 3→2→1-spike→4
+is `docs/plans/2026-07-26-editor-expansion-executor-plan.md` — written, NOT launched.**
+Rejected-with-reasons (autocorrect, track changes, footnotes, read-aloud→JV) are in the
+doc §5 so they don't come back as "missing".
 
 ### Ternary Bonsai-27B — a model WATCH, not a buy yet (2026-07-19)
 

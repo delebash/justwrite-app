@@ -1,5 +1,19 @@
 # The writer's-editor gap audit — what we have, what the field ships, what to adopt (2026-07-26)
 
+> **CORRECTED same-day (2026-07-26), caught by the user:** the first version of this doc
+> listed "name generator" as gap row 4 — **wrong; it already exists**, and richer than
+> Scrivener's: the Brainstorm view's default category is character names, with place
+> names, item/object names, titles, next beats, twists, and a free category, all with
+> thumbs-up "more like these" steering (`BrainstormView.vue:18-65`). The root cause of
+> the miss is instructive: the audit inventoried `RichEditor.vue` + `services/writerAI.js`
+> + `services/analysis/*` but never read **`server/justwrite_server/feature_catalog.py`**
+> — the file whose own docstring says it is "the canonical list of routable features."
+> Starting there would also have surfaced `sensory` (Research feel), `unstuck`,
+> `characterProfile` (drafts profile fields from scenes), `characterVoice`, `briefing`,
+> and `recap`, all of which the first draft under-credited. §1, §3, §4 and §6 below are
+> corrected; the gap rows renumbered (old 5→4, old 6→5). **Any future feature audit
+> starts from `feature_catalog.py`.**
+
 The research pass the user ordered when "#256 spell-check" was expanded (2026-07-26 ruling:
 "that should be expanded to what our editor has and what a writer might need, Word has a
 bunch of features for our novel writing software — do we need to add any features, like the
@@ -42,7 +56,17 @@ which for a fantasy/SF novelist makes spell check net-hostile. There is no JS AP
 WebView2's dictionary; fixing (b) requires owning the engine (→ gap row 1).
 
 **AI writing actions** (`services/writerAI.js`): rewrite, expand, tighten, continueFrom,
-describe, guidedContinue, applyRule, voiceCanonVar.
+describe, guidedContinue, applyRule, voiceCanonVar. **Plus the drafting-tool surfaces the
+first draft of this doc missed** (all in `feature_catalog.py`, the canonical list):
+**Brainstorm** (`BrainstormView.vue` — character names / place names / item names / titles /
+next plot beats / plot twists / free prompt, with like-steering and "more like these";
+results copy to the clipboard via `useItem`, BrainstormView.vue:165 — they do NOT flow into
+entities, which is the evidence behind the user's point-of-use decomposition idea, tracked
+in TASKS), **Research feel** (`sensory` — structured sensory pack modal), **Unstuck**
+(five ways to unblock a scene), **characterProfile** (drafts description / motivation /
+arc / backstory from the character's scenes — i.e. "fill in character background" exists
+today in the from-scenes form; the from-description variant is the new idea), and
+**characterVoice**, **briefing**, **recap**.
 
 **The analysis suite — 19 services** (`services/analysis/`): aiTellScanner (a 44-entry
 crutch-word / AI-tell catalog), beatSheet, characterAudit, characterProfile, critique,
@@ -86,9 +110,9 @@ exceeded here (§1).
 | Grammar & style checking | **GAP** (AI critique ≠ as-you-type) | → row 1 |
 | Thesaurus / synonyms | **GAP** (zero hits in renderer) | → row 2 |
 | Linguistic focus / dialogue highlight | **GAP** (catalogs exist, not surfaced inline) | → row 3 |
-| Name generator | **GAP** (trivial on our runner) | → row 4 |
-| Session / per-chapter targets | PARTIAL (project goal + daily log exist) | → row 5 |
-| Dictation | **GAP** (deferred) | → row 6 |
+| Name generator | HAVE — Brainstorm, 7 categories + like-steering (corrected; the user caught it) | BrainstormView.vue:18-65 |
+| Session / per-chapter targets | PARTIAL (project goal + daily log exist) | → row 4 |
+| Dictation | **GAP** (deferred) | → row 5 |
 | Read aloud | NOT A JW GAP — JustVoice's contract | CLAUDE.md audio ban |
 | Find & replace | HAVE | RichEditor.vue:1356-1372 |
 | Comments | HAVE | RichEditor.vue:343-365 |
@@ -114,8 +138,12 @@ that reads the story bible. Its suggestions render in OUR context menu (dissolvi
 two-click native escape). Integration = a ProseMirror decoration plugin (the community
 LanguageTool-for-TipTap extension is the architectural crib) + context-menu entries +
 a settings row; the WorkerLinter keeps linting off the UI thread. Effort: **medium**
-(the largest item on this list; one to two days of focused work). Caveat, stated
-honestly: harper.js is labeled early-access / API-not-yet-stable — pin the version.
+(the largest item on this list; one to two days of focused work). Registry facts
+(verified 2026-07-26): `harper.js` **2.4.0**, Apache-2.0, 84.75 MB unpacked with five
+export variants (default / binary / slimBinary / binaryInlined / slimBinaryInlined) —
+built for lazy WASM loading; what actually lands in OUR bundle is measured by the spike,
+not assumed. Caveat, stated honestly: harper.js is labeled early-access /
+API-not-yet-stable — pin the version, wrap it in one thin service module.
 Grammar-side alternatives considered (T4): **LanguageTool** — public API is 20 req/min/IP
 (unusable as-you-type) and self-hosting is a Java server (Docker `erikvl87/languagetool`)
 — a heavy, wrong-shaped dependency for an offline-first desktop app; **status quo native
@@ -123,17 +151,24 @@ engine** — free, but structurally cannot learn names (no JS API) and its check
 at spelling. Word's deeper "refinements" (clarity/conciseness/formality) remain covered
 by our AI critique/rewrite suite — richer than Word's, just not as-you-type.
 
-**Row 2 — thesaurus.** Nothing today (zero renderer hits). **REC: local dataset for
-instant lookup + an AI escalation.** Local options (T4): the **`moby`** npm package —
-Moby Thesaurus, the largest English thesaurus, **public domain**, plus OpenOffice
-thesaurus data; or **`en-wordnet`** (Princeton WordNet). Remote option rejected for the
-final shape: **Datamuse** is keyless and generous (100k req/day) but **non-commercial
-only** and its open policy is promised only "until January 1, 2027" — wrong foundation
-for a commercial offline-first app (fine as a dev prototype). The AI escalation —
-"More synonyms in context" sending the sentence to the existing runner so suggestions
-rank by fit — is a tiny writerAI-style feature and does something Word's thesaurus
-can't. Surface: the editor context menu (select word → Synonyms) + optional bubble-menu
-chip. Effort: **small-medium** (data file sizing/lazy-load is the only real work).
+**Row 2 — thesaurus.** No instant word-level lookup today (Brainstorm's free category
+*can* be prompted for "alternate words" — the adjacent capability — but that is a
+navigate-away AI round-trip, not a select-word→synonyms affordance). **REC: vendored
+local dataset for instant lookup + a Brainstorm deep-link for the AI escalation.**
+Dataset (T4, registry-verified 2026-07-26): the npm wrappers are all wrong-shaped —
+**`moby`** 1.1.2 is a node Express website/CLI (not a browser lib) and **`thesaurus`**
+0.0.1 is a 16.7 MB CoffeeScript node package, unmaintained, license unclear — so the
+right shape is adopting the **DATA** (the Moby Thesaurus itself, **public domain**,
+`github.com/words/moby`), not a wrapper: a build script compresses it to a gzipped JSON
+asset (~24 MB raw → single-digit MB gzipped), the renderer lazy-loads it once via native
+`DecompressionStream`, and the lookup is a ~20-line Map. Alternative dataset if Moby's
+raw file shape disappoints: `en-wordnet` (Princeton). The AI escalation **reuses the
+existing Brainstorm feature** (T3 — no new AI action, no routing/seed changes): the
+synonyms popover's "More alternatives in Brainstorm →" deep-links to `/brainstorm`
+pre-seeded with the word + its sentence — which also aligns with the user's 2026-07-26
+point-of-use direction. Surface: the editor context menu (word under caret → Synonyms →
+popover; click replaces the word). Effort: **small-medium** (the data pipeline is the
+only real work).
 
 **Row 3 — linguistic focus / prose highlights.** Scrivener's revision superpower
 (highlight all adverbs, all filter words, dialogue only). **We already own the catalogs**
@@ -144,17 +179,22 @@ editor decorations*, not new analysis. Phase 2, if true part-of-speech grade is 
 83 POS tags, browser-local). Effort: **small** (phase 1), compromise deferred until asked
 for. High craft value per unit work — the best ratio on this list.
 
-**Row 4 — name generator.** Scrivener ships one; ours would be better — a tiny
-writerAI-style feature on the local runner (genre / culture / era / alliteration
-parameters), no new deps, and the result can save straight into Characters. Effort:
-**tiny** (one prompt + one small surface).
+**~~Row 4 — name generator~~ — STRUCK (the user's catch, same day): already exists** as
+Brainstorm's default category, with six more categories and like-steering
+(BrainstormView.vue:18-65) — see the correction banner. What survives of this row is the
+user's better idea: results are clipboard-only today (`useItem`, :165), so the value is
+**moving generation to the point of use** (a "generate name" / "create from description"
+affordance on the Characters/Locations/Objects pages themselves) — recorded as a
+think-about item in `docs/TASKS.md`, not part of this gap list.
 
-**Row 5 — session & per-chapter targets.** We have the project-grain goal ring and the
-per-day sessions log; Scrivener adds "today's target" and per-document targets with a
-live bar. A settings field + a small bar on Home/editor footer, fed by data we already
-record. No deps. Effort: **small**.
+**Row 4 (was 5) — session & per-chapter targets.** We have the project-grain goal ring
+and the per-day sessions log (`stores/sessions.js` — `days` map, `todayWords`, `streak`
+getters already computed); Scrivener adds "today's target" and per-document targets with
+a live bar. A settings field beside `wordsGoal` (edited at SettingsView.vue:715 via
+`setMetaNumber`) + a small today-bar on Home, fed by data we already record. No deps.
+Effort: **small**. (Per-document/chapter targets deliberately NOT in v1 — flagged.)
 
-**Row 6 — dictation (defer).** Word has it; novelists with RSI genuinely use it. Local
+**Row 5 (was 6) — dictation (defer).** Word has it; novelists with RSI genuinely use it. Local
 shape exists — **whisper.cpp** (offline, CPU-viable, streaming) — but the real scope is
 audio capture + streaming partials + punctuation/commands, a subsystem of its own, and
 it borders the JustWrite/JustVoice audio boundary (speech-*input* is arguably JW's, but
@@ -178,9 +218,12 @@ row is visibly decided, not forgotten.
 
 ## 6. If the user picks — the natural order
 
-Independent rows; any subset works. The order that front-loads value: **3 → 2 → 1 → 4 → 5**
+Independent rows; any subset works. The order that front-loads value: **3 → 2 → 1 → 4**
 (prose highlights first because it's small and pure-win; thesaurus next; Harper as the one
-medium-sized adoption when a clear slot exists; name gen and targets as gap-fillers). All
+medium-sized adoption — spike-gated; the session target as the gap-filler). **The
+decision-closed executor plan for exactly this order is
+`docs/plans/2026-07-26-editor-expansion-executor-plan.md`** (written 2026-07-26 on the
+user's order, NOT launched — other Opus batches were still running). All
 editor-touching rows are renderer work — **bench-gated** like everything else this week
 (no `src/renderer/**` edits while a bench runs). New user-facing strings land through the
 i18n key machinery once Phase 1 merges (`2026-07-26-i18n-single-source-research.md`), and
@@ -202,4 +245,7 @@ each row ships its hint/help text with the feature per the hints content pass (s
 - WordNet: https://github.com/open-language/en-wordnet
 - compromise: https://github.com/spencermountain/compromise (MIT · 12,144 stars ·
   pushed 2026-07-20, verified via GitHub API this session)
+- npm registry checks (2026-07-26): `harper.js` 2.4.0 Apache-2.0 (registry.npmjs.org/harper.js) ·
+  `moby` 1.1.2 node-only Express/CLI (registry.npmjs.org/moby) · `thesaurus` 0.0.1
+  16.7 MB CoffeeScript node package, license unclear (registry.npmjs.org/thesaurus)
 - whisper.cpp dictation ecosystem: https://dev.to/alichherawalla/how-to-run-voice-to-text-locally-on-your-desktop-whisper-offline-dictation-349p

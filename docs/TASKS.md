@@ -201,25 +201,39 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   (#274, `modelPick.js:134-145`) — my "still open" claim was stale. Catalog: 8 chat + 3
   embeds. WATCHLIST: Harrier-27B (MIT, real, no GGUF yet); the KaLM trial fits your 32 GB
   card when it arrives.
-- **THE WRITER'S-EDITOR FEATURE AUDIT — RESEARCH DONE 2026-07-26, awaiting your picks.**
-  (Expanded from "#256 spell-check" on your ruling: "what our editor has and what a writer
-  might need, Word has a bunch of features".) Full findings in
-  `docs/plans/2026-07-26-writers-editor-gap-research.md`; the 6 candidate rows are parked in
-  `docs/IDEAS.md` until you pick. The headline: the inventory came back far stronger than
-  the task assumed — find/replace, inline comments, version history, focus/typewriter,
-  goals ring, and a 19-service analysis suite ALL exist (each verified at file:line in the
-  doc), and **no AI-side gap vs the Sudowrite/NovelCrafter class was found**. The real gaps,
-  ranked: **1) spelling+grammar that knows the story bible** (adopt Harper — Apache-2.0
-  offline WASM, `importWords()` fed from the project's own characters/places/coined words;
-  the one medium-effort item; also dissolves today's two-clicks-deep native suggestions,
-  RichEditor.vue:808,822-838), **2) thesaurus** (local public-domain `moby` + AI
-  synonyms-in-context; Datamuse rejected — non-commercial-only license), **3) prose
-  highlights** (surface the styleMetrics/aiTellScanner catalogs we already own as editor
-  decorations — smallest work, highest craft value), **4) name generator** (tiny, on the
-  runner), **5) session/per-chapter targets** (small), **6) dictation** (whisper.cpp —
-  parked). Rejected-with-reasons in doc §5 (autocorrect, track changes, footnotes,
-  read-aloud→JV). All rows are renderer work: bench-gated, and strings/hints ride the i18n
-  machinery once Phase 1 merges.
+- **THE WRITER'S-EDITOR FEATURE AUDIT — RESEARCH DONE + SAME-DAY CORRECTED 2026-07-26;
+  EXECUTOR PLAN WRITTEN, NOT LAUNCHED — awaiting your go.** (Expanded from "#256
+  spell-check" on your ruling.) Full findings in
+  `docs/plans/2026-07-26-writers-editor-gap-research.md` — including its correction
+  banner: **you caught that "name generator" was never a gap** (Brainstorm's default
+  category IS character names — 7 categories with like-steering, BrainstormView.vue:18-65);
+  the audit had skipped `server/justwrite_server/feature_catalog.py`, the canonical
+  feature list, which also carries sensory/unstuck/characterProfile/characterVoice —
+  future feature audits START there. The headline stands and got stronger: find/replace,
+  comments, version history, focus/typewriter, goals ring, Brainstorm, and the 19-service
+  analysis suite all exist; **no AI-side gap vs the Sudowrite/NovelCrafter class**. The
+  surviving gaps, ranked: **1) spelling+grammar that knows the story bible** (Harper 2.4.0
+  pinned, spike-gated), **2) thesaurus** (vendored public-domain Moby data + a Brainstorm
+  deep-link — no new AI action), **3) prose highlights** (surface the
+  styleMetrics/aiTellScanner catalogs as editor decorations), **4) session word target**
+  (per-chapter deliberately not in v1), **5) dictation** (parked). **The decision-closed
+  Opus plan for 3→2→1-spike→4 is `docs/plans/2026-07-26-editor-expansion-executor-plan.md`**
+  — wait-gated on (a) no running bench and (b) i18n Phase 1a merged (it edits
+  SettingsView). Launch = your word.
+- **BRAINSTORM → POINT-OF-USE GENERATION (think-about, your idea 2026-07-26 — nothing
+  scheduled).** Your words: "take brainstorm and move some features to where they relate
+  to, such as characters creating a new character from description or creating a name, we
+  do this across app, a brainstorm/character/location creation by description, fill in
+  character background." Current-state evidence: Brainstorm results are clipboard-only
+  (`useItem`, BrainstormView.vue:165) — nothing flows into entities; `characterProfile`
+  already drafts background/motivation/arc **from scenes** (feature_catalog.py) but there
+  is no create-from-DESCRIPTION path on any entity page. The think-through (a design pass,
+  before any build): which generation affordances live ON the Characters/Locations/Objects
+  pages (generate name · create from description · fill background), what Brainstorm keeps
+  as the freeform hub, and whether the existing brainstorm/characterProfile prompts are
+  reused as-is (they should be — one source). Related: the thesaurus popover's "More
+  alternatives in Brainstorm →" deep-link (executor plan STEP 2) is the first instance of
+  the pattern pointing the OTHER way.
 
 ### C. Waiting on you to run
 
