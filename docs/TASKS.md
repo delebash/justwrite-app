@@ -362,9 +362,15 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   coupling to our stack — engine = any OpenAI-compatible URL or DeepL key (our runner is
   just JW's default config value), works on any keyed-JSON locales (vue-i18n's shape),
   per-app config as the only app-specific artifact, the Vue lint guard shipped as a recipe
-  beside it. JW consumer #1, JV consumer #2, any future app free. **Pending:** the 40-key
-  ES prototype (runner vs DeepL-free) the moment the bench frees the GPU — it picks the
-  default engine. Then plan → build on gos.
+  beside it. JW consumer #1, JV consumer #2, any future app free.
+  **ALL SEVEN DECISIONS BLESSED 2026-07-26 ("your rec"):** kit = vue-i18n peer dep ·
+  Spanish first, alone · ship machine-translated + labeled + feedback path · DB-seeded
+  text stays English in v1 · server errors map at the friendlyAiError layer · engine by
+  the prototype's verdict · central catalogs. **BUILD STARTED same day** — Phase 1a
+  (tooling + the three worst views) delegated to an Opus executor on a decision-free
+  plan: `docs/plans/2026-07-26-i18n-phase1-coverage-plan.md` (wait-gated behind the
+  running bench so HMR can't kill it a third time). **Pending:** the 40-key ES prototype
+  when the GPU frees — it picks the default engine.
 - ✅ **The PER-BAND model survey — DONE 2026-07-25** (Parts 1+2; the record, candidate
   table with URLs, and the two open user decisions live in
   `docs/plans/2026-07-25-per-band-model-survey.md`; the seeds are the section-B band
