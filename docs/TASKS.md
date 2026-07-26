@@ -344,18 +344,19 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   items"). One authored source (the docs) feeding the `?` help drawer, inline hints, **and**
   translations so they can't drift; plus a language switcher and a `$t()`-vs-hardcoded
   coverage audit. Whole-system (JW + JV + kit).
-  **Research status — PARTIAL, do not restart from zero.** The 2026-07-19 pass
-  (`docs/IDEAS.md` → "Single-source text system") already grounded the current state
-  (vue-i18n ^11.4.6 + a 389-line `en.json`, English only, partial coverage, no in-app
-  switcher, JW and JV i18n not unified) and named first candidates: **json-autotranslate**
-  (free DeepL / local-AI backend), **json-translator**, and the on-brand question of whether
-  **our own bundled runner** can do the translating locally. What the FULL pass still owes,
-  per the user's "several ways to automate translation": a real survey of the automation
-  routes (translate-at-build vs translate-at-runtime vs a vendored locale pipeline; machine
-  vs LLM vs human-review hybrids), what each costs in quality and maintenance, how a
-  novelist-facing app should handle terms that must NOT be translated (character names,
-  invented words), and the CI guard that keeps keys and translations in lockstep. Then a
-  plan, then the build — each on its own go.
+  **RESEARCH DONE 2026-07-26** (one prototype pending) — the full record is
+  **`docs/plans/2026-07-26-i18n-single-source-research.md`**: the measured census
+  (~3,900 hardcoded strings system-wide vs ~190 translated keys in use; the kit and JV at
+  literally 0% — JV's Language select is cosmetic; plus the two hidden populations: ~67
+  DB-seeded strings and ~93 Python-born error strings), the architecture REC (two sources,
+  one keyed-hints bridge, a CI contract; kit adopts vue-i18n as a peer — both hosts already
+  ship ^11.4.6), the 2026 tooling survey with URLs (headline: **json-autotranslate's OpenAI
+  backend pointed at OUR llama-server** = the on-brand local pipeline through a maintained
+  tool, with placeholder protection + glossaries; DeepL-free as the quality baseline;
+  `@intlify/eslint-plugin-vue-i18n no-raw-text` as the permanent guard), the build order
+  (coverage → hints bridge → translate → switcher), and the six-decision sheet for the
+  user. **Pending:** the 40-key ES prototype (runner vs DeepL-free) the moment the bench
+  frees the GPU — it picks the default engine. Then plan → build on gos.
 - ✅ **The PER-BAND model survey — DONE 2026-07-25** (Parts 1+2; the record, candidate
   table with URLs, and the two open user decisions live in
   `docs/plans/2026-07-25-per-band-model-survey.md`; the seeds are the section-B band
