@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRoute, useRouter } from "vue-router";
@@ -33,6 +34,10 @@ const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
 const route = useRoute();
+// Same shape SettingsView uses: `t` in script, `$t` in template. Note the
+// `v-for="t in …"` loops in the template SHADOW this `t` inside their scope —
+// those must use `$t`, and build:vite will not catch it if they don't.
+const { t } = useI18n({ useScope: "global" });
 
 
 // chapterId → [{ id, name }] of characters appearing in the chapter, from the
@@ -88,19 +93,24 @@ function askTheBook() {
   if (!ch.value) return;
   ui.openChatPanelFor({
     mode: "book",
-    question: `Tell me about chapter ${ch.value.num}${ch.value.title ? ` — "${ch.value.title}"` : ""}`,
+    question: ch.value.title
+      ? t("chapters.header.askQuestionTitled", { num: ch.value.num, title: ch.value.title })
+      : t("chapters.header.askQuestion", { num: ch.value.num }),
     sourceKey: `ask:chapter:${ch.value.id}`,
   });
 }
-const MODES = [
-  { value: "edit",    label: "Edit",    icon: "Quote" },
-  { value: "outline", label: "Outline", icon: "List" },
-  { value: "read",    label: "Read",    icon: "Eye" },
-];
-const READ_SCOPE_OPTIONS = [
-  { value: "chapter",  label: "Chapter",   icon: "Book",  tooltip: "Read one chapter at a time" },
-  { value: "book",     label: "Whole book", icon: "List", tooltip: "Read the whole book in one continuous page" },
-];
+// computed(), not const: a module-scope array freezes its labels at import and
+// would never re-translate when the locale changes (SettingsView's SECTIONS is
+// the same shape).
+const MODES = computed(() => [
+  { value: "edit",    label: t("chapters.modes.edit"),    icon: "Quote" },
+  { value: "outline", label: t("chapters.modes.outline"), icon: "List" },
+  { value: "read",    label: t("chapters.modes.read"),    icon: "Eye" },
+]);
+const READ_SCOPE_OPTIONS = computed(() => [
+  { value: "chapter",  label: t("chapters.read.scopeChapter"),  icon: "Book",  tooltip: t("chapters.read.scopeChapterTooltip") },
+  { value: "book",     label: t("chapters.read.scopeBook"),     icon: "List",  tooltip: t("chapters.read.scopeBookTooltip") },
+]);
 
 const selectedId = computed(() => props.id || ui.selections.chapters || project.allChapters[0]?.id);
 const ch = computed(() => project.chapterById(selectedId.value) || project.allChapters[0]);
@@ -447,12 +457,12 @@ const stuckChapterNum = ref(null);
 function openStuck() {
   aiStripOpen.value = false;
   if (!editorRef.value) {
-    ui.showToast({ message: "Open a chapter first." });
+    ui.showToast({ message: t("chapters.ai.openChapterFirst") });
     return;
   }
   const ctx = editorRef.value.grabUnstuckContext?.(1800) || "";
   if (!ctx.trim()) {
-    ui.showToast({ message: "Write a few lines first — Unstuck needs prose to brainstorm from." });
+    ui.showToast({ message: t("chapters.ai.unstuckNeedsProse") });
     return;
   }
   stuckContextText.value = ctx;
@@ -475,12 +485,12 @@ const sensorySubject = ref("");
 function openSensory() {
   aiStripOpen.value = false;
   if (!editorRef.value) {
-    ui.showToast({ message: "Open a chapter first." });
+    ui.showToast({ message: t("chapters.ai.openChapterFirst") });
     return;
   }
   const subj = editorRef.value.grabSensorySubject?.() || "";
   if (!subj.trim()) {
-    ui.showToast({ message: "Highlight a subject first (a place, object, or moment)." });
+    ui.showToast({ message: t("chapters.ai.highlightSubjectFirst") });
     return;
   }
   sensorySubject.value = subj;
@@ -498,15 +508,15 @@ function onSensoryInsert(phrase) {
 async function openGuidedContinue() {
   aiStripOpen.value = false;
   if (!editorRef.value) {
-    ui.showToast({ message: "Open a chapter first." });
+    ui.showToast({ message: t("chapters.ai.openChapterFirst") });
     return;
   }
   const instruction = await promptDialog({
-    title: "Continue with a direction",
-    message: "What should happen next? One sentence is enough — JustWrite will draft the next 2–4 paragraphs in that direction.",
-    label: "Direction",
-    placeholder: "e.g. Elena confronts Marcus but he deflects with charm.",
-    confirmLabel: "Write this",
+    title: t("chapters.dialogs.guidedTitle"),
+    message: t("chapters.dialogs.guidedMessage"),
+    label: t("chapters.dialogs.guidedLabel"),
+    placeholder: t("chapters.dialogs.guidedPlaceholder"),
+    confirmLabel: t("chapters.dialogs.guidedConfirm"),
   });
   if (!instruction) return;
   const text = String(instruction || "").trim();
@@ -519,14 +529,14 @@ async function splitChapterHere() {
   const editor = editorRef.value.editor;
   const pos = editor.state.selection.from;
   if (pos <= 0 || pos >= editor.state.doc.content.size) {
-    ui.showToast({ message: "Place the cursor where the new chapter should begin." });
+    ui.showToast({ message: t("chapters.dialogs.splitCursorHint") });
     return;
   }
   const title = await promptDialog({
-    title: "Split chapter here",
-    label: "New chapter title",
-    placeholder: "Title for the chapter starting at the cursor",
-    confirmLabel: "Split",
+    title: t("chapters.dialogs.splitTitle"),
+    label: t("chapters.dialogs.splitLabel"),
+    placeholder: t("chapters.dialogs.splitPlaceholder"),
+    confirmLabel: t("chapters.dialogs.splitConfirm"),
   });
   if (!title) return;
 
@@ -554,10 +564,10 @@ function movePart(id, dir) { project.movePart(id, dir); }
 
 async function addPart() {
   const title = await promptDialog({
-    title: "New part",
-    label: "Part title",
-    placeholder: `e.g. Part ${project.parts.length + 1} — The Reckoning`,
-    confirmLabel: "Create part",
+    title: t("sidebar.actions.newPartTitle"),
+    label: t("sidebar.actions.newPartLabel"),
+    placeholder: t("sidebar.actions.newPartPlaceholder", { n: project.parts.length + 1 }),
+    confirmLabel: t("sidebar.actions.newPartConfirm"),
   });
   if (!title) return;
   project.addPart({ title });
@@ -568,12 +578,12 @@ function addChapterToPart(partId) {
 }
 async function addSceneToChapter(chapterId) {
   const values = await promptDialog({
-    title: "New scene",
-    confirmLabel: "Add scene",
+    title: t("sidebar.actions.newSceneTitle"),
+    confirmLabel: t("sidebar.actions.newSceneConfirm"),
     fields: [{
       key: "title",
-      label: "Scene title",
-      placeholder: "Leave blank for an untitled scene",
+      label: t("sidebar.actions.newSceneLabel"),
+      placeholder: t("sidebar.actions.newScenePlaceholder"),
       optional: true,
     }],
   });
@@ -590,12 +600,12 @@ async function deletePart(part) {
   const neighborIdx = project.parts.findIndex((p) => p.id === part.id);
   const neighbor = neighborIdx > 0 ? project.parts[neighborIdx - 1] : project.parts[neighborIdx + 1];
   const message = count
-    ? `Its ${count} chapter${count === 1 ? "" : "s"} will move to "${neighbor.title}".`
-    : "This part has no chapters.";
+    ? t("chapters.dialogs.deletePartMessage", { n: count, into: neighbor.title }, count)
+    : t("chapters.dialogs.deletePartEmpty");
   const yes = await confirmDialog({
-    title: `Delete "${part.title}"?`,
+    title: t("chapters.dialogs.deletePartTitle", { title: part.title }),
     message,
-    confirmLabel: "Delete part",
+    confirmLabel: t("chapters.dialogs.deletePartConfirm"),
     danger: true,
   });
   if (!yes) return;
@@ -774,29 +784,29 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
         <Breadcrumb :segments="crumbs" />
         <input v-if="activeScene" class="chapter-name"
           :value="activeScene.title"
-          :placeholder="`Scene ${activeSceneIdx + 1} title (optional)`"
+          :placeholder="$t('chapters.edit.sceneTitlePlaceholder', { n: activeSceneIdx + 1 })"
           @input="onSceneTitleInput(activeScene.id, $event.target.value)" />
         <input v-else class="chapter-name" ref="nameInput"
           :value="ch.title"
-          placeholder="Chapter title"
+          :placeholder="$t('sidebar.actions.newChapterLabel')"
           @input="updateTitle(ch.id, $event.target.value)" />
       </template>
       <template v-else>
-        <span class="pane-eyebrow">{{ mode === 'outline' ? 'Manuscript' : ch.partTitle }}</span>
-        <h1 class="pane-h1">{{ mode === 'outline' ? 'Outline' : `Chapter ${ch.num} · ${ch.title}` }}</h1>
+        <span class="pane-eyebrow">{{ mode === 'outline' ? $t('sidebar.sections.manuscript') : ch.partTitle }}</span>
+        <h1 class="pane-h1">{{ mode === 'outline' ? $t('chapters.modes.outline') : $t('chapters.header.chapterTitle', { num: ch.num, title: ch.title }) }}</h1>
       </template>
     </div>
     <div class="pane-actions">
       <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
-        v-tooltip.bottom="`Ask the book about chapter ${ch.num}`">
-        <Icon name="Chat" :size="14" /> Ask the book
+        v-tooltip.bottom="$t('chapters.header.askTheBookTooltip', { num: ch.num })">
+        <Icon name="Chat" :size="14" /> {{ $t('sidebar.nav.askTheBook') }}
       </UiButton>
       <UiSegmented
         class="seg-toggle"
         :model-value="mode"
         :options="MODES"
         option-value="value"
-        aria-label="View mode"
+        :aria-label="$t('chapters.header.viewModeAriaLabel')"
         @update:model-value="mode = $event">
         <template #option="{ option }">
           <Icon :name="option.icon" :size="13" />
@@ -804,53 +814,46 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
         </template>
       </UiSegmented>
       <UiButton intent="ghost" size="small" class="chapter-sweep-btn" @click="sweepOpen = true"
-        v-tooltip.bottom="'Entity sweep — scan the whole manuscript for new characters, locations, and objects'">
-        <Icon name="Sparkle" :size="13" /> Entity sweep
+        v-tooltip.bottom="$t('chapters.header.entitySweepTooltip')">
+        <Icon name="Sparkle" :size="13" /> {{ $t('chapters.header.entitySweep') }}
       </UiButton>
     </div>
   </header>
   <PaneHeader v-else :eyebrow="$t('panes.chapters.eyebrow')" :title="$t('panes.chapters.emptyTitle')" help-key="writing#chapters">
     <router-link to="/import" custom v-slot="{ navigate }">
-      <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Plus" :size="14" /> Import from file</UiButton>
+      <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Plus" :size="14" /> {{ $t('chapters.empty.importFromFile') }}</UiButton>
     </router-link>
-    <UiButton intent="primary" size="small" @click="addChapter"><Icon name="Plus" :size="14" /> New chapter</UiButton>
+    <UiButton intent="primary" size="small" @click="addChapter"><Icon name="Plus" :size="14" /> {{ $t('sidebar.actions.newChapterTitle') }}</UiButton>
   </PaneHeader>
 
   <!-- ── OUTLINE MODE ─────────────────────────────────────────── -->
   <div v-if="ch && mode === 'outline'" class="pane-card">
    <div class="scrollarea outline-pane">
-    <p class="chap-desc">
-      <strong>Chapters</strong> is the writing surface — the editor itself, with
-      <strong>Outline</strong> / <strong>Cards</strong> / <strong>Read</strong> view modes that
-      switch your lens on the same manuscript. Type <code>@</code> to mention any Story Bible
-      entity; the <strong>AI</strong> button in the scene strip opens rewrite, continue, and
-      line-edit actions; the <strong>Links</strong> panel ties each scene to its characters,
-      location, and strands.
-    </p>
+    <p class="chap-desc" v-html="$t('chapters.outline.intro')"></p>
     <div class="outline-tree">
       <section v-for="(part, pi) in project.parts" :key="part.id" class="ol-part">
         <div class="ol-part-row">
-          <span class="ol-part-eyebrow">Part {{ pi + 1 }}</span>
+          <span class="ol-part-eyebrow">{{ $t('chapters.outline.partN', { n: pi + 1 }) }}</span>
           <input class="ol-part-title"
             :value="part.title"
-            placeholder="Untitled part"
+            :placeholder="$t('sidebar.placeholders.untitledPart')"
             @input="updatePartTitle(part.id, $event.target.value)" />
           <div class="ol-row-actions">
             <UiButton intent="ghost" size="small"
               :disabled="pi === 0"
-              v-tooltip.bottom="pi === 0 ? 'Already the first part' : 'Move part up'"
+              v-tooltip.bottom="pi === 0 ? $t('chapters.outline.alreadyFirstPart') : $t('chapters.outline.movePartUp')"
               @click="movePart(part.id, -1)">
               <Icon name="ChevRight" :size="12" style="transform:rotate(-90deg)" />
             </UiButton>
             <UiButton intent="ghost" size="small"
               :disabled="pi === project.parts.length - 1"
-              v-tooltip.bottom="pi === project.parts.length - 1 ? 'Already the last part' : 'Move part down'"
+              v-tooltip.bottom="pi === project.parts.length - 1 ? $t('chapters.outline.alreadyLastPart') : $t('chapters.outline.movePartDown')"
               @click="movePart(part.id, 1)">
               <Icon name="ChevRight" :size="12" style="transform:rotate(90deg)" />
             </UiButton>
             <UiButton intent="ghost" size="small"
               :disabled="project.parts.length <= 1"
-              v-tooltip.bottom="project.parts.length <= 1 ? 'Project needs at least one part' : 'Delete part'"
+              v-tooltip.bottom="project.parts.length <= 1 ? $t('chapters.outline.needOnePart') : $t('chapters.dialogs.deletePartConfirm')"
               @click="deletePart(part)">
               <Icon name="Trash" :size="14" />
             </UiButton>
@@ -865,25 +868,24 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
               <span class="ol-chapter-num">{{ c.num }}</span>
               <input class="ol-chapter-title"
                 :value="c.title"
-                placeholder="Untitled chapter"
+                :placeholder="$t('chapters.outline.untitledChapter')"
                 @click.stop
                 @input="updateTitle(c.id, $event.target.value)" />
               <span class="ol-chapter-meta">
-                {{ c.scenes }} scene{{ c.scenes === 1 ? '' : 's' }} · {{ c.words.toLocaleString() }} words
+                {{ $t('chapters.outline.sceneCount', { n: c.scenes }, c.scenes) }} · {{ $t('chapters.outline.wordCount', { n: c.words.toLocaleString() }, c.words) }}
               </span>
               <span v-if="project.notesForChapter(c.id).length"
                 class="ol-scene-notes"
-                v-tooltip.bottom="'Notes pinned to this chapter or its scenes'"
+                v-tooltip.bottom="$t('chapters.outline.chapterNotesTooltip')"
                 @click.stop="openNotesPanel(c.id, 'chapter')">
-                {{ project.notesForChapter(c.id).length }}
-                note{{ project.notesForChapter(c.id).length === 1 ? '' : 's' }}
+                {{ $t('chapters.outline.noteCount', { n: project.notesForChapter(c.id).length }, project.notesForChapter(c.id).length) }}
               </span>
               <div class="ol-row-actions">
                 <label v-if="project.parts.length > 1" class="ol-move-to" @click.stop>
                   <UiSelect class="ol-move-select"
                     :model-value="part.id"
                     @update:model-value="(v) => moveChapterPart(c.id, v)"
-                    :options="project.parts.map(p => ({ label: `Move to: ${p.title}`, value: p.id }))"
+                    :options="project.parts.map(p => ({ label: $t('chapters.outline.moveTo', { title: p.title }), value: p.id }))"
                     @click.stop />
                 </label>
               </div>
@@ -896,29 +898,28 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
                 <span class="ol-scene-bullet">{{ c.num }}.{{ si + 1 }}</span>
                 <input class="ol-scene-title"
                   :value="scn.title"
-                  :placeholder="`Scene ${si + 1}`"
+                  :placeholder="$t('chapters.outline.sceneN', { n: si + 1 })"
                   @click.stop
                   @input="project.setSceneTitle(c.id, scn.id, $event.target.value)" />
                 <span v-if="project.notesForScene(scn.id).length"
                   class="ol-scene-notes"
-                  v-tooltip.bottom="'Notes pinned to this scene'"
+                  v-tooltip.bottom="$t('chapters.outline.sceneNotesTooltip')"
                   @click.stop="openNotesPanel(c.id, scn.id)">
-                  {{ project.notesForScene(scn.id).length }}
-                  note{{ project.notesForScene(scn.id).length === 1 ? '' : 's' }}
+                  {{ $t('chapters.outline.noteCount', { n: project.notesForScene(scn.id).length }, project.notesForScene(scn.id).length) }}
                 </span>
               </div>
               <button class="ol-add ol-add-scene" @click="addSceneToChapter(c.id)">
-                <Icon name="Plus" :size="11" /> Add scene
+                <Icon name="Plus" :size="11" /> {{ $t('sidebar.actions.newSceneConfirm') }}
               </button>
             </div>
           </div>
           <button class="ol-add ol-add-chapter" @click="addChapterToPart(part.id)">
-            <Icon name="Plus" :size="11" /> Add chapter
+            <Icon name="Plus" :size="11" /> {{ $t('chapters.outline.addChapter') }}
           </button>
         </div>
       </section>
       <UiButton intent="ghost" class="ol-add-part" @click="addPart">
-        <Icon name="Plus" :size="13" /> New part
+        <Icon name="Plus" :size="13" /> {{ $t('sidebar.actions.newPartTitle') }}
       </UiButton>
     </div>
    </div>
@@ -933,7 +934,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
         :model-value="readScope"
         :options="READ_SCOPE_OPTIONS"
         option-value="value"
-        aria-label="Read scope"
+        :aria-label="$t('chapters.read.scopeAriaLabel')"
         @update:model-value="readScope = $event">
         <template #option="{ option }">
           <Icon :name="option.icon" :size="12" />
@@ -949,21 +950,21 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
         <button v-if="prev" class="read-nav-btn" @click="goPrev">
           <Icon name="ChevRight" :size="14" style="transform:rotate(180deg)" />
           <div>
-            <div class="read-nav-eyebrow">Previous</div>
-            <div class="read-nav-title">Ch. {{ prev.num }} · {{ prev.title }}</div>
+            <div class="read-nav-eyebrow">{{ $t('common.previous') }}</div>
+            <div class="read-nav-title">{{ $t('chapters.read.chapterRef', { num: prev.num, title: prev.title }) }}</div>
           </div>
         </button>
         <span v-else />
         <button v-if="next" class="read-nav-btn align-end" @click="goNext">
           <div>
-            <div class="read-nav-eyebrow">Next</div>
-            <div class="read-nav-title">Ch. {{ next.num }} · {{ next.title }}</div>
+            <div class="read-nav-eyebrow">{{ $t('common.next') }}</div>
+            <div class="read-nav-title">{{ $t('chapters.read.chapterRef', { num: next.num, title: next.title }) }}</div>
           </div>
           <Icon name="ChevRight" :size="14" />
         </button>
         <span v-else />
       </nav>
-      <p class="read-hint">← / → to navigate · Esc to edit</p>
+      <p class="read-hint">{{ $t('chapters.read.navHint') }}</p>
     </div>
 
     <!-- Whole book: every part → chapter → scene stitched into one
@@ -973,12 +974,12 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
       <article class="manuscript-inner read-content read-book">
         <template v-for="(part, pi) in project.parts" :key="part.id">
           <header class="book-part-head">
-            <div class="book-part-eyebrow">Part {{ pi + 1 }}</div>
+            <div class="book-part-eyebrow">{{ $t('chapters.outline.partN', { n: pi + 1 }) }}</div>
             <h2 class="book-part-title">{{ part.title }}</h2>
           </header>
           <section v-for="chap in part.chapters" :key="chap.id" class="book-chapter">
             <h1 class="book-chapter-title" :data-chapter-id="chap.id">
-              <span class="book-chapter-num">Chapter {{ chap.num }}</span>
+              <span class="book-chapter-num">{{ $t('chapters.read.chapterN', { num: chap.num }) }}</span>
               <span class="book-chapter-name">{{ chap.title }}</span>
             </h1>
             <section v-for="scn in project.scenesFor(chap.id)" :key="scn.id"
@@ -989,7 +990,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
             </section>
           </section>
         </template>
-        <p class="read-hint">End of book · Esc to edit</p>
+        <p class="read-hint">{{ $t('chapters.read.endOfBook') }}</p>
       </article>
     </div>
    </div>
@@ -1004,54 +1005,54 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
       <div style="display:flex;gap:12px;align-items:center;justify-self:start">
         <UiButton intent="ghost" size="small"
           :class="{ 'is-active': continuousMode }"
-          v-tooltip.bottom="continuousMode ? 'Switch back to single-scene editing' : 'Edit the whole chapter as one document (scene boundaries visible between)'"
+          v-tooltip.bottom="continuousMode ? $t('chapters.edit.singleSceneTooltip') : $t('chapters.edit.continuousTooltip')"
           @click="toggleContinuous">
-          <Icon name="Strands" :size="13" /> {{ continuousMode ? "Single scene" : "Continuous" }}
+          <Icon name="Strands" :size="13" /> {{ continuousMode ? $t('chapters.edit.singleScene') : $t('chapters.edit.continuous') }}
         </UiButton>
         <UiButton v-if="!activeScene" intent="ghost" size="small"
-          v-tooltip.bottom="editStyle === 'cards' ? 'Switch back to the scene-by-scene editor' : 'Show this chapter\'s scenes as a corkboard of cards'"
+          v-tooltip.bottom="editStyle === 'cards' ? $t('chapters.edit.listViewTooltip') : $t('chapters.edit.cardViewTooltip')"
           @click="editStyle = editStyle === 'cards' ? 'list' : 'cards'">
           <Icon :name="editStyle === 'cards' ? 'List' : 'Grid'" :size="13" />
-          {{ editStyle === 'cards' ? 'List view' : 'Card view' }}
+          {{ editStyle === 'cards' ? $t('chapters.edit.listView') : $t('chapters.edit.cardView') }}
         </UiButton>
       </div>
       <div style="display:flex;gap:12px;align-items:center">
         <UiButton v-if="prev" intent="ghost" size="small"
-          v-tooltip.bottom="`Ch. ${prev.num} — ${prev.title}`"
+          v-tooltip.bottom="$t('chapters.edit.chapterRefDash', { num: prev.num, title: prev.title })"
           @click="goPrev">
-          <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Previous chapter
+          <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> {{ $t('chapters.edit.previousChapter') }}
         </UiButton>
         <UiButton v-if="next" intent="ghost" size="small"
-          v-tooltip.bottom="`Ch. ${next.num} — ${next.title}`"
+          v-tooltip.bottom="$t('chapters.edit.chapterRefDash', { num: next.num, title: next.title })"
           @click="goNext">
-          Next chapter <Icon name="ChevRight" :size="12" />
+          {{ $t('chapters.edit.nextChapter') }} <Icon name="ChevRight" :size="12" />
         </UiButton>
       </div>
       <div v-if="!activeScene" style="display:flex;gap:8px;align-items:center;justify-self:end">
         <StatusSelect
           :model-value="ch.status || ''"
           @update:model-value="(v) => project.setChapterStatus(ch.id, v)" />
-        <UiButton intent="ghost" size="small" @click="versionsOpen = true" v-tooltip.bottom="'Version history — save & restore snapshots of this chapter'">
-          <Icon name="History" :size="13" style="margin-right:3px" /> Versions
+        <UiButton intent="ghost" size="small" @click="versionsOpen = true" v-tooltip.bottom="$t('chapters.edit.versionsTooltip')">
+          <Icon name="History" :size="13" style="margin-right:3px" /> {{ $t('chapters.edit.versions') }}
         </UiButton>
-        <UiButton intent="ghost" size="small" @click="critiqueOpen = true" v-tooltip.bottom="'AI critique — notes + structural analysis for this chapter'">
+        <UiButton intent="ghost" size="small" @click="critiqueOpen = true" v-tooltip.bottom="$t('chapters.edit.critiqueTooltip')">
           <Icon name="Sparkle" :size="13" />
-          Critique
+          {{ $t('chapters.edit.critique') }}
           <span v-if="ch?.critique?.notes?.length" class="critique-pill">{{ ch.critique.notes.length }}</span>
         </UiButton>
-        <UiButton intent="ghost" size="small" @click="multiReaderOpen = true" v-tooltip.bottom="'Four distinct reader personas each react to this chapter through their own lens'">
+        <UiButton intent="ghost" size="small" @click="multiReaderOpen = true" v-tooltip.bottom="$t('chapters.edit.multiReaderTooltip')">
           <Icon name="Users" :size="13" />
-          Multi-reader panel
+          {{ $t('chapters.edit.multiReader') }}
           <span v-if="ch?.multiReader?.panel?.length" class="critique-pill">4</span>
         </UiButton>
         <UiButton intent="ghost" size="small" @click="openChapterNotes"
-          v-tooltip.bottom="'Notes pinned to this chapter or any of its scenes'">
+          v-tooltip.bottom="$t('chapters.edit.notesTooltip')">
           <Icon name="Note" :size="13" />
-          Notes
+          {{ $t('nav.notes') }}
           <span v-if="chapterNotesCount" class="critique-pill">{{ chapterNotesCount }}</span>
         </UiButton>
-        <UiButton intent="primary" size="small" @click="addChapter" v-tooltip.bottom="'Add a new chapter'"><Icon name="Plus" :size="14" /> New chapter</UiButton>
-        <UiButton intent="danger" size="small" @click="deleteChapter" v-tooltip.bottom="'Delete this chapter'">Delete chapter</UiButton>
+        <UiButton intent="primary" size="small" @click="addChapter" v-tooltip.bottom="$t('chapters.edit.addChapterTooltip')"><Icon name="Plus" :size="14" /> {{ $t('sidebar.actions.newChapterTitle') }}</UiButton>
+        <UiButton intent="danger" size="small" @click="deleteChapter" v-tooltip.bottom="$t('chapters.edit.deleteChapterTooltip')">{{ $t('chapters.edit.deleteChapter') }}</UiButton>
       </div>
       <div v-else></div>
     </div>
@@ -1061,7 +1062,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
          the header is consistent across both styles. ──────────── -->
     <template v-if="editStyle === 'cards'">
       <div class="scrollarea cards-pane">
-        <p class="t-muted" style="font-size:12px;margin:0 0 14px">Drag cards to reorder scenes</p>
+        <p class="t-muted" style="font-size:12px;margin:0 0 14px">{{ $t('chapters.edit.dragToReorder') }}</p>
         <div class="cards-grid">
           <div v-for="(scn, i) in scenes" :key="scn.id"
             class="scene-card" :class="{ dragging: dragSceneId === scn.id }"
@@ -1072,11 +1073,11 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
             @drop="onCardDrop(scn.id)"
             @click="openScene(ch.id, scn.id)">
             <div class="scene-card-num">{{ ch.num }}.{{ i + 1 }}</div>
-            <div class="scene-card-title">{{ scn.title || `Scene ${i + 1}` }}</div>
-            <div class="scene-card-body">{{ synopsis(scn) || "Empty scene." }}</div>
+            <div class="scene-card-title">{{ scn.title || $t('chapters.outline.sceneN', { n: i + 1 }) }}</div>
+            <div class="scene-card-body">{{ synopsis(scn) || $t('chapters.edit.emptyScene') }}</div>
           </div>
           <button class="scene-card scene-card-add" @click="addSceneHere">
-            <Icon name="Plus" :size="18" /> <span>Add scene</span>
+            <Icon name="Plus" :size="18" /> <span>{{ $t('sidebar.actions.newSceneConfirm') }}</span>
           </button>
         </div>
       </div>
@@ -1091,24 +1092,24 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
       <template v-if="!continuousMode">
         <UiButton intent="ghost" size="small"
           :disabled="!prevScene"
-          v-tooltip.bottom="prevScene ? `Scene ${activeSceneIdx} — ${prevScene.title || 'Untitled'}` : 'Already the first scene'"
+          v-tooltip.bottom="prevScene ? $t('chapters.sceneStrip.sceneRef', { n: activeSceneIdx, title: prevScene.title || $t('sidebar.projectSwitcher.untitled') }) : $t('chapters.sceneStrip.alreadyFirst')"
           @click="prevScene && goToScene(prevScene.id)">
-          <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> Prev scene
+          <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /> {{ $t('chapters.sceneStrip.prevScene') }}
         </UiButton>
         <span class="scene-pill" :class="{ 'has-status': activeStatus }"
               :style="activeStatus ? { '--pill-c': activeStatus.color } : null">
           <span v-if="activeStatus" class="scene-pill-dot" />
-          Scene {{ activeSceneIdx + 1 }} of {{ scenes.length }}
+          {{ $t('chapters.sceneStrip.sceneOf', { i: activeSceneIdx + 1, n: scenes.length }) }}
           <span v-if="activeStatus" class="scene-pill-status">· {{ activeStatus.label }}</span>
         </span>
         <UiButton intent="ghost" size="small"
           :disabled="!nextScene"
-          v-tooltip.bottom="nextScene ? `Scene ${activeSceneIdx + 2} — ${nextScene.title || 'Untitled'}` : 'Already the last scene'"
+          v-tooltip.bottom="nextScene ? $t('chapters.sceneStrip.sceneRef', { n: activeSceneIdx + 2, title: nextScene.title || $t('sidebar.projectSwitcher.untitled') }) : $t('chapters.sceneStrip.alreadyLast')"
           @click="nextScene && goToScene(nextScene.id)">
-          Next scene <Icon name="ChevRight" :size="12" />
+          {{ $t('chapters.sceneStrip.nextScene') }} <Icon name="ChevRight" :size="12" />
         </UiButton>
       </template>
-      <span v-else class="scene-pill">Chapter {{ ch.num }} · {{ scenes.length }} scene{{ scenes.length === 1 ? "" : "s" }}</span>
+      <span v-else class="scene-pill">{{ $t('chapters.sceneStrip.chapterScenes', { num: ch.num, n: scenes.length }, scenes.length) }}</span>
       <div class="scene-strip-actions" style="margin-left:auto">
         <!-- AI writing assist — single dropdown that hosts every action
              that used to live in the selection bubble. Grouped by what
@@ -1118,9 +1119,9 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
           <UiButton intent="ghost" size="small"
             :class="['ai-strip-trigger', { 'is-open': aiStripOpen }]"
             :disabled="aiRunning"
-            v-tooltip.bottom="'AI writing assist — Rewrite, Expand, Tighten, Continue, Line edits'"
+            v-tooltip.bottom="$t('chapters.ai.triggerTooltip')"
             @click="toggleAiStrip">
-            <span class="ai-strip-badge">AI</span>
+            <span class="ai-strip-badge">{{ $t('chapters.ai.badge') }}</span>
             <Icon name="ChevDown" :size="12" class="ai-strip-caret" />
           </UiButton>
           <div v-if="aiStripOpen" class="ai-strip-menu" role="menu">
@@ -1128,55 +1129,55 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
                  provider + model for every writerAI action below, with
                  a click-to-edit popover for picking a different one. -->
             <div class="ai-strip-routing">
-              <span class="ai-strip-routing-label">Running on</span>
-              <AiFeatureChip feature="writerAI" label="Writer actions" editable />
+              <span class="ai-strip-routing-label">{{ $t('chapters.ai.runningOn') }}</span>
+              <AiFeatureChip feature="writerAI" :label="$t('chapters.ai.writerActions')" editable />
             </div>
             <div class="ai-strip-divider"></div>
             <div class="ai-strip-section">
-              Selection only
-              <span v-if="!hasSelection" class="ai-strip-section-hint">Highlight text first to enable</span>
+              {{ $t('chapters.ai.groupSelectionOnly') }}
+              <span v-if="!hasSelection" class="ai-strip-section-hint">{{ $t('chapters.ai.highlightToEnable') }}</span>
             </div>
             <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('rewrite', $event)">
-              <div class="ai-strip-label">Rewrite</div>
-              <div class="ai-strip-desc">Rewrite the passage to be more vivid and specific while preserving meaning, tense, and voice. Selection-only because a whole-scene rewrite is too transformative for one click — use the Routing-by-task Lab for that.</div>
+              <div class="ai-strip-label">{{ $t('chapters.ai.rewriteLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.rewriteDesc') }}</div>
             </button>
             <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('expand', $event)">
-              <div class="ai-strip-label">Expand</div>
-              <div class="ai-strip-desc">Add sensory detail, interiority, and small actions. Roughly doubles the length without changing voice or tense.</div>
+              <div class="ai-strip-label">{{ $t('chapters.ai.expandLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.expandDesc') }}</div>
             </button>
             <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('describe', $event)">
-              <div class="ai-strip-label">Describe</div>
-              <div class="ai-strip-desc">Treat the highlighted text as a subject — a place, person, object, or moment — and add 1–2 paragraphs of fresh sensory prose ABOUT it right after. Additive, not a rewrite; the original passage stays untouched.</div>
+              <div class="ai-strip-label">{{ $t('chapters.ai.describeLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.describeDesc') }}</div>
             </button>
             <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="openSensory">
-              <div class="ai-strip-label">Research feel…</div>
-              <div class="ai-strip-desc">Sibling to Describe. Instead of streamed prose, get a structured pack of short sensory phrases (smell, sound, touch, temperature, taste, movement, social, period detail). Pick the ones that fit and click to drop them into your manuscript.</div>
+              <div class="ai-strip-label">{{ $t('chapters.ai.sensoryLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.sensoryDesc') }}</div>
             </button>
             <div class="ai-strip-divider"></div>
-            <div class="ai-strip-section">Selection or whole scene</div>
+            <div class="ai-strip-section">{{ $t('chapters.ai.groupSelectionOrScene') }}</div>
             <button class="ai-strip-item" :disabled="aiRunning" @click="callAi('tighten', $event)">
-              <div class="ai-strip-label">Tighten</div>
-              <div class="ai-strip-desc">Remove filler words, hedges, and redundant phrases. Keeps the meaning, voice, and tense intact — the result is noticeably shorter. Runs on the selection, or the whole scene if nothing is selected.</div>
+              <div class="ai-strip-label">{{ $t('chapters.ai.tightenLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.tightenDesc') }}</div>
             </button>
             <div class="ai-strip-divider"></div>
-            <div class="ai-strip-section">From the cursor</div>
+            <div class="ai-strip-section">{{ $t('chapters.ai.groupFromCursor') }}</div>
             <button class="ai-strip-item" :disabled="aiRunning" @click="callAi('continue', $event)">
-              <div class="ai-strip-label">Continue</div>
-              <div class="ai-strip-desc">Write 2–4 more paragraphs from where the cursor is, matching the voice, tense, and POV of what came before.</div>
+              <div class="ai-strip-label">{{ $t('chapters.ai.continueLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.continueDesc') }}</div>
             </button>
             <button class="ai-strip-item" :disabled="aiRunning" @click="openGuidedContinue">
-              <div class="ai-strip-label">Continue with direction…</div>
-              <div class="ai-strip-desc">Same as Continue, but you give it a one-line instruction first ("Elena confronts Marcus but he deflects with charm"). The next 2–4 paragraphs honour your direction while matching the voice, tense, and POV of what came before.</div>
+              <div class="ai-strip-label">{{ $t('chapters.ai.guidedLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.guidedDesc') }}</div>
             </button>
             <button class="ai-strip-item" :disabled="aiRunning" @click="openStuck">
-              <div class="ai-strip-label">Unstuck — five ways out</div>
-              <div class="ai-strip-desc">When you're not sure what should happen next, ask the model for five distinct moves (goal shift, interrupt, setting change, reveal, time cut). Pick one and JustWrite drafts the next 2–4 paragraphs in that direction.</div>
+              <div class="ai-strip-label">{{ $t('chapters.ai.unstuckLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.unstuckDesc') }}</div>
             </button>
             <template v-if="proseRules.length">
               <div class="ai-strip-divider"></div>
               <div class="ai-strip-section">
-                Line edits
-                <span class="ai-strip-section-hint">Selection, or whole scene if none</span>
+                {{ $t('chapters.ai.groupLineEdits') }}
+                <span class="ai-strip-section-hint">{{ $t('chapters.ai.lineEditsHint') }}</span>
               </div>
               <button v-for="r in proseRules" :key="r.key" class="ai-strip-item" :disabled="aiRunning" @click="callProse(r.key, $event)">
                 <div class="ai-strip-label">{{ r.label }}</div>
@@ -1184,40 +1185,40 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
               </button>
             </template>
             <div class="ai-strip-divider"></div>
-            <div class="ai-strip-section">Clean up</div>
+            <div class="ai-strip-section">{{ $t('chapters.ai.groupCleanUp') }}</div>
             <button class="ai-strip-item" :disabled="!hasStrikes" @click="callClearStrikethroughs">
-              <div class="ai-strip-label">Clear all strikethroughs</div>
-              <div class="ai-strip-desc">Remove every struck-through original left behind by accepted AI changes (and the originals of still-pending ones — that accepts them). The new text stays.</div>
+              <div class="ai-strip-label">{{ $t('chapters.ai.clearStrikesLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.clearStrikesDesc') }}</div>
             </button>
           </div>
         </div>
         <StatusSelect
           :model-value="activeScene.status || ''"
           @update:model-value="(v) => project.updateScene(ch.id, activeScene.id, { status: v })" />
-        <UiButton intent="ghost" size="small" @click="splitChapterHere" v-tooltip.bottom="'Split this chapter at the cursor'">
+        <UiButton intent="ghost" size="small" @click="splitChapterHere" v-tooltip.bottom="$t('chapters.sceneStrip.splitHereTooltip')">
           <template #icon><Icon name="Replace" :size="14" /></template>
-          Split here
+          {{ $t('chapters.sceneStrip.splitHere') }}
         </UiButton>
         <UiButton intent="ghost" size="small" class="scene-notes-btn"
-          v-tooltip.bottom="'Notes pinned to this scene'"
+          v-tooltip.bottom="$t('chapters.outline.sceneNotesTooltip')"
           @click="openSceneNotes(activeScene.id)">
-          Notes
+          {{ $t('nav.notes') }}
           <span v-if="activeSceneNotesCount" class="critique-pill">{{ activeSceneNotesCount }}</span>
         </UiButton>
         <UiButton intent="ghost" size="small"
-          v-tooltip.bottom="'Links — POV, characters, locations, objects, narrative strands'"
+          v-tooltip.bottom="$t('chapters.sceneStrip.linksTooltip')"
           @click="linksOpen = true">
           <template #icon><Icon name="Network" :size="14" /></template>
-          Links
+          {{ $t('chapters.sceneStrip.links') }}
         </UiButton>
-        <UiButton intent="primary" size="small" @click="addSceneHere" v-tooltip.bottom="'Add a new scene to this chapter'">
-          <Icon name="Plus" :size="13" /> New scene
+        <UiButton intent="primary" size="small" @click="addSceneHere" v-tooltip.bottom="$t('chapters.sceneStrip.addSceneTooltip')">
+          <Icon name="Plus" :size="13" /> {{ $t('sidebar.actions.newSceneTitle') }}
         </UiButton>
         <UiButton intent="danger" size="small"
           :disabled="scenes.length <= 1"
-          v-tooltip.bottom="scenes.length <= 1 ? 'A chapter needs at least one scene' : 'Delete this scene'"
+          v-tooltip.bottom="scenes.length <= 1 ? $t('chapters.sceneStrip.needOneScene') : $t('chapters.sceneStrip.deleteSceneTooltip')"
           @click="removeScene(activeScene)">
-          Delete scene
+          {{ $t('chapters.sceneStrip.deleteScene') }}
         </UiButton>
       </div>
     </div>
@@ -1234,7 +1235,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
       :key="`continuous-${ch.id}`"
       :model-value="stitchedBody"
       :toolbar="editorToolbar"
-      placeholder="Write the chapter — scenes are separated by the boundaries below…"
+      :placeholder="$t('chapters.edit.continuousPlaceholder')"
       :count-footer="false"
       :running-head="project.project.title"
       :folio-label="`Ch. ${ch.num}`"
@@ -1245,7 +1246,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
       :key="activeScene.id"
       :model-value="activeScene.body"
       :toolbar="editorToolbar"
-      :placeholder="`Write scene ${activeSceneIdx + 1}…`"
+      :placeholder="$t('chapters.edit.scenePlaceholder', { n: activeSceneIdx + 1 })"
       :count-footer="false"
       :running-head="project.project.title"
       :folio-label="`Ch. ${ch.num}`"
@@ -1258,20 +1259,20 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
         <h2 class="chapter-overview-title">{{ ch.title }}</h2>
         <p class="chapter-overview-hint">
           {{ scenes.length
-              ? "Pick a scene below (or from the sidebar) to start writing."
-              : "This chapter has no scenes yet. Add one to start writing." }}
+              ? $t('chapters.edit.pickAScene')
+              : $t('chapters.edit.noScenesYet') }}
         </p>
         <div v-if="scenes.length" class="chapter-overview-scenes">
           <button v-for="(scn, sIdx) in scenes" :key="scn.id"
             class="overview-scene-card"
             @click="goToScene(scn.id)">
-            <span class="overview-scene-num">Scene {{ sIdx + 1 }}</span>
-            <span class="overview-scene-title">{{ scn.title || `Untitled scene` }}</span>
+            <span class="overview-scene-num">{{ $t('chapters.outline.sceneN', { n: sIdx + 1 }) }}</span>
+            <span class="overview-scene-title">{{ scn.title || $t('chapters.edit.untitledScene') }}</span>
             <span class="overview-scene-snippet">{{ snippetFor(ch.id) && sIdx === 0 ? snippetFor(ch.id) : '' }}</span>
           </button>
         </div>
         <button class="overview-add-scene" @click="addSceneHere">
-          <Icon name="Plus" :size="13" /> {{ scenes.length ? "Add another scene" : "Add first scene" }}
+          <Icon name="Plus" :size="13" /> {{ scenes.length ? $t('chapters.edit.addAnotherScene') : $t('chapters.edit.addFirstScene') }}
         </button>
       </div>
     </div>
@@ -1279,17 +1280,17 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
 
     <div style="display:flex;align-items:center;gap:16px;padding:8px 22px;border-top:1px solid var(--border);background:var(--surface-2);font-size:11.5px;color:var(--muted)">
       <span v-if="activeScene || continuousMode">
-        <b class="t-num" style="color:var(--ink)">{{ sceneWordCount.toLocaleString() }}</b> words ·
-        <b class="t-num" style="color:var(--ink)">{{ sceneCharCount.toLocaleString() }}</b> characters
-        <span v-if="continuousMode" style="margin-left:6px">· chapter</span>
+        <b class="t-num" style="color:var(--ink)">{{ sceneWordCount.toLocaleString() }}</b> {{ $t('chapters.footer.words') }} ·
+        <b class="t-num" style="color:var(--ink)">{{ sceneCharCount.toLocaleString() }}</b> {{ $t('chapters.footer.characters') }}
+        <span v-if="continuousMode" style="margin-left:6px">{{ $t('chapters.footer.chapterSuffix') }}</span>
       </span>
       <span v-if="aiNotice" class="ai-done-note">
         <Icon name="Sparkle" :size="11" />
-        <span>{{ aiNotice.label }} — done in {{ (aiNotice.durationMs / 1000).toFixed(1) }}s<template v-if="aiNotice.tokensOut"> · {{ aiNotice.tokensOut.toLocaleString() }} tokens</template></span>
-        <button class="ai-done-link" @click="aiTasks.openPanel()">View task queue</button>
-        <button class="ai-done-x" aria-label="Dismiss" @click="dismissedNoticeId = aiNotice.id">✕</button>
+        <span>{{ $t('chapters.footer.aiDone', { label: aiNotice.label, s: (aiNotice.durationMs / 1000).toFixed(1) }) }}<template v-if="aiNotice.tokensOut"> {{ $t('chapters.footer.aiTokens', { n: aiNotice.tokensOut.toLocaleString() }) }}</template></span>
+        <button class="ai-done-link" @click="aiTasks.openPanel()">{{ $t('chapters.footer.viewTaskQueue') }}</button>
+        <button class="ai-done-x" :aria-label="$t('chapters.footer.dismiss')" @click="dismissedNoticeId = aiNotice.id">✕</button>
       </span>
-      <span style="margin-left:auto">Autosaves to local storage</span>
+      <span style="margin-left:auto">{{ $t('chapters.footer.autosaves') }}</span>
     </div>
    </div>
 
@@ -1302,9 +1303,9 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
 
   <div v-else class="pane-card" style="display:grid;place-items:center;padding:60px">
     <EmptyState icon="Book"
-      title="No chapters yet"
-      message="Create the first chapter to start writing, or import an existing manuscript from a file."
-      action-label="Create your first chapter"
+      :title="$t('chapters.empty.title')"
+      :message="$t('chapters.empty.message')"
+      :action-label="$t('chapters.empty.actionLabel')"
       @action="addChapter" />
   </div>
 
