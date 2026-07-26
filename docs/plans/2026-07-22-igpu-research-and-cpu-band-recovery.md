@@ -1441,3 +1441,70 @@ convenience, not the 2-D engine.
 OPEN: Part 2 — the per-band survey — is UNBLOCKED (no RAM-rung ruling needed; the ruling
 became the design): pick each band's model, seed each band's class row + config at its honest
 RAM rung, on its go.
+
+## 23. THE BAND LABEL — saying out loud that a class is a RANGE (2026-07-26, the user's go)
+
+What changed and why. The band ruling made the key coarse on purpose, but every label kept
+printing the band's FLOOR as though it were the user's own hardware, so the design's honesty
+stopped at the wire. The user found it from the other end — asking why the class library
+offers 24 GB VRAM and no 32 — and the answer ("everything at or above 24 is one band") was
+nowhere on screen. The worse case was never the 5090: a 10 GB RTX 3080 keys to `vram8` and
+read "8 GB VRAM", a number BELOW the card the user owns, which reads as the app getting the
+detection wrong rather than as a class covering a range. `ui/src/classTunes.js` gains
+`classKeyRangeLabel` beside the untouched short `classKeyLabel`: VRAM renders as the run it
+covers ("8–11 GB VRAM"), the open top band as "24 GB VRAM and above", and a below-floor key
+stays exact because `hardware.py:183-184` passes it through unbanded and a range there would
+invent coverage. The classes panel and its editor use the range form; the catalog badge
+(`LuModelCatalog.vue:411`) and the Tune modal's running sentences (`TuneMeasureModal.vue:584,
+588`) keep the short form — the user's call, since both are tight spots where the long form
+would swamp the sentence it sits in.
+
+The RAM half is the part that nearly shipped wrong, and it is worth recording as the finding
+rather than the fix. My first design ranged BOTH dimensions off the two rung tuples, which
+would have printed "32–63 GB RAM" — a NEW lie replacing the old one, because system RAM takes
+TWO snaps, not one: `snap_ram_gb` (`hardware.py:151-160`) picks the nearest standard capacity
+FIRST, and only then does the coarse rung down-snap. The rung therefore holds a SET of nominal
+capacities rather than an interval — `ram16` is 16 or 24 GB, `ram32` is 32 or 48, `ram64` is 64
+or 96 — and a 60 GB box lands in `ram64`, outside any "32–63" claim. The user chose naming the
+capacities ("32 or 48 GB RAM") over printing the raw 28–56 GB interval, on the grounds that
+people know their machine as "48 GB". This was caught by the rules-checker panel, not by me:
+I had verified the band table that supported the proposal and not the snap chain that could
+break it, which is the failure mode T2 exists to prevent and the user named directly.
+
+Two consistency seams closed with it. The drift guard for the three copied ladders
+(`VRAM_BANDS`, `DGPU_RAM_RUNGS`, and `RAM_LADDER`, which the RAM wording makes load-bearing)
+lives in `just-llm-runner/tests/test_class_label_ladders.py` — Python, in the repo where
+`hardware.py` changes, because a guard in JustWrite's vitest would never run for the person
+editing the ladders and running pytest here. It parses the JS and asserts a non-empty parse
+before comparing, so a rename or reformat cannot make it pass vacuously. And the class editor
+now states the snap BEFORE the save ("Saved as 8–11 GB VRAM · 32 or 48 GB RAM"), computed the
+way the server bands a hand-typed class (`banded_class_key`, `hardware.py:193-196` — note that
+detection's `snap_ram_gb` does NOT apply to typed numbers), so discovering that a typed 10
+became the 8-band class no longer happens after the fact.
+
+The English is written directly in the kit rather than through a message table. The kit is 0%
+translated and its mechanism is already decided as a vue-i18n peer dependency in a later batch
+(`docs/plans/2026-07-26-i18n-phase1-coverage-plan.md:6`); a hand-rolled lookup is the shape
+that plan's research explicitly rejected, and "where English lives" is still the user's open
+decision, so a table here would have created a precedent the kit batch must dissolve. What the
+strings DO honor is Ruling 6 (`:151-158`): each phrase is a complete sentence per form, so
+"and above" is its own message and never a suffix glued onto another — the join of the two
+halves is a documented list separator, recorded in the code comment as a named choice.
+
+How verified: the new `test_class_label_ladders.py` PROVEN TO BITE — adding a bogus 32 to the
+JS `VRAM_BANDS` failed it, then the file was restored. (Restoring it with `git checkout --`
+also discarded the uncommitted feature edit in that file, which had to be re-applied; a scratch
+revert on a file with uncommitted work takes a backup copy, not git.) JustWrite vitest **449
+passed / 49 files** including the 10 new label cases (`classBandLabels.test.js` — the 3080, the
+5090 top rung, both RAM rung shapes, a below-floor key, both one-pool types, name-wins, and the
+short form pinned UNCHANGED as the badge contract); `build:vite` green; runner pytest **709
+passed / 1 documented Windows lspci known-bad / 9 skipped**.
+
+What would reverse it: revert the `classTunes.js` addition and the `LuClassTunes.vue` call-site
+swap together — the panel imports `classKeyRangeLabel` and no longer imports `classKeyLabel`,
+so they move in lock-step. The short form is untouched, so the badge and the Tune modal are
+unaffected either way.
+
+OPEN: the range labels have not been LOOKED at in the running app (the user's eyes remain the
+look gate); and the §22 escape hatch is now cheaper to exercise — adding a 32 band is one value
+in `hardware.py` plus the JS copy the guard will name.

@@ -121,8 +121,8 @@ Setup leaves that preset alone.
 
 After Apply, the done step tells you which launch settings this machine got — **no sweep
 ever starts on its own**. A machine with its **own saved tune** keeps it (a **Re-optimize**
-button asks before overwriting). A machine matching a **built-in hardware class** — the
-same video memory and RAM as a machine the config was measured on — starts pre-tuned with
+button asks before overwriting). A machine matching a **built-in hardware class** — a memory
+*range* that includes a machine the config was measured on — starts pre-tuned with
 no sweep. A machine with neither runs on the engine's automatic memory fitting and gets two
 optional measured passes: **Quick optimize (~2 min)**, which tries the most likely settings
 within a time box and keeps the best it finds (and says so honestly when it finds nothing
@@ -266,8 +266,8 @@ embedding model carries an **Embedding** badge. From here you can:
   the model's repo publishes. The draft trials are shown for information only and are
   never saved on their own — if a different draft wins on your box, set it on the model
   itself under **Edit → MTP draft**. After a measurement, **Save for
-  hardware class** keeps the config as the shared starting point for **every PC with the
-  same video memory and RAM** (a machine with its own applied config still wins), and the
+  hardware class** keeps the config as the shared starting point for **every PC in the same
+  memory class** (a machine with its own applied config still wins), and the
   **"Hardware/model class defaults ↗"** link in the same dialog opens **this model's class
   config straight in its editor** — your PC's class row when one exists, otherwise a new
   config prefilled with your class — no list to click through; a
@@ -278,7 +278,13 @@ embedding model carries an **Embedding** badge. From here you can:
   class** (there is no single tune covering all models; adding a config there starts with
   picking the model), with **Copy**/**Import** to share a config between users as a small
   piece of text; while you edit or import there, the editor takes the screen by itself and
-  Cancel brings the table back. Every measured speed is also **saved for
+  Cancel brings the table back. **A class is a memory *range*, not one exact machine** —
+  the panel names the range it covers (*"8–11 GB VRAM · 32 or 48 GB RAM"*), and the top
+  one reads *"24 GB VRAM and above"*, so a 10 GB card and a 32 GB card each land in a
+  class without needing one of their own. Your PC is matched to the nearest class at or
+  below its size, which is why a config never promises more memory than a machine has;
+  type any numbers when adding a class and the form tells you which class they'll be
+  saved as before you save. Every measured speed is also **saved for
   good**: the
   **Measurement history** drawer in the same dialog lists each **Load & measure** run and
   each auto-tune trial — when, with which settings, and how fast — and survives closing the

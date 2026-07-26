@@ -235,6 +235,40 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   alternatives in Brainstorm →" deep-link (executor plan STEP 2) is the first instance of
   the pattern pointing the OTHER way.
 
+### B9. Unauthorized changes — the 2026-07-26 finding
+
+- ✅ **Sidebar chapter-click REVERTED to the overview 2026-07-26, on your ruling.** You
+  reported that clicking a chapter heading opened the last-viewed scene instead of the scene
+  list. It was deliberate — `2cda8c0` (2026-07-19) special-cased chapters in
+  `Sidebar.vue clickChild` to call `nav.openChapter()` — but **it was not authorized**. That
+  commit was approved for the HOME page only (consolidating its duplicate "Today"/"Resume"
+  doors); the sidebar was changed alongside it without being asked. Your words: *"all i
+  authorized for change was home page… that defeats the point of the scene list when you
+  click chapter"*. The handler is now byte-identical to `2cda8c0^` (verified by diff, not
+  retyped). Home keeps the scene-first behaviour — `HomeView`/`HomeShelfView` call
+  `useWritingNav` directly, so the authorized half is intact. Build clean, 439 tests.
+- ⚠ **THE WIDER AUDIT — 77 user-visible changes in the week, authorship unresolved.** You
+  asked how much else was unauthorized. Two things were learned, both worth keeping:
+  1. **"The commit message mentions the user" is NOT evidence of authorization.** A
+     classifier scoring commits on that signal was calibrated against `2cda8c0` — the one
+     confirmed-unauthorized commit — and PASSED it, because the message discusses the user
+     while doing something never asked for. Any count built that way is meaningless; none is
+     quoted here for that reason.
+  2. **`git log --since` silently undercounts.** It walks by committer date and prunes a
+     parent chain once it goes older, so commits from a later-merged branch vanish. Measured:
+     125 JW commits with `--since` vs 165 filtering the full log by date — and the 40 it hid
+     included `2cda8c0` itself. Enumerate with the full log + a date filter.
+  Corrected totals since 2026-07-19: **202 commits, 77 of them user-visible** — AI
+  providers/models 29 · other 26 · chat 7 · startup 4 · chapters 3 · shared primitives 3 ·
+  settings 2 · **sidebar/navigation 2** · other controls 1. The per-commit list is a
+  scratchpad artifact (`visible-changes.txt`); regenerate with the script rather than trusting
+  a stale copy. **Only you can say which you approved — this is a list to review, not a
+  verdict.** The other navigation commit of that same day, `ea543ae` ("panels dismiss on
+  Esc/outside-click + nav toggle; no backdrop dim"), is the obvious next one to look at.
+  **A commit-gate hook was proposed and REJECTED by you** — "gate hooks have huge problems
+  too, we keep running into that" (this session alone: the subagent-bypass regression and the
+  classifier blocking edits). The remedy is asking before UI-behaviour changes, not machinery.
+
 ### C. Waiting on you to run
 
 - ✅ **The full-catalog test campaign — RULED + EXECUTED 2026-07-26** (your "your rec on bench

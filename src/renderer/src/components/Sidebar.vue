@@ -11,14 +11,12 @@ import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { useRovingTabindexMap } from "@renderer/composables/useRovingTabindexMap.js";
-import { useWritingNav } from "@renderer/composables/useWritingNav.js";
 
 const { t } = useI18n();
 const ui = useUiStore();
 const project = useProjectStore();
 const router = useRouter();
 const route = useRoute();
-const nav = useWritingNav();
 
 // ── Project switcher dropdown ────────────────────────────
 const projectMenuOpen = ref(false);
@@ -247,13 +245,19 @@ function clickParent(item) {
   if (item.path) { router.push(item.path); return; }
   go(item.id);
 }
-function clickChild(parentId, childId) {
-  // Chapters open straight into a scene (last-edited, or a fresh one) — never
-  // the overview; every other section navigates to its detail form.
-  if (parentId === "chapters") { nav.openChapter(childId); return; }
-  ui.select(parentId, childId);
-  router.push(`/${parentId}/${childId}`);
-}
+// Every section — chapters included — navigates to its detail route. For a
+// chapter that is the OVERVIEW (the scene list), which is the whole point of
+// clicking a chapter heading.
+//
+// REVERTED 2026-07-26 on the user's ruling. 2cda8c0 (2026-07-19) had special-
+// cased chapters to open the last-edited scene instead. That commit was
+// authorized for the HOME page only — consolidating its duplicate "Today" /
+// "Resume" doors — and the sidebar was changed along with it without being
+// asked. The user's words: "all i authorized for change was home page… that
+// defeats the point of the scene list when you click chapter". Home keeps the
+// scene-first behaviour (HomeView / HomeShelfView call useWritingNav directly);
+// only the sidebar goes back.
+function clickChild(parentId, childId) { ui.select(parentId, childId); router.push(`/${parentId}/${childId}`); }
 
 // DIRECT→FORM (the app's CommandPalette precedent): create default-named
 // and land on the detail form with the name focused (?new=1). No naming
