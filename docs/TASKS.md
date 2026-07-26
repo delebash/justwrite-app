@@ -269,6 +269,54 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   too, we keep running into that" (this session alone: the subagent-bypass regression and the
   classifier blocking edits). The remedy is asking before UI-behaviour changes, not machinery.
 
+### B10. EntityIndex — the extraction, and the Chapters index it unblocks
+
+Your ruling 2026-07-26: *"why not standardize it like all the others… they all have a grid
+along with the nav, why shouldn't chapters be the same"* → then *"extract first"*.
+
+**The finding.** Seven views (Characters · Locations · Objects · Groups · Notes · Strands ·
+Worldbuilding) each carried a PRIVATE copy of the same index block — search/clear/count
+toolbar + facet chips + `UiTable`. Not merely similar: normalise the entity noun away and
+LocationsView's block vs ObjectsView's is **157 vs 155 lines, 30 diff lines, all of it prose
+and two comments**. `jscpd` passes, so the duplication gate never saw it. Chapters had **no
+index at all** — not by design: `selectedId` falls back twice
+(`ChaptersView.vue:115`, `props.id || ui.selections.chapters || allChapters[0]?.id`), so the
+no-selection state can never render. That also makes `Sidebar.vue:236`'s "this is a no-op"
+comment false for every section except chapters.
+
+**Shipped (phase 1).** `components/EntityIndex.vue` — one shell; facets are DECLARATIVE data
+(`{key, label, options, multi, match}`) rather than a slot, because the facet rows were the
+largest duplicated block and a slot would have saved almost nothing. Columns and per-cell
+rendering pass straight through to `UiTable`. LocationsView is the first consumer:
+**359 → 283 lines**, zero behaviour change. Styles needed no move — the `.entity-*` family is
+already global (`styles.css:1051+`), verified before extracting.
+
+Three defects were caught in the design re-look, before any consumer used it: a crash when a
+facet has no `options` yet; a duplicate `#empty` slot (the wrapper rendered it AND forwarded
+it); and — the one that mattered — the dynamic slot forwarding, which cannot be verified by
+reading. **`EntityIndex.test.js` mounts it** (8 tests): if forwarding breaks, every consumer's
+custom cells render BLANK while build, biome and the smoke all stay green, because an empty
+cell is not an error. Verified to bite: deleting the forwarding fails exactly that test.
+It also pins a bug the copies would have had — a falsy selection check treats a legitimate
+`false` facet value (Characters' "Main") as "All".
+
+**Remaining.** Migrate Objects · Groups · Notes · Strands · Worldbuilding · Characters, then
+give Chapters its index: `/chapters` with no id → the grid (**# · Title · Part · Status ·
+Scenes · Words**, facets Status + Part — `allChapters` already decorates rows with `partId`,
+`partTitle` and a live `scenes` count, `project.js:675-682`). The surface description moves
+there, matching `characters.intro`, and Outline keeps a short line of its own. **Sidebar and
+Home stay exactly as they are** (your words): `go("chapters")` already pushes `/chapters`
+(`Sidebar.vue:226-232`), so the nav lands on the list purely from the view's gate. Outline
+stays a distinct job — the grid finds and scans, the outline restructures; the rule to hold is
+that the index never nests scenes and the outline never grows filters.
+
+⚠ **A whole-repo "extraction vs copies" audit is OWED** — your call, 2026-07-26: *"remember
+this extraction vs copies example, this is the kind of refactoring audit we need to do at some
+point."* jscpd catches literal copy-paste, not "should be one component, written slightly
+differently seven times", so the detector that worked here was: normalise the domain noun out
+of two sibling files and diff. Other candidates: the detail-mode blocks in those same seven
+views, the ~20 probe scripts with private `findChrome()` copies, per-view empty states.
+
 ### C. Waiting on you to run
 
 - ✅ **The full-catalog test campaign — RULED + EXECUTED 2026-07-26** (your "your rec on bench
