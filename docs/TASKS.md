@@ -17,12 +17,22 @@
 
 ---
 
-> **Audited against code 2026-07-25** — the ordered two-day diff audit (all 38 commits, both
-> repos; record: `docs/plans/2026-07-25-session-handoff-and-verification-debt.md`, AUDIT
-> OUTCOME section). The stale items it caught (the shipped-but-open CANCEL entry, the iGPU
-> ①–③ mischaracterisation) are corrected in place below. The standing rule stands: before
-> building off any item, re-verify it against the named symbol — a tracker line is a claim,
-> not evidence.
+> **FULL per-item verification against code, 2026-07-26** (the user: "you keep getting things
+> that are stale… verify against code and check again"). Every open claim was checked against
+> its named symbol, not spot-checked. **Five were stale and are corrected in place:** four of
+> the six "remaining" Batch 5+6 items were already BUILT (B2-9 · B5-6 · B5-7 · B6-2, each now
+> cited file:line); the refusal-probe leg list still named the removed `hh` leg; the `--fit`
+> item's `lifecycle.py` citation had drifted onto a different method after this week's edits;
+> its class-tune census was overtaken by the band work; and warm-start was closed as
+> confirmed-by-daily-use. **Verified STILL TRUE (do not re-check):** the `uma` gap (zero refs
+> in `hardware.py`), I2 cloud caching (no `cache_control` in the anthropic/gemini adapters),
+> the 19 Linux-only `findChrome()` probe scripts (count exact), JV F1 (`JustVioce/server/
+> justvoice/models.py:26` still imports `LLMRolesSettings`, gone from `llm_runner`), and the
+> server-respawn citation (`lib.rs:377-391`, the port-eviction block). **Not verifiable from
+> code, still open by nature:** B5-2 (a sweep), B5-4 (a visual call), the headless-smoke splash
+> failure (needs a run — the box was busy benching), #256 spell-check (a bare issue reference
+> with no scope anywhere). Earlier record: `docs/plans/2026-07-25-session-handoff-and-verification-debt.md`.
+> The standing rule stands: a tracker line is a claim, not evidence.
 
 ## Now / near-term (JustWrite)
 
@@ -218,7 +228,9 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   took rank 13 (runner `70124bf`), and the four hh legs left `gpu.json`. The verdict + full
   grounds live in the ez row's seed comment; the probe quotes live in the committed run dir +
   the DO-NOT-ADD note above `looksRefused`.
-- **The refusal probe itself** (`services/benchHook.js`, legs `gpu-refusal-{stock,hh,ez}`) drives
+- **The refusal probe itself** (`services/benchHook.js`, legs `gpu-refusal-{stock,ez}` — the `hh`
+  leg left with its catalog row in the 2026-07-25 trim; verified 2026-07-26, zero hits in
+  `gpu.json`) drives
   `continueFrom` — the same action the Continue button calls — over four manuscript stubs.
   Always run `gpu-refusal-stock` as the CONTROL; without it a no-refusal score means nothing.
   **`refused` is the only automatic call and it is not the interesting one** — every result says
@@ -260,18 +272,23 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   memory fitting fails with `Gemma4Assistant requires ctx_other to be set (this is normal during
   memory fitting)` → `[spec] failed to measure draft model memory: failed to create llama_context
   from model`. Reproduced on b10107 and **confirmed fixed by `--fit off`** (warning gone, both
-  models load). Not our bug, but **our placement strategy walks into it**: `process.py:111` and
-  `lifecycle.py:2034` deliberately OMIT ngl/n_cpu_moe on untuned models so the engine's own
-  `--fit` places tensors ("fit-by-omission").
+  models load). Not our bug, but **our placement strategy walks into it**: `process.py:108-112` and
+  `lifecycle.py:1863-1869` deliberately OMIT ngl/n_cpu_moe on untuned models so the engine's own
+  `--fit` places tensors ("fit-by-omission"). *(Both citations re-verified 2026-07-26 — the
+  lifecycle one had drifted onto the embed-placement method after this week's edits.)*
   **AUDITED 2026-07-25 — and my first reading of this was WRONG, corrected here.** I wrote that
-  any untuned Gemma-4 row "may be silently running without" its MTP. The catalog says otherwise:
-  `model_tunes` is EMPTY (0 rows) and all 14 `class_tunes` rows belong to `gemma-4-26b-a4b-qat`,
-  so every other row is untuned — yet the untuned `…uncensored-ez` and `…uncensored` measured
+  any untuned Gemma-4 row "may be silently running without" its MTP. The catalog said otherwise:
+  at the time of that audit `model_tunes` was EMPTY (0 rows) and all 14 `class_tunes` rows
+  belonged to `gemma-4-26b-a4b-qat`, so every other row was untuned — yet the untuned
+  `…uncensored-ez` and `…uncensored` measured
   **60.5%** and **58.9%** draft acceptance. Untuned rows are NOT losing MTP. The real
   discriminator is WHICH drafter file: every row using its OWN repo's drafter works, `…ez` borrows
   unsloth's `mtp-…-Q4_0.gguf` and works, and only StyleTune's borrowed
   `Radamanthys11/…-it-assistant-Q8_0.gguf` was fatal. `--fit` is a real upstream bug and the
-  `--fit off` cure is verified, but it is NOT what was breaking our catalog. **Not fixed here:**
+  `--fit off` cure is verified, but it is NOT what was breaking our catalog. *(That census is
+  now DATED — re-counted 2026-07-26: the band work seeded 13 (model, class) pairs / 66 flag
+  rows across FOUR models (flagship 6 · 12B 5 · StyleTune 1 · E4B 1). The conclusion stands;
+  the "everything else is untuned" arithmetic behind it does not.)* **Not fixed here:**
   trading `--fit` away is a real VRAM/placement decision, and on StyleTune it would buy 2%;
   also worth re-testing on a build newer than b10107 ([#24795](https://github.com/ggml-org/llama.cpp/issues/24795)
   shows this family regressing and being fixed across builds).
@@ -306,13 +323,21 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
 
 ## Open — awaiting a go (shared AI stack)
 
-- **Batches 5 + 6 — the freeze is STALE; needs a re-scope, not an unfreeze.** Frozen 2026-07-08
-  by your hard stop ("do nothing until i say go"), but the list has been partly built anyway
-  through other work since (B5-1 pickers→chip, B5-3 New chat + delete, B5-5 editor context menu,
-  B6-1 streaming are all live). What genuinely remains needs one verification pass before
-  anything builds. Original list: `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` §8
-  (B5-2 stale-surface audit · B5-4 nav prominence · B5-6 strikethrough management · B5-7
-  bottom-bar AI notice · B6-2 return_progress) + **B2-9** (the set-as-default build, never built).
+- **Batches 5 + 6 — VERIFIED AGAINST CODE 2026-07-26: only TWO items actually remain.** The
+  freeze (2026-07-08, your "do nothing until i say go") outlived the work — four of the six
+  "remaining" items had already been built through other work, and the tracker never caught it:
+  - ✅ **B2-9 set-as-default provider — BUILT** (`ui/src/views/AiModelsArea.vue:285,328`:
+    `setAsDefault(pid, …)` + `currentDefaultProviderId`). The line called it "never built".
+  - ✅ **B5-6 clear-all-strikethroughs — BUILT** (`RichEditor.vue:569-570,867,1510`, its own
+    comment cites the same issue #42).
+  - ✅ **B5-7 AI-complete notice in the editor bottom bar — BUILT** (`ChaptersView.vue:418,1289`
+    — the literal "View task queue" button + ✕ dismiss the item asked for).
+  - ✅ **B6-2 `return_progress` — BUILT** (`llm_runner/llm/openai_compat.py:219-222` sets
+    `body["return_progress"] = True`; `base.py:47` documents the `prompt_progress` frames).
+  - **B5-2 JW stale-surface audit** — genuinely open (a sweep task, no code to check).
+  - **B5-4 nav prominence for Ask the Book** — genuinely open (a visual treatment; nothing
+    special found in the nav, but this one is a design call, not a code check).
+  Original list: `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` §8.
 - **QC queue (§9)** — the live findings you drop while QC-ing on your box; discussion-first, each
   needs its own go. Same doc, §9.
 - **I2 — cloud prompt caching** — the Anthropic/Gemini adapters send no caching hints; never
