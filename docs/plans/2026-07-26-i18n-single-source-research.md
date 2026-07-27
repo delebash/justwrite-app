@@ -522,3 +522,137 @@ Chunking, for the record: fixed at 25 items or 250 words per request, not config
 The spike was worth its cost: it converted "adopt-first" from a preference into a measurement,
 and it produced the sharpest single argument for owning the loop — a tool that does everything
 else right still wrote `{3}`.
+
+### STEPS 3B–8 — what the tool is now
+
+`just-ai-help` is three layers, one repo, **zero npm dependencies** (its `package-lock.json` is
+down to the root package; Node 20+ and global `fetch` are the whole runtime). The GPL fork is
+retired as a dependency and stays only as evidence and PR material.
+
+**Layer 1 — `src/loop.mjs`, the translate loop.** The request body is a literal object in that
+file, and `extraBody` on an engine profile merges into it verbatim. That single field is the
+cure for the disease every failure of 2026-07-27 shared: `--think`, `chat_template_kwargs`, a
+stale model id, a rate limit tuned for another provider — all of them are now data. Two
+transports, `ollama` (`{url}/api/chat`) and `openai-compat` (`{url}/chat/completions`), both
+already proven accepted. Retry ladder: batch ×3, then that batch's stragglers as singletons ×2,
+then the key is **left untranslated, named on stderr, and the exit code is non-zero**, because
+the bug that started this whole project was a tool that exited 0 after skipping keys.
+
+Shielding turned out to be the load-bearing idea, and it grew one step beyond the plan's spec
+under measurement. Interpolations are swapped for `⟦0⟧`, `⟦1⟧` … before the model sees them and
+restored by index; an item that does not return every token exactly once is a *failure* routed
+to retry rather than a result. The plan left do-not-translate terms to the prompt, and the
+gate then failed exactly there: run 1 of the corpus passed every check and run 2 of the
+**identical code** came back with `Strands` → `Hilos`, the same key lingo.dev had also
+mistranslated, both with the term named in the system prompt. A rule a model may or may not
+follow is not a guarantee. Glossary terms are now shielded by the same substitution,
+longest-first and only at non-letter boundaries. (Flagged as a deliberate extension of the
+plan's spec, not a silent one.)
+
+The gate itself found a real bug worth recording, because it is the kind that makes a CI signal
+meaningless: the first fully passing run still exited **127**, a libuv assertion
+(`!(handle->flags & UV_HANDLE_CLOSING)`) on Node v26.5.0 caused by `AbortSignal.timeout` leaving
+a live timer while `process.exit()` ran. Replaced with an explicit `AbortController` cleared in
+a `finally`, and the CLI now sets `process.exitCode` instead of exiting hard.
+
+STEP 3B gate, qwen3:8b on the 40-key corpus, two consecutive `--force` runs, both exit 0:
+40/40 translated · placeholders 40/40 · pipes 8/8 · glossary 3/3 · **117.7 s and 125.2 s**
+against a 307.5 s ceiling (1.5× the fork's 205 s). One run exercised the retry path and
+recovered. The delta re-run made 0 requests and produced a byte-identical file.
+
+**Layer 2 — `src/checks.mjs`.** pofilter's test list as the spec, in Node, 13 codes:
+`missing` · `blank` · `placeholder-changed` · `plural-halves-lost` · `plural-halves-identical` ·
+`glossary-translated` · `untranslated` · `startpunc` · `endpunc` · `numbers` · `brackets` ·
+`doublewords` · `whitespace`. Every finding is `{key, code, detail}` — one shape, because the
+list is not only the CI gate, it is the feed the review page triages on. Every check has a test
+that hands it a deliberately broken string and asserts it complains; a check that has never been
+seen to fail is indistinguishable from one that cannot. `untranslated` deliberately exempts a
+string that is only placeholders and glossary terms, since `Strands` → `Strands` is correct
+behaviour and a check that flags its own correct behaviour trains people to ignore the report.
+`src/conventions.json` ships **Spanish only** — French's spaced punctuation, German's quotation
+marks and CJK full-width forms are real rules nobody here knows, and writing them from memory is
+how a confident wrong rule reaches every future translation.
+
+**STEP 5 — the local bake-off, and the day's second real finding.** Two models, two full corpus
+runs each, scored mechanically by Layer 2:
+
+| | **gemma3:12b** | qwen3:8b |
+|---|---|---|
+| translated | 40/40 · 40/40 | 40/40 · 40/40 |
+| **structural** failures | **0 · 0** | **0 · 0** |
+| semantic flags | **1 · 2** | 3 · 7 |
+| missing `¿` (`startpunc`) | **0 · 0** | 1 · 5 |
+| wall time | 227 s · 219 s | 160 s · 116 s |
+
+Winner **gemma3:12b**, written into the ollama profile with its numbers; the time tiebreak was
+never reached. The step existed to answer one question directly rather than assume: *is qwen3's
+measured 5/5 missing-`¿` prompt-fixable?* Both models got the identical conventions rule in the
+system prompt. gemma3 obeyed it 5/5, twice. qwen3 missed 5/5 on one run and 1/5 on the other —
+**unreliable rather than consistently wrong, which is harder to plan around than either**. The
+answer is no: that defect is a model choice.
+
+And it is only visible because the checks separate structural from semantic. On structure the
+two models are **indistinguishable** — 0 and 0, twice each. Everything that separates them lives
+in the half that nothing except these checks looks at, which is the strongest available argument
+for Layer 2 being the differentiator rather than the loop.
+
+**Layer 3 — `src/review.mjs`.** One `node:http` server, one inline HTML page, no framework, no
+build, no dependencies, no account, no database: the locale files *are* the state. Flagged rows
+pin to the top with a reason chip each, edit in place, saves on blur, re-runs the checks for
+that key and updates the counts. The contract that matters, and it has a test: **saving one
+value leaves the file byte-identical except that value** — the nested structure is rebuilt from
+the *source* file's shape, so a one-word fix produces a one-line diff and a reviewer's work can
+itself be reviewed. Rendered headless against both bake-off outputs: zero JS errors, correct
+chips. Looking at it produced one fix that no test would have caught — the textarea was a fixed
+two rows and clipped exactly the long paragraphs most likely to be wrong.
+
+**STEP 8 — `--escalate <profile>`.** Checks what is on disk, re-translates only the flagged
+keys with a named profile, merges, re-checks, prints before → after. The cheap engine does the
+catalogue; the expensive one is spent on the keys that earned it. Gate, on a first pass
+corrupted by hand across every failure class, qwen3:8b escalated to gemma3:12b: **16 findings
+across 11 keys → 1 finding across 1 key, in one request, 83.6 s.** Ten keys changed; the
+eleventh came back identical and stayed flagged, which is the honest outcome rather than a
+hidden one.
+
+That feature forced two fixes that were latent bugs, not new work. `--force` was silently
+*deleting the entire cache* — it started from `{}` and then wrote the file back, taking every
+other key's and every other language's entries with it. And the write path now merges over the
+existing target, so a key that exhausts every retry keeps its previous translation instead of
+vanishing (still named on stderr, still exit 1) — a transient engine failure no longer destroys
+good prior work.
+
+### The observability incident — a healthy run killed on a misdiagnosis
+
+Worth recording in full, because the mistake was mine and it is repeatable.
+
+The first attempt at STEP 6 was launched as `node translate.mjs config.json 2>&1 | tail -60`
+and, separately, before the per-batch flush existed. Those two facts together made a perfectly
+healthy hour-long run **completely invisible**: `tail` buffers everything until its input
+closes, so stdout showed nothing; and the pre-flush loop wrote the locale file only at the very
+end, so the output directory stayed empty. Forty minutes in there was no log, no `es.json` and
+no `.jah-cache.json`.
+
+Asked to investigate, I read Ollama's `server.log`, saw recent tasks with prompts of 152–494
+tokens against `n_ctx_slot = 4096` — far too small to be a batch of 16 — and concluded it was a
+singleton retry storm. **That inference was wrong.** Those small prompts belonged to *other*
+runs sharing the same Ollama instance (a corpus re-verification, a resume smoke test at
+batchSize 8, and the escalation gate); the shared server interleaves every client's tasks into
+one log and one task counter, so "recent small prompts" said nothing whatever about which
+client sent them. On that reasoning I killed the process.
+
+Its buffered output, released when the pipe finally closed, showed the truth: **36 of 53
+batches complete, 576 of 846 keys, in about forty minutes, with exactly two single-item
+retries** — one of the cleanest runs of the day. I destroyed 68% of an hour's work to fix a
+problem that did not exist.
+
+Three things to keep from it. First, a shared inference engine's log is **not** attributable to
+one client, and reasoning about your own run from it is a category error. Second, the
+per-batch flush landed for robustness (resume-after-interruption) and turns out to matter at
+least as much for *observability* — the relaunched run's first flush was verified on disk
+within three minutes, so "is it alive" became a question with an answer. Third, and the actual
+root cause of the whole episode: **never pipe a long background run through `tail`.** Redirect
+to a file. The progress lines the loop already printed every batch were there the entire time;
+they were sitting in a buffer.
+
+Nothing about the tool was wrong. The instrumentation around it was, and a confident diagnosis
+built on unattributable evidence did the damage.

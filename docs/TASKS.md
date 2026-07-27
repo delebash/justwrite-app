@@ -720,6 +720,21 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   plural pipes, 20 interpolations, 10 long `<i18n-t>` slot paragraphs, 7 glossary terms, 15
   short labels). Rulings needed: the tool substitution, and DeepL-baseline vs
   judge-on-absolute-quality. Record: the research doc's "R3 CORRECTION" section.
+  **THE TOOL IS BUILT AND PROVEN — v2 executed 2026-07-27 on your "go"**
+  (`E:\Dev\Web\just-ai-help`, unpushed, no remote yet — creating one is your call). Three
+  layers, **zero npm dependencies**: `loop.mjs` (our own batch loop — we own the request
+  body, which was the single cause of every failure the day before), `checks.mjs` (13 checks
+  on pofilter's test list, each with a test proving it BITES), `review.mjs` (a local triage
+  page — flagged rows first, edit, save, re-check). Plus `--escalate <profile>` to re-run
+  only the flagged keys elsewhere. The adopt-first spike ran and FAILED mechanically:
+  lingo.dev does no placeholder shielding and rewrote `{n} notes` as `{3} notas`. Local
+  default is **gemma3:12b**, chosen by a two-model bake-off, and the bake-off's finding is
+  the one to remember — qwen3's missing Spanish `¿` is NOT prompt-fixable, and on *structure*
+  the two models are indistinguishable, so everything separating them lives in the half only
+  these checks look at. **Awaiting you:** shipping `es.json` into JW (the file exists and is
+  measured, in the scratchpad — wiring Spanish into the app is your separate call), the
+  upstream `--think` PR, a git remote, and whether to rotate the Gemini key that appeared in
+  chat. Full record: the research doc's "V2 EXECUTION LOG".
 - ✅ **The PER-BAND model survey — DONE 2026-07-25** (Parts 1+2; the record, candidate
   table with URLs, and the two open user decisions live in
   `docs/plans/2026-07-25-per-band-model-survey.md`; the seeds are the section-B band
