@@ -678,7 +678,7 @@
       "groupSelectionOnly": "Selection only",
       "highlightToEnable": "Highlight text first to enable",
       "rewriteLabel": "Rewrite",
-      "rewriteDesc": "Rewrite the passage to be more vivid and specific while preserving meaning, tense, and voice. Selection-only because a whole-scene rewrite is too transformative for one click — use the Routing-by-task Lab for that.",
+      "rewriteDesc": "Rewrite the passage to be more vivid and specific while preserving meaning, tense, and voice. Selection-only because a whole-scene rewrite is too transformative for one click.",
       "expandLabel": "Expand",
       "expandDesc": "Add sensory detail, interiority, and small actions. Roughly doubles the length without changing voice or tense.",
       "describeLabel": "Describe",

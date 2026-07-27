@@ -334,3 +334,137 @@ still the tool this project would live with), and whether the DeepL baseline is 
 the local output gets judged on absolute quality with no comparator. Decision-sheet item 6 ("engine
 default — decided by the prototype, blessed by them") is unchanged in spirit; only the instrument
 moved.
+
+## THE TOOL EXISTS — `just-ai-help`, built and measured 2026-07-27
+
+**What changed.** The translation half of this research is now a working tool in its own
+repository, `E:\Dev\Web\just-ai-help` (commits `b36ae7f`, `88bd06f`). The user named it and
+ruled its shape over the course of the session: an **independent open-source tool, not linked to
+any app** — *"it is just a tool we have setup to run against any en.json file"* — with two
+functions sharing one pipeline. Function 1 translates any standard i18n JSON folder. Function 2
+(designed, not built) authors the help-docs system, emitting `lede:`/`hints:` front-matter into
+locale keys so one authored sentence becomes the help article, the surface lede and the field
+hint, and then translates like any other key. They live in one repo because function 2 feeds
+function 1; the user's own framing is that function 1 alone would not justify a repo, since
+*"most people would not even use what we built and just use the tool directly."*
+
+**Why a wrapper at all, given that.** Two things the dependency structurally cannot do, both
+discovered by failure rather than reasoning. First, `src/engines.json` holds per-provider facts
+a generic translator has no way to know: a stale model id 404s (`gemini-2.5-flash`, which is the
+dependency's own `DEFAULT_MODEL` constant, is no longer served to new API keys, and silently
+failed 19 of 40 keys); a thinking model with no token headroom returns EMPTY content because the
+deliberation fills `reasoning_content` and the budget is gone before an answer is written; and
+the `chatgpt` engine assumes OpenAI's ~500 RPM, so pointing it at a 15 RPM free tier burns the
+run on retries. Second, the dependency **exits 0 even when it skipped keys** — a broken run and a
+good run are indistinguishable to CI — so the wrapper re-reads the files that were written and
+asserts nothing is missing, placeholders are unchanged, `doNotTranslate` terms survive, and
+plural halves are both present AND different from each other. That last check is the only one
+that catches `"¿Eliminar {n} autoguardados? | ¿Eliminar {n} autoguardados?"`, which passes every
+structural test and is still wrong.
+
+**The engine decision.** Local means "point at a server you already run", and the user ruled
+Ollama as the recommended one: *"ok ollama is fine, keeps it simple."* The tool downloads and
+manages nothing. The grounds are priced from our own working implementation rather than asserted:
+`just-llm-runner/llm_runner/runner/binary.py` is 422 lines (CUDA build selection by compute
+capability at `:28`, a four-way installed-exe search at `:167`-`:216`) and `runner/hardware.py`
+591 — 1,013 lines of platform matrix, against this tool's entire engine mechanism, which is one
+config key (`src/engines.json` `baseUrlEnv`) and one line (`src/translate.mjs`, forwarding it to
+the child process). `node-llama-cpp` (MIT, 1.12M weekly downloads) remains the upgrade path if
+zero-setup local is ever wanted, but it is a JavaScript API with no HTTP server, so it would need
+a small shim; it buys convenience, not capability.
+
+**Measured, against 40 real keys** chosen to break things (every plural-pipe key in the catalog,
+20 interpolations, the long `<i18n-t>` named-slot paragraphs, glossary terms, short labels).
+Gemini 3.6 Flash: 40/40 translated, 40/40 placeholders intact, 8/8 pipes, **zero** identical-half
+bugs, glossary 5/5, 1.14x length, 94 seconds. Local Gemma-26B on the 8 GB card: identical except
+**one** identical-half bug, 1.13x, 147 seconds. Both viable; both ship. Short labels blow up
+worst (1.50x on a ten-character nav item), so sidebars overflow before paragraphs do.
+
+**The dependency is forked at `E:\Dev\Web\i18n-ai-translate`** on the user's instruction —
+*"clone i18n repo, do the fix and we will work off that until we are confident of fix and then do
+pr."* The fix adds a `--think` flag for the Ollama engine: `constants.ts` gains the help text,
+`cli_helpers.ts` gains `parseThink()` (rejecting unrecognised values loudly, because a typo would
+otherwise be indistinguishable from "thinking is off") and sets `chatParams.think` only when the
+flag is present, and `cli_translate.ts:65` / `cli_diff.ts:45` / `cli_check.ts:44` each gain the
+option — all three, because `diff` is the command that preserves hand-corrections and would
+otherwise silently start thinking again on a re-run. It is TypeScript because their codebase is;
+`just-ai-help` itself contains no TypeScript at all (`git ls-files`: one `.mjs`, two `.json`, a
+README).
+
+**How to verify.** In `just-ai-help`, `node src/translate.mjs <config> --check-only` re-runs the
+output checks offline with no API call — that is the CI gate. The checks are proven to BITE, not
+merely to pass: a clean file reports `4/4 translated, all checks passed, exit 0`, and a corrupted
+one names all three defects separately (`missing (1): settings.storedServer`, `plural halves
+IDENTICAL (1): outline.noteCount`, `glossary term translated (1): nav.strands`) and exits 1. The
+full path was run end to end against a local llama-server with the cache CLEARED — 16 seconds,
+4/4, exit 0. The first attempt passed in 0 seconds from cache and proved nothing, which is
+recorded because that is exactly how a rename gets waved through untested. In the fork,
+`npm run build` then `npx esbuild src/cli.ts --bundle --platform=node --outfile=build/i18n-ai-translate.js`
+(the `prepare` script's own quoting fails on Windows), then `node build/cli.js translate --help`
+shows the flag; 229/229 of their tests pass.
+
+**What would reverse it.** For the wrapper: if the dependency ever grows engine profiles and
+output verification of its own, `just-ai-help`'s function 1 becomes redundant and only the docs
+half justifies the repo. For the engine call: if `node-llama-cpp` ever ships an OpenAI-compatible
+server, zero-setup local costs nothing and "bring your own server" stops being the simplest
+answer.
+
+**Open.** The `--think` fix is **untested against a real Ollama** — it compiles, renders in help
+and parses, but no request carrying `think:false` has left this machine; Ollama is installed
+(`F:\ollama\ollama.exe`) but not running, and a thinking model is a multi-GB pull. The full
+846-key catalog run was still in flight when this was written. And the runner has the same gap:
+`llm_runner/llm/ollama.py:99-103` omits `think` when off rather than sending `false`, so a
+thinking-by-default model asked for thinking-off still thinks — the user has ordered that fixed
+next.
+
+### The runner's Ollama thinking gap — FIXED and live-verified 2026-07-27
+
+**What changed.** `llm_runner/llm/ollama.py:_apply_reasoning` now sends an explicit
+`body["think"] = False` when thinking is off, where it previously omitted the field and
+inherited whatever the model does by default. The user ordered this after the same gap
+surfaced in the new translation tool: *"do we need to fix our llama runner."*
+
+**Why it was wrong.** The old docstring said "think off → omit (model default)", which is
+only harmless for a model whose default is off. For a model that thinks BY DEFAULT the user
+switches thinking off in the UI, the runner sends nothing, and the model reasons anyway —
+the control says off while the behaviour is on. Measured on this box against a live Ollama,
+qwen3:8b, translating one five-word string: with no `think` field the response carried
+**1,930 characters of thinking and took 27 seconds**; with `think: false` it took **2 seconds
+with no thinking at all**. That is the defect, reproduced.
+
+**The risk that had to be cleared first.** Sending `think: false` universally could break a
+model that does not support thinking. Tested directly: gemma3:1b (a non-thinking chat model,
+pulled for this) **accepts the field without error**. An earlier attempt at this test used
+`nomic-embed-text` and returned a 400 — that proved nothing, because the model does not
+support chat at all; the 400 was about the endpoint, not the field.
+
+**A finding that came free, and matters for the translation tool.** Thinking off is not a
+pure win. On the same string, thinking-on returned `{n} nota | {n} notas` while thinking-off
+returned `{nota} nota | {nota} notas` — **it translated the placeholder**. Deliberation is
+what protected the interpolation. So `think: false` buys a 13x speedup at a real quality cost
+on structured text, which is why `just-ai-help` exposes the flag but sets no default.
+
+**How to verify.** `tests/test_adapter_extra.py::test_ollama_reasoning_maps_level_or_bool`
+now asserts `b["think"] is False` for the off case (it previously asserted `"think" not in b`
+— the old behaviour was pinned by a test, so this is a deliberate behaviour change, not a
+bug fix to an unguarded path). Suite: 42/42 in that file, **710 passed / 9 skipped / 1
+failed** full-suite, the failure being the documented Windows `lspci` known-bad.
+
+**What would reverse it.** An Ollama build old enough to reject the field, or a report that
+some model errors on it. The generic `openai-compat` adapter deliberately still sends nothing
+when off (`openai_compat.py:127-128`, *"we don't own its chat template"*) — that caution stays,
+because it applies to unknown servers; Ollama is not unknown.
+
+## THE V2 DESIGN — planned 2026-07-27, awaiting go
+
+The complete rethink (user's order, written for an Opus executor as Fable's weekly tokens
+ran out) lives in **`just-ai-help/docs/plans/2026-07-27-v2-design-executor-plan.md`** —
+decision-closed. Headline changes from v1: the GPL fork is no longer the long-term base
+(its self-verification measured blind to every semantic defect and 5-10x the cost; every
+failure today traced to not owning the request body); ONE spike decides adopt-vs-build
+(Lingo.dev CLI — pure Node npm package, permissive Apache-2.0 LICENSE, 5,401 stars,
+BYO-Ollama — with mechanical pass criteria), else a fully-specified ~450-line own loop
+with an extraBody pass-through that makes every provider quirk config; checks expand per
+the pofilter test list in Node (es conventions table — the measured 5/5 missing-¿ class);
+a mechanical qwen3:8b vs gemma3:12b bake-off picks the local default; a single-file review
+page + --escalate close the correction loop. Launch = the user's literal "go".
