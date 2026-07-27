@@ -38,20 +38,32 @@ const CLASSES = [
 
 // Each shipped chat model's usability floors (minVramMb, minRamMb) → its member
 // classes. The expected sets are the table the user validated on 2026-07-26.
+//
+// The floor VALUES were re-copied from the seed on 2026-07-27, when every chat row's
+// floors were snapped to binary MB of a real memory size (the user's ruling: "vram and
+// ram usually only come in even sizes and certainly not 8.5" — seed.py's catalog header
+// carries the convention). The EXPECTED sets below are byte-identical across that snap:
+// no model changed a single class. The near misses, so a future edit knows where the
+// margins are — 8500/6144 = 1.383 and 8192/6144 = 1.333 are both inside fit's 1.5x
+// slack; 46000 and 49152 both live only in the open-ended vram24 band; 20000/16384 =
+// 1.22 and 20480/16384 = 1.25 are both inside 1.5x and both fail vram12 either way.
 const FLEET = [
-  ["gemma-4-12b-qat", 8500, 12000, "ALL"],
-  ["gemma-4-e4b-qat", 6000, 8000, "ALL"],
-  ["gemma-4-26b-a4b-qat", 4000, 24000,
+  ["gemma-4-12b-qat", 8192, 12288, "ALL"],
+  ["gemma-4-e4b-qat", 6144, 8192, "ALL"],
+  ["gemma-4-26b-a4b-qat", 4096, 24576,
     ["dgpu-vram8|ram32", "dgpu-vram12|ram32", "dgpu-vram12|ram64", "dgpu-vram16|ram32",
      "dgpu-vram16|ram64", "dgpu-vram24|ram32", "dgpu-vram24|ram64", "igpu-mem32"]],
-  ["gryphe-styletune-v2", 4000, 24000, "SAME_AS_26B"],
-  ["gemma-4-26b-a4b-uncensored-ez", 4000, 24000, "SAME_AS_26B"],
-  ["gemma-4-31b-qat", 20000, 24000,
+  ["gryphe-styletune-v2", 4096, 24576, "SAME_AS_26B"],
+  ["gemma-4-26b-a4b-uncensored-ez", 4096, 24576, "SAME_AS_26B"],
+  // 31B: REMOVED from the seed 2026-07-26 (the user's catalog trim) but kept here as a
+  // rule fixture — it is the 20 GB-VRAM shape qwen3.6-27b shares, and dropping it would
+  // lose the SAME_AS_31B anchor. Floors snapped with the rest for consistency.
+  ["gemma-4-31b-qat", 20480, 24576,
     ["dgpu-vram16|ram32", "dgpu-vram16|ram64", "dgpu-vram24|ram32", "dgpu-vram24|ram64", "igpu-mem32"]],
-  ["qwen3.6-27b", 20000, 24000, "SAME_AS_31B"],
-  ["glm-4.5-air", 12000, 64000,
+  ["qwen3.6-27b", 20480, 24576, "SAME_AS_31B"],
+  ["glm-4.5-air", 12288, 65536,
     ["dgpu-vram12|ram64", "dgpu-vram16|ram64", "dgpu-vram24|ram64"]],
-  ["llama-3.3-70b-q4_k_m", 46000, 48000, ["dgpu-vram24|ram64"]],
+  ["llama-3.3-70b-q4_k_m", 49152, 49152, ["dgpu-vram24|ram64"]],
 ];
 const expectedFor = (spec) => {
   if (spec === "ALL") return CLASSES.map((c) => c.classKey).sort();
@@ -72,33 +84,33 @@ describe("modelBelongsToClass — the approved fleet truth table", () => {
   it("the 70B belongs ONLY to the open-ended 24|64 class — the day's exhibit", () => {
     // The top VRAM band means "24 GB and above": a 48 GB card lands there, so the
     // 70B has a home. Everywhere else — including every integrated class — is out.
-    expect(CLASSES.filter((c) => modelBelongsToClass(46000, 48000, c))
+    expect(CLASSES.filter((c) => modelBelongsToClass(49152, 49152, c))
       .map((c) => c.classKey)).toEqual(["dgpu-vram24|ram64"]);
   });
 
   it("unknown floors claim nothing (a hand-added model with blank requirements)", () => {
     for (const c of CLASSES) {
-      expect(modelBelongsToClass(0, 24000, c)).toBe(false);
-      expect(modelBelongsToClass(4000, 0, c)).toBe(false);
+      expect(modelBelongsToClass(0, 24576, c)).toBe(false);
+      expect(modelBelongsToClass(4096, 0, c)).toBe(false);
       expect(modelBelongsToClass(null, null, c)).toBe(false);
     }
   });
 
   it("RAM is a hard gate — no VRAM headroom compensates", () => {
     // 26B-class floors on a 16 GB-RAM box: out, even beside a 24 GB card.
-    expect(modelBelongsToClass(4000, 24000, C("x", "discrete", 24, 16))).toBe(false);
+    expect(modelBelongsToClass(4096, 24576, C("x", "discrete", 24, 16))).toBe(false);
   });
 
   it("VRAM allows exactly fit's 1.5x tight slack", () => {
     const cls = C("x", "discrete", 8, 32);
-    expect(modelBelongsToClass(8192 * 1.5, 12000, cls)).toBe(true);   // boundary in
-    expect(modelBelongsToClass(8192 * 1.5 + 1, 12000, cls)).toBe(false); // boundary out
+    expect(modelBelongsToClass(8192 * 1.5, 12288, cls)).toBe(true);   // boundary in
+    expect(modelBelongsToClass(8192 * 1.5 + 1, 12288, cls)).toBe(false); // boundary out
   });
 });
 
 describe("memberClassesOf display order + shortClassLabel", () => {
   it("orders discrete by VRAM then RAM, integrated last", () => {
-    const got = memberClassesOf(4000, 24000, CLASSES).map(shortClassLabel);
+    const got = memberClassesOf(4096, 24576, CLASSES).map(shortClassLabel);
     expect(got).toEqual(["8|32", "12|32", "12|64", "16|32", "16|64", "24|32", "24|64", "iGPU 32"]);
   });
 });

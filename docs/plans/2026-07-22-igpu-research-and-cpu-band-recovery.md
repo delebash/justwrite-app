@@ -2265,8 +2265,240 @@ measures whether something throws. None of them measures whether a screen reads 
 entire session was about the second thing. That is not a gap to close with more automation; it is
 the reason the look pass is a named step with a person in it.
 
-One thing NOT established by this: the specific check the QuickSetup item in `docs/TASKS.md` asks
-for — that the EMBEDDING dropdown is populated and the "Couldn't finish reading your setup" banner
-is gone (the `estVramById` regression of 2026-07-26). "The UI is ok" almost certainly covers it,
-since a blank dropdown under an error banner is what "not ok" would look like, but it is an
-inference about what someone saw rather than something they said, and it is recorded as such.
+One thing NOT established by the sentence above: the specific check the QuickSetup item in
+`docs/TASKS.md` asks for — that the EMBEDDING dropdown is populated and the "Couldn't finish
+reading your setup" banner is gone (the `estVramById` regression of 2026-07-26). It was recorded
+as an inference rather than folded into the closure, and then **confirmed outright the same day —
+the user: *"quicksetup ok"***. The `estVramById` fix and the contract test that guards it are now
+verified in the running app, not merely by their unit assertions.
+
+### §25 addendum 9 (2026-07-27): min-RAM estimate — the Add form's last blank floor
+
+**What changed.** The Add/Edit model form now pre-fills **Min RAM (MB)** from the GGUF Read-from-link,
+the way it has always pre-filled Min VRAM. Until today nothing anywhere in either repo produced a RAM
+estimate at all, so a hand-added model carried a blank `min_ram_mb` forever, and
+`classTunes.js:132` (`if (!minVramMb || !minRamMb || !cls) return false`) requires BOTH floors before a
+model may claim membership in any PC class. That single blank field is why a hand-added model showed
+under no class in the list — the exact shortfall recorded above in the "DECIDED NOT TO DO" note of the
+class-picker addendum, which rejected this work at the time on the grounds that "there is no equivalent
+RAM estimate to read" and that inventing one is a real decision rather than a ride-along. That remained
+true; what changed is that the decision was made rather than the work being smuggled in.
+
+**The rule, and why it is one formula.** `est_ram_mb_from_bytes(total_bytes)` in
+`llm_runner/llm/identity.py` (added directly under `est_vram_mb_from_meta`, which sits at the same
+place in the file) returns `None` for a falsy size; otherwise it takes the file size in decimal MB
+(`ceil(bytes / 1e6)`, the same 1e6 convention `est_vram_mb_from_meta` already uses), adds 4096 MB of
+headroom, and snaps the result UP to the first rung of the real-RAM ladder
+`[8, 10, 12, 16, 24, 32, 48, 64, 96, 128]` GB, returning MB. Past the top rung the ladder is exhausted,
+so the computed need is rounded up to the next multiple of 32 GB instead. The source of the rule is not
+invented: it is transcribed from the seeded catalog's own documented basis at
+`llm_runner/llm/seed.py:151-154` — *dense: weights-in-RAM + overhead; MoE: the FULL model in RAM since
+experts offload to RAM*. Those two clauses look like two rules but converge on one, because both cases
+end up holding the whole file: the dense model's weights ARE the file, and the MoE's expert spill puts
+the file there too. So the estimator needs nothing from the GGUF header — only the download size. It is
+therefore named `from_bytes`, not `from_meta`, and deliberately does NOT take an unused `meta`
+parameter that would advertise a dependence it does not have (the standing names-must-match-behaviour
+rule).
+
+**How it was calibrated, including where it is wrong.** The rule was checked against all ten seeded
+catalog rows carrying both `min_ram_mb` and `size_bytes`. **8 of 10 land on the seeded rung exactly:**
+the 12B QAT (6716355328 B → 12 GB, seeded 12000), the 70B (42520398432 → 48 GB, seeded 48000), Qwen3.6
+27B (17909097600 → 24 GB), the 26B-A4B Gryphe tune (17211252288 → 24 GB), the 26B-A4B base
+(14329791488 → 24 GB), Qwen3 Embedding 4B (2496703776 → 8 GB), Qwen3 Embedding 8B (4676804928 →
+10 GB), and KaLM Embedding 12B (7300777920 → 12 GB). **The two misses are named rather than tuned
+away.** `gemma-4-e4b-qat` is seeded at 8 GB where the rule says 10 — the rule errs toward MORE RAM,
+which is the safe direction for a floor, and bending the constant to recover this one row would push
+several others off their rung. `glm-4.5-air` is seeded at **64 GB against a 67.7 GB file**, where the
+rule says 96; the seeded row is being left exactly as it is because whether a 67.7 GB model may declare
+a 64 GB floor is a judgement about acceptable swap/spill pressure that belongs to the user, not to this
+change. **Seeded rows are never re-derived from the estimator.** The function fills a BLANK form field
+and nothing else; it does not run over the catalog, and no migration touches `min_ram_mb`.
+
+**The wire, and the trap that was checked for.** `inspect_model_from_link` now returns
+`"estRamMb"` beside `"estVramMb"` (`identity.py`, the returned dict). That alone would have been a
+silent no-op: the route `POST /v1/ai/model-catalog/inspect` is declared
+`response_model=InspectResponse` and constructs `InspectResponse(**data)`
+(`llm_runner/llm/model_catalog_api.py:339-354`), and a Pydantic response model **drops** any field it
+does not declare — which is precisely the failure the 2026-07-19 rules-checker caught on the draft-floor
+flag, where a UI feature was dead on the wire while every test stayed green. So `estRamMb: int | None`
+was added to `InspectResponse` alongside `estVramMb`, with a comment saying why it must be declared
+there. On the client, `LuModelCatalog.vue`'s `applyInspect` reads the parsed JSON as `r`, so the UI
+casing follows the wire casing verbatim, and the new line
+`if (!e.minRamMb && r.estRamMb) e.minRamMb = r.estRamMb;` sits directly under the existing Min VRAM
+mirror. **Fill-only-when-blank**: a value the user typed is never overwritten, on this field or the
+other.
+
+**The label, which was actively false.** The Fit-estimate note read *"a pre-download guess so the list
+can show 'will it fit?'; once downloaded the GGUF sets the real fit."* The second clause is untrue for
+Min RAM — nothing has ever written that field at download time, and now nothing writes it after the
+form either. It now reads: *"Fit estimate — a pre-download guess, filled in from the file when you Read
+from link, so the list can show 'will it fit?'. Both numbers stay yours to edit."* **This wording is
+flagged for the user's veto** — it is copy on their screen, it was written by the executor rather than
+ruled by them, and it should be read and replaced if it is not how they would say it.
+
+**How verified.** Runner pytest from `E:\Dev\Web\just-llm-runner` on the JW venv interpreter: **710
+passed, 9 skipped, 1 failed**, the single failure being
+`test_hardware.py::test_pci_gpus_linux_lspci_name_match`, the known-bad Linux `lspci` path test on
+Windows. The new coverage is `tests/test_identity.py::test_est_ram_mb_from_bytes_snaps_to_real_ram_rungs`
+(None and 0 → `None`; a small file → the 8 GB floor rung; the exact-rung boundary at 4.096 GB → 8 GB
+with one byte more → 10 GB, which is the off-by-one this shape invites; the 12B and 26B-A4B seeded
+exhibits; and 200 GB → 224 GB for the past-the-ladder branch), plus an added assertion on the existing
+`test_inspect_model_from_link` that `estRamMb == 24 * 1024` — that one is the wire test: it fails if the
+key stops riding the payload. `npx biome check` on `LuModelCatalog.vue` exits 0. JW `npm run test:unit`
+and `npm run build:vite` were run as the renderer gates. The headless smoke was deliberately NOT run:
+the Add form sits behind a click its sweep never makes, so it could not observe this either way, and the
+user's box may hold `:1420`/`:17495`.
+
+**What would reverse it.** Delete `est_ram_mb_from_bytes` and its two call sites (the `"estRamMb"` key
+and the `InspectResponse` field), and the one `if (!e.minRamMb …)` line in `LuModelCatalog.vue`; the
+label edit is independent and should survive regardless, since the sentence it replaced was false. The
+narrower reversal, if the ladder proves wrong rather than the idea, is the constants alone —
+`_RAM_RUNGS_GB` and `_RAM_HEADROOM_MB` are the only tunables and both sit at the top of the function's
+own block. Nothing is stored, migrated, or derived from this at rest: it writes one form field before
+a Save the user still has to press.
+
+### §25 addendum 10 (2026-07-27): the seed floors become real memory sizes
+
+**The ruling.** The user, on seeing the catalog rows render *"23 GB RAM"*, *"8.3 GB VRAM"* and
+*"45 GB"*: **"vram and ram usually only come in even sizes and certainly not 8.5"**. That is the whole
+basis of this change. It is not a rounding preference — it is a statement about what the field MEANS. A
+memory floor names the machine a model needs, and machines ship 8/12/16/24/32/48/64 GB, so a floor that
+cannot be read back as a real machine size is not a floor, it is arithmetic residue.
+
+**What changed.** Every CHAT row's `min_vram_mb` / `min_ram_mb` in the seeded catalog is now binary MB
+of a real memory size. The seeded values had been written as decimal thousands — 24000 meaning "24 GB"
+— while the UI's `gb()` divides by 1024, which is what produced the numbers the user saw. The exact map
+applied, and it is total (every chat-row floor value that existed appears in it):
+
+    4000 → 4096 · 6000 → 6144 · 8000 → 8192 · 8500 → 8192 · 12000 → 12288
+    20000 → 20480 · 24000 → 24576 · 46000 → 49152 · 48000 → 49152 · 64000 → 65536
+
+Applied at `just-llm-runner/llm_runner/llm/seed.py` — `gemma-4-12b-qat` (:191), `gemma-4-e4b-qat`
+(:219), `llama-3.3-70b-q4_k_m` (:237), `glm-4.5-air` (:258), `qwen3.6-27b` (:280),
+`gryphe-styletune-v2` (:305) and `gemma-4-26b-a4b-uncensored-ez` (:336) — the convention itself is
+written into that list's header comment at `seed.py:157-166` — and at
+`justwrite-app/server/justwrite_server/seed_presets.py:125`, which is the JW half of the catalog and
+carries the flagship `gemma-4-26b-a4b-qat` row at the same 4000/24000. That second file was NOT in the
+executed plan's file list; it was found by grepping for the literals and is included because the ruling
+says *every chat row*, the map covered its exact values, and leaving it would have meant the flagship —
+the single most-seen row on the user's own box — kept rendering "3.9 GB / 23 GB" while every other row
+was clean. This is flagged as a scope addition rather than buried.
+
+**Three of those ten mappings are judgements, not arithmetic, and are recorded so nobody re-derives
+them.** The 12B's VRAM 8500 → 8192: the user's own bench measured that model at 39.1 tok/s at `ngl 99`
+on their 8 GB card, and it is the band pick for `dgpu-vram8|ram16` — a floor of 8.5 GB contradicted a
+ruling the measurements had already settled, so the floor comes down to a real 8 GB rather than up.
+The 70B's VRAM 46000 → 49152: 48 GB is a real workstation card and 46 GB is nothing, so the floor snaps
+to the card that exists. The 27B's VRAM 20000 → 20480: 20 GB cards do exist (RTX 4000 Ada, RX 7900 XT),
+so 20 GB is kept as a real rung rather than rounded to 24. **GLM's RAM floor was normalized 64000 →
+65536 and nothing more** — whether a 67.7 GB model may declare a 64 GB floor at all, or should say 96,
+is the open user call already recorded in addendum 9, and it stays open.
+
+**Scope: chat rows only; the embed rows keep their decimal floors deliberately.**
+`qwen3-embedding-4b` (4500/8000), `qwen3-embedding-8b` (7000/10000) and `kalm-embedding-gemma3-12b`
+(10000/12000) are untouched. Their floors are never displayed on a row — `LuModelCatalog.vue:1178`
+gates the Needs-line with `v-if="!embeddingOf(m) && …"` — so there is no display gain to be had. They do
+steer wizard placement through `modelPick.js`, so changing them is live behaviour risk for that zero
+gain, and `just-llm-runner/tests/test_embed_templates.py:172` pins `b4["min_ram_mb"] == 8000`, a green
+test that would have had to be edited to buy nothing.
+
+**Zero membership flips, and this was checked rather than assumed.** The 9-model × 12-class truth table
+the user approved on 2026-07-26 (`src/renderer/src/components/__tests__/classMembership.test.js`) is
+byte-identical across the snap: only the fixture FLOOR values were re-copied from the seed, and every
+expected class set stayed as it was, with the suite green. The margins, since they are what a future
+edit will need: the 12B against the 8 GB band computes 8500/6144 = 1.383 before and 8192/6144 = 1.333
+after, both inside fit's 1.5x slack, so no flip; the 70B's 46000 and 49152 both live only in the
+open-ended `dgpu-vram24` band, which means "24 GB and above" and swallows either; the 27B's
+20000/16384 = 1.22 becomes 20480/16384 = 1.25, both inside 1.5x on the 16 GB band and both failing the
+12 GB band either way. The rule under test is `classTunes.js` `modelBelongsToClass`; the test's own
+header now carries these ratios.
+
+**The display's trailing zero.** With the floors snapped, `8192 / 1024` rendered as **"8.0"**, which is
+still not the "8" the ruling asks for. `LuModelCatalog.vue:257`'s `gb()` kept its two-branch shape —
+at or above 10240 MB it rounds to a whole number, below that it keeps one decimal — but the sub-10 GB
+branch became `+(mb / 1024).toFixed(1)` inside the template literal: the unary plus turns "8.0" into 8
+while a genuine half survives as 4.5. This is display polish, but it serves the same ruling, and
+shipping it separately would have left the user looking at "8.0 GB" and reasonably concluding the fix
+had not landed.
+
+**The propagation truth: an existing DB does NOT pick these up.** The catalog seeder is
+insert-or-fill-empty, never update. `seed_default_catalog` (`seed.py:1014`) looks the row up by id and,
+when it exists, touches exactly four things: `size_bytes`, `est_vram_mb` and `size_label` **only when
+they are empty**, `_fill_inherited_draft`, and the `STALE_SEED_VALUES` heal — whose entries today cover
+only draft-file paths, no floor. `seed_extra_catalog` (`seed.py:1045`) is the same minus the heal. So
+`min_vram_mb` / `min_ram_mb` on an already-seeded row are never rewritten at boot: **the clean numbers
+land on a fresh install or after "Reset catalog" only.** If the user wants them on their existing DB
+without a reset, the mechanism already exists and is the honest one — add `(model_id, "min_vram_mb")`
+entries to `STALE_SEED_VALUES` naming the exact old value, which by design heals only a row still
+carrying the historically-seeded number and never a value the user typed. That was deliberately NOT
+built here; it is a one-line-per-row addition whenever the user asks.
+
+**The estimator's calibration note, recomputed.** `est_ram_mb_from_bytes`'s docstring
+(`identity.py:208`) claimed *"8/10 land on the seeded rung exactly"*. Re-running the rule against all
+ten rows after the snap: still 8/10 at the rung, but the composition changed, and "exactly" was doing
+unearned work even before today — the function only ever returns `rung_gb * 1024`, so it could never
+have been byte-equal to a seeded 12000. Now five of the eight — `gemma-4-12b-qat` 12288,
+`llama-3.3-70b-q4_k_m` 49152, and `qwen3.6-27b` / `gryphe-styletune-v2` /
+`gemma-4-26b-a4b-uncensored-ez` at 24576 — ARE byte-equal, because the snap put the chat floors on the
+same binary rungs the ladder returns. The other three matches are the embed rows (8000/10000/12000
+against 8192/10240/12288), which agree at the rung but not to the byte, deliberately, per the embed
+scope above. The two misses are unchanged: `gemma-4-e4b-qat` seeded 8 GB where the rule says 10, and
+`glm-4.5-air` seeded 64 GB where the rule says 96. The docstring now says all of this in those terms.
+**Addendum 9's calibration paragraph is superseded on its numbers** — it lists the pre-snap seeded
+values (12000, 48000, 24000) and is left standing as the record of that day.
+
+**The two failed transforms that came first, recorded so the next normalization does not repeat them.**
+The first attempt was mechanical: `round(x / 1000) * 1024`. It silently LOWERED two VRAM floors, because
+Python's `round` is half-to-even — 8500/1000 = 8.5 rounds to 8, not 9, so the 12B's floor moved down by
+accident rather than by the reasoning above, and the same banker's rounding was waiting on any future
+`.5`. The second attempt was multiplication by 1.024, which is arithmetically the "right"
+decimal-to-binary conversion and produced 8500 → 8704, i.e. **8.5 GB** — the exact number the user then
+caught and named in the ruling. Both failures share one root: they treat the old value as data to be
+converted, when the old value is a typo for a machine size and the machine size is the data. **The next
+normalization starts from the ruling — name the real hardware rung — not from arithmetic on the old
+numbers.**
+
+**How verified.** Runner pytest from `E:\Dev\Web\just-llm-runner` on the JW venv interpreter; `npx
+biome check` on the touched kit file; JW `npm run test:unit` (the classMembership truth table among
+them, expectations unchanged) and `npm run build:vite`; the headless smoke run subject to the user's box
+holding `:1420`. Exact counts are in the session report.
+
+**What would reverse it.** Revert the floor values in the two seed files and the fixture floors in
+`classMembership.test.js` — the expected class sets need no change in either direction, which is the
+point of the zero-flip check. The `gb()` unary plus is independent and would survive a revert, since
+"8.0" is not a number any hardware ships either. Nothing was migrated and no existing DB row was
+touched, so a revert reaches exactly the same population the change does: fresh installs and resets.
+
+### §25 addendum 11 (2026-07-27): the GLM floor stands — the estimator is what is wrong there
+
+The one floor deliberately left un-normalized in substance (its 64000 became 65536, but the VALUE
+in GB was never touched) was `glm-4.5-air`'s 64 GB against a 67.7 GB file. Addenda 9 and 10 both
+carried it as an open question with the estimator's 96 GB implicitly on the other side. The user
+asked for a recommendation rather than a ruling, and reading the row settled it against my own
+expectation: **the seed is right and `est_ram_mb_from_bytes` is what is wrong there.**
+
+The row declares a 12 GB VRAM floor beside its 64 GB RAM floor (`seed.py:258`). Those are two
+different memory pools, and together they are 76 GB of memory for a 67.7 GB model — so roughly
+56 GB of weights plus overhead in system RAM, which 64 GB holds. The estimator returns 96 only
+because it reads `total_bytes` and nothing else, charging the ENTIRE file to RAM. That assumption
+is correct on a CPU-only machine and wrong on any row that also carries a VRAM floor, where part of
+the weights are resident on the card. GLM is simply the only seeded row large enough for the error
+to cross a ladder rung, which is why it alone surfaced it; the same flaw is present, and harmless,
+on every other row.
+
+The blind spot is being KEPT, not fixed, and the reasoning is worth holding: when this function
+runs on a hand-added model there is no VRAM floor to subtract yet, and over-stating a floor is the
+safe error for a number whose entire job is to say "this will not fit on your machine". Correcting
+it would mean deciding what fraction of a file to charge to VRAM, which is a design decision about
+placement policy rather than an arithmetic fix, and it is not on the table today.
+
+**What changed:** `identity.py:217-236` — the docstring's calibration section, which had filed GLM
+under "the two real misses" as though the seeded number were suspect. It now names it as this
+function's known blind spot, shows the two-pool arithmetic, and states the honesty limit explicitly:
+nobody here owns a 64 GB box, nobody has run GLM on one, and what is recorded is arithmetic plus the
+seed author's original judgement, which the user declined to overturn. `gemma-4-e4b-qat` (seeded
+8 GB, rule 10 GB) remains the one genuine miss.
+
+**How to verify:** read the docstring against `seed.py:258`'s paired floors. **What would reverse
+it:** a measurement — someone running `glm-4.5-air` on a 64 GB machine and finding it thrashes would
+move the seed to 96 and turn this addendum into the record of a wrong call.

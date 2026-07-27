@@ -117,7 +117,12 @@ DEFAULT_MODEL_CATALOG_EXTRA: list[dict] = [
      # samplers = the file's own recommended set (live header read 2026-07-07 — the
      # read-from-link parity item: the seed ships exactly what Read-from-link detects).
      "samplers": {"top_k": "64", "top_p": "0.95", "temperature": "1"},
-     "trained_ctx": 262144, "min_vram_mb": 4000, "min_ram_mb": 24000,
+     # Floors are BINARY MB of a REAL memory size (2026-07-27, the user's ruling "vram
+     # and ram usually only come in even sizes and certainly not 8.5"): 4 GB = 4096,
+     # 24 GB = 24576, never 4000/24000 — the catalog UI divides by 1024, so a decimal
+     # value renders as "3.9 GB"/"23 GB". Same snap as the runner seed's chat rows; the
+     # convention lives in llm_runner/llm/seed.py's DEFAULT_CATALOG header.
+     "trained_ctx": 262144, "min_vram_mb": 4096, "min_ram_mb": 24576,
      "tier": "low-vram-moe", "license": "Apache-2.0", "quality_rank": 5, "position": 20,
      "architecture": "gemma4", "experts": 128,
      # description = the file-facts compose (the 2026-07-07 decree: Read-from-link owns

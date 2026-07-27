@@ -71,9 +71,14 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   + `4a19ee3` and JW `af1d639` + `acb42f1` — "This PC" says the machine rather than its class
   band, Dense/MoE named wherever a model is, sentence-case tags, the add-config picker's
   membership filter removed (it made every hand-added model unconfigurable, since `min_ram_mb`
-  never auto-fills), the fabricated VRAM range labels deleted, and five `/hardware` fetches
+  never auto-filled — **that blank floor is now filled too, 2026-07-27**: the Add form pre-fills
+  Min RAM from the GGUF read via `est_ram_mb_from_bytes` (file size + 4 GB, snapped to a real RAM
+  rung), so a hand-added model belongs to a PC class at all; rule, its 8/10 calibration against the
+  seeded rows, the two named misses, and the GLM 64-vs-96 GB question left open for you are in §25
+  addendum 9 — whose new Fit-estimate label wording awaits your veto), the fabricated VRAM range
+  labels deleted, and five `/hardware` fetches
   collapsed into one `useHardware()` singleton that fixed three call sites reading the wrong GPU.
-  Full record: `docs/plans/2026-07-22-igpu-research-and-cpu-band-recovery.md` §25 + addenda 1-8.
+  Full record: `docs/plans/2026-07-22-igpu-research-and-cpu-band-recovery.md` §25 + addenda 1-9.
   Resolves the long-open question
   of whether the "Hardware/model class default" chip wording stays: it does not — you ruled the
   rename on 2026-07-26 ("we keep getting it wrong"), which supersedes your own QC-19 anchor from
