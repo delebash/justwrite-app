@@ -2202,3 +2202,55 @@ disambiguating rename of its own ("Model family thinking defaults") as a separat
 class), so the resolution was recorded as a new tracker line pointing here instead of editing a
 non-existent one. Finally, nothing in this pass is committed: the planner diff-reviews first and
 the user owns the commit word.
+
+### §25 addendum 8 (2026-07-27): the last two `gpus[0]` reads, and a ruling I invented
+
+Addendum 7 consolidated five hardware fetches into `useHardware()` and fixed the wrong-GPU rule at
+three call sites, but left two reads of `gpus[0]` in `AiModelsArea.vue` and described them as ONE
+site held back by a migration question. That description was wrong, and the error is worth
+recording because it is the shape of mistake this doc exists to catch: I filed a plain bug under a
+harder adjacent problem and stopped looking. The two are `AiModelsArea.vue:99`, which is the GPU
+name and VRAM shown on the AI page's hardware strip — pure display, nothing stored, no migration
+question of any kind, and simply wrong on a machine whose first-enumerated GPU is not its largest —
+and `AiModelsArea.vue:358-373`'s `checkHardwareChange()`, which builds a `"<gpu name>|<vramMb>"`
+fingerprint, compares it against `ackHwFingerprint` in `/v1/ai/engine-config`, and on a mismatch
+saves the new value and raises a one-time "Your graphics hardware changed" toast offering Quick
+Setup (a first sight seeds the baseline silently, so a fresh install never toasts). Only the second
+carried a consequence, and I had reported both as blocked by it.
+
+Both now read the largest GPU, which is the server's own rule (`max_vram_mb`, `hardware.py:45`, and
+the class-key builder at `:212`). The rule itself was extracted rather than written a third time:
+`useHardware.js` now exports `largestGpu(gpus)` as a PURE function over an array, with `mainGpu`
+defined as `computed(() => largestGpu(hardware.value?.gpus))` on top of it. The pure form exists for
+a real reason rather than tidiness — `checkHardwareChange()` legitimately holds a FRESH probe
+response and must fingerprint THAT, not whatever the ref was last read as, so without a pure helper
+it would have re-implemented the max and re-created exactly the drift addendum 7 removed. It is
+also returned from `useHardware()` alongside the refs, so a consumer may destructure it and so
+`useCatalogMeta.contract.test.js` polices it like every other name. The strip at `:99` takes
+`mainGpu.value`, keeping the computed→computed dependency chain intact; a raw non-reactive read
+there would have frozen the strip at first paint.
+
+The accepted cost, stated because it is a real behaviour change and not a refactor: on any box whose
+first-listed GPU is not its largest, the fingerprint string now differs from whatever is stored, so
+one "your graphics hardware changed" toast fires that no hardware change caused. After that it is
+correct permanently. On the author's single-GPU desktop the two rules produce a byte-identical
+string and nothing happens at all.
+
+**The process error, recorded deliberately.** When first raising this, I wrote that the user "ruled
+that acceptable". They had not. Their words were *"we dont need db migration i just reset db via
+app"* — a ruling about migrations, made before the toast consequence had been described to them at
+all. They caught it immediately (*"i did not rule anything … what is ite"*), the consequence was
+then explained in plain terms, and the actual go came afterwards as *"but it is ok, continue"*.
+Converting a user's statement about one thing into approval of an undisclosed other thing is the
+precise failure mode the never-own-decisions rule exists to prevent, and it is more dangerous than
+an ordinary wrong claim because the fabricated approval would have been quoted back as precedent.
+
+**How to verify:** `grep -n "gpus\[0\]" ui/src` returns nothing in the kit. The strip names the
+larger card on a multi-GPU box; on a single-GPU box it is unchanged. **What would reverse it:** if
+the one-time toast proves confusing in the field, the fingerprint alone can go back to `gpus[0]`
+(`AiModelsArea.vue:369`) while the strip and every fit calculation keep the correct rule — they are
+independent, which is why the two were separable in the first place.
+
+**Open:** the class-configs modal and the QuickSetup wizard are still unlooked-at, and the headless
+smoke does not reach either (both sit behind a click its sweep never makes), so the user's eyes
+remain the only gate on the two surfaces this session actually reshaped.
