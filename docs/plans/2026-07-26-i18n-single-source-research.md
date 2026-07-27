@@ -468,3 +468,57 @@ with an extraBody pass-through that makes every provider quirk config; checks ex
 the pofilter test list in Node (es conventions table — the measured 5/5 missing-¿ class);
 a mechanical qwen3:8b vs gemma3:12b bake-off picks the local default; a single-file review
 page + --escalate close the correction loop. Launch = the user's literal "go".
+
+## V2 EXECUTION LOG — the user's "go", 2026-07-27
+
+### STEP 2 — the Lingo.dev spike: **FAIL on criterion (c)**. Path 3B (build Layer 1) is selected.
+
+The spike ran in the scratchpad (`lingo-spike/`), `lingo.dev` **0.138.3**, LICENSE.md is
+Apache-2.0 as the plan recorded. The 40-key corpus, en→es, provider `ollama` / `qwen3:8b`,
+temperature 0.2, with a system prompt carrying the do-not-translate list, the
+inverted-punctuation rule and the product-context line. Verdict against the plan's four
+mechanical criteria:
+
+| criterion | result | evidence |
+|---|---|---|
+| (a) fully local, no lingo.dev account | **PASS** | `lingo.dev auth` reports "Not authenticated" and the run completes. In `createProcessor` (bundle `cli.mjs`), a present `provider` node takes the `createBasicTranslator` branch; only a *missing* provider falls through to `createLingoLocalizer` (their hosted engine). |
+| (b) documented glossary + context injection | **PASS**, found in ~10 min of the 30-minute box | `provider.prompt` is a **required** field of the published config schema (`@lingo.dev/_spec`, `providerSchemaV1_10`: *"Prompt template used when requesting translations"*). It is used verbatim as the system message, with `{source}`/`{target}` substituted. Anything we want the model told, we can tell it. |
+| (c) output passes our structural gate | **FAIL** | see below |
+| (d) immediate re-run translates 0 keys | **PASS** | second run: `1 from cache, 0 processed, 0 failed`, 6.9 s, `es.json` byte-identical. The `i18n.lock` delta works. |
+
+**The failure, in full.** 40/40 keys came back and 8/8 plural pipes survived, but:
+
+```
+chapters.outline.noteCount   en: "{n} note | {n} notes"
+                             es: "{n} nota | {3} notas"        ← placeholder REWRITTEN
+nav.strands                  en: "Strands"
+                             es: "Hilos"                       ← glossary term translated
+opening ¿ on questions:      0/5                               ← same class the fork failed
+```
+
+That is 39/40 placeholders (needed 40/40) and 2/3 glossary terms held (needed 3/3), against a
+prompt that explicitly forbade both. Wall time 37 s for the corpus — the fastest local result
+measured all day, and it does not matter, because the two defects are the exact two axes this
+whole exercise exists to hold.
+
+**Why it fails, mechanically, and why it is not patchable from outside.** `createBasicTranslator`
+sends the payload as raw JSON and asks for JSON back — **there is no placeholder shielding
+anywhere in the path**. The fork's one genuinely valuable behaviour (swap `{n}` for an opaque
+token before the model sees it, restore by index afterwards) has no counterpart here, so
+placeholder survival rests entirely on the model choosing to comply, and on this corpus it did
+not. Prompt wording cannot fix that: `{3}` is what the model wrote when it was told in the
+system prompt not to.
+
+**Recorded, not pass/fail — is the request body shapeable?** **No.** The Ollama branch is
+`createOllama()(provider.model)` — `provider.baseUrl` is accepted by the schema and then
+*ignored* for this provider, and the only per-model setting the schema permits is
+`settings.temperature` (`modelSettingsSchema` has exactly one key). There is no `think`, no
+`options`, no extra-body escape hatch. This is the same disease the v2 design was written to
+cure: the request body belongs to somebody else. Adopting lingo.dev would re-acquire it.
+
+Chunking, for the record: fixed at 25 items or 250 words per request, not configurable.
+
+**Verdict: FAIL → STEP 3B.** Per the plan, no third option and no attempt to patch lingo.dev.
+The spike was worth its cost: it converted "adopt-first" from a preference into a measurement,
+and it produced the sharpest single argument for owning the loop — a tool that does everything
+else right still wrote `{3}`.
