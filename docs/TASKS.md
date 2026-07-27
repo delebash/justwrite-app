@@ -706,8 +706,20 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   lands, every surface gets its one-sentence lede and every non-obvious field/control a
   short hint, authored in the docs so they translate like everything else; existing hints
   are the style precedent; a surface→lede/hints coverage table makes "everywhere"
-  checkable. **Pending:** the 40-key ES prototype when the GPU frees — it picks the
-  default engine.
+  checkable. **The 40-key ES prototype — RUN 2026-07-27, STOPPED ON A FINDING, needs two
+  rulings.** The GPU freed and both arms turned out blocked. **json-autotranslate cannot
+  reach our llama-server**: `src/services/openai.ts:317` hardcodes
+  `https://api.openai.com/v1/chat/completions` as a literal and `:320` hardcodes `gpt-4o`,
+  posting via raw `node-fetch` — no base-URL flag AND no SDK env var to lean on. That
+  falsifies R3's headline. **DeepL-free needs a key** — absent from your env at every scope,
+  and only you can sign up. **The replacement is verified:** `i18n-ai-translate` (npm 5.1.0,
+  2026-06-28) builds `new OpenAI({ apiKey })` with no explicit baseURL, and openai-node
+  defaults that to `readEnv('OPENAI_BASE_URL')` (`client.ts:433`) — one env var points a
+  maintained tool at our runner, no patch. **The 40-key corpus is BUILT** and survives any
+  engine choice (scratchpad `i18n-proto/en/proto.json` — deterministic, 3,097 chars: all 8
+  plural pipes, 20 interpolations, 10 long `<i18n-t>` slot paragraphs, 7 glossary terms, 15
+  short labels). Rulings needed: the tool substitution, and DeepL-baseline vs
+  judge-on-absolute-quality. Record: the research doc's "R3 CORRECTION" section.
 - ✅ **The PER-BAND model survey — DONE 2026-07-25** (Parts 1+2; the record, candidate
   table with URLs, and the two open user decisions live in
   `docs/plans/2026-07-25-per-band-model-survey.md`; the seeds are the section-B band

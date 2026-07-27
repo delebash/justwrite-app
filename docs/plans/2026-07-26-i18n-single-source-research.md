@@ -103,7 +103,9 @@ in help examples — invented book terms. Mechanism: DeepL glossary (native) or 
 prompt's protected-terms list (runner route); either way ONE shared glossary file both
 routes read.
 
-## The prototype (R3's last step — PENDING, the bench owns the box)
+## The prototype (R3's last step — RE-SPECIFIED 2026-07-27, see "R3 CORRECTION" at the end
+## of this document: the json-autotranslate route below is DEAD — its OpenAI backend hardcodes
+## api.openai.com — and the DeepL arm needs a key that does not exist on this box)
 
 Spec, ready to run the moment the bench frees the GPU: take 40 real `en.json` keys
 (mixed: short labels, sentences with `{n}` interpolation, a hint paragraph), translate to
@@ -273,3 +275,62 @@ sites. Tool claims: each row's URL, read 2026-07-26. What would reverse the REC:
 prototype failing placeholder-survival on the runner route (then DeepL-free becomes
 primary), or the kit peer-dep decision going the other way (then the key namespace design
 changes shape).
+
+## R3 CORRECTION (2026-07-27): the primary route does not exist, and the prototype is re-specified
+
+The prototype was gated on the GPU freeing. It freed; the prototype was run at, and stopped on a
+finding that changes R3's recommendation rather than on a translation result. Both arms are blocked,
+for two unrelated reasons, and the first one is a claim this document made and got wrong.
+
+**json-autotranslate cannot point at our llama-server.** R3's table above calls its OpenAI backend
+"the primary candidate — because it can point at OUR llama-server", with the caveat "needs one
+prototype check: custom base-URL support". That check comes back NO. In
+`src/services/openai.ts`, `callOpenAIChatCompletion()` builds `const apiUrl =
+'https://api.openai.com/v1/chat/completions'` as a string literal (`:317`) and posts to it with
+`node-fetch`, hardcoding `model: 'gpt-4o'` (`:320`) and `temperature: 0.3`. The service's entire
+configuration surface is the `--config` string, split on a comma into `[apiKey, systemPrompt]`
+(`:33`) — there is no base-URL option, no model option, and because it uses raw `node-fetch` rather
+than the OpenAI SDK there is no environment variable to lean on either. Published version is 1.16.2,
+last modified 2026-02-26. The claim in R3 was inferred from the backend's NAME and from the README's
+service list; nothing in either says the endpoint is configurable, and the source says it is not.
+
+**The DeepL baseline needs a key we do not have.** `DEEPL_API_KEY`, `DEEPL_KEY` and `DEEPL_AUTH_KEY`
+are absent from the user's environment at every scope (process, user, machine). DeepL-free requires a
+signup the user has to perform; it cannot be arranged from here.
+
+**The replacement, verified the same way.** `i18n-ai-translate`
+(https://github.com/taahamahdi/i18n-ai-translate, npm 5.1.0, last modified 2026-06-28 — actively
+maintained, a month old at the time of writing) is a maintained CLI over locale JSON with four
+engines. Its factory constructs the ChatGPT engine as `new OpenAI({ apiKey })`
+(`src/chats/chat_factory.ts`, the `Engine.ChatGPT` case) — passing no explicit `baseURL`. The
+official openai-node client defaults that argument to the environment:
+`baseURL = provider ? null : readEnv('OPENAI_BASE_URL')` (`openai-node/src/client.ts:433`), falling
+back to `https://api.openai.com/v1` only when the variable is empty (`:452`). So exporting
+`OPENAI_BASE_URL=http://127.0.0.1:<port>/v1` points the tool at our llama-server with no patch, no
+fork, and no custom script — which is the property R3 wanted json-autotranslate for. Its `--model`
+is a first-class option, it carries a glossary module (`src/glossary.ts`), a diff/delta mode
+(`src/cli_diff.ts`) matching R3's "steal the delta idea", plus rate limiting, retry and sharding.
+Its Ollama engine does take a `--host` (`src/cli_helpers.ts:133`, falling back to
+`OLLAMA_HOSTNAME`), but it drives the `ollama` npm client against Ollama's native `/api/chat`, so it
+is NOT a route to a llama.cpp server; the ChatGPT engine plus the env var is.
+
+**The 40-key corpus is built and is the one thing here that survives any engine choice.** It lives in
+the scratchpad (`i18n-proto/en/proto.json`), selected deterministically from the 846 leaves of
+`en.json` by even spacing within each stratum, so it regenerates identically: 8 plural-pipe keys
+(every one in the catalog), 20 keys carrying `{interpolation}`, 10 paragraphs over 120 characters,
+7 keys containing a do-not-translate term, and 15 short labels — 3,097 characters total. Two strata
+were chosen because they are where this will break rather than to be representative. The plural
+pipes include forms carrying TWO different interpolations across both halves
+(`chapters.dialogs.deletePartMessage`: `"Its {n} chapter will move to \"{into}\". | Its {n} chapters
+will move to \"{into}\"."`), which tests pipe survival, interpolation survival, and Spanish plural
+rules at once. The long paragraphs are the `<i18n-t>` named-slot sentences from the 2026-07-26
+no-HTML conversion (`settings.intro` carries `{settings}`, `{project}`, `{appearance}`, `{general}`),
+where a slot name that comes back translated or reordered into a different key renders as literal
+braces on screen — the failure mode that conversion's own verification was built to catch.
+
+**Open, and neither is ours to settle:** whether `i18n-ai-translate` replaces `json-autotranslate`
+as the vehicle (a forced substitution — the named tool is incapable, not merely worse — but it is
+still the tool this project would live with), and whether the DeepL baseline is worth a signup or
+the local output gets judged on absolute quality with no comparator. Decision-sheet item 6 ("engine
+default — decided by the prototype, blessed by them") is unchanged in spirit; only the instrument
+moved.
