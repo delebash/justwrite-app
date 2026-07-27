@@ -2502,3 +2502,54 @@ seed author's original judgement, which the user declined to overturn. `gemma-4-
 **How to verify:** read the docstring against `seed.py:258`'s paired floors. **What would reverse
 it:** a measurement — someone running `glm-4.5-air` on a 64 GB machine and finding it thrashes would
 move the seed to 96 and turn this addendum into the record of a wrong call.
+
+### §25 addendum 12 (2026-07-27): the small-debt sweep — two cleared, one found moot
+
+Three loose ends had been carried as "worth doing, not worth a go of their own" since the class
+work landed. The user cleared them in one word ("finish f"), having already run the catalog reset
+that made the floor work visible on their box ("a done"). Two were real and are now closed; the
+third dissolved on inspection, and the reason it dissolved is the part worth keeping.
+
+**`shortClassLabel` is deleted.** Addendum 6 recorded it as an orphan — the catalog row had swapped
+its class enumeration for the model's plain-words floors, so nothing in the product called it, and
+its one remaining caller was `classMembership.test.js`, which mapped through it to spell the expected
+display order compactly. That is a function alive only because a test uses it, the same shape as the
+`RAM_LADDER` case in addendum 4, and the addendum said plainly it should not be left indefinitely.
+Deleting it meant deciding what the test asserts instead, and the answer improves the test rather
+than merely preserving it: it now maps to `classKey` and expects the eight real DB keys
+(`dgpu-vram8|ram32` … `igpu-mem32`) in the same order the labels used to spell as `8|32 · … · iGPU
+32`. Same eight classes, same order, same strength — but pinned to the key the rule actually sorts,
+not to a display string that could be reformatted without the test noticing. A grep across both
+repos before cutting found no other reference: every kit consumer imports named symbols directly
+from `../classTunes.js` and none imports this one, and there is no barrel `export *` that could
+re-export it invisibly. `classTunes.js:154` now carries a note naming the deletion, the reason, and
+`git show 6c5179e:ui/src/classTunes.js` as where the compact form lives if it is ever wanted again.
+
+**The `PaneHeader` comment names the right component.** `PaneHeader.vue:7` said the `?` affordance
+"opens the JwHelpDrawer", a component that has not existed since the `Jw*` family was converged into
+the kit; the file imports the kit's `HelpDrawer` six lines below the sentence that misnames it. This
+was the single hit from the 2026-07-26 B5-2 stale-surface sweep, which found the convergence work
+otherwise complete. It now reads "the kit's HelpDrawer".
+
+**The `STALE_SEED_VALUES` heal entries were NOT added, and should not be.** The idea was to let an
+existing DB pick up 2026-07-27's normalized floors without a catalog reset, one entry per changed
+row. Reading the reset path killed it: `reset_to_factory` (`stores.py:292-305`) DELETES every row
+whose id appears in `DEFAULT_CATALOG` and then calls `seed_default_catalog(s)` on the empty slate,
+so a reset is a genuine reseed rather than a fill-empty pass. The user had already run it. This is
+pre-release with one DB in existence, and that DB now holds the new floors — so the entries would
+have healed nothing, on any machine, ever, while adding a permanent maintenance surface to a table
+whose own header says it exists for a seeded FACT that later proved WRONG. The floors were not wrong
+facts; they were coarse ones, replaced wholesale. Writing the entries would have been work whose
+only product was code that can never fire.
+
+**How to verify:** `grep -rn shortClassLabel` across both repos returns only this addendum, addendum
+5/6 and the TASKS line that named it — no code. JW vitest **466 passed / 51 files**, unchanged from
+before the deletion, which is the point: the membership table asserts exactly what it did. Biome
+clean on all three files (the kit file checked from the runner repo — JW's `biome.json` ignores the
+`../just-llm-runner` path). `build:vite` green in 1.67 s.
+
+**What would reverse it:** a surface that needs a compact class label again — a dense grid, say,
+where full range labels wrap. Then the function comes back from the sha above, and it comes back
+with a product consumer rather than a test one. For the heal entries: a second DB existing in the
+wild, at which point the general mechanism is worth completing for whatever the NEXT changed fact
+turns out to be.

@@ -386,7 +386,9 @@ tangled them, which is what produced both the badge the user misread as the mode
 hardware AND the library listing a 70B under "Integrated GPU · 32 GB" as merely "not tested".
 
 **Shipped (runner):**
-1. **`modelBelongsToClass` / `memberClassesOf` / `shortClassLabel`** (`ui/src/classTunes.js`)
+1. **`modelBelongsToClass` / `memberClassesOf`** (`ui/src/classTunes.js`; `shortClassLabel`
+   shipped with these and was DELETED 2026-07-27 — addendum 6 orphaned it when the row swapped
+   its class list for plain-words floors, and the membership test now asserts `classKey`)
    — THE membership rule, one source for both surfaces. Thresholds are the FIT ENGINE's,
    not new ones: RAM hard gate (`fit.py:101`), VRAM ≤1.5× "tight" slack (`fit.py:109`),
    top VRAM band open-ended ("24 GB and above" — so a 48 GB card lands in vram24 and the
@@ -734,7 +736,8 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
     `useModelList`, `useFeaturePin`) → **all gone**, the only survivors being comments that
     explain their removal; `components/ui/` → **empty**, as designed; orphaned components
     (a `.vue` imported nowhere) → **none**. The convergence work of the last month actually
-    landed. Only the one comment name is worth fixing, and it is cosmetic.
+    landed. Only the one comment name was worth fixing, and it is cosmetic — **FIXED
+    2026-07-27** (`PaneHeader.vue:7` now says "the kit's HelpDrawer"). B5-2 is CLOSED.
   - **B5-4 nav prominence for Ask the Book** — genuinely open (a visual treatment; nothing
     special found in the nav, but this one is a design call, not a code check).
   Original list: `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` §8.

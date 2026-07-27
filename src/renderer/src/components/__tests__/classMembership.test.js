@@ -12,11 +12,7 @@
 // Deep import on purpose: the composable is kit-internal and the kit has no test
 // harness of its own (the useCatalogMeta.contract.test.js precedent).
 import { describe, expect, it } from "vitest";
-import {
-  memberClassesOf,
-  modelBelongsToClass,
-  shortClassLabel,
-} from "@delebash/llm-ui/classTunes.js";
+import { memberClassesOf, modelBelongsToClass } from "@delebash/llm-ui/classTunes.js";
 
 // The 12 seeded hardware classes, exactly as listClassTunes() serves them
 // (camelCase; verified against the DB snapshot's hardware_classes table).
@@ -108,9 +104,21 @@ describe("modelBelongsToClass — the approved fleet truth table", () => {
   });
 });
 
-describe("memberClassesOf display order + shortClassLabel", () => {
+describe("memberClassesOf display order", () => {
+  // Asserted on the real `classKey` — the same 8 classes in the same order the
+  // compact-label form used to spell "8|32 · 12|32 · … · iGPU 32", but pinned to
+  // the DB key rather than to a display string (shortClassLabel deleted 2026-07-27).
   it("orders discrete by VRAM then RAM, integrated last", () => {
-    const got = memberClassesOf(4096, 24576, CLASSES).map(shortClassLabel);
-    expect(got).toEqual(["8|32", "12|32", "12|64", "16|32", "16|64", "24|32", "24|64", "iGPU 32"]);
+    const got = memberClassesOf(4096, 24576, CLASSES).map((c) => c.classKey);
+    expect(got).toEqual([
+      "dgpu-vram8|ram32",
+      "dgpu-vram12|ram32",
+      "dgpu-vram12|ram64",
+      "dgpu-vram16|ram32",
+      "dgpu-vram16|ram64",
+      "dgpu-vram24|ram32",
+      "dgpu-vram24|ram64",
+      "igpu-mem32",
+    ]);
   });
 });

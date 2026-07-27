@@ -4,7 +4,7 @@
 // When `helpKey` is set, a small "?" affordance (HelpTrigger) is pinned
 // to the far right of the header — always the rightmost element,
 // regardless of any action buttons passed via the default slot. Click
-// opens the JwHelpDrawer scoped to that doc — single source of truth:
+// opens the kit's HelpDrawer scoped to that doc — single source of truth:
 // docs/*.md, identified by the slug in docs/toc.json.
 
 import { HelpTrigger } from "@delebash/llm-ui";
