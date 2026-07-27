@@ -64,9 +64,17 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
 
 ### B. Open — needs your go
 
-- **"PC class config" — the rename + the every-model class visibility — SHIPPED 2026-07-26**
-  (planner diff-review passed; committed on the user's word as runner `8bb7d22` + JW `854e0f9`;
-  the LOOK pass below is what remains). Resolves the long-open question
+- ✅ **"PC class config" — the rename + the every-model class visibility — SHIPPED 2026-07-26,
+  LOOK PASS CLOSED 2026-07-27** (your word: *"both ui are ok"* — the PC-class-configs modal and
+  the QuickSetup wizard, the two surfaces the headless smoke cannot reach). Originally committed
+  as runner `8bb7d22` + JW `854e0f9`; the follow-on look pass that closed it is runner `6c5179e`
+  + `4a19ee3` and JW `af1d639` + `acb42f1` — "This PC" says the machine rather than its class
+  band, Dense/MoE named wherever a model is, sentence-case tags, the add-config picker's
+  membership filter removed (it made every hand-added model unconfigurable, since `min_ram_mb`
+  never auto-fills), the fabricated VRAM range labels deleted, and five `/hardware` fetches
+  collapsed into one `useHardware()` singleton that fixed three call sites reading the wrong GPU.
+  Full record: `docs/plans/2026-07-22-igpu-research-and-cpu-band-recovery.md` §25 + addenda 1-8.
+  Resolves the long-open question
   of whether the "Hardware/model class default" chip wording stays: it does not — you ruled the
   rename on 2026-07-26 ("we keep getting it wrong"), which supersedes your own QC-19 anchor from
   2026-07-08. Copy/display only, no schema/server/wire change: the library, badge, both modal

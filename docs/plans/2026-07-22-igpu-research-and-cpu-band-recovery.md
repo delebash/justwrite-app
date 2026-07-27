@@ -2251,6 +2251,22 @@ the one-time toast proves confusing in the field, the fingerprint alone can go b
 (`AiModelsArea.vue:369`) while the strip and every fit calculation keep the correct rule — they are
 independent, which is why the two were separable in the first place.
 
-**Open:** the class-configs modal and the QuickSetup wizard are still unlooked-at, and the headless
-smoke does not reach either (both sit behind a click its sweep never makes), so the user's eyes
-remain the only gate on the two surfaces this session actually reshaped.
+**CLOSED 2026-07-27 — the user looked: *"both ui are ok"*.** The class-configs modal and the
+QuickSetup wizard were the two surfaces this session reshaped and the two the headless smoke cannot
+reach (both sit behind a click its sweep never makes), so they were carried as the only outstanding
+gate through four commits. The user opened both on their box and passed them. That closes §25 and
+every addendum under it: the look pass is done, not merely built.
+
+Worth keeping for the next time this shape recurs: the automated fleet — biome, 466 unit tests,
+`build:vite`, and a real-data headless smoke over 25 routes and 5 AI sub-tabs — was fully green on
+these surfaces for the whole session while the question the user actually cared about ("as a user i
+just dont understnad what i am looking at") stayed completely unanswered by it. Every gate here
+measures whether something throws. None of them measures whether a screen reads correctly, and the
+entire session was about the second thing. That is not a gap to close with more automation; it is
+the reason the look pass is a named step with a person in it.
+
+One thing NOT established by this: the specific check the QuickSetup item in `docs/TASKS.md` asks
+for — that the EMBEDDING dropdown is populated and the "Couldn't finish reading your setup" banner
+is gone (the `estVramById` regression of 2026-07-26). "The UI is ok" almost certainly covers it,
+since a blank dropdown under an error banner is what "not ok" would look like, but it is an
+inference about what someone saw rather than something they said, and it is recorded as such.
