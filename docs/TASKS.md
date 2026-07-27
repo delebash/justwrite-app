@@ -362,6 +362,43 @@ differently seven times", so the detector that worked here was: normalise the do
 of two sibling files and diff. Other candidates: the detail-mode blocks in those same seven
 views, the ~20 probe scripts with private `findChrome()` copies, per-view empty states.
 
+### B11. The model catalog's hardware story — SETTLED + SHIPPED 2026-07-26 (the day-long design)
+
+**The user's model, which ended the churn:** *"you have a model, it has a recommended
+hardware class you would want to run it on, it is either tuned or not"* + *"all models have
+class, all of them — that is the point"* + *"for the models we ship we put them in hardware
+class so the user at least has an idea of what hardware they need."* Membership (which
+classes a model RUNS on) and tuning (has switches) are two separate axes; the old surfaces
+tangled them, which is what produced both the badge the user misread as the model's
+hardware AND the library listing a 70B under "Integrated GPU · 32 GB" as merely "not tested".
+
+**Shipped (runner):**
+1. **`modelBelongsToClass` / `memberClassesOf` / `shortClassLabel`** (`ui/src/classTunes.js`)
+   — THE membership rule, one source for both surfaces. Thresholds are the FIT ENGINE's,
+   not new ones: RAM hard gate (`fit.py:101`), VRAM ≤1.5× "tight" slack (`fit.py:109`),
+   top VRAM band open-ended ("24 GB and above" — so a 48 GB card lands in vram24 and the
+   70B belongs exactly to `24|64`), integrated = one shared pool.
+2. **Catalog row** (`LuModelCatalog.vue`): two labelled lines under the id —
+   `Size on disk · 13.3 GB` and `Runs on: 8|32 · 12|32 · … · iGPU 32` (the user's own class
+   bold; hover = full class names + the raw floors, which left the row). Unknown floors →
+   an honest "Runs on: unknown — edit the model to set its requirements". Embeds keep their
+   placement story, no classes, no tune tag. The five-state tune-tag family is UNCHANGED.
+3. **PC-class-configs library** (`LuClassTunes.vue`): each class lists MEMBERS only —
+   `unconfiguredMembersByClass` (renamed from `untestedByClass`, wording now "N more models
+   in this class — no switches yet"); the add-config picker offers members only.
+
+**Verified:** the membership truth table is PINNED by `classMembership.test.js` (14 tests —
+the 9-model × 12-class table the user approved, computed from their own DB + floors; the
+70B-only-in-24|64 exhibit has its own named test). A 39-check render probe: every row's
+Runs-on list exact, tags unchanged, This-PC line once, embeds bare, the library's 12
+member-counts exactly (1·3·1·4·5·1·6·7·6·8·1·6), 70B in ONE section, old wording gone,
+0 JS errors. `HEADLESS SMOKE PASSED`. 472 unit tests (+14). Runner suite untouched (no
+server change — membership is client-side over existing data).
+
+**Left alone on purpose:** tune-tag wording (user: "dont change tuned"), Fit chip,
+Recommended tag, This PC header, the class-panel editors. **User-added models:** classes
+compute from whatever floors/estimates exist; blank → "unknown", never a guess.
+
 ### C. Waiting on you to run
 
 - ✅ **The full-catalog test campaign — RULED + EXECUTED 2026-07-26** (your "your rec on bench
