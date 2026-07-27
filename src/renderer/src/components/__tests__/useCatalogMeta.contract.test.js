@@ -30,6 +30,7 @@ import { describe, expect, it } from "vitest";
 // under test is internal too — this file is here only because the kit has no test harness
 // of its own, and JW's vitest already aliases the kit source.
 import { useCatalogMeta } from "@delebash/llm-ui/composables/useCatalogMeta.js";
+import { useHardware } from "@delebash/llm-ui/composables/useHardware.js";
 
 // <repo>/src/renderer/src/components/__tests__ → the sibling kit checkout.
 const KIT_SRC = fileURLToPath(new URL("../../../../../../just-llm-runner/ui/src", import.meta.url));
@@ -46,24 +47,28 @@ function sourceFiles(dir) {
 }
 
 /**
- * Every property name any consumer takes off `useCatalogMeta()`, in both forms:
- *   const { a, b, refresh: alias } = useCatalogMeta()   → a, b, refresh
- *   const meta = useCatalogMeta();  … meta.a            → a
+ * Every property name any consumer takes off `<composable>()`, in both forms:
+ *   const { a, b, refresh: alias } = useX()   → a, b, refresh
+ *   const meta = useX();  … meta.a            → a
+ * PARAMETERISED (2026-07-27) rather than copied per composable: `useHardware` landed with
+ * five names across four consumers — the same shape that produced the estVramById bug —
+ * and a second hand-written scanner would be the very duplication this repo keeps paying
+ * for. Add a composable to COMPOSABLES below and it is policed.
  */
-function consumedNames() {
+function consumedNames(fn) {
   const names = new Map(); // name → the file that wants it (for a readable failure)
   for (const file of sourceFiles(KIT_SRC)) {
     const src = readFileSync(file, "utf8");
-    if (!src.includes("useCatalogMeta()")) continue;
+    if (!src.includes(`${fn}()`)) continue;
 
-    for (const m of src.matchAll(/const\s*\{([^}]*)\}\s*=\s*useCatalogMeta\(\)/g)) {
+    for (const m of src.matchAll(new RegExp(`const\\s*\\{([^}]*)\\}\\s*=\\s*${fn}\\(\\)`, "g"))) {
       for (const part of m[1].split(",")) {
         // "refresh: loadCatalogMeta" → the SOURCE key is what must exist.
         const key = part.split(":")[0].trim();
         if (key) names.set(key, file);
       }
     }
-    for (const m of src.matchAll(/const\s+(\w+)\s*=\s*useCatalogMeta\(\)/g)) {
+    for (const m of src.matchAll(new RegExp(`const\\s+(\\w+)\\s*=\\s*${fn}\\(\\)`, "g"))) {
       for (const use of src.matchAll(new RegExp(`\\b${m[1]}\\.(\\w+)`, "g"))) {
         names.set(use[1], file);
       }
@@ -72,22 +77,33 @@ function consumedNames() {
   return names;
 }
 
-describe("useCatalogMeta() return contract", () => {
+// [display name, the factory, the minimum number of consumed names to expect].
+// The minimum is a VACUITY guard: if a rename ever makes the scanner find nothing, these
+// must fail rather than pass by policing an empty set.
+// useCatalogMeta — QuickSetup + LuModelCatalog destructure; LuBookSearchSetup uses member
+// access. useHardware — LuClassTunes, LuModelCatalog, AiModelsArea, QuickSetup.
+const COMPOSABLES = [
+  ["useCatalogMeta", useCatalogMeta, 10],
+  ["useHardware", useHardware, 4],
+];
+
+describe.each(COMPOSABLES)("%s() return contract", (name, factory, minNames) => {
   it("finds the consumers it is meant to police", () => {
     expect(existsSync(KIT_SRC)).toBe(true);
-    // QuickSetup + LuModelCatalog destructure; LuBookSearchSetup uses member access.
-    expect(consumedNames().size).toBeGreaterThanOrEqual(10);
+    expect(consumedNames(name).size).toBeGreaterThanOrEqual(minNames);
   });
 
   it("returns every name its consumers destructure or read", () => {
-    const returned = useCatalogMeta();
+    const returned = factory();
     const missing = [];
-    for (const [name, file] of consumedNames()) {
-      if (!(name in returned)) missing.push(`${name} (wanted by ${file.replace(/\\/g, "/").split("/ui/src/")[1]})`);
+    for (const [key, file] of consumedNames(name)) {
+      if (!(key in returned)) missing.push(`${key} (wanted by ${file.replace(/\\/g, "/").split("/ui/src/")[1]})`);
     }
     expect(missing).toEqual([]);
   });
+});
 
+describe("the specific regression these contracts are named after", () => {
   it("exposes estVramById as a usable ref — the 2026-07-26 regression", () => {
     // The specific one that shipped broken. `.value` must be readable without throwing,
     // which is precisely what QuickSetup's wizardLeftoverMb() does.

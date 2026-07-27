@@ -1684,6 +1684,510 @@ parameter restores the previous panel exactly — but the `useCatalogMeta` row-s
 should NOT be reverted with it, since it removes a duplicate fetch that was a drift hazard on its
 own merits.
 
+## 25. THE LOOK PASS — "This PC" says the machine, and the tag casing (2026-07-26, the user's go — "fix it")
+
+Context, and the one thing that was NOT built. This session opened with a model-major rework of
+`LuClassTunes.vue` — every model listed once with its classes as chips, the class table demoted
+below it — built on the user's "go build it lets see how it turns out". They looked at it twice and
+rejected it ("this is even more confusing than before", then "just go back to what it was that was
+at least better what you made is bad"). It was reverted whole, not patched: `git stash push` of the
+single modified file, leaving the tree at `ccb15ac` byte-for-byte, with the rework preserved as
+`stash@{0}` ("model-major LuClassTunes rework (user rejected 2026-07-26)") rather than discarded.
+`git status --porcelain` returned empty and `build:vite` was re-run green to prove the restore was
+whole rather than half-overwritten. Two small fixes were then made ON TOP of the restored file, on
+the user's explicit word for each; nothing of the rework came back with them.
+
+What changed, first fix: "This PC" states the machine, not the band. `LuClassTunes.vue:400` rendered
+`classKeyRangeLabel(myClassKey)`, so the line above the class list read *"This PC · 8–11 GB VRAM · 32
+or 48 GB RAM"*. The user's words, twice: *"This PC · 8–11 GB VRAM · 32 or 48 GB RAM wrong it should
+list what this pc hardwar is not a range"* and then *"wrong this pci is what it is that is all"*. A
+PC class is by definition a bucket a RANGE of machines falls into (§23 built that label
+deliberately), so the range label is correct for a CLASS and nonsense for a MACHINE — printing the
+bucket where the user expects their own specs is what made the line unreadable. The component now
+fetches `GET /v1/llm-runner/hardware` (`llm_runner/runner/api.py:73-81`) into a new `hw` ref and
+derives `myHardware`, printing `8 GB VRAM · 32 GB RAM` from the machine's own numbers. The GPU it
+names is the LARGEST one — `Math.max` over `gpus[].vramMb` — matching the server's own rule at
+`llm_runner/runner/hardware.py:45` (`max_vram_mb`) and the class-key builder at `:212`. That detail
+is load-bearing and was a real bug in the rejected rework, which read `gpus[0]`: on a laptop that
+enumerates the iGPU first, `gpus[0]` names the wrong card and then disagrees with the class shown
+beside it on the same line. The fetch is wrapped in its own try/catch beside the existing
+`engine-config` enrichment call, and the template falls back to the class label when detection
+yields nothing, so the line can never render blank. The class name that used to trail the hardware
+was dropped per the user's "that is all"; the matching class is still tagged in the list below, so
+nothing is lost, only un-repeated.
+
+What changed, second fix: tag casing, audited rather than patched. The user pointed at two tags —
+*"this PC / built-in why the mixed case this is lazy and looks bad again stpp being lazy do it
+profressional jo0b"*. `.ui-tag` carries no `text-transform` (`ui/src/common/styles.css:136`), so the
+literal string is what renders and the string layer is the right place to fix it. Every `UiTag`
+label on the AI providers/models surface was enumerated before editing: eleven were already sentence
+case (`Embedding`, `Recommended for this PC`, `MoE`/`Dense`, `MTP`, `Embed` at
+`LuModelCatalog.vue:458,462,1168-1170`; the five `Tuned by …`/`Not tuned …` family at
+`tuneState.js:42-47`; `Applied on this PC ✓` at `TuneMeasureModal.vue:130`) and five were not. The
+five were fixed: `LuClassTunes.vue:422` `set manually` → `Set manually`; `:497` `this PC` → `This
+PC`; `:498` `built-in` → `Built-in`; `LuMeasureHistory.vue:111` `auto-tune` → `Auto-tune`;
+`TuneMeasureModal.vue:534` `unrecognized` → `Unrecognized`. The sharpest exhibit for why this was a
+defect and not a preference: `AiModelsArea.vue:472` already renders `Built-in` with a capital B on
+the provider row, and `.lu-cap` has no transform either (`:695`) — so one word was rendering two
+ways on one page. Fixing only the two tags in the screenshot would have left `auto-tune` and
+`unrecognized` wrong one screen over, which is the lazy version the user named.
+
+How verified. `npm run build:vite` green (1.67 s). JustWrite vitest **472 passed / 51 files**, zero
+failures, unchanged from before the edits. A post-change grep for `<UiTag[^>]*>[a-z]` across the
+whole kit returns ZERO — no lowercase-initial tag label survives anywhere, which is the mechanical
+check that the audit was complete rather than merely thorough-sounding. Before editing, the five
+strings were grepped across both repos' test files: nothing pins them, and
+`resolvedRoute.test.js:147`'s `"built-in default"` is a prose fragment in a different sentence and
+was deliberately not touched. Biome on `LuClassTunes.vue` reports 3 errors, all pre-existing and none
+from this change — an import-sort complaint about the untouched import block and the `||=`
+assignment-in-expression inside `configsByClass` at `:112`. NOT verified by rendering: the user's app
+holds `:1420`, so both fixes are confirmed by build, tests and grep only, and their eyes remain the
+gate.
+
+What would reverse it. The "This PC" fix is three self-contained pieces — the `hw` ref plus the
+`myHardware` computed, the one `try { hw.value = await request("/v1/llm-runner/hardware") }` block
+inside `reload()`, and the one template expression at the This-PC line; removing all three restores
+`classKeyRangeLabel(myClassKey)` exactly. The casing fix is five string literals in three files and
+reverses by retyping them. Neither touches storage, the wire, or launch resolution: switch
+resolution is still the exact match on `(model_id, class_key)` at `switch_resolve.py`, and nothing
+here changes which class a machine resolves to.
+
+### §25 addendum (2026-07-26, same session): Dense/MoE made visible, and the speed badge deliberately NOT built
+
+What prompted it. The user read the `igpu-mem32` class in the library and asked, of three members
+with no switches — Qwen3.6 27B (MTP), StyleTune V2, Uncensored EZ — *"so for igpu 32gb all these
+models run well?"* Checking the rule produced a wrong answer first and then the right one, and the
+wrong one is worth recording because it nearly became a code change: the first reading claimed the
+dense 27B could not fit at all, by ADDING its two floors (20,000 MB + 24,000 MB = 44 GB against a
+32 GB pool). That is double-counting. The two floors mostly describe the SAME weights placed
+differently, so on a shared pool the honest test is `max(floors) ≤ pool`, which is exactly what
+`ui/src/classTunes.js:126-128` already computes and what its own comment at `:121-122` says it means
+("an integrated class is ONE memory pool, so both floors must fit inside it"). The 27B's floors are
+20,000 / 24,000 (`llm_runner/llm/seed.py:268`) against weights of 17,909,097,600 bytes ≈ 17.9 GB
+(`:264`), so 24 ≤ 32 and it genuinely loads. **The membership rule needed no change and got none.**
+
+What the list WAS hiding is architecture, not fit. A dense 27B pushes every parameter through shared
+memory on every token; the 26B-A4B MoE touches roughly 4B active parameters for the same nominal
+size. Both "fit"; they are not the same experience, and nothing on the screen said which was which.
+So the fix is to state the FACT — Dense or MoE — wherever a model is named, and to say nothing about
+speed, because nobody has ever run a dense 27B on an integrated GPU and the seed principle reserves
+MEASUREMENTS to the machine. A "slow on integrated GPU" badge was proposed, considered, and rejected
+on exactly that ground: it would be a bandwidth argument rendered as a fact, which is the same defect
+class as every label on this surface the user has objected to.
+
+What changed, file by file. The word itself now has one home: `modelTypeLabel(type)` plus the
+`MODEL_TYPE_LABEL` map, exported from `ui/src/composables/useCatalogMeta.js` beside `typeById`, whose
+default ("dense") it matches. Before this it existed only as an inline ternary in the catalog row
+template, and putting the same words in two more places would have made three copies — the
+extraction-vs-copies shape the user asked to be remembered after EntityIndex. A new
+`ui/src/components/LuModelTypeTag.vue` owns the word, the `secondary` intent and the explanatory
+`title`, so the tooltip cannot drift between surfaces; it is 30 lines and imports the label function
+rather than restating it. `LuModelCatalog.vue:1168` swapped its ternary for `<LuModelTypeTag
+:type="typeOf(m)" class="lu-typetag" />` — same render, one fewer copy. `LuClassTunes.vue` gained
+`typeById` from the shared singleton plus a local `typeOf(id)`, and shows the tag on BOTH model row
+kinds: the configured rows (beside `modelName(t.modelId)`) and the unconfigured "no switches" rows
+(beside `m.name`), with a `.lu-ct-mtype` left margin. The add-model picker gets the type as a LABEL
+SUFFIX (`"<name> · MoE"`), not a tag, because `UiSelect` renders `<SelectItemText>{{ opt.label }}</
+SelectItemText>` (`ui/src/common/components/UiSelect.vue:99`) and cannot take markup; the `" · X"`
+shape follows the catalog's own picker precedent at `LuModelCatalog.vue:779`.
+
+How verified. `npm run build:vite` green (1.71 s). JW vitest **472 passed / 51 files** — unchanged,
+and that total includes `useCatalogMeta.contract.test.js`, which matters here because
+`LuClassTunes.vue` now destructures `typeById` and the contract test is what proves the name is
+actually on the returned object (`useCatalogMeta.js:114` — the exact defect that broke QuickSetup's
+embed dropdown). A grep for the old inline form (`"MoE" : "Dense"`) across `ui/src` returns ZERO, so
+the extraction is complete rather than additive. Biome on the new component: 0 errors after
+`--write` fixed its indentation to the kit's tabs; the 3 remaining warnings are the `<script setup>`
+template-usage false positives every kit component carries. `useCatalogMeta.js` was NOT reformatted —
+biome reports a whole-file CRLF complaint on it, but `git diff --numstat` shows `10 0`, proving the
+tree was already CRLF before this edit, so reformatting would have produced a whole-file diff for
+nothing. **NOT run: the headless smoke** — it is the renderer gate and `npm run smoke` refuses while
+`:1420` is held, which it is by the user's own app; so this is confirmed by build, tests, grep and
+lint only, and the look remains unverified.
+
+What would reverse it. Delete `LuModelTypeTag.vue`, restore the ternary at
+`LuModelCatalog.vue:1168`, drop the `modelTypeLabel`/`MODEL_TYPE_LABEL` exports, and remove from
+`LuClassTunes.vue` the `typeById` destructure, the `typeOf` helper, the two template tags, the
+`.lu-ct-mtype` rule and the picker's label suffix. Nothing touches storage, the wire, membership or
+launch resolution — the tag is display over a field the rows already carried.
+
+FLAGGED, not decided: the tooltip wording on the new tag is copy nobody ruled on ("Mixture of
+experts — only a fraction of the parameters run on each token…" / "Dense — every parameter runs on
+every token…"). It is the one string in this change that is mine rather than the user's.
+
+### §25 addendum 2 (2026-07-26): the add-model picker stops filtering, and says the gap in words instead
+
+Why the filter had to go, including the argument that reversed an earlier recommendation twice. The
+picker under "＋ Add model to this class" ran its options through `modelBelongsToClass`, so a class
+offered only models whose stated floors it cleared. The user hit it on the `8–11 GB VRAM · 16 or 24
+GB RAM` class, which offered two models, and objected. Two independent reasons make the filter wrong,
+and the second only surfaced when the user asked whether a newly catalogued model gets a class
+automatically. First: the picker is an AUTHORING control inside a maintainer tool, while the
+membership rule exists to stop a PRESENTATION lying — the two jobs are different, and refusing to let
+an author record a config the estimate merely doubts is the app overruling the person maintaining it,
+on numbers that are themselves estimates. Second, and decisive: a hand-added model has NO floors.
+`LuModelCatalog.vue:758` creates the row with `minVramMb: null, minRamMb: null`; inspecting the HF
+repo auto-fills Min VRAM only (`:686`, from the inspect result's `estVramMb`); Min RAM is never
+auto-filled by inspect nor defaulted server-side (no hits in `model_catalog_api.py`). Since
+`modelBelongsToClass` returns false unless BOTH floors are set (`classTunes.js:124`, pinned at
+`classMembership.test.js:79-85`), a new model is a member of nothing — so a filtered picker made
+every newly added model impossible to configure anywhere. That is a dead end, not a guard rail.
+
+What was built. The membership filter is deleted from `modelOptions` (`LuClassTunes.vue`), which now
+lists every non-embedding catalog model for every class; the embed exclusion stays, because embeds
+are CPU by policy and not a class idea at all. In its place a new `pickedShortfall` computed states
+the gap AFTER a pick, rendered as a muted line between the Model select and the switch grid: *"Llama
+3.3 70B Instruct needs about 45 GB VRAM and 47 GB RAM — more than this PC class has. You can still
+save a config for it."* It never blocks Save. It is silent when the floors are unknown, matching the
+"unknown floors claim nothing" rule everywhere else. The warning deliberately does NOT live inside
+the option label: `UiSelect` renders `<SelectItemText>` (`common/components/UiSelect.vue:99`), text
+only and width-capped, so a reason clause would truncate — and the compact alternative, a bare "⚠",
+is a glyph the reader must already understand, which is the same defect as the unexplained bold tag
+this session started with. The editor has full width two lines down; the sentence goes there.
+
+The membership rule is untouched and still governs the LIST. Grep confirms exactly two uses left in
+the component: `:134`, the new advisory shortfall, and `:169`, `unconfiguredMembersByClass`, which is
+the class list's own "N more models in this class" roster. So the 70B is still not presented as
+something that runs on an integrated GPU; it is merely selectable if an author deliberately chooses
+it, and the editor says why that is odd.
+
+Verified. `build:vite` green (1.75 s); JW vitest **472 passed / 51 files**, unchanged. Biome on
+`LuClassTunes.vue` still reports the same 3 pre-existing errors (import sort; the `||=`
+assignment-in-expression at `configsByClass`) — no new ones. NOT rendered: `npm run smoke` refuses
+while `:1420` is held by the user's app, so the shortfall line has never been seen on screen.
+
+What would reverse it. Restore the two `.filter(...)` lines in `modelOptions`, delete
+`pickedShortfall`, its `<p class="lu-ct-shortfall">` and the one CSS rule. Nothing else moves —
+storage, wire, membership and resolution are untouched.
+
+DECIDED NOT TO DO, with the reason. Auto-estimating `min_ram_mb` the way Min VRAM auto-fills was
+proposed alongside this and rejected FOR NOW: Min VRAM is not computed here, it is READ from the
+inspect response's `estVramMb`, and there is no equivalent RAM estimate to read. Producing one means
+deciding how RAM demand is derived (a MoE's expert spill is the whole question), which is real work
+and a real decision, not a ride-along. Until it exists, a hand-added model still shows under no class
+in the LIST — the picker fix unblocks configuring it, it does not make it visible.
+
+STILL OPEN from this exchange. The library's lede is factually wrong in one word. *"A PC class is a
+memory RANGE that holds one PC class config per model — used automatically on any PC of that class,
+unless the machine has its own applied config."* Checked clause by clause against
+`switch_resolve.py:113-147`: "one config per model" is right (rows keyed `(model_id, class_key,
+flag_name)`); "used automatically on any PC of that class" is right (the class layer, exact
+`class_key` match, `:127-132`); "unless the machine has its own applied config" is right (the
+per-machine `ModelTune` layer is applied LAST and wins, `:133-147`). But "a memory RANGE" contradicts
+the labels shipped this week — the user ruled range wording out and every class now reads as a floor
+(`8 GB VRAM · 32 GB RAM`), so the help still teaches the vocabulary the labels abandoned; and a range
+does not "hold" configs, the class does. A rewrite is proposed and NOT applied, because it is copy
+and the user owns copy.
+
+### §25 addendum 3 (2026-07-26): the range labels are gone — "23 GB VRAM" was arithmetic, not hardware
+
+The finding. The user read a class row as *"16–23 GB VRAM · 64 or 96 GB RAM"* and said: *"23gb vram
+no card has that."* Correct, and it is not a rounding artefact — it is invented. `vramPhrase`
+(`ui/src/classTunes.js:154-163`) renders a band as `${gb}–${next - 1}`, so with
+`VRAM_BANDS = [4, 6, 8, 12, 16, 24]` the 16 band prints "16–23", the 8 band "8–11", the 12 band
+"12–15". Nothing stores 23; no card ships 23; the label manufactures a ceiling to look precise.
+`ramPhrase` (`:165-171`) does something different but no better: it enumerates the fine `RAM_LADDER`
+entries falling between two coarse rungs, which is where "64 or 96 GB RAM" comes from — 96 is real
+hardware, but presenting an arbitrary two-element subset reads as "this class is for 64 or 96 GB
+machines" when it means "64 GB up to the next rung".
+
+The BANDS themselves were not touched and are not wrong. `hardware.py:167` and `seed.py:488` record
+the same intent the user ruled on 2026-07-25 (§22): a 3080's 10 GB and a 2080 Ti's 11 GB key to the 8
+band, a 20 GB card to the 16 band, and everything ≥ 24 (a 4090's 24, a 5090's 32) is ONE 24+ band —
+their words, *"a 5090's vram32 missing a vram24 seed is absurd"* and *"don't over-engineer"*. Down-
+snapping real cards is the deliberate design. The defect was only ever the label's fake upper bound.
+
+What changed. Every user-facing class label in the UI now uses `classKeyLabel` (the stored floor:
+"16 GB VRAM · 64 GB RAM") instead of `classKeyRangeLabel`. Eight call sites across two components,
+converted together rather than the two the user pointed at, because labelling one class two ways on
+one screen is the drift that produced this complaint in the first place: `LuClassTunes.vue` —
+`classLabel` and `classHardware` (the class rows), the `editorClassPreview` "Saved as …" snap line,
+"This PC's class · …" in the per-model editor, the This-PC fallback, and "For class · …" in the
+config editor; `LuModelCatalog.vue` — the Runs-on hover's full class names and the `classRange` used
+in the class-badge title. `classKeyRangeLabel` is now imported by nothing in `ui/src` (grep returns
+zero .vue callers).
+
+How verified. `build:vite` green (1.87 s); JW vitest **472 passed / 51 files**. Notably nothing
+failed, including `classBandLabels.test.js`, which still asserts the range strings directly — the
+FUNCTION is unchanged and still tested; only the UI stopped calling it. Biome on the two components
+reports 5 errors, all of the two pre-existing kinds this tree already carries (a whole-block
+`organizeImports` complaint spanning lines 13-38, and `||=` assignment-in-expression); the identical
+organize-imports error was observed on `LuClassTunes.vue` before any edit this session. NOT rendered
+— the smoke still refuses while `:1420` is held.
+
+What would reverse it. Swap the eight call sites back and restore `classKeyRangeLabel` to both import
+lists. The function, `vramPhrase`, `ramPhrase` and `RAM_LADDER` were all left in place.
+
+OPEN from this. `classKeyRangeLabel` is now DEAD in the UI but still exported and still pinned by
+eleven assertions in `justwrite-app/src/renderer/src/services/__tests__/classBandLabels.test.js` —
+including `expect(classKeyRangeLabel("dgpu-vram16|ram64")).toBe("16–23 GB VRAM · 64 or 96 GB RAM")`,
+the exact string the user rejected. Deleting the function means deleting that test file (and probably
+`vramPhrase`/`ramPhrase`/`RAM_LADDER` with it), which is a separate call and was NOT taken: leaving a
+tested-but-unused export is the lesser harm versus removing tests unasked. It should not be left
+indefinitely — a dead, tested, plausible-looking helper is exactly what someone reuses by accident.
+
+### §25 addendum 4 (2026-07-26/27): the range label DELETED, and why §23's reason no longer holds
+
+The decision, and the argument that settled it. §23 (same week) introduced `classKeyRangeLabel`
+precisely so a class would not print its floor as if it were the reader's hardware — its stated
+failure case being *"a 10 GB RTX 3080 keys to `vram8` and read '8 GB VRAM', a number BELOW the card
+the user owns, which reads as the app getting the detection wrong."* Addendum 3 converted every call
+site to the floor form on the user's *"23gb vram no card has that"*, which reversed §23 without
+engaging its reason — a real process failure, caught only when the user asked *"but what about range
+we dont use that anymore"* and then *"didnt we have range for reason?"*. Two candidate repairs were
+weighed: a real-capacity VRAM ladder so the label could name cards ("8, 10 or 11 GB VRAM") the way
+the RAM half already named capacities, or plain floors. The user closed it: *"stop with the odd vram
+just dont do it"* — no 10, no 11, no 20, no ladder.
+
+What makes floors SAFE now, which is the part §23 could not assume. §23 was written when the class
+label was the only memory figure on those surfaces. It no longer is: the library states `This PC ·
+8 GB VRAM · 32 GB RAM` from the machine's own probe (addendum 1), and the AI page header states the
+GPU and its VRAM independently. A floor underneath a stated machine reads as a bucket; a floor with
+nothing beside it reads as a misdetection. The one surface where that was still untrue is fixed in
+this pass — see the per-model mount below — so the premise now holds everywhere the label appears.
+
+What was deleted, with its dependency chain. From `ui/src/classTunes.js`: `classKeyRangeLabel`,
+`vramPhrase` (its `${gb}–${next - 1}` is where the imaginary 23 came from), `ramPhrase`, and the JS
+copy of `RAM_LADDER` — whose only use in the kit was `ramPhrase` naming the nominal capacities inside
+a rung. `VRAM_BANDS` and `DGPU_RAM_RUNGS` STAY: `bandOf`, `modelBelongsToClass`'s top-band check and
+the class editor's snap preview all still need them. Python's `_RAM_LADDER` stays untouched —
+detection still snaps real RAM with it (`hardware.py:151`); only the second copy is gone, which
+removes a drift surface rather than creating one. In `justwrite-app/src/renderer/src/services/
+__tests__/classBandLabels.test.js` the `describe("classKeyRangeLabel")` block was removed (8 `it`s;
+the file's other two blocks, `classKeyLabel (the short form)` and `bandOf`, stay and now cover the
+form actually in use) and the header rewritten to state the floor rule. In `just-llm-runner/tests/
+test_class_label_ladders.py` the `RAM_LADDER` equality assertion was replaced by a re-copy guard.
+
+The re-copy guard caught its own author, which is worth recording. The first version asserted
+`"RAM_LADDER" not in src` and FAILED immediately — matching the kit comment that explains why the
+ladder left, not a declaration. Rewritten to `re.search(r"export const RAM_LADDER\s*=", src)`, it
+passes; appending `export const RAM_LADDER = [2, 3];` to the kit module makes it fail with its own
+message, and removing that line makes it pass again. So the guard is proven to bite, not merely
+green. Its comment now names the condition for restoring the equality check: if any kit label needs
+those capacities again, re-copy the ladder AND pin it here.
+
+Two copy changes, both blessed by the user before landing. The library lede no longer calls a class
+a RANGE (it was wrong twice over once ranges left the labels, and a range does not "hold" configs):
+it now reads *"A PC class groups PCs with similar memory. Each class stores one set of launch
+switches per model, used automatically on every PC in that class — unless that machine has its own
+tuned config. Detection picks your class; you can override it below."* And the PER-MODEL mount — the
+`directEdit` branch reached from a model's Tune modal → "Save for PC class" — gained the machine's
+own numbers. That mount renders the config editor ALONE, with no This-PC line above it, and
+`TuneMeasureModal.vue` never prints VRAM or RAM anywhere (grep: zero hits for `GB VRAM`/`vramMb`), so
+it was the single place where §23's failure survived the floor ruling. It now reads `This PC · 8 GB
+VRAM · 32 GB RAM` above `Saving to PC class · 8 GB VRAM · 32 GB RAM`.
+
+Verified. `build:vite` green (1.77 s). JW vitest **464 passed / 51 files** — down exactly 8 from 472,
+which is the deleted `describe`'s eight `it` blocks and nothing else; no failures. Runner pytest
+**667 passed / 9 skipped / 1 failed**, the failure being the documented Windows-only
+`test_pci_gpus_linux_lspci_name_match`; `test_adapter_extra.py` excluded as ever (the missing
+optional `google` SDK, untouched by this work). Ruff clean on the guard. Biome on `classTunes.js`
+reports one `useOptionalChain` finding at `:71` inside the untouched `classKeyLabel`, plus the
+file-wide tabs-vs-spaces formatter complaint that predates this change; `git diff --numstat` reads
+`19 48`, confirming a scoped diff with no line-ending flip. NOT rendered — `npm run smoke` still
+refuses while `:1420` is held.
+
+What would reverse it. `git show` the pre-change `classTunes.js` for the four deleted symbols,
+restore the eight assertions and the old header in `classBandLabels.test.js`, swap the guard's
+re-copy check back to the equality assertion (re-adding `_RAM_LADDER` to its import), and put
+`classKeyRangeLabel` back into the two component import lists plus the eight call sites addendum 3
+converted. The per-model hardware line and the lede are independent of all of that.
+
+DELIBERATELY NOT BUILT: the coverage MATRIX (models × classes, one cell per pair) sketched during
+this exchange. It is the cleanest answer to the "why does one class list seven models" complaint —
+each model once, each class once, the gaps visible as dots — but it was the fourth reframing of this
+screen in a day, it needs twelve columns against a panel that already fought for width at 1100px,
+and the switch summaries have no cell to live in. The screen's actual defects were wrong labels and
+missing facts, and those are now fixed. Parked as an idea, to be built only if coverage maintenance
+turns out to hurt in practice.
+
+### §25 addendum 5 (2026-07-27): the catalog row's Runs-on line becomes chips, and the id line goes
+
+Two findings before the fix, both of which changed what the fix was. The user pasted
+`Runs on: 8|3212|3212|6416|3216|6424|3224|64iGPU 32` and asked for readable labels. The
+run-together is NOT a display bug: `.lu-mruns-c + .lu-mruns-c::before { content: " · " }` supplies a
+separator, and pseudo-element text simply does not survive copy-paste — on screen it always read
+`8|32 · 12|32 · …`. The real defect was the vocabulary, and the reason the cryptic form existed at
+all: with `·` separating classes, a full label ("8 GB VRAM · 32 GB RAM") would put the same
+character INSIDE each item, so the line could only stay parseable by compressing each class to
+`8|32`. My first proposal was therefore to delete the enumeration and show the floors instead —
+`runsOnTitle` (`LuModelCatalog.vue:328-332`) already builds "needs ~4 GB VRAM + 23 GB RAM" and hides
+it in the hover, so the plain form existed and was invisible while the cryptic form was on the row.
+The user rejected that: *"no i wnat the class conig info i want it in nice labels dont care if you
+have to wrap it."* Which is the better answer, because the length objection only holds for a run-on
+sentence: as wrapped CHIPS the separator problem disappears entirely, since the chip border marks
+the boundary and the interior `·` becomes unambiguous.
+
+What changed. `LuModelCatalog.vue:1152` renders `classKeyLabel(c.classKey, c.name)` instead of
+`shortClassLabel(c)`, so each class reads in the same plain words as the class library and the
+This-PC line. `.lu-mruns` became `display:flex; flex-wrap:wrap; gap:4px` and `.lu-mruns-c` a
+bordered pill; the `::before` separator rule is deleted. The user's own class keeps `is-mine` — now
+an accent BORDER plus weight rather than a colour, deliberately: a fill would compete with the Fit
+chip's verdict in the next column. The catalog id line (`<div class="lu-mid">{{ m.id }}</div>`) and
+its CSS rule are removed on the user's word — *"Qwen3.6 27B (MTP) / qwen3.6-27b diplicate name"*, and
+"drop id" — since on a chooser row the id restates the name in slug form; it remains visible and
+editable in the model's Edit form, which is where you need it to match a config or an HF repo.
+`shortClassLabel` is no longer imported here.
+
+How verified. Both removals were grepped ACROSS ALL THREE REPOS BEFORE deleting, because the
+headless smoke — the one gate that would catch a dead selector — cannot run while the user's app
+holds `:1420`. `.lu-mid` had exactly two references, the element and its own CSS rule; no test, no
+smoke assertion, nothing in JustVoice. `build:vite` green (1.88 s); JW vitest **464 passed / 51
+files**, unchanged. Biome on the file reports the same 2 pre-existing errors as before the edit;
+`git diff --numstat` reads `24 14`. NOT rendered.
+
+What would reverse it. Restore the `.lu-mid` div and its CSS rule, put `shortClassLabel` back in the
+import and at `:1152`, and swap the three `.lu-mruns*` rules for the previous two plus the `::before`
+separator.
+
+OPEN from this. `shortClassLabel` (`classTunes.js`) now has NO product consumer — its only remaining
+caller is `classMembership.test.js:101`, which maps through it to express expected display order
+compactly. That is the same orphan shape as the `RAM_LADDER` case in addendum 4, one step short:
+a function alive only because a test uses it. Left in place deliberately rather than deleted
+unasked (removing it means rewriting that test's assertions to compare class keys), but it should
+not be left indefinitely.
+
+### §25 addendum 6 (2026-07-27): the Runs-on line becomes the floors; the class list moves to the hover
+
+The reversal, and why it is the right end state rather than a flip-flop. Addendum 5 turned the row's
+class enumeration into wrapped chips with full labels, on the user's *"i want it in nice labels dont
+care if you have to wrap it"*. Looking at it, they returned to the option offered before it —
+*"go back to your suggestion So swap the two"* — so the row now states the model's hardware FLOORS
+in plain words and the class enumeration lives in the hover. Both shapes were built and seen, which
+is the reason to record this as settled rather than as churn: the chips proved that full labels CAN
+be shown without the separator collision that forced the cryptic `8|32` form, and seeing them proved
+the enumeration is not what a chooser row is for. The floors answer the question actually being
+asked at that moment — will this run on my PC — and they compare directly against the VRAM and RAM
+the AI page header already states for the box. The class list answers a maintainer-shaped question
+(which shipped classes cover this model) and it now sits one hover away.
+
+What changed. `LuModelCatalog.vue` renders `Needs {{ gb(m.minVramMb) }} GB VRAM · {{ gb(m.minRamMb) }}
+GB RAM` in place of the chip list. The condition is keyed on the FLOORS, not on `rowClasses()`, which
+fixes a latent hole: a model whose floors clear no shipped class previously fell through to the
+"unknown" branch and claimed its requirements were unknown when they were perfectly well known. The
+fallback now reads "Hardware needs unknown — edit the model to set its requirements". `runsOnTitle`
+no longer repeats the floors (the row states them) and returns "" when no class covers the model, so
+the hover never claims coverage that does not exist. The `.lu-mruns*` chip rules are deleted — the
+line is one short sentence in the shared `.lu-mrowmeta`/`.lu-muted` treatment, exactly like "Size on
+disk · …" above it — with a comment pointing at git for the chip CSS should a chip list ever return.
+`shortClassLabel` was already out of this file (addendum 5); `classKeyLabel` stays, used by the hover
+and two other call sites.
+
+What was LOST, deliberately and with the user's knowledge: the per-row marker of the user's own
+class. The chip list bolded it; a floors sentence has nowhere to put it. The Fit column still gives
+the per-row verdict for this machine, which is the question that marker was standing in for.
+
+How verified. `build:vite` green (1.68 s); JW vitest **464 passed / 51 files**, unchanged. A grep for
+`lu-mruns` and `is-mine` in the component returns zero, so no orphaned rules or classes were left
+behind. `gb()` was confirmed to be a top-level `<script setup>` binding (`:256`) BEFORE writing it
+into the template — a missing binding there renders blank rather than erroring, which no gate would
+catch. Biome reports the same 2 pre-existing errors; `git diff --numstat` reads `35 27`. NOT
+rendered: the smoke needs `:1420`.
+
+TWO FINDINGS TO ACT ON, neither touched here. First, a THIRD instance of the "This PC" defect the
+user has now ruled on twice: `LuModelCatalog.vue:1084-1086` renders `This PC · {{ classKeyLabel(
+tuneState.classKey) }}` — the CLASS label under a "This PC" heading. On the author's own box the
+class floors happen to equal the real hardware (8 GB card, 32 GB RAM), so it is invisible there; on a
+10 GB / 48 GB machine it would state "This PC · 8 GB VRAM · 32 GB RAM" and be wrong on both numbers.
+The fix is cheap because the component ALREADY probes hardware (`:385-387`), though it currently
+keeps only `gpus[0].vramMb` — and `gpus[0]` is the wrong GPU on a laptop that lists the iGPU first
+(the server's own rule is the largest, `hardware.py:45`). Second, and the reason to fix it properly
+rather than locally: `/v1/llm-runner/hardware` is fetched independently by FOUR files —
+`LuClassTunes.vue`, `LuModelCatalog.vue`, `AiModelsArea.vue`, `QuickSetup.vue` — each keeping its own
+slice, with no shared composable, while `useCatalogMeta` sits next door as the precedent for exactly
+this. That is the extraction-vs-copies shape the user asked to be watched for; a `useHardware()`
+singleton would collapse all four and give the "This PC" line one honest source.
+
+### §25 addendum 7 (2026-07-27): `useHardware()` — five fetches to one, and the third "This PC" fixed
+
+What was wrong. `/v1/llm-runner/hardware` was fetched FIVE times from FOUR files, each keeping its
+own slice and none sharing a rule: `LuClassTunes.vue` (the This-PC line), `LuModelCatalog.vue` (the
+embed-leftover VRAM), `AiModelsArea.vue` TWICE (the hardware strip, and the hardware-change detector
+which fetched again independently), and `QuickSetup.vue` (the wizard's card). They had already
+drifted in the way copies do: three of them read `gpus[0].vramMb` while the server's own rule is the
+LARGEST GPU (`max_vram_mb`, `runner/hardware.py:45`, and the class-key builder at `:212`) — so on any
+laptop that enumerates its integrated GPU first, the catalog scored embed leftover against the wrong
+card and Quick Setup sized the whole wizard against it. This is the extraction-vs-copies shape the
+user asked to be watched for, found by grep while fixing something else.
+
+What was built. `ui/src/composables/useHardware.js`, modelled deliberately on `useCatalogMeta` —
+same file shape, a module singleton with computed accessors and an explicit `refresh()`, no poller
+(hardware does not change while the app runs, except in the one case the detector checks on purpose).
+It exposes `hardwareInfo` (raw), `mainGpu` (the largest, by reduce), `maxVramMb`, `ramMb`,
+`hardwareLabel` ("8 GB VRAM · 32 GB RAM") and `refresh()`, which returns the response so a caller
+needing the fresh value in the same tick does not read the ref back. Failure collapses to `null` and
+every accessor degrades to 0/"" — no surface here is worth blocking on a missing probe.
+
+The four consumers now share it, and two behaviours changed as a RESULT rather than as a side quest:
+`LuModelCatalog`'s embed leftover and QuickSetup's `wizardLeftoverMb`/`embedPlaceLine`/`hwLine` all
+move off `gpus[0]` onto the largest GPU, which is the server's rule they were supposed to mirror all
+along. `hardwareLabel` is now the single source of the This-PC sentence, which is what makes the
+class FLOOR labels honest wherever they sit beside it.
+
+Two things deliberately NOT changed. `AiModelsArea`'s hardware-change fingerprint still reads
+`gpus[0]` (`checkHardwareChange`): correcting it to the largest GPU would mismatch every stored
+`ackHwFingerprint` exactly once and fire a spurious "Your graphics hardware changed" toast at every
+existing user. That is a real migration question, not a cleanup, and it is left with the copy of the
+wrong rule visible in one place rather than silently changed. And the detector still forces a FRESH
+read — it calls `refresh()` rather than reading the cache, because comparing a cached value against
+the stored fingerprint could miss the very change it exists to notice.
+
+The third "This PC" mislabel, fixed. `LuModelCatalog.vue` printed
+`This PC · {{ classKeyLabel(tuneState.classKey) }}` — the class FLOOR under a "This PC" heading, the
+same defect the user ruled on twice before (the library line, then the per-model editor). On a box
+whose hardware equals its floor it is invisible, which is why it survived two rounds; on a
+10 GB / 48 GB machine it stated "8 GB VRAM · 32 GB RAM" and was wrong on both numbers. It now reads
+`This PC · <machine> — PC class <floor>`, with the class kept because every row's Runs-on hover is
+keyed to it, and falls back to the class label alone if the probe fails.
+
+The contract test was PARAMETERISED rather than copied. `useCatalogMeta.contract.test.js` existed
+because destructuring an absent key is silent — legal JS, invisible to Biome, invisible to
+`build:vite`, and survivable by the smoke — and `useHardware` landed with six exported names across
+four consumers, exactly that shape. Writing a second scanner would have been the duplication this
+whole addendum is about, so `consumedNames()` now takes the composable name and a `COMPOSABLES`
+table drives `describe.each`; adding a composable to that table is all it takes to police it. Each
+entry carries a minimum-consumer count as a vacuity guard, so a rename that made the scanner find
+nothing fails rather than passing on an empty set.
+
+How verified. Grep proves the consolidation: `request("/v1/llm-runner/hardware")` now appears exactly
+ONCE in `ui/src`, inside the composable, and no local `hw`/`hardware`/`totalVramMb` ref survives.
+`build:vite` green (1.70 s). JW vitest **466 passed / 51 files** — up 2, the new composable's contract
+pair. Proven to BITE: removing `hardwareLabel` from the composable's return failed the contract test
+with `hardwareLabel (wanted by components/LuModelCatalog.vue)`, and restoring it went green. Biome
+clean on the new file after `--write` fixed its indentation to the kit's tabs. NOT rendered — the
+smoke needs `:1420`, which the user's app holds; four surfaces changed here and none has been looked
+at.
+
+Worth recording as method: the parameterisation was first attempted with a scripted string
+replacement, which mangled the regex escapes and silently produced a file where only one composable
+was policed — the tests still "passed" at 3 of 3. It was caught because the RUN was checked
+(5 expected, 3 reported), not because anything errored. Second time today a regex-driven edit to
+source produced a plausible-looking wrong result; both were caught by running rather than reading.
+
+What would reverse it. Delete `useHardware.js`, restore the five private fetches (git holds each),
+put `classKeyLabel(tuneState.classKey)` back in the catalog's This-PC line, and collapse the
+contract test's `COMPOSABLES` table back to a single hard-coded `useCatalogMeta` describe.
+
+OPEN, and all three need the user's call rather than a build. (1) **The Add-model picker filters to
+class members.** `LuClassTunes.vue:100-107` runs `modelOptions` through `modelBelongsToClass`, so the
+`8–11 GB VRAM · 16 or 24 GB RAM` class offers only the 12B and E4B — the 26B's 24 GB RAM floor
+excludes it. The user hit this and hated it. The recommendation on the table is to list every model
+and MARK the ones that do not clear the class, rather than withhold them: the floors are estimates,
+the library is the user's, and refusing to author a config the app merely predicts won't run is the
+app deciding. Not changed — and the picker's callers have not been grepped for a dependency on
+pre-filtering, which is the first step if it is changed. (2) **MoE vs dense needs to be visible
+wherever hardware numbers are.** The user asked for the distinction; the grounds are that the 26B is
+MoE (experts spill to system RAM: ~4 GB VRAM but 24 GB RAM) while the 12B is dense (8.5 GB VRAM, 12
+GB RAM), so the *bigger* model wants *less* VRAM — the inversion that has made every version of these
+screens read as nonsense. The catalog already tags `MoE`/`Dense` (`LuModelCatalog.vue:1168`); the
+class library and the picker do not. Display only, so it cannot affect resolution. (3)
+**`LuMeasureHistory.vue:113` renders the bare word `measured` as plain text** in the same cell where
+`Auto-tune` is now a capitalised tag; either it becomes a tag too or it stays prose, and that was not
+decided here. Also still unresolved from the wider design thread: whether the class library should be
+a single-machine view at all (the observation that it is a fleet-authoring tool — twelve classes,
+class CRUD, JSON copy/import at `:360-401` — shown to someone who owns one PC), and whether
+"Recommended" should become user-settable instead of derived at `modelPick.js:159-165`.
+
 OPEN. Nothing here has been LOOKED at in the running app — the user's eyes remain the look gate,
 and the new surfaces (the floors on the row, the "Estimated" hover, the collapsed not-tested line
 and its Add switches prefill) are exactly the kind of change that reads differently in place. Two
