@@ -739,3 +739,214 @@ reproducible by re-running the 40-key corpus at
 `node E:\Dev\Web\just-ai-help\src\translate.mjs config.json`. **What would reverse it:** a
 second Hy-MT2-7B run confirming the first would make it the 8 GB recommendation on size alone;
 a 16 GB machine appearing would let that tier stop being `null`.
+
+### The clean re-measurement — 2026-07-28, after XMP, with contention eliminated
+
+**What changed.** Every engine timing in the section above was taken without ensuring the GPU
+was otherwise idle, and at least one of them is badly wrong because of it. Six runs of the same
+40-key corpus were repeated on 2026-07-28 under one added discipline — every resident Ollama
+model is unloaded (`POST /api/generate {keep_alive: 0}` per resident model) before each run
+begins, and runs are strictly sequential. The harness is
+`scratchpad/run-set.ps1`, which takes run-directory names as parameters so a single script
+serves every arm. Results, all 40/40 keys in 3 requests unless stated:
+
+| model | structural | semantic | time |
+|---|---|---|---|
+| Hy-MT2-7B (4.6 GB) | 0 | 3 | **36.6 s** |
+| flagship `gemma-4-26b-a4b-qat` MoE, GPU offload (15 GB) | 0 | 2 | **73.8 s** |
+| flagship MoE, genuinely CPU-only | 0 | 1 | **128.8 s** |
+| flagship MoE, Ollama `num_gpu: 0` | 0 | 1 | 132.0 s |
+| gemma3:12b — the current default (8.1 GB) | 0 | 1 | **166.7 s** |
+| translategemma:12b | **2 missing** | 3 | 366.2 s (23 requests) |
+
+**WHY it matters, and the finding that forced it.** Hy-MT2-7B measured 232.6 s on 2026-07-27
+and 36.6 s here — 6.4x. Memory bandwidth cannot explain it: at 4.6 GB that model fits entirely
+in the 8 GB card, so its decode never touches system RAM, and the XMP change (2133 -> 3600
+MT/s, verified this session by `Get-CimInstance Win32_PhysicalMemory` reporting 3600/3600 on
+both DIMMs) can only help work that streams through RAM. gemma3:12b, which does partially
+offload, moved 219-227 s -> 166.7 s, about 1.3x, which is what a bandwidth improvement looks
+like. The remaining explanation for Hy-MT2 is GPU contention during the earlier run, which
+`just-ai-help/docs/HANDOFF.md:114-117` independently records happening that day. **The
+practical rule: a timing taken while another engine may hold VRAM is not a measurement.**
+
+**translategemma:12b is disqualified, reversing its earlier standing.** It had been the only
+local model with 0 structural and 0 semantic flags, rejected solely on 1,145 s. Clean, it took
+366.2 s but needed 23 requests of retry-and-split, returned 38/40 keys, and exhausted every
+retry on `chapters.dialogs.deletePartMessage` and `settings.wbCategories.deleteMessage` —
+`missing (2)`, a structural failure. Its old result does not reproduce.
+
+**The flagship needs `think: false`, and that is a real trap.** The first attempt returned
+`Empty content from …/api/chat` on every retry: `gemma-4-26b-a4b-qat` is a thinking model, the
+Ollama engine profile deliberately sends no `think` field (`just-ai-help/src/engines.json:47`),
+and deliberation consumed the whole 8,192-token budget before any answer was written. The
+config-level `think` override is honoured at `just-ai-help/src/translate.mjs:73`. This also
+restores parity with the earlier llama-server measurement, which ran `--reasoning off`.
+
+**The `-ngl 0` CPU question, checked rather than assumed.** The user raised that a CUDA build
+at zero GPU layers is not pure CPU, which this repo already proves for llama.cpp at
+`docs/plans/2026-07-22-igpu-research-and-cpu-band-recovery.md:19-34` — a CUDA-build child at
+`ngl 0` still holds ~549 MB VRAM and still GPU-offloads large-batch matmuls, a ~10x swing on
+the prefill path, which is exactly the path a 16-key translation batch exercises. So the
+`num_gpu: 0` figure was re-taken against a genuinely CPU-only instrument: a second Ollama
+daemon on port 11435 with `CUDA_VISIBLE_DEVICES=-1`, `GGML_VK_VISIBLE_DEVICES=-1` and
+`OLLAMA_VULKAN=0`, which logs `inference compute id=cpu library=cpu` instead of enumerating
+the card. Note that `CUDA_VISIBLE_DEVICES=""` does **not** work — the empty string reads as
+unset and the daemon still found the 2070S — and that hiding CUDA alone is insufficient
+because `OLLAMA_VULKAN` defaults true, so the Vulkan path would claim the same GPU. The two
+instruments agreed within 2.4% (128.8 s vs 132.0 s) with VRAM flat at 730 MiB across eight
+15-second samples, so **for this workload Ollama's `num_gpu: 0` is effectively pure CPU** —
+the llama.cpp caveat is real but does not transfer to Ollama here.
+
+**What this says about the machine.** The flagship MoE running entirely on CPU (128.8 s) is
+still faster than the current default running with GPU offload (166.7 s), at equal flag count,
+and it leaves the card completely free. That is the 26B-A4B architecture doing what a ~4B
+active-parameter MoE is supposed to do on 8 cores and 57.6 GB/s of freshly-enabled bandwidth.
+
+**How to verify.** `pwsh -File scratchpad/run-set.ps1 <dir>…` with each dir holding a
+`config.json`; the log is `scratchpad/three-runs.log`, per-run output in `<dir>/run.log` and
+`<dir>/locales/es.json`. **What would reverse it:** any of these timings taken with another
+engine resident is invalid, so a disagreeing figure should first be checked for contention.
+
+### The retests — reproducibility, and why the flag COUNT was lying
+
+Every finalist was run a second time the same day, and the flagged strings were READ rather
+than tallied. Both halves changed the conclusion.
+
+**Timings reproduce to within 1%:** flagship GPU 73.8 / 74.2 s · flagship `num_gpu: 0`
+132.0 / 131.9 s (true CPU-only 128.8 s) · Hy-MT2-7B 36.6 / 37.8 s. qwen3:8b clean is 111.1 s.
+So the numbers are stable and the earlier cross-day disagreements were environmental.
+
+**The count was lying in BOTH directions.** `chapters.footer.aiTokens` (EN `· {n} tokens`) is
+flagged `untranslated` on the flagship, gemma3 AND qwen3 — because all three correctly left it
+alone, "tokens" being "tokens" in Spanish. It is a false positive that penalises the right
+answer. Hy-MT2 alone escaped that flag by rewriting it to `· Tokens {n}`, reordering and
+capitalising for no reason — so the check REWARDED the worse output. Meanwhile the flagship's
+one `numbers` flag (rendering "1 character" as "Un personaje") did NOT reproduce on the second
+run, so it was sampling noise rather than a fault.
+
+**Read properly, the accuracy order inverts the speed order.** Hy-MT2-7B misses the Spanish
+opening `¿` on `characters.sweepPrompt.message` on BOTH runs — the same reproducible failure,
+on the same key, that the 2026-07-27 bake-off called NOT prompt-fixable when it disqualified
+qwen3:8b, and both models were given the rule in the same system prompt. Its first run also
+produced a genuine hallucination on `chapters.ai.clearStrikesDesc`: *"los originales de
+aquellos **proyectos** aún pendientes"* — inventing the noun "proyectos", dropping the closing
+parenthesis and mangling the clause, where the flagship rendered the same sentence cleanly.
+Net: flagship (either placement) and gemma3:12b finish with ZERO real errors; Hy-MT2 finishes
+with two to three; qwen3:8b adds three further `untranslated` keys beyond the false positive.
+
+**So "fastest" and "most accurate" are not the same row.** Hy-MT2-7B is twice as fast as the
+flagship and is the least accurate of the finishers. Under the rule that already governs this
+catalogue — the ¿ failure is a model property, not a prompt problem — it cannot be the
+accuracy pick, whatever its size advantage.
+
+### Cross-model disagreement as a SEMANTIC suspect detector — measured 2026-07-28
+
+**The question (the user):** *"the key is can we reliably tell what words error on or suspect
+so we can recheck another way"* — i.e. the human can fix errors, so what must be reliable is
+the SUSPECT LIST. That inverts the requirement from precision to recall: a false positive
+costs one re-check, a false negative ships a wrong word forever. It also composes with
+`--escalate`, which already re-translates only flagged keys with a different engine
+(`just-ai-help/README.md:191-195`, implemented at `src/translate.mjs:124-151`).
+
+**The idea, and why it needs nothing new.** The checks are `pofilter`'s list, which is about
+FORM; meaning errors are invisible to them. But eight translations of the same corpus were
+already on disk from the day's runs, so agreement can be measured for free: where independent
+models converge, the rendering is probably fine; where they diverge, something is hard or
+someone is wrong. Script: `scratchpad/disagree.mjs` — per key, `spread` = 1 minus the mean
+pairwise token-set Jaccard across models, ranked descending.
+
+**Result: it finds what the checks cannot.** Of 40 keys, four of the top five are genuine
+defects and THREE were invisible to every check:
+
+1. `settings.backups.deleteSelectedTitle` — EN `Delete {n} autosave? | Delete {n} autosaves?`.
+   Three of five models moved the placeholder BEHIND the noun (`¿Eliminar autosave {n}?`),
+   turning a quantity into an ordinal — "delete autosave number 3" instead of "delete 3
+   autosaves". Placeholder present exactly once, no numbers changed, both plural halves
+   differ, punctuation correct: **every structural check passes.** Ranked #1.
+2. `chapters.ai.clearStrikesDesc` — the "proyectos" hallucination. Ranked #2. Only caught
+   earlier by a co-occurring bracket flag, i.e. by luck.
+3. `characters.fields.arc.end.label` — "End" (a noun) rendered "Finalizar" (a verb) by
+   Hy-MT2. Ranked #3, five characters long.
+
+And it correctly IGNORES the known false positive: `chapters.footer.aiTokens`, where every
+model agreed to leave `· {n} tokens` alone, sank to #28 of 40. Agreement is the signal.
+
+**Honest limits.** `spread` correlates with source length at **r = 0.449**, so it is partly a
+length detector and would need normalising or within-band ranking before shipping — though
+ranks #3 (5 chars) and #4 (15 chars) show it is not only length. The trial used 8 runs across
+5 models; production would use two cheap models, not eight, and the recall at N=2 is
+unmeasured. Rank #4 (`Contraer` vs `Colapsar`) is benign synonym variation — arguably still
+worth flagging as a terminology-consistency question, but it is a false positive for defect
+detection.
+
+**How to verify.** `node scratchpad/disagree.mjs` against the run directories; it prints the
+ranking, where each known key lands, and the spread-vs-length correlation so the idea can be
+falsified rather than believed. **What would reverse it:** a run on the full 846-key catalogue
+where the known-bad keys do NOT rank high, or a length-normalised version where the signal
+disappears.
+
+#### BUILT 2026-07-28 as `--probe` — and the design changed on the way
+
+**The design changed before any code was written**, on the user's instruction to think again.
+The plan was two DIFFERENT models; measurement said the opposite. Running the same analysis
+over same-model-twice (`flag-gpu` vs `flag-gpu2`, temperature 0.2 at `loop.mjs:112`) against
+two different models (`flag-gpu` vs `hymt2-run2`):
+
+| | same model twice | two different models |
+|---|---|---|
+| the hallucination | **#1** (top 3%) | #5 |
+| the endpunc key | **#3** | #10 |
+| the ¿ key | **#5** | #8 |
+| known FALSE positive | #18 | #24 |
+| keys with ZERO spread | **30 of 40** | ~0 |
+
+Same model twice wins on every row AND deletes requirements: no second model to choose,
+download or configure, and it reuses the one already resident. Two different models word
+everything differently, so real defects drown in stylistic noise — `Contraer` vs `Colapsar`
+outranked the hallucination. The zero-spread majority also gives a natural floor: identical
+output means the model is sure, so only keys that MOVED are ever candidates.
+
+**What shipped.** `just-ai-help/src/suspects.mjs` (`spread` + `rankSuspects`, length-banded
+by the corpus's own distribution — no magic character constants), `--probe` in
+`src/translate.mjs` (a second pass into a `<lang>.probe.json` sidecar with its OWN cache
+file), suspects merged into one `allFindings()` used by both the report and `--escalate` so
+the two can never flag different things, and the review page reading the sidecar.
+Findings keep the existing `{key, code, detail}` shape — `code: "disagreement"`, with the
+second pass's wording in the detail — so escalation and the review page needed no new
+concepts. Budget is `"suspects": {"topN": 20}`, `0` disables.
+
+**Three defects found and fixed during the build, two of them by running it:**
+1. The probe MUST NOT share the main cache. The cache is loaded and written back every run
+   (`loop.mjs:297,383`) and `--force` overwrites entries (`:303,:347`), so a probe pass would
+   have replaced real translations with probe values and poisoned every later delta.
+2. Suspects were counted toward the FAILURE exit code. A suspect is "look at this", not
+   "this is broken"; failing CI on suspicion is how a report gets ignored — the same
+   reasoning behind `checkUntranslated`'s exemption. Now advisory: it prints, drives
+   escalation and the review page, and does not fail the build. Proven by running: exit 0
+   with 10 disagreement findings, exit 1 once a structural finding is present.
+3. An acted-on suspect must stop being one. Escalating a key, or editing it on the review
+   page, now drops its probe entry — otherwise the reviewer's own fix becomes the evidence
+   against it and the row stays flagged forever. Hand-editing the JSON directly still has
+   this problem and is documented as a known limitation with its remedy.
+
+**Verified by running.** 45 tests pass (was 36); the 8 new ones were proven to BITE by
+disabling the detector — 5 failed, and the 3 that still passed are exactly the silent-case
+tests that should. End-to-end on the 40-key corpus: 135.8 s (2 x ~70 s as predicted), 40/40
+both passes, sidecar written with 40 keys, `--check-only` reusing it with no engine, and
+**`settings.backups.deleteSelectedTitle` reported as the first suspect** — the
+placeholder-inversion defect no structural check can see, found automatically.
+
+**OPEN.** Not yet validated on the full 846-key catalogue (the 40-key trial is suggestive,
+not proof). The human-edit detection via cache comparison is designed but unbuilt. And
+`conventions.json` still ships Spanish only (`_shipped`: "a language is added when someone
+who knows it says what the rule is"), so `startpunc`/`spurious-interrogative` cover no other
+language — the models themselves are multilingual and the tool takes any `targets` list.
+
+**OPEN — the user's calls, not consequences of these numbers.** Whether
+`just-ai-help/src/models.json` changes its 8 GB recommendation: the flagship is a 15 GB
+download against Hy-MT2's 4.6 GB and gemma3:12b's 8.1 GB, and availability is not
+recommendation. The recommendation here would be to KEEP gemma3:12b (zero real errors at
+8.1 GB — the right pick for a machine that cannot hold the flagship), DROP translategemma:12b
+(structural failure), and treat Hy-MT2-7B as a speed option that costs correctness rather than
+as the 8 GB default. Gemini was not re-measured — its free tier is 20 requests/day and one
+corpus run is 3, but the key is the user's to spend.

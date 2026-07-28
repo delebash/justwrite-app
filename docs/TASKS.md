@@ -742,6 +742,25 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   test candidate; Mistral Small Creative — the one prose-purpose-built official model
   found — is API-only and deprecated, OUT.
 
+- ✅ **Unsloth Studio seeded as a local provider — SHIPPED 2026-07-28** (your ruling: "1 we keep
+  our engine, 2 add unsloth provider"). One seed row (`llm_runner/llm/seed.py`, generic
+  `openai-compat` type, `http://localhost:8888/v1`) plus a preset chip
+  (`ui/src/composables/useProviderConnect.js:18`) — the same treatment LM Studio got on
+  2026-07-19, for the same reason: it speaks OpenAI-compatible, so a dedicated provider type
+  would buy a label and cost ~8 parallel type lists. **Deliberately NOT added to
+  `detect-local`**: that probe GETs `/v1/models` unauthenticated, and Unsloth requires
+  `Authorization: Bearer sk-unsloth-…` on every request with no documented way to disable it,
+  so the probe could only ever 401 — dead code implying a capability we do not have. Base URL
+  is from Unsloth's own documented curl example; their docs also say "typically 8000 or 8888"
+  and name no authoritative default, so a user serving on 8000 must edit the row — flagged,
+  not guessed. **The engine layer is unchanged and stays ours**: we run raw `llama-server`
+  because `--n-cpu-moe` is the deciding switch and the GUI runners do not reliably expose it
+  (`just-llm-runner/docs/plans/2026-06-24-llamacpp-switches.md:488-495`), and Studio also has
+  no embeddings endpoint, no API to load a model on demand, and a Python+venv+winget+Git
+  install — see `docs/plans/2026-07-26-i18n-single-source-research.md` for the full weighing.
+  Gates: runner 710 passed (1 documented Windows lspci known-bad), JW vitest 466, `build:vite`,
+  ruff, biome, and `HEADLESS SMOKE PASSED` with the provider-form check green.
+
 ## Open — awaiting a go (shared AI stack)
 
 - **Batches 5 + 6 — VERIFIED AGAINST CODE 2026-07-26: only TWO items actually remain.** The
