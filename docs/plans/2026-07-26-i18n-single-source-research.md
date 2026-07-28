@@ -698,3 +698,44 @@ lazy copy from a correct cognate is not obvious and is not mine to invent.
 One key exhausted its retries during escalation (`characters.fields.function.escalation.label`)
 and **kept its previous translation rather than being erased** — the hard-fail-preserves-prior
 behaviour working as designed.
+
+### Model recommendations by VRAM — `just-ai-help/src/models.json`, added 2026-07-28
+
+**What changed.** A new file, `just-ai-help/src/models.json`, holding which model to run at
+which VRAM tier. It is deliberately NOT part of `engines.json`: that file holds PROVIDER facts
+(how to reach a server — url, kind, batch size, rate limit), whereas this holds MODEL
+JUDGEMENT (which weights are any good). A provider row is configuration; a model row is a
+claim about quality, and a claim needs evidence attached.
+
+**Why, and the two rules written into the file.** The user asked for larger-VRAM options —
+"maybe larger versions of the hy-mt2 or gemma if they prove to be the best in our small vram
+solution". The trap in that request is the one their own JustWrite catalogue work already
+named: availability is not recommendation. So every entry carries `status: measured` or
+`status: available`, and the file states why the distinction is load-bearing — **TranslateGemma
+is the proof**: the 12B was measured flawless while the 4B translated the do-not-translate
+brand `Strands` to `Hilos` and dropped a key. A larger or smaller sibling of a good model is a
+CANDIDATE, never a recommendation. The second rule is `_size_does_not_predict_fit`:
+`gemma3:12b` and `translategemma:12b` are BOTH 8.1 GB on disk and took **227 s and 1,145 s**
+for the same 40 keys on the same 8 GB card — 5x apart. Tiers are therefore grouped by what was
+measured to run well, never by arithmetic on file sizes. The 16 GB and 24 GB+ tiers carry
+`recommended: null` with named candidates, because nobody here owns that hardware and a
+plausible-sounding guess in a shipped table is indistinguishable from a measurement to whoever
+reads it later.
+
+**The new measurement that prompted it.** The user's HuggingFace links (after correctly
+calling out that searching the marketing name "TowerLLM" instead of the family name
+`Tower-Plus` was lazy) surfaced that **Tencent ships FIRST-PARTY GGUFs for the whole Hy-MT2
+family** — `Hy-MT2-1.8B`, `7B`, and `30B-A3B` (187k downloads on the base repo), which is the
+opposite of the third-party-quant provenance that made StyleTune a hazard. `Hy-MT2-7B`
+(Q4_K_M, 4.6 GB) pulled via Ollama's `hf.co/` path and ran the 40-key corpus: **0 structural
+failures, 2 semantic flags (1 startpunc, 1 endpunc), 232.6 s** — statistically tied with
+`gemma3:12b` (0 structural, 1-2 semantic, 219-227 s) at **57% of the disk size**. One run does
+not unseat a two-run winner, so the default is unchanged pending a second run; `qwen3:14b` is
+measuring now.
+
+**How to verify.** `node -e "require('./src/models.json')"` parses; the measured numbers are
+reproducible by re-running the 40-key corpus at
+`C:\Users\danel\.claude\jobs\5b32e070\tmp\mt-bakeoff\<model>\` with
+`node E:\Dev\Web\just-ai-help\src\translate.mjs config.json`. **What would reverse it:** a
+second Hy-MT2-7B run confirming the first would make it the 8 GB recommendation on size alone;
+a 16 GB machine appearing would let that tier stop being `null`.
