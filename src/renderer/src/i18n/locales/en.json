@@ -1110,6 +1110,39 @@
       }
     }
   },
+  "analysis": {
+    "intro": "{analysis} is a dashboard of objective data about your manuscript — how much you've written, how fast, how the chapters are structured, and what your prose patterns look like. Almost everything is calculated locally from the text; the only AI surfaces are the {tension} bulk-analyse button and the per-chapter {explain} button under Voice drift.",
+    "kpi": {
+      "manuscript": "Manuscript",
+      "wordsOfGoal": "words · {pct}% of goal",
+      "chapters": "Chapters",
+      "markedDone": "marked done",
+      "avgChapter": "Avg chapter",
+      "words": "words",
+      "paceWindow": "Pace ({days}d)",
+      "avgWordsPerDay": "avg words / day"
+    },
+    "pace": {
+      "title": "Pace",
+      "subtitle": "Daily words written",
+      "windowLabel": "Time window",
+      "total": "total",
+      "avgPerDay": "avg/day",
+      "peakDay": "peak day"
+    },
+    "year": {
+      "title": "Writing year",
+      "subtitle": "Last 53 weeks · {words} words",
+      "less": "less",
+      "more": "more"
+    },
+    "tension": {
+      "title": "Story tension"
+    },
+    "voice": {
+      "explain": "Explain"
+    }
+  },
   "welcome": {
     "eyebrow": "Welcome to",
     "wordmark": "JustWrite",

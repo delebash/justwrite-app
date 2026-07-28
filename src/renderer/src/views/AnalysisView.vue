@@ -461,49 +461,47 @@ const milestoneState = computed(() => {
   <div class="pane-card">
   <div class="scrollarea" style="padding:22px 26px 60px">
 
-    <p class="an-desc">
-      <strong>Analysis</strong> is a dashboard of objective data about your manuscript — how much
-      you've written, how fast, how the chapters are structured, and what your prose patterns
-      look like. Almost everything is calculated locally from the text; the only AI surfaces are
-      the <strong>Story tension</strong> bulk-analyse button and the per-chapter
-      <strong>Explain</strong> button under Voice drift.
-    </p>
+    <i18n-t keypath="analysis.intro" tag="p" class="an-desc" scope="global">
+      <template #analysis><strong>{{ $t("nav.analysis") }}</strong></template>
+      <template #tension><strong>{{ $t("analysis.tension.title") }}</strong></template>
+      <template #explain><strong>{{ $t("analysis.voice.explain") }}</strong></template>
+    </i18n-t>
 
     <!-- KPI row -->
     <div class="kpi-row" style="display:grid;gap:14px;margin-bottom:18px">
       <div class="card kpi">
-        <div class="t-eyebrow">Manuscript</div>
+        <div class="t-eyebrow">{{ $t("analysis.kpi.manuscript") }}</div>
         <div class="kpi-val">{{ kpis.totalWords.toLocaleString() }}</div>
-        <div class="kpi-sub">words · {{ kpis.goalPct }}% of goal</div>
+        <div class="kpi-sub">{{ $t("analysis.kpi.wordsOfGoal", { pct: kpis.goalPct }) }}</div>
       </div>
       <div class="card kpi">
-        <div class="t-eyebrow">Chapters</div>
+        <div class="t-eyebrow">{{ $t("analysis.kpi.chapters") }}</div>
         <div class="kpi-val">{{ kpis.chaptersDone }} <span class="kpi-of">/ {{ kpis.chaptersTotal }}</span></div>
-        <div class="kpi-sub">marked done</div>
+        <div class="kpi-sub">{{ $t("analysis.kpi.markedDone") }}</div>
       </div>
       <div class="card kpi">
-        <div class="t-eyebrow">Avg chapter</div>
+        <div class="t-eyebrow">{{ $t("analysis.kpi.avgChapter") }}</div>
         <div class="kpi-val">{{ kpis.avgChapterLength.toLocaleString() }}</div>
-        <div class="kpi-sub">words</div>
+        <div class="kpi-sub">{{ $t("analysis.kpi.words") }}</div>
       </div>
       <div class="card kpi">
-        <div class="t-eyebrow">Pace ({{ windowDays }}d)</div>
+        <div class="t-eyebrow">{{ $t("analysis.kpi.paceWindow", { days: windowDays }) }}</div>
         <div class="kpi-val">{{ pace.avg.toLocaleString() }}</div>
-        <div class="kpi-sub">avg words / day</div>
+        <div class="kpi-sub">{{ $t("analysis.kpi.avgWordsPerDay") }}</div>
       </div>
     </div>
 
     <!-- Pace -->
     <div class="card" style="margin-bottom:18px">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-        <div class="card-title" style="margin:0">Pace</div>
-        <span class="t-muted" style="font-size:11.5px">Daily words written</span>
+        <div class="card-title" style="margin:0">{{ $t("analysis.pace.title") }}</div>
+        <span class="t-muted" style="font-size:11.5px">{{ $t("analysis.pace.subtitle") }}</span>
         <UiSegmented
           style="margin-left:auto"
           :model-value="windowDays"
           :options="WINDOW_OPTIONS"
           size="small"
-          aria-label="Time window"
+          :aria-label="$t('analysis.pace.windowLabel')"
           @update:model-value="windowDays = $event" />
       </div>
       <svg :viewBox="`0 0 ${paceShape.w} ${paceShape.h}`" preserveAspectRatio="none"
@@ -512,9 +510,9 @@ const milestoneState = computed(() => {
         <polyline :points="paceShape.line" fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke" />
       </svg>
       <div style="display:flex;gap:18px;margin-top:8px;font-size:11.5px;color:var(--muted)">
-        <span><b class="t-num" style="color:var(--ink)">{{ pace.total.toLocaleString() }}</b> total</span>
-        <span><b class="t-num" style="color:var(--ink)">{{ pace.avg.toLocaleString() }}</b> avg/day</span>
-        <span><b class="t-num" style="color:var(--ink)">{{ pace.max.toLocaleString() }}</b> peak day</span>
+        <span><b class="t-num" style="color:var(--ink)">{{ pace.total.toLocaleString() }}</b> {{ $t("analysis.pace.total") }}</span>
+        <span><b class="t-num" style="color:var(--ink)">{{ pace.avg.toLocaleString() }}</b> {{ $t("analysis.pace.avgPerDay") }}</span>
+        <span><b class="t-num" style="color:var(--ink)">{{ pace.max.toLocaleString() }}</b> {{ $t("analysis.pace.peakDay") }}</span>
       </div>
     </div>
 
@@ -522,12 +520,13 @@ const milestoneState = computed(() => {
     <div class="heatmap-milestones-row" style="display:grid;gap:18px;margin-bottom:18px">
       <div class="card">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-          <div class="card-title" style="margin:0">Writing year</div>
-          <span class="t-muted" style="font-size:11.5px">Last 53 weeks · {{ heatmap.total.toLocaleString() }} words</span>
+          <div class="card-title" style="margin:0">{{ $t("analysis.year.title") }}</div>
+          <span class="t-muted" style="font-size:11.5px">{{ $t("analysis.year.subtitle", { words: heatmap.total.toLocaleString() }) }}</span>
           <span style="margin-left:auto;display:flex;gap:6px;align-items:center;font-size:10.5px;color:var(--muted)">
-            <span>less</span>
+            <!-- $t, not t: the v-for below binds `t` and would shadow the composable's t. -->
+            <span>{{ $t("analysis.year.less") }}</span>
             <span v-for="t in [0,1,2,3,4]" :key="t" class="hm-cell" :class="`hm-t${t}`" style="width:11px;height:11px" />
-            <span>more</span>
+            <span>{{ $t("analysis.year.more") }}</span>
           </span>
         </div>
         <div class="hm-grid">
