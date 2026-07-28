@@ -656,3 +656,45 @@ they were sitting in a buffer.
 
 Nothing about the tool was wrong. The instrumentation around it was, and a confident diagnosis
 built on unattributable evidence did the damage.
+
+### STEP 6 landed — and the checks caught a regression the corpus could not
+
+The 846-key proof run finished 2026-07-27 19:17: **846/846 translated, 56 requests, 3
+single-item retries, 3,112.8 s** (52 min) on gemma3:12b via Ollama. Structurally perfect at
+scale — **zero** placeholder, plural, glossary or missing-key failures across the whole
+catalogue, and **0 of 16** real questions lost their opening ¿, which is the bake-off result
+holding at 21x the sample size.
+
+**The regression, and it was ours.** The conventions `promptLine` told the model Spanish
+questions open with ¿ and never said *only when it is a question*. The catalogue came back
+with **72 ¿ against 16 real questions — 56 spurious**: the button "Try tutorial project"
+became "¿Probar proyecto de tutorial?", the card title "Statuses" became "¿Estados?", the
+empty state "No chapters match" became a question. The 40-key corpus could not have caught
+it (five questions, few imperative labels); only the full catalogue had the surface area.
+This is the checks earning their place — a defect invisible to every structural test, found
+mechanically.
+
+**Fixed in two parts.** The promptLine now says when NOT to apply (`conventions.json`, with
+the old wording preserved in `_promptline_history` so the lesson survives the fix), and a new
+inverse check `checkSpuriousPunc` / `spurious-interrogative` flags a target that opens a
+paired mark the source never closed — `endpunc` had caught only 39 of the 56 because the rest
+had matching terminal punctuation. Test bites on the two verbatim regressions and stays
+silent on genuine questions, so the cure cannot undo `startpunc`. 37/37.
+
+**Escalation, measured:** `--escalate ollama` over the 63 flagged keys — **99 findings → 23,
+63 keys → 18, 557 s**, 22 requests. Spurious ¿ fell **52 → 10**.
+
+**What remains, and why it stays.** The surviving 10 are one harder class: English labels
+built from interrogative words with no question mark — "Where the lie began", "How they
+escalate", "How they sound and move — the calibration set." Semantically interrogative,
+grammatically a label; correct Spanish nominalises without marks. A prompt rule cannot
+reliably separate those from real questions, and an automatic strip would be a blind mutation
+of translated prose. They are a **review-page residue: 10 of 846, 1.2%**, which is the
+workflow the third layer exists for. The 8 `untranslated` flags are all false positives —
+"No", "General", "Error", "ID", "Tauri ({version})", "Vue 3 + Pinia" are correct as-is; a
+cognate exemption is possible but unbuilt, and deliberately so: the rule that distinguishes a
+lazy copy from a correct cognate is not obvious and is not mine to invent.
+
+One key exhausted its retries during escalation (`characters.fields.function.escalation.label`)
+and **kept its previous translation rather than being erased** — the hard-fail-preserves-prior
+behaviour working as designed.
