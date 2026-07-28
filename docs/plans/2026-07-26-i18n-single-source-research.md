@@ -146,6 +146,48 @@ hint, the drawer section, and their translations are provably one text family, a
 Deliberately NOT done: no CMS, no runtime markdown parsing, no button labels migrating
 into prose docs. Sequencing unchanged — this IS phase 2 of the build order below.
 
+### FUNCTION 2 BUILT 2026-07-28 — `extract`, and what it does NOT yet do
+
+**What shipped** (`just-ai-help` `424df12`): `src/frontmatter.mjs` + `src/extract.mjs` +
+`npm run extract`, implementing the design above unchanged — doc front-matter `lede:`/`hints:`
+becomes `lede.<slug>` / `hints.<slug>.<name>` in the SOURCE locale, so the composition is
+`docs → extract → en.json → translate → es.json` and a changed hint re-translates as an
+ordinary key delta. 64 tests, up from 45.
+
+**The ownership rule, which is the load-bearing part.** The tool owns two prefixes and
+nothing else: every run clears `lede.*`/`hints.*` and rewrites them from the docs, so a hint
+deleted from a document leaves the locale instead of being translated into nine languages for
+nobody — while every hand-written key is untouched. A generator that can clobber authored copy
+is one nobody dares run, and a generator that cannot delete is one whose output rots.
+
+**The locale's own shape is preserved** — nested files get nested keys, flat files (literal
+dotted keys) get flat ones, DETECTED rather than configured. Reshaping 800 hand-written keys
+to add two of its own is how a generator gets banned from a repo.
+
+**The parser refuses what it does not understand** — tabs, lists, multi-line scalars, deeper
+nesting, duplicate keys all throw with file and line. The dangerous failure was never a parser
+that errors; it is one that succeeds on something it misread and silently drops a sentence,
+which then never reaches a locale, never gets translated, and appears as a blank hint with
+nothing reporting a problem. A bite proof caught exactly that class in my own code: `lede: |`
+slipped past the block-scalar guard because the guard tested the LINE start rather than the
+VALUE, so it failed one line later blaming an orphan indent — the wrong problem, at the wrong
+line. Fixed and pinned.
+
+**`--check` is the CI contract:** the committed locale must match the docs, because a stale
+generated key is exactly as broken as a missing one and neither is visible by reading either
+file alone.
+
+**NOT done, and deliberately — JW adoption needs decisions.** JustWrite's docs
+(`docs/*.md`, glob-loaded at `services/helpDocs.js:14`) carry NO front-matter today; the
+one-line hints that exist live in `docs/toc.json` per doc, not in the documents. Adopting this
+therefore needs, in order: (a) a ruling on whether the toc's `hint` moves into each doc's
+front-matter as its `lede:` (they are the same kind of sentence written in the wrong file);
+(b) which surfaces get a lede at all, and what renders it — a shared component or per-view
+markup; (c) the hints content pass itself, which is authoring, not engineering. Generating
+`lede.*` keys into `en.json` before anything consumes them would add dead keys that
+`i18n:report` correctly flags as unreferenced, so the tool stays unwired until those calls are
+made.
+
 ## THE SHAPE RULING (the user, 2026-07-26, mid-research): a SHARED autotranslate system
 
 *"We should build an autotranslate system that works with any app with this stack or Vue —
