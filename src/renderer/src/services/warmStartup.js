@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 // On startup, run the SAME workflow every load button runs — nothing bespoke (user, 2026-07-21:
 // "on start call the engine install, it either installs or passes, then call load model. run
 // existing function 1 2 3, no new fancy warm boot function"). So this holds NO load logic:

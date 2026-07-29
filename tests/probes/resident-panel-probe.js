@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 // Targeted probe for the SVM Phase-4a "resident set + residency knobs" panel in
 // the shared kit's LuRunnerEngine.vue (mounted in the Built-in provider form).
 //

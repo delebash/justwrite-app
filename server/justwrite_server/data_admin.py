@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: MIT
 """Host wiring for the shared data backup/restore/reset router
 (`llm_runner.platform.make_data_router`). JustWrite keeps everything in its
 SQLite DB, so no extra asset dirs — a DB backup is the whole workspace. Backup +

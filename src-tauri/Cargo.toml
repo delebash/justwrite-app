@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "JustWrite — a novel-writing app"
 authors = ["JustWrite contributors"]
 edition = "2021"
-license = ""
+license = "MIT"
 
 # Tauri 2 expects both a library (for the mobile targets) and a binary (desktop).
 # `tauri::generate_context!` lives in the library; the binary just calls `run()`.

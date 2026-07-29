@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: MIT
 """Data-driven sample loader for the JustWrite demo/tutorial book.
 
 The sample is no longer hardcoded Python (it was a 536-line module until
