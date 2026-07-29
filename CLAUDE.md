@@ -1,294 +1,91 @@
-# JustWrite — agent instructions
+# JustWrite
 
-**A writing app (novels / manuscripts). Tauri 2 + Vue 3 renderer + Python (FastAPI + SQLite) server.** Writing-only — all audio (Studio, TTS, audiobook export) lives in the separate **JustVoice** app, which JustWrite drives over an HTTP contract (JW hands JV the prose; JV does its own casting + narration). Do **not** reintroduce TTS, speaker analysis, voice casting, or audio rendering here.
+A novel-writing app: **Tauri 2 + Vue 3 renderer + Python (FastAPI + SQLite) server.** Persistence is
+server-owned SQLite — the renderer holds no durable data. The whole AI/LLM stack is shared with the
+sibling app JustVoice: `just-llm-runner` (Python) + `@delebash/llm-ui` (Vue).
 
-## Read first (every session)
-
-- **Global rules:** `~/.claude/CLAUDE.md` — the five checks **R1–R5** + the two habits (ask when unsure · look at what you built) + the act-not-word law; detail + the shared Vue 3 + Tauri 2 app standard in `~/.claude/rules-detail.md`. They govern; this file does NOT restate them.
-- **`MORNING_RECAP.md`** (this repo) — the boot-map: rules, current state, and the doc index. Read it before acting; don't re-litigate decisions recorded there. It POINTS at the two live lists below (it no longer holds open-work lists itself).
-- **`docs/TASKS.md`** — the live open-work tracker for the whole system (JustWrite · shared AI stack · JustVoice · your-box checks). One line per item + a pointer to its detail doc. **`docs/IDEAS.md`** — the ideas backlog. Maintain open work in `TASKS.md`, not the recap.
-- The memory index (auto-loaded) — open a specific memory file when the task touches it.
+**Writing only.** All audio — Studio, TTS, audiobook export, speaker analysis, voice casting — lives
+in JustVoice, which JustWrite drives over an HTTP contract (JW hands JV the prose; JV does its own
+casting and narration). Do not reintroduce any of it here.
 
 ## Commands
 
 ```bash
 npm install            # JS deps (first run only)
-npm run dev            # Tauri dev — boots Vite + native window. First run compiles the Rust crate (slow); subsequent runs are fast.
+npm run dev            # Tauri dev — Vite + native window. First run compiles the Rust crate (slow).
 npm run build          # Packaged app for the current OS
-npm run dev:vite       # Renderer only, in a plain browser tab (no Tauri APIs — project data still uses the server; images fall back to data-URLs)
-npm run build:vite     # Renderer build only (Tauri invokes this via `beforeBuildCommand`)
+npm run dev:vite       # Renderer only, in a browser tab (no Tauri APIs; data still via the server)
+npm run build:vite     # Renderer build only — a COMPILE check, not a substitute for the smoke
 
-npm run test:fast      # QUICK gate (~53s): vitest + build:vite + server pytest.
-                       # NOT the full fleet — no headless smoke (THE renderer gate), no
-                       # runner pytest, no cargo check, no biome/ruff. build:vite is a
-                       # COMPILE check, never a substitute for the smoke. Green here does
-                       # NOT clear a renderer/GUI change.
+npm run test:fast      # quick gate (~53s): vitest + build:vite + server pytest
 npm run test:unit      # vitest only (429 tests, ~8s)
-npm run test:server    # server pytest only (121 tests, ~38s — parallel by default)
+npm run test:server    # server pytest only (121 tests, ~38s, parallel)
+npm run i18n:report    # locale coverage — MISSING must always be zero
 ```
 
-**Which Python runs.** Every npm script that needs an interpreter goes through
-`scripts/py.js`, which prefers this project's venv (`.venv/Scripts/python.exe` on Windows,
-`.venv/bin/python` on POSIX) and falls back to PATH. Do **not** put bare `python` back in a
-script: it resolves to whatever is first on PATH, which on the user's Windows box is a stock
-`F:\Python312` with none of this project's dependencies — that is why `npm run test:server`
-used to die with `unrecognized arguments: -n` (no pytest-xdist, which `server/pyproject.toml`'s
-addopts requires), taking `npm run test:fast` down with it, and why the runner's suite died at
-collection with `No module named 'google'`. Both read as broken config; both were a missing
-install. `scripts/py.js` preserves the child's exit code, so a failing suite still fails the
-script.
+**Never put bare `python` in a script.** Every npm script that needs an interpreter goes through
+`scripts/py.js`, which prefers this project's venv and falls back to PATH. Bare `python` resolves to
+a stock `F:\Python312` with none of this project's dependencies, which is what made
+`npm run test:server` die with `unrecognized arguments: -n` and took `test:fast` down with it.
 
-The shared **runner** has no venv of its own — `llm_runner` is editable-installed into THIS
-project's venv, so its suite runs on the same interpreter, from the runner repo:
+**The headless smoke IS the renderer gate, and it runs here.** A recurring wrong claim is that
+there is no renderer gate or that it cannot run in this environment — false. `npm run test:fast`
+does NOT clear a renderer or GUI change; run the smoke:
 
 ```bash
-cd ../just-llm-runner && ../justwrite-app/.venv/Scripts/python.exe -m pytest -q
-# 703 passed; the one failure, test_hardware.py::test_pci_gpus_linux_lspci_name_match,
-# is a Linux lspci path test and is known-bad on Windows.
+python -m justwrite_server.cli serve --port 17495   # background
+npm run dev:vite                                     # :1420, background
+node tests/smoke/headless-smoke.js                   # drives every hash route, asserts zero JS errors
 ```
 
-**Test times (MEASURED 2026-07-15 — do NOT skip tests; they were never the bottleneck).**
-The five test gates below total **~2.6 min** — vitest **3s** · build:vite **2s** · server
-pytest **46s** · runner pytest **45s** · headless smoke **61s** (3s boot + 58s driving 25
-routes). *(cargo check and biome/ruff are NOT in that 2.6 min — untimed.)* The server suite
-was 147s and is now 46s by running on all cores with nothing skipped; **the full reasoning,
-the statement census, the safety argument, and the rejected alternative live in ONE place —
-`server/pyproject.toml`'s `[tool.pytest.ini_options]` comment.** Read it there before
-optimising or "fixing" the parallelism; don't restate its census or reasoning numbers here
-(a duplicated count in this file is how a wrong one propagated once already). Debug serially: `pytest -n 0`.
+Any new Playwright script must reuse `findChrome()` from `tests/lib/smoke-common.js` (it handles
+Windows, macOS and Linux layouts) or set `JW_CHROME`. Never hardcode a browser path.
 
-Configured tooling (an earlier note here wrongly claimed "none" — verify against `package.json`, don't trust this line blindly): **Biome** (`biome.json` — lint + format; match the file's existing style, don't bulk-reformat unrelated code), a **vitest unit harness** (`vitest.config.js`, node environment — `npm run test:unit`; pure-JS service/composable tests like the embedApi ensure-cache + modelMeta suites; it complements, never replaces, the headless smoke below), an **`e2e/`** WebDriver harness (`tauri-driver` + `msedgedriver` driving the **built desktop binary** — `npm test` runs the smoke suite, `npm run screenshots` the marketing shots; both need a compiled `.exe` + Edge/WebView2, so it is **not** a headless or quick dev gate), and a **Playwright headless renderer smoke** (`tests/smoke/headless-smoke.js`, plus `tests/smoke/book-smoke.js`). **The headless smoke IS the renderer gate and it RUNS in this dev container** (a recurring wrong claim is that there's "no renderer gate / it's not runnable here" — false; run it). To run: boot `python -m justwrite_server.cli serve --port 17495` (background) + `npm run dev:vite` (:1420, background), then `node tests/smoke/headless-smoke.js` — it drives headless Chromium over every hash route and asserts ZERO JS errors. Chromium is prebuilt — the binary is at `/opt/pw-browsers/chromium-<ver>/chrome-linux/chrome` (**a versioned dir**, e.g. `chromium-1194`; **NOT** `/opt/pw-browsers/chromium/`). The smoke's `findChrome()` auto-locates it; **any new Playwright script must reuse that `findChrome()` (copy it from `tests/smoke/headless-smoke.js`) or set `JW_CHROME` — never hardcode the path** (a hardcoded `/opt/pw-browsers/chromium/...` silently falls over to the missing headless-shell build and the launch fails). **Run it to verify any renderer/GUI change.** Compile checks are `npm run build:vite` + `cd src-tauri && cargo check`; the **`e2e/`** WebDriver harness (`tauri-driver` + `msedgedriver` driving the **built `.exe`** — `npm test`, `npm run screenshots`; needs a compiled binary + Edge/WebView2) is the packaged-desktop check, not the quick gate. The Python **`server/`** (server-mode migration — see `docs/plans/2026-06-18-jw-server-migration.md`) uses **pytest + ruff**.
+**Never touch the user's live `:1420` / `:17495`.** Use an isolated server and a temp data dir.
 
-The Rust crate is built by the Tauri CLI; Vite never sees it. The renderer dev server is fixed at `http://localhost:1420` and `tauri.conf.json` references that URL — keep them in lock-step.
+## Invariants that bite
 
-## Shared app standard + JustWrite specifics
+- **Don't call `invoke()` from views or stores** — go through `window.justwrite` (`services/tauri-bridge.js`), or the browser-only dev path breaks.
+- **A new mutating store action must be added to `ACTION_DOMAINS`** — an unmapped action warns and records nothing, so undo silently skips it. Keystroke-grain mutators also go in `COALESCED_ACTIONS` or the undo buffer fills instantly.
+- **`project` is one monolithic Pinia store on purpose** — it owns snapshot-based undo/redo across all entities. That is JustWrite's sanctioned exception to per-domain stores.
+- **Import `Ui*` primitives from `@delebash/llm-ui`.** There is no local `components/ui/` directory and no `Jw*` components; never re-fork one locally. A capability gap gets promoted into the kit. The single `intent` prop encodes role AND style — never add `severity` / `outlined` / `text`.
+- **`i18n/locales/en.json` is the world** for user-facing English. Reuse an existing key before minting a new one; `MISSING` in `i18n:report` must stay zero.
+- **NOTHING hardcoded** — every value, threshold, name, mapping, flag and preset lives in the DB, seeded and user-editable. Code is only the engine.
+- **No JSON blobs in SQL** — relational data gets real columns and rows. JSON only for genuinely freeform data, with a cited reason.
+- The **`@renderer` alias** is `src/renderer/src/`. Prefer relative imports within a directory, `@renderer/...` across the tree.
+- The renderer dev server is fixed at `http://localhost:1420` and `tauri.conf.json` references that URL — keep them in lock-step.
 
-JustWrite follows the shared **Vue 3 + Tauri 2 app standard** in the global
-`~/.claude/CLAUDE.md` (folder layout · `tokens.css`+`styles.css` · vue-router ·
-origin-aware `services/serverApi.js` + `VITE_SERVER_URL` · per-domain Pinia
-stores · `services/appearance.js` · Biome · server-side seed · connection-gate
-boot). Don't restate it here — this section is JustWrite-specific only. Sibling
-app: JustVoice. When a surface exists in both, they must match unless a
-documented reason below says otherwise.
+## Product and design rules
 
-**JustWrite's justified differences:** dev port **1420**; a single monolithic
-`project` Pinia store — it owns snapshot-based undo/redo across all entities, the
-one sanctioned exception to per-domain stores.
+- **The seed ships FACTS and RULES.** The machine supplies MEASUREMENTS, the pair (model × machine) owns the numbers, and the user or the wizard supplies CHOICES. No measurement rows in the product seed, and no auto-anything behind the user's back.
+- **DB policy: drop and reseed, no migrations** (pre-release — `docs/plans/2026-06-18-unified-storage-no-idb.md`). Additive-only schema changes need no reset; `create_all` picks up new tables on boot.
+- **Don't cram.** Hierarchy and breathing room on every surface: one short lede sentence at most on a working surface (detail goes behind the help affordance), one fact shown once, one primary thing on screen per mode.
+- **No naming popups.** Creating or renaming a thing never goes through a name-popup — every entity opens its one add/edit form directly, where the name is a plain field editable at any time, and the form refuses to save until its required assignments are set.
+- **Design against precedent.** Before UI-design work, name in writing the existing precedent surface in this app plus a real-world reference. The user's reference screenshots are the spec.
 
-> **AI/LLM stack is shared** — `just-llm-runner` (Python) + `@delebash/llm-ui`
-> (Vue), consumed by both apps; only TTS and each app's feature catalog differ.
-> The current cutover state lives in `MORNING_RECAP.md`; open AI-stack work is tracked in
-> `docs/TASKS.md` (the whole-system live tracker), which points to
-> `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` (THE ledger, sections
-> A–J, twice-verified) for the detail; and the **current AI-routing / preset model** is
-> `just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrite.md`
-> (**one-source model**, 2026-07-15: the task tier is DELETED — each action points at ONE
-> engine preset (`feature_preset_refs`, seeded full) which owns the model + every tunable
-> incl. think/reasoning; the action keeps only its prompt text + JSON contract; one
-> `default_preset_id` RunnerSetting catches unassigned customs. The 2026-07-14 plan's
-> Unit-2 reasoning BACKEND stands; its task-tier language is superseded).
-> The old roadmap (`2026-06-28-MASTER-PLAN.md`, bannered fully historical 2026-07-08)
-> and the other `docs/plans/*` are history/evidence. Not here.
+## Tooling
 
-## Architecture
+**Biome** (`biome.json`) is the linter — `"formatter": { "enabled": false }`, so it does not format;
+match each file's existing style and never bulk-reformat unrelated code. Scope is
+`src/renderer/src/**/*.{js,vue}`. The Python server uses **ruff**. i18n linting is a separate
+`eslint.i18n.config.mjs` carrying i18n rules only.
 
-### Layout
+## Where to look
 
-- `src/renderer/` — Vite root for the Vue 3 + Pinia renderer. Vite's `root` is `src/renderer/`, not the repo root.
-- `src-tauri/` — Rust crate. `main.rs` calls `justwrite_lib::run()`; all `#[tauri::command]`s live in `lib.rs`.
-- `dist/` — Vite output, consumed by Tauri as `frontendDist`.
-
-### IPC bridge (Tauri ↔ renderer)
-
-`src/renderer/src/services/tauri-bridge.js` is a side-effect import in `main.js`. It detects `window.__TAURI_INTERNALS__` and populates `window.justwrite` with:
-
-```
-window.justwrite.shell   = { pickDirectory, openExternal, saveFile }
-window.justwrite.storage = { getRoot, relocate }   // the portable data root (Rust storage_*)
-```
-
-These mirror Rust commands in `src-tauri/src/lib.rs` one-for-one (`pick_directory`, `open_external`, `shell_save_file`, `storage_get_root`, `storage_relocate`). (The legacy file-based `window.justwrite.project` save/open + the `project_save`/`project_open` Rust commands were removed 2026-07-13 — per-project backup/transfer lives in Settings → Backups via `services/bookTransfer.js`, and persistence is server-owned.) The **data root** is a portable, user-settable folder holding ALL app data (projects DB + images + AI engine + models + logs); `storage_relocate` moves it and respawns the server (see `docs/plans/2026-07-02-portable-data-root-and-engine-install.md`). When `window.justwrite` is undefined (plain `vite dev` in a browser), project data still persists to the server via `projectApi`, and images upload to the server via `imageStore` (inline data-URL fallback only when the server is unreachable). **Do not call `invoke()` from views or stores — go through `window.justwrite`** so the browser-only path keeps working.
-
-When adding a new Tauri command:
-1. Add the `#[tauri::command]` function in `src-tauri/src/lib.rs` and register it in the `invoke_handler![]` list.
-2. Add a matching method to `window.justwrite.*` in `tauri-bridge.js`.
-3. If it needs a new plugin permission, update `src-tauri/capabilities/default.json` (currently grants `core:default`, `dialog:default`, `fs:default`).
-
-
-### State (Pinia stores)
-
-All in `src/renderer/src/stores/`:
-
-- `project` — every entity (chapters, characters + extras, locations, objects, groups, notes, strands, worldbuilding, architecture), images, events, trash, and chapter bodies. Owns persistence and undo/redo.
-- `ui` — sidebar, selections, toasts.
-- `ai` — provider registry (OpenAI-compatible endpoints).
-- `sessions` — per-day word count log feeding Home + Analysis Pace.
-
-**Project store invariants worth knowing before mutating it:**
-
-- Persists each project snapshot to the **server** (SQLite via `/v1/projects`) through `services/projectApi.js` (`putSnapshot`/`getSnapshot`; the registry is derived from the projects table). The active project id lives in the settings document (`services/settings.js` → `/v1/settings`). No client-side IndexedDB store — the renderer holds no durable data.
-- Deletes are **soft** — `removeXxx` actions move the entity to `state.trash[kind]`; recovery is ⌘Z on the owner's page (deletes are tracked history actions) and `TrashView` restore / permanent delete. No delete toast (the QC-37 toast law, 2026-07-09: the row visibly leaves, and undo never rides an ephemeral surface).
-- Undo/redo is **PAGE-RELATED, snapshot-based, in-memory only** (#235, 2026-07-10 — full design: `docs/plans/2026-07-10-page-related-undo.md`): history is partitioned into 13 disjoint data domains (`DOMAIN_SLICES`); every recorded action maps to exactly ONE domain (`ACTION_DOMAINS`; image actions take the owner kind), `this._record(actionId)` deep-clones only that domain's slices onto `_past[domain]` (trash captured per-kind, images per-entity-key; limit `HISTORY_LIMIT` per domain), and `undoFor/redoFor/canUndoFor(domains)` — driven by `route.meta.undoDomains` in the router — pop the newest entry among the current page's domains. The four per-entity AI artifacts (`chapterCritiques`/`chapterReaderKnowledge`/`chapterMultiReader`/`characterAudits`) are top-level keyed maps OUTSIDE the history domains (server wire shape matches — book_io decomposes/recomposes them as maps); readers get them via the `allChapters` decoration + `*For` getters. When adding a mutating action, add it to `ACTION_DOMAINS` (an unmapped action warns and records nothing). Durable rollback comes from the **server-owned disk autosave** (2026-07-13: moved off Rust — the Python server writes a rotating `<data-root>/projects/<id>.autosave.json`, or the `autosaveDir` setting, via `POST /v1/projects/{id}/autosave`; the renderer flushes on a 10s debounce + `keepalive` on close, and it now runs in browser-dev too) + manual Export backup — not from history. **The editor-echo law (2026-07-10):** a store-driven content sync must never bounce back into `_record` — RichEditor's modelValue watch sets content with the TipTap-v3 options form `{ emitUpdate: false }` (a v2-style boolean second arg is silently ignored and emits), and `applyStitchedChapter`/`setSceneBody` skip write + record when the incoming content is identical (otherwise a ⌘Z revert under an open editor re-records and clears the just-armed redo).
-- Keystroke-grain actions (in `COALESCED_ACTIONS`: `setChapterBody`, `setChapterTitle`, inline title edits, etc.) coalesce into one history entry per ~600ms quiescent window. When adding a new high-frequency mutator, add it to `COALESCED_ACTIONS` or the undo buffer fills instantly.
-- `_past` and `_future` are wrapped in `markRaw()` so Vue does not make snapshots reactive.
-
-### AI providers
-
-**The legacy gateway is GONE (this section previously described it as current —
-corrected 2026-07-06 after it misled an audit).** ALL LLM traffic goes through the
-shared `just-llm-runner` dispatch mounted by `install_llm` on the Python `server/`:
-feature runs + streaming via `/v1/ai/run` + `/v1/ai/stream` — called through the
-KIT's `runAiFeature`/`runAiFeatureStream` (`@delebash/llm-ui`; the old JW-local
-`services/aiFeature.js`/`aiErrors.js` moved into the kit 2026-07-06, Decision 22),
-consumed by `services/writerAI.js`, `services/analysis/*`, and `services/rag/*` —
-embeddings via `/v1/ai/embeddings` through the KIT's `embedTexts`/`ensureEmbeddingReady`
-(JW's `services/embedApi.js` moved into the kit at C5, 2026-07-06; `services/rag/*`
-import from `@delebash/llm-ui`), routing via `/v1/ai/routing`
-(`services/routingBackend.js` — JW's read-only pre-mount boot cache), and the provider
-LIST via `services/providerBackend.js` (read-only boot cache; provider CRUD lives in
-the kit's AiModelsArea → ProviderForm). There is no
-`services/openai-compat.js` and no `/v1/llm/{providerId}/*` route on the server; the
-string `"openai-compat"` appearing in code is a PROVIDER-TYPE id, not a gateway.
-No TTS here — audio lives in JustVoice.
-
-### Manuscript export
-
-`services/export/manuscript.js` builds a normalized manuscript model that feeds three lazy-loaded adapters: `pdf.js` (pdfmake — TOC + part covers + optional cover image), `docx.js` (live TOC that auto-refreshes on open), `epub.js` (hand-rolled EPUB 3 with nav doc, OPF spine, cover xhtml, JSZip-packaged). Cover image (set in Settings → Project) is stored as an `imageStore` record on `project.project.coverImage`.
-
-### Image storage
-
-`services/imageStore.js` is the renderer-side facade. Images are uploaded to the JustWrite server (`POST /v1/images`) and referenced by id (rendered via `<img src="…/v1/images/{id}">`); when the server is unreachable it falls back to inline data-URL records stored in the project snapshot (itself server/SQLite-backed). The legacy Tauri-FS on-disk path was removed — pre-P4 file records no longer resolve.
-
-**Caveat:** uploads send image bytes as base64 JSON (`dataBase64`). Fine for reference photos; if uploads grow to multi-MB range, switch to a binary/streaming endpoint.
-
-### Routing & shortcuts
-
-Hash router (`createWebHashHistory`) — see `router/index.js` for the full route list, including each route's `meta.undoDomains` (the #235 page-related-undo map). Global shortcuts: ⌘F focuses search, ⌘\ toggles sidebar, ⌘Z / ⌘⇧Z (or ⌘Y) page-scoped undo/redo (inert on routes with no `undoDomains`; disabled inside the rich editor — TipTap owns its own history there).
-
-### i18n (UI strings)
-
-**`src/renderer/src/i18n/locales/en.json` is the world** — every user-facing English string
-belongs there, and the renderer reads it through vue-i18n (`i18n/index.js`, Composition mode,
-`globalInjection` so `$t` works in templates without an import). Coverage is being brought up
-view by view; the sweep is not finished, so expect raw strings still in unconverted files.
-
-```bash
-npm run i18n:lint      # @intlify no-raw-text over src/renderer/src/**/*.vue — finds English
-                       # still hard-coded in templates. "warn" during the sweep; it flips to
-                       # "error" once coverage completes. Config: eslint.i18n.config.mjs
-                       # (i18n rules ONLY — Biome remains the style linter).
-npm run i18n:report    # vue-i18n-extract: keys referenced but missing from the catalog, and
-                       # catalog keys nobody references. MISSING must always be zero.
-npm run i18n:pseudo    # writes locales/qps.json — accented +30%-padded English, to expose
-                       # unconverted strings and overflow. NOT registered in the app yet
-                       # (i18n/index.js lists locales explicitly); the switcher phase wires it.
-```
-
-Rules when adding or converting a string:
-
-- **Reuse before minting.** Search `en.json` for the exact English first — `common.*` (Save,
-  Cancel, Delete, Close…), `nav.*`, and the `sidebar.actions.*` dialog cluster already carry a
-  lot of shared vocabulary. Never create a second key for the same English.
-- **Semantic keys, namespaced by section** — `settings.<section>.<semanticLeaf>`, e.g.
-  `settings.appearance.editorFontSizeLabel`. The leaf says what the string IS, never the first
-  few words of the sentence (`settings.thisFreesSizeOf` is the wrong shape).
-- **Runtime values are interpolations**, never concatenation: `$t('k', { n })` with `{n}` in
-  the value.
-- **`v-for="t in …"` shadows the setup `t`.** Inside such a loop use `$t`, never the
-  destructured `t` — `build:vite` will not catch the shadowing.
-- **Locale-dependent constant arrays must be `computed()`**, or they freeze at module load and
-  never re-translate when the language changes (see `SECTIONS` in `SettingsView.vue`).
-- **Not translated:** thrown `Error` messages, console/debug strings, data values / ids / enum
-  strings, and DB-seeded text (seeded defaults stay English in v1).
-- **Kit strings are a separate, later batch** — `@delebash/llm-ui` does not take vue-i18n as a
-  peer dep yet. Don't convert kit components from here.
-
-## Conventions
-
-- **The `@renderer` alias** resolves to `src/renderer/src/` (see `vite.config.js`). Prefer relative imports for files in the same directory, `@renderer/...` for cross-tree imports.
-- **Don't bypass the bridge.** Renderer code calling `invoke()` directly will break the browser-only dev path.
-- **Bundle icons** live in `src-tauri/icons/` (full set: `icon.icns`, `icon.ico`, desktop PNGs, plus Windows Store / android / ios). If you regenerate them, the canonical command is `cargo tauri icon <source.png>` from `src-tauri/`.
-- **fs plugin scope** allows `$APPDATA/images/*` and `$APPDATA/projects/*`. Saving project files elsewhere requires widening the scope in `tauri.conf.json`.
-
-## UI components — the shared `@delebash/llm-ui` kit
-
-**All UI primitives + shells now come from the shared kit `@delebash/llm-ui`
-(Vite alias → `../just-llm-runner/ui/src`). `src/renderer/src/components/ui/`
-is EMPTY** — the `Jw*` forks were fully converged into the kit `Ui*` family
-(2026-06-24, matching JustVoice). Import primitives from the kit; never re-fork
-them locally. The kit owns the design contract: a single `intent` prop encodes
-BOTH semantic role AND visual style (never separate `severity`/`outlined`/`text`);
-new visual variants are added as intents in the kit.
-
-### Primitives (all from `@delebash/llm-ui`)
-
-| Kit component | What it does |
+| For | Read |
 |---|---|
-| `UiButton` | Single `intent` prop. `size="small"` for compact toolbars. `as="label"` for file-picker buttons. `<template #icon>` for leading icons. |
-| `UiInput` / `UiTextarea` | `<input>`/`<textarea>` wrappers; `:invalid`, v-model; Textarea `auto-resize`. |
-| `UiCheckbox` / `UiToggle` | Binary v-model (checkbox = inline/multi-select; toggle = on/off setting). |
-| `UiSelect` | Reka UI Select — arrow-key nav, type-ahead, Esc-close, a11y, Floating-UI. `:options` (`{label,value}` or strings), empty-value sentinel, `width` cap. |
-| `UiTag` / `UiChip` | Soft-tint status badge / interactive selection chip. |
-| `UiField` | Labelled form row. |
-| `UiNumber` | `Intl.NumberFormat` locale-aware grouping (follows `setUiLocale`); reformats on blur; Up/Down step. |
-| `UiTable` | TanStack Vue Table — `:columns`, slot per column `id` for cells, sort/global-filter/pagination, `#empty`, `@row-click`. Needs the `@tanstack/vue-table` peer dep (in `package.json` + `resolve.dedupe`). |
-| `UiColorPicker` | Swatch → popover preset grid + native custom color. Pass `:presets` (JW uses `services/categoricalColors.js` `PRESET_COLORS`). |
-| `UiProgress` | Progress bar — determinate (`:value`/`:max` → % + label) or indeterminate sweep when the total is unknown. Token-styled, `role="progressbar"`. Used for model-download progress. |
-| `DownloadBar` | THE one download bar (2026-07-15): renders a `createDownloadTask` (props `{title, role, task}`) — header with Cancel-while-running / Retry-on-cancelled\|error / "Ready ✓", the shared `UiProgress`, an error line. Used for every download (engine · model-load · embed) so they reuse one control. |
+| Open work across all repos | `docs/TASKS.md` (live tracker) · `docs/IDEAS.md` (backlog) |
+| How we do things (conventions) | `AGENTS.md` |
+| Why it's built this way | `docs/ARCHITECTURE.md` |
+| Stores, undo domains, IPC bridge, AI stack, export, images, i18n rules, test harnesses | `docs/dev/architecture-notes.md` |
+| Kit primitives, button intents, sizes, theming, download tasks | `docs/dev/ui-kit.md` |
+| Per-task history and evidence | `docs/plans/*` |
 
-### Shells / services (all from `@delebash/llm-ui`)
+Read the branch and working-tree state from git, never from a doc — that line goes stale within
+hours and has been relayed as fact more than once.
 
-- `AppModal` — body-scrolling modal (eyebrow/title/wide/noPadding/closable/`dismissable`/`maxWidth`/`draggable` + `header`/`header-extra`/`footer` slots). Backdrop locked unless `dismissable`. Drags by the header (`draggable`, default true; position resets on reopen); the overlay neither dims nor blurs.
-- `AppDialog` + `promptDialog()`/`confirmDialog()` (`dialog.js`) — imperative prompt/confirm host, built on `AppModal`. Default labels via `configureDialog({labels})` (wired in `main.js` from en.json).
-- `HelpDrawer` + `HelpTrigger` + `openHelp`/`closeHelp` (`help.js`) — the `?` affordance + slide-in docs panel. JW wires the content adapter + `onOpenFull`/`onOpenWeb` via `configureHelp()` in `main.js`; the docs corpus stays JW-local (`services/helpDocs.js`).
-- `Toast` + `pushToast`/`clearToasts` (`toastBridge.js`) — vue-sonner host; `ui.showToast({message, action})` delegates to it. JW themes the `.ui-toaster` class in `styles.css`.
-- `tooltipDirective` (`v-tooltip.bottom="'text'"`, registered in `main.js`), `Breadcrumb`, `EmptyState`, `ConnectionError` (props: appName/serverUrl/need/devHint), `Icon`.
-- `usePanelDismiss(isOpen, panelEl, close, {exempt})` — THE panel Esc + click-outside close (2026-07-19). PANELS ONLY; modals keep `AppModal`'s locked backdrop. Toggle triggers carry `data-panel-toggle`.
-- **The shared AI task queue** (moved from JW 2026-07-06, Decision 22): `useAiTasksStore` (the global in-flight registry — Pinia; `pinia` is a kit peer dep, JW provides the instance), `runAiFeature`/`runAiFeatureStream` (feature-run wrappers over `/v1/ai/run`+`/v1/ai/stream` with task-panel registration + cancel), `friendlyAiError`, and the surfaces `AiTaskStrip` (inline progress strip, `#extra-stats` slot), `AiStatusPanel` (slide-in panel), `AiStatusButton` (TitleBar chip — its title-bar chrome stays host-owned via the `.titlebar-*` button rules).
-- **The model-picker family** (C5, 2026-07-06; reshaped by B5-1, 2026-07-09 — §7.2 "per-surface pickers REMOVED"): `useProviderModels` (THE shared per-provider model-list cache — one cache + one endpoint accessor kit-wide; `LuModelPicker` rides it too), `LuFeatureChip` (the presentational per-feature chip — in JW always mounted `readonly`: a "runs on" provenance chip, no edit popover), `useResolvedRoute` (the kit cache over `GET /v1/ai/resolved-route` — the SERVER-resolved route a run would use: task preset → dispatch fallback), and the embeddings client `embedTexts`/`ensureEmbeddingReady` (ensure-resident for the bundled runner + `POST /v1/ai/embeddings`). JW-side: `components/AiFeatureChip.vue` is the thin READ-ONLY binding over `LuFeatureChip` + `useResolvedRoute` (same props as ever — consumers just mount it); clicking it navigates to `/ai`. Routing is edited ONLY on the Tasks tab + Feature Workbench — there is no per-surface picker, no `useFeaturePin.js`, and no ChatPanel inline picker (all removed 2026-07-09); the chat services pass NO client-side LLM override (the server cascade rules). The old JW `ModelPicker.vue`/`useModelList.js`/`services/embedApi.js` are gone.
-- **The one download task** (2026-07-15, the ONE-DOWNLOADER consolidation): `createDownloadTask(channel)` (`composables/useDownloadTask.js`) is THE orchestrator for any "POST to start → poll a status URL → cancel/retry" download (engine install · model load · model download) — returns a reactive `{state, phase, done, total, rateText, error, label, start/cancel/retry/waiting/fail/reset}` and its caption reuses the existing `progressCaption` (downloadRate.js), rendered by `DownloadBar`. QuickSetup mounts three (engine · chat · embed). `useEngine`/`useRunnerModels` keep their singleton pollers but reuse `progressCaption`, gain cancel (`useEngine.cancel()` → `POST /v1/llm-runner/engine/install/cancel`; the catalog LOAD row → `/stop`, a true abort). **ONE mechanism everywhere (2026-07-21, the user's ruling "same mech, same function"):** `useRunnerModels` no longer hand-rolls its own progress (the old `loadProgress`/`downloadMap`/`taskFor`-projection is GONE) — it FEEDS real `createDownloadTask` instances (a single `loadTask` + a per-model `downloadTask` map) from its ONE `/models` poll via the new `task.arm()`/`task.apply()`, so the catalog rows + slot cards render the SAME machine + SAME `DownloadBar` as QuickSetup (no projection, no `compact` bar fork — `DownloadBar` has one look, sized by its container). `cancel()` flips state first so `apply()` freezes the bar; the catalog sets `task.finalizing` on cancel so Retry stays DISABLED until the teardown completes (no retry-mid-teardown race). Load↔download stays two server channels (`/status` single-model vs the concurrent `/download/status` map); a "loading" model present in the download map is a standalone download, else a spawn-load. Server: engine install is cancellable (`POST /v1/llm-runner/engine/install/cancel`) and a `stop()` during a load's download is a true abort. **ONE workflow (2026-07-21):** the shared `useRunnerModels.retryLoad(modelId)` runs the engine check FIRST — if the engine is missing it installs it (awaiting `createDownloadTask(engineInstallChannel())`, the same task QuickSetup uses) THEN loads; every model-load trigger (catalog row "Make default"/`makeDefault`, card "Load now"/`loadAssigned` chat leg, the General dropdown via `pickSlot`, row Retry, and boot warm in `warmStartup.js`) routes through it, so no surface dead-ends on `engine-not-installed`. The in-flight install is exposed as `engineGateTask` (the boot splash renders its bar; the catalog's engine panel shows it via the `useEngine` poller). Embed stays lazy (its own `ensure-embedding` endpoint — untouched); a raw API load still fails fast server-side (no silent engine pull).
-- Both `AppModal`/`AppDialog`/`HelpDrawer` are Reka UI Dialog primitives — focus trap, scroll lock, Esc, ARIA free.
-
-Both modal wrappers are Reka UI Dialog primitives — focus trap, scroll lock, Esc, ARIA come free. `AppModal` blocks backdrop click by default; `AppDialog` is dismissable (backdrop/Esc cancel).
-
-### Button intents
-
-| Intent | Look | Use for |
-|---|---|---|
-| `primary` | solid accent | Main affordance — Save, Create, Edit, Quick Write |
-| `secondary` | outlined neutral | Supporting action — Cancel, Test |
-| `ghost` | text only | Quiet utility — list-row icons, "Delete" on lists |
-| `danger` | solid red | Destructive — Discard, Remove, Reset workspace |
-| `success` | solid green | Positive — Confirm, Apply |
-| `info` | solid blue | Informational |
-| `accent2` | solid gold | User's second accent — Resume CTA, etc. (UI label = "Accent 2"; code-facing intent = `accent2`.) |
-
-### Size rule
-
-- **Inline list-row / card-header utility actions** → `size="small"`.
-- **Standalone / destination CTAs / empty-state actions** → no `size` prop (regular).
-
-When in doubt: toolbar with other small chips → small; the main reason the user is on this surface → regular.
-
-### Theming knobs (user-tunable in Settings → Appearance)
-
-Button knobs ride on CSS custom properties set by the shared appearance engine
-(`@delebash/llm-ui` `applyAppearance`) and flow into every `UiButton`:
-`btnRadius` (sharp/standard/rounded/pill) · `btnDensity` (compact/comfy) ·
-`btnLabelCase` (default/uppercase). Fonts: JW maps the kit's semantic
-`--font-display`/`--font-body` tokens in `tokens.css` (display = Fraunces serif).
-Adding a knob: extend the shared engine + the Appearance settings UI.
-
-### Three-tier architecture
-
-1. **CSS classes / tokens** for purely visual variants — in `tokens.css`. No JS.
-2. **Directives / composables** for cross-cutting behavior — `v-tooltip`, etc.
-3. **Components** for non-trivial state/focus/markup — the kit `Ui*` family + shells.
-
-### Don't
-
-- **Don't re-fork primitives locally.** `components/ui/` is empty on purpose; import `Ui*` from `@delebash/llm-ui`. A capability gap → promote it to the kit (so both apps share it), never a `Jw*` copy.
-- **Don't add new PrimeVue components.** It's out of `package.json`.
-- **Don't roll new `.btn-*` classes.** Use `<UiButton>`.
-- **Don't add `severity`/`outlined`/`text` props.** The single-`intent` API is intentional; visual style is baked into the intent (in the kit).
-- **Don't bypass the helpers.** `ui.showToast`, `promptDialog`, `confirmDialog`, `openHelp` — always through the kit helpers.
+**Known-bad on the user's Windows box** (don't chase these):
+`test_hardware.py::test_pci_gpus_linux_lspci_name_match` and
+`test_lifecycle.py::test_ensure_model_ready_loads_then_returns` fail (pre-existing);
+`test_lifecycle.py::test_ensure_model_ready_raises_on_failed_load` is flaky. A fourth failure is not
+"known" — investigate it.

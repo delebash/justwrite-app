@@ -77,16 +77,18 @@ reset on remount.
 
 ---
 
-## 3. The Jw\* component layer — intentional raw-HTML exceptions
+## 3. Kit primitives — intentional raw-HTML exceptions
 
-`CLAUDE.md` says use `JwButton` / `JwInput` / `JwTextarea` / `JwCheckbox` /
-`JwSelect` / `JwNumber` / `JwTag` / `JwTable` instead of raw HTML controls.
-Several places in the codebase deliberately do NOT use them — don't blindly
-migrate them when sweeping for compliance:
+Use the kit's `UiButton` / `UiInput` / `UiTextarea` / `UiCheckbox` / `UiSelect` /
+`UiNumber` / `UiTag` / `UiTable` from `@delebash/llm-ui` instead of raw HTML
+controls. (The old local `Jw*` fork was fully converged into that kit in
+2026-06-24 — the names below were updated to match; the reasoning is unchanged.)
+Several places in the codebase deliberately do NOT use the primitives — don't
+blindly migrate them when sweeping for compliance:
 
 **Title-style inline-editable inputs** — flat borderless `<input>` styled to
 look like editable text (transparent border idle, hover border, accent ring on
-focus, font inherited). `JwInput` would draw a real field box and break the
+focus, font inherited). `UiInput` would draw a real field box and break the
 flat-text feel. Examples: `WorldbuildingView .wb-title`, `NotesView .note-title`,
 `ArchitectureView .arch-title`, `PlotBoardView .strand-name`,
 `StrandsView .beat-label` and `.beat-note`.
@@ -96,10 +98,10 @@ flat-text feel. Examples: `WorldbuildingView .wb-title`, `NotesView .note-title`
 templates, full-width footers, parent-selector reveal animations, and custom
 font tokens are part of the form factor. The 2026-06-04 sweep migrated the
 `nav-add`/`part-action`/`chapter-chev`/`chapter-add-scene`/`wb-cat-chev`
-buttons inside the sidebar to `<JwButton intent="ghost">` with bespoke classes
+buttons inside the sidebar to `<UiButton intent="ghost">` with bespoke classes
 applied for dimensions; the items listed above stayed raw with explicit
 reasons. Sidebar overrides for the migrated set live in `Sidebar.vue`'s
-`<style>` block (e.g. `.jw-btn.chapter-chev { padding: 0; color: var(--muted) }`).
+`<style>` block (e.g. `.ui-btn.chapter-chev { padding: 0; color: var(--muted) }`).
 
 **RichEditor toolbar (`.tb-btn` family)** — a parallel button family with
 distinct scale and CSS-only `data-tip` tooltips. Reused by the focus-mode
@@ -115,7 +117,7 @@ needed (e.g. wrapping a color swatch).
 are private low-level controls inside a custom widget that presents a single
 high-level `model-value` to consumers.
 
-**`JwTable`'s pager `<select>`** for page size — replacing would create a
+**`UiTable`'s pager `<select>`** for page size — replacing would create a
 circular import.
 
 **Decision question when migrating:** does this raw control carry distinctive

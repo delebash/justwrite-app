@@ -2,8 +2,9 @@
 
 > **THIS is the live tracker.** One place for everything open across the system we work as a
 > whole — **JustWrite**, the shared **AI stack** (`just-llm-runner` + `@delebash/llm-ui`), and
-> **JustVoice**. `MORNING_RECAP.md` is the boot-map and points here; unscheduled ideas live in
-> `docs/IDEAS.md`.
+> **JustVoice**. Unscheduled ideas live in `docs/IDEAS.md`. (`MORNING_RECAP.md` was retired
+> 2026-07-29 and is archived at `docs/plans/2026-07-29-morning-recap-archive.md`; current state
+> is read from git, and the rules it carried now live in `CLAUDE.md` or the global preferences.)
 >
 > **How to use.** One line per item + a pointer to its detail doc — the depth lives in the
 > linked doc, not here. Close an item when it ships; don't let history accumulate (that's what
