@@ -63,6 +63,18 @@ Windows, macOS and Linux layouts) or set `JW_CHROME`. Never hardcode a browser p
 - **No naming popups.** Creating or renaming a thing never goes through a name-popup — every entity opens its one add/edit form directly, where the name is a plain field editable at any time, and the form refuses to save until its required assignments are set.
 - **Design against precedent.** Before UI-design work, name in writing the existing precedent surface in this app plus a real-world reference. The user's reference screenshots are the spec.
 
+## User docs ship from `docs/`
+
+**`docs/*.md` IS the in-app help corpus.** `services/helpDocs.js` bundles those files via
+`import.meta.glob("../../../../docs/*.md")`, `docs/toc.json` indexes them, and the same folder is
+packed into `docs.tar.gz` at release for the marketing site — one source of truth for in-app help
+and the website. Editing `docs/writing.md` changes what users read in both places.
+
+So a user-visible change updates its doc in the same commit, however small: a new field, setting,
+button or error message the user meets. A brand-new doc also needs a `docs/toc.json` entry or it
+will not appear. The glob is **non-recursive** — `docs/plans/*` and `docs/dev/*` are internal and
+never ship.
+
 ## Tooling
 
 **Biome** (`biome.json`) is the linter — `"formatter": { "enabled": false }`, so it does not format;
