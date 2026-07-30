@@ -307,26 +307,26 @@ function onReviewCommitted(payload) {
   />
 
   <!-- ── SCANNING PHASE ─────────────────────────────────────────────── -->
-  <AppModal v-else eyebrow="Entity sweep" title="Scanning for new entities"
+  <AppModal v-else :eyebrow="$t('common.entitySweep')" :title="$t('entitySweep.title')"
     :closable="!running" @close="emit('close')">
     <template #header>
       <div class="sweep-titleblock">
-        <div class="t-eyebrow">Entity sweep</div>
-        <div class="modal-title">Scanning for new entities</div>
+        <div class="t-eyebrow">{{ $t("common.entitySweep") }}</div>
+        <div class="modal-title">{{ $t("entitySweep.title") }}</div>
       </div>
       <!-- No Cancel here: the shared AiTaskStrip below renders THE Cancel (user,
            2026-07-17: "top cancel button redundant" — both were live at once). -->
       <div class="sweep-header-actions">
-        <AiFeatureChip feature="entitySweep" label="Entity sweep" editable />
+        <AiFeatureChip feature="entitySweep" :label="$t('common.entitySweep')" editable />
       </div>
     </template>
 
     <p class="sweep-desc">
-      Reads the ticked chapters and asks the model for any <strong>characters, locations, and objects</strong>
-      not already in your story bible. Same-name proposals from multiple chapters are merged into one,
-      with the originating chapters listed. Nothing is added yet — you review and tick what to keep on the next screen.
+      <i18n-t keypath="entitySweep.desc" tag="span" scope="global">
+        <template #entities><strong>{{ $t("entitySweep.entitiesTerm") }}</strong></template>
+      </i18n-t>
       <template v-if="!rows.length">
-        Front &amp; back matter (glossary, acknowledgments, previews…) is unticked for you — tick anything you do want scanned.
+        {{ $t("entitySweep.matterHint") }}
       </template>
     </p>
 
@@ -341,13 +341,12 @@ function onReviewCommitted(payload) {
       <div v-if="hasDraft" class="sweep-resume">
         <Icon name="History" :size="13" />
         <span>
-          Saved scan found — <strong>{{ resume.done }}</strong> chapter{{ resume.done === 1 ? "" : "s" }} done<template v-if="resume.failed"> · <strong>{{ resume.failed }}</strong> failed</template>.
-          Only the ticked chapters will be scanned.
+          {{ $t("entitySweep.resumeFound", { done: $t("count.chapter", { n: resume.done }, resume.done), failedPart: resume.failed ? $t("entitySweep.resumeFailedPart", { n: resume.failed }) : "" }) }}
         </span>
-        <button type="button" class="tb-btn wide" @click="startOver">Start over</button>
+        <button type="button" class="tb-btn wide" @click="startOver">{{ $t("entitySweep.startOver") }}</button>
       </div>
       <div class="sweep-pick-h">
-        <span class="t-muted">{{ checkedCount }} of {{ picks.length }} selected</span>
+        <span class="t-muted">{{ $t("common.selectedOf", { selected: checkedCount, total: picks.length }) }}</span>
         <div class="sweep-pick-h-actions">
           <button type="button" class="tb-btn wide" @click="setAllPicks(true)">{{ $t("common.all") }}</button>
           <button type="button" class="tb-btn wide" @click="setAllPicks(false)">{{ $t("common.none") }}</button>
@@ -357,11 +356,11 @@ function onReviewCommitted(payload) {
         <label v-for="p in picks" :key="p.id" class="sweep-pick-row" :class="{ off: !p.checked }">
           <UiCheckbox v-model="p.checked" />
           <span class="sweep-pick-num">{{ p.num }}</span>
-          <span class="sweep-pick-title">{{ p.title || 'Untitled' }}</span>
+          <span class="sweep-pick-title">{{ p.title || $t("entitySweep.untitled") }}</span>
           <span v-if="p.draftStatus === 'done'" class="sweep-pick-note">
-            ✓ {{ p.found }} found{{ p.changed ? " · text changed" : "" }}
+            {{ $t("entitySweep.pickFound", { n: p.found }) }}{{ p.changed ? $t("entitySweep.pickTextChanged") : "" }}
           </span>
-          <span v-else-if="p.draftStatus === 'error'" class="sweep-pick-note err">failed</span>
+          <span v-else-if="p.draftStatus === 'error'" class="sweep-pick-note err">{{ $t("entitySweep.pickFailed") }}</span>
         </label>
       </div>
     </div>
@@ -377,24 +376,24 @@ function onReviewCommitted(payload) {
     <template v-if="!rows.length || finished" #footer>
       <!-- Pre-run picker footer -->
       <template v-if="!rows.length">
-        <span class="t-muted sweep-foot-count">{{ checkedCount }} of {{ picks.length }} selected</span>
+        <span class="t-muted sweep-foot-count">{{ $t("common.selectedOf", { selected: checkedCount, total: picks.length }) }}</span>
         <span style="flex:1"></span>
         <UiButton intent="ghost" @click="emit('close')">{{ $t("common.cancel") }}</UiButton>
         <UiButton v-if="foundTotal" intent="secondary" @click="reviewFound">
-          Review {{ foundTotal }} found
+          {{ $t("entitySweep.reviewFound", { n: foundTotal }) }}
         </UiButton>
         <UiButton intent="primary" :disabled="!checkedCount" @click="runSweep">
-          <Icon name="Sparkle" :size="13" /> Scan {{ $t("count.chapter", { n: checkedCount }, checkedCount) }}
+          <Icon name="Sparkle" :size="13" /> {{ $t("entitySweep.scanAction", { chapters: $t("count.chapter", { n: checkedCount }, checkedCount) }) }}
         </UiButton>
       </template>
       <!-- B: finished-with-failures footer — the failed rows stay visible. -->
       <template v-else>
-        <span class="t-muted sweep-foot-count">{{ $t("count.chapter", { n: failedCount }, failedCount) }} failed</span>
+        <span class="t-muted sweep-foot-count">{{ $t("entitySweep.chaptersFailed", { chapters: $t("count.chapter", { n: failedCount }, failedCount) }) }}</span>
         <span style="flex:1"></span>
         <UiButton intent="ghost" @click="emit('close')">{{ $t("common.close") }}</UiButton>
-        <UiButton intent="secondary" @click="retryFailed">Retry {{ failedCount }} failed</UiButton>
+        <UiButton intent="secondary" @click="retryFailed">{{ $t("entitySweep.retryFailed", { n: failedCount }) }}</UiButton>
         <UiButton v-if="foundTotal" intent="primary" @click="reviewFound">
-          Review {{ foundTotal }} found
+          {{ $t("entitySweep.reviewFound", { n: foundTotal }) }}
         </UiButton>
       </template>
     </template>

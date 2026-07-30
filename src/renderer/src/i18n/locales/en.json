@@ -506,6 +506,23 @@
     "clearPanel": "Clear panel",
     "rerunPanel": "Re-run panel"
   },
+  "entitySweep": {
+    "title": "Scanning for new entities",
+    "desc": "Reads the ticked chapters and asks the model for any {entities} not already in your story bible. Same-name proposals from multiple chapters are merged into one, with the originating chapters listed. Nothing is added yet — you review and tick what to keep on the next screen.",
+    "entitiesTerm": "characters, locations, and objects",
+    "matterHint": "Front & back matter (glossary, acknowledgments, previews…) is unticked for you — tick anything you do want scanned.",
+    "resumeFound": "Saved scan found — {done} done{failedPart}. Only the ticked chapters will be scanned.",
+    "resumeFailedPart": " · {n} failed",
+    "startOver": "Start over",
+    "untitled": "Untitled",
+    "pickFound": "✓ {n} found",
+    "pickTextChanged": " · text changed",
+    "pickFailed": "failed",
+    "chaptersFailed": "{chapters} failed",
+    "reviewFound": "Review {n} found",
+    "scanAction": "Scan {chapters}",
+    "retryFailed": "Retry {n} failed"
+  },
   "search": {
     "resultCount": "{n} result | {n} results",
     "replaceButton": "Replace…",
