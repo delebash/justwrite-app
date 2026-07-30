@@ -434,35 +434,35 @@ defineExpose({ open: () => { open.value = true; }, close });
 
 <template>
   <transition name="cp-slide">
-    <aside v-if="open" ref="panelRef" class="chat-panel" role="dialog" aria-label="Ask the book">
+    <aside v-if="open" ref="panelRef" class="chat-panel" role="dialog" :aria-label="$t('sidebar.nav.askTheBook')">
       <header class="cp-head">
         <div>
-          <div class="t-eyebrow">{{ chatMode === "character" ? "Talk to a character" : "Ask the book" }}</div>
+          <div class="t-eyebrow">{{ chatMode === "character" ? $t("chat.talkToCharacter") : $t("sidebar.nav.askTheBook") }}</div>
           <h2>
             <template v-if="chatMode === 'character'">
-              {{ selectedCharacter?.name || "Pick a character" }}
+              {{ selectedCharacter?.name || $t("chat.pickCharacter") }}
             </template>
-            <template v-else>Chat with your book</template>
+            <template v-else>{{ $t("chat.chatWithBook") }}</template>
           </h2>
         </div>
         <!-- Help sits at the top-right corner, aligned with the title (user
              ruling 2026-07-21). The action row wraps to its own line below. -->
-        <HelpTrigger slug="notes-and-search" label="Ask the book" />
+        <HelpTrigger slug="notes-and-search" :label="$t('sidebar.nav.askTheBook')" />
         <div class="cp-head-actions">
-          <AiFeatureChip v-if="chatMode === 'character'" feature="characterChat" label="Talk to character" editable />
-          <AiFeatureChip v-else feature="chat" label="Ask the book" editable />
+          <AiFeatureChip v-if="chatMode === 'character'" feature="characterChat" :label="$t('chat.characterChipLabel')" editable />
+          <AiFeatureChip v-else feature="chat" :label="$t('sidebar.nav.askTheBook')" editable />
           <UiButton intent="info" size="small" :aria-pressed="view === 'history'"
-            v-tooltip.bottom="'Chat history'" aria-label="Chat history" @click="toggleHistory">
+            v-tooltip.bottom="$t('chat.history')" :aria-label="$t('chat.history')" @click="toggleHistory">
             <template #icon><Icon name="History" :size="13" /></template>
-            Chat history
+            {{ $t("chat.history") }}
           </UiButton>
           <UiButton intent="success" size="small"
-            v-tooltip.bottom="'New chat'" aria-label="New chat" @click="newChat">
+            v-tooltip.bottom="$t('chat.newChat')" :aria-label="$t('chat.newChat')" @click="newChat">
             <template #icon><Icon name="Plus" :size="13" /></template>
-            New chat
+            {{ $t("chat.newChat") }}
           </UiButton>
           <UiButton intent="ghost" size="small"
-            v-tooltip.bottom="'Close'" aria-label="Close" @click="close">
+            v-tooltip.bottom="$t('common.close')" :aria-label="$t('common.close')" @click="close">
             <template #icon><Icon name="Close" :size="12" /></template>
           </UiButton>
         </div>
@@ -484,29 +484,29 @@ defineExpose({ open: () => { open.value = true; }, close });
            is index-only again. -->
       <div v-if="hasIndex" class="cp-status">
         <Icon name="Check" :size="11" />
-        <span><b>{{ status.entryCount }}</b> scenes indexed</span>
+        <span>{{ $t("chat.scenesIndexed", { n: status.entryCount }) }}</span>
         <span class="cp-status-sep">·</span>
         <span class="cp-status-model"><code>{{ status.model || "?" }}</code></span>
-        <span v-if="isIndexing" class="cp-indexing" v-tooltip.bottom="'Auto-rebuild is updating the index'">
-          <span class="cp-indexing-dot"></span> indexing…
+        <span v-if="isIndexing" class="cp-indexing" v-tooltip.bottom="$t('chat.indexingTooltip')">
+          <span class="cp-indexing-dot"></span> {{ $t("chat.indexing") }}
         </span>
         <span class="cp-status-spacer"></span>
-        <UiButton intent="secondary" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed any scenes added or edited since last build'">
+        <UiButton intent="secondary" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="$t('chat.updateTooltip')">
           <template #icon><Icon name="Refresh" :size="11" /></template>
-          Update
+          {{ $t("chat.update") }}
         </UiButton>
-        <UiButton intent="secondary" size="small" @click="indexModalMode = 'rebuild'" v-tooltip.bottom="'Wipe and re-embed everything'">
+        <UiButton intent="secondary" size="small" @click="indexModalMode = 'rebuild'" v-tooltip.bottom="$t('chat.rebuildTooltip')">
           <template #icon><Icon name="Refresh" :size="11" /></template>
-          Rebuild
+          {{ $t("chat.rebuild") }}
         </UiButton>
       </div>
       <div v-else class="cp-status cp-status-bible">
         <Icon name="Sparkle" :size="11" />
-        <span>Answering from your <b>story bible</b> only — build the index so chat can search and quote your scenes.</span>
+        <i18n-t keypath="chat.bibleOnly" tag="span" scope="global"><template #storyBible><b>{{ $t("chat.storyBibleTerm") }}</b></template></i18n-t>
         <span class="cp-status-spacer"></span>
-        <UiButton intent="primary" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="'Embed your scenes so answers can quote the manuscript'">
+        <UiButton intent="primary" size="small" @click="indexModalMode = 'build'" v-tooltip.bottom="$t('chat.buildIndexTooltip')">
           <template #icon><Icon name="Sparkle" :size="11" /></template>
-          Build index
+          {{ $t("chat.buildIndex") }}
         </UiButton>
       </div>
 
@@ -515,7 +515,7 @@ defineExpose({ open: () => { open.value = true; }, close });
       <div v-if="view === 'history'" ref="threadRef" class="cp-history">
         <div v-if="!sortedSessions.length" class="cp-empty-hint">
           <Icon name="History" :size="14" />
-          <span>No saved chats yet. Ask a question to start one — every conversation lands here.</span>
+          <span>{{ $t("chat.noSavedChats") }}</span>
         </div>
         <ul v-else class="cp-hist-list">
           <li v-for="s in sortedSessions" :key="s.id"
@@ -526,12 +526,12 @@ defineExpose({ open: () => { open.value = true; }, close });
             <span class="cp-hist-title">{{ s.title || "Untitled chat" }}</span>
             <span class="cp-hist-time">{{ relativeTime(s.updatedAt) }}</span>
             <span class="cp-hist-actions">
-              <UiButton intent="info" size="small" aria-label="Rename chat"
-                v-tooltip.bottom="'Rename'" @click.stop="renameSession(s)">
+              <UiButton intent="info" size="small" :aria-label="$t('chat.renameChat')"
+                v-tooltip.bottom="$t('chat.rename')" @click.stop="renameSession(s)">
                 <template #icon><Icon name="Pencil" :size="12" /></template>
               </UiButton>
-              <UiButton intent="danger" size="small" aria-label="Delete chat"
-                v-tooltip.bottom="'Delete'" @click.stop="deleteSessionRow(s)">
+              <UiButton intent="danger" size="small" :aria-label="$t('chat.deleteChat')"
+                v-tooltip.bottom="$t('common.delete')" @click.stop="deleteSessionRow(s)">
                 <template #icon><Icon name="Trash" :size="12" /></template>
               </UiButton>
             </span>
@@ -544,7 +544,7 @@ defineExpose({ open: () => { open.value = true; }, close });
         <div ref="threadRef" class="cp-thread">
           <div v-if="!hasThread" class="cp-empty-hint">
             <Icon name="Sparkle" :size="14" />
-            <span>Ask anything about your book — characters, scenes, threads. Follow-ups remember the conversation.</span>
+            <span>{{ $t("chat.askAnything") }}</span>
           </div>
 
           <template v-for="(m, i) in thread" :key="i">
@@ -565,7 +565,7 @@ defineExpose({ open: () => { open.value = true; }, close });
                     <li v-for="c in m.citations" :key="c.index" class="cp-cite" @click="openCitation(c)">
                       <span class="cp-cite-num">[{{ c.index }}]</span>
                       <span class="cp-cite-meta">{{ citationLabel(c.chunk) }}</span>
-                      <span v-if="c.pinned" class="cp-cite-score" title="Pinned from the story bible">pinned</span>
+                      <span v-if="c.pinned" class="cp-cite-score" :title="$t('chat.pinnedTitle')">{{ $t("chat.pinned") }}</span>
                       <span v-else class="cp-cite-score">{{ (c.score * 100).toFixed(0) }}%</span>
                     </li>
                   </ol>
@@ -577,7 +577,7 @@ defineExpose({ open: () => { open.value = true; }, close });
 
         <!-- Orphaned-character notice (the session's character was deleted). -->
         <div v-if="orphanedCharacter" class="cp-orphan-hint">
-          <Icon name="Alert" :size="13" /> This character was deleted — start a new chat.
+          <Icon name="Alert" :size="13" /> {{ $t("chat.orphanedCharacter") }}
         </div>
 
         <!-- Question input (pinned to the bottom of the panel) -->
@@ -595,15 +595,15 @@ defineExpose({ open: () => { open.value = true; }, close });
           />
           <div class="cp-input-actions">
             <span class="cp-hint">
-              <kbd class="cp-kbd">⏎</kbd> to send
+              <kbd class="cp-kbd">⏎</kbd> {{ $t("chat.toSend") }}
               <span class="cp-hint-sep">·</span>
-              <kbd class="cp-kbd">⇧⏎</kbd> for newline
+              <kbd class="cp-kbd">⇧⏎</kbd> {{ $t("chat.forNewline") }}
             </span>
             <UiButton intent="primary" size="small" :disabled="!question.trim() || inputDisabled"
-              v-tooltip.bottom="question.trim() ? 'Send your question' : 'Type a question to ask'"
+              v-tooltip.bottom="question.trim() ? $t('chat.sendTooltip') : $t('chat.sendDisabledTooltip')"
               @click="ask">
               <template #icon><Icon name="Sparkle" :size="12" /></template>
-              Ask
+              {{ $t("chat.ask") }}
             </UiButton>
           </div>
         </div>
