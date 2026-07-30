@@ -691,11 +691,17 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   (`ev.title || "Untitled event"` → `events.untitled`), a Breadcrumb label built inside an array
   literal, and two `PaneHeader`/`AppModal` eyebrows.
 
-  **RUNNING STATE — 1,430 → 498 warnings, 69 → 12 files with warnings; 69 of 81 renderer files
-  are clean (65% of the warnings closed, 85% of the files).** The 12 left, worst first:
+  **RUNNING STATE — 1,430 → 466 warnings, 69 → 11 files with warnings; 70 of 81 renderer files
+  are clean (67% of the warnings closed, 86% of the files).** The 11 left, worst first:
   AnalysisView 80, ImportView 56, HomeView 52, RichEditor 49, ForeshadowingScanModal 40,
   RelationshipArcModal 40, WritingAiSettings 39, MarketingPackModal 37, ReaderKnowledgeView 37,
-  PlotHoleScanModal 34, HomeShelfView 32, Sidebar 2 (the two deliberate stubs below). Every batch below is committed and pushed to `origin/master`, so this resumes
+  PlotHoleScanModal 34, Sidebar 2 (the two deliberate stubs below).
+
+  The three scan modals still open (Foreshadowing, PlotHole, Marketing) share the shape already
+  converted five times — eyebrow/title/chip, a blurb around one emphasised term, an idle blurb
+  with CTA, results, a footer that flips label on state. RelationshipArcModal and
+  ReaderKnowledgeView are entity-ish views. AnalysisView, ImportView, HomeView and RichEditor are
+  the genuinely large ones and are best taken a section at a time. Every batch below is committed and pushed to `origin/master`, so this resumes
   from git at any point. Files done since the last note: SensoryResearchModal,
   StuckDiagnosticModal, LinkBackfillModal, CharacterProfileFillModal, EntityReviewModal,
   VariationsModal, AiTellScanModal, ProjectReplaceModal, ReverseOutlineModal, SearchView,
