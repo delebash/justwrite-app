@@ -118,27 +118,24 @@ const ago = (ts) => {
 
 <template>
   <AppModal
-    eyebrow="Reverse outline"
-    title="The shape your book actually has"
+    :eyebrow="$t('reverseOutline.eyebrow')"
+    :title="$t('reverseOutline.title')"
     wide
     :closable="!running"
     @close="emit('close')"
   >
     <template #header>
       <div class="ro-titleblock">
-        <div class="t-eyebrow">Reverse outline</div>
-        <h2 class="modal-title">The shape your book actually has</h2>
+        <div class="t-eyebrow">{{ $t("reverseOutline.eyebrow") }}</div>
+        <h2 class="modal-title">{{ $t("reverseOutline.title") }}</h2>
       </div>
       <div class="ro-header-actions">
-        <AiFeatureChip feature="reverseOutline" label="Reverse outline" editable />
+        <AiFeatureChip feature="reverseOutline" :label="$t('reverseOutline.eyebrow')" editable />
       </div>
     </template>
 
     <p class="ro-blurb">
-      A structural editor's reading of the book you've drafted — the act structure that's
-      actually on the page, where the plot points land, and what each chapter is doing in
-      the overall shape. Best after you've finished a complete draft. Long books take a while
-      (one LLM call over the whole manuscript digest).
+      {{ $t("reverseOutline.blurb") }}
     </p>
 
     <div v-if="error" class="ro-error">
@@ -153,11 +150,10 @@ const ago = (ts) => {
     <div v-else-if="!outline" class="ro-empty">
       <Icon name="Sparkle" :size="20" />
       <p class="ro-empty-text">
-        Read the whole draft and reconstruct the act structure, plot points, and per-chapter
-        beats it actually has. Change the provider in the chip above first if you want.
+        {{ $t("reverseOutline.idleBlurb") }}
       </p>
       <UiButton intent="primary" @click="run">
-        <Icon name="Sparkle" :size="13" /> Build reverse outline
+        <Icon name="Sparkle" :size="13" /> {{ $t("reverseOutline.action") }}
       </UiButton>
     </div>
 
@@ -167,22 +163,22 @@ const ago = (ts) => {
           {{ STRUCTURE_LABELS[outline.structureName] || outline.structureName }}
         </span>
         <span class="ro-meta">
-          {{ outline.totalChapters }} chapters · generated {{ ago(outline.generatedAt) }}
-          <template v-if="outline.model"> · via {{ outline.model }}</template>
+          {{ $t("reverseOutline.meta", { n: outline.totalChapters, when: ago(outline.generatedAt) }, outline.totalChapters) }}
+          <template v-if="outline.model"> {{ $t("reverseOutline.viaModel", { model: outline.model }) }}</template>
         </span>
       </div>
 
       <p v-if="outline.summary" class="ro-summary">{{ outline.summary }}</p>
 
       <section v-if="outline.plotPoints?.length" class="ro-section">
-        <div class="ro-section-h">Plot points</div>
+        <div class="ro-section-h">{{ $t("reverseOutline.plotPoints") }}</div>
         <ul class="ro-points">
           <li v-for="p in outline.plotPoints" :key="p.id" class="ro-point">
             <div class="ro-point-head">
               <span class="ro-point-name">{{ p.name }}</span>
               <button class="ro-point-jump" @click="jumpToChapter(p.chapterNum)"
-                      v-tooltip.bottom="'Open this chapter'">
-                Ch. {{ p.chapterNum }}
+                      v-tooltip.bottom="$t('common.openThisChapter')">
+                {{ $t("common.chapterShort", { num: p.chapterNum }) }}
               </button>
             </div>
             <p v-if="p.description" class="ro-point-desc">{{ p.description }}</p>
@@ -191,17 +187,17 @@ const ago = (ts) => {
       </section>
 
       <section v-if="stripRows.length" class="ro-section">
-        <div class="ro-section-h">Chapter-by-chapter</div>
+        <div class="ro-section-h">{{ $t("reverseOutline.chapterByChapter") }}</div>
         <ol class="ro-strip">
           <template v-for="(row, i) in stripRows" :key="i">
             <li v-if="row.kind === 'chapter'" class="ro-chapter">
               <button class="ro-chapter-num" @click="jumpToChapter(row.chapter.num)"
-                      v-tooltip.bottom="row.chapter.title || 'Open chapter'">
-                Ch. {{ row.chapter.num }}
+                      v-tooltip.bottom="row.chapter.title || $t('reverseOutline.openChapterFallback')">
+                {{ $t("common.chapterShort", { num: row.chapter.num }) }}
               </button>
               <p class="ro-chapter-beat">
                 <span v-if="row.beat">{{ row.beat }}</span>
-                <span v-else class="ro-chapter-beat-empty">(no beat — chapter may be empty or new)</span>
+                <span v-else class="ro-chapter-beat-empty">{{ $t("reverseOutline.noBeat") }}</span>
               </p>
             </li>
             <li v-else class="ro-break">
@@ -216,7 +212,7 @@ const ago = (ts) => {
 
     <template #footer>
       <UiButton v-if="outline && !running" intent="ghost" @click="clearAll">
-        Clear outline
+        {{ $t("reverseOutline.clearOutline") }}
       </UiButton>
       <span class="ro-foot-spacer" />
       <UiButton v-if="outline && !running" intent="ghost" @click="regenerate">

@@ -174,7 +174,7 @@ function originTitle(originChapters) {
                 @input="r.aliases = $event.target.value" />
               <div v-if="r.originChapters?.length" class="er-origins" v-tooltip.bottom="originTitle(r.originChapters)">
                 <span class="er-origin-lbl">{{ $t("entityReview.foundIn") }}</span>
-                <span v-for="oc in r.originChapters.slice(0, 6)" :key="oc.id" class="er-origin-chip">{{ $t("entityReview.chapterChip", { num: oc.num }) }}</span>
+                <span v-for="oc in r.originChapters.slice(0, 6)" :key="oc.id" class="er-origin-chip">{{ $t("common.chapterShort", { num: oc.num }) }}</span>
                 <span v-if="r.originChapters.length > 6" class="er-origin-more">+{{ r.originChapters.length - 6 }}</span>
               </div>
               <div v-if="r.evidence" class="er-evidence">

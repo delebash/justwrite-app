@@ -132,8 +132,8 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
         <section v-for="g in groupedByChapter" :key="g.chapterId" class="at-group">
           <header class="at-group-h">
             <button class="at-group-jump" @click="jumpToScene(g.chapterId, g.items[0].sceneId)"
-                    v-tooltip.bottom="$t('aiTell.openChapter')">
-              {{ $t("aiTell.chapterChip", { num: g.chapterNum }) }}<span v-if="g.chapterTitle"> — {{ g.chapterTitle }}</span>
+                    v-tooltip.bottom="$t('common.openThisChapter')">
+              {{ $t("common.chapterShort", { num: g.chapterNum }) }}<span v-if="g.chapterTitle"> — {{ g.chapterTitle }}</span>
             </button>
             <span class="at-group-count">{{ $t("count.finding", { n: g.items.length }, g.items.length) }}</span>
           </header>

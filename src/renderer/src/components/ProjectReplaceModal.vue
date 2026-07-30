@@ -49,27 +49,31 @@ function openScene(row) {
 </script>
 
 <template>
-  <AppModal eyebrow="Manuscript" title="Find &amp; replace in prose" @close="emit('close')">
+  <AppModal :eyebrow="$t('panes.search.eyebrow')" :title="$t('projectReplace.title')" @close="emit('close')">
     <div class="pr-fields">
-      <UiInput v-model="term" placeholder="Find in all chapters…" autofocus />
-      <UiInput v-model="replaceWith" placeholder="Replace with…" />
-      <UiCheckbox v-model="caseSensitive" class="pr-case" title="Match case">Aa</UiCheckbox>
+      <UiInput v-model="term" :placeholder="$t('projectReplace.findPlaceholder')" autofocus />
+      <UiInput v-model="replaceWith" :placeholder="$t('projectReplace.replacePlaceholder')" />
+      <UiCheckbox v-model="caseSensitive" class="pr-case" :title="$t('projectReplace.matchCaseTitle')">{{ $t("projectReplace.matchCaseGlyph") }}</UiCheckbox>
     </div>
 
     <div class="pr-summary">
       <span v-if="term.trim() && preview.total">
-        <b>{{ preview.total }}</b> {{ preview.total === 1 ? "match" : "matches" }} in
-        <b>{{ preview.rows.length }}</b> {{ preview.rows.length === 1 ? "scene" : "scenes" }}
+        <i18n-t keypath="projectReplace.matchCount" tag="span" :plural="preview.total" scope="global">
+          <template #n><b>{{ preview.total }}</b></template>
+        </i18n-t>
+        <i18n-t keypath="projectReplace.sceneCount" tag="span" :plural="preview.rows.length" scope="global">
+          <template #n><b>{{ preview.rows.length }}</b></template>
+        </i18n-t>
       </span>
-      <span v-else-if="term.trim()" class="t-muted">No matches</span>
-      <span v-else class="t-muted">Type a term to search every chapter's prose. @-mention chips are left untouched.</span>
+      <span v-else-if="term.trim()" class="t-muted">{{ $t("editor.mentions.noMatches") }}</span>
+      <span v-else class="t-muted">{{ $t("projectReplace.hint") }}</span>
       <span v-if="lastResult" class="pr-done">{{ lastResult }}</span>
     </div>
 
     <div v-if="preview.rows.length" class="pr-list">
       <div v-for="row in preview.rows" :key="`${row.chapterId}:${row.sceneId}`" class="pr-row">
         <button class="pr-row-main" @click="openScene(row)"
-          :title="`Open Ch. ${row.chapterNum} · ${row.chapterTitle} — ${row.sceneTitle}`">
+          :title="$t('projectReplace.openRowTitle', { num: row.chapterNum, title: row.chapterTitle, scene: row.sceneTitle })">
           <span class="pr-row-head">
             <span class="status-dot" :class="row.sceneStatus" />
             <span class="pr-num">{{ row.chapterNum }}.{{ row.sceneIdx }}</span>
@@ -78,14 +82,15 @@ function openScene(row) {
           </span>
           <span class="pr-snippet">{{ row.snippet }}</span>
         </button>
-        <UiButton intent="ghost" size="small" :disabled="!term.trim()" @click="replaceRow(row)">Replace</UiButton>
+        <UiButton intent="ghost" size="small" :disabled="!term.trim()" @click="replaceRow(row)">{{ $t("projectReplace.replaceRow") }}</UiButton>
       </div>
     </div>
 
     <template #footer>
-      <span class="t-muted" style="font-size:11.5px">Replace all is a single undo (⌘Z).</span>
+      <span class="t-muted" style="font-size:11.5px">{{ $t("projectReplace.undoHint") }}</span>
       <UiButton intent="primary" :disabled="!canReplace" @click="replaceAll">
-        <Icon name="Replace" :size="14" /> Replace all{{ preview.total ? ` (${preview.total})` : "" }}
+        <Icon name="Replace" :size="14" />
+        {{ preview.total ? $t("projectReplace.replaceAllCount", { n: preview.total }) : $t("projectReplace.replaceAll") }}
       </UiButton>
     </template>
   </AppModal>
