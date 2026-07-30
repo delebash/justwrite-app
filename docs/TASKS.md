@@ -630,10 +630,27 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   `<i18n-t>` with named slots per the `chapters.index.intro` pattern, NOT fragments. Worst files
   remain AnalysisView 81, ImportView 57, HomeView 56, RichEditor 55.
 
-  **Continued the same night — 1,358 → 1,276 warnings, 54 → 45 files** (`d15675c` + this commit).
-  Ten more files to zero: GroupsModal, SceneNotesPanel, ArchitectureView, TimelineView,
-  EventNewView, EventEditView, EventsTimelineView, CommandPalette, TrashView, and Sidebar all but
-  two (see the flags below). **25 of 81 renderer files are now clean.**
+  **Continued the same night — cumulative 1,430 → 1,150 warnings, 69 → 40 files, across six
+  commits** (`b6ee9cc`, `d15675c`, `640b633`, `34052d4`, `2630f19`, `387477d`, all pushed).
+  **30 of 81 renderer files are now clean** — a further fifteen after the first batch:
+  GroupsModal, SceneNotesPanel, ArchitectureView, TimelineView, EventNewView, EventEditView,
+  EventsTimelineView, CommandPalette, TrashView, SensoryResearchModal, StuckDiagnosticModal,
+  LinkBackfillModal, CharacterProfileFillModal, EntityReviewModal, and Sidebar all but two (see
+  the flags below).
+
+  **The dedupe was the cheapest progress, exactly as the measurement predicted.** 66 sites now
+  point at shared keys, and only two keys were minted to do it (`common.none`, the counterpart of
+  an existing `common.all`; and `common.selectedOf`, after the third occurrence appeared).
+  `common.retry` ×13, `common.regenerate` ×8, plus Cancel/Done/Close/Delete/All/None — five of
+  those already existed and the call sites had simply never been pointed at them. The value is
+  not the ~120 warnings it closed but the keys it prevented: every one of those sites was a
+  future `modalX.cancel`.
+
+  **Six manual pluralizations removed**, all English-only suffix logic living in templates —
+  `item{{ n === 1 ? "" : "s" }}` and friends in TrashView, SensoryResearchModal,
+  LinkBackfillModal, CharacterProfileFillModal, GroupsModal, ArchitectureView. Each is now a
+  proper `"{n} x | {n} xs"` key on the established `$t(key, {n}, count)` form. These were not
+  cosmetic: no other language pluralizes by appending "s".
 
   **A NEW GATE, because `<i18n-t>` had two invisible failure modes:**
   `src/renderer/src/i18n/i18nTSlots.test.js`. A wrong or renamed keypath renders an **EMPTY**
