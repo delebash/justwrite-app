@@ -47,6 +47,7 @@
     "all": "All",
     "none": "None",
     "countOf": "{shown} of {total}",
+    "selectedOf": "{selected} of {total} selected",
     "new": "New",
     "undo": "Undo",
     "redo": "Redo",
@@ -146,6 +147,44 @@
     "memberCount": "{n} member | {n} members",
     "deleteGroup": "Delete group",
     "newGroup": "New group"
+  },
+  "entityReview": {
+    "eyebrow": "Entity proposals",
+    "titleFrom": "From {chapter}",
+    "titleFallback": "Review proposals",
+    "desc": "The model proposed these entities from your prose. Tick the ones you want to keep, edit any field inline, then add the selected items to your story bible. Unticked rows are discarded — nothing is saved until you confirm.",
+    "emptyTitle": "Nothing new",
+    "emptyMessage": "Every named entity in this chapter is already in your story bible.",
+    "namePlaceholder": "Name",
+    "aliasesPlaceholder": "aliases (comma-separated)",
+    "foundIn": "Found in",
+    "chapterChip": "Ch. {num}",
+    "quote": "Quote",
+    "addAction": "Add {n} to story bible"
+  },
+  "characterProfile": {
+    "eyebrow": "Fill from book",
+    "titleFallback": "Character",
+    "chipLabel": "Character profile",
+    "desc": "Drafts this character's profile — and their voice, from lines they actually speak — out of the scenes that feature them. Grounded in your prose, nothing invented. Tick the fields you want, edit them inline, then apply. Fields you've already written are unticked by default so nothing overwrites your work without you.",
+    "thisCharacter": "this character",
+    "theCharacter": "the character",
+    "noScenes": "No scenes feature {name} yet, so there's no prose to draft from. Link them to scenes (or run the entity sweep with scene linking) first.",
+    "listening": "Listening to {name}'s dialogue…",
+    "reading": "Reading {name}'s scenes…",
+    "overwriteWarning": "replaces what you wrote",
+    "applyAction": "Apply {n} field | Apply {n} fields"
+  },
+  "linkBackfill": {
+    "eyebrow": "Link scenes",
+    "title": "Link scenes to the story bible",
+    "desc": "Every story-bible name and alias was matched against your prose — no AI involved — and these scenes mention an entity they aren't linked to yet. Tick what to keep; nothing is saved until you confirm.",
+    "emptyTitle": "Nothing to link",
+    "emptyMessage": "Every scene that names a story-bible character, location, or object already carries that link.",
+    "proposedCount": "{n} proposed",
+    "matchedAs": "as “{name}”",
+    "footerSelected": "{selected} of {total} links selected",
+    "linkAction": "Link {n} scene | Link {n} scenes"
   },
   "sensory": {
     "eyebrow": "Research feel",

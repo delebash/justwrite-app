@@ -129,27 +129,25 @@ function originTitle(originChapters) {
 
 <template>
   <AppModal
-    eyebrow="Entity proposals"
-    :title="chapterTitle ? `From ${chapterTitle}` : 'Review proposals'"
+    :eyebrow="$t('entityReview.eyebrow')"
+    :title="chapterTitle ? $t('entityReview.titleFrom', { chapter: chapterTitle }) : $t('entityReview.titleFallback')"
     @close="emit('close')"
   >
     <p v-if="anyProposed" class="er-desc">
-      The model proposed these entities from your prose. Tick the ones you want to keep,
-      edit any field inline, then add the selected items to your story bible.
-      Unticked rows are discarded — nothing is saved until you confirm.
+      {{ $t("entityReview.desc") }}
     </p>
 
     <EmptyState v-if="!anyProposed"
       icon="Check"
-      title="Nothing new"
-      message="Every named entity in this chapter is already in your story bible." />
+      :title="$t('entityReview.emptyTitle')"
+      :message="$t('entityReview.emptyMessage')" />
 
     <div v-else class="er-body">
       <section v-for="sec in SECTIONS" :key="sec.key" v-show="rows[sec.key].length" class="er-section">
         <header class="er-section-h">
           <Icon :name="sec.icon" :size="13" />
           <h3>{{ sec.label }}</h3>
-          <span class="t-muted">{{ counts[sec.key] }} of {{ rows[sec.key].length }} selected</span>
+          <span class="t-muted">{{ $t("common.selectedOf", { selected: counts[sec.key], total: rows[sec.key].length }) }}</span>
           <!-- .tb-text has no global definition (it lives only in RichEditor's
                scoped block) — the resolving modifier is .tb-btn.wide, which
                sizes the button to its text (checker note, 2026-07-11). -->
@@ -163,7 +161,7 @@ function originTitle(originChapters) {
             <UiCheckbox v-model="r.accept" class="er-check" />
             <div class="er-fields">
               <div class="er-fields-row">
-                <input class="er-name" v-model="r.name" placeholder="Name" :disabled="!r.accept" />
+                <input class="er-name" v-model="r.name" :placeholder="$t('entityReview.namePlaceholder')" :disabled="!r.accept" />
                 <input class="er-primary" v-model="r[sec.primary]" :placeholder="sec.primary" :disabled="!r.accept" />
               </div>
               <input class="er-blurb" v-model="r[sec.blurb]" :placeholder="sec.blurb" :disabled="!r.accept" />
@@ -172,15 +170,15 @@ function originTitle(originChapters) {
                    and the scene-link matcher. -->
               <input v-if="sec.key === 'characters'" class="er-blurb"
                 :value="Array.isArray(r.aliases) ? r.aliases.join(', ') : (r.aliases || '')"
-                placeholder="aliases (comma-separated)" :disabled="!r.accept"
+                :placeholder="$t('entityReview.aliasesPlaceholder')" :disabled="!r.accept"
                 @input="r.aliases = $event.target.value" />
               <div v-if="r.originChapters?.length" class="er-origins" v-tooltip.bottom="originTitle(r.originChapters)">
-                <span class="er-origin-lbl">Found in</span>
-                <span v-for="oc in r.originChapters.slice(0, 6)" :key="oc.id" class="er-origin-chip">Ch. {{ oc.num }}</span>
+                <span class="er-origin-lbl">{{ $t("entityReview.foundIn") }}</span>
+                <span v-for="oc in r.originChapters.slice(0, 6)" :key="oc.id" class="er-origin-chip">{{ $t("entityReview.chapterChip", { num: oc.num }) }}</span>
                 <span v-if="r.originChapters.length > 6" class="er-origin-more">+{{ r.originChapters.length - 6 }}</span>
               </div>
               <div v-if="r.evidence" class="er-evidence">
-                <span class="er-evidence-lbl">Quote</span>
+                <span class="er-evidence-lbl">{{ $t("entityReview.quote") }}</span>
                 <span class="er-evidence-q">"{{ r.evidence }}"</span>
               </div>
             </div>
@@ -190,12 +188,12 @@ function originTitle(originChapters) {
     </div>
 
     <template #footer>
-      <span class="t-muted">{{ totalSelected }} of {{ totalProposed }} selected</span>
+      <span class="t-muted">{{ $t("common.selectedOf", { selected: totalSelected, total: totalProposed }) }}</span>
       <span style="flex:1"></span>
       <UiButton intent="ghost" @click="emit('close')">{{ $t("common.cancel") }}</UiButton>
       <UiButton intent="primary" :disabled="totalSelected === 0" @click="commit">
         <Icon name="Check" :size="13" />
-        Add {{ totalSelected }} to story bible
+        {{ $t("entityReview.addAction", { n: totalSelected }) }}
       </UiButton>
     </template>
   </AppModal>

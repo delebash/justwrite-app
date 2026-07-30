@@ -120,16 +120,13 @@ function onClose() {
 </script>
 
 <template>
-  <AppModal eyebrow="Fill from book" :title="ch?.name || 'Character'" :closable="!running" @close="onClose">
+  <AppModal :eyebrow="$t('characterProfile.eyebrow')" :title="ch?.name || $t('characterProfile.titleFallback')" :closable="!running" @close="onClose">
     <template #header-extra>
-      <AiFeatureChip feature="characterProfile" label="Character profile" editable />
+      <AiFeatureChip feature="characterProfile" :label="$t('characterProfile.chipLabel')" editable />
     </template>
 
     <p class="cpf-desc">
-      Drafts this character's profile — and their voice, from lines they actually speak — out of
-      the scenes that feature them. Grounded in your prose, nothing invented. Tick the fields you
-      want, edit them inline, then apply. Fields you've already written are unticked by default
-      so nothing overwrites your work without you.
+      {{ $t("characterProfile.desc") }}
     </p>
 
     <AiTaskStrip :task="myTask" />
@@ -137,18 +134,21 @@ function onClose() {
     <div v-if="error" class="cpf-error"><Icon name="Alert" :size="13" /> {{ error }}</div>
 
     <div v-if="noScenes" class="cpf-empty">
-      No scenes feature {{ ch?.name || "this character" }} yet, so there's no prose to draft from.
-      Link them to scenes (or run the entity sweep with scene linking) first.
+      {{ $t("characterProfile.noScenes", { name: ch?.name || $t("characterProfile.thisCharacter") }) }}
     </div>
 
+    <!-- Both keypaths spelled out as literals rather than a ternary INSIDE $t():
+         vue-i18n-extract only matches plain string literals, so the folded form
+         reported both keys as unused and would not have caught a rename. -->
     <div v-else-if="loading" class="cpf-empty">
-      {{ phase === "voice" ? `Listening to ${ch?.name || "the character"}'s dialogue…`
-                           : `Reading ${ch?.name || "the character"}'s scenes…` }}
+      {{ phase === "voice"
+           ? $t("characterProfile.listening", { name: ch?.name || $t("characterProfile.theCharacter") })
+           : $t("characterProfile.reading", { name: ch?.name || $t("characterProfile.theCharacter") }) }}
     </div>
 
     <div v-else class="cpf-rows">
       <div v-if="rows.length" class="cpf-selectbar">
-        <span class="t-muted">{{ acceptCount }} of {{ rows.length }} selected</span>
+        <span class="t-muted">{{ $t("common.selectedOf", { selected: acceptCount, total: rows.length }) }}</span>
         <span class="cpf-spacer" />
         <UiButton intent="ghost" size="small" @click="setAll(true)">{{ $t("common.all") }}</UiButton>
         <UiButton intent="ghost" size="small" @click="setAll(false)">{{ $t("common.none") }}</UiButton>
@@ -161,7 +161,7 @@ function onClose() {
           <div class="cpf-fields">
             <div class="cpf-label">
               {{ r.label }}
-              <span v-if="r.current" class="cpf-overwrite">replaces what you wrote</span>
+              <span v-if="r.current" class="cpf-overwrite">{{ $t("characterProfile.overwriteWarning") }}</span>
             </div>
             <div v-if="r.current" class="cpf-current">{{ r.current }}</div>
             <UiTextarea fluid auto-resize :rows="2" v-model="r.proposed" :disabled="!r.accept" />
@@ -172,9 +172,9 @@ function onClose() {
 
     <template #footer>
       <span style="flex:1"></span>
-      <UiButton intent="ghost" @click="onClose">{{ rows.length ? "Cancel" : "Close" }}</UiButton>
+      <UiButton intent="ghost" @click="onClose">{{ rows.length ? $t("common.cancel") : $t("common.close") }}</UiButton>
       <UiButton v-if="rows.length" intent="primary" :disabled="!acceptCount" @click="apply">
-        <Icon name="Check" :size="13" /> Apply {{ acceptCount }} field{{ acceptCount === 1 ? "" : "s" }}
+        <Icon name="Check" :size="13" /> {{ $t("characterProfile.applyAction", { n: acceptCount }, acceptCount) }}
       </UiButton>
     </template>
   </AppModal>

@@ -85,32 +85,30 @@ function apply() {
 
 <template>
   <AppModal
-    eyebrow="Link scenes"
-    title="Link scenes to the story bible"
+    :eyebrow="$t('linkBackfill.eyebrow')"
+    :title="$t('linkBackfill.title')"
     @close="emit('close')"
   >
     <p v-if="totalProposed" class="lb-desc">
-      Every story-bible name and alias was matched against your prose — no AI involved —
-      and these scenes mention an entity they aren't linked to yet. Tick what to keep;
-      nothing is saved until you confirm.
+      {{ $t("linkBackfill.desc") }}
     </p>
 
     <EmptyState v-if="!totalProposed"
       icon="Check"
-      title="Nothing to link"
-      message="Every scene that names a story-bible character, location, or object already carries that link." />
+      :title="$t('linkBackfill.emptyTitle')"
+      :message="$t('linkBackfill.emptyMessage')" />
 
     <div v-else class="lb-body">
       <section v-for="sec in SECTIONS" :key="sec.key" v-show="groups[sec.key].length" class="lb-section">
         <header class="lb-section-h">
           <Icon :name="sec.icon" :size="13" />
           <h3>{{ sec.label }}</h3>
-          <span class="t-muted">{{ sectionCount(sec.key) }} proposed</span>
+          <span class="t-muted">{{ $t("linkBackfill.proposedCount", { n: sectionCount(sec.key) }) }}</span>
         </header>
         <div v-for="g in groups[sec.key]" :key="g.key" class="lb-group">
           <div class="lb-group-h">
             <span class="lb-group-name">{{ g.entityName }}</span>
-            <span class="t-muted">{{ g.rows.filter((r) => r.accept).length }} of {{ g.rows.length }}</span>
+            <span class="t-muted">{{ $t("common.countOf", { shown: g.rows.filter((r) => r.accept).length, total: g.rows.length }) }}</span>
             <div class="lb-group-actions">
               <button type="button" class="tb-btn wide" @click="setGroup(g, true)">{{ $t("common.all") }}</button>
               <button type="button" class="tb-btn wide" @click="setGroup(g, false)">{{ $t("common.none") }}</button>
@@ -120,19 +118,19 @@ function apply() {
             class="lb-row" :class="{ dropped: !r.accept }">
             <UiCheckbox v-model="r.accept" />
             <span class="lb-scene">{{ sceneLabel(r) }}</span>
-            <span v-if="r.matched !== r.entityName" class="lb-matched">as “{{ r.matched }}”</span>
+            <span v-if="r.matched !== r.entityName" class="lb-matched">{{ $t("linkBackfill.matchedAs", { name: r.matched }) }}</span>
           </label>
         </div>
       </section>
     </div>
 
     <template #footer>
-      <span class="t-muted">{{ totalSelected }} of {{ totalProposed }} links selected</span>
+      <span class="t-muted">{{ $t("linkBackfill.footerSelected", { selected: totalSelected, total: totalProposed }) }}</span>
       <span style="flex:1"></span>
       <UiButton intent="ghost" @click="emit('close')">{{ $t("common.cancel") }}</UiButton>
       <UiButton intent="primary" :disabled="totalSelected === 0" @click="apply">
         <Icon name="Check" :size="13" />
-        Link {{ totalSelected }} scene{{ totalSelected === 1 ? "" : "s" }}
+        {{ $t("linkBackfill.linkAction", { n: totalSelected }, totalSelected) }}
       </UiButton>
     </template>
   </AppModal>
