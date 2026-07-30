@@ -121,8 +121,8 @@ function onRowClick(event) {
 <template>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!g && !id">
-    <PaneHeader eyebrow="Story world" :title="$t('nav.groups')" help-key="story-bible#groups">
-      <UiButton label="New group" intent="primary" size="small" @click="addGroup">
+    <PaneHeader :eyebrow="$t('panes.groups.eyebrow')" :title="$t('nav.groups')" help-key="story-bible#groups">
+      <UiButton :label="$t('groups.newGroup2')" intent="primary" size="small" @click="addGroup">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </UiButton>
     </PaneHeader>
@@ -130,9 +130,9 @@ function onRowClick(event) {
     <!-- Empty state -->
     <div v-if="project.groups.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center;max-width:420px">
-        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No groups yet.</div>
-        <div style="font-size:12.5px;margin-bottom:14px">Factions and organizations. Group members together to see alliances drawn as edges in the Relations graph.</div>
-        <UiButton intent="primary" @click="addGroup"><Icon name="Plus" :size="14" /> Create your first group</UiButton>
+        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">{{ $t("groups.emptyTitle") }}</div>
+        <div style="font-size:12.5px;margin-bottom:14px">{{ $t("groups.emptyBody") }}</div>
+        <UiButton intent="primary" @click="addGroup"><Icon name="Plus" :size="14" /> {{ $t("groups.createFirst") }}</UiButton>
       </div>
     </div>
 
@@ -145,12 +145,11 @@ function onRowClick(event) {
       empty-text="No groups match your search."
       @row-click="onRowClick">
       <template #intro>
-        <p class="entity-desc" style="margin: 0 0 18px">
-          A <strong>group</strong> is a cluster of characters, locations, objects, or narrative
-          strands that belong together — a faction, a family, a crew. Members are added from each
-          entity's own <strong>Groups</strong> button; shared membership draws edges between
-          members in the <strong>Relations</strong> graph.
-        </p>
+        <i18n-t keypath="groups.introList" tag="p" class="entity-desc" style="margin: 0 0 18px" scope="global">
+          <template #groupTerm><strong>{{ $t("groups.groupTerm") }}</strong></template>
+          <template #groupsButton><strong>{{ $t("nav.groups") }}</strong></template>
+          <template #relations><strong>{{ $t("panes.relations.title") }}</strong></template>
+        </i18n-t>
       </template>
 
       <template #name="{ row }">
@@ -178,35 +177,33 @@ function onRowClick(event) {
         <Breadcrumb :segments="[{ label: 'Group', to: '/groups' }]" />
         <input class="entity-name" ref="nameInput"
           :value="g.name"
-          placeholder="Group name"
+          :placeholder="$t('groups.namePlaceholder')"
           @input="update('name', $event.target.value)" />
       </div>
       <div class="pane-actions">
         <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
-          v-tooltip.bottom="`Ask the book about ${g.name}`">
+          v-tooltip.bottom="$t('common.askTheBookAbout', { title: g.name })">
           <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
         </UiButton>
-        <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</UiButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> {{ $t("common.images") }}</UiButton>
         <router-link :to="`/groups/${g.id}/events`" custom v-slot="{ navigate }">
-          <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</UiButton>
+          <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> {{ $t("common.events") }}</UiButton>
         </router-link>
         <UiButton intent="ghost" size="small" @click="deleteGroup">{{ $t("common.delete") }}</UiButton>
-        <UiButton intent="primary" size="small" @click="addGroup"><Icon name="Plus" :size="14" /> New group</UiButton>
+        <UiButton intent="primary" size="small" @click="addGroup"><Icon name="Plus" :size="14" /> {{ $t("groups.newGroup2") }}</UiButton>
         <StatusSelect :model-value="g.status || ''" @update:model-value="(v) => update('status', v)" />
       </div>
     </header>
     <div class="pane-card">
       <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
-        <p class="entity-desc">
-          A <strong>group</strong> is a cluster of characters, locations, objects, or narrative
-          strands that belong together — a faction, a family, a crew. Members are added from each
-          entity's own <strong>Groups</strong> button; the page below collects everything that's
-          been linked here, and shared membership draws edges between members in the
-          <strong>Relations</strong> graph.
-        </p>
+        <i18n-t keypath="groups.introDetail" tag="p" class="entity-desc" scope="global">
+          <template #groupTerm><strong>{{ $t("groups.groupTerm") }}</strong></template>
+          <template #groupsButton><strong>{{ $t("nav.groups") }}</strong></template>
+          <template #relations><strong>{{ $t("panes.relations.title") }}</strong></template>
+        </i18n-t>
         <RichEditor
           :model-value="g.blurb || ''"
-          placeholder="Blurb"
+          :placeholder="$t('groups.blurbPlaceholder')"
           variant="inline"
           :toolbar="EDITOR_TOOLBAR_SLIM"
           :fill="true"
@@ -214,21 +211,21 @@ function onRowClick(event) {
         />
         <div style="flex:3;min-height:0;overflow-y:auto">
         <div class="group-color-picker">
-          <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">Color</span>
+          <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">{{ $t("groups.colorLabel") }}</span>
           <UiColorPicker :presets="PRESET_COLORS"
             :model-value="g.color"
-            aria-label="Group color"
+            :aria-label="$t('groups.colorAriaLabel')"
             @update:model-value="update('color', $event)" />
           <label class="chip" style="cursor:pointer;gap:6px;margin-left:auto"
-            v-tooltip.bottom="'Hides this entity from any AI feature that pulls in story-world context.'">
+            v-tooltip.bottom="$t('common.excludeFromAiTooltip')">
             <UiCheckbox :model-value="!!g.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
-            Exclude from AI
+            {{ $t("common.excludeFromAi") }}
           </label>
         </div>
         <div style="margin-top:24px">
-          <div class="t-eyebrow" style="margin-bottom:10px">Members ({{ (g.members || []).length }})</div>
-          <p class="t-muted" style="font-size:12px;margin:0 0 10px">Use characters/location/objects/narrative strands "Groups" button to add it here.</p>
-          <div v-if="(g.members || []).length === 0" class="t-muted" style="font-size:12.5px;text-align:center;padding:24px 0;background:var(--surface-2);border-radius:8px">No members yet.</div>
+          <div class="t-eyebrow" style="margin-bottom:10px">{{ $t("groups.membersCount", { n: (g.members || []).length }) }}</div>
+          <p class="t-muted" style="font-size:12px;margin:0 0 10px">{{ $t("groups.membersHint") }}</p>
+          <div v-if="(g.members || []).length === 0" class="t-muted" style="font-size:12.5px;text-align:center;padding:24px 0;background:var(--surface-2);border-radius:8px">{{ $t("groups.noMembers") }}</div>
           <div v-for="grp in memberGroups" :key="grp.kind" class="member-group">
             <div class="t-eyebrow member-group-head">{{ grp.label }} ({{ grp.members.length }})</div>
             <div class="member-grid">
@@ -245,7 +242,7 @@ function onRowClick(event) {
         </div>
 
         <div style="margin-top:24px">
-          <div class="t-eyebrow" style="margin-bottom:10px">Mentioned in prose</div>
+          <div class="t-eyebrow" style="margin-bottom:10px">{{ $t("groups.mentionedInProse") }}</div>
           <MentionRefList :entity-id="g.id" />
         </div>
         </div>
@@ -259,16 +256,16 @@ function onRowClick(event) {
     <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Group', to: '/groups' }]" />
-        <h1 class="pane-h1">Group not found</h1>
+        <h1 class="pane-h1">{{ $t("groups.notFound") }}</h1>
       </div>
       <div class="pane-actions">
-        <UiButton intent="primary" size="small" @click="addGroup"><Icon name="Plus" :size="14" /> New group</UiButton>
+        <UiButton intent="primary" size="small" @click="addGroup"><Icon name="Plus" :size="14" /> {{ $t("groups.newGroup2") }}</UiButton>
       </div>
     </header>
     <div class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center">
-        This group no longer exists.<br />
-        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/groups')">Back to groups</UiButton>
+        {{ $t("groups.notFoundBody") }}<br />
+        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/groups')">{{ $t("groups.backToGroups") }}</UiButton>
       </div>
     </div>
   </template>

@@ -51,6 +51,7 @@
     "chapterShort": "Ch. {num}",
     "openThisChapter": "Open this chapter",
     "excludeFromAi": "Exclude from AI",
+    "images": "Images",
     "excludeFromAiTooltip": "Hides this entity from any AI feature that pulls in story-world context.",
     "askTheBookAbout": "Ask the book about {title}",
     "new": "New",
@@ -374,6 +375,24 @@
     "notFoundBody": "That event no longer exists."
   },
   "groups": {
+    "newGroup2": "New group",
+    "emptyTitle": "No groups yet.",
+    "emptyBody": "Factions and organizations. Group members together to see alliances drawn as edges in the Relations graph.",
+    "createFirst": "Create your first group",
+    "groupTerm": "group",
+    "introList": "A {groupTerm} is a cluster of characters, locations, objects, or narrative strands that belong together — a faction, a family, a crew. Members are added from each entity's own {groupsButton} button; shared membership draws edges between members in the {relations} graph.",
+    "introDetail": "A {groupTerm} is a cluster of characters, locations, objects, or narrative strands that belong together — a faction, a family, a crew. Members are added from each entity's own {groupsButton} button; the page below collects everything that's been linked here, and shared membership draws edges between members in the {relations} graph.",
+    "namePlaceholder": "Group name",
+    "blurbPlaceholder": "Blurb",
+    "colorLabel": "Color",
+    "colorAriaLabel": "Group color",
+    "membersCount": "Members ({n})",
+    "membersHint": "Use characters/location/objects/narrative strands \"Groups\" button to add it here.",
+    "noMembers": "No members yet.",
+    "notFound": "Group not found",
+    "notFoundBody": "This group no longer exists.",
+    "backToGroups": "Back to groups",
+    "mentionedInProse": "Mentioned in prose",
     "toggleHint": "Toggle {name} in or out of any group.",
     "empty": "No groups yet — create one below.",
     "memberCount": "{n} member | {n} members",
@@ -525,6 +544,9 @@
     },
     "architecture": {
       "eyebrow": "Planning"
+    },
+    "groups": {
+      "eyebrow": "Story world"
     }
   },
   "sidebar": {
