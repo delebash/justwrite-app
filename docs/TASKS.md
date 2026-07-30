@@ -691,6 +691,38 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   (`ev.title || "Untitled event"` → `events.untitled`), a Breadcrumb label built inside an array
   literal, and two `PaneHeader`/`AppModal` eyebrows.
 
+  **RUNNING STATE — 1,430 → 943 warnings, 69 → 39 files with warnings; 42 of 81 renderer files
+  are clean.** Every batch below is committed and pushed to `origin/master`, so this resumes
+  from git at any point. Files done since the last note: SensoryResearchModal,
+  StuckDiagnosticModal, LinkBackfillModal, CharacterProfileFillModal, EntityReviewModal,
+  VariationsModal, AiTellScanModal, ProjectReplaceModal, ReverseOutlineModal, SearchView,
+  PlotBoardView, BrainstormView, WorldbuildingView, BeatSheetModal, EditorSettingsModal,
+  NotesView.
+
+  **HOW TO CARRY ON — the method that is working, so the next session need not rediscover it:**
+  1. `npx eslint -c eslint.i18n.config.mjs <file>` for one file's warnings; convert the whole
+     file; lint it again. Do NOT chase individual warnings across files.
+  2. Add keys with a small Python patch script (heredoc) doing exact-string replacements and
+     PRINTING any that miss — sed mangles the `$t` and the curly quotes, and `en.json` is
+     hand-formatted so a JSON round-trip reflows a thousand lines. Validate with
+     `json.load` in the same script.
+  3. Prose wrapped around a bolded term becomes ONE key with `<i18n-t>` named slots, and the
+     slot points at the key that ALREADY names that thing (`nav.trash`, `panes.timeline.title`)
+     so the sentence cannot drift from the thing it describes.
+  4. Check `common.*` and `count.*` before minting. `common.*` = cross-surface verbs and labels;
+     `count.*` = cross-surface plural nouns. Roughly 200 duplicate sites remain.
+  5. Convert what `no-raw-text` CANNOT see while you are in the file — template-literal
+     tooltips and aria-labels, JS string fallbacks, `label`/`message`/`title` props — otherwise
+     the file lints clean while still shipping English.
+  6. Verify every batch: per-file lint, `node <scratch>/check-i18nt.mjs` equivalent (or just
+     `npm run test:unit`, which now includes the i18n-t gate), `npm run build:vite`,
+     `npm run i18n:report` for 0 missing / 0 unused.
+
+  **A TRAP worth knowing: `@` is vue-i18n's linked-message syntax.** "@-mention" in a message
+  parses as a link and renders wrong. Write it `{'@'}`. Nothing in the toolchain catches this —
+  it lints clean, builds clean, and renders wrong — so render-check any message containing `@`,
+  `|` or `{` through `createI18n` before trusting it.
+
   **⚠ TWO STUBS found while converting, NOT fixed — yours to call.** Both are in `Sidebar.vue`,
   both are why it still has 2 warnings, and both are behaviour questions rather than i18n ones:
   - `Sidebar.vue:1100,1122` — the avatar reads a hardcoded **`MH`**, in both the expanded footer

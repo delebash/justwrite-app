@@ -231,21 +231,21 @@ function onRowClick(event) {
   <template v-if="!n && !id">
     <PaneHeader :eyebrow="$t('panes.notes.eyebrow')" :title="$t('nav.notes')" help-key="notes-and-search#notes">
       <UiButton intent="ghost" size="small" :disabled="importing" @click="pickNoteFile"
-        v-tooltip.bottom="'Import one or more .docx, .txt, .md, .odt, or .epub files as notes'">
-        <Icon name="Note" :size="13" /> {{ importing ? "Importing…" : "Import files" }}
+        v-tooltip.bottom="$t('notes.importTooltip')">
+        <Icon name="Note" :size="13" /> {{ importing ? $t("notes.importing") : $t("notes.importFiles") }}
       </UiButton>
-      <UiButton label="New note" intent="primary" size="small" @click="addNote">
+      <UiButton :label="$t('notes.newNote')" intent="primary" size="small" @click="addNote">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </UiButton>
     </PaneHeader>
 
     <div v-if="project.notes.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center;max-width:420px">
-        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No notes yet.</div>
-        <div style="font-size:12.5px;margin-bottom:14px">Scratch-pad jottings — pin them to chapters or scenes and they surface in the editor's Notes panel for that spot.</div>
+        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">{{ $t("notes.emptyTitle") }}</div>
+        <div style="font-size:12.5px;margin-bottom:14px">{{ $t("notes.emptyBody") }}</div>
         <div style="display:inline-flex;gap:8px">
-          <UiButton intent="primary" @click="addNote"><Icon name="Plus" :size="14" /> Create your first note</UiButton>
-          <UiButton intent="secondary" :disabled="importing" @click="pickNoteFile"><Icon name="Note" :size="14" /> Import from files</UiButton>
+          <UiButton intent="primary" @click="addNote"><Icon name="Plus" :size="14" /> {{ $t("notes.createFirst") }}</UiButton>
+          <UiButton intent="secondary" :disabled="importing" @click="pickNoteFile"><Icon name="Note" :size="14" /> {{ $t("notes.importFromFiles") }}</UiButton>
         </div>
       </div>
     </div>
@@ -283,23 +283,23 @@ function onRowClick(event) {
   <template v-else-if="n">
     <header class="pane-header entity-pane-header">
       <div class="pane-title">
-        <Breadcrumb :segments="[{ label: 'Note', to: '/notes' }]" />
+        <Breadcrumb :segments="[{ label: $t('notes.breadcrumb'), to: '/notes' }]" />
         <input class="entity-name" ref="nameInput"
           :value="n.title"
-          placeholder="Note title"
+          :placeholder="$t('notes.titlePlaceholder')"
           @input="update('title', $event.target.value)" />
       </div>
       <div class="pane-actions">
-        <div class="note-anchor-wrap" v-tooltip.bottom="'Pin this note to a chapter or scene — it appears in that chapter\'s Notes panel'">
+        <div class="note-anchor-wrap" v-tooltip.bottom="$t('notes.anchorTooltip')">
           <Icon name="Pin" :size="11" class="note-anchor-icon" />
           <UiSelect class="note-anchor-select"
             :model-value="anchorValue"
             @update:model-value="anchorValue = $event"
             :options="anchorOptions"
-            aria-label="Note anchor" />
+            :aria-label="$t('notes.anchorAriaLabel')" />
         </div>
         <div class="note-tag-wrap">
-          <UiInput fluid placeholder="tag"
+          <UiInput fluid :placeholder="$t('notes.tagPlaceholder')"
             :model-value="n.tag"
             @update:model-value="update('tag', $event)"
             @focus="onTagFocus"
@@ -317,22 +317,19 @@ function onRowClick(event) {
             </li>
           </ul>
         </div>
-        <span class="t-muted" style="font-size:12px;padding:0 8px">Updated {{ n.updated }}</span>
+        <span class="t-muted" style="font-size:12px;padding:0 8px">{{ $t("notes.updated", { when: n.updated }) }}</span>
         <UiButton intent="ghost" size="small" @click="deleteNote">{{ $t("common.delete") }}</UiButton>
-        <UiButton intent="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> New note</UiButton>
+        <UiButton intent="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> {{ $t("notes.newNote") }}</UiButton>
       </div>
     </header>
 
     <div class="pane-card">
       <p class="entity-desc note-desc">
-        A <strong>note</strong> is anything that doesn't fit one of the structured surfaces —
-        research clippings, half-formed scene ideas, cut prose, beta feedback, a thought you want
-        to come back to. Tag it to find it later; pin it to a chapter or scene above so it
-        surfaces there too.
+        {{ $t("notes.intro", { noteTerm: $t("notes.noteTerm") }) }}
       </p>
       <RichEditor
         :model-value="n.body"
-        placeholder="Start writing the note…"
+        :placeholder="$t('notes.bodyPlaceholder')"
         @change="(html) => update('body', html)"
       />
     </div>
@@ -343,16 +340,16 @@ function onRowClick(event) {
     <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Note', to: '/notes' }]" />
-        <h1 class="pane-h1">Note not found</h1>
+        <h1 class="pane-h1">{{ $t("notes.notFound") }}</h1>
       </div>
       <div class="pane-actions">
-        <UiButton intent="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> New note</UiButton>
+        <UiButton intent="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> {{ $t("notes.newNote") }}</UiButton>
       </div>
     </header>
     <div class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center">
-        This note no longer exists.<br />
-        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/notes')">Back to notes</UiButton>
+        {{ $t("notes.notFoundBody") }}<br />
+        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/notes')">{{ $t("notes.backToNotes") }}</UiButton>
       </div>
     </div>
   </template>

@@ -183,6 +183,28 @@
     "save": "save",
     "back": "back"
   },
+  "notes": {
+    "importing": "Importing…",
+    "importFiles": "Import files",
+    "importTooltip": "Import one or more .docx, .txt, .md, .odt, or .epub files as notes",
+    "newNote": "New note",
+    "emptyTitle": "No notes yet.",
+    "emptyBody": "Scratch-pad jottings — pin them to chapters or scenes and they surface in the editor's Notes panel for that spot.",
+    "createFirst": "Create your first note",
+    "importFromFiles": "Import from files",
+    "titlePlaceholder": "Note title",
+    "anchorTooltip": "Pin this note to a chapter or scene — it appears in that chapter's Notes panel",
+    "anchorAriaLabel": "Note anchor",
+    "tagPlaceholder": "tag",
+    "updated": "Updated {when}",
+    "noteTerm": "note",
+    "intro": "A {noteTerm} is anything that doesn't fit one of the structured surfaces — research clippings, half-formed scene ideas, cut prose, beta feedback, a thought you want to come back to. Tag it to find it later; pin it to a chapter or scene above so it surfaces there too.",
+    "bodyPlaceholder": "Start writing the note…",
+    "notFound": "Note not found",
+    "notFoundBody": "This note no longer exists.",
+    "backToNotes": "Back to notes",
+    "breadcrumb": "Note"
+  },
   "search": {
     "resultCount": "{n} result | {n} results",
     "replaceButton": "Replace…",
