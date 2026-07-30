@@ -159,24 +159,22 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
   >
     <template #header>
       <div class="idx-titleblock">
-        <div class="t-eyebrow">Manuscript index</div>
-        <div class="modal-title">{{ mode === "rebuild" ? "Rebuilding index" : "Building index" }}</div>
+        <div class="t-eyebrow">{{ $t("indexBuild.eyebrow") }}</div>
+        <div class="modal-title">{{ mode === "rebuild" ? $t("indexBuild.rebuilding") : $t("indexBuild.building") }}</div>
       </div>
       <UiButton v-if="running" intent="ghost" size="small" @click="cancel">
         <Icon name="Close" :size="12" /> {{ $t("common.cancel") }}
       </UiButton>
     </template>
 
-    <p class="idx-desc">
-      Splits your manuscript into <strong>scenes</strong> and sends each one to the configured
-      <strong>embedding model</strong> to build a vector index. Once built, the index powers
-      semantic search and the <strong>Chat</strong> panel so you can ask questions about your
-      book and get answers grounded in specific scenes.
-    </p>
+    <i18n-t keypath="indexBuild.desc" tag="p" class="idx-desc" scope="global">
+      <template #scenes><strong>{{ $t("indexBuild.scenesTerm") }}</strong></template>
+      <template #embeddingModel><strong>{{ $t("indexBuild.embeddingModelTerm") }}</strong></template>
+      <template #chat><strong>{{ $t("indexBuild.chatTerm") }}</strong></template>
+    </i18n-t>
 
     <div v-if="before.exists && !running && !result" class="idx-stat">
-      Current index: <b>{{ before.entryCount }}</b> scene{{ before.entryCount === 1 ? "" : "s" }} ·
-      model <code>{{ before.model || "?" }}</code> · {{ before.dims || "?" }}d
+      {{ $t("indexBuild.currentIndex", { scenes: $t("count.scene", { n: before.entryCount }, before.entryCount), model: before.model || $t("indexBuild.unknownShort"), dims: $t("indexBuild.dims", { n: before.dims || $t("indexBuild.unknownShort") }) }) }}
     </div>
 
     <div v-if="error" class="idx-error">
@@ -193,17 +191,17 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
 
     <div v-if="result" class="idx-summary">
       <Icon name="Check" :size="13" />
-      Indexed <b>{{ totalDone }}</b> scene{{ totalDone === 1 ? "" : "s" }}.
-      <span v-if="result.removed" class="t-muted"> · {{ result.removed }} stale chunk{{ result.removed === 1 ? "" : "s" }} cleared</span>
+      {{ $t("indexBuild.indexed", { scenes: $t("count.scene", { n: totalDone }, totalDone) }) }}
+      <span v-if="result.removed" class="t-muted">{{ $t("indexBuild.staleCleared", { n: result.removed }, result.removed) }}</span>
     </div>
 
     <template v-if="!running" #footer>
       <UiButton v-if="before.exists && !result" intent="ghost" size="small" @click="clearAndClose">
-        Clear index
+        {{ $t("indexBuild.clearIndex") }}
       </UiButton>
       <span style="flex:1"></span>
       <UiButton intent="primary" @click="requestClose">
-        {{ result ? "Done" : "Close" }}
+        {{ result ? $t("common.done") : $t("common.close") }}
       </UiButton>
     </template>
   </AppModal>

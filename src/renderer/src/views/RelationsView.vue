@@ -445,25 +445,21 @@ onBeforeUnmount(() => {
 <template>
   <PaneHeader :eyebrow="$t('panes.relations.eyebrow')" :title="$t('panes.relations.title')" help-key="story-bible#relations">
     <div class="relations-toolbar">
-      <UiButton intent="ghost" size="small" aria-label="Zoom out" v-tooltip.bottom="'Zoom out (−)'" @click="zoomOut">
+      <UiButton intent="ghost" size="small" :aria-label="$t('relations.zoomOut')" v-tooltip.bottom="$t('relations.zoomOutTooltip')" @click="zoomOut">
         <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
       </UiButton>
       <span class="relations-zoom-label">{{ Math.round(zoom * 100) }}%</span>
-      <UiButton intent="ghost" size="small" aria-label="Zoom in" v-tooltip.bottom="'Zoom in (+)'" @click="zoomIn">
+      <UiButton intent="ghost" size="small" :aria-label="$t('relations.zoomIn')" v-tooltip.bottom="$t('relations.zoomInTooltip')" @click="zoomIn">
         <Icon name="ChevRight" :size="12" />
       </UiButton>
-      <UiButton intent="ghost" size="small" v-tooltip.bottom="'Reset view (0)'" @click="resetView">Reset</UiButton>
+      <UiButton intent="ghost" size="small" v-tooltip.bottom="$t('relations.resetTooltip')" @click="resetView">{{ $t("relations.reset") }}</UiButton>
     </div>
   </PaneHeader>
 
-  <p class="rel-desc">
-    <strong>Relations</strong> is a diagnostic graph of how every character, location, and
-    object in your project connects. Edges come from shared scenes, shared groups, and shared
-    strands — you don't draw them here, they appear automatically from the work you do
-    elsewhere. <strong>Hover or click a node</strong> to light up its connections. Use it to
-    ask whether your protagonist is really at the centre of the story, or whether a major
-    character is isolated.
-  </p>
+  <i18n-t keypath="relations.intro" tag="p" class="rel-desc" scope="global">
+    <template #relations><strong>{{ $t("panes.relations.title") }}</strong></template>
+    <template #hover><strong>{{ $t("relations.hoverTerm") }}</strong></template>
+  </i18n-t>
 
   <div ref="wrapRef" class="pane-card relations-canvas" tabindex="0"
     :class="{ panning: isPanning }">
@@ -507,7 +503,7 @@ onBeforeUnmount(() => {
           @mouseleave="onNodeLeave(n)"
           @focus="onNodeEnter(n)"
           @blur="onNodeLeave(n)">
-          <title>{{ n.label }}{{ n.sub ? ` — ${n.sub}` : "" }}{{ pinnedId === n.id ? ' (click again to open)' : '' }}</title>
+          <title>{{ n.label }}{{ n.sub ? ` — ${n.sub}` : "" }}{{ pinnedId === n.id ? $t("relations.clickAgainToOpen") : "" }}</title>
           <circle :r="n.r"
             :style="`fill: ${nodeFill(n)}; stroke: ${nodeStroke(n)}`"
             :stroke-width="pinnedId === n.id ? 3 : (n.main ? 2 : 1.5)" />
@@ -531,34 +527,34 @@ onBeforeUnmount(() => {
     <!-- Empty state -->
     <div v-if="nodes.length === 0" class="relations-empty">
       <p>
-        <span style="display:block;font-size:14px;color:var(--ink);margin-bottom:6px">Nothing to connect yet.</span>
-        Add characters, locations, or objects — the Relations graph draws edges automatically from shared scenes, groups, and narrative strands.
+        <span style="display:block;font-size:14px;color:var(--ink);margin-bottom:6px">{{ $t("relations.emptyTitle") }}</span>
+        {{ $t("relations.emptyBody") }}
       </p>
     </div>
 
     <!-- Legend — colored dots double as toggles; each row shows the
          total edge count touching that kind. -->
-    <div class="relations-legend" role="group" aria-label="Filter by entity type">
+    <div class="relations-legend" role="group" :aria-label="$t('relations.legendGroup')">
       <div class="legend-head" aria-hidden="true">
-        <span>Type</span>
-        <span class="legend-head-count">Edges</span>
+        <span>{{ $t("relations.legendType") }}</span>
+        <span class="legend-head-count">{{ $t("relations.legendEdges") }}</span>
       </div>
-      <label :aria-label="`Show characters — ${edgeCounts.character} edges`">
+      <label :aria-label="$t('relations.showCharacters', { n: edgeCounts.character })">
         <UiCheckbox v-model="showCharacters" />
         <i class="dot character" aria-hidden="true" />
-        <span class="legend-label">Character</span>
+        <span class="legend-label">{{ $t("relations.character") }}</span>
         <span class="legend-count" aria-hidden="true">{{ edgeCounts.character }}</span>
       </label>
-      <label :aria-label="`Show locations — ${edgeCounts.location} edges`">
+      <label :aria-label="$t('relations.showLocations', { n: edgeCounts.location })">
         <UiCheckbox v-model="showLocations" />
         <i class="dot location" aria-hidden="true" />
-        <span class="legend-label">Location</span>
+        <span class="legend-label">{{ $t("relations.location") }}</span>
         <span class="legend-count" aria-hidden="true">{{ edgeCounts.location }}</span>
       </label>
-      <label :aria-label="`Show objects — ${edgeCounts.object} edges`">
+      <label :aria-label="$t('relations.showObjects', { n: edgeCounts.object })">
         <UiCheckbox v-model="showObjects" />
         <i class="dot object" aria-hidden="true" />
-        <span class="legend-label">Object</span>
+        <span class="legend-label">{{ $t("relations.object") }}</span>
         <span class="legend-count" aria-hidden="true">{{ edgeCounts.object }}</span>
       </label>
     </div>
@@ -573,16 +569,16 @@ onBeforeUnmount(() => {
             {{ $t("count.connection", { n: focusedNeighborCount }, focusedNeighborCount) }}
           </div>
         </div>
-        <UiButton v-if="pinnedId" intent="ghost" size="small" aria-label="Clear focus" v-tooltip.bottom="'Clear focus (Esc)'" @click="clearPin">
+        <UiButton v-if="pinnedId" intent="ghost" size="small" :aria-label="$t('relations.clearFocus')" v-tooltip.bottom="$t('relations.clearFocusTooltip')" @click="clearPin">
           <Icon name="Close" :size="12" />
         </UiButton>
       </div>
-      <div v-if="!pinnedId" class="relations-focus-hint">Click to pin · click again to open</div>
-      <div v-else class="relations-focus-hint">Click node again to open · click empty space to clear</div>
+      <div v-if="!pinnedId" class="relations-focus-hint">{{ $t("relations.hintPin") }}</div>
+      <div v-else class="relations-focus-hint">{{ $t("relations.hintPinned") }}</div>
     </div>
 
     <div class="relations-hint">
-      <kbd>Wheel</kbd> zoom · <kbd>Drag</kbd> pan · <kbd>+</kbd>/<kbd>−</kbd>/<kbd>0</kbd> · <kbd>Esc</kbd> clear focus
+      <kbd>Wheel</kbd> {{ $t("relations.kbdZoom") }} · <kbd>Drag</kbd> {{ $t("relations.kbdPan") }} · <kbd>+</kbd>/<kbd>−</kbd>/<kbd>0</kbd> · <kbd>Esc</kbd> {{ $t("relations.kbdClearFocus") }}
     </div>
   </div>
 </template>
