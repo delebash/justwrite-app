@@ -106,15 +106,15 @@ function onBackdrop(e) {
   <div class="links-overlay" @mousedown="onBackdrop">
     <div class="links-panel">
       <header class="links-head">
-        <h2>Links</h2>
-        <UiButton intent="ghost" aria-label="Close links panel" v-tooltip.bottom="'Close'" @click="emit('close')">×</UiButton>
+        <h2>{{ $t("sceneLinks.title") }}</h2>
+        <UiButton intent="ghost" :aria-label="$t('sceneLinks.closeAriaLabel')" v-tooltip.bottom="$t('common.close')" @click="emit('close')">×</UiButton>
       </header>
 
       <div class="links-body scrollarea">
         <!-- POV -->
         <section class="links-section">
-          <div class="links-section-label">From which point of view is the scene narrated?</div>
-          <div class="links-row" role="group" aria-label="Point of view">
+          <div class="links-section-label">{{ $t("sceneLinks.povQuestion") }}</div>
+          <div class="links-row" role="group" :aria-label="$t('sceneLinks.povGroup')">
             <button v-for="opt in POV_OPTIONS" :key="opt.value"
               type="button"
               class="link-chip"
@@ -128,8 +128,8 @@ function onBackdrop(e) {
 
         <!-- Characters -->
         <section class="links-section">
-          <div class="links-section-label">Which characters appear in this scene?</div>
-          <div class="links-row" role="group" aria-label="Characters">
+          <div class="links-section-label">{{ $t("sceneLinks.charactersQuestion") }}</div>
+          <div class="links-row" role="group" :aria-label="$t('nav.characters')">
             <button v-for="c in mainCharacters" :key="c.id"
               type="button"
               class="link-chip"
@@ -147,18 +147,18 @@ function onBackdrop(e) {
               {{ c.name }}
             </button>
             <button type="button" class="link-chip link-chip-new" @click="newCharacter(true)">
-              new main character
+              {{ $t("sceneLinks.newMainCharacter") }}
             </button>
             <button type="button" class="link-chip link-chip-new" @click="newCharacter(false)">
-              new secondary character
+              {{ $t("sceneLinks.newSecondaryCharacter") }}
             </button>
           </div>
         </section>
 
         <!-- Locations -->
         <section class="links-section">
-          <div class="links-section-label">Where is this scene located?</div>
-          <div class="links-row" role="group" aria-label="Locations">
+          <div class="links-section-label">{{ $t("sceneLinks.locationsQuestion") }}</div>
+          <div class="links-row" role="group" :aria-label="$t('nav.locations')">
             <button v-for="l in project.locations" :key="l.id"
               type="button"
               class="link-chip"
@@ -168,15 +168,15 @@ function onBackdrop(e) {
               {{ l.name }}<span v-if="l.kind" class="link-chip-sub"> ({{ l.kind }})</span>
             </button>
             <button type="button" class="link-chip link-chip-new" @click="newLocation">
-              new location
+              {{ $t("sceneLinks.newLocation") }}
             </button>
           </div>
         </section>
 
         <!-- Objects -->
         <section class="links-section">
-          <div class="links-section-label">Objects</div>
-          <div class="links-row" role="group" aria-label="Objects">
+          <div class="links-section-label">{{ $t("sceneLinks.objectsQuestion") }}</div>
+          <div class="links-row" role="group" :aria-label="$t('nav.objects')">
             <button v-for="o in project.objects" :key="o.id"
               type="button"
               class="link-chip"
@@ -186,14 +186,14 @@ function onBackdrop(e) {
               {{ o.name }}
             </button>
             <button type="button" class="link-chip link-chip-new" @click="newObject">
-              new object
+              {{ $t("sceneLinks.newObject") }}
             </button>
           </div>
         </section>
 
         <!-- When -->
         <section class="links-section">
-          <label class="links-section-label" for="scene-links-when">When does this scene take place?</label>
+          <label class="links-section-label" for="scene-links-when">{{ $t("sceneLinks.whenQuestion") }}</label>
           <div class="links-row links-row-when">
             <DateTimePicker
               :model-value="scene?.when || ''"
@@ -204,8 +204,8 @@ function onBackdrop(e) {
 
         <!-- Strands -->
         <section class="links-section">
-          <div class="links-section-label">To which narrative strand does this scene belong?</div>
-          <div class="links-row" role="group" aria-label="Narrative strands">
+          <div class="links-section-label">{{ $t("sceneLinks.strandsQuestion") }}</div>
+          <div class="links-row" role="group" :aria-label="$t('sceneLinks.strandsGroup')">
             <button v-for="s in project.strands" :key="s.id"
               type="button"
               class="link-chip link-chip-strand"
@@ -219,23 +219,23 @@ function onBackdrop(e) {
               {{ s.name }}
             </button>
             <button type="button" class="link-chip link-chip-new" @click="newStrand">
-              new narrative strand
+              {{ $t("sceneLinks.newStrand") }}
             </button>
           </div>
         </section>
 
         <!-- Exclude from AI -->
         <section class="links-section">
-          <div class="links-section-label">Should this scene be hidden from AI retrieval?</div>
+          <div class="links-section-label">{{ $t("sceneLinks.excludeQuestion") }}</div>
           <div class="links-row links-row-toggle">
             <label class="links-toggle">
               <input type="checkbox"
                 :checked="!!scene?.excludeFromAi"
                 @change="update({ excludeFromAi: $event.target.checked })" />
-              <span>Exclude from AI</span>
+              <span>{{ $t("common.excludeFromAi") }}</span>
             </label>
             <span class="links-toggle-help">
-              Keeps this scene out of Ask-the-Book retrieval and any future feature that feeds scene text into an LLM. Useful for spoilers, twists you haven't planted yet, or drafts you don't want surfaced.
+              {{ $t("sceneLinks.excludeHelp") }}
             </span>
           </div>
         </section>

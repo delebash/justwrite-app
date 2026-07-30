@@ -151,20 +151,20 @@ const SEVERITY_META = {
   >
     <template #header>
       <div class="ck-titleblock">
-        <div class="t-eyebrow">Chapter critique</div>
-        <h2 class="modal-title">{{ ch ? `Ch. ${ch.num} · ${ch.title}` : "" }}</h2>
+        <div class="t-eyebrow">{{ $t("critique.eyebrow") }}</div>
+        <h2 class="modal-title">{{ ch ? $t("critique.chapterTitle", { num: ch.num, title: ch.title }) : "" }}</h2>
       </div>
       <div class="ck-header-actions">
-        <AiFeatureChip feature="critique" label="Critique" editable />
+        <AiFeatureChip feature="critique" :label="$t('critique.chipLabel')" editable />
         <UiButton v-if="critique" intent="ghost" size="small" @click="clearAll">
-          <Icon name="Trash" :size="12" /> Clear
+          <Icon name="Trash" :size="12" /> {{ $t("common.clear") }}
         </UiButton>
       </div>
     </template>
 
     <div v-if="critique?.generatedAt" class="ck-stamp">
       <Icon name="Sparkle" :size="11" />
-      Generated {{ ago(critique.generatedAt) }} · {{ critique.model || "unknown model" }}
+      {{ $t("critique.generatedStamp", { when: ago(critique.generatedAt), model: critique.model || $t("critique.unknownModel") }) }}
     </div>
 
     <div v-if="err" class="ck-error">
@@ -174,60 +174,59 @@ const SEVERITY_META = {
     <!-- ── Structural analysis ───────────────────────────────────── -->
     <section class="ck-section">
       <header>
-        <h3>Structure</h3>
+        <h3>{{ $t("critique.structureHeading") }}</h3>
         <UiButton intent="ghost" size="small" :disabled="runningStruct" @click="runStruct"
-          v-tooltip.bottom="'Score tension, hook, pacing, and ending — one LLM call'">
+          v-tooltip.bottom="$t('critique.structureTooltip')">
           <Icon name="Refresh" :size="12" />
-          {{ structure ? "Re-analyze" : (runningStruct ? "Analyzing…" : "Analyze") }}
+          {{ structure ? $t("critique.reanalyze") : (runningStruct ? $t("critique.analyzing") : $t("critique.analyze")) }}
         </UiButton>
       </header>
       <p class="ck-section-desc">
-        Scores the chapter as a whole — tension (rising stakes), hook strength (opening pull),
-        pacing (rushed vs. measured), and how the ending lands (cliffhanger, resolved, transition).
+        {{ $t("critique.structureDesc") }}
       </p>
 
       <AiTaskStrip :task="structTask" />
       <div v-if="structure && !runningStruct" class="struct-grid">
         <div class="struct-metric">
           <div class="sm-num">{{ structure.tension }}<small>/10</small></div>
-          <div class="sm-lbl">Tension</div>
+          <div class="sm-lbl">{{ $t("critique.tension") }}</div>
           <div class="sm-meter"><div class="sm-meter-fill" :style="`width:${structure.tension * 10}%`" /></div>
         </div>
         <div class="struct-metric">
           <div class="sm-num">{{ structure.hookQuality }}<small>/10</small></div>
-          <div class="sm-lbl">Hook</div>
+          <div class="sm-lbl">{{ $t("critique.hook") }}</div>
           <div class="sm-meter"><div class="sm-meter-fill" :style="`width:${structure.hookQuality * 10}%`" /></div>
         </div>
         <div class="struct-metric">
           <div class="sm-num sm-text">{{ PACING_LABELS[structure.pacing] }}</div>
-          <div class="sm-lbl">Pacing</div>
+          <div class="sm-lbl">{{ $t("critique.pacing") }}</div>
         </div>
         <div class="struct-metric">
           <div class="sm-num sm-text">{{ ENDING_LABELS[structure.endingClass] }}</div>
-          <div class="sm-lbl">Ending</div>
+          <div class="sm-lbl">{{ $t("critique.ending") }}</div>
         </div>
       </div>
       <p v-if="structure?.summary" class="struct-summary">{{ structure.summary }}</p>
       <p v-else-if="!structure && !runningStruct" class="ck-empty">
-        Run a structural pass to see tension, hook, pacing, and ending classification.
+        {{ $t("critique.structureEmpty") }}
       </p>
     </section>
 
     <!-- ── Text critique ──────────────────────────────────────────── -->
     <section class="ck-section">
       <header>
-        <h3>Notes</h3>
+        <h3>{{ $t("critique.notesHeading") }}</h3>
         <UiButton intent="ghost" size="small" :disabled="runningNotes" @click="runNotes"
-          v-tooltip.bottom="'Generate line-level editorial notes — one LLM call'">
+          v-tooltip.bottom="$t('critique.notesTooltip')">
           <Icon name="Refresh" :size="12" />
-          {{ notes.length ? "Re-run notes" : (runningNotes ? "Drafting notes…" : "Run notes") }}
+          {{ notes.length ? $t("critique.rerunNotes") : (runningNotes ? $t("critique.draftingNotes") : $t("critique.runNotes")) }}
         </UiButton>
       </header>
-      <p class="ck-section-desc">
-        Line-level editor notes across categories like pacing, voice, dialogue, POV, and clarity —
-        grouped into <strong>flags</strong> (clear problems), <strong>suggestions</strong>
-        (concrete revisions), and <strong>observations</strong> (worth noting, no action).
-      </p>
+      <i18n-t keypath="critique.notesDesc" tag="p" class="ck-section-desc" scope="global">
+        <template #flags><strong>{{ $t("critique.flagsTerm") }}</strong></template>
+        <template #suggestions><strong>{{ $t("critique.suggestionsTerm") }}</strong></template>
+        <template #observations><strong>{{ $t("critique.observationsTerm") }}</strong></template>
+      </i18n-t>
 
       <AiTaskStrip :task="notesTask" />
       <div v-if="notes.length && !runningNotes" class="notes-list">
@@ -246,7 +245,7 @@ const SEVERITY_META = {
         </div>
       </div>
       <p v-else-if="!runningNotes" class="ck-empty">
-        Run notes to get a list of flags, suggestions, and observations.
+        {{ $t("critique.notesEmpty") }}
       </p>
     </section>
 
