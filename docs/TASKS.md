@@ -691,14 +691,11 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   (`ev.title || "Untitled event"` → `events.untitled`), a Breadcrumb label built inside an array
   literal, and two `PaneHeader`/`AppModal` eyebrows.
 
-  **RUNNING STATE — 1,430 → 780 warnings, 69 → 23 files with warnings; 58 of 81 renderer files
-  are clean (45% of the warnings closed, two thirds of the files).** The 23 files left, worst
-  first: AnalysisView 80, ImportView 56, HomeView 52, RichEditor 49, ForeshadowingScanModal 40,
+  **RUNNING STATE — 1,430 → 498 warnings, 69 → 12 files with warnings; 69 of 81 renderer files
+  are clean (65% of the warnings closed, 85% of the files).** The 12 left, worst first:
+  AnalysisView 80, ImportView 56, HomeView 52, RichEditor 49, ForeshadowingScanModal 40,
   RelationshipArcModal 40, WritingAiSettings 39, MarketingPackModal 37, ReaderKnowledgeView 37,
-  PlotHoleScanModal 34, HomeShelfView 32, ChatPanel 30, EntitySweepModal 30,
-  VersionHistoryModal 29, MultiReaderPanelModal 28, ExportView 27, MarkersView 26,
-  IndexBuildModal 24, CharacterBatchFillModal 23, CritiqueModal 22, RelationsView 22,
-  SceneLinks 21, Sidebar 2 (the two deliberate stubs below). Every batch below is committed and pushed to `origin/master`, so this resumes
+  PlotHoleScanModal 34, HomeShelfView 32, Sidebar 2 (the two deliberate stubs below). Every batch below is committed and pushed to `origin/master`, so this resumes
   from git at any point. Files done since the last note: SensoryResearchModal,
   StuckDiagnosticModal, LinkBackfillModal, CharacterProfileFillModal, EntityReviewModal,
   VariationsModal, AiTellScanModal, ProjectReplaceModal, ReverseOutlineModal, SearchView,
