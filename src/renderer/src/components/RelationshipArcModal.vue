@@ -364,7 +364,7 @@ const TRAJECTORY_COLOURS = {
       </UiButton>
       <span class="ra-foot-spacer" />
       <UiButton v-if="arc && !running" intent="ghost" @click="regenerate">
-        <Icon name="Refresh" :size="12" /> Regenerate
+        <Icon name="Refresh" :size="12" /> {{ $t("common.regenerate") }}
       </UiButton>
       <UiButton v-if="!arc && !running" intent="primary" @click="run">
         <Icon name="Sparkle" :size="12" /> Analyse

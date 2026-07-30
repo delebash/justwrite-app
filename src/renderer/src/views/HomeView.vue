@@ -372,7 +372,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
           <Icon name="Alert" :size="14" />
           <span>{{ briefingError }}</span>
           <UiButton intent="ghost" size="small" @click="runBriefing">
-            <Icon name="Refresh" :size="12" /> Retry
+            <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
           </UiButton>
         </div>
 
@@ -389,7 +389,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
                       :disabled="briefingRunning"
                       @click="regenerateBriefing"
                       v-tooltip.bottom="'Generate a fresh briefing'">
-              <Icon name="Refresh" :size="12" /> Regenerate
+              <Icon name="Refresh" :size="12" /> {{ $t("common.regenerate") }}
             </UiButton>
           </span>
         </div>

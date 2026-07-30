@@ -206,7 +206,7 @@ onMounted(() => {
       <Icon name="Alert" :size="14" />
       <span>{{ err }}</span>
       <UiButton intent="ghost" size="small" @click="runRecap">
-        <Icon name="Refresh" :size="12" /> Retry
+        <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
       </UiButton>
     </div>
 
@@ -275,7 +275,7 @@ onMounted(() => {
         <UiButton v-if="recap" intent="ghost" size="small"
                   :disabled="running"
                   @click="regenerate">
-          <Icon name="Refresh" :size="12" /> Regenerate
+          <Icon name="Refresh" :size="12" /> {{ $t("common.regenerate") }}
         </UiButton>
         <UiButton v-if="cached" intent="ghost" size="small"
                   :disabled="running"

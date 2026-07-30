@@ -75,31 +75,29 @@ function useMove(move) {
 
 <template>
   <AppModal
-    eyebrow="Stuck?"
-    title="Five ways to unblock this scene"
+    :eyebrow="$t('stuck.eyebrow')"
+    :title="$t('stuck.title')"
     :closable="!running"
     @close="emit('close')"
   >
     <template #header>
       <div class="su-titleblock">
-        <div class="t-eyebrow">Stuck?</div>
-        <h2 class="modal-title">Five ways to unblock this scene</h2>
+        <div class="t-eyebrow">{{ $t("stuck.eyebrow") }}</div>
+        <h2 class="modal-title">{{ $t("stuck.title") }}</h2>
       </div>
       <div class="su-header-actions">
-        <AiFeatureChip feature="unstuck" label="Unstuck" editable />
+        <AiFeatureChip feature="unstuck" :label="$t('stuck.chipLabel')" editable />
       </div>
     </template>
 
     <p class="su-blurb">
-      Five distinct moves the scene could take from here. Each one belongs to a different category so
-      you get a real menu, not five variations of the same idea. Pick one and JustWrite drafts the
-      next 2–4 paragraphs in that direction.
+      {{ $t("stuck.blurb") }}
     </p>
 
     <div v-if="error" class="su-error">
       <Icon name="Alert" :size="13" /> {{ error }}
       <UiButton intent="ghost" size="small" @click="run">
-        <Icon name="Refresh" :size="12" /> Retry
+        <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
       </UiButton>
     </div>
 
@@ -108,11 +106,10 @@ function useMove(move) {
     <div v-else-if="!moves.length" class="su-empty">
       <Icon name="Sparkle" :size="20" />
       <p class="su-empty-text">
-        Five concrete ways out of this stuck moment — goal shift, interrupt, setting change,
-        reveal, time cut. Change the provider in the chip above first if you want.
+        {{ $t("stuck.idleBlurb") }}
       </p>
       <UiButton intent="primary" @click="run">
-        <Icon name="Sparkle" :size="13" /> Get unstuck
+        <Icon name="Sparkle" :size="13" /> {{ $t("stuck.action") }}
       </UiButton>
     </div>
 
@@ -126,7 +123,7 @@ function useMove(move) {
         <p class="su-move-instr">{{ m.instruction }}</p>
         <div class="su-move-actions">
           <UiButton intent="primary" size="small" @click="useMove(m)">
-            <Icon name="Play" :size="12" /> Write this
+            <Icon name="Play" :size="12" /> {{ $t("stuck.writeThis") }}
           </UiButton>
         </div>
       </li>
@@ -136,10 +133,10 @@ function useMove(move) {
       <UiButton intent="ghost"
                 :disabled="running"
                 @click="run">
-        <Icon name="Refresh" :size="12" /> Regenerate
+        <Icon name="Refresh" :size="12" /> {{ $t("common.regenerate") }}
       </UiButton>
       <span class="su-foot-spacer" />
-      <UiButton intent="ghost" @click="emit('close')">Close</UiButton>
+      <UiButton intent="ghost" @click="emit('close')">{{ $t("common.close") }}</UiButton>
     </template>
   </AppModal>
 </template>

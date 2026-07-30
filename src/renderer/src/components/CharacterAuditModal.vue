@@ -212,7 +212,7 @@ onMounted(() => {
     <div v-if="error" class="ca-error">
       <Icon name="Alert" :size="13" /> {{ error }}
       <UiButton intent="ghost" size="small" @click="runSweep(false)">
-        <Icon name="Refresh" :size="12" /> Retry
+        <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
       </UiButton>
     </div>
 

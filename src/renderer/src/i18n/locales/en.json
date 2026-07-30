@@ -50,6 +50,8 @@
     "undo": "Undo",
     "redo": "Redo",
     "events": "Events",
+    "retry": "Retry",
+    "regenerate": "Regenerate",
     "saveChanges": "Save changes",
     "gotIt": "Got it",
     "openInHelpDrawer": "Open in help drawer"
@@ -143,6 +145,25 @@
     "memberCount": "{n} member | {n} members",
     "deleteGroup": "Delete group",
     "newGroup": "New group"
+  },
+  "sensory": {
+    "eyebrow": "Research feel",
+    "title": "Sensory research pack",
+    "chipLabel": "Sensory",
+    "blurb": "Short, concrete sensory phrases for {subject}. Click any phrase to drop it into your manuscript at the end of the selection — additive, your original prose stays untouched. Pick the ones that fit your scene; ignore the rest.",
+    "idleBlurb": "Build a structured sensory pack — sights, sounds, smells, textures, tastes — for the selected subject. Change the provider in the chip above first if you want.",
+    "action": "Research sensory details",
+    "insertTooltip": "Click to insert at end of selection",
+    "phraseCount": "{n} phrase | {n} phrases"
+  },
+  "stuck": {
+    "eyebrow": "Stuck?",
+    "title": "Five ways to unblock this scene",
+    "chipLabel": "Unstuck",
+    "blurb": "Five distinct moves the scene could take from here. Each one belongs to a different category so you get a real menu, not five variations of the same idea. Pick one and JustWrite drafts the next 2–4 paragraphs in that direction.",
+    "idleBlurb": "Five concrete ways out of this stuck moment — goal shift, interrupt, setting change, reveal, time cut. Change the provider in the chip above first if you want.",
+    "action": "Get unstuck",
+    "writeThis": "Write this"
   },
   "sceneNotes": {
     "ariaLabel": "Scene notes",

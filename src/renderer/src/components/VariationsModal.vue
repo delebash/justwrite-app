@@ -188,7 +188,7 @@ onBeforeUnmount(cancelAll);
           </span>
           <span v-else-if="col.error.value" class="va-progress-text">
             <UiButton intent="ghost" size="small" @click="regenerateColumn(col)">
-              <Icon name="Refresh" :size="11" /> Retry
+              <Icon name="Refresh" :size="11" /> {{ $t("common.retry") }}
             </UiButton>
           </span>
           <span v-else-if="col.result.value" class="va-progress-text">

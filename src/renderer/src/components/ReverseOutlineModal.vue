@@ -144,7 +144,7 @@ const ago = (ts) => {
     <div v-if="error" class="ro-error">
       <Icon name="Alert" :size="13" /> {{ error }}
       <UiButton intent="ghost" size="small" @click="run">
-        <Icon name="Refresh" :size="12" /> Retry
+        <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
       </UiButton>
     </div>
 
@@ -220,7 +220,7 @@ const ago = (ts) => {
       </UiButton>
       <span class="ro-foot-spacer" />
       <UiButton v-if="outline && !running" intent="ghost" @click="regenerate">
-        <Icon name="Refresh" :size="12" /> Regenerate
+        <Icon name="Refresh" :size="12" /> {{ $t("common.regenerate") }}
       </UiButton>
       <UiButton intent="primary" @click="emit('close')">Done</UiButton>
     </template>

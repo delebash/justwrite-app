@@ -141,7 +141,7 @@ if (!mapping.value) run();
     <div v-if="error" class="bs-error">
       <Icon name="Alert" :size="13" /> {{ error }}
       <UiButton intent="ghost" size="small" @click="run">
-        <Icon name="Refresh" :size="12" /> Retry
+        <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
       </UiButton>
     </div>
 
@@ -197,7 +197,7 @@ if (!mapping.value) run();
       </UiButton>
       <span class="bs-foot-spacer" />
       <UiButton v-if="mapping && !running" intent="ghost" @click="regenerate">
-        <Icon name="Refresh" :size="12" /> Regenerate
+        <Icon name="Refresh" :size="12" /> {{ $t("common.regenerate") }}
       </UiButton>
       <UiButton intent="primary" @click="emit('close')">Done</UiButton>
     </template>

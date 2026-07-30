@@ -88,32 +88,30 @@ const totalCount = computed(() =>
 
 <template>
   <AppModal
-    eyebrow="Research feel"
-    title="Sensory research pack"
+    :eyebrow="$t('sensory.eyebrow')"
+    :title="$t('sensory.title')"
     wide
     :closable="!running"
     @close="emit('close')"
   >
     <template #header>
       <div class="sr-titleblock">
-        <div class="t-eyebrow">Research feel</div>
-        <h2 class="modal-title">Sensory research pack</h2>
+        <div class="t-eyebrow">{{ $t("sensory.eyebrow") }}</div>
+        <h2 class="modal-title">{{ $t("sensory.title") }}</h2>
       </div>
       <div class="sr-header-actions">
-        <AiFeatureChip feature="sensory" label="Sensory" editable />
+        <AiFeatureChip feature="sensory" :label="$t('sensory.chipLabel')" editable />
       </div>
     </template>
 
-    <p class="sr-blurb">
-      Short, concrete sensory phrases for <strong>"{{ subject }}"</strong>. Click any phrase to drop it
-      into your manuscript at the end of the selection — additive, your original prose stays untouched.
-      Pick the ones that fit your scene; ignore the rest.
-    </p>
+    <i18n-t keypath="sensory.blurb" tag="p" class="sr-blurb" scope="global">
+      <template #subject><strong>"{{ subject }}"</strong></template>
+    </i18n-t>
 
     <div v-if="error" class="sr-error">
       <Icon name="Alert" :size="13" /> {{ error }}
       <UiButton intent="ghost" size="small" @click="run">
-        <Icon name="Refresh" :size="12" /> Retry
+        <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
       </UiButton>
     </div>
 
@@ -122,11 +120,10 @@ const totalCount = computed(() =>
     <div v-else-if="!pack" class="sr-empty">
       <Icon name="Sparkle" :size="20" />
       <p class="sr-empty-text">
-        Build a structured sensory pack — sights, sounds, smells, textures, tastes — for the
-        selected subject. Change the provider in the chip above first if you want.
+        {{ $t("sensory.idleBlurb") }}
       </p>
       <UiButton intent="primary" @click="run">
-        <Icon name="Sparkle" :size="13" /> Research sensory details
+        <Icon name="Sparkle" :size="13" /> {{ $t("sensory.action") }}
       </UiButton>
     </div>
 
@@ -141,7 +138,7 @@ const totalCount = computed(() =>
             <li v-for="(p, i) in c.items" :key="i" class="sr-item">
               <button class="sr-phrase"
                       :class="{ inserted: insertedKeys.has(`${c.key}:${i}`) }"
-                      v-tooltip.bottom="'Click to insert at end of selection'"
+                      v-tooltip.bottom="$t('sensory.insertTooltip')"
                       @click="insertPhrase(c.key, i, p)">
                 <span class="sr-phrase-text">{{ p }}</span>
                 <span class="sr-phrase-icon">
@@ -155,12 +152,12 @@ const totalCount = computed(() =>
     </template>
 
     <template #footer>
-      <span class="t-muted">{{ totalCount }} phrase{{ totalCount === 1 ? '' : 's' }}</span>
+      <span class="t-muted">{{ $t("sensory.phraseCount", { n: totalCount }, totalCount) }}</span>
       <span class="sr-foot-spacer" />
       <UiButton intent="ghost" :disabled="running" @click="run">
-        <Icon name="Refresh" :size="12" /> Regenerate
+        <Icon name="Refresh" :size="12" /> {{ $t("common.regenerate") }}
       </UiButton>
-      <UiButton intent="primary" @click="emit('close')">Done</UiButton>
+      <UiButton intent="primary" @click="emit('close')">{{ $t("common.done") }}</UiButton>
     </template>
   </AppModal>
 </template>

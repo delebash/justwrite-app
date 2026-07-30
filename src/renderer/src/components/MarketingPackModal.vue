@@ -130,7 +130,7 @@ function formatComps(comps) {
     <div v-if="error" class="mp-error">
       <Icon name="Alert" :size="13" /> {{ error }}
       <UiButton intent="ghost" size="small" @click="run">
-        <Icon name="Refresh" :size="12" /> Retry
+        <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
       </UiButton>
     </div>
 
@@ -259,7 +259,7 @@ function formatComps(comps) {
       </UiButton>
       <span class="mp-foot-spacer" />
       <UiButton v-if="pack && !running" intent="ghost" @click="regenerate">
-        <Icon name="Refresh" :size="12" /> Regenerate
+        <Icon name="Refresh" :size="12" /> {{ $t("common.regenerate") }}
       </UiButton>
       <UiButton intent="primary" @click="emit('close')">Done</UiButton>
     </template>
