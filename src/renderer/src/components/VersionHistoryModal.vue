@@ -169,32 +169,32 @@ function whenFor(id) {
     <!-- ── LIST mode ────────────────────────────────────────────── -->
     <div v-if="mode === 'list'" class="vh-list-mode">
       <div class="vh-save">
-        <UiInput v-model="label" placeholder="Label this version (optional)…" @keydown.enter="save" />
-        <UiButton intent="primary" @click="save"><Icon name="History" :size="14" /> Save version</UiButton>
+        <UiInput v-model="label" :placeholder="$t('versionHistory.labelPlaceholder')" @keydown.enter="save" />
+        <UiButton intent="primary" @click="save"><Icon name="History" :size="14" /> {{ $t("versionHistory.saveVersion") }}</UiButton>
       </div>
       <p class="t-muted" style="font-size:11.5px;margin:10px 0 6px">
-        Snapshots of this chapter's scenes, kept on this device. Newest first.
+        {{ $t("versionHistory.listHint") }}
       </p>
       <div v-if="list.length" class="vh-list">
         <div v-for="v in list" :key="v.id" class="vh-row">
           <div class="vh-main">
-            <div class="vh-label">{{ v.label || "Untitled version" }}</div>
-            <div class="vh-meta">{{ when(v.savedAt) }} · {{ v.words.toLocaleString() }} words · {{ $t("count.scene", { n: v.scenes.length }, v.scenes.length) }}</div>
+            <div class="vh-label">{{ v.label || $t("versionHistory.untitledVersion") }}</div>
+            <div class="vh-meta">{{ $t("versionHistory.rowMeta", { when: when(v.savedAt), words: $t("versionHistory.wordsCount", { n: v.words.toLocaleString() }), scenes: $t("count.scene", { n: v.scenes.length }, v.scenes.length) }) }}</div>
           </div>
-          <UiButton intent="secondary" size="small" @click="compareWithCurrent(v)" v-tooltip.bottom="'See what\'s changed since this version'">
-            <Icon name="Replace" :size="12" /> Compare
+          <UiButton intent="secondary" size="small" @click="compareWithCurrent(v)" v-tooltip.bottom="$t('versionHistory.compareTooltip')">
+            <Icon name="Replace" :size="12" /> {{ $t("versionHistory.compare") }}
           </UiButton>
-          <UiButton intent="primary" size="small" @click="restore(v)">Restore</UiButton>
-          <button class="vh-del" v-tooltip.bottom="'Delete version'" @click="remove(v)"><Icon name="Trash" :size="13" /></button>
+          <UiButton intent="primary" size="small" @click="restore(v)">{{ $t("versionHistory.restore") }}</UiButton>
+          <button class="vh-del" v-tooltip.bottom="$t('versionHistory.deleteVersion')" @click="remove(v)"><Icon name="Trash" :size="13" /></button>
         </div>
       </div>
       <EmptyState v-else compact
         icon="History"
-        title="No versions saved yet"
-        message="Save one before a big revision so you can roll back." />
+        :title="$t('versionHistory.emptyTitle')"
+        :message="$t('versionHistory.emptyMessage')" />
       <div v-if="list.length >= 2" class="vh-foot">
         <UiButton intent="ghost" size="small" @click="startPickTwo">
-          <Icon name="Replace" :size="12" /> Compare two saved versions…
+          <Icon name="Replace" :size="12" /> {{ $t("versionHistory.compareTwo") }}
         </UiButton>
       </div>
     </div>
@@ -204,34 +204,34 @@ function whenFor(id) {
       <div class="vh-pick-head">
         <UiButton intent="ghost" size="small" @click="backToList">
           <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
-          Back
+          {{ $t("common.back") }}
         </UiButton>
-        <span class="t-muted" style="font-size:12px">Pick two versions to compare. A is the older / baseline, B is the newer.</span>
+        <span class="t-muted" style="font-size:12px">{{ $t("versionHistory.pickHint") }}</span>
       </div>
       <div class="vh-pick-summary">
-        <div><span class="t-eyebrow">A</span><b>{{ pickA ? labelFor(pickA) : "(not selected)" }}</b></div>
+        <div><span class="t-eyebrow">{{ $t("versionHistory.sideA") }}</span><b>{{ pickA ? labelFor(pickA) : $t("versionHistory.notSelected") }}</b></div>
         <Icon name="ChevRight" :size="14" />
-        <div><span class="t-eyebrow">B</span><b>{{ pickB ? labelFor(pickB) : "(not selected)" }}</b></div>
+        <div><span class="t-eyebrow">{{ $t("versionHistory.sideB") }}</span><b>{{ pickB ? labelFor(pickB) : $t("versionHistory.notSelected") }}</b></div>
         <UiButton intent="primary" size="small" :disabled="!pickA || !pickB" @click="runPickedCompare">
-          <Icon name="Replace" :size="12" /> Compare
+          <Icon name="Replace" :size="12" /> {{ $t("versionHistory.compare") }}
         </UiButton>
       </div>
       <div class="vh-list">
         <div class="vh-row vh-row--current">
           <div class="vh-main">
-            <div class="vh-label">Current draft</div>
-            <div class="vh-meta">live working copy</div>
+            <div class="vh-label">{{ $t("versionHistory.currentDraft") }}</div>
+            <div class="vh-meta">{{ $t("versionHistory.liveWorkingCopy") }}</div>
           </div>
-          <UiButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickA === 'current' }" @click="pickAs('A', 'current')">A</UiButton>
-          <UiButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickB === 'current' }" @click="pickAs('B', 'current')">B</UiButton>
+          <UiButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickA === 'current' }" @click="pickAs('A', 'current')">{{ $t("versionHistory.sideA") }}</UiButton>
+          <UiButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickB === 'current' }" @click="pickAs('B', 'current')">{{ $t("versionHistory.sideB") }}</UiButton>
         </div>
         <div v-for="v in list" :key="v.id" class="vh-row">
           <div class="vh-main">
             <div class="vh-label">{{ v.label || "Untitled version" }}</div>
-            <div class="vh-meta">{{ when(v.savedAt) }} · {{ v.words.toLocaleString() }} words</div>
+            <div class="vh-meta">{{ $t("versionHistory.pickRowMeta", { when: when(v.savedAt), words: $t("versionHistory.wordsCount", { n: v.words.toLocaleString() }) }) }}</div>
           </div>
-          <UiButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickA === v.id }" @click="pickAs('A', v.id)">A</UiButton>
-          <UiButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickB === v.id }" @click="pickAs('B', v.id)">B</UiButton>
+          <UiButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickA === v.id }" @click="pickAs('A', v.id)">{{ $t("versionHistory.sideA") }}</UiButton>
+          <UiButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickB === v.id }" @click="pickAs('B', v.id)">{{ $t("versionHistory.sideB") }}</UiButton>
         </div>
       </div>
     </div>
@@ -241,17 +241,17 @@ function whenFor(id) {
       <div class="vh-diff-head">
         <UiButton intent="ghost" size="small" @click="backToList">
           <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
-          Back
+          {{ $t("common.back") }}
         </UiButton>
         <div class="vh-diff-route">
           <span class="vh-diff-route-side">
-            <span class="t-eyebrow">From</span>
+            <span class="t-eyebrow">{{ $t("versionHistory.diffFrom") }}</span>
             <b>{{ labelFor(pickA) }}</b>
             <span class="t-muted" style="font-size:11px">{{ whenFor(pickA) }}</span>
           </span>
           <Icon name="ChevRight" :size="14" />
           <span class="vh-diff-route-side">
-            <span class="t-eyebrow">To</span>
+            <span class="t-eyebrow">{{ $t("versionHistory.diffTo") }}</span>
             <b>{{ labelFor(pickB) }}</b>
             <span class="t-muted" style="font-size:11px">{{ whenFor(pickB) }}</span>
           </span>
@@ -259,12 +259,10 @@ function whenFor(id) {
         <div v-if="diffSummary" class="vh-diff-stats">
           <span class="vh-stat vh-stat--ins">+{{ diffSummary.ins }}</span>
           <span class="vh-stat vh-stat--del">−{{ diffSummary.del }}</span>
-          <span class="t-muted" style="font-size:11px">paragraphs</span>
+          <span class="t-muted" style="font-size:11px">{{ $t("versionHistory.paragraphs") }}</span>
           <span class="vh-stat-sep">·</span>
           <span class="t-muted" style="font-size:11px">
-            {{ diffSummary.scenesChanged }} modified ·
-            {{ diffSummary.scenesAdded }} added ·
-            {{ diffSummary.scenesRemoved }} removed
+            {{ $t("versionHistory.sceneStats", { modified: diffSummary.scenesChanged, added: diffSummary.scenesAdded, removed: diffSummary.scenesRemoved }) }}
           </span>
         </div>
       </div>
