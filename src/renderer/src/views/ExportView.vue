@@ -107,17 +107,17 @@ async function exportManuscript(fmtId) {
   <div class="scrollarea" style="padding:22px">
     <div style="max-width:920px;display:flex;flex-direction:column;gap:18px">
 
-      <p class="ex-desc">
-        <strong>Export</strong> produces a finished file — <strong>PDF</strong> (typeset with
-        cover and TOC), <strong>DOCX</strong> (Word with a live TOC), or <strong>EPUB</strong>
-        (e-book for Apple Books / Kobo / Kindle). Pick a format card to see its
-        options; engines are downloaded on first use.
-      </p>
+      <i18n-t keypath="export.intro" tag="p" class="ex-desc" scope="global">
+        <template #export><strong>{{ $t("export.exportTerm") }}</strong></template>
+        <template #pdf><strong>{{ $t("export.pdfTerm") }}</strong></template>
+        <template #docx><strong>{{ $t("export.docxTerm") }}</strong></template>
+        <template #epub><strong>{{ $t("export.epubTerm") }}</strong></template>
+      </i18n-t>
 
       <!-- Format picker -->
       <div class="card">
-        <div class="card-title">Format</div>
-        <div class="format-picker" role="radiogroup" aria-label="Export format" style="display:grid;gap:10px;margin-top:10px">
+        <div class="card-title">{{ $t("export.formatCardTitle") }}</div>
+        <div class="format-picker" role="radiogroup" :aria-label="$t('export.formatGroup')" style="display:grid;gap:10px;margin-top:10px">
           <button v-for="f in FORMATS" :key="f.id" @click="go(f.id)"
             role="radio" :aria-checked="fmt === f.id"
             :style="`text-align:left;padding:14px;border-radius:10px;background:${fmt === f.id ? 'var(--accent-soft)' : 'var(--surface-2)'};border:${fmt === f.id ? '1.5px solid var(--accent)' : '1px solid var(--border)'}`">
@@ -146,53 +146,55 @@ async function exportManuscript(fmtId) {
       <!-- PDF / DOCX / EPUB ─────────────────────────────────────────── -->
       <template>
         <div class="card">
-          <div class="card-title">Manuscript</div>
+          <div class="card-title">{{ $t("export.manuscriptCardTitle") }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-            <template v-if="fmt === 'pdf'">Print-ready PDF — A4 with serif typesetting, a generated table of contents, and a chapter per page.</template>
-            <template v-else-if="fmt === 'docx'">Editable Word document — keeps chapter headings, scene breaks, and block quotes. Word will offer to refresh the TOC on first open.</template>
-            <template v-else>EPUB 3 — one HTML file per part and chapter, with a navigation document so readers like Apple Books, Kobo, and Calibre show the contents.</template>
+            <template v-if="fmt === 'pdf'">{{ $t("export.pdfDesc") }}</template>
+            <template v-else-if="fmt === 'docx'">{{ $t("export.docxDesc") }}</template>
+            <template v-else>{{ $t("export.epubDesc") }}</template>
           </p>
           <div class="manuscript-stats" style="display:grid;gap:14px;padding:14px;background:var(--surface-2);border-radius:8px;font-size:13px">
             <div>
-              <div class="t-muted" style="font-size:11px">Parts</div>
+              <div class="t-muted" style="font-size:11px">{{ $t("export.statParts") }}</div>
               <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ manuscriptStats.parts }}</b>
             </div>
             <div>
-              <div class="t-muted" style="font-size:11px">Chapters</div>
+              <div class="t-muted" style="font-size:11px">{{ $t("export.statChapters") }}</div>
               <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ manuscriptStats.chapters }}</b>
             </div>
             <div>
-              <div class="t-muted" style="font-size:11px">Words</div>
+              <div class="t-muted" style="font-size:11px">{{ $t("export.statWords") }}</div>
               <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ manuscriptStats.words.toLocaleString() }}</b>
             </div>
           </div>
 
           <UiCheckbox v-model="stripSceneStructure" style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px;background:var(--surface-2);border-radius:8px;cursor:pointer">
             <span>
-              <div style="font-size:13px;font-weight:600">Continuous prose</div>
-              <div class="t-muted" style="font-size:11.5px;line-height:1.5;margin-top:2px">
-                Strip scene titles and <code style="font-size:10px">* * *</code> scene breaks so each chapter flows as one body of text, like a print novel without ornaments.
-              </div>
+              <div style="font-size:13px;font-weight:600">{{ $t("export.continuousProse") }}</div>
+              <i18n-t keypath="export.continuousProseHint" tag="div" class="t-muted" style="font-size:11.5px;line-height:1.5;margin-top:2px" scope="global">
+                <template #breakMark><code style="font-size:10px">* * *</code></template>
+              </i18n-t>
             </span>
           </UiCheckbox>
         </div>
 
         <div class="card">
-          <div class="card-title">Export</div>
+          <div class="card-title">{{ $t("export.exportCardTitle") }}</div>
           <div style="font-size:12.5px;color:var(--ink-2);margin-bottom:14px;line-height:1.55">
-            <template v-if="fmt === 'pdf'">First-time export downloads pdfmake (~1.8&nbsp;MB) on demand.</template>
-            <template v-else-if="fmt === 'docx'">First-time export downloads the docx packager (~700&nbsp;KB) on demand.</template>
-            <template v-else>First-time export downloads JSZip (~80&nbsp;KB) on demand.</template>
+            <template v-if="fmt === 'pdf'">{{ $t("export.pdfDownloadNote") }}</template>
+            <template v-else-if="fmt === 'docx'">{{ $t("export.docxDownloadNote") }}</template>
+            <template v-else>{{ $t("export.epubDownloadNote") }}</template>
           </div>
           <div style="display:flex;gap:10px;align-items:center">
             <UiButton intent="primary" :disabled="exporting || manuscriptStats.chapters === 0"
-              v-tooltip.bottom="manuscriptStats.chapters === 0 ? 'Add a chapter first' : `Export as ${FORMATS.find(f => f.id === fmt)?.name}`"
+              v-tooltip.bottom="manuscriptStats.chapters === 0 ? $t('export.addChapterFirst') : $t('export.exportAsTooltip', { format: FORMATS.find(f => f.id === fmt)?.name })"
               @click="exportManuscript(fmt)">
-              <Icon name="Download" :size="13" /> Export {{ FORMATS.find(f => f.id === fmt)?.name }}
+              <Icon name="Download" :size="13" /> {{ $t("export.exportAction", { format: FORMATS.find(f => f.id === fmt)?.name }) }}
             </UiButton>
             <span class="t-muted" style="font-size:11.5px">
-              <template v-if="manuscriptStats.chapters === 0">No chapters yet</template>
-              <template v-else>Saves as <code>{{ slug(project.project.title) }}.{{ FORMATS.find(f => f.id === fmt)?.ext }}</code></template>
+              <template v-if="manuscriptStats.chapters === 0">{{ $t("export.noChapters") }}</template>
+              <i18n-t v-else keypath="export.savesAs" tag="span" scope="global">
+                <template #file><code>{{ slug(project.project.title) }}.{{ FORMATS.find(f => f.id === fmt)?.ext }}</code></template>
+              </i18n-t>
             </span>
           </div>
         </div>
