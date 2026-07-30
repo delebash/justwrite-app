@@ -167,33 +167,33 @@ onMounted(() => {
 
 <template>
   <AppModal
-    eyebrow="End of session"
-    title="Wrap up your day"
+    :eyebrow="$t('sessionRecap.eyebrow')"
+    :title="$t('sessionRecap.title')"
     :closable="!running"
     @close="emit('close')"
   >
     <template #header>
       <div class="recap-titleblock">
-        <div class="t-eyebrow">End of session</div>
-        <h2 class="modal-title">Wrap up your day</h2>
+        <div class="t-eyebrow">{{ $t("sessionRecap.eyebrow") }}</div>
+        <h2 class="modal-title">{{ $t("sessionRecap.title") }}</h2>
       </div>
       <div class="recap-header-actions">
-        <AiFeatureChip feature="recap" label="Recap" editable />
+        <AiFeatureChip feature="recap" :label="$t('sessionRecap.chipLabel')" editable />
       </div>
     </template>
 
     <div class="recap-stats">
       <div class="recap-stat">
         <div class="recap-stat-v">{{ headerStats.words.toLocaleString() }}</div>
-        <div class="recap-stat-k">words today</div>
+        <div class="recap-stat-k">{{ $t("sessionRecap.wordsToday") }}</div>
       </div>
       <div v-if="headerStats.chapter" class="recap-stat recap-stat-wide">
         <div class="recap-stat-v">{{ headerStats.chapter }}</div>
-        <div class="recap-stat-k">most recent chapter</div>
+        <div class="recap-stat-k">{{ $t("sessionRecap.mostRecentChapter") }}</div>
       </div>
       <div v-if="recap?.model" class="recap-stat recap-stat-model">
         <div class="recap-stat-v">{{ recap.model }}</div>
-        <div class="recap-stat-k">model</div>
+        <div class="recap-stat-k">{{ $t("sessionRecap.model") }}</div>
       </div>
     </div>
 
@@ -213,38 +213,35 @@ onMounted(() => {
     <div v-else-if="!recap && !running" class="recap-cta-empty">
       <Icon name="Sparkle" :size="20" />
       <p class="recap-cta-text">
-        Summarise today's writing and surface open threads worth pinning.
-        Change the provider in the chip above first if you want.
+        {{ $t("sessionRecap.idleBlurb") }}
       </p>
       <UiButton intent="primary" @click="runRecap">
-        <Icon name="Sparkle" :size="13" /> Generate session recap
+        <Icon name="Sparkle" :size="13" /> {{ $t("sessionRecap.action") }}
       </UiButton>
     </div>
 
     <template v-else>
       <section class="recap-section">
-        <div class="recap-h">Today's recap</div>
+        <div class="recap-h">{{ $t("sessionRecap.todaysRecap") }}</div>
         <p v-if="recapText" class="recap-body">{{ recapText }}</p>
         <AiTaskStrip v-else-if="running" :task="myTask" />
       </section>
 
       <section v-if="threads.length" class="recap-section">
         <div class="recap-h">
-          Open threads
+          {{ $t("sessionRecap.openThreads") }}
           <span class="recap-h-count">{{ threads.length }}</span>
           <span class="recap-h-spacer" />
           <UiButton intent="ghost" size="small"
                     :disabled="threads.every(t => threadStatus[t.id])"
                     @click="addAllMarkers"
-                    v-tooltip.bottom="'Drop Loose-thread markers on all unmarked snippets'">
-            <Icon name="Pin" :size="12" /> Pin all
+                    v-tooltip.bottom="$t('sessionRecap.pinAllTooltip')">
+            <Icon name="Pin" :size="12" /> {{ $t("sessionRecap.pinAll") }}
           </UiButton>
         </div>
-        <p class="recap-threads-blurb">
-          Snippets the AI flagged as setup-without-payoff in today's writing. Pin one to drop a
-          <strong>Loose thread</strong> marker into the chapter so tomorrow's resume briefing
-          surfaces it.
-        </p>
+        <i18n-t keypath="sessionRecap.threadsBlurb" tag="p" class="recap-threads-blurb" scope="global">
+          <template #looseThread><strong>{{ $t("sessionRecap.looseThreadTerm") }}</strong></template>
+        </i18n-t>
         <ul class="recap-threads">
           <li v-for="t in threads" :key="t.id" class="recap-thread">
             <div class="recap-thread-main">
@@ -255,14 +252,14 @@ onMounted(() => {
               <UiButton v-if="!threadStatus[t.id]" intent="ghost" size="small"
                         :disabled="!t.locatable"
                         @click="addThreadMarker(t)"
-                        v-tooltip.bottom="t.locatable ? 'Drop a Loose-thread marker on this phrase in the chapter' : 'Snippet not found in current prose — cannot pin'">
-                <Icon name="Pin" :size="12" /> Pin
+                        v-tooltip.bottom="t.locatable ? $t('sessionRecap.pinTooltip') : $t('sessionRecap.pinDisabledTooltip')">
+                <Icon name="Pin" :size="12" /> {{ $t("sessionRecap.pin") }}
               </UiButton>
               <span v-else-if="threadStatus[t.id] === 'added'" class="recap-thread-status added">
-                <Icon name="Check" :size="12" /> Pinned
+                <Icon name="Check" :size="12" /> {{ $t("sessionRecap.pinned") }}
               </span>
               <span v-else class="recap-thread-status unavailable">
-                Not found
+                {{ $t("sessionRecap.notFound") }}
               </span>
             </div>
           </li>
@@ -280,13 +277,13 @@ onMounted(() => {
         <UiButton v-if="cached" intent="ghost" size="small"
                   :disabled="running"
                   @click="clearAndClose">
-          Discard recap
+          {{ $t("sessionRecap.discardRecap") }}
         </UiButton>
         <span class="recap-foot-spacer" />
         <UiButton intent="primary"
                   :disabled="running"
                   @click="emit('close')">
-          Done
+          {{ $t("common.done") }}
         </UiButton>
       </div>
     </template>

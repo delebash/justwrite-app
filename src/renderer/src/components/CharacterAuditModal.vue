@@ -185,29 +185,25 @@ onMounted(() => {
 
 <template>
   <AppModal
-    eyebrow="Character audit"
-    title="Consistency audit"
+    :eyebrow="$t('characterAudit.eyebrow')"
+    :title="$t('characterAudit.title')"
     wide
     :closable="!running"
     @close="emit('close')"
   >
     <template #header>
       <div class="ca-titleblock">
-        <div class="t-eyebrow">Character audit</div>
-        <h2 class="modal-title">Consistency audit</h2>
+        <div class="t-eyebrow">{{ $t("characterAudit.eyebrow") }}</div>
+        <h2 class="modal-title">{{ $t("characterAudit.title") }}</h2>
       </div>
       <div class="ca-header-actions">
-        <AiFeatureChip feature="characterAudit" label="Character audit" editable />
+        <AiFeatureChip feature="characterAudit" :label="$t('characterAudit.eyebrow')" editable />
       </div>
     </template>
 
-    <p class="ca-blurb">
-      For each main character, JustWrite sends their profile (role, one-liner, voice, arc, motivation,
-      backstory, established voice samples) plus the prose of every scene that features them. The model
-      flags <strong>actions, reactions, or dialogue</strong> that look inconsistent with the established
-      psychology — not earned by what you've set up about them. Concerns are evidence-cited; small,
-      borderline drifts get a softer flag than out-of-character breaks.
-    </p>
+    <i18n-t keypath="characterAudit.blurb" tag="p" class="ca-blurb" scope="global">
+      <template #flagged><strong>{{ $t("characterAudit.flaggedTerm") }}</strong></template>
+    </i18n-t>
 
     <div v-if="error" class="ca-error">
       <Icon name="Alert" :size="13" /> {{ error }}
@@ -230,25 +226,24 @@ onMounted(() => {
     <div v-else-if="!reviewCharacters.length && !rows.length" class="ca-rows">
       <EmptyState
         icon="Users"
-        title="No main characters"
-        message="Mark a character as 'main' in their detail page, then re-open this modal." />
+        :title="$t('characterAudit.noMainTitle')"
+        :message="$t('characterAudit.noMainMessage')" />
     </div>
 
     <div v-else-if="!reviewCharacters.length" class="ca-empty">
       <Icon name="Sparkle" :size="20" />
       <p class="ca-empty-text">
-        Read every scene this character appears in and audit for consistency against their profile.
-        Change the provider in the chip above first if you want.
+        {{ $t("characterAudit.idleBlurb") }}
       </p>
       <UiButton intent="primary" @click="runSweep(false)">
-        <Icon name="Sparkle" :size="13" /> Audit this character
+        <Icon name="Sparkle" :size="13" /> {{ $t("characterAudit.action") }}
       </UiButton>
     </div>
 
     <!-- ── Review phase ──────────────────────────────────────── -->
     <template v-else>
       <div class="ca-summary">
-        <span class="ca-pill"><strong>{{ totalConcerns }}</strong> total concerns across {{ reviewCharacters.length }} main characters</span>
+        <span class="ca-pill">{{ $t("characterAudit.summary", { concerns: totalConcerns, characters: reviewCharacters.length }) }}</span>
       </div>
 
       <ul class="ca-cards">
@@ -273,7 +268,7 @@ onMounted(() => {
 
           <div v-if="expanded.has(c.id)" class="ca-concerns">
             <p v-if="!c.audit.concerns?.length" class="ca-no-concerns">
-              No consistency issues across the {{ $t("count.scene", { n: c.audit.sceneCount }, c.audit.sceneCount) }} this character appears in.
+              {{ $t("characterAudit.noConcerns", { scenes: $t("count.scene", { n: c.audit.sceneCount }, c.audit.sceneCount) }) }}
             </p>
             <ul v-else class="ca-concern-list">
               <li v-for="cn in c.audit.concerns" :key="cn.id" class="ca-concern" :data-sev="cn.severity">
@@ -284,14 +279,14 @@ onMounted(() => {
                   </span>
                   <button v-if="cn.chapterNum" class="ca-chap-jump"
                           @click="jumpToChapter(cn.chapterNum)"
-                          v-tooltip.bottom="'Open this chapter'">
-                    Ch. {{ cn.chapterNum }}<span v-if="cn.sceneSummary"> · {{ cn.sceneSummary }}</span>
+                          v-tooltip.bottom="$t('common.openThisChapter')">
+                    {{ $t("common.chapterShort", { num: cn.chapterNum }) }}<span v-if="cn.sceneSummary"> · {{ cn.sceneSummary }}</span>
                   </button>
                 </div>
                 <p class="ca-issue">{{ cn.issue }}</p>
                 <blockquote v-if="cn.quote" class="ca-quote">"{{ cn.quote }}"</blockquote>
-                <p v-if="cn.reason" class="ca-reason"><span class="ca-label">Why:</span> {{ cn.reason }}</p>
-                <p v-if="cn.fix" class="ca-fix"><span class="ca-label">Cheapest fix:</span> {{ cn.fix }}</p>
+                <p v-if="cn.reason" class="ca-reason"><span class="ca-label">{{ $t("characterAudit.why") }}</span> {{ cn.reason }}</p>
+                <p v-if="cn.fix" class="ca-fix"><span class="ca-label">{{ $t("characterAudit.cheapestFix") }}</span> {{ cn.fix }}</p>
               </li>
             </ul>
           </div>
@@ -301,12 +296,12 @@ onMounted(() => {
 
     <template #footer>
       <UiButton v-if="reviewCharacters.length && !running" intent="ghost" @click="clearAll">
-        Clear saved audit
+        {{ $t("characterAudit.clearSavedAudit") }}
       </UiButton>
       <span class="ca-foot-spacer" />
       <UiButton v-if="!running" intent="ghost" @click="runSweep(true)">
         <Icon name="Refresh" :size="12" />
-        {{ reviewCharacters.length ? "Re-audit" : "Run audit" }}
+        {{ reviewCharacters.length ? $t("characterAudit.reAudit") : $t("characterAudit.runAudit") }}
       </UiButton>
       <UiButton v-else intent="danger" @click="cancelSweep">
         <Icon name="Close" :size="13" /> {{ $t("common.cancel") }}
