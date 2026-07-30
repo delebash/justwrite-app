@@ -217,21 +217,19 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
 </script>
 
 <template>
-  <AppModal wide eyebrow="Fill from book" title="Draft many characters"
+  <AppModal wide :eyebrow="$t('characterProfile.eyebrow')" :title="$t('batchFill.title')"
     :closable="phase !== 'run'" @close="onClose">
     <template #header-extra>
-      <AiFeatureChip feature="characterProfile" label="Character profile" editable />
+      <AiFeatureChip feature="characterProfile" :label="$t('characterProfile.chipLabel')" editable />
     </template>
 
     <!-- ── PICK ────────────────────────────────────────────────── -->
     <template v-if="phase === 'pick'">
       <p class="cbf-desc">
-        Runs the same two passes as a single character's Fill from book — profile, then voice —
-        for every character you tick, one at a time. Characters with no linked scenes can't be
-        drafted from.
+        {{ $t("batchFill.desc") }}
       </p>
       <div class="cbf-bar">
-        <span class="t-muted">{{ checkedCount }} of {{ pickRows.length }} selected</span>
+        <span class="t-muted">{{ $t("common.selectedOf", { selected: checkedCount, total: pickRows.length }) }}</span>
         <div class="cbf-bar-actions">
           <button type="button" class="tb-btn wide" @click="setAllPicks(true)">{{ $t("common.all") }}</button>
           <button type="button" class="tb-btn wide" @click="setAllPicks(false)">{{ $t("common.none") }}</button>
@@ -242,14 +240,14 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
           <UiCheckbox v-model="r.checked" :disabled="r.disabled" />
           <span class="cbf-pick-name">{{ r.name }}</span>
           <span v-if="r.role" class="cbf-pick-role">{{ r.role }}</span>
-          <span class="cbf-pick-scenes">{{ r.disabled ? "no linked scenes" : `${r.scenes} scene${r.scenes === 1 ? "" : "s"}` }}</span>
+          <span class="cbf-pick-scenes">{{ r.disabled ? $t("batchFill.noLinkedScenes") : $t("count.scene", { n: r.scenes }, r.scenes) }}</span>
         </label>
       </div>
       <label class="cbf-toggle">
         <UiCheckbox v-model="autoApply" />
         <span>
-          Apply automatically — empty fields only (skip review)
-          <span class="cbf-toggle-hint">Nothing you've written is ever overwritten. Proposals land as each character finishes; review mode is the default.</span>
+          {{ $t("batchFill.autoApply") }}
+          <span class="cbf-toggle-hint">{{ $t("batchFill.autoApplyHint") }}</span>
         </span>
       </label>
     </template>
@@ -257,7 +255,7 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
     <!-- ── RUN ─────────────────────────────────────────────────── -->
     <template v-else-if="phase === 'run'">
       <p class="cbf-desc">
-        {{ autoApply ? "Drafting and filling empty fields as each character finishes." : "Drafting — you'll review everything before anything saves." }}
+        {{ autoApply ? $t("batchFill.runningAuto") : $t("batchFill.runningReview") }}
       </p>
       <div class="cbf-list">
         <div v-for="row in runs" :key="row.id" class="cbf-run-row">
@@ -272,7 +270,7 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
     <!-- ── REVIEW ──────────────────────────────────────────────── -->
     <template v-else-if="phase === 'review'">
       <div class="cbf-bar">
-        <span class="t-muted">{{ reviewTicked }} of {{ reviewTotal }} selected</span>
+        <span class="t-muted">{{ $t("common.selectedOf", { selected: reviewTicked, total: reviewTotal }) }}</span>
         <div class="cbf-bar-actions">
           <button type="button" class="tb-btn wide" @click="setAllReview(true)">{{ $t("common.all") }}</button>
           <button type="button" class="tb-btn wide" @click="setAllReview(false)">{{ $t("common.none") }}</button>
@@ -291,7 +289,7 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
             <div class="cpf-fields">
               <div class="cpf-label">
                 {{ r.label }}
-                <span v-if="r.current" class="cpf-overwrite">replaces what you wrote</span>
+                <span v-if="r.current" class="cpf-overwrite">{{ $t("characterProfile.overwriteWarning") }}</span>
               </div>
               <div v-if="r.current" class="cpf-current">{{ r.current }}</div>
               <UiTextarea fluid auto-resize :rows="2" v-model="r.proposed" :disabled="!r.accept" />
@@ -307,9 +305,9 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
         <Icon name="Check" :size="20" class="cbf-done-icon" />
         <p>
           {{ autoApply
-            ? `Drafted ${doneCount} of ${runs.length} characters — ${appliedTotal} field${appliedTotal === 1 ? "" : "s"} filled.`
-            : `Applied ${appliedTotal} field${appliedTotal === 1 ? "" : "s"} across ${doneCount} character${doneCount === 1 ? "" : "s"}.` }}
-          <span v-if="failedCount" class="cbf-done-failed">{{ failedCount }} failed.</span>
+            ? $t("batchFill.draftedSummary", { done: doneCount, total: runs.length, fields: $t("count.field", { n: appliedTotal }, appliedTotal) })
+            : $t("batchFill.appliedSummary", { fields: $t("count.field", { n: appliedTotal }, appliedTotal), characters: $t("count.character", { n: doneCount }, doneCount) }) }}
+          <span v-if="failedCount" class="cbf-done-failed">{{ $t("batchFill.failedCount", { n: failedCount }) }}</span>
         </p>
       </div>
       <div v-if="failedCount" class="cbf-list">
@@ -324,31 +322,31 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
     <template #footer>
       <!-- PICK -->
       <template v-if="phase === 'pick'">
-        <span class="t-muted">{{ checkedCount }} selected · {{ checkedCount * 2 }} model calls</span>
+        <span class="t-muted">{{ $t("batchFill.modelCalls", { selected: checkedCount, calls: checkedCount * 2 }) }}</span>
         <span style="flex:1" />
         <UiButton intent="ghost" @click="onClose">{{ $t("common.close") }}</UiButton>
         <UiButton intent="primary" :disabled="!checkedCount" @click="startRun">
-          <Icon name="Book" :size="13" /> Fill {{ $t("count.character", { n: checkedCount }, checkedCount) }}
+          <Icon name="Book" :size="13" /> {{ $t("batchFill.fillAction", { characters: $t("count.character", { n: checkedCount }, checkedCount) }) }}
         </UiButton>
       </template>
       <!-- RUN -->
       <template v-else-if="phase === 'run'">
-        <span class="t-muted">{{ doneCount }} of {{ runs.length }} done</span>
+        <span class="t-muted">{{ $t("batchFill.runProgress", { done: doneCount, total: runs.length }) }}</span>
         <span style="flex:1" />
         <UiButton intent="ghost" @click="cancelBatch">{{ $t("common.cancel") }}</UiButton>
       </template>
       <!-- REVIEW -->
       <template v-else-if="phase === 'review'">
         <span style="flex:1" />
-        <UiButton intent="ghost" @click="onClose">Discard</UiButton>
+        <UiButton intent="ghost" @click="onClose">{{ $t("batchFill.discard") }}</UiButton>
         <UiButton intent="primary" :disabled="!reviewTicked" @click="reviewApply">
-          <Icon name="Check" :size="13" /> Apply {{ $t("count.field", { n: reviewTicked }, reviewTicked) }}
+          <Icon name="Check" :size="13" /> {{ $t("batchFill.applyAction", { fields: $t("count.field", { n: reviewTicked }, reviewTicked) }) }}
         </UiButton>
       </template>
       <!-- DONE -->
       <template v-else>
         <span style="flex:1" />
-        <UiButton v-if="failedCount" intent="secondary" @click="retryFailed">Retry {{ failedCount }} failed</UiButton>
+        <UiButton v-if="failedCount" intent="secondary" @click="retryFailed">{{ $t("batchFill.retryFailed", { n: failedCount }) }}</UiButton>
         <UiButton intent="primary" @click="onClose">{{ $t("common.done") }}</UiButton>
       </template>
     </template>

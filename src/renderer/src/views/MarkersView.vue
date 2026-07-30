@@ -74,35 +74,36 @@ function closeTellScan() { tellScanOpen.value = false; }
 <template>
   <div class="markers-pane scrollarea">
     <header class="pane-header">
-      <HelpTrigger slug="markers" label="Markers" class="pane-help-abs" />
+      <HelpTrigger slug="markers" :label="$t('markers.title')" class="pane-help-abs" />
       <div class="pane-title">
-        <h1 class="pane-h1">Markers</h1>
+        <h1 class="pane-h1">{{ $t("markers.title") }}</h1>
         <p class="pane-sub">
-          Pins dropped in the prose during drafting — fix-later notes, fact-checks, loose threads, weak passages.
-          Click any tick or row to jump to that spot in the manuscript.
+          {{ $t("markers.sub") }}
         </p>
       </div>
       <div class="pane-actions">
         <UiButton intent="secondary" @click="openScan"
-                  v-tooltip.bottom="'Scan the whole manuscript for setups that may not have paid off'">
-          <Icon name="Sparkle" :size="13" /> Find dangling threads
+                  v-tooltip.bottom="$t('markers.findDanglingTooltip')">
+          <Icon name="Sparkle" :size="13" /> {{ $t("markers.findDangling") }}
         </UiButton>
         <UiButton intent="secondary" @click="openTellScan"
-                  v-tooltip.bottom="'Deterministic scan for phrases that smell of AI — stock verbs, body-language clichés, hedges. No LLM call.'">
-          <Icon name="Eye" :size="13" /> Find AI tells
+                  v-tooltip.bottom="$t('markers.findAiTellsTooltip')">
+          <Icon name="Eye" :size="13" /> {{ $t("markers.findAiTells") }}
         </UiButton>
       </div>
     </header>
 
     <!-- Orientation descriptor. -->
-    <p class="mk-desc">
-      <strong>Markers</strong> is the manuscript-wide view of every pin you've dropped while
-      drafting — <strong>Fix later</strong>, <strong>Verify</strong>, <strong>Weak prose</strong>,
-      <strong>Loose thread</strong>, <strong>TODO</strong>, <strong>Idea</strong>. The timeline
-      strip at the top shows where they cluster across the book; click any tick or row to jump to
-      the marker in the editor. The <strong>Find dangling threads</strong> button asks the AI to
-      scan for setups that may never pay off.
-    </p>
+    <i18n-t keypath="markers.intro" tag="p" class="mk-desc" scope="global">
+      <template #markers><strong>{{ $t("markers.title") }}</strong></template>
+      <template #fixLater><strong>{{ $t("markers.fixLater") }}</strong></template>
+      <template #verify><strong>{{ $t("markers.verify") }}</strong></template>
+      <template #weakProse><strong>{{ $t("markers.weakProse") }}</strong></template>
+      <template #looseThread><strong>{{ $t("markers.looseThread") }}</strong></template>
+      <template #todo><strong>{{ $t("markers.todo") }}</strong></template>
+      <template #idea><strong>{{ $t("markers.idea") }}</strong></template>
+      <template #findDangling><strong>{{ $t("markers.findDangling") }}</strong></template>
+    </i18n-t>
 
     <!-- Timeline strip — manuscript-wide birds-eye. -->
     <div class="markers-timeline-wrap">
@@ -117,19 +118,19 @@ function closeTellScan() { tellScanOpen.value = false; }
             @click="jumpTo(m)" />
         </div>
         <div class="markers-timeline-ends">
-          <span>Start of manuscript</span>
-          <span>End</span>
+          <span>{{ $t("markers.timelineStart") }}</span>
+          <span>{{ $t("markers.timelineEnd") }}</span>
         </div>
       </div>
     </div>
 
     <!-- Category filter chips. -->
-    <div class="markers-filters" role="group" aria-label="Filter by category">
+    <div class="markers-filters" role="group" :aria-label="$t('markers.filterGroup')">
       <button type="button"
         class="markers-chip"
         :class="{ active: !activeCategory }"
         @click="activeCategory = null">
-        All <span class="markers-chip-count">{{ allMarkers.length }}</span>
+        {{ $t("common.all") }} <span class="markers-chip-count">{{ allMarkers.length }}</span>
       </button>
       <button v-for="c in MARKER_CATEGORIES" :key="c.id"
         type="button"
@@ -153,8 +154,8 @@ function closeTellScan() { tellScanOpen.value = false; }
           <span class="markers-item-cat">{{ categoryById(m.category).label }}</span>
           <span class="markers-item-where">{{ locationLabel(m) }}</span>
           <div class="markers-item-actions">
-            <UiButton intent="ghost" size="small" @click="jumpTo(m)">Jump to</UiButton>
-            <UiButton intent="ghost" size="small" @click="resolve(m)">Resolve</UiButton>
+            <UiButton intent="ghost" size="small" @click="jumpTo(m)">{{ $t("markers.jumpTo") }}</UiButton>
+            <UiButton intent="ghost" size="small" @click="resolve(m)">{{ $t("markers.resolve") }}</UiButton>
           </div>
         </header>
         <div v-if="m.label" class="markers-item-label">{{ m.label }}</div>
@@ -165,10 +166,12 @@ function closeTellScan() { tellScanOpen.value = false; }
     <div v-else class="markers-empty">
       <Icon name="Sparkle" :size="18" />
       <template v-if="!allMarkers.length">
-        <p style="font-size:14px;color:var(--ink);margin:0">No markers yet.</p>
-        <p style="font-size:12.5px;max-width:400px;margin:0">Markers are in-prose pins for fix-laters, loose threads, and weak passages — they gather here so you can triage them at revision time. Drop one from the editor toolbar (pin icon) or with <kbd>Alt+M</kbd> while writing.</p>
+        <p style="font-size:14px;color:var(--ink);margin:0">{{ $t("markers.emptyTitle") }}</p>
+        <i18n-t keypath="markers.emptyBody" tag="p" style="font-size:12.5px;max-width:400px;margin:0" scope="global">
+          <template #shortcut><kbd>Alt+M</kbd></template>
+        </i18n-t>
       </template>
-      <p v-else>No markers in this category.</p>
+      <p v-else>{{ $t("markers.emptyCategory") }}</p>
     </div>
   </div>
 
