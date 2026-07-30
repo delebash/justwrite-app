@@ -127,10 +127,10 @@ function onRowClick(event) {
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!loc && !id">
     <PaneHeader :eyebrow="$t('panes.locations.eyebrow')" :title="$t('nav.locations')" help-key="story-bible#locations">
-      <UiButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="'Entity sweep — scan the whole manuscript for new characters, locations, and objects'">
-        <Icon name="Sparkle" :size="13" /> Entity sweep
+      <UiButton intent="ghost" size="small" @click="sweepOpen = true" v-tooltip.bottom="$t('common.entitySweepTooltip')">
+        <Icon name="Sparkle" :size="13" /> {{ $t("common.entitySweep") }}
       </UiButton>
-      <UiButton label="New location" intent="primary" size="small" @click="addLocation">
+      <UiButton :label="$t('locations.newLocation')" intent="primary" size="small" @click="addLocation">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </UiButton>
     </PaneHeader>
@@ -138,9 +138,9 @@ function onRowClick(event) {
     <!-- Empty state -->
     <div v-if="project.locations.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center;max-width:420px">
-        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No locations yet.</div>
-        <div style="font-size:12.5px;margin-bottom:14px">Places where your scenes happen — linkable from chapters and tracked across the Plot Board.</div>
-        <UiButton intent="primary" @click="addLocation"><Icon name="Plus" :size="14" /> Create your first location</UiButton>
+        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">{{ $t("locations.emptyTitle") }}</div>
+        <div style="font-size:12.5px;margin-bottom:14px">{{ $t("locations.emptyBody") }}</div>
+        <UiButton intent="primary" @click="addLocation"><Icon name="Plus" :size="14" /> {{ $t("locations.createFirst") }}</UiButton>
       </div>
     </div>
 
@@ -154,11 +154,7 @@ function onRowClick(event) {
       @row-click="onRowClick">
       <template #intro>
         <p class="entity-desc" style="margin: 0 0 18px">
-          A <strong>location</strong> is a place that appears in your story — a city, a tavern,
-          a starship interior, an abandoned house. Use an entry when the place shows up in more
-          than one scene and you want a single source of truth for its layout, history, and
-          sensory detail. Locations feed the <strong>Relations</strong> graph and AI features
-          that draw on story-world context.
+          {{ $t("locations.intro", { locationTerm: $t("locations.locationTerm"), relations: $t("panes.relations.title") }) }}
         </p>
       </template>
 
@@ -192,34 +188,30 @@ function onRowClick(event) {
         <Breadcrumb :segments="[{ label: 'Location', to: '/locations' }]" />
         <input class="entity-name" ref="nameInput"
           :value="loc.name"
-          placeholder="Location name"
+          :placeholder="$t('locations.namePlaceholder')"
           @input="update('name', $event.target.value)" />
       </div>
       <div class="pane-actions">
         <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
-          v-tooltip.bottom="`Ask the book about ${loc.name}`">
+          v-tooltip.bottom="$t('common.askTheBookAbout', { title: loc.name })">
           <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
         </UiButton>
-        <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</UiButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> {{ $t("common.images") }}</UiButton>
         <router-link :to="`/locations/${loc.id}/events`" custom v-slot="{ navigate }">
-          <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</UiButton>
+          <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> {{ $t("common.events") }}</UiButton>
         </router-link>
-        <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</UiButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> {{ $t("nav.groups") }}</UiButton>
         <UiButton intent="ghost" size="small" @click="deleteLocation">{{ $t("common.delete") }}</UiButton>
-        <UiButton intent="primary" size="small" @click="addLocation"><Icon name="Plus" :size="14" /> New location</UiButton>
+        <UiButton intent="primary" size="small" @click="addLocation"><Icon name="Plus" :size="14" /> {{ $t("locations.newLocation") }}</UiButton>
         <StatusSelect :model-value="loc.status || ''" @update:model-value="(v) => update('status', v)" />
       </div>
     </header>
     <div class="pane-card">
       <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
         <p class="entity-desc">
-          A <strong>location</strong> is a place that appears in your story — a city, a tavern,
-          a starship interior, an abandoned house. Use an entry when the place shows up in more
-          than one scene and you want a single source of truth for its layout, history, and
-          sensory detail. Locations feed the <strong>Relations</strong> graph and AI features
-          that draw on story-world context.
+          {{ $t("locations.intro", { locationTerm: $t("locations.locationTerm"), relations: $t("panes.relations.title") }) }}
         </p>
-        <UiInput fluid placeholder="Kind"
+        <UiInput fluid :placeholder="$t('locations.kindPlaceholder')"
           :model-value="loc.kind" @update:model-value="update('kind', $event)" />
         <TagEditor
           :model-value="loc.tags || []"
@@ -227,13 +219,13 @@ function onRowClick(event) {
           :curated="project.tagVocabularies.locations"
           @update:model-value="(v) => update('tags', v)" />
         <label class="chip" style="cursor:pointer;gap:6px;align-self:flex-start"
-          v-tooltip.bottom="'Hides this entity from any AI feature that pulls in story-world context.'">
+          v-tooltip.bottom="$t('common.excludeFromAiTooltip')">
           <UiCheckbox :model-value="!!loc.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
-          Exclude from AI
+          {{ $t("common.excludeFromAi") }}
         </label>
         <RichEditor
           :model-value="loc.note || ''"
-          placeholder="Description"
+          :placeholder="$t('common.description')"
           variant="inline"
           :toolbar="EDITOR_TOOLBAR_DOC"
           :fill="true"
@@ -241,13 +233,13 @@ function onRowClick(event) {
         />
         <div style="flex:1;min-height:0;overflow-y:auto">
           <div style="margin-top:22px">
-            <div class="t-eyebrow" style="margin-bottom:10px">Appears in scenes</div>
+            <div class="t-eyebrow" style="margin-bottom:10px">{{ $t("common.appearsInScenes") }}</div>
             <SceneRefList field="locations" :entity-id="loc.id"
               empty-text="No scenes set in this location yet. Open a scene → Links → Locations to add one." />
           </div>
 
           <div style="margin-top:22px">
-            <div class="t-eyebrow" style="margin-bottom:10px">Mentioned in prose</div>
+            <div class="t-eyebrow" style="margin-bottom:10px">{{ $t("common.mentionedInProse") }}</div>
             <MentionRefList :entity-id="loc.id" />
           </div>
         </div>
@@ -262,16 +254,16 @@ function onRowClick(event) {
     <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Location', to: '/locations' }]" />
-        <h1 class="pane-h1">Location not found</h1>
+        <h1 class="pane-h1">{{ $t("locations.notFound") }}</h1>
       </div>
       <div class="pane-actions">
-        <UiButton intent="primary" size="small" @click="addLocation"><Icon name="Plus" :size="14" /> New location</UiButton>
+        <UiButton intent="primary" size="small" @click="addLocation"><Icon name="Plus" :size="14" /> {{ $t("locations.newLocation") }}</UiButton>
       </div>
     </header>
     <div class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center">
-        This location no longer exists.<br />
-        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/locations')">Back to locations</UiButton>
+        {{ $t("locations.notFoundBody") }}<br />
+        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/locations')">{{ $t("locations.backToLocations") }}</UiButton>
       </div>
     </div>
   </template>
