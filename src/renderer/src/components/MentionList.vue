@@ -37,7 +37,7 @@ defineExpose({ onKeyDown });
 </script>
 
 <template>
-  <div class="mention-list" role="listbox" aria-label="Entity suggestions">
+  <div class="mention-list" role="listbox" :aria-label="$t('editor.mentions.ariaLabel')">
     <button
       v-for="(item, i) in items"
       :key="item.kind + ':' + item.id"
@@ -52,6 +52,6 @@ defineExpose({ onKeyDown });
       <span class="mention-item-label">{{ item.label }}</span>
       <span class="mention-item-type">{{ item.kind }}</span>
     </button>
-    <div v-if="!items.length" class="mention-empty">No matches</div>
+    <div v-if="!items.length" class="mention-empty">{{ $t("editor.mentions.noMatches") }}</div>
   </div>
 </template>

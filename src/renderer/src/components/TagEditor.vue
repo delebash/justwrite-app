@@ -139,7 +139,7 @@ function onKeydown(e) {
     <div class="tag-chip" v-for="(t, i) in (modelValue || [])" :key="t + i"
       :class="{ 'is-curated': isChipCurated(t) }">
       <span>{{ t }}</span>
-      <button type="button" class="tag-chip-x" @click="removeAt(i)" aria-label="Remove tag">
+      <button type="button" class="tag-chip-x" @click="removeAt(i)" :aria-label="$t('common.removeTag')">
         <Icon name="Close" :size="10" />
       </button>
     </div>

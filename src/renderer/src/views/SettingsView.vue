@@ -990,7 +990,7 @@ async function deleteCategory(c) {
             <button v-for="p in PAIRINGS" :key="p.id"
               class="pairing-tile" :class="{ active: ap.fontPairing === p.id }"
               @click="setAp({ fontPairing: p.id, uiFont: p.ui, displayFont: p.display, editorBodyFont: p.display })">
-              <span class="pairing-sample" :style="{ fontFamily: dispStack(p.display) }">Ag</span>
+              <span class="pairing-sample" :style="{ fontFamily: dispStack(p.display) }">{{ $t("settings.appearance.fontSpecimen") }}</span>
               <div style="display:flex;flex-direction:column;min-width:0">
                 <b style="font-size:12.5px">{{ p.name }}</b>
                 <span class="t-muted" style="font-size:10.5px">{{ p.display }} · {{ p.ui }}</span>

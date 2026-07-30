@@ -247,21 +247,21 @@ onBeforeUnmount(tearDownPos);
       </div>
 
       <div class="dtp-time">
-        <span class="dtp-time-label">Time</span>
+        <span class="dtp-time-label">{{ $t("dateTime.time") }}</span>
         <input class="dtp-time-input" type="number" min="1" max="12" :value="hour12" @input="setHour12" @change="setHour12" />
         <span class="dtp-colon">:</span>
         <input class="dtp-time-input" type="number" min="0" max="59" :value="pad(minute)" @input="setMinute" @change="setMinute" />
-        <div class="dtp-merid" role="group" aria-label="AM/PM">
-          <button type="button" :class="{ on: !isPM }" :aria-pressed="!isPM" @click="setMeridiem(false)">AM</button>
-          <button type="button" :class="{ on: isPM }" :aria-pressed="isPM" @click="setMeridiem(true)">PM</button>
+        <div class="dtp-merid" role="group" :aria-label="$t('dateTime.meridiemAriaLabel')">
+          <button type="button" :class="{ on: !isPM }" :aria-pressed="!isPM" @click="setMeridiem(false)">{{ $t("dateTime.am") }}</button>
+          <button type="button" :class="{ on: isPM }" :aria-pressed="isPM" @click="setMeridiem(true)">{{ $t("dateTime.pm") }}</button>
         </div>
       </div>
 
       <div class="dtp-foot">
-        <button type="button" class="dtp-foot-btn ghost" @click="clearAll">Clear</button>
+        <button type="button" class="dtp-foot-btn ghost" @click="clearAll">{{ $t("common.clear") }}</button>
         <span class="dtp-foot-spacer" />
-        <button type="button" class="dtp-foot-btn" @click="setNow">Now</button>
-        <button type="button" class="dtp-foot-btn primary" @click="close">Done</button>
+        <button type="button" class="dtp-foot-btn" @click="setNow">{{ $t("dateTime.now") }}</button>
+        <button type="button" class="dtp-foot-btn primary" @click="close">{{ $t("common.done") }}</button>
       </div>
     </div>
     </Teleport>

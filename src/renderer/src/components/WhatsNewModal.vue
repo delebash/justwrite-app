@@ -51,8 +51,8 @@ function openFullDocs() {
 <template>
   <AppModal
     v-if="open"
-    title="What's new"
-    :eyebrow="`Version ${APP_VERSION}`"
+    :title="$t('whatsNew.title')"
+    :eyebrow="$t('whatsNew.eyebrow', { version: APP_VERSION })"
     @close="close"
   >
     <div class="whatsnew-body" v-html="renderedHtml" />
@@ -60,9 +60,9 @@ function openFullDocs() {
     <template #footer>
       <UiButton intent="ghost" size="small" @click="openFullDocs">
         <template #icon><Icon name="Book" :size="13" /></template>
-        Open in help drawer
+        {{ $t("common.openInHelpDrawer") }}
       </UiButton>
-      <UiButton intent="primary" @click="close">Got it</UiButton>
+      <UiButton intent="primary" @click="close">{{ $t("common.gotIt") }}</UiButton>
     </template>
   </AppModal>
 </template>

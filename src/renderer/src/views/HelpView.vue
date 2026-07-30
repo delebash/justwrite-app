@@ -73,19 +73,19 @@ onMounted(() => {
     <PaneHeader :title="docTitle" :eyebrow="$t('panes.help.eyebrow')">
       <UiButton intent="secondary" size="small" @click="openOnWeb">
         <template #icon><Icon name="ExternalLink" :size="14" /></template>
-        Open on the web
+        {{ $t("help.openOnWeb") }}
       </UiButton>
     </PaneHeader>
 
     <div class="help-body">
-      <aside class="help-toc" aria-label="Help table of contents">
+      <aside class="help-toc" :aria-label="$t('help.tocAriaLabel')">
         <button
           class="toc-item toc-index"
           :class="{ active: isActive('') }"
           @click="go('')"
         >
-          <span class="toc-title">Overview</span>
-          <span class="toc-hint">What JustWrite is, where to start</span>
+          <span class="toc-title">{{ $t("help.overviewTitle") }}</span>
+          <span class="toc-hint">{{ $t("help.overviewHint") }}</span>
         </button>
 
         <div v-for="group in HELP_TOC" :key="group.section" class="toc-group">
@@ -106,7 +106,7 @@ onMounted(() => {
       <div ref="contentEl" class="help-content" @click="onContentClick">
         <article v-if="renderedHtml" class="help-prose" v-html="renderedHtml" />
         <div v-else class="help-empty">
-          <p>That page is missing. <button class="link-btn" @click="go('')">Back to the overview</button>.</p>
+          <p>{{ $t("help.pageMissing") }} <button class="link-btn" @click="go('')">{{ $t("help.backToOverview") }}</button>.</p>
         </div>
       </div>
     </div>

@@ -23,6 +23,7 @@
     "delete": "Delete",
     "edit": "Edit",
     "remove": "Remove",
+    "removeTag": "Remove tag",
     "restore": "Restore",
     "confirm": "Confirm",
     "ok": "OK",
@@ -47,7 +48,9 @@
     "countOf": "{shown} of {total}",
     "new": "New",
     "undo": "Undo",
-    "redo": "Redo"
+    "redo": "Redo",
+    "gotIt": "Got it",
+    "openInHelpDrawer": "Open in help drawer"
   },
   "dialog": {
     "defaultTitle": "Are you sure?",
@@ -56,7 +59,66 @@
     "cancelLabel": "Cancel",
     "closeLabel": "Close"
   },
+  "editor": {
+    "mentions": {
+      "ariaLabel": "Entity suggestions",
+      "noMatches": "No matches"
+    }
+  },
+  "shortcuts": {
+    "eyebrow": "Cheatsheet",
+    "title": "Keyboard shortcuts"
+  },
+  "whatsNew": {
+    "eyebrow": "Version {version}",
+    "title": "What's new"
+  },
+  "boot": {
+    "splashAlt": "JustWrite — a quiet room for the long form",
+    "settingUpEngine": "Setting up the AI engine",
+    "loadingModel": "Loading your writing model",
+    "continueWithoutWaiting": "Continue without waiting"
+  },
+  "dateTime": {
+    "time": "Time",
+    "meridiemAriaLabel": "AM/PM",
+    "am": "AM",
+    "pm": "PM",
+    "now": "Now"
+  },
+  "help": {
+    "openOnWeb": "Open on the web",
+    "tocAriaLabel": "Help table of contents",
+    "overviewTitle": "Overview",
+    "overviewHint": "What JustWrite is, where to start",
+    "pageMissing": "That page is missing.",
+    "backToOverview": "Back to the overview"
+  },
+  "images": {
+    "remove": "Remove image",
+    "addAriaLabel": "Add images",
+    "add": "Add image(s)",
+    "saving": "Saving {n}…",
+    "savedWithProject": "Images are saved with your project."
+  },
+  "titleBar": {
+    "theme": "Theme",
+    "savedThemes": "Saved",
+    "customTheme": "Custom",
+    "customThemeHint": "· your own mix",
+    "mode": "Mode",
+    "modeTooltip": "Mode · {mode}"
+  },
+  "status": {
+    "ariaLabel": "Status",
+    "unset": "Status Unset",
+    "new": "New status…"
+  },
   "panes": {
+    "ai": {
+      "eyebrow": "AI",
+      "title": "Providers, routing & usage"
+    },
     "help": {
       "eyebrow": "Help"
     },
@@ -270,6 +332,7 @@
     },
     "appearance": {
       "presetCardTitle": "Theme preset",
+      "fontSpecimen": "Ag",
       "previewCardTitle": "Preview",
       "modeCardTitle": "Mode",
       "typographyCardTitle": "Typography",
@@ -1146,6 +1209,7 @@
   "welcome": {
     "eyebrow": "Welcome to",
     "wordmark": "JustWrite",
+    "brandMark": "J",
     "tagline": "Everything a novel needs — the writing, the world, the plan — in one quiet place.",
     "startNew": "Start a new project",
     "tutorial": "Try the tutorial project",

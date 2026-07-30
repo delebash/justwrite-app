@@ -578,6 +578,58 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
 
 ## Research (each needs a research pass → plan → build, on its own go)
 
+- **i18n SWEEP — 15 FILES TO ZERO, and the meter itself was miscounting 2026-07-30.**
+  Lint **1430 → 1358 warnings, 69 → 54 files with warnings**. Every number here is measured,
+  not projected.
+  **First, the shape of what remains, which nobody had measured.** Of 1430 warnings, 1329 parse
+  as single-line raw-text nodes, and they are not 1329 keys: **1154 are real copy collapsing to
+  852 distinct strings**, so ~300 sites want an existing key rather than a new one. The heaviest
+  repeats are `Done` ×14, `Cancel` ×14, `Retry` ×13, `Ask the book` ×10, `Regenerate` ×8 — all of
+  which already have or deserve a `common.*` home. That is the real size of the job: **~850 keys,
+  not 1430**, which confirms the "expect it to land below 1,430" caveat with a figure.
+  **Two rule fixes, because the gate was counting things no language translates.**
+  `ignorePattern` gained `\p{S}`: 23 warnings were glyph-only nodes — `× − ✕ ✓ ✦ ↑ ↓ ↵ ⏎ ⌘` —
+  that the original `[\d\s\p{P}]` was plainly meant to cover but missed, Unicode filing them as
+  Symbol rather than Punctuation. `ignoreNodes` gained `kbd`, joining the `code` precedent: a
+  `<kbd>`'s content is a key name. The Settings shortcut table is the proof — every description
+  beside a `<kbd>` was already a `$t()` call while the `<kbd>` was flagged, and only SOME rows
+  were, because `⌘\` fell inside `ignorePattern` while `⌘F` escaped it on the strength of one
+  Latin letter. Same element, same content class, opposite verdicts. 27 of the 72 warnings closed
+  were these; they were never work.
+  **15 files converted to zero:** MentionList, MentionRefList, ShortcutCheatsheet, TagEditor,
+  StatusSelect, OnboardingShell, ChaptersView, AiView, App.vue, ImagesModal, TitleBar,
+  WhatsNewModal, SettingsView, DateTimePicker, HelpView.
+  **Reuse over minting, per the standing rule.** `Clear`/`Done` went to the existing
+  `common.clear`/`common.done`; `Open in help drawer` appears in TWO modals so it became
+  `common.openInHelpDrawer` rather than living twice; `Got it` and `Remove tag` joined `common`
+  as generic. AiView's PaneHeader went to `panes.ai.*`, the home the other 13 panes already use,
+  instead of a new namespace. New namespaces only where a surface had none and more is coming:
+  `editor.mentions.*` (RichEditor's 55 warnings land here next), `shortcuts.*`, `whatsNew.*`,
+  `boot.*`, `images.*`, `titleBar.*`, `dateTime.*`, `help.*`, `status.*`.
+  **Three judgement calls worth knowing.** `welcome.brandMark` = `"J"` — a locale key for a logo
+  initial looks odd until you notice `welcome.wordmark` = `"JustWrite"` right beside it, so the
+  brand was already in the catalog. `settings.appearance.fontSpecimen` = `"Ag"` — a typography
+  preview genuinely IS localizable, since a Cyrillic or CJK reader wants glyphs from their own
+  script. Interpolations became keys with named placeholders rather than template literals:
+  `images.saving` = `"Saving {n}…"`, `whatsNew.eyebrow` = `"Version {version}"`,
+  `titleBar.modeTooltip` = `"Mode · {mode}"` — the last two were not even flagged (the rule does
+  not read template literals), and leaving them would have shipped English inside a translated UI.
+  **Verified:** `i18n:lint` per file after every conversion, `i18n:report` shows **0 of the new
+  keys missing and 0 unused**, 466 unit tests, clean `build:vite`, and `en.json` parses.
+  **⚠ A FLAKY TEST observed, NOT fixed, and NOT mine — yours to call.**
+  `projectHistory.test.js > caps each domain's history independently at the limit` failed **once
+  in four full-suite runs of identical code**, and passed on clean HEAD, in isolation, and on two
+  further runs with these changes. The failing run coincided with the heaviest phase of an Ollama
+  15 GB-model inference saturating the machine. I could not explain the mechanism: the test is a
+  synchronous 1005-iteration loop asserting `HISTORY_LIMIT` 1000, and `addStatusDef` is **not** in
+  `COALESCED_ACTIONS`, so the 600 ms `COALESCE_WINDOW_MS` should not reach it. Recording it rather
+  than guessing — my changes touch templates, `en.json` and the eslint config only, none of which
+  `project.js` imports.
+  **Next, by leverage:** the ~300 duplicate sites are the cheapest real progress (existing keys,
+  no minting). The prose-around-interpolation cases — TimelineView is the clearest — need
+  `<i18n-t>` with named slots per the `chapters.index.intro` pattern, NOT fragments. Worst files
+  remain AnalysisView 81, ImportView 57, HomeView 56, RichEditor 55.
+
 - **i18n PHASE 1a — ALL 3 VIEWS SHIPPED 2026-07-26** (tooling `7dba767` · SettingsView
   `078ed88` · ChaptersView `f198229` · CharactersView + the smoke-seeding fix, this commit).
   Tooling: `i18n:lint` (@intlify no-raw-text), `i18n:report` (vue-i18n-extract),

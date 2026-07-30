@@ -40,7 +40,7 @@ function runStream(opts) {
   <!-- The `?` opens docs/ai-providers.md. This page was the ONE surface with a
        written help doc and no trigger (19 other views pass help-key); the doc and
        the TOC entry (docs/toc.json) already existed — only the prop was missing. -->
-  <PaneHeader eyebrow="AI" title="Providers, routing &amp; usage" help-key="ai-providers" />
+  <PaneHeader :eyebrow="$t('panes.ai.eyebrow')" :title="$t('panes.ai.title')" help-key="ai-providers" />
   <div class="pane-card">
     <!-- Flex-fill (NOT the scrolling .scrollarea): the AI area scrolls its own
          nav + content panes internally; the page itself doesn't scroll. -->

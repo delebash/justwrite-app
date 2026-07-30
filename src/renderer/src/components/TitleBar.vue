@@ -109,7 +109,7 @@ function toggleChat() {
           <Icon name="Palette" :size="13" />
         </button>
         <div v-if="themeOpen" class="theme-menu">
-          <div class="theme-menu-head">Theme</div>
+          <div class="theme-menu-head">{{ $t("titleBar.theme") }}</div>
           <button v-for="p in THEME_PRESETS" :key="p.id" @click="pickPreset(p)"
             :class="{ active: ui.appearance?.preset === p.id }">
             <span class="theme-dot" :style="`background: oklch(0.55 0.13 ${p.patch.accentHue})`" />
@@ -118,7 +118,7 @@ function toggleChat() {
           </button>
           <template v-if="ui.customPresets && ui.customPresets.length">
             <div class="theme-menu-sep" />
-            <div class="theme-menu-head">Saved</div>
+            <div class="theme-menu-head">{{ $t("titleBar.savedThemes") }}</div>
             <button v-for="p in ui.customPresets" :key="p.id" @click="pickPreset(p)"
               :class="{ active: ui.appearance?.preset === p.id }">
               <span class="theme-dot" :style="`background: oklch(0.55 0.13 ${p.patch.accentHue ?? 14})`" />
@@ -128,16 +128,16 @@ function toggleChat() {
           </template>
           <div v-if="ui.appearance?.preset === 'custom'" class="theme-menu-custom">
             <span class="theme-dot" :style="`background: oklch(0.55 0.13 ${ui.appearance?.accentHue ?? 14})`" />
-            <span class="theme-name">Custom <em>· your own mix</em></span>
+            <span class="theme-name">{{ $t("titleBar.customTheme") }} <em>{{ $t("titleBar.customThemeHint") }}</em></span>
           </div>
         </div>
       </div>
       <div class="theme-switcher" ref="modeWrap">
-        <button @click="toggleMode" v-tooltip.bottom="`Mode · ${modeLabel}`">
+        <button @click="toggleMode" v-tooltip.bottom="$t('titleBar.modeTooltip', { mode: modeLabel })">
           <Icon :name="modeIcon" :size="13" />
         </button>
         <div v-if="modeOpen" class="theme-menu has-icons">
-          <div class="theme-menu-head">Mode</div>
+          <div class="theme-menu-head">{{ $t("titleBar.mode") }}</div>
           <button v-for="m in MODE_OPTIONS" :key="m.id" @click="pickMode(m.id)"
             :class="{ active: ui.appearance?.mode === m.id }">
             <Icon :name="m.icon" :size="13" />

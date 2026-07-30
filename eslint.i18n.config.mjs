@@ -34,10 +34,19 @@ export default [
           attributes: {
             "/.+/": ["placeholder", "title", "label", "aria-label", "alt"],
           },
-          // Numbers / whitespace / punctuation-only nodes are never copy.
+          // Numbers / whitespace / punctuation / SYMBOL-only nodes are never copy.
           // Double backslashes on purpose: this is a JS string handed to
           // `new RegExp(..., "u")` inside the rule — single ones collapse.
-          ignorePattern: "^[\\d\\s\\p{P}]*$",
+          //
+          // `\p{S}` added 2026-07-29 after measuring the sweep: 23 warnings were
+          // glyph-only nodes the original pattern was plainly meant to cover but
+          // missed, because Unicode files these under Symbol, not Punctuation —
+          // `×` and `−` are Sm, `✕ ✓ ✦ ↑ ↓ ↵ ⏎ ⌘` are So. They are close buttons,
+          // checkmarks, decorative dividers and keyboard glyphs; none is copy, and
+          // in no language is `✕` translated. Keeping them as warnings would have
+          // meant 23 permanent false entries in the number that decides when this
+          // rule flips to "error".
+          ignorePattern: "^[\\d\\s\\p{P}\\p{S}]*$",
           // `code` joins Icon (2026-07-26, the i18n-t conversion): a <code>
           // element's content is a code identifier — `.zip`, `accent2`,
           // `.prev.json` — and CLAUDE.md's i18n rules put data values and ids
@@ -45,7 +54,14 @@ export default [
           // message hints to i18n-t slots would have traded 11 intlify warnings
           // for a dozen bogus no-raw-text ones. This is the rule's own option
           // for the case, not a workaround.
-          ignoreNodes: ["Icon", "code"],
+          // `kbd` joins them 2026-07-29: a <kbd> element's content is a KEY NAME,
+          // not prose — `⌘F`, `⌘⇧Z / ⌘Y` — and key names are not translated. The
+          // Settings shortcut table proves the point: every row's description was
+          // already a $t() call while the <kbd> beside it was flagged, and only
+          // SOME rows were, because `⌘\` is caught by ignorePattern above while
+          // `⌘F` escapes it on the strength of one Latin letter. Same element,
+          // same content class, opposite verdicts.
+          ignoreNodes: ["Icon", "code", "kbd"],
         },
       ],
     },

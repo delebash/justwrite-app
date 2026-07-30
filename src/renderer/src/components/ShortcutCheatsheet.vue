@@ -31,8 +31,8 @@ function openInDrawer() {
 <template>
   <AppModal
     v-if="ui.shortcutsOpen"
-    title="Keyboard shortcuts"
-    eyebrow="Cheatsheet"
+    :title="$t('shortcuts.title')"
+    :eyebrow="$t('shortcuts.eyebrow')"
     wide
     @close="close"
   >
@@ -41,7 +41,7 @@ function openInDrawer() {
     <template #footer>
       <UiButton intent="ghost" size="small" @click="openInDrawer">
         <template #icon><Icon name="Book" :size="13" /></template>
-        Open in help drawer
+        {{ $t("common.openInHelpDrawer") }}
       </UiButton>
     </template>
   </AppModal>

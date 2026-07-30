@@ -70,19 +70,19 @@ async function remove(img) {
         <div v-else class="image-loading"><Icon name="Image" :size="18" /></div>
         <div class="image-meta">
           <span v-tooltip.bottom="img.name">{{ img.name }}</span>
-          <UiButton intent="ghost" size="small" aria-label="Remove image" v-tooltip.bottom="'Remove image'" @click="remove(img)">×</UiButton>
+          <UiButton intent="ghost" size="small" :aria-label="$t('images.remove')" v-tooltip.bottom="$t('images.remove')" @click="remove(img)">×</UiButton>
         </div>
       </div>
-      <button type="button" class="image-add" aria-label="Add images" @click="fileInput.click()" :disabled="saving > 0">
+      <button type="button" class="image-add" :aria-label="$t('images.addAriaLabel')" @click="fileInput.click()" :disabled="saving > 0">
         <Icon name="Plus" :size="22" />
-        <span>{{ saving > 0 ? `Saving ${saving}…` : "Add image(s)" }}</span>
+        <span>{{ saving > 0 ? $t("images.saving", { n: saving }) : $t("images.add") }}</span>
       </button>
     </div>
     <input ref="fileInput" type="file" accept="image/*" multiple style="display:none" @change="onFiles" />
 
     <div class="image-storage-note">
       <Icon name="Check" :size="11" />
-      Images are saved with your project.
+      {{ $t("images.savedWithProject") }}
     </div>
   </AppModal>
 </template>

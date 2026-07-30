@@ -20,7 +20,7 @@ import { RouterLink } from "vue-router";
   <div class="ob-stage">
     <header class="ob-header">
       <RouterLink to="/welcome" class="ob-brand">
-        <div class="brand-mark">J</div>
+        <div class="brand-mark">{{ $t("welcome.brandMark") }}</div>
         <div class="brand-name">{{ $t("welcome.wordmark") }}</div>
       </RouterLink>
     </header>

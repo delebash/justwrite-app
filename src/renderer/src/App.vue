@@ -183,11 +183,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
          the app and the load keeps running. KEEP IN SYNC with index.html #app-boot. -->
     <div v-if="warmModelId" class="jw-bootwarm">
       <div class="jw-bw-plate">
-        <img class="jw-bw-art" :src="splashPlate" alt="JustWrite — a quiet room for the long form" />
+        <img class="jw-bw-art" :src="splashPlate" :alt="$t('boot.splashAlt')" />
         <div v-if="engineTask || (warmTask && warmTask.state)" class="jw-bw-loadgroup">
-          <DownloadBar v-if="engineTask" class="jw-bw-bar" :task="engineTask" title="Setting up the AI engine" />
-          <DownloadBar v-else class="jw-bw-bar" :task="warmTask" title="Loading your writing model" />
-          <button type="button" class="jw-bw-skip" @click="dismissWarm">Continue without waiting</button>
+          <DownloadBar v-if="engineTask" class="jw-bw-bar" :task="engineTask" :title="$t('boot.settingUpEngine')" />
+          <DownloadBar v-else class="jw-bw-bar" :task="warmTask" :title="$t('boot.loadingModel')" />
+          <button type="button" class="jw-bw-skip" @click="dismissWarm">{{ $t("boot.continueWithoutWaiting") }}</button>
         </div>
       </div>
     </div>

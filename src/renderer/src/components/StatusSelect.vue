@@ -73,7 +73,7 @@ async function addNew() {
 
 <template>
   <SelectRoot v-model="selected">
-    <SelectTrigger class="status-pill" aria-label="Status" aria-haspopup="listbox">
+    <SelectTrigger class="status-pill" :aria-label="$t('status.ariaLabel')" aria-haspopup="listbox">
       <span class="status-pill-dot" :class="{ 'status-pill-dot--empty': !real }" :style="real ? { background: current.color } : null" />
       <span class="status-pill-label" :style="{ color: current.color }">{{ current.label }}</span>
       <Icon name="ChevDown" :size="13" class="status-pill-chev" />
@@ -84,7 +84,7 @@ async function addNew() {
         <SelectViewport>
           <SelectItem :value="UNSET_SENTINEL" class="status-opt status-opt-muted">
             <span class="status-pill-dot status-pill-dot--empty" />
-            <SelectItemText class="status-opt-label">Status Unset</SelectItemText>
+            <SelectItemText class="status-opt-label">{{ $t("status.unset") }}</SelectItemText>
             <SelectItemIndicator class="status-opt-check"><Icon name="Check" :size="13" /></SelectItemIndicator>
           </SelectItem>
 
@@ -101,7 +101,7 @@ async function addNew() {
 
           <SelectItem :value="NEW_SENTINEL" class="status-opt status-opt-muted">
             <Icon name="Plus" :size="13" />
-            <SelectItemText class="status-opt-label">New status…</SelectItemText>
+            <SelectItemText class="status-opt-label">{{ $t("status.new") }}</SelectItemText>
           </SelectItem>
         </SelectViewport>
       </SelectContent>
