@@ -129,22 +129,20 @@ const ago = (ts) => {
   >
     <template #header>
       <div class="mr-titleblock">
-        <div class="t-eyebrow">Multi-reader panel</div>
-        <h2 class="modal-title">{{ ch ? `Chapter ${ch.num} — ${ch.title || "Untitled"}` : "Multi-reader panel" }}</h2>
+        <div class="t-eyebrow">{{ $t("multiReader.eyebrow") }}</div>
+        <h2 class="modal-title">{{ ch ? $t("multiReader.chapterTitle", { num: ch.num, title: ch.title || $t("multiReader.untitled") }) : $t("multiReader.eyebrow") }}</h2>
       </div>
       <div class="mr-header-actions">
-        <AiFeatureChip feature="multiReader" label="Multi-reader" editable />
+        <AiFeatureChip feature="multiReader" :label="$t('multiReader.chipLabel')" editable />
       </div>
     </template>
 
-    <p class="mr-blurb">
-      Four distinct readers each read this chapter through a different lens — a
-      <strong>genre-savvy reader</strong> encountering it cold, a <strong>literary critic</strong>
-      reading for prose craft, an <strong>agent's intern</strong> deciding whether to flag it for
-      their boss, and a <strong>book-club reader</strong> deciding what to discuss. Where the
-      standard Critique modal gives one editorial pass, the panel gives four perspectives — see
-      where the chapter works for each kind of reader and where it doesn't.
-    </p>
+    <i18n-t keypath="multiReader.blurb" tag="p" class="mr-blurb" scope="global">
+      <template #genre><strong>{{ $t("multiReader.genreTerm") }}</strong></template>
+      <template #critic><strong>{{ $t("multiReader.criticTerm") }}</strong></template>
+      <template #intern><strong>{{ $t("multiReader.internTerm") }}</strong></template>
+      <template #bookClub><strong>{{ $t("multiReader.bookClubTerm") }}</strong></template>
+    </i18n-t>
 
     <AiTaskStrip :task="myTask" />
 
@@ -158,7 +156,7 @@ const ago = (ts) => {
     <div v-else-if="running && !cached" class="mr-loading">
       <span class="mr-spinner" />
       <span>
-        Reading with four lenses in parallel —
+        {{ $t("multiReader.loadingPrefix") }}
         <template v-for="(state, key, i) in (liveColumns || {})" :key="key">
           <span v-if="i > 0">, </span>
           <span :class="{ done: state === 'done', err: state === 'error' }">
@@ -170,14 +168,14 @@ const ago = (ts) => {
 
     <div v-else-if="!cached && !running" class="mr-empty">
       <Icon name="Sparkle" :size="20" />
-      <p class="mr-empty-text">
-        Send this chapter to four reader lenses in parallel — a
-        <strong>genre-savvy reader</strong>, a <strong>literary critic</strong>, an
-        <strong>agent's intern</strong>, and a <strong>book-club reader</strong>.
-        Change the provider in the chip above first if you want.
-      </p>
+      <i18n-t keypath="multiReader.idleBlurb" tag="p" class="mr-empty-text" scope="global">
+        <template #genre><strong>{{ $t("multiReader.genreTerm") }}</strong></template>
+        <template #critic><strong>{{ $t("multiReader.criticTerm") }}</strong></template>
+        <template #intern><strong>{{ $t("multiReader.internTerm") }}</strong></template>
+        <template #bookClub><strong>{{ $t("multiReader.bookClubTerm") }}</strong></template>
+      </i18n-t>
       <UiButton intent="primary" @click="run">
-        <Icon name="Sparkle" :size="13" /> Read this chapter
+        <Icon name="Sparkle" :size="13" /> {{ $t("multiReader.action") }}
       </UiButton>
     </div>
 
@@ -194,10 +192,10 @@ const ago = (ts) => {
             <Icon name="Alert" :size="12" /> {{ p.error }}
           </p>
           <p v-else-if="p.reaction" class="mr-reaction">{{ p.reaction }}</p>
-          <p v-else class="mr-empty">(no reaction returned)</p>
+          <p v-else class="mr-empty">{{ $t("multiReader.noReaction") }}</p>
 
           <div v-if="p.suggestions?.length" class="mr-suggestions">
-            <div class="mr-suggestions-h">Their suggestions</div>
+            <div class="mr-suggestions-h">{{ $t("multiReader.theirSuggestions") }}</div>
             <ul>
               <li v-for="(s, i) in p.suggestions" :key="i">{{ s }}</li>
             </ul>
@@ -207,19 +205,19 @@ const ago = (ts) => {
     </div>
 
     <div v-if="cached" class="mr-meta-line">
-      generated {{ ago(cached.generatedAt) }}
+      {{ $t("multiReader.generatedAgo", { when: ago(cached.generatedAt) }) }}
     </div>
 
     <template #footer>
       <UiButton v-if="cached && !running" intent="ghost" @click="clearPanel">
-        Clear panel
+        {{ $t("multiReader.clearPanel") }}
       </UiButton>
       <span class="mr-foot-spacer" />
       <UiButton v-if="running" intent="danger" @click="cancel">
         <Icon name="Close" :size="12" /> {{ $t("common.cancel") }}
       </UiButton>
       <UiButton v-else-if="cached" intent="ghost" @click="regenerate">
-        <Icon name="Refresh" :size="12" /> Re-run panel
+        <Icon name="Refresh" :size="12" /> {{ $t("multiReader.rerunPanel") }}
       </UiButton>
       <UiButton intent="primary" @click="emit('close')">{{ $t("common.done") }}</UiButton>
     </template>

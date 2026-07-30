@@ -487,6 +487,25 @@
     "paragraphs": "paragraphs",
     "sceneStats": "{modified} modified · {added} added · {removed} removed"
   },
+  "multiReader": {
+    "eyebrow": "Multi-reader panel",
+    "chapterTitle": "Chapter {num} — {title}",
+    "untitled": "Untitled",
+    "chipLabel": "Multi-reader",
+    "blurb": "Four distinct readers each read this chapter through a different lens — a {genre} encountering it cold, a {critic} reading for prose craft, an {intern} deciding whether to flag it for their boss, and a {bookClub} deciding what to discuss. Where the standard Critique modal gives one editorial pass, the panel gives four perspectives — see where the chapter works for each kind of reader and where it doesn't.",
+    "genreTerm": "genre-savvy reader",
+    "criticTerm": "literary critic",
+    "internTerm": "agent's intern",
+    "bookClubTerm": "book-club reader",
+    "loadingPrefix": "Reading with four lenses in parallel —",
+    "idleBlurb": "Send this chapter to four reader lenses in parallel — a {genre}, a {critic}, an {intern}, and a {bookClub}. Change the provider in the chip above first if you want.",
+    "action": "Read this chapter",
+    "noReaction": "(no reaction returned)",
+    "theirSuggestions": "Their suggestions",
+    "generatedAgo": "generated {when}",
+    "clearPanel": "Clear panel",
+    "rerunPanel": "Re-run panel"
+  },
   "search": {
     "resultCount": "{n} result | {n} results",
     "replaceButton": "Replace…",
