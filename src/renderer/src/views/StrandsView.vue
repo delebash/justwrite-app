@@ -254,16 +254,16 @@ const tableRows = computed(() =>
   <!-- ── List mode (no id in URL) ─────────────────────────────── -->
   <template v-if="!s && !id">
     <PaneHeader :title="$t('nav.strands')" help-key="plot-and-time#strands-view-planning-one-thread-in-detail">
-      <UiButton label="New narrative strand" intent="primary" size="small" @click="addStrand">
+      <UiButton :label="$t('strands.newStrand')" intent="primary" size="small" @click="addStrand">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </UiButton>
     </PaneHeader>
 
     <div v-if="project.strands.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center;max-width:420px">
-        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No narrative strands yet.</div>
-        <div style="font-size:12.5px;margin-bottom:14px">Narrative strands are the storylines you're weaving. Tag scenes with a strand and it surfaces on the Plot Board as a coloured lane.</div>
-        <UiButton intent="primary" @click="addStrand"><Icon name="Plus" :size="14" /> Create your first narrative strand</UiButton>
+        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">{{ $t("strands.emptyTitle") }}</div>
+        <div style="font-size:12.5px;margin-bottom:14px">{{ $t("strands.emptyBody") }}</div>
+        <UiButton intent="primary" @click="addStrand"><Icon name="Plus" :size="14" /> {{ $t("strands.createFirst") }}</UiButton>
       </div>
     </div>
 
@@ -306,7 +306,7 @@ const tableRows = computed(() =>
           <span v-if="s.color" class="strand-name-dot" :style="{ background: s.color }" :title="s.color" />
           <input class="entity-name" ref="nameInput"
             :value="s.name"
-            placeholder="Narrative strand name"
+            :placeholder="$t('strands.namePlaceholder')"
             @input="update('name', $event.target.value)" />
         </div>
       </div>
@@ -315,35 +315,34 @@ const tableRows = computed(() =>
           v-tooltip.bottom="`Ask the book about ${s.name}`">
           <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
         </UiButton>
-        <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</UiButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> {{ $t("nav.groups") }}</UiButton>
         <UiButton intent="ghost" size="small" @click="deleteStrand">{{ $t("common.delete") }}</UiButton>
-        <UiButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> New narrative strand</UiButton>
+        <UiButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> {{ $t("strands.newStrand") }}</UiButton>
         <StatusSelect :model-value="s.status || ''" @update:model-value="(v) => update('status', v)" />
       </div>
     </header>
 
     <div class="pane-card">
       <div class="strand-body">
-            <p class="entity-desc">
-              A <strong>narrative strand</strong> is a thread that runs through your manuscript —
-              the main plot, a subplot, a character arc, a thematic spine. Write your synopsis
-              and notes below; add <strong>beats</strong> to mark where the thread turns; tag
-              scenes with this strand via each scene's <strong>Links</strong> panel. Strand
-              membership also feeds the <strong>Relations</strong> graph.
-            </p>
+            <i18n-t keypath="strands.intro" tag="p" class="entity-desc" scope="global">
+              <template #strandTerm><strong>{{ $t("strands.strandTerm") }}</strong></template>
+              <template #beats><strong>{{ $t("strands.beatsTerm") }}</strong></template>
+              <template #links><strong>{{ $t("strands.linksTerm") }}</strong></template>
+              <template #relations><strong>{{ $t("panes.relations.title") }}</strong></template>
+            </i18n-t>
             <UiTextarea class="strand-blurb"
               :model-value="s.blurb || ''"
-              placeholder="What is this narrative strand about? (One or two sentences)"
+              :placeholder="$t('strands.blurbPlaceholder')"
               :rows="2"
               auto-resize
               @update:model-value="(v) => update('blurb', v)" />
 
             <div class="strand-meta-row">
               <div class="strand-color-picker">
-                <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">Color</span>
+                <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">{{ $t("strands.colorLabel") }}</span>
                 <UiColorPicker :presets="PRESET_COLORS"
                   :model-value="s.color"
-                  aria-label="Strand color"
+                  :aria-label="$t('strands.colorAriaLabel')"
                   @update:model-value="update('color', $event)" />
               </div>
               <span class="strand-count">
@@ -353,7 +352,7 @@ const tableRows = computed(() =>
 
             <RichEditor
               :model-value="s.body || ''"
-              placeholder="Write the narrative strand in detail — synopsis, character arcs, beats in prose, anything you want to remember…"
+              :placeholder="$t('strands.bodyPlaceholder')"
               variant="inline"
               :toolbar="EDITOR_TOOLBAR_DOC"
               :fill="true"
@@ -363,20 +362,20 @@ const tableRows = computed(() =>
             <div class="strand-below">
             <div class="beats-section">
               <div class="beats-head">
-                <span class="beats-title">Beats</span>
+                <span class="beats-title">{{ $t("strands.beatsHeading") }}</span>
                 <UiButton intent="ghost" size="small" @click="addBeat">
-                  <Icon name="Plus" :size="11" /> Add beat
+                  <Icon name="Plus" :size="11" /> {{ $t("strands.addBeat") }}
                 </UiButton>
               </div>
 
               <div v-if="(s.beats || []).length === 0" class="beats-empty">
-                No beats yet. Add Inciting / Midpoint / Climax-style turning points so you can see where this narrative strand pays off.
+                {{ $t("strands.noBeats") }}
               </div>
               <div v-else class="beats-list">
                 <div v-for="b in sortedBeats" :key="b.id" class="beat-row">
                   <button class="beat-chapter"
                     :class="{ missing: !chapterById(b.chapterId) }"
-                    :aria-label="`Go to ${sceneRefLabel(b)}`"
+                    :aria-label="$t('strands.goToBeat', { label: sceneRefLabel(b) })"
                     @click="goBeat(b)">
                     <span v-if="chapterById(b.chapterId)" class="status-dot" :class="beatSceneStatus(b)" />
                     <span class="beat-chapter-text">{{ sceneRefLabel(b) }}</span>
@@ -384,12 +383,12 @@ const tableRows = computed(() =>
                   <div class="beat-body">
                     <input class="beat-label"
                       :value="b.label"
-                      placeholder="Beat label (e.g. Midpoint)"
+                      :placeholder="$t('strands.beatLabelPlaceholder')"
                       list="beat-presets"
                       @input="updateBeat(b.id, 'label', $event.target.value)" />
                     <input class="beat-note"
                       :value="b.note || ''"
-                      placeholder="Note (optional)"
+                      :placeholder="$t('strands.beatNotePlaceholder')"
                       @input="updateBeat(b.id, 'note', $event.target.value)" />
                   </div>
                   <UiSelect class="beat-rechapter"
@@ -397,7 +396,7 @@ const tableRows = computed(() =>
                     v-tooltip.bottom="'Reassign to a different scene'"
                     @update:model-value="(v) => setBeatRef(b.id, v)"
                     :options="[{ label: '(no scene)', value: '' }, ...sceneOptions]" />
-                  <UiButton intent="ghost" size="small" class="beat-delete" aria-label="Remove beat" v-tooltip.bottom="'Remove beat'" @click="removeBeat(b.id)">
+                  <UiButton intent="ghost" size="small" class="beat-delete" :aria-label="$t('strands.removeBeat')" v-tooltip.bottom="'Remove beat'" @click="removeBeat(b.id)">
                     <Icon name="Trash" :size="14" />
                   </UiButton>
                 </div>
@@ -405,7 +404,7 @@ const tableRows = computed(() =>
             </div>
 
             <div style="margin-top:22px">
-              <div class="t-eyebrow" style="margin-bottom:10px">Appears in scenes</div>
+              <div class="t-eyebrow" style="margin-bottom:10px">{{ $t("common.appearsInScenes") }}</div>
               <SceneRefList field="strands" :entity-id="s.id"
                 empty-text="No scenes linked to this narrative strand yet. Open a scene → Links → Narrative strands to add one." />
             </div>
@@ -427,16 +426,16 @@ const tableRows = computed(() =>
     <header class="pane-header entity-pane-header">
       <div class="pane-title">
         <Breadcrumb :segments="[{ label: 'Narrative strand', to: '/strands' }]" />
-        <h1 class="pane-h1">Narrative strand not found</h1>
+        <h1 class="pane-h1">{{ $t("strands.notFound") }}</h1>
       </div>
       <div class="pane-actions">
-        <UiButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> New narrative strand</UiButton>
+        <UiButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> {{ $t("strands.newStrand") }}</UiButton>
       </div>
     </header>
     <div class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center">
-        This narrative strand no longer exists.<br />
-        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/strands')">Back to strands</UiButton>
+        {{ $t("strands.notFoundBody") }}<br />
+        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/strands')">{{ $t("strands.backToStrands") }}</UiButton>
       </div>
     </div>
   </template>
