@@ -630,6 +630,60 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   `<i18n-t>` with named slots per the `chapters.index.intro` pattern, NOT fragments. Worst files
   remain AnalysisView 81, ImportView 57, HomeView 56, RichEditor 55.
 
+  **Continued the same night — 1,358 → 1,276 warnings, 54 → 45 files** (`d15675c` + this commit).
+  Ten more files to zero: GroupsModal, SceneNotesPanel, ArchitectureView, TimelineView,
+  EventNewView, EventEditView, EventsTimelineView, CommandPalette, TrashView, and Sidebar all but
+  two (see the flags below). **25 of 81 renderer files are now clean.**
+
+  **A NEW GATE, because `<i18n-t>` had two invisible failure modes:**
+  `src/renderer/src/i18n/i18nTSlots.test.js`. A wrong or renamed keypath renders an **EMPTY**
+  element (missingWarn/fallbackWarn are off); a slot named differently from its placeholder
+  renders the placeholder **LITERALLY**, shipping `{chapters}` in visible copy. `i18n:lint` finds
+  no raw text inside an `<i18n-t>`; `i18n:report` matches string literals, not keypath attributes;
+  `build:vite` resolves no keys. These are the longest strings in the app. The test covers all 17
+  blocks and asserts keypath resolves, every placeholder has a slot, every slot is used, and **no
+  catalog value behind an `<i18n-t>` contains a tag** — pinning the invariant the 2026-07-26
+  conversion established. **Verified to BITE, both modes:** renaming `#timeline` → `#timelineX`
+  failed two assertions naming `{timeline}` and `#timelineX`; typo'ing a keypath failed one naming
+  the bad path; both restored. It strips comments first, which is not hypothetical — EntityIndex's
+  header comment contains the literal text `<i18n-t>` while the file has no block, so a raw grep
+  counts 17 where there are 16, and left unstripped the regex would pair that mention with the
+  next genuine closing tag.
+
+  **Prose done by the book, reusing the keys that already name the thing.** TrashView's intro and
+  TimelineView's intro were paragraphs wrapped around `<strong>` terms; both are now ONE key with
+  named placeholders rendered by `<i18n-t>` slots. Trash's slots point at `nav.trash` and
+  `common.restore`, Timeline's at `panes.timeline.title` and `common.events`, so no sentence can
+  drift from the nav item or pane header it describes. EventsTimelineView's "No events yet. Click
+  **Add event**…" got the same treatment with `events.addEvent`.
+
+  **A real i18n bug FIXED, not just converted.** `Sidebar.vue:1090` rendered
+  `No {{ n.label.toLowerCase() }} match`, but `n.label` is a **key** (`"nav.chapters"`), so the
+  sidebar's filter-empty state displayed literally **"No nav.chapters match"**. Lines 892 and 906
+  already do `$t(n.label).toLowerCase()`; this one had been missed. Now
+  `sidebar.empty.noMatchFor` with the label resolved first.
+
+  **TrashView's manual pluralization is gone too:** `item{{ totalCount === 1 ? "" : "s" }}` was
+  English-only suffix logic in the template. It is now `trash.itemCount` = `"{n} item | {n} items"`
+  on the established `$t(key, {n}, count)` form, as are `groups.memberCount` and
+  `architecture.documentCount`.
+
+  **Converted the strings `no-raw-text` CANNOT see**, because leaving them ships English inside a
+  translated UI: template-literal aria-labels and tooltips (`events.openAriaLabel`,
+  `events.editAriaLabel`, `events.deleteAriaLabel`, `architecture.askTheBookAbout`), JS fallbacks
+  (`ev.title || "Untitled event"` → `events.untitled`), a Breadcrumb label built inside an array
+  literal, and two `PaneHeader`/`AppModal` eyebrows.
+
+  **⚠ TWO STUBS found while converting, NOT fixed — yours to call.** Both are in `Sidebar.vue`,
+  both are why it still has 2 warnings, and both are behaviour questions rather than i18n ones:
+  - `Sidebar.vue:1100,1122` — the avatar reads a hardcoded **`MH`**, in both the expanded footer
+    and the collapsed rail, directly beside `project.project.author`. It should presumably be that
+    author's initials. I did not key it: putting `"MH"` in the catalog would enshrine a stub and
+    invite someone to translate it, and deriving initials is a behaviour change beyond this sweep.
+  - `Sidebar.vue:820` — the brand sub-line is a hardcoded **`v0.1 · local`**, while WhatsNewModal
+    imports a real `APP_VERSION`. Keyed as `sidebar.brand.sub` so the sweep could proceed, but the
+    version inside it is still frozen text; binding it to `APP_VERSION` is the actual fix.
+
 - **i18n PHASE 1a — ALL 3 VIEWS SHIPPED 2026-07-26** (tooling `7dba767` · SettingsView
   `078ed88` · ChaptersView `f198229` · CharactersView + the smoke-seeding fix, this commit).
   Tooling: `i18n:lint` (@intlify no-raw-text), `i18n:report` (vue-i18n-extract),

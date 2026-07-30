@@ -814,10 +814,10 @@ function wbDropClass(kind, id) {
   <aside class="sidebar" :class="{ collapsed: ui.sidebarCollapsed }" v-if="!ui.sidebarCollapsed">
     <div class="sidebar-resize" v-tooltip.bottom="$t('sidebar.tooltips.dragToResize')" @mousedown="onResizeStart" />
     <div class="brand">
-      <div class="brand-mark">J</div>
+      <div class="brand-mark">{{ $t("welcome.brandMark") }}</div>
       <div style="flex:1;min-width:0">
-        <div class="brand-name">JustWrite</div>
-        <div class="brand-sub">v0.1 · local</div>
+        <div class="brand-name">{{ $t("welcome.wordmark") }}</div>
+        <div class="brand-sub">{{ $t("sidebar.brand.sub") }}</div>
       </div>
       <UiButton intent="ghost" v-tooltip.bottom="`${$t('sidebar.tooltips.toggleSidebar')} · ⌘\\`" :aria-label="$t('sidebar.tooltips.toggleSidebar')" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></UiButton>
     </div>
@@ -827,7 +827,7 @@ function wbDropClass(kind, id) {
         @click="toggleProjectMenu">
         <div style="min-width:0">
           <div class="ttl">{{ project.project.title }}</div>
-          <div class="by">by {{ project.project.author || "—" }}</div>
+          <div class="by">{{ $t("sidebar.brand.byAuthor", { author: project.project.author || "—" }) }}</div>
         </div>
         <Icon name="ChevDown" :size="14" />
       </button>
@@ -1087,7 +1087,10 @@ function wbDropClass(kind, id) {
                   <span v-else-if="c.sub" class="nav-child-sub">{{ c.sub }}</span>
                 </div>
               </template>
-              <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">No {{ n.label.toLowerCase() }} match</div>
+              <!-- $t(n.label) first: n.label is a KEY ("nav.chapters"), so lowercasing it
+                   raw rendered "No nav.chapters match" here. Lines 892 and 906 already
+                   resolve it before lowercasing; this one had been missed. -->
+              <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">{{ $t("sidebar.empty.noMatchFor", { label: $t(n.label).toLowerCase() }) }}</div>
             </template>
           </div>
         </div>
@@ -1102,7 +1105,7 @@ function wbDropClass(kind, id) {
     </div>
   </aside>
   <aside v-else class="sidebar collapsed">
-    <div class="brand-mini"><div class="brand-mark">J</div></div>
+    <div class="brand-mini"><div class="brand-mark">{{ $t("welcome.brandMark") }}</div></div>
     <button class="rail-toggle" :aria-label="$t('sidebar.tooltips.expandSidebar')" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="15" /></button>
     <div style="height:8px" />
     <button v-for="n in NAV.filter(x => x.id)" :key="n.id"

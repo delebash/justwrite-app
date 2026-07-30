@@ -81,6 +81,25 @@
     "loadingModel": "Loading your writing model",
     "continueWithoutWaiting": "Continue without waiting"
   },
+  "commandPalette": {
+    "ariaLabel": "Command palette",
+    "placeholder": "Jump to a chapter, character, or action…",
+    "escHint": "esc",
+    "resultsAriaLabel": "Command results",
+    "noMatches": "No matches.",
+    "navigate": "navigate",
+    "open": "open",
+    "close": "close"
+  },
+  "trash": {
+    "itemCount": "{n} item | {n} items",
+    "emptyTrash": "Empty trash",
+    "intro": "{trash} is where soft-deleted items rest — every chapter, character, location, object, group, note, or strand you remove lands here first. Click {restore} any time to bring an item back; click the trash icon to destroy it permanently. Items stay in Trash indefinitely until you choose to empty it.",
+    "emptyTitle": "Trash is empty",
+    "emptyBody": "Deleted chapters, characters, locations, objects, groups, notes, narrative strands, and worldbuilding articles appear here. Restore or permanently delete from this view.",
+    "keptHint": "Items are kept until you permanently delete them. Restoring puts a chapter back in its original Part when possible (falling back to the last Part if the original has been removed).",
+    "permanentlyDelete": "Permanently delete"
+  },
   "dateTime": {
     "time": "Time",
     "meridiemAriaLabel": "AM/PM",
@@ -310,7 +329,12 @@
     },
     "empty": {
       "noChaptersMatch": "No chapters match",
-      "noWorldbuildingMatch": "No worldbuilding match"
+      "noWorldbuildingMatch": "No worldbuilding match",
+      "noMatchFor": "No {label} match"
+    },
+    "brand": {
+      "sub": "v0.1 · local",
+      "byAuthor": "by {author}"
     },
     "footer": {
       "untitledAuthor": "Untitled author",

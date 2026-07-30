@@ -250,7 +250,7 @@ function pick(item) {
 
 <template>
   <div v-if="open" class="cp-overlay" @click.self="closePalette">
-    <div class="cp-modal" role="dialog" aria-label="Command palette">
+    <div class="cp-modal" role="dialog" :aria-label="$t('commandPalette.ariaLabel')">
       <div class="cp-input-row">
         <Icon name="Search" :size="14" />
         <input
@@ -258,13 +258,13 @@ function pick(item) {
           v-model="query"
           @keydown="onKey"
           class="cp-input"
-          placeholder="Jump to a chapter, character, or action…"
+          :placeholder="$t('commandPalette.placeholder')"
           autocomplete="off"
           spellcheck="false"
         />
-        <span class="cp-hint">esc</span>
+        <span class="cp-hint">{{ $t("commandPalette.escHint") }}</span>
       </div>
-      <div class="cp-list" role="listbox" aria-label="Command results">
+      <div class="cp-list" role="listbox" :aria-label="$t('commandPalette.resultsAriaLabel')">
         <button
           v-for="(item, i) in results"
           :key="item.id"
@@ -282,12 +282,12 @@ function pick(item) {
             <div v-if="item.sublabel" class="cp-sublabel">{{ item.sublabel }}</div>
           </div>
         </button>
-        <div v-if="!results.length" class="cp-empty">No matches.</div>
+        <div v-if="!results.length" class="cp-empty">{{ $t("commandPalette.noMatches") }}</div>
       </div>
       <div class="cp-footer">
-        <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
-        <span><kbd>↵</kbd> open</span>
-        <span><kbd>esc</kbd> close</span>
+        <span><kbd>↑</kbd><kbd>↓</kbd> {{ $t("commandPalette.navigate") }}</span>
+        <span><kbd>↵</kbd> {{ $t("commandPalette.open") }}</span>
+        <span><kbd>esc</kbd> {{ $t("commandPalette.close") }}</span>
       </div>
     </div>
   </div>

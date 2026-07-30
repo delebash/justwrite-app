@@ -125,22 +125,20 @@ const trashColumns = [
 <template>
   <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('nav.trash')" help-key="backups-and-data#restoring-from-autosave">
     <span class="t-muted" style="font-size:12px">
-      {{ totalCount }} item{{ totalCount === 1 ? "" : "s" }}
+      {{ $t("trash.itemCount", { n: totalCount }, totalCount) }}
     </span>
     <UiButton v-if="totalCount" intent="ghost" @click="emptyAll">
-      <Icon name="Trash" :size="13" /> Empty trash
+      <Icon name="Trash" :size="13" /> {{ $t("trash.emptyTrash") }}
     </UiButton>
   </PaneHeader>
 
   <div class="pane-card">
   <div class="scrollarea">
     <div style="padding:18px 26px 0">
-      <p class="trash-desc">
-        <strong>Trash</strong> is where soft-deleted items rest — every chapter, character,
-        location, object, group, note, or strand you remove lands here first. Click
-        <strong>Restore</strong> any time to bring an item back; click the trash icon to destroy
-        it permanently. Items stay in Trash indefinitely until you choose to empty it.
-      </p>
+      <i18n-t keypath="trash.intro" tag="p" class="trash-desc" scope="global">
+        <template #trash><strong>{{ $t("nav.trash") }}</strong></template>
+        <template #restore><strong>{{ $t("common.restore") }}</strong></template>
+      </i18n-t>
     </div>
 
     <!-- Empty -->
@@ -149,10 +147,9 @@ const trashColumns = [
         <div style="width:64px;height:64px;border-radius:16px;margin:0 auto 18px;background:var(--surface-3);color:var(--muted);display:grid;place-items:center">
           <Icon name="Trash" :size="28" />
         </div>
-        <h3 style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin:0">Trash is empty</h3>
+        <h3 style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin:0">{{ $t("trash.emptyTitle") }}</h3>
         <p style="font-size:13.5px;color:var(--ink-2);margin-top:8px;line-height:1.55">
-          Deleted chapters, characters, locations, objects, groups, notes, narrative strands, and worldbuilding articles
-          appear here. Restore or permanently delete from this view.
+          {{ $t("trash.emptyBody") }}
         </p>
       </div>
     </div>
@@ -160,8 +157,7 @@ const trashColumns = [
     <!-- Sections -->
     <div v-else style="padding:18px 26px 60px;max-width:920px">
       <p class="t-muted" style="font-size:12.5px;margin:0 0 18px;line-height:1.55">
-        Items are kept until you permanently delete them. Restoring puts a chapter back in its original Part
-        when possible (falling back to the last Part if the original has been removed).
+        {{ $t("trash.keptHint") }}
       </p>
 
       <section v-for="s in sections" :key="s.kind" class="trash-section">
@@ -183,10 +179,10 @@ const trashColumns = [
           </template>
           <template #actions="{ row }">
             <div style="display:flex;gap:6px;justify-content:flex-end">
-              <UiButton label="Restore" intent="primary" size="small" @click="restore(s.kind, row.id)">
+              <UiButton :label="$t('common.restore')" intent="primary" size="small" @click="restore(s.kind, row.id)">
                 <template #icon><Icon name="Refresh" :size="11" /></template>
               </UiButton>
-              <UiButton intent="ghost" size="small" aria-label="Permanently delete" v-tooltip.bottom="'Permanently delete'" @click="purge(s.kind, row.id, titleOf(s.kind, row))">
+              <UiButton intent="ghost" size="small" :aria-label="$t('trash.permanentlyDelete')" v-tooltip.bottom="$t('trash.permanentlyDelete')" @click="purge(s.kind, row.id, titleOf(s.kind, row))">
                 <template #icon><Icon name="Trash" :size="11" /></template>
               </UiButton>
             </div>
