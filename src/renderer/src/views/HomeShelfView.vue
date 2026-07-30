@@ -212,19 +212,19 @@ const formLine = computed(() => {
 <template>
   <header class="pane-header shelf-pane-header">
     <div class="pane-title">
-      <span class="pane-eyebrow">Manuscript · Home (Paper Shelf)</span>
+      <span class="pane-eyebrow">{{ $t("homeShelf.eyebrow") }}</span>
       <input
         class="shelf-title-input"
         :value="P.title"
-        placeholder="Untitled manuscript"
+        :placeholder="$t('homeShelf.titlePlaceholder')"
         @input="project.updateProjectMeta({ title: $event.target.value })"
       />
     </div>
     <div class="pane-actions">
       <router-link to="/import" custom v-slot="{ navigate }">
-        <UiButton intent="ghost" @click="navigate"><Icon name="Plus" :size="14" /> Import</UiButton>
+        <UiButton intent="ghost" @click="navigate"><Icon name="Plus" :size="14" /> {{ $t("homeShelf.import") }}</UiButton>
       </router-link>
-      <UiButton intent="primary" @click="nav.quickWrite()"><Icon name="Plus" :size="14" /> Quick write</UiButton>
+      <UiButton intent="primary" @click="nav.quickWrite()"><Icon name="Plus" :size="14" /> {{ $t("homeShelf.quickWrite") }}</UiButton>
     </div>
   </header>
 
@@ -233,15 +233,15 @@ const formLine = computed(() => {
       <section class="shelf">
         <header class="shelf-head">
           <p class="vol">
-            <span class="vol-num">i.</span><span>Vol. I</span>
+            <span class="vol-num">{{ $t("homeShelf.volNum") }}</span><span>{{ $t("homeShelf.volLabel") }}</span>
             <span class="vol-sep">·</span><span>{{ chRange }}</span>
             <template v-if="centredLabel">
               <span class="vol-sep">·</span><span class="vol-centred">{{ centredLabel }}</span>
             </template>
           </p>
-          <h1 class="shelf-h1">The shelf, oldest at left, working at right.</h1>
+          <h1 class="shelf-h1">{{ $t("homeShelf.heading") }}</h1>
           <p class="shelf-sub">
-            Scroll right to walk into the unwritten chapters; left to revisit the finished ones.
+            {{ $t("homeShelf.sub") }}
           </p>
         </header>
 
@@ -270,12 +270,12 @@ const formLine = computed(() => {
                 <template v-else>{{ ch.title || "Untitled" }}</template>
               </h2>
               <p v-if="openersByChapter.get(ch.id)" class="ch-opener">{{ openersByChapter.get(ch.id) }}</p>
-              <p v-else class="ch-opener ch-opener-empty">A blank page, waiting.</p>
+              <p v-else class="ch-opener ch-opener-empty">{{ $t("homeShelf.blankPage") }}</p>
               <div class="ch-foot">
                 <span>
-                  {{ (ch.words || 0).toLocaleString() }} w<span v-if="ch.id === resumeId && lastSessionGap"> · {{ lastSessionGap }}</span>
+                  {{ $t("homeShelf.wordsShort", { n: (ch.words || 0).toLocaleString() }) }}<span v-if="ch.id === resumeId && lastSessionGap"> · {{ lastSessionGap }}</span>
                 </span>
-                <span v-if="ch.id === resumeId" class="resume-tap" @click.stop="resume">Resume</span>
+                <span v-if="ch.id === resumeId" class="resume-tap" @click.stop="resume">{{ $t("homeShelf.resume") }}</span>
                 <span v-else-if="ch.partTitle" class="part-hint">{{ ch.partTitle }}</span>
                 <span v-else class="part-hint">—</span>
               </div>
@@ -284,11 +284,11 @@ const formLine = computed(() => {
             <article v-if="!allCh.length" class="paper kind-todo empty-shelf">
               <div class="paper-top">
                 <span class="ch-num">—</span>
-                <span class="ch-meta"><span class="dot dot-todo" />Empty shelf</span>
+                <span class="ch-meta"><span class="dot dot-todo" />{{ $t("homeShelf.emptyShelf") }}</span>
               </div>
-              <h2 class="ch-title">No chapters yet.</h2>
-              <p class="ch-opener">Click "Quick write" above to start chapter one.</p>
-              <div class="ch-foot"><span>0 w</span><span class="part-hint">—</span></div>
+              <h2 class="ch-title">{{ $t("homeShelf.noChapters") }}</h2>
+              <p class="ch-opener">{{ $t("homeShelf.noChaptersHint") }}</p>
+              <div class="ch-foot"><span>{{ $t("homeShelf.wordsShort", { n: 0 }) }}</span><span class="part-hint">—</span></div>
             </article>
           </div>
         </div>
@@ -301,35 +301,35 @@ const formLine = computed(() => {
 
       <aside class="colophon">
         <div class="col-mast">
-          <p class="col-label">This volume</p>
-          <p class="col-name">{{ P.title || "Untitled manuscript" }}</p>
+          <p class="col-label">{{ $t("homeShelf.thisVolume") }}</p>
+          <p class="col-name">{{ P.title || $t("homeShelf.titlePlaceholder") }}</p>
           <p class="col-form">{{ formLine }}</p>
         </div>
 
         <dl class="col-row">
-          <dt>Progress</dt>
+          <dt>{{ $t("homeShelf.progress") }}</dt>
           <dd>
-            {{ totalWords.toLocaleString() }} <span class="of">/ {{ (P.wordsGoal || 0).toLocaleString() }}</span>
-            <small>{{ pct }}% of target</small>
+            {{ totalWords.toLocaleString() }} <span class="of">{{ $t("homeShelf.progressOf", { goal: (P.wordsGoal || 0).toLocaleString() }) }}</span>
+            <small>{{ $t("homeShelf.pctOfTarget", { pct }) }}</small>
           </dd>
         </dl>
         <hr class="col-rule" />
 
         <dl class="col-row">
-          <dt>This week</dt>
+          <dt>{{ $t("homeShelf.thisWeek") }}</dt>
           <dd>
-            {{ daysWrittenThisWeek.length }} <span class="of">of 7 days</span>
+            {{ daysWrittenThisWeek.length }} <span class="of">{{ $t("homeShelf.ofDays", { n: 7 }) }}</span>
             <small>{{ weeklyDayList }}</small>
           </dd>
         </dl>
         <hr class="col-rule" />
 
         <dl class="col-row">
-          <dt>Cadence</dt>
+          <dt>{{ $t("homeShelf.cadence") }}</dt>
           <dd>
-            {{ totals14.avg.toLocaleString() }} <span class="of">words / day · last 14</span>
+            {{ totals14.avg.toLocaleString() }} <span class="of">{{ $t("homeShelf.wordsPerDay", { n: 14 }) }}</span>
             <small v-if="cadenceDelta !== null">
-              {{ cadenceDelta >= 0 ? "↑" : "↓" }} {{ Math.abs(cadenceDelta) }}% over the prior fortnight
+              {{ $t("homeShelf.cadenceDelta", { arrow: cadenceDelta >= 0 ? "↑" : "↓", pct: Math.abs(cadenceDelta) }) }}
             </small>
             <small v-else>—</small>
           </dd>
@@ -337,27 +337,27 @@ const formLine = computed(() => {
         <hr class="col-rule" />
 
         <dl class="col-row">
-          <dt>Strongest</dt>
+          <dt>{{ $t("homeShelf.strongest") }}</dt>
           <dd>
             {{ bestDow }}
-            <small v-if="bestDowAvg">average {{ bestDowAvg.toLocaleString() }} words</small>
-            <small v-else>start writing to see your patterns</small>
+            <small v-if="bestDowAvg">{{ $t("homeShelf.averageWords", { n: bestDowAvg.toLocaleString() }) }}</small>
+            <small v-else>{{ $t("homeShelf.noPatterns") }}</small>
           </dd>
         </dl>
         <hr class="col-rule" />
 
         <dl class="col-row">
-          <dt>Pending</dt>
+          <dt>{{ $t("homeShelf.pending") }}</dt>
           <dd>
             <router-link to="/markers" class="col-pending-link">
-              {{ pendingCount }} <span class="of">flag{{ pendingCount === 1 ? "" : "s" }}</span>
+              {{ pendingCount }} <span class="of">{{ $t("count.flagNoun", pendingCount) }}</span>
             </router-link>
-            <small>open marker pins across the manuscript</small>
+            <small>{{ $t("homeShelf.openMarkerPins") }}</small>
           </dd>
         </dl>
 
         <p class="col-tail">
-          Set in Fraunces &amp; Spline Sans.
+          {{ $t("homeShelf.colophon") }}
           <span class="when">{{ todayLabel }} · {{ gapTail }}</span>
         </p>
       </aside>
