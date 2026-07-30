@@ -112,8 +112,8 @@ function apply() {
             <span class="lb-group-name">{{ g.entityName }}</span>
             <span class="t-muted">{{ g.rows.filter((r) => r.accept).length }} of {{ g.rows.length }}</span>
             <div class="lb-group-actions">
-              <button type="button" class="tb-btn wide" @click="setGroup(g, true)">All</button>
-              <button type="button" class="tb-btn wide" @click="setGroup(g, false)">None</button>
+              <button type="button" class="tb-btn wide" @click="setGroup(g, true)">{{ $t("common.all") }}</button>
+              <button type="button" class="tb-btn wide" @click="setGroup(g, false)">{{ $t("common.none") }}</button>
             </div>
           </div>
           <label v-for="r in g.rows" :key="`${r.sceneId}:${r.field}:${r.id}`"
@@ -129,7 +129,7 @@ function apply() {
     <template #footer>
       <span class="t-muted">{{ totalSelected }} of {{ totalProposed }} links selected</span>
       <span style="flex:1"></span>
-      <UiButton intent="ghost" @click="emit('close')">Cancel</UiButton>
+      <UiButton intent="ghost" @click="emit('close')">{{ $t("common.cancel") }}</UiButton>
       <UiButton intent="primary" :disabled="totalSelected === 0" @click="apply">
         <Icon name="Check" :size="13" />
         Link {{ totalSelected }} scene{{ totalSelected === 1 ? "" : "s" }}

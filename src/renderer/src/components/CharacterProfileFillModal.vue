@@ -150,8 +150,8 @@ function onClose() {
       <div v-if="rows.length" class="cpf-selectbar">
         <span class="t-muted">{{ acceptCount }} of {{ rows.length }} selected</span>
         <span class="cpf-spacer" />
-        <UiButton intent="ghost" size="small" @click="setAll(true)">All</UiButton>
-        <UiButton intent="ghost" size="small" @click="setAll(false)">None</UiButton>
+        <UiButton intent="ghost" size="small" @click="setAll(true)">{{ $t("common.all") }}</UiButton>
+        <UiButton intent="ghost" size="small" @click="setAll(false)">{{ $t("common.none") }}</UiButton>
       </div>
       <div v-if="voiceNotice" class="cpf-notice">{{ voiceNotice }}</div>
       <template v-for="g in groupedRows" :key="g.section">

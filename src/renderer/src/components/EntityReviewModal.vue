@@ -154,8 +154,8 @@ function originTitle(originChapters) {
                scoped block) — the resolving modifier is .tb-btn.wide, which
                sizes the button to its text (checker note, 2026-07-11). -->
           <div class="er-section-h-actions">
-            <button type="button" class="tb-btn wide" @click="setAll(sec.key, true)">All</button>
-            <button type="button" class="tb-btn wide" @click="setAll(sec.key, false)">None</button>
+            <button type="button" class="tb-btn wide" @click="setAll(sec.key, true)">{{ $t("common.all") }}</button>
+            <button type="button" class="tb-btn wide" @click="setAll(sec.key, false)">{{ $t("common.none") }}</button>
           </div>
         </header>
         <div class="er-list">
@@ -192,7 +192,7 @@ function originTitle(originChapters) {
     <template #footer>
       <span class="t-muted">{{ totalSelected }} of {{ totalProposed }} selected</span>
       <span style="flex:1"></span>
-      <UiButton intent="ghost" @click="emit('close')">Cancel</UiButton>
+      <UiButton intent="ghost" @click="emit('close')">{{ $t("common.cancel") }}</UiButton>
       <UiButton intent="primary" :disabled="totalSelected === 0" @click="commit">
         <Icon name="Check" :size="13" />
         Add {{ totalSelected }} to story bible

@@ -309,9 +309,9 @@ onMounted(() => {
         {{ reviewCharacters.length ? "Re-audit" : "Run audit" }}
       </UiButton>
       <UiButton v-else intent="danger" @click="cancelSweep">
-        <Icon name="Close" :size="13" /> Cancel
+        <Icon name="Close" :size="13" /> {{ $t("common.cancel") }}
       </UiButton>
-      <UiButton intent="primary" @click="emit('close')">Done</UiButton>
+      <UiButton intent="primary" @click="emit('close')">{{ $t("common.done") }}</UiButton>
     </template>
   </AppModal>
 </template>

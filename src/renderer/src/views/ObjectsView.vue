@@ -197,14 +197,14 @@ function onRowClick(event) {
       <div class="pane-actions">
         <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
           v-tooltip.bottom="`Ask the book about ${obj.name}`">
-          <Icon name="Chat" :size="14" /> Ask the book
+          <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
         </UiButton>
         <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> Images</UiButton>
         <router-link :to="`/objects/${obj.id}/events`" custom v-slot="{ navigate }">
           <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> Events</UiButton>
         </router-link>
         <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> Groups</UiButton>
-        <UiButton intent="ghost" size="small" @click="deleteObject">Delete</UiButton>
+        <UiButton intent="ghost" size="small" @click="deleteObject">{{ $t("common.delete") }}</UiButton>
         <UiButton intent="primary" size="small" @click="addObject"><Icon name="Plus" :size="14" /> New object</UiButton>
         <StatusSelect :model-value="obj.status || ''" @update:model-value="(v) => update('status', v)" />
       </div>

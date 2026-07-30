@@ -233,8 +233,8 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
       <div class="cbf-bar">
         <span class="t-muted">{{ checkedCount }} of {{ pickRows.length }} selected</span>
         <div class="cbf-bar-actions">
-          <button type="button" class="tb-btn wide" @click="setAllPicks(true)">All</button>
-          <button type="button" class="tb-btn wide" @click="setAllPicks(false)">None</button>
+          <button type="button" class="tb-btn wide" @click="setAllPicks(true)">{{ $t("common.all") }}</button>
+          <button type="button" class="tb-btn wide" @click="setAllPicks(false)">{{ $t("common.none") }}</button>
         </div>
       </div>
       <div class="cbf-list">
@@ -274,8 +274,8 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
       <div class="cbf-bar">
         <span class="t-muted">{{ reviewTicked }} of {{ reviewTotal }} selected</span>
         <div class="cbf-bar-actions">
-          <button type="button" class="tb-btn wide" @click="setAllReview(true)">All</button>
-          <button type="button" class="tb-btn wide" @click="setAllReview(false)">None</button>
+          <button type="button" class="tb-btn wide" @click="setAllReview(true)">{{ $t("common.all") }}</button>
+          <button type="button" class="tb-btn wide" @click="setAllReview(false)">{{ $t("common.none") }}</button>
         </div>
       </div>
       <div class="cbf-review">
@@ -283,8 +283,8 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
           <div class="cbf-group-h">
             <span class="cbf-group-name">{{ g.name }}</span>
             <span style="flex:1" />
-            <button type="button" class="tb-btn wide" @click="setGroup(g, true)">All</button>
-            <button type="button" class="tb-btn wide" @click="setGroup(g, false)">None</button>
+            <button type="button" class="tb-btn wide" @click="setGroup(g, true)">{{ $t("common.all") }}</button>
+            <button type="button" class="tb-btn wide" @click="setGroup(g, false)">{{ $t("common.none") }}</button>
           </div>
           <div v-for="r in g.rows" :key="r.key" class="cpf-row" :class="{ dropped: !r.accept }">
             <UiCheckbox v-model="r.accept" class="cpf-check" />
@@ -326,7 +326,7 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
       <template v-if="phase === 'pick'">
         <span class="t-muted">{{ checkedCount }} selected · {{ checkedCount * 2 }} model calls</span>
         <span style="flex:1" />
-        <UiButton intent="ghost" @click="onClose">Close</UiButton>
+        <UiButton intent="ghost" @click="onClose">{{ $t("common.close") }}</UiButton>
         <UiButton intent="primary" :disabled="!checkedCount" @click="startRun">
           <Icon name="Book" :size="13" /> Fill {{ checkedCount }} character{{ checkedCount === 1 ? "" : "s" }}
         </UiButton>
@@ -335,7 +335,7 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
       <template v-else-if="phase === 'run'">
         <span class="t-muted">{{ doneCount }} of {{ runs.length }} done</span>
         <span style="flex:1" />
-        <UiButton intent="ghost" @click="cancelBatch">Cancel</UiButton>
+        <UiButton intent="ghost" @click="cancelBatch">{{ $t("common.cancel") }}</UiButton>
       </template>
       <!-- REVIEW -->
       <template v-else-if="phase === 'review'">
@@ -349,7 +349,7 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
       <template v-else>
         <span style="flex:1" />
         <UiButton v-if="failedCount" intent="secondary" @click="retryFailed">Retry {{ failedCount }} failed</UiButton>
-        <UiButton intent="primary" @click="onClose">Done</UiButton>
+        <UiButton intent="primary" @click="onClose">{{ $t("common.done") }}</UiButton>
       </template>
     </template>
   </AppModal>

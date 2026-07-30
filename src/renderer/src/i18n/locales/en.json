@@ -45,6 +45,7 @@
     "clear": "Clear",
     "clearFilters": "Clear filters",
     "all": "All",
+    "none": "None",
     "countOf": "{shown} of {total}",
     "new": "New",
     "undo": "Undo",

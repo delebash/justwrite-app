@@ -318,7 +318,7 @@ function onRowClick(event) {
           </ul>
         </div>
         <span class="t-muted" style="font-size:12px;padding:0 8px">Updated {{ n.updated }}</span>
-        <UiButton intent="ghost" size="small" @click="deleteNote">Delete</UiButton>
+        <UiButton intent="ghost" size="small" @click="deleteNote">{{ $t("common.delete") }}</UiButton>
         <UiButton intent="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> New note</UiButton>
       </div>
     </header>

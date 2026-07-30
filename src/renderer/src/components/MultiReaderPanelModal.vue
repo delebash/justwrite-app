@@ -216,12 +216,12 @@ const ago = (ts) => {
       </UiButton>
       <span class="mr-foot-spacer" />
       <UiButton v-if="running" intent="danger" @click="cancel">
-        <Icon name="Close" :size="12" /> Cancel
+        <Icon name="Close" :size="12" /> {{ $t("common.cancel") }}
       </UiButton>
       <UiButton v-else-if="cached" intent="ghost" @click="regenerate">
         <Icon name="Refresh" :size="12" /> Re-run panel
       </UiButton>
-      <UiButton intent="primary" @click="emit('close')">Done</UiButton>
+      <UiButton intent="primary" @click="emit('close')">{{ $t("common.done") }}</UiButton>
     </template>
   </AppModal>
 </template>

@@ -119,7 +119,7 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
 
     <!-- Kind filter chips -->
     <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
-      <button class="filter-chip" :class="{ active: selectedKinds.size === 0 }" :aria-pressed="selectedKinds.size === 0" @click="clearKinds">All</button>
+      <button class="filter-chip" :class="{ active: selectedKinds.size === 0 }" :aria-pressed="selectedKinds.size === 0" @click="clearKinds">{{ $t("common.all") }}</button>
       <button v-for="[kind, meta] in KIND_ENTRIES" :key="kind"
         class="filter-chip"
         :class="{ active: selectedKinds.has(kind), dim: q && !allKindsForQuery[kind] }"

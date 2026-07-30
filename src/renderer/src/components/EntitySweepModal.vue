@@ -349,8 +349,8 @@ function onReviewCommitted(payload) {
       <div class="sweep-pick-h">
         <span class="t-muted">{{ checkedCount }} of {{ picks.length }} selected</span>
         <div class="sweep-pick-h-actions">
-          <button type="button" class="tb-btn wide" @click="setAllPicks(true)">All</button>
-          <button type="button" class="tb-btn wide" @click="setAllPicks(false)">None</button>
+          <button type="button" class="tb-btn wide" @click="setAllPicks(true)">{{ $t("common.all") }}</button>
+          <button type="button" class="tb-btn wide" @click="setAllPicks(false)">{{ $t("common.none") }}</button>
         </div>
       </div>
       <div class="sweep-list sweep-pick-list">
@@ -379,7 +379,7 @@ function onReviewCommitted(payload) {
       <template v-if="!rows.length">
         <span class="t-muted sweep-foot-count">{{ checkedCount }} of {{ picks.length }} selected</span>
         <span style="flex:1"></span>
-        <UiButton intent="ghost" @click="emit('close')">Cancel</UiButton>
+        <UiButton intent="ghost" @click="emit('close')">{{ $t("common.cancel") }}</UiButton>
         <UiButton v-if="foundTotal" intent="secondary" @click="reviewFound">
           Review {{ foundTotal }} found
         </UiButton>
@@ -391,7 +391,7 @@ function onReviewCommitted(payload) {
       <template v-else>
         <span class="t-muted sweep-foot-count">{{ failedCount }} chapter{{ failedCount === 1 ? "" : "s" }} failed</span>
         <span style="flex:1"></span>
-        <UiButton intent="ghost" @click="emit('close')">Close</UiButton>
+        <UiButton intent="ghost" @click="emit('close')">{{ $t("common.close") }}</UiButton>
         <UiButton intent="secondary" @click="retryFailed">Retry {{ failedCount }} failed</UiButton>
         <UiButton v-if="foundTotal" intent="primary" @click="reviewFound">
           Review {{ foundTotal }} found

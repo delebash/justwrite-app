@@ -319,7 +319,7 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
       <UiButton intent="ghost" @click="runScan">
         <Icon name="Refresh" :size="12" /> Re-scan
       </UiButton>
-      <UiButton intent="primary" @click="emit('close')">Done</UiButton>
+      <UiButton intent="primary" @click="emit('close')">{{ $t("common.done") }}</UiButton>
     </template>
   </AppModal>
 

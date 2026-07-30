@@ -369,7 +369,7 @@ const TRAJECTORY_COLOURS = {
       <UiButton v-if="!arc && !running" intent="primary" @click="run">
         <Icon name="Sparkle" :size="12" /> Analyse
       </UiButton>
-      <UiButton intent="primary" v-if="arc" @click="emit('close')">Done</UiButton>
+      <UiButton intent="primary" v-if="arc" @click="emit('close')">{{ $t("common.done") }}</UiButton>
     </template>
   </AppModal>
 </template>

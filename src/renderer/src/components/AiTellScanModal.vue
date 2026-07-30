@@ -167,7 +167,7 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
         <Icon name="Refresh" :size="12" /> Re-scan
       </UiButton>
       <span class="at-foot-spacer" />
-      <UiButton intent="primary" @click="emit('close')">Done</UiButton>
+      <UiButton intent="primary" @click="emit('close')">{{ $t("common.done") }}</UiButton>
     </template>
   </AppModal>
 </template>

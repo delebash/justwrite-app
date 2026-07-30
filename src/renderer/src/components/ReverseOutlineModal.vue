@@ -222,7 +222,7 @@ const ago = (ts) => {
       <UiButton v-if="outline && !running" intent="ghost" @click="regenerate">
         <Icon name="Refresh" :size="12" /> {{ $t("common.regenerate") }}
       </UiButton>
-      <UiButton intent="primary" @click="emit('close')">Done</UiButton>
+      <UiButton intent="primary" @click="emit('close')">{{ $t("common.done") }}</UiButton>
     </template>
   </AppModal>
 </template>

@@ -1622,7 +1622,7 @@ defineExpose({
       </label>
       <input v-model="replaceTerm" class="find-input" type="text" placeholder="Replace with" />
       <button class="tb-btn tb-text" @click="doReplace">Replace</button>
-      <button class="tb-btn tb-text" @click="doReplaceAll">All</button>
+      <button class="tb-btn tb-text" @click="doReplaceAll">{{ $t("common.all") }}</button>
       <button class="tb-btn" @click="closeFind" data-tip="Close"><Icon name="Close" :size="14" /></button>
     </div>
 
@@ -1764,16 +1764,16 @@ defineExpose({
       <template v-if="commentState.mode === 'edit'">
         <textarea ref="commentInput" v-model="commentState.text" class="comment-pop-input" rows="3" placeholder="Add a comment…" />
         <div class="comment-pop-actions">
-          <UiButton intent="ghost" size="small" @click="closeComment">Cancel</UiButton>
+          <UiButton intent="ghost" size="small" @click="closeComment">{{ $t("common.cancel") }}</UiButton>
           <UiButton intent="primary" size="small" @click="saveComment">Save</UiButton>
         </div>
       </template>
       <template v-else>
         <div class="comment-pop-text">{{ commentState.text }}</div>
         <div class="comment-pop-actions">
-          <UiButton intent="ghost" size="small" @click="deleteComment">Delete</UiButton>
+          <UiButton intent="ghost" size="small" @click="deleteComment">{{ $t("common.delete") }}</UiButton>
           <UiButton intent="ghost" size="small" @click="editComment">Edit</UiButton>
-          <UiButton intent="primary" size="small" @click="closeComment">Close</UiButton>
+          <UiButton intent="primary" size="small" @click="closeComment">{{ $t("common.close") }}</UiButton>
         </div>
       </template>
     </div>
@@ -1797,7 +1797,7 @@ defineExpose({
         placeholder="Optional one-line note (Enter to save)" />
       <div class="marker-pop-actions">
         <UiButton v-if="markerState.mode === 'edit'" intent="ghost" size="small" @click="removeMarkerHere">Resolve</UiButton>
-        <UiButton intent="ghost" size="small" @click="closeMarker">Cancel</UiButton>
+        <UiButton intent="ghost" size="small" @click="closeMarker">{{ $t("common.cancel") }}</UiButton>
         <UiButton intent="primary" size="small"
           @click="markerState.mode === 'edit' ? saveMarkerEdit() : dropMarker()">
           {{ markerState.mode === "edit" ? "Save" : "Drop marker" }}

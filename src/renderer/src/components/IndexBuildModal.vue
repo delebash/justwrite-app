@@ -163,7 +163,7 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
         <div class="modal-title">{{ mode === "rebuild" ? "Rebuilding index" : "Building index" }}</div>
       </div>
       <UiButton v-if="running" intent="ghost" size="small" @click="cancel">
-        <Icon name="Close" :size="12" /> Cancel
+        <Icon name="Close" :size="12" /> {{ $t("common.cancel") }}
       </UiButton>
     </template>
 

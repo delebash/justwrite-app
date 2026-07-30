@@ -215,7 +215,7 @@ function onRowClick(event) {
       <div class="pane-actions">
         <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
           v-tooltip.bottom="`Ask the book about ${article.title}`">
-          <Icon name="Chat" :size="14" /> Ask the book
+          <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
         </UiButton>
         <UiButton label="Back" intent="ghost" size="small" @click="router.push('/worldbuilding')">
           <template #icon><Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /></template>

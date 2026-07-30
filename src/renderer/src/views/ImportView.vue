@@ -273,7 +273,7 @@ function finishAfterSweep() {
 <template>
   <PaneHeader :eyebrow="$t('panes.import.eyebrow')" :title="$t('nav.import')" help-key="import-and-export#import">
     <router-link to="/" custom v-slot="{ navigate }">
-      <UiButton intent="ghost" size="small" @click="navigate">Cancel</UiButton>
+      <UiButton intent="ghost" size="small" @click="navigate">{{ $t("common.cancel") }}</UiButton>
     </router-link>
   </PaneHeader>
 

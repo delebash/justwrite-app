@@ -756,7 +756,7 @@ const milestoneState = computed(() => {
             Link scenes
           </UiButton>
           <UiButton v-else-if="tensionRunning.value" intent="danger" size="small" @click="cancelTensionSweep">
-            <Icon name="Close" :size="12" /> Cancel
+            <Icon name="Close" :size="12" /> {{ $t("common.cancel") }}
           </UiButton>
         </span>
       </div>
