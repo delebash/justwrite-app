@@ -77,27 +77,22 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
 
 <template>
   <AppModal
-    eyebrow="AI-tell scan"
-    title="Phrases that smell of AI"
+    :eyebrow="$t('aiTell.eyebrow')"
+    :title="$t('aiTell.title')"
     wide
     @close="emit('close')"
   >
-    <p class="at-blurb">
-      A deterministic scan of every chapter's prose for the most common giveaway phrases in
-      LLM-assisted fiction — stock catalog verbs, body-language clichés, hedging qualifiers,
-      LLM cadence signatures, and out-of-genre register. <strong>No AI call</strong>; runs
-      instantly. Catches the easy tells; the hard ones (cadence at the paragraph level, the
-      way LLMs over-balance clauses) need a model to hear.
-    </p>
+    <i18n-t keypath="aiTell.blurb" tag="p" class="at-blurb" scope="global">
+      <template #noAiCall><strong>{{ $t("aiTell.noAiCall") }}</strong></template>
+    </i18n-t>
 
     <div v-if="!result" class="at-empty">
       <Icon name="Sparkle" :size="20" />
       <p class="at-empty-text">
-        Scan this chapter for telling-instead-of-showing prose.
-        No AI call needed — this runs instantly on your local manuscript.
+        {{ $t("aiTell.idleBlurb") }}
       </p>
       <UiButton intent="primary" @click="runScan">
-        <Icon name="Sparkle" :size="13" /> Scan for tell
+        <Icon name="Sparkle" :size="13" /> {{ $t("aiTell.action") }}
       </UiButton>
     </div>
 
@@ -105,7 +100,7 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
       <div class="at-stats">
         <span class="at-pill" :class="{ active: !activeKind }" @click="activeKind = null"
               role="button" tabindex="0">
-          All <span class="at-count">{{ totalFindings }}</span>
+          {{ $t("common.all") }} <span class="at-count">{{ totalFindings }}</span>
         </span>
         <span v-for="key in KIND_KEYS" :key="key"
               class="at-pill"
@@ -119,28 +114,28 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
         </span>
         <span class="at-spacer" />
         <span class="at-meta">
-          scanned {{ result.scannedChapters }} of {{ result.totalChapters }} chapters
+          {{ $t("aiTell.scannedMeta", { scanned: result.scannedChapters, total: result.totalChapters }) }}
         </span>
       </div>
 
       <EmptyState v-if="!totalFindings"
         icon="Check"
-        title="Clean prose"
-        message="No known AI-tell phrases found across the manuscript. Good." />
+        :title="$t('aiTell.cleanTitle')"
+        :message="$t('aiTell.cleanMessage')" />
 
       <EmptyState v-else-if="!filteredFindings.length"
         icon="Eye"
-        title="Nothing in this category"
-        message="Click another chip above to filter, or 'All' to see everything." />
+        :title="$t('aiTell.emptyCategoryTitle')"
+        :message="$t('aiTell.emptyCategoryMessage')" />
 
       <div v-else class="at-groups">
         <section v-for="g in groupedByChapter" :key="g.chapterId" class="at-group">
           <header class="at-group-h">
             <button class="at-group-jump" @click="jumpToScene(g.chapterId, g.items[0].sceneId)"
-                    v-tooltip.bottom="'Open this chapter'">
-              Ch. {{ g.chapterNum }}<span v-if="g.chapterTitle"> — {{ g.chapterTitle }}</span>
+                    v-tooltip.bottom="$t('aiTell.openChapter')">
+              {{ $t("aiTell.chapterChip", { num: g.chapterNum }) }}<span v-if="g.chapterTitle"> — {{ g.chapterTitle }}</span>
             </button>
-            <span class="at-group-count">{{ g.items.length }} finding{{ g.items.length === 1 ? '' : 's' }}</span>
+            <span class="at-group-count">{{ $t("count.finding", { n: g.items.length }, g.items.length) }}</span>
           </header>
           <ul class="at-list">
             <li v-for="f in g.items" :key="f.id" class="at-item">
@@ -150,8 +145,8 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
                 </span>
                 <span class="at-phrase">"{{ f.phrase }}"</span>
                 <button class="at-jump" @click="jumpToScene(f.chapterId, f.sceneId)"
-                        v-tooltip.bottom="'Open this scene'">
-                  Scene {{ f.sceneIdx + 1 }}
+                        v-tooltip.bottom="$t('aiTell.openScene')">
+                  {{ $t("aiTell.sceneChip", { n: f.sceneIdx + 1 }) }}
                 </button>
               </div>
               <p class="at-snippet" v-html="highlight(f.snippet, f.phrase).replace(/__HL_START__/g, '<mark>').replace(/__HL_END__/g, '</mark>')"></p>
@@ -164,7 +159,7 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
 
     <template #footer>
       <UiButton intent="ghost" @click="runScan">
-        <Icon name="Refresh" :size="12" /> Re-scan
+        <Icon name="Refresh" :size="12" /> {{ $t("aiTell.rescan") }}
       </UiButton>
       <span class="at-foot-spacer" />
       <UiButton intent="primary" @click="emit('close')">{{ $t("common.done") }}</UiButton>

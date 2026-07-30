@@ -201,7 +201,7 @@ const ago = (ts) => {
     <template v-else-if="audit">
       <div class="ph-head">
         <span class="ph-pill">
-          {{ findings.length }} finding{{ findings.length === 1 ? '' : 's' }}
+          {{ $t("count.finding", { n: findings.length }, findings.length) }}
         </span>
         <span v-if="dismissedCount" class="ph-pill muted">
           {{ dismissedCount }} dismissed

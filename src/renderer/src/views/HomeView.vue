@@ -400,7 +400,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
         <div class="gcard-h">Today's session <span class="tag">live</span></div>
         <div class="gstat">{{ sessions.todayWords.toLocaleString() }}<small>words</small></div>
         <div class="gkv">
-          <span class="k">Streak</span><span class="v">{{ sessions.streak }} day{{ sessions.streak === 1 ? '' : 's' }}</span>
+          <span class="k">Streak</span><span class="v">{{ $t("count.day", { n: sessions.streak }, sessions.streak) }}</span>
           <span class="k">This fortnight</span><span class="v">{{ totals14.total.toLocaleString() }}</span>
           <span class="k">Avg / day</span><span class="v">{{ totals14.avg.toLocaleString() }}</span>
         </div>

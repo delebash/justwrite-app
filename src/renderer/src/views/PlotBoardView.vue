@@ -479,7 +479,7 @@ function sceneBadge(beat) {
                   <Icon name="Trash" :size="13" />
                 </UiButton>
               </div>
-              <span class="strand-beat-count">{{ beatCount(strand) }} beat{{ beatCount(strand) === 1 ? "" : "s" }}</span>
+              <span class="strand-beat-count">{{ $t("count.beat", { n: beatCount(strand) }, beatCount(strand)) }}</span>
             </div>
 
             <!-- Unassigned cell -->

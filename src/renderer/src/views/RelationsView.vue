@@ -570,7 +570,7 @@ onBeforeUnmount(() => {
         <div class="relations-focus-text">
           <div class="relations-focus-name">{{ focusedNode.label }}</div>
           <div class="relations-focus-meta">
-            {{ focusedNeighborCount }} connection{{ focusedNeighborCount === 1 ? '' : 's' }}
+            {{ $t("count.connection", { n: focusedNeighborCount }, focusedNeighborCount) }}
           </div>
         </div>
         <UiButton v-if="pinnedId" intent="ghost" size="small" aria-label="Clear focus" v-tooltip.bottom="'Clear focus (Esc)'" @click="clearPin">

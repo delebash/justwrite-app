@@ -265,7 +265,7 @@ onMounted(() => {
                 {{ VERDICT_LABELS[c.audit.verdict] || c.audit.verdict }}
               </span>
               <span class="ca-count">
-                {{ c.audit.noteCount }} concern{{ c.audit.noteCount === 1 ? '' : 's' }}
+                {{ $t("count.concern", { n: c.audit.noteCount }, c.audit.noteCount) }}
               </span>
               <Icon :name="expanded.has(c.id) ? 'ChevDown' : 'ChevRight'" :size="14" />
             </span>
@@ -273,7 +273,7 @@ onMounted(() => {
 
           <div v-if="expanded.has(c.id)" class="ca-concerns">
             <p v-if="!c.audit.concerns?.length" class="ca-no-concerns">
-              No consistency issues across the {{ c.audit.sceneCount }} scene{{ c.audit.sceneCount === 1 ? '' : 's' }} this character appears in.
+              No consistency issues across the {{ $t("count.scene", { n: c.audit.sceneCount }, c.audit.sceneCount) }} this character appears in.
             </p>
             <ul v-else class="ca-concern-list">
               <li v-for="cn in c.audit.concerns" :key="cn.id" class="ca-concern" :data-sev="cn.severity">

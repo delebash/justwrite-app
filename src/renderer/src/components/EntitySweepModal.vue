@@ -384,12 +384,12 @@ function onReviewCommitted(payload) {
           Review {{ foundTotal }} found
         </UiButton>
         <UiButton intent="primary" :disabled="!checkedCount" @click="runSweep">
-          <Icon name="Sparkle" :size="13" /> Scan {{ checkedCount }} chapter{{ checkedCount === 1 ? "" : "s" }}
+          <Icon name="Sparkle" :size="13" /> Scan {{ $t("count.chapter", { n: checkedCount }, checkedCount) }}
         </UiButton>
       </template>
       <!-- B: finished-with-failures footer — the failed rows stay visible. -->
       <template v-else>
-        <span class="t-muted sweep-foot-count">{{ failedCount }} chapter{{ failedCount === 1 ? "" : "s" }} failed</span>
+        <span class="t-muted sweep-foot-count">{{ $t("count.chapter", { n: failedCount }, failedCount) }} failed</span>
         <span style="flex:1"></span>
         <UiButton intent="ghost" @click="emit('close')">{{ $t("common.close") }}</UiButton>
         <UiButton intent="secondary" @click="retryFailed">Retry {{ failedCount }} failed</UiButton>

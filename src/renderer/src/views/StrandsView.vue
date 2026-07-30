@@ -347,7 +347,7 @@ const tableRows = computed(() =>
                   @update:model-value="update('color', $event)" />
               </div>
               <span class="strand-count">
-                {{ scenesInStrand.length }} scene{{ scenesInStrand.length === 1 ? "" : "s" }}
+                {{ $t("count.scene", { n: scenesInStrand.length }, scenesInStrand.length) }}
               </span>
             </div>
 

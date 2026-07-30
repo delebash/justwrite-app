@@ -328,7 +328,7 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
         <span style="flex:1" />
         <UiButton intent="ghost" @click="onClose">{{ $t("common.close") }}</UiButton>
         <UiButton intent="primary" :disabled="!checkedCount" @click="startRun">
-          <Icon name="Book" :size="13" /> Fill {{ checkedCount }} character{{ checkedCount === 1 ? "" : "s" }}
+          <Icon name="Book" :size="13" /> Fill {{ $t("count.character", { n: checkedCount }, checkedCount) }}
         </UiButton>
       </template>
       <!-- RUN -->
@@ -342,7 +342,7 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
         <span style="flex:1" />
         <UiButton intent="ghost" @click="onClose">Discard</UiButton>
         <UiButton intent="primary" :disabled="!reviewTicked" @click="reviewApply">
-          <Icon name="Check" :size="13" /> Apply {{ reviewTicked }} field{{ reviewTicked === 1 ? "" : "s" }}
+          <Icon name="Check" :size="13" /> Apply {{ $t("count.field", { n: reviewTicked }, reviewTicked) }}
         </UiButton>
       </template>
       <!-- DONE -->

@@ -143,36 +143,34 @@ onBeforeUnmount(cancelAll);
         <h2 class="modal-title">{{ label }}</h2>
       </div>
       <div class="va-header-actions">
-        <AiFeatureChip feature="writerAI" label="Variations" editable />
+        <AiFeatureChip feature="writerAI" :label="$t('variations.chipLabel')" editable />
       </div>
     </template>
 
-    <p class="va-blurb">
-      Three streams running in parallel with slightly different temperatures (more conservative ↔
-      more inventive). Click <strong>Use this</strong> on whichever column reads best — the chosen
-      result lands as the usual accept/reject diff in your manuscript. The other two are discarded.
-    </p>
+    <i18n-t keypath="variations.blurb" tag="p" class="va-blurb" scope="global">
+      <template #useThis><strong>{{ $t("variations.useThis") }}</strong></template>
+    </i18n-t>
 
     <!-- QC-30b: the shared strip is THE progress surface — one per running
          column (the CritiqueModal one-strip-per-task precedent); the columns
          share a label, so a chip names each strip's variation. -->
     <AiTaskStrip v-for="col in cols" :key="`strip-${col.index}`" :task="colTask(col)">
       <template #extra-stats>
-        <span class="sts-stat">variation {{ col.index + 1 }}</span>
+        <span class="sts-stat">{{ $t("variations.stripLabel", { n: col.index + 1 }) }}</span>
       </template>
     </AiTaskStrip>
 
     <div class="va-grid">
       <article v-for="col in cols" :key="col.index" class="va-col" :data-temp="col.temperature">
         <header class="va-col-h">
-          <span class="va-col-label">Variation {{ col.index + 1 }}</span>
-          <span class="va-col-temp">temperature {{ col.temperature.toFixed(2) }}</span>
+          <span class="va-col-label">{{ $t("variations.colLabel", { n: col.index + 1 }) }}</span>
+          <span class="va-col-temp">{{ $t("variations.temperature", { value: col.temperature.toFixed(2) }) }}</span>
         </header>
 
         <div class="va-col-body">
           <div v-if="colRunning(col) && !col.preview.value" class="va-loading">
             <span class="va-spinner" />
-            <span>Streaming…</span>
+            <span>{{ $t("variations.streaming") }}</span>
           </div>
 
           <p v-else-if="col.error.value" class="va-error">
@@ -184,7 +182,7 @@ onBeforeUnmount(cancelAll);
 
         <footer class="va-col-foot">
           <span v-if="colRunning(col)" class="va-progress-text">
-            {{ elapsedSeconds(col) }}s
+            {{ $t("variations.elapsedSeconds", { n: elapsedSeconds(col) }) }}
           </span>
           <span v-else-if="col.error.value" class="va-progress-text">
             <UiButton intent="ghost" size="small" @click="regenerateColumn(col)">
@@ -193,15 +191,15 @@ onBeforeUnmount(cancelAll);
           </span>
           <span v-else-if="col.result.value" class="va-progress-text">
             <UiButton intent="ghost" size="small" @click="regenerateColumn(col)"
-                      v-tooltip.bottom="'Discard this and re-stream just this column'">
-              <Icon name="Refresh" :size="11" /> Re-stream
+                      v-tooltip.bottom="$t('variations.restreamTooltip')">
+              <Icon name="Refresh" :size="11" /> {{ $t("variations.restream") }}
             </UiButton>
           </span>
           <span class="va-spacer" />
           <UiButton intent="primary" size="small"
                     :disabled="!col.result.value"
                     @click="useColumn(col)">
-            <Icon name="Check" :size="12" /> Use this
+            <Icon name="Check" :size="12" /> {{ $t("variations.useThis") }}
           </UiButton>
         </footer>
       </article>
@@ -209,11 +207,11 @@ onBeforeUnmount(cancelAll);
 
     <template #footer>
       <span v-if="anyRunning" class="t-muted" style="font-size:12px;font-style:italic">
-        {{ cols.filter(c => colRunning(c)).length }} of 3 still streaming
+        {{ $t("variations.stillStreaming", { running: cols.filter(c => colRunning(c)).length, total: cols.length }) }}
       </span>
       <span class="va-foot-spacer" />
       <UiButton intent="ghost" @click="close">
-        Cancel all
+        {{ $t("variations.cancelAll") }}
       </UiButton>
     </template>
   </AppModal>

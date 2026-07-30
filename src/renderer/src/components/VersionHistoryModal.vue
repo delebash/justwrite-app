@@ -179,7 +179,7 @@ function whenFor(id) {
         <div v-for="v in list" :key="v.id" class="vh-row">
           <div class="vh-main">
             <div class="vh-label">{{ v.label || "Untitled version" }}</div>
-            <div class="vh-meta">{{ when(v.savedAt) }} · {{ v.words.toLocaleString() }} words · {{ v.scenes.length }} scene{{ v.scenes.length === 1 ? "" : "s" }}</div>
+            <div class="vh-meta">{{ when(v.savedAt) }} · {{ v.words.toLocaleString() }} words · {{ $t("count.scene", { n: v.scenes.length }, v.scenes.length) }}</div>
           </div>
           <UiButton intent="secondary" size="small" @click="compareWithCurrent(v)" v-tooltip.bottom="'See what\'s changed since this version'">
             <Icon name="Replace" :size="12" /> Compare

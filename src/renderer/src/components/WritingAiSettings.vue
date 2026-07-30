@@ -113,7 +113,7 @@ const voicePreview = computed(() => buildVoiceFingerprint(project, { targetWords
           </label>
         </div>
         <div style="margin-top:12px;display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:11px;color:var(--muted)">
-          <span>{{ project.voiceCanonChapterIds?.length || 0 }} chapter{{ (project.voiceCanonChapterIds?.length || 0) === 1 ? '' : 's' }} in canon</span>
+          <span>{{ $t("count.chapter", { n: project.voiceCanonChapterIds?.length || 0 }, project.voiceCanonChapterIds?.length || 0) }} in canon</span>
           <span v-if="voicePreview.sampleWordCount">· ~{{ voicePreview.sampleWordCount }} word sample</span>
           <span style="flex:1"></span>
           <UiButton v-if="project.voiceCanonChapterIds?.length" intent="ghost" size="small" @click="clearCanon">
