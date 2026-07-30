@@ -343,14 +343,14 @@ function sceneBadge(beat) {
         <div class="empty-icon">
           <Icon name="Strands" :size="36" />
         </div>
-        <p class="empty-heading">No narrative strands yet.</p>
-        <p class="empty-sub">Start from a proven plot structure, or build your own from scratch.</p>
+        <p class="empty-heading">{{ $t("plotBoard.emptyHeading") }}</p>
+        <p class="empty-sub">{{ $t("plotBoard.emptySub") }}</p>
         <div class="empty-actions">
           <!-- Template dropdown in empty state -->
           <div class="dropdown-wrap" style="position:relative">
             <UiButton intent="primary" ref="templateBtnRef" @click="openTemplateMenu">
               <Icon name="Sparkle" :size="14" />
-              Apply a template
+              {{ $t("plotBoard.applyATemplate") }}
               <Icon name="ChevDown" :size="13" />
             </UiButton>
             <div v-if="templateMenuOpen" ref="templateMenuRef" class="template-menu">
@@ -367,7 +367,7 @@ function sceneBadge(beat) {
           </div>
           <UiButton intent="secondary" @click="handleNewStrand">
             <Icon name="Plus" :size="14" />
-            Start blank
+            {{ $t("plotBoard.startBlank") }}
           </UiButton>
         </div>
       </div>
@@ -375,20 +375,17 @@ function sceneBadge(beat) {
 
     <!-- ── Board ──────────────────────────────────────────────── -->
     <template v-else>
-      <p class="pb-desc">
-        The <strong>Plot board</strong> is a two-axis grid: narrative strands across the rows,
-        chapters across the columns. Each beat sits at its strand × chapter intersection. Drag
-        beats around, click an empty cell to add one, and <strong>Apply template</strong> lays a
-        standard structural framework (Three-Act, Save the Cat, Hero's Journey, Story Circle)
-        over your outline.
-      </p>
+      <i18n-t keypath="plotBoard.intro" tag="p" class="pb-desc" scope="global">
+        <template #plotBoard><strong>{{ $t("panes.plotBoard.title") }}</strong></template>
+        <template #applyTemplate><strong>{{ $t("plotBoard.applyTemplate") }}</strong></template>
+      </i18n-t>
 
       <!-- Toolbar -->
       <div class="toolbar">
         <div style="position:relative">
           <UiButton intent="secondary" ref="templateBtnRef" @click="openTemplateMenu">
             <Icon name="Sparkle" :size="14" />
-            Apply template
+            {{ $t("plotBoard.applyTemplate") }}
             <Icon name="ChevDown" :size="13" />
           </UiButton>
           <div v-if="templateMenuOpen" ref="templateMenuRef" class="template-menu">
@@ -405,7 +402,7 @@ function sceneBadge(beat) {
         </div>
         <UiButton intent="primary" @click="handleNewStrand">
           <Icon name="Plus" :size="14" />
-          New strand
+          {{ $t("plotBoard.newStrand") }}
         </UiButton>
       </div>
 
@@ -420,7 +417,7 @@ function sceneBadge(beat) {
           <div class="col-header corner-cell"></div>
           <!-- Unassigned header -->
           <div class="col-header unassigned-header">
-            <span class="col-label">Unassigned</span>
+            <span class="col-label">{{ $t("plotBoard.unassigned") }}</span>
           </div>
           <!-- Chapter headers -->
           <router-link
@@ -430,7 +427,7 @@ function sceneBadge(beat) {
             class="col-header ch-header"
             v-tooltip.bottom="ch.title"
           >
-            <span class="col-label">Ch {{ ch.num }}</span>
+            <span class="col-label">{{ $t("plotBoard.chapterAbbrev", { num: ch.num }) }}</span>
           </router-link>
 
           <!-- ── Strand rows ───────────────────────────────── -->
@@ -519,8 +516,8 @@ function sceneBadge(beat) {
                   intent="ghost"
                   size="small"
                   class="beat-del-btn"
-                  aria-label="Remove beat"
-                  v-tooltip.bottom="'Remove this beat from the strand'"
+                  :aria-label="$t('plotBoard.removeBeat')"
+                  v-tooltip.bottom="$t('plotBoard.removeBeatTooltip')"
                   @click="handleRemoveBeat(strand.id, beat, $event)"
                 >
                   <Icon name="Close" :size="10" />
@@ -529,7 +526,7 @@ function sceneBadge(beat) {
               <button
                 v-if="beatsInCell(strand, null).length > 0"
                 class="cell-add-btn"
-                aria-label="Add beat to unassigned column"
+                :aria-label="$t('plotBoard.addBeatUnassigned')"
                 v-tooltip.bottom="'Add beat here'"
                 @click.stop="handleAddBeat(strand.id, null)"
               >
@@ -576,8 +573,8 @@ function sceneBadge(beat) {
                   intent="ghost"
                   size="small"
                   class="beat-del-btn"
-                  aria-label="Remove beat"
-                  v-tooltip.bottom="'Remove this beat from the strand'"
+                  :aria-label="$t('plotBoard.removeBeat')"
+                  v-tooltip.bottom="$t('plotBoard.removeBeatTooltip')"
                   @click="handleRemoveBeat(strand.id, beat, $event)"
                 >
                   <Icon name="Close" :size="10" />

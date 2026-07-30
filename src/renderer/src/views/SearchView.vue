@@ -100,10 +100,10 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
 <template>
   <PaneHeader :eyebrow="$t('panes.search.eyebrow')" :title="$t('nav.search')" help-key="notes-and-search#search">
     <span v-if="q && hits.length" class="t-muted" style="font-size:12px">
-      {{ hits.length }} {{ hits.length === 1 ? "result" : "results" }}
+      {{ $t("search.resultCount", { n: hits.length }, hits.length) }}
     </span>
-    <UiButton intent="ghost" size="small" @click="ui.openProjectReplace(q)" v-tooltip.bottom="'Project-wide find & replace in prose · ⌘⇧F'">
-      <Icon name="Replace" :size="13" /> Replace…
+    <UiButton intent="ghost" size="small" @click="ui.openProjectReplace(q)" v-tooltip.bottom="$t('search.replaceTooltip')">
+      <Icon name="Replace" :size="13" /> {{ $t("search.replaceButton") }}
     </UiButton>
   </PaneHeader>
 
@@ -111,10 +111,10 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
   <div style="padding:14px 22px;border-bottom:1px solid var(--border);background:var(--surface-2);display:flex;flex-direction:column;gap:10px">
     <div style="display:flex;align-items:center;gap:8px;padding:0 12px;background:var(--surface);border:1px solid var(--border-strong);border-radius:8px;height:36px">
       <Icon name="Search" :size="14" />
-      <input ref="inputEl" v-model="q" placeholder="Find anywhere in the project — name, prose, note, group, narrative strand…"
+      <input ref="inputEl" v-model="q" :placeholder="$t('search.placeholder')"
         style="flex:1;border:0;outline:0;background:transparent;font:inherit;font-size:13.5px" />
-      <UiButton v-if="q" intent="ghost" size="small" @click="q = ''" style="padding:2px 6px" v-tooltip.bottom="'Clear'" aria-label="Clear search">×</UiButton>
-      <span class="kbd-pill">⌘F</span>
+      <UiButton v-if="q" intent="ghost" size="small" @click="q = ''" style="padding:2px 6px" v-tooltip.bottom="$t('common.clear')" :aria-label="$t('search.clearAriaLabel')">×</UiButton>
+      <kbd class="kbd-pill">⌘F</kbd>
     </div>
 
     <!-- Kind filter chips -->
@@ -136,24 +136,22 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
   <!-- Results -->
   <div class="pane-card">
   <div class="scrollarea">
-    <p class="search-desc">
-      <strong>Search</strong> is full-text search across every surface in your project — chapters,
-      character profiles, locations, objects, notes, groups, strands, worldbuilding, architecture.
-      Filter by kind to cut noise; click any result to jump to it. The <strong>Replace</strong>
-      button opens project-wide find-and-replace for renames or systematic fixes.
-    </p>
+    <i18n-t keypath="search.intro" tag="p" class="search-desc" scope="global">
+      <template #search><strong>{{ $t("nav.search") }}</strong></template>
+      <template #replace><strong>{{ $t("search.replaceTerm") }}</strong></template>
+    </i18n-t>
     <!-- Empty: no query -->
     <div v-if="!q" style="padding:60px 22px;display:grid;place-items:center">
       <div style="max-width:420px;text-align:center">
         <div style="width:64px;height:64px;border-radius:16px;margin:0 auto 18px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center">
           <Icon name="Search" :size="28" />
         </div>
-        <h3 style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin:0">Search the whole project</h3>
+        <h3 style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin:0">{{ $t("search.emptyTitle") }}</h3>
         <p style="font-size:13.5px;color:var(--ink-2);margin-top:8px;line-height:1.55">
-          Full-text across chapters, characters, locations, objects, narrative strands, groups, notes, worldbuilding, and architecture.
+          {{ $t("search.emptyBody") }}
         </p>
         <p class="t-muted" style="font-size:11.5px;margin-top:14px;font-family:var(--font-mono)">
-          {{ index.docs.size }} documents indexed
+          {{ $t("search.docsIndexed", { n: index.docs.size }) }}
         </p>
       </div>
     </div>
@@ -161,9 +159,9 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
     <!-- Empty: query, no results -->
     <div v-else-if="hits.length === 0" style="padding:60px 22px;display:grid;place-items:center">
       <div class="t-muted" style="text-align:center;max-width:360px">
-        <div style="font-size:14px;color:var(--ink)">No matches for <b>"{{ q }}"</b></div>
+        <div style="font-size:14px;color:var(--ink)">{{ $t("search.noMatchesFor", { term: `"${q}"` }) }}</div>
         <p style="font-size:12.5px;margin-top:8px;line-height:1.55">
-          Try a shorter or different term. Search is case-insensitive and matches partial words.
+          {{ $t("search.noMatchesHint") }}
         </p>
       </div>
     </div>

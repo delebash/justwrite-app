@@ -109,6 +109,34 @@
     "flagNoun": "flag | flags",
     "chapterDone": "{n} chapter done | {n} chapters done"
   },
+  "plotBoard": {
+    "emptyHeading": "No narrative strands yet.",
+    "emptySub": "Start from a proven plot structure, or build your own from scratch.",
+    "applyATemplate": "Apply a template",
+    "startBlank": "Start blank",
+    "intro": "The {plotBoard} is a two-axis grid: narrative strands across the rows, chapters across the columns. Each beat sits at its strand × chapter intersection. Drag beats around, click an empty cell to add one, and {applyTemplate} lays a standard structural framework (Three-Act, Save the Cat, Hero's Journey, Story Circle) over your outline.",
+    "applyTemplate": "Apply template",
+    "newStrand": "New strand",
+    "unassigned": "Unassigned",
+    "chapterAbbrev": "Ch {num}",
+    "removeBeat": "Remove beat",
+    "removeBeatTooltip": "Remove this beat from the strand",
+    "addBeatUnassigned": "Add beat to unassigned column"
+  },
+  "search": {
+    "resultCount": "{n} result | {n} results",
+    "replaceButton": "Replace…",
+    "replaceTooltip": "Project-wide find & replace in prose · ⌘⇧F",
+    "placeholder": "Find anywhere in the project — name, prose, note, group, narrative strand…",
+    "clearAriaLabel": "Clear search",
+    "intro": "{search} is full-text search across every surface in your project — chapters, character profiles, locations, objects, notes, groups, strands, worldbuilding, architecture. Filter by kind to cut noise; click any result to jump to it. The {replace} button opens project-wide find-and-replace for renames or systematic fixes.",
+    "replaceTerm": "Replace",
+    "emptyTitle": "Search the whole project",
+    "emptyBody": "Full-text across chapters, characters, locations, objects, narrative strands, groups, notes, worldbuilding, and architecture.",
+    "docsIndexed": "{n} documents indexed",
+    "noMatchesFor": "No matches for {term}",
+    "noMatchesHint": "Try a shorter or different term. Search is case-insensitive and matches partial words."
+  },
   "reverseOutline": {
     "eyebrow": "Reverse outline",
     "title": "The shape your book actually has",
@@ -149,8 +177,8 @@
     "cleanTitle": "Clean prose",
     "cleanMessage": "No known AI-tell phrases found across the manuscript. Good.",
     "emptyCategoryTitle": "Nothing in this category",
-    "emptyCategoryMessage": "Click another chip above to filter, or 'All' to see everything.",
-    "openScene": "Open this scene",
+    "emptyCategoryMessage": "Click another chip above to filter, or 'All' to see everything.",
+    "openScene": "Open this scene",
     "sceneChip": "Scene {n}",
     "rescan": "Re-scan"
   },
@@ -240,7 +268,7 @@
     "emptyMessage": "Every named entity in this chapter is already in your story bible.",
     "namePlaceholder": "Name",
     "aliasesPlaceholder": "aliases (comma-separated)",
-    "foundIn": "Found in",
+    "foundIn": "Found in",
     "quote": "Quote",
     "addAction": "Add {n} to story bible"
   },
