@@ -180,30 +180,27 @@ function clear() {
 
 <template>
   <div class="brainstorm-view">
-    <PaneHeader eyebrow="Planning" title="Brainstorm" help-key="brainstorm">
-      <AiFeatureChip feature="brainstorm" label="Brainstorm" editable />
+    <PaneHeader :eyebrow="$t('panes.plotBoard.eyebrow')" :title="$t('brainstorm.title')" help-key="brainstorm">
+      <AiFeatureChip feature="brainstorm" :label="$t('brainstorm.title')" editable />
     </PaneHeader>
 
     <div class="brainstorm-controls">
-      <p class="bs-desc">
-        <strong>Brainstorm</strong> is a transient generator for names and short phrases —
-        character names, place names, object/item names, titles, or any free-form list. Pick a
-        category, type a seed, hit Generate; thumbs-up the ones you like and click
-        <strong>More like these</strong> to steer the next batch. Nothing here persists once you
-        leave the panel — copy what you want and move on.
-      </p>
+      <i18n-t keypath="brainstorm.intro" tag="p" class="bs-desc" scope="global">
+        <template #brainstorm><strong>{{ $t("brainstorm.title") }}</strong></template>
+        <template #moreLikeThese><strong>{{ $t("brainstorm.moreLikeThese") }}</strong></template>
+      </i18n-t>
       <div class="brainstorm-field">
-        <label class="brainstorm-label">Category</label>
+        <label class="brainstorm-label">{{ $t("brainstorm.categoryLabel") }}</label>
         <UiSelect
           v-model="category"
           :options="CATEGORIES"
-          placeholder="Pick a category…"
+          :placeholder="$t('brainstorm.categoryPlaceholder')"
         />
         <p class="brainstorm-cat-purpose">{{ activeCategory.purpose }}</p>
       </div>
 
       <div class="brainstorm-field">
-        <label class="brainstorm-label">Seed prompt</label>
+        <label class="brainstorm-label">{{ $t("brainstorm.seedLabel") }}</label>
         <UiTextarea
           v-model="seed"
           :rows="4"
@@ -211,7 +208,7 @@ function clear() {
           :disabled="running.value"
         />
         <p class="brainstorm-seed-hint">
-          Describe vibe, genre, era, register, sound — the more specific the seed, the less generic the output.
+          {{ $t("brainstorm.seedHint") }}
         </p>
       </div>
 
@@ -220,16 +217,16 @@ function clear() {
       <div class="brainstorm-actions">
         <UiButton
           intent="primary"
-          label="Generate"
+          :label="$t('brainstorm.generate')"
           :loading="running.value"
           :disabled="!canGenerate"
-          v-tooltip.bottom="canGenerate ? 'Generate ideas from your seed prompt' : 'Enter a seed prompt to generate ideas'"
+          v-tooltip.bottom="canGenerate ? $t('brainstorm.generateTooltip') : $t('brainstorm.generateDisabledTooltip')"
           @click="generate"
         />
         <UiButton
           v-if="results.length > 0"
           intent="ghost"
-          label="Clear"
+          :label="$t('common.clear')"
           :disabled="running.value"
           @click="clear"
         />
@@ -260,7 +257,7 @@ function clear() {
             </button>
             <button
               class="brainstorm-icon-btn"
-              title="Copy to clipboard"
+              :title="$t('brainstorm.copyToClipboard')"
               @click="useItem(item.text)"
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -275,24 +272,24 @@ function clear() {
       <div class="brainstorm-more-row">
         <UiButton
           intent="accent2"
-          label="More like these"
+          :label="$t('brainstorm.moreLikeThese')"
           :loading="running.value"
           :disabled="!canMoreLike"
-          v-tooltip.bottom="canMoreLike ? 'Generate more results similar to your liked items' : 'Thumb-up at least one result to steer the next batch'"
+          v-tooltip.bottom="canMoreLike ? $t('brainstorm.moreLikeTooltip') : $t('brainstorm.moreLikeDisabledTooltip')"
           @click="moreLikeThese"
         />
         <span v-if="likedItems.length === 0 && !running.value" class="brainstorm-hint">
-          Thumb-up results to steer the next batch.
+          {{ $t("brainstorm.thumbHint") }}
         </span>
       </div>
     </div>
 
     <div v-else-if="!running.value && !error" class="brainstorm-empty">
-      <p>Pick a category, describe what you need, and hit Generate.</p>
+      <p>{{ $t("brainstorm.emptyHint") }}</p>
     </div>
 
     <div v-if="running.value && results.length === 0" class="brainstorm-empty">
-      <p class="brainstorm-generating">Generating…</p>
+      <p class="brainstorm-generating">{{ $t("brainstorm.generating") }}</p>
     </div>
   </div>
 </template>

@@ -142,16 +142,16 @@ function onRowClick(event) {
 <template>
   <template v-if="!article">
     <PaneHeader :eyebrow="$t('panes.worldbuilding.eyebrow')" :title="$t('nav.worldbuilding')" help-key="worldbuilding#worldbuilding">
-      <UiButton label="New article" intent="primary" size="small" @click="addArticle">
+      <UiButton :label="$t('worldbuilding.newArticle')" intent="primary" size="small" @click="addArticle">
         <template #icon><Icon name="Plus" :size="14" /></template>
       </UiButton>
     </PaneHeader>
     <!-- Empty state -->
     <div v-if="project.worldbuilding.length === 0" class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center;max-width:420px">
-        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No worldbuilding articles yet.</div>
-        <div style="font-size:12.5px;margin-bottom:14px">Long-form articles for lore, magic systems, cultures — anything you'd put in an appendix. AI features pull relevant articles as story-world context.</div>
-        <UiButton intent="primary" @click="addArticle"><Icon name="Plus" :size="14" /> Create your first article</UiButton>
+        <div style="font-size:14px;color:var(--ink);margin-bottom:6px">{{ $t("worldbuilding.emptyTitle") }}</div>
+        <div style="font-size:12.5px;margin-bottom:14px">{{ $t("worldbuilding.emptyBody") }}</div>
+        <UiButton intent="primary" @click="addArticle"><Icon name="Plus" :size="14" /> {{ $t("worldbuilding.createFirst") }}</UiButton>
       </div>
     </div>
 
@@ -165,11 +165,7 @@ function onRowClick(event) {
       @row-click="onRowClick">
       <template #intro>
         <p class="entity-desc wb-desc" style="padding: 0; margin: 0 0 18px">
-          A <strong>worldbuilding article</strong> is long-form reference that doesn't belong on
-          a character, location, or object sheet — a magic system, a kingdom's history, an
-          invented language, a calendar, a religion. Organise articles by category, tag them
-          freely; AI features that draw on story-world context will reach for the article when
-          it's relevant.
+          {{ $t("worldbuilding.intro", { articleTerm: $t("worldbuilding.articleTerm") }) }}
         </p>
       </template>
 
@@ -207,21 +203,21 @@ function onRowClick(event) {
   <template v-else>
     <header class="pane-header entity-pane-header">
       <div class="pane-title">
-        <Breadcrumb :segments="[{ label: cat?.label || 'Worldbuilding', to: '/worldbuilding' }]" />
+        <Breadcrumb :segments="[{ label: cat?.label || $t('nav.worldbuilding'), to: '/worldbuilding' }]" />
         <input class="entity-name"
-          placeholder="Article title"
+          :placeholder="$t('worldbuilding.titlePlaceholder')"
           :value="article.title" @input="update('title', $event.target.value)" />
       </div>
       <div class="pane-actions">
         <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
-          v-tooltip.bottom="`Ask the book about ${article.title}`">
+          v-tooltip.bottom="$t('common.askTheBookAbout', { title: article.title })">
           <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
         </UiButton>
-        <UiButton label="Back" intent="ghost" size="small" @click="router.push('/worldbuilding')">
+        <UiButton :label="$t('common.back')" intent="ghost" size="small" @click="router.push('/worldbuilding')">
           <template #icon><Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /></template>
         </UiButton>
-        <UiButton label="Delete" intent="ghost" size="small" @click="deleteArticle" />
-        <UiButton label="New article" intent="primary" size="small" @click="addArticle">
+        <UiButton :label="$t('common.delete')" intent="ghost" size="small" @click="deleteArticle" />
+        <UiButton :label="$t('worldbuilding.newArticle')" intent="primary" size="small" @click="addArticle">
           <template #icon><Icon name="Plus" :size="14" /></template>
         </UiButton>
         <StatusSelect :model-value="article.status || ''" @update:model-value="(v) => update('status', v)" />
@@ -230,16 +226,12 @@ function onRowClick(event) {
 
     <div class="pane-card">
       <p class="entity-desc wb-desc">
-        A <strong>worldbuilding article</strong> is long-form reference that doesn't belong on
-        a character, location, or object sheet — a magic system, a kingdom's history, an
-        invented language, a calendar, a religion. Organise articles by category, tag them
-        freely; AI features that draw on story-world context will reach for the article when
-        it's relevant.
+        {{ $t("worldbuilding.intro", { articleTerm: $t("worldbuilding.articleTerm") }) }}
       </p>
       <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px">
         <UiInput class="input"
           style="flex:1;font-style:italic;color:var(--muted);font-size:13.5px;border:0;background:transparent;padding:0;font-family:var(--font-serif)"
-          placeholder="Summary"
+          :placeholder="$t('worldbuilding.summaryLabel')"
           :value="article.summary" @input="update('summary', $event.target.value)" />
       </div>
 
@@ -250,14 +242,14 @@ function onRowClick(event) {
         @update:model-value="(v) => update('tags', v)" />
 
       <label class="chip" style="cursor:pointer;gap:6px;padding:8px 14px"
-        v-tooltip.bottom="'Hides this entity from any AI feature that pulls in story-world context.'">
+        v-tooltip.bottom="$t('common.excludeFromAiTooltip')">
         <UiCheckbox :model-value="!!article.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
-        Exclude from AI
+        {{ $t("common.excludeFromAi") }}
       </label>
 
       <RichEditor
         :model-value="article.body"
-        placeholder="Write the article…"
+        :placeholder="$t('worldbuilding.bodyPlaceholder')"
         @change="(html) => update('body', html)"
       />
     </div>
