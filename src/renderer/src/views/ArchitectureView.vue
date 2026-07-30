@@ -71,7 +71,7 @@ function onRowClick(event) {
 
     <div class="pane-card">
       <div class="scrollarea" style="padding:18px 22px 40px">
-        <div class="arch-count">{{ rows.length }} documents</div>
+        <div class="arch-count">{{ $t("architecture.documentCount", { n: rows.length }, rows.length) }}</div>
 
         <UiTable
           :data="rows"
@@ -109,10 +109,10 @@ function onRowClick(event) {
       </div>
       <div class="pane-actions">
         <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
-          v-tooltip.bottom="`Ask the book about ${doc.title}`">
-          <Icon name="Chat" :size="14" /> Ask the book
+          v-tooltip.bottom="$t('architecture.askTheBookAbout', { title: doc.title })">
+          <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
         </UiButton>
-        <UiButton v-if="doc.id === 'setting'" intent="ghost" size="small" @click="openEvents"><Icon name="Calendar" :size="14" /> Events</UiButton>
+        <UiButton v-if="doc.id === 'setting'" intent="ghost" size="small" @click="openEvents"><Icon name="Calendar" :size="14" /> {{ $t("common.events") }}</UiButton>
         <StatusSelect :model-value="doc.status || ''" @update:model-value="(v) => update('status', v)" />
       </div>
     </header>
@@ -123,7 +123,7 @@ function onRowClick(event) {
 
         <RichEditor
           :model-value="doc.body"
-          placeholder="Write the document…"
+          :placeholder="$t('architecture.bodyPlaceholder')"
           variant="inline"
           :toolbar="EDITOR_TOOLBAR_DOC"
           :min-height="280"
@@ -137,14 +137,14 @@ function onRowClick(event) {
   <template v-else>
     <header class="pane-header arch-pane-header">
       <div class="pane-title">
-        <Breadcrumb :segments="[{ label: 'Architecture', to: '/architecture' }]" />
-        <h1 class="pane-h1">Document not found</h1>
+        <Breadcrumb :segments="[{ label: $t('nav.architecture'), to: '/architecture' }]" />
+        <h1 class="pane-h1">{{ $t("architecture.notFoundTitle") }}</h1>
       </div>
     </header>
     <div class="pane-card" style="display:grid;place-items:center;padding:60px">
       <div class="t-muted" style="text-align:center">
-        This architecture document no longer exists.<br />
-        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/architecture')">Back to architecture</UiButton>
+        {{ $t("architecture.notFoundBody") }}<br />
+        <UiButton intent="ghost" style="margin-top:14px" @click="router.push('/architecture')">{{ $t("architecture.backToList") }}</UiButton>
       </div>
     </div>
   </template>

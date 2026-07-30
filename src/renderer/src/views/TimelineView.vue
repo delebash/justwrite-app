@@ -73,24 +73,21 @@ function goOwner(ev) { router.push(EVENTS_KIND_META[ev.ownerKind].detailUrl(ev.o
   <div class="pane-card">
     <div class="scrollarea events-pane">
       <div class="events-content">
-        <p class="tl-desc">
-          The <strong>Timeline</strong> is a merged, read-only view of every event across every
-          character, location, object, group, and the world Setting — sorted chronologically. Click
-          any event title to edit it; click the entity badge on the right to jump to that entity's
-          page. You add events from each entity's <strong>Events</strong> button; the Timeline
-          collects them automatically.
-        </p>
+        <i18n-t keypath="timeline.intro" tag="p" class="tl-desc" scope="global">
+          <template #timeline><strong>{{ $t("panes.timeline.title") }}</strong></template>
+          <template #events><strong>{{ $t("common.events") }}</strong></template>
+        </i18n-t>
 
         <section v-if="allEvents.length === 0" class="events-empty">
-          <div style="font-size:14px;color:var(--ink);margin-bottom:6px">No events yet.</div>
-          <div style="font-size:12.5px;max-width:400px">Events from characters, locations, objects, groups, and the Setting all gather here in chronological order. Add them via each entity's Events button.</div>
+          <div style="font-size:14px;color:var(--ink);margin-bottom:6px">{{ $t("timeline.emptyTitle") }}</div>
+          <div style="font-size:12.5px;max-width:400px">{{ $t("timeline.emptyBody") }}</div>
         </section>
 
         <section v-else class="timeline">
           <article v-for="ev in allEvents" :key="`${ev.ownerId}:${ev.id}`" class="timeline-row">
             <div class="timeline-when tl-when-click" role="button" tabindex="0"
-              :aria-label="`Open ${ev.title || 'event'}`"
-              v-tooltip.bottom="`Open ${ev.title || 'event'}`"
+              :aria-label="$t('events.openAriaLabel', { title: ev.title || $t('events.fallbackName') })"
+              v-tooltip.bottom="$t('events.openAriaLabel', { title: ev.title || $t('events.fallbackName') })"
               @click="goEvent(ev)"
               @keydown.enter.prevent="goEvent(ev)"
               @keydown.space.prevent="goEvent(ev)">
@@ -103,7 +100,7 @@ function goOwner(ev) { router.push(EVENTS_KIND_META[ev.ownerKind].detailUrl(ev.o
             </div>
             <div class="timeline-card">
               <button type="button" class="timeline-card-title tl-link" @click="goEvent(ev)">
-                {{ ev.title || "Untitled event" }}
+                {{ ev.title || $t("events.untitled") }}
               </button>
               <div v-if="ev.note" class="timeline-card-note">{{ ev.note }}</div>
               <button type="button" class="tl-owner" @click="goOwner(ev)">

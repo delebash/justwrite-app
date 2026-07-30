@@ -67,28 +67,28 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
   <header class="pane-header">
     <div class="pane-title">
       <Breadcrumb :segments="crumbs" />
-      <h1 class="pane-h1">Events</h1>
+      <h1 class="pane-h1">{{ $t("common.events") }}</h1>
     </div>
     <div class="pane-actions">
       <UiButton intent="ghost" size="small" @click="goBack">
         <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
-        Back to {{ meta?.label }}
+        {{ $t("events.backTo", { name: meta?.label }) }}
       </UiButton>
       <UiButton intent="primary" @click="goAdd">
-        <Icon name="Plus" :size="13" /> Add event
+        <Icon name="Plus" :size="13" /> {{ $t("events.addEvent") }}
       </UiButton>
     </div>
-    <HelpTrigger slug="plot-and-time#per-entity-events-biographies-and-place-histories" label="Events" class="pane-help" />
+    <HelpTrigger slug="plot-and-time#per-entity-events-biographies-and-place-histories" :label="$t('common.events')" class="pane-help" />
   </header>
 
   <div class="pane-card">
   <div class="scrollarea events-pane">
     <div class="events-content">
-      <p class="events-subtitle">Events for {{ name }}</p>
+      <p class="events-subtitle">{{ $t("events.forEntity", { name }) }}</p>
 
-      <section v-if="sortedEvents.length === 0" class="events-empty">
-        No events yet. Click <strong>Add event</strong> to start the timeline.
-      </section>
+      <i18n-t v-if="sortedEvents.length === 0" keypath="events.empty" tag="section" class="events-empty" scope="global">
+        <template #addEvent><strong>{{ $t("events.addEvent") }}</strong></template>
+      </i18n-t>
 
       <section v-else class="timeline">
         <article v-for="ev in sortedEvents" :key="ev.id" class="timeline-row">
@@ -101,13 +101,13 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
             <span class="timeline-dot" />
           </div>
           <div class="timeline-card">
-            <div class="timeline-card-title">{{ ev.title || "Untitled event" }}</div>
+            <div class="timeline-card-title">{{ ev.title || $t("events.untitled") }}</div>
             <div v-if="ev.note" class="timeline-card-note">{{ ev.note }}</div>
             <div class="timeline-card-actions">
               <UiButton intent="ghost" size="small" @click="goEdit(ev.id)"
-                :aria-label="`Edit ${ev.title || 'event'}`">edit</UiButton>
+                :aria-label="$t('events.editAriaLabel', { title: ev.title || $t('events.fallbackName') })">{{ $t("events.editAction") }}</UiButton>
               <UiButton intent="ghost" size="small" @click="remove(ev)"
-                :aria-label="`Delete ${ev.title || 'event'}`">delete</UiButton>
+                :aria-label="$t('events.deleteAriaLabel', { title: ev.title || $t('events.fallbackName') })">{{ $t("events.deleteAction") }}</UiButton>
             </div>
           </div>
         </article>

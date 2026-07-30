@@ -195,11 +195,11 @@ function manageAll() {
 </script>
 
 <template>
-  <aside ref="panelEl" class="sp" aria-label="Scene notes">
+  <aside ref="panelEl" class="sp" :aria-label="$t('sceneNotes.ariaLabel')">
     <header class="sp-h">
       <b class="sp-title">{{ panelTitle }}</b>
       <UiButton class="sp-close" intent="ghost" size="small"
-        v-tooltip.bottom="'Close notes'" aria-label="Close notes"
+        v-tooltip.bottom="$t('sceneNotes.close')" :aria-label="$t('sceneNotes.close')"
         @click="emit('close')">
         <template #icon><Icon name="Close" :size="14" /></template>
       </UiButton>
@@ -225,7 +225,7 @@ function manageAll() {
             <UiButton intent="primary" size="small"
               :disabled="!(drafts[section.key] || '').trim()"
               @click="addFromDraft(section)">
-              Add note
+              {{ $t("sceneNotes.addNote") }}
             </UiButton>
           </div>
         </div>
@@ -245,12 +245,12 @@ function manageAll() {
               <span class="sp-note-date">{{ n.updated }}</span>
               <span class="sp-note-acts">
                 <button type="button" class="sp-note-act"
-                  v-tooltip.bottom="'Edit note'" aria-label="Edit note"
+                  v-tooltip.bottom="$t('sceneNotes.editNote')" :aria-label="$t('sceneNotes.editNote')"
                   @click="startEdit(n)">
                   <Icon name="Pencil" :size="12" />
                 </button>
                 <button type="button" class="sp-note-act"
-                  v-tooltip.bottom="'Delete note'" aria-label="Delete note"
+                  v-tooltip.bottom="$t('sceneNotes.deleteNote')" :aria-label="$t('sceneNotes.deleteNote')"
                   @click="removeNote(n)">
                   <Icon name="Trash" :size="12" />
                 </button>
@@ -262,8 +262,8 @@ function manageAll() {
     </div>
 
     <footer class="sp-foot">
-      Notes stay pinned to {{ footerScopeWord }} ·
-      <button type="button" class="sp-manage" @click="manageAll">Manage all notes ↗</button>
+      {{ $t("sceneNotes.footerPinnedTo", { scope: footerScopeWord }) }} ·
+      <button type="button" class="sp-manage" @click="manageAll">{{ $t("sceneNotes.manageAll") }}</button>
     </footer>
   </aside>
 </template>

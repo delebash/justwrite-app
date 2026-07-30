@@ -70,12 +70,12 @@ function save() {
   <header class="pane-header">
     <div class="pane-title">
       <Breadcrumb :segments="crumbs" />
-      <h1 class="pane-h1">Edit event</h1>
+      <h1 class="pane-h1">{{ $t("events.editTitle") }}</h1>
     </div>
     <div class="pane-actions">
-      <UiButton intent="ghost" @click="cancel">Cancel</UiButton>
+      <UiButton intent="ghost" @click="cancel">{{ $t("common.cancel") }}</UiButton>
       <UiButton intent="primary" :disabled="!titleStr.trim()" @click="save">
-        <Icon name="Check" :size="13" /> Save changes
+        <Icon name="Check" :size="13" /> {{ $t("common.saveChanges") }}
       </UiButton>
     </div>
   </header>
@@ -83,24 +83,24 @@ function save() {
   <div class="pane-card">
   <div class="scrollarea event-edit-pane">
     <div v-if="!ev" class="event-missing">
-      That event no longer exists.
-      <UiButton intent="secondary" size="small" style="margin-left:8px" @click="cancel">Back to timeline</UiButton>
+      {{ $t("events.notFoundBody") }}
+      <UiButton intent="secondary" size="small" style="margin-left:8px" @click="cancel">{{ $t("events.backToTimeline") }}</UiButton>
     </div>
     <form v-else class="event-edit-form" @submit.prevent="save">
       <div class="field">
-        <label class="field-label" for="event-edit-when">When</label>
+        <label class="field-label" for="event-edit-when">{{ $t("events.fieldWhen") }}</label>
         <DateTimePicker v-model="whenStr" input-id="event-edit-when" />
       </div>
 
       <label class="field">
-        <span class="field-label">Title</span>
-        <UiInput fluid ref="titleRef" v-model="titleStr" placeholder="What happened?" />
+        <span class="field-label">{{ $t("events.fieldTitle") }}</span>
+        <UiInput fluid ref="titleRef" v-model="titleStr" :placeholder="$t('events.titlePlaceholder')" />
       </label>
 
       <label class="field">
-        <span class="field-label">Notes</span>
+        <span class="field-label">{{ $t("events.fieldNotes") }}</span>
         <UiTextarea fluid v-model="noteStr" rows="6"
-          placeholder="Optional — anything you want to remember about this event." />
+          :placeholder="$t('events.notesPlaceholder')" />
       </label>
     </form>
   </div>

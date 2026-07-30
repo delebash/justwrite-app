@@ -49,6 +49,8 @@
     "new": "New",
     "undo": "Undo",
     "redo": "Redo",
+    "events": "Events",
+    "saveChanges": "Save changes",
     "gotIt": "Got it",
     "openInHelpDrawer": "Open in help drawer"
   },
@@ -86,6 +88,52 @@
     "pm": "PM",
     "now": "Now"
   },
+  "architecture": {
+    "documentCount": "{n} document | {n} documents",
+    "askTheBookAbout": "Ask the book about {title}",
+    "bodyPlaceholder": "Write the document…",
+    "notFoundTitle": "Document not found",
+    "notFoundBody": "This architecture document no longer exists.",
+    "backToList": "Back to architecture"
+  },
+  "events": {
+    "newTitle": "New event",
+    "editTitle": "Edit event",
+    "addEvent": "Add event",
+    "backTo": "Back to {name}",
+    "backToTimeline": "Back to timeline",
+    "forEntity": "Events for {name}",
+    "empty": "No events yet. Click {addEvent} to start the timeline.",
+    "untitled": "Untitled event",
+    "fallbackName": "event",
+    "editAction": "edit",
+    "deleteAction": "delete",
+    "editAriaLabel": "Edit {title}",
+    "deleteAriaLabel": "Delete {title}",
+    "openAriaLabel": "Open {title}",
+    "fieldWhen": "When",
+    "fieldTitle": "Title",
+    "titlePlaceholder": "What happened?",
+    "fieldNotes": "Notes",
+    "notesPlaceholder": "Optional — anything you want to remember about this event.",
+    "notFoundBody": "That event no longer exists."
+  },
+  "groups": {
+    "toggleHint": "Toggle {name} in or out of any group.",
+    "empty": "No groups yet — create one below.",
+    "memberCount": "{n} member | {n} members",
+    "deleteGroup": "Delete group",
+    "newGroup": "New group"
+  },
+  "sceneNotes": {
+    "ariaLabel": "Scene notes",
+    "close": "Close notes",
+    "addNote": "Add note",
+    "editNote": "Edit note",
+    "deleteNote": "Delete note",
+    "footerPinnedTo": "Notes stay pinned to {scope}",
+    "manageAll": "Manage all notes ↗"
+  },
   "help": {
     "openOnWeb": "Open on the web",
     "tocAriaLabel": "Help table of contents",
@@ -108,6 +156,11 @@
     "customThemeHint": "· your own mix",
     "mode": "Mode",
     "modeTooltip": "Mode · {mode}"
+  },
+  "timeline": {
+    "intro": "The {timeline} is a merged, read-only view of every event across every character, location, object, group, and the world Setting — sorted chronologically. Click any event title to edit it; click the entity badge on the right to jump to that entity's page. You add events from each entity's {events} button; the Timeline collects them automatically.",
+    "emptyTitle": "No events yet.",
+    "emptyBody": "Events from characters, locations, objects, groups, and the Setting all gather here in chronological order. Add them via each entity's Events button."
   },
   "status": {
     "ariaLabel": "Status",

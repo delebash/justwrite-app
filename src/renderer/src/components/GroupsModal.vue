@@ -40,12 +40,12 @@ function deleteGroup(group) {
 </script>
 
 <template>
-  <AppModal eyebrow="Groups" :title="entityName" @close="emit('close')">
+  <AppModal :eyebrow="$t('nav.groups')" :title="entityName" @close="emit('close')">
     <p class="t-muted" style="font-size:12px;margin:0 0 12px">
-      Toggle {{ entityName }} in or out of any group.
+      {{ $t("groups.toggleHint", { name: entityName }) }}
     </p>
     <div v-if="groups.length === 0" class="t-muted" style="font-size:12.5px;text-align:center;padding:18px 0">
-      No groups yet — create one below.
+      {{ $t("groups.empty") }}
     </div>
     <div v-else style="display:flex;flex-direction:column;gap:6px">
       <div v-for="g in groups" :key="g.id"
@@ -53,16 +53,16 @@ function deleteGroup(group) {
         <button type="button" class="group-toggle" @click="toggle(g)">
           <span style="width:10px;height:10px;border-radius:50%" :style="{ background: g.color }" />
           <span style="font-weight:500;font-size:13px">{{ g.name }}</span>
-          <span class="t-muted" style="font-size:11px">{{ (g.members || []).length }} members</span>
+          <span class="t-muted" style="font-size:11px">{{ $t("groups.memberCount", { n: (g.members || []).length }, (g.members || []).length) }}</span>
           <Icon :name="inGroup(g) ? 'Check' : 'Plus'" :size="13" />
         </button>
-        <button type="button" class="group-del" aria-label="Delete group" v-tooltip.bottom="'Delete group'" @click="deleteGroup(g)">
+        <button type="button" class="group-del" :aria-label="$t('groups.deleteGroup')" v-tooltip.bottom="$t('groups.deleteGroup')" @click="deleteGroup(g)">
           <Icon name="Trash" :size="13" />
         </button>
       </div>
     </div>
     <button type="button" class="group-new" @click="createGroup">
-      <Icon name="Plus" :size="13" /> New group
+      <Icon name="Plus" :size="13" /> {{ $t("groups.newGroup") }}
     </button>
   </AppModal>
 </template>
