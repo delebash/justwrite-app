@@ -155,6 +155,34 @@
     "summaryLabel": "Summary",
     "bodyPlaceholder": "Write the article…"
   },
+  "beatSheet": {
+    "eyebrow": "Beat sheet",
+    "title": "Map to a narrative framework",
+    "blurb": "Pick a framework. JustWrite maps each of its beats to the chapter that best fulfils it — and flags the beats your book doesn't cover. The model's instructed to be honest about {missing} beats; a clean map of every beat is suspicious. Best after a complete draft.",
+    "missingTag": "MISSING",
+    "frameworkLabel": "Framework",
+    "mapping": "Mapping chapters to beats…",
+    "coverage": "{covered} / {total} beats covered",
+    "missingCount": "{n} missing",
+    "generatedAgo": "generated {when}",
+    "viaModel": "· via {model}",
+    "whyMissing": "Why missing:",
+    "onThePage": "On the page:",
+    "clearMapping": "Clear this mapping"
+  },
+  "editorSettings": {
+    "title": "Settings",
+    "font": "Font",
+    "fontSize": "Font size",
+    "paragraphIndent": "Paragraph indent",
+    "capitalize": "Capitalize first letter of sentences",
+    "lineSpacing": "Line spacing",
+    "paragraphSpacing": "Paragraph spacing",
+    "spellCheck": "Spell check",
+    "keepStrikethrough": "Keep original as strikethrough when accepting an AI change",
+    "save": "save",
+    "back": "back"
+  },
   "search": {
     "resultCount": "{n} result | {n} results",
     "replaceButton": "Replace…",

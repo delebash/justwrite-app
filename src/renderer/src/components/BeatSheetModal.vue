@@ -102,32 +102,29 @@ if (!mapping.value) run();
 
 <template>
   <AppModal
-    eyebrow="Beat sheet"
-    title="Map to a narrative framework"
+    :eyebrow="$t('beatSheet.eyebrow')"
+    :title="$t('beatSheet.title')"
     wide
     :closable="!running"
     @close="emit('close')"
   >
     <template #header>
       <div class="bs-titleblock">
-        <div class="t-eyebrow">Beat sheet</div>
-        <h2 class="modal-title">Map to a narrative framework</h2>
+        <div class="t-eyebrow">{{ $t("beatSheet.eyebrow") }}</div>
+        <h2 class="modal-title">{{ $t("beatSheet.title") }}</h2>
       </div>
       <div class="bs-header-actions">
-        <AiFeatureChip feature="beatSheet" label="Beat sheet" editable />
+        <AiFeatureChip feature="beatSheet" :label="$t('beatSheet.eyebrow')" editable />
       </div>
     </template>
 
-    <p class="bs-blurb">
-      Pick a framework. JustWrite maps each of its beats to the chapter that best fulfils it
-      — and flags the beats your book doesn't cover. The model's instructed to be honest about
-      <strong>MISSING</strong> beats; a clean map of every beat is suspicious. Best after a
-      complete draft.
-    </p>
+    <i18n-t keypath="beatSheet.blurb" tag="p" class="bs-blurb" scope="global">
+      <template #missing><strong>{{ $t("beatSheet.missingTag") }}</strong></template>
+    </i18n-t>
 
     <div class="bs-controls">
       <div class="bs-picker">
-        <label class="bs-label">Framework</label>
+        <label class="bs-label">{{ $t("beatSheet.frameworkLabel") }}</label>
         <UiSelect
           v-model="selectedTemplate"
           :options="TEMPLATE_OPTIONS"
@@ -149,20 +146,20 @@ if (!mapping.value) run();
 
     <div v-else-if="!mapping" class="bs-loading">
       <span class="bs-spinner" />
-      <span>Mapping chapters to beats…</span>
+      <span>{{ $t("beatSheet.mapping") }}</span>
     </div>
 
     <template v-else-if="mapping">
       <div class="bs-head">
         <span class="bs-pill bs-pill-coverage">
-          {{ mapping.totalBeats - mapping.missingCount }} / {{ mapping.totalBeats }} beats covered
+          {{ $t("beatSheet.coverage", { covered: mapping.totalBeats - mapping.missingCount, total: mapping.totalBeats }) }}
         </span>
         <span v-if="mapping.missingCount" class="bs-pill bs-pill-missing">
-          {{ mapping.missingCount }} missing
+          {{ $t("beatSheet.missingCount", { n: mapping.missingCount }) }}
         </span>
         <span class="bs-meta">
-          generated {{ ago(mapping.generatedAt) }}
-          <template v-if="mapping.model"> · via {{ mapping.model }}</template>
+          {{ $t("beatSheet.generatedAgo", { when: ago(mapping.generatedAt) }) }}
+          <template v-if="mapping.model"> {{ $t("beatSheet.viaModel", { model: mapping.model }) }}</template>
         </span>
       </div>
 
@@ -174,17 +171,17 @@ if (!mapping.value) run();
           <div class="bs-beat-head">
             <span class="bs-beat-name">{{ b.beatName }}</span>
             <span v-if="b.missing" class="bs-missing-tag">
-              <Icon name="Alert" :size="11" /> MISSING
+              <Icon name="Alert" :size="11" /> {{ $t("beatSheet.missingTag") }}
             </span>
             <button v-else-if="b.chapterNum" class="bs-beat-jump"
                     @click="jumpToChapter(b.chapterNum)"
-                    v-tooltip.bottom="'Open this chapter'">
-              Ch. {{ b.chapterNum }}
+                    v-tooltip.bottom="$t('common.openThisChapter')">
+              {{ $t("common.chapterShort", { num: b.chapterNum }) }}
             </button>
           </div>
           <p class="bs-beat-desc">{{ b.beatDesc }}</p>
           <p v-if="b.justification" class="bs-beat-just">
-            <span class="bs-just-label">{{ b.missing ? 'Why missing:' : 'On the page:' }}</span>
+            <span class="bs-just-label">{{ b.missing ? $t('beatSheet.whyMissing') : $t('beatSheet.onThePage') }}</span>
             {{ b.justification }}
           </p>
         </li>
@@ -193,7 +190,7 @@ if (!mapping.value) run();
 
     <template #footer>
       <UiButton v-if="mapping && !running" intent="ghost" @click="clearCurrent">
-        Clear this mapping
+        {{ $t("beatSheet.clearMapping") }}
       </UiButton>
       <span class="bs-foot-spacer" />
       <UiButton v-if="mapping && !running" intent="ghost" @click="regenerate">

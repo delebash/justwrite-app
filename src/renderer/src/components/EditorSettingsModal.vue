@@ -42,54 +42,54 @@ function back() { emit("close"); }
 </script>
 
 <template>
-  <AppModal title="Settings" @close="back">
+  <AppModal :title="$t('editorSettings.title')" @close="back">
     <div class="es-body">
       <div class="es-row">
-        <span class="es-label">Font</span>
+        <span class="es-label">{{ $t("editorSettings.font") }}</span>
         <UiSelect class="es-select" v-model="draft.font"
           :options="EDITOR_FONTS.map(f => ({ label: f.label, value: f.label }))" />
       </div>
 
       <div class="es-row">
-        <span class="es-label">Font size</span>
-        <UiSegmented v-model="draft.fontSize" :options="FONT_SIZE_OPTS" aria-label="Font size" />
+        <span class="es-label">{{ $t("editorSettings.fontSize") }}</span>
+        <UiSegmented v-model="draft.fontSize" :options="FONT_SIZE_OPTS" :aria-label="$t('editorSettings.fontSize')" />
       </div>
 
       <div class="es-row">
-        <span class="es-label">Paragraph indent</span>
-        <UiSegmented v-model="draft.paragraphIndent" :options="INDENT_OPTS" aria-label="Paragraph indent" />
+        <span class="es-label">{{ $t("editorSettings.paragraphIndent") }}</span>
+        <UiSegmented v-model="draft.paragraphIndent" :options="INDENT_OPTS" :aria-label="$t('editorSettings.paragraphIndent')" />
       </div>
 
       <div class="es-row">
-        <span class="es-label">Capitalize first letter of sentences</span>
-        <UiSegmented v-model="draft.capitalize" :options="BOOL_OPTS" aria-label="Capitalize first letter of sentences" />
+        <span class="es-label">{{ $t("editorSettings.capitalize") }}</span>
+        <UiSegmented v-model="draft.capitalize" :options="BOOL_OPTS" :aria-label="$t('editorSettings.capitalize')" />
       </div>
 
       <div class="es-row">
-        <span class="es-label">Line spacing</span>
-        <UiSegmented v-model="draft.lineSpacing" :options="LINE_SPACING_OPTS" aria-label="Line spacing" />
+        <span class="es-label">{{ $t("editorSettings.lineSpacing") }}</span>
+        <UiSegmented v-model="draft.lineSpacing" :options="LINE_SPACING_OPTS" :aria-label="$t('editorSettings.lineSpacing')" />
       </div>
 
       <div class="es-row">
-        <span class="es-label">Paragraph spacing</span>
-        <UiSegmented v-model="draft.paragraphSpacing" :options="PARA_SPACING_OPTS" aria-label="Paragraph spacing" />
+        <span class="es-label">{{ $t("editorSettings.paragraphSpacing") }}</span>
+        <UiSegmented v-model="draft.paragraphSpacing" :options="PARA_SPACING_OPTS" :aria-label="$t('editorSettings.paragraphSpacing')" />
       </div>
 
       <div class="es-row">
-        <span class="es-label">Spell check</span>
-        <UiSegmented v-model="draft.spellCheck" :options="BOOL_OPTS" aria-label="Spell check" />
+        <span class="es-label">{{ $t("editorSettings.spellCheck") }}</span>
+        <UiSegmented v-model="draft.spellCheck" :options="BOOL_OPTS" :aria-label="$t('editorSettings.spellCheck')" />
       </div>
 
       <div class="es-row">
-        <span class="es-label">Keep original as strikethrough when accepting an AI change</span>
+        <span class="es-label">{{ $t("editorSettings.keepStrikethrough") }}</span>
         <UiSegmented v-model="draft.keepStrikethroughOnAccept" :options="BOOL_OPTS"
-          aria-label="Keep original as strikethrough when accepting an AI change" />
+          :aria-label="$t('editorSettings.keepStrikethrough')" />
       </div>
     </div>
 
     <template #footer>
-      <UiButton intent="primary" @click="save">save</UiButton>
-      <UiButton intent="ghost" @click="back">back</UiButton>
+      <UiButton intent="primary" @click="save">{{ $t("editorSettings.save") }}</UiButton>
+      <UiButton intent="ghost" @click="back">{{ $t("editorSettings.back") }}</UiButton>
     </template>
   </AppModal>
 </template>
