@@ -209,40 +209,39 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
   <!-- ── REVIEW PHASE ─────────────────────────────────────────── -->
   <AppModal
     v-if="phase === 'review'"
-    eyebrow="Foreshadowing scan"
-    title="Dangling threads"
+    :eyebrow="$t('foreshadowing.eyebrow')"
+    :title="$t('foreshadowing.reviewTitle')"
     wide
     @close="emit('close')"
   >
     <template #header>
       <div class="fs-titleblock">
-        <div class="t-eyebrow">Foreshadowing scan</div>
-        <div class="modal-title">Dangling threads</div>
+        <div class="t-eyebrow">{{ $t("foreshadowing.eyebrow") }}</div>
+        <div class="modal-title">{{ $t("foreshadowing.reviewTitle") }}</div>
       </div>
       <div class="fs-header-actions">
-        <AiFeatureChip feature="foreshadowing" label="Foreshadowing" editable />
+        <AiFeatureChip feature="foreshadowing" :label="$t('foreshadowing.chipLabel')" editable />
       </div>
     </template>
 
-    <p class="fs-desc">
-      Setups your manuscript plants that may not have paid off. <strong>Dangling</strong> means
-      the setup's key term never appears in a later chapter; <strong>mentioned later</strong>
-      means a later chapter at least references it — payoff or not is your call. Pin any to drop
-      a <strong>Loose thread</strong> marker at the exact phrase so it joins your markers list.
-    </p>
+    <i18n-t keypath="foreshadowing.reviewDesc" tag="p" class="fs-desc" scope="global">
+      <template #dangling><strong>{{ $t("foreshadowing.danglingTerm") }}</strong></template>
+      <template #mentionedLater><strong>{{ $t("foreshadowing.mentionedLaterTerm") }}</strong></template>
+      <template #looseThread><strong>{{ $t("foreshadowing.looseThreadTerm") }}</strong></template>
+    </i18n-t>
 
     <div v-if="!proposals.length" class="fs-empty-wrap">
       <EmptyState
         icon="Check"
-        title="Nothing dangling"
-        message="No setups without payoff turned up in this scan. Run it again after more drafting." />
+        :title="$t('foreshadowing.emptyTitle')"
+        :message="$t('foreshadowing.emptyMessage')" />
     </div>
 
     <template v-else>
       <div class="fs-stats">
-        <span class="fs-stat-chip dangling">{{ danglingCount }} dangling</span>
-        <span class="fs-stat-chip mentioned">{{ mentionedCount }} mentioned later</span>
-        <span class="fs-stat-chip muted">{{ result.scanned }} of {{ result.totalChapters }} chapters scanned</span>
+        <span class="fs-stat-chip dangling">{{ $t("foreshadowing.danglingCount", { n: danglingCount }) }}</span>
+        <span class="fs-stat-chip mentioned">{{ $t("foreshadowing.mentionedCount", { n: mentionedCount }) }}</span>
+        <span class="fs-stat-chip muted">{{ $t("foreshadowing.chaptersScanned", { scanned: result.scanned, total: result.totalChapters }) }}</span>
       </div>
 
       <div class="fs-filters">
@@ -250,45 +249,45 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
                 :class="{ active: filter === 'dangling' }"
                 :disabled="!danglingCount"
                 @click="filter = 'dangling'">
-          Dangling <span class="fs-chip-n">{{ danglingCount }}</span>
+          {{ $t("foreshadowing.filterDangling") }} <span class="fs-chip-n">{{ danglingCount }}</span>
         </button>
         <button type="button" class="fs-chip"
                 :class="{ active: filter === 'mentioned-later' }"
                 :disabled="!mentionedCount"
                 @click="filter = 'mentioned-later'">
-          Mentioned later <span class="fs-chip-n">{{ mentionedCount }}</span>
+          {{ $t("foreshadowing.filterMentioned") }} <span class="fs-chip-n">{{ mentionedCount }}</span>
         </button>
         <button type="button" class="fs-chip"
                 :class="{ active: filter === 'all' }"
                 @click="filter = 'all'">
-          All <span class="fs-chip-n">{{ proposals.length }}</span>
+          {{ $t("common.all") }} <span class="fs-chip-n">{{ proposals.length }}</span>
         </button>
         <span class="fs-filters-spacer" />
         <UiButton v-if="filter === 'dangling' && danglingCount" intent="ghost" size="small"
                   :disabled="dangling.every(p => pinStatus[p.id])"
                   @click="pinAllDangling"
-                  v-tooltip.bottom="'Drop Loose-thread markers on every dangling proposal at once'">
-          <Icon name="Pin" :size="12" /> Pin all dangling
+                  v-tooltip.bottom="$t('foreshadowing.pinAllTooltip')">
+          <Icon name="Pin" :size="12" /> {{ $t("foreshadowing.pinAllDangling") }}
         </UiButton>
       </div>
 
       <div class="fs-groups">
         <section v-for="g in grouped" :key="g.chapterId" class="fs-group">
           <header class="fs-group-h">
-            <span class="fs-group-num">Ch. {{ g.chapterNum }}</span>
-            <span class="fs-group-title">{{ g.chapterTitle || "Untitled" }}</span>
+            <span class="fs-group-num">{{ $t("common.chapterShort", { num: g.chapterNum }) }}</span>
+            <span class="fs-group-title">{{ g.chapterTitle || $t("foreshadowing.untitled") }}</span>
             <span class="fs-group-count">{{ g.items.length }}</span>
           </header>
           <ul class="fs-list">
             <li v-for="t in g.items" :key="t.id" class="fs-thread" :class="`status-${t.status}`">
               <div class="fs-thread-meta">
                 <span class="fs-kind-badge" :data-kind="t.kind">{{ KIND_LABELS[t.kind] || t.kind }}</span>
-                <span v-if="t.status === 'dangling'" class="fs-status-badge dangling">Dangling</span>
+                <span v-if="t.status === 'dangling'" class="fs-status-badge dangling">{{ $t("foreshadowing.statusDangling") }}</span>
                 <span v-else class="fs-status-badge mentioned"
                       v-tooltip.bottom="t.laterMentions.map(m => `Ch. ${m.chapterNum}${m.chapterTitle ? ' — ' + m.chapterTitle : ''}`).join('\n')">
-                  Mentioned in
+                  {{ $t("foreshadowing.mentionedIn") }}
                   <template v-for="(m, i) in t.laterMentions.slice(0, 3)" :key="m.chapterId">
-                    Ch. {{ m.chapterNum }}<span v-if="i < Math.min(t.laterMentions.length, 3) - 1">, </span>
+                    {{ $t("common.chapterShort", { num: m.chapterNum }) }}<span v-if="i < Math.min(t.laterMentions.length, 3) - 1">, </span>
                   </template>
                   <span v-if="t.laterMentions.length > 3">…</span>
                 </span>
@@ -299,13 +298,13 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
                 <UiButton v-if="!pinStatus[t.id]" intent="ghost" size="small"
                           :disabled="!t.locatable"
                           @click="pinThread(t)"
-                          v-tooltip.bottom="t.locatable ? 'Drop a Loose-thread marker on this phrase' : 'Snippet not found in current prose'">
-                  <Icon name="Pin" :size="12" /> Pin
+                          v-tooltip.bottom="t.locatable ? $t('foreshadowing.pinTooltip') : $t('foreshadowing.pinDisabledTooltip')">
+                  <Icon name="Pin" :size="12" /> {{ $t("foreshadowing.pin") }}
                 </UiButton>
                 <span v-else-if="pinStatus[t.id] === 'added'" class="fs-pinned">
-                  <Icon name="Check" :size="12" /> Pinned
+                  <Icon name="Check" :size="12" /> {{ $t("foreshadowing.pinned") }}
                 </span>
-                <span v-else class="fs-unavail">Not found</span>
+                <span v-else class="fs-unavail">{{ $t("foreshadowing.notFound") }}</span>
               </div>
             </li>
           </ul>
@@ -314,10 +313,10 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
     </template>
 
     <template #footer>
-      <span v-if="pinnedCount" class="t-muted">{{ pinnedCount }} pinned</span>
+      <span v-if="pinnedCount" class="t-muted">{{ $t("foreshadowing.pinnedCount", { n: pinnedCount }) }}</span>
       <span class="fs-foot-spacer" />
       <UiButton intent="ghost" @click="runScan">
-        <Icon name="Refresh" :size="12" /> Re-scan
+        <Icon name="Refresh" :size="12" /> {{ $t("foreshadowing.rescan") }}
       </UiButton>
       <UiButton intent="primary" @click="emit('close')">{{ $t("common.done") }}</UiButton>
     </template>
@@ -326,30 +325,27 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
   <!-- ── SCANNING PHASE ───────────────────────────────────────── -->
   <AppModal
     v-else
-    eyebrow="Foreshadowing scan"
-    title="Reading every chapter for unresolved setups"
+    :eyebrow="$t('foreshadowing.eyebrow')"
+    :title="$t('foreshadowing.runTitle')"
     :closable="!running"
     @close="emit('close')"
   >
     <template #header>
       <div class="fs-titleblock">
-        <div class="t-eyebrow">Foreshadowing scan</div>
-        <div class="modal-title">Reading every chapter for unresolved setups</div>
+        <div class="t-eyebrow">{{ $t("foreshadowing.eyebrow") }}</div>
+        <div class="modal-title">{{ $t("foreshadowing.runTitle") }}</div>
       </div>
       <!-- No Cancel here: the shared AiTaskStrip below renders THE Cancel (user,
            2026-07-17: "top cancel button redundant" — both were live at once). -->
       <div class="fs-header-actions">
-        <AiFeatureChip feature="foreshadowing" label="Foreshadowing" editable />
+        <AiFeatureChip feature="foreshadowing" :label="$t('foreshadowing.chipLabel')" editable />
       </div>
     </template>
 
-    <p class="fs-desc">
-      Reads every chapter and asks the model for narrative <strong>setups</strong> — promises,
-      objects, questions, abilities, secrets, threats, debts — that look like they need a later
-      payoff. After the scan, JustWrite checks whether each setup's key term reappears in any
-      later chapter; the ones that don't are flagged as <strong>dangling</strong>. You review
-      and pin what you want as Loose-thread markers.
-    </p>
+    <i18n-t keypath="foreshadowing.runDesc" tag="p" class="fs-desc" scope="global">
+      <template #setups><strong>{{ $t("foreshadowing.setupsTerm") }}</strong></template>
+      <template #dangling><strong>{{ $t("foreshadowing.danglingLower") }}</strong></template>
+    </i18n-t>
 
     <div v-if="error" class="fs-error">
       <Icon name="Alert" :size="13" /> {{ error }}
@@ -358,11 +354,10 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
     <div v-if="!running && !rows.length" class="fh-empty">
       <Icon name="Sparkle" :size="20" />
       <p class="fh-empty-text">
-        Scan every chapter for setups that may not have paid off.
-        Change the provider in the chip above first if you want.
+        {{ $t("foreshadowing.idleBlurb") }}
       </p>
       <UiButton intent="primary" @click="runScan">
-        <Icon name="Sparkle" :size="13" /> Scan for dangling threads
+        <Icon name="Sparkle" :size="13" /> {{ $t("foreshadowing.action") }}
       </UiButton>
     </div>
 
