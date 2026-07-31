@@ -279,26 +279,27 @@ function finishAfterSweep() {
 
   <div class="pane-card">
     <div class="scrollarea">
-      <p class="im-desc">
-        <strong>Import</strong> brings outside files into your project — <code>.docx</code>,
-        <code>.epub</code>, <code>.odt</code>, <code>.md</code>, <code>.txt</code>. Choose a mode
-        (add to your current draft, start a new book, or bring sections
-        in as notes), drop the file, review the parser's chapter split, confirm. Embedded images
-        are extracted automatically.
-      </p>
+      <i18n-t keypath="import.intro" tag="p" class="im-desc" scope="global">
+        <template #importTerm><strong>{{ $t("import.importTerm") }}</strong></template>
+        <template #docx><code>.docx</code></template>
+        <template #epub><code>.epub</code></template>
+        <template #odt><code>.odt</code></template>
+        <template #md><code>.md</code></template>
+        <template #txt><code>.txt</code></template>
+      </i18n-t>
 
       <!-- ── STEP 1: Intent + file picker ────────────────────────── -->
       <div v-if="step === 'intent'" class="wiz">
         <section class="wiz-section">
-          <h2 class="wiz-h">How will you use this file?</h2>
-          <div class="intent-grid" role="radiogroup" aria-label="Import intent">
+          <h2 class="wiz-h">{{ $t("import.intentHeading") }}</h2>
+          <div class="intent-grid" role="radiogroup" :aria-label="$t('import.intentGroup')">
             <label class="intent-card" :class="{ active: intent === 'edit' }"
               role="radio" :aria-checked="intent === 'edit'">
               <input type="radio" v-model="intent" value="edit" />
               <Icon name="Quote" :size="20" />
               <div class="intent-body">
-                <div class="intent-title">Add existing</div>
-                <div class="intent-sub">Append chapters to your <em>current</em> project for continued writing or revising.</div>
+                <div class="intent-title">{{ $t("import.addExisting") }}</div>
+                <i18n-t keypath="import.addExistingSub" tag="div" class="intent-sub" scope="global"><template #current><em>{{ $t("import.currentTerm") }}</em></template></i18n-t>
               </div>
             </label>
             <label class="intent-card" :class="{ active: intent === 'new' }"
@@ -306,8 +307,8 @@ function finishAfterSweep() {
               <input type="radio" v-model="intent" value="new" />
               <Icon name="Book" :size="20" />
               <div class="intent-body">
-                <div class="intent-title">Start a new book</div>
-                <div class="intent-sub">Create a fresh project from this file. Your current project stays untouched.</div>
+                <div class="intent-title">{{ $t("import.startNewBook") }}</div>
+                <div class="intent-sub">{{ $t("import.startNewBookSub") }}</div>
               </div>
             </label>
             <label class="intent-card" :class="{ active: intent === 'notes' }"
@@ -315,69 +316,69 @@ function finishAfterSweep() {
               <input type="radio" v-model="intent" value="notes" />
               <Icon name="Note" :size="20" />
               <div class="intent-body">
-                <div class="intent-title">Add notes</div>
-                <div class="intent-sub">Bring sections of this file in as notes on your <em>current</em> project. Each heading becomes one note; a flat file becomes one.</div>
+                <div class="intent-title">{{ $t("import.addNotes") }}</div>
+                <i18n-t keypath="import.addNotesSub" tag="div" class="intent-sub" scope="global"><template #current><em>{{ $t("import.currentTerm") }}</em></template></i18n-t>
               </div>
             </label>
           </div>
         </section>
 
         <section class="wiz-section" v-if="intent === 'new'">
-          <h2 class="wiz-h">New project details</h2>
+          <h2 class="wiz-h">{{ $t("import.newProjectHeading") }}</h2>
           <div class="opt-row">
-            <span class="opt-label">Title</span>
-            <UiInput class="part-input" v-model="newBookTitle" placeholder="Book title (defaults to file name)" />
+            <span class="opt-label">{{ $t("import.titleLabel") }}</span>
+            <UiInput class="part-input" v-model="newBookTitle" :placeholder="$t('import.titlePlaceholder')" />
           </div>
           <div class="opt-row">
-            <span class="opt-label">Author</span>
-            <UiInput class="part-input" v-model="newBookAuthor" placeholder="Author (optional)" />
+            <span class="opt-label">{{ $t("import.authorLabel") }}</span>
+            <UiInput class="part-input" v-model="newBookAuthor" :placeholder="$t('import.authorPlaceholder')" />
           </div>
           <div class="opt-row">
-            <UiCheckbox v-model="normalize">Clean up smart quotes, em-dashes, ellipses, whitespace</UiCheckbox>
+            <UiCheckbox v-model="normalize">{{ $t("import.normalizeLabel") }}</UiCheckbox>
           </div>
         </section>
 
         <section class="wiz-section" v-else-if="intent === 'edit'">
-          <h2 class="wiz-h">Where should the chapters land?</h2>
+          <h2 class="wiz-h">{{ $t("import.landingHeading") }}</h2>
           <div class="opt-row">
-            <span class="opt-label">Add to part</span>
+            <span class="opt-label">{{ $t("import.addToPart") }}</span>
             <UiSelect class="part-input"
               v-model="partChoice"
               :options="partOptions"
-              placeholder="Choose a part" />
+              :placeholder="$t('import.choosePart')" />
             <UiInput v-if="partChoice === NEW_PART"
               class="part-input"
               v-model="partTitle"
-              placeholder="Part title (defaults to file name)" />
+              :placeholder="$t('import.partTitlePlaceholder')" />
           </div>
           <div class="opt-row">
-            <UiCheckbox v-model="normalize">Clean up smart quotes, em-dashes, ellipses, whitespace</UiCheckbox>
+            <UiCheckbox v-model="normalize">{{ $t("import.normalizeLabel") }}</UiCheckbox>
           </div>
         </section>
 
         <section class="wiz-section" v-else-if="intent === 'notes'">
-          <h2 class="wiz-h">Notes options</h2>
+          <h2 class="wiz-h">{{ $t("import.notesOptionsHeading") }}</h2>
           <div class="opt-row">
-            <span class="opt-label">Tag</span>
-            <UiInput class="part-input" v-model="notesTag" placeholder="note" list="jw-notes-tag-list" />
+            <span class="opt-label">{{ $t("import.tagLabel") }}</span>
+            <UiInput class="part-input" v-model="notesTag" :placeholder="$t('import.tagPlaceholder')" list="jw-notes-tag-list" />
             <datalist id="jw-notes-tag-list">
               <option v-for="t in notesTagSuggestions" :key="t" :value="t" />
             </datalist>
           </div>
           <div class="opt-row">
-            <span class="opt-label">Pin to</span>
+            <span class="opt-label">{{ $t("import.pinToLabel") }}</span>
             <UiSelect class="part-input"
               v-model="notesAnchor"
               :options="notesAnchorOptions"
-              placeholder="Story-wide" />
+              :placeholder="$t('import.storyWide')" />
           </div>
           <div class="opt-row">
-            <UiCheckbox v-model="normalize">Clean up smart quotes, em-dashes, ellipses, whitespace</UiCheckbox>
+            <UiCheckbox v-model="normalize">{{ $t("import.normalizeLabel") }}</UiCheckbox>
           </div>
         </section>
 
         <section class="wiz-section">
-          <h2 class="wiz-h">Choose a file</h2>
+          <h2 class="wiz-h">{{ $t("import.chooseFileHeading") }}</h2>
           <label class="dropzone"
             @dragover.prevent @drop="onDrop">
             <input ref="fileRef" type="file"
@@ -386,15 +387,17 @@ function finishAfterSweep() {
               style="display:none"
               @change="onPickFile" />
             <Icon name="Plus" :size="22" />
-            <div class="dz-title">Drop {{ intent === "notes" ? "files" : "a file" }} here, or click to choose</div>
+            <div class="dz-title">{{ intent === "notes" ? $t("import.dropFiles") : $t("import.dropFile") }}</div>
             <div class="dz-sub">
-              Supports <code>.docx</code> · <code>.epub</code> · <code>.odt</code> · <code>.txt</code> · <code>.md</code>
-              <span v-if="intent === 'notes'"> — drop multiple files to import them in one batch</span>
+              <i18n-t keypath="import.supports" tag="span" scope="global">
+                <template #formats><code>.docx</code> · <code>.epub</code> · <code>.odt</code> · <code>.txt</code> · <code>.md</code></template>
+              </i18n-t>
+              <span v-if="intent === 'notes'">{{ $t("import.supportsBatch") }}</span>
             </div>
           </label>
 
           <div v-if="parsing" class="wiz-status">
-            <Icon name="Refresh" :size="14" /> Parsing {{ fileName }}…
+            <Icon name="Refresh" :size="14" /> {{ $t("import.parsing", { file: fileName }) }}
           </div>
           <div v-if="parseError" class="wiz-error">
             <Icon name="Alert" :size="14" /> {{ parseError }}
@@ -413,23 +416,23 @@ function finishAfterSweep() {
               </div>
               <div class="ps-stat">
                 <div class="ps-num">{{ totalWords.toLocaleString() }}</div>
-                <div class="ps-lbl">words</div>
+                <div class="ps-lbl">{{ $t("import.statWords") }}</div>
               </div>
               <div class="ps-stat">
                 <div class="ps-num">{{ fileName }}</div>
-                <div class="ps-lbl">source</div>
+                <div class="ps-lbl">{{ $t("import.statSource") }}</div>
               </div>
             </div>
             <UiButton intent="ghost" size="small" @click="restart">
               <Icon name="ChevRight" :size="11" style="transform:rotate(180deg)" />
-              Choose a different file
+              {{ $t("import.chooseDifferent") }}
             </UiButton>
           </div>
 
           <div v-if="warnings.length" class="wiz-warnings">
             <Icon name="Alert" :size="13" />
             <div>
-              <div style="font-weight:600">Notes from the parser</div>
+              <div style="font-weight:600">{{ $t("import.parserNotes") }}</div>
               <ul>
                 <li v-for="(w, i) in warnings" :key="i">{{ w }}</li>
               </ul>
@@ -438,42 +441,42 @@ function finishAfterSweep() {
         </section>
 
         <section class="wiz-section">
-          <h2 class="wiz-h">Detected {{ itemLabelPlural }}</h2>
+          <h2 class="wiz-h">{{ $t("import.detectedHeading", { items: itemLabelPlural }) }}</h2>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 12px">
-            Edit titles, or drop {{ itemLabelPlural }} you don't want.
+            {{ $t("import.editTitles", { items: itemLabelPlural }) }}
           </p>
           <ol class="ch-list">
             <li v-for="(c, i) in chapters" :key="i" class="ch-row" :class="{ dropped: c.drop }">
               <span class="ch-num">{{ i + 1 }}</span>
-              <UiInput class="ch-title" v-model="c.title" :placeholder="`Untitled ${itemLabel}`" :disabled="c.drop" />
-              <span class="ch-words">{{ wordCount(c.html).toLocaleString() }} w</span>
+              <UiInput class="ch-title" v-model="c.title" :placeholder="$t('import.untitledItem', { item: itemLabel })" :disabled="c.drop" />
+              <span class="ch-words">{{ $t("import.wordsShort", { n: wordCount(c.html).toLocaleString() }) }}</span>
               <UiButton intent="ghost" size="small" class="ch-drop"
                 @click="dropChapter(i)"
-                v-tooltip.bottom="c.drop ? `Keep this ${itemLabel}` : `Drop this ${itemLabel}`">
+                v-tooltip.bottom="c.drop ? $t('import.keepItem', { item: itemLabel }) : $t('import.dropItem', { item: itemLabel })">
                 <Icon :name="c.drop ? 'Plus' : 'Trash'" :size="12" />
-                {{ c.drop ? "Keep" : "Drop" }}
+                {{ c.drop ? $t("import.keep") : $t("import.drop") }}
               </UiButton>
               <div class="ch-preview" v-if="!c.drop">{{ preview(c.html) }}</div>
-              <div class="ch-preview ch-dropped-msg" v-else>Will not be imported.</div>
+              <div class="ch-preview ch-dropped-msg" v-else>{{ $t("import.willNotImport") }}</div>
             </li>
           </ol>
         </section>
 
         <section class="wiz-section" v-if="intent !== 'notes'">
-          <h2 class="wiz-h">After import</h2>
-          <UiCheckbox v-model="scanAfterImport">Scan the imported chapters for new characters, locations, and objects</UiCheckbox>
+          <h2 class="wiz-h">{{ $t("import.afterImportHeading") }}</h2>
+          <UiCheckbox v-model="scanAfterImport">{{ $t("import.scanAfterLabel") }}</UiCheckbox>
           <span class="t-muted opt-hint" v-if="scanAfterImport">
-            Slower for long books — runs one LLM call per chapter. You'll review every proposal before anything is added.
+            {{ $t("import.scanAfterHint") }}
           </span>
         </section>
 
         <section class="wiz-section wiz-actions">
-          <UiButton intent="ghost" @click="restart">Start over</UiButton>
+          <UiButton intent="ghost" @click="restart">{{ $t("import.startOver") }}</UiButton>
           <UiButton intent="primary" :disabled="!validChapters.length" @click="ingest">
             <Icon name="Check" :size="13" />
-            {{ intent === "new" ? "Create book"
-              : intent === "notes" ? "Import notes"
-              : "Import chapters" }}
+            {{ intent === "new" ? $t("import.createBook")
+              : intent === "notes" ? $t("import.importNotes")
+              : $t("import.importChapters") }}
           </UiButton>
         </section>
       </div>
