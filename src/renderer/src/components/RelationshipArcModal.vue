@@ -183,41 +183,40 @@ const TRAJECTORY_COLOURS = {
 
 <template>
   <AppModal
-    eyebrow="Relationship arc"
-    title="How does this relationship move?"
+    :eyebrow="$t('relationshipArc.eyebrow')"
+    :title="$t('relationshipArc.title')"
     wide
     :closable="!running"
     @close="emit('close')"
   >
     <template #header>
       <div class="ra-titleblock">
-        <div class="t-eyebrow">Relationship arc</div>
-        <h2 class="modal-title">How does this relationship move?</h2>
+        <div class="t-eyebrow">{{ $t("relationshipArc.eyebrow") }}</div>
+        <h2 class="modal-title">{{ $t("relationshipArc.title") }}</h2>
       </div>
       <div class="ra-header-actions">
-        <AiFeatureChip feature="relationshipArc" label="Relationship" editable />
+        <AiFeatureChip feature="relationshipArc" :label="$t('relationshipArc.chipLabel')" editable />
       </div>
     </template>
 
-    <p class="ra-blurb">
-      Pick two characters who share scenes. JustWrite reads every chapter they appear in together
-      and produces a chapter-by-chapter arc — <strong>warmth</strong> (cold to warm),
-      <strong>tension</strong> (calm to taut), and <strong>power balance</strong> (who's setting
-      the terms). Best for character-driven fiction where the relationship itself is plot.
-    </p>
+    <i18n-t keypath="relationshipArc.blurb" tag="p" class="ra-blurb" scope="global">
+      <template #warmth><strong>{{ $t("relationshipArc.warmthTerm") }}</strong></template>
+      <template #tension><strong>{{ $t("relationshipArc.tensionTerm") }}</strong></template>
+      <template #power><strong>{{ $t("relationshipArc.powerTerm") }}</strong></template>
+    </i18n-t>
 
     <div class="ra-pickers">
       <div class="ra-picker">
-        <label>Character A</label>
-        <UiSelect v-model="aId" :options="characterOptions" placeholder="Pick a character" />
+        <label>{{ $t("relationshipArc.characterA") }}</label>
+        <UiSelect v-model="aId" :options="characterOptions" :placeholder="$t('relationshipArc.pickCharacter')" />
       </div>
       <UiButton intent="ghost" size="small" class="ra-swap" @click="swap"
-                v-tooltip.bottom="'Swap A and B'">
+                v-tooltip.bottom="$t('relationshipArc.swapTooltip')">
         <Icon name="Refresh" :size="12" />
       </UiButton>
       <div class="ra-picker">
-        <label>Character B</label>
-        <UiSelect v-model="bId" :options="characterOptions" placeholder="Pick a character" />
+        <label>{{ $t("relationshipArc.characterB") }}</label>
+        <UiSelect v-model="bId" :options="characterOptions" :placeholder="$t('relationshipArc.pickCharacter')" />
       </div>
     </div>
 
@@ -233,7 +232,7 @@ const TRAJECTORY_COLOURS = {
           {{ TRAJECTORY_LABELS[arc.trajectory] || arc.trajectory }}
         </span>
         <span class="ra-meta">
-          {{ arc.chapters.length }} shared chapter{{ arc.chapters.length === 1 ? "" : "s" }} · {{ arc.sharedScenes }} shared scene{{ arc.sharedScenes === 1 ? "" : "s" }} · generated {{ ago(arc.generatedAt) }}
+          {{ $t("relationshipArc.meta", { chapters: $t("count.sharedChapter", { n: arc.chapters.length }, arc.chapters.length), scenes: $t("count.sharedScene", { n: arc.sharedScenes }, arc.sharedScenes), when: ago(arc.generatedAt) }) }}
         </span>
       </div>
 
@@ -242,25 +241,25 @@ const TRAJECTORY_COLOURS = {
       <!-- Standing dynamic, per character (WS5). AI-drafted, hand-editable. -->
       <section v-if="dynamicCards.length" class="ra-section">
         <div class="ra-section-h">
-          <span>Dynamics</span>
+          <span>{{ $t("relationshipArc.dynamics") }}</span>
           <span class="ra-spacer" />
-          <span class="ra-strip-key">How each stands toward the other — edit freely</span>
+          <span class="ra-strip-key">{{ $t("relationshipArc.dynamicsHint") }}</span>
         </div>
         <div class="ra-dyn-grid">
           <div v-for="card in dynamicCards" :key="card.id" class="ra-dyn-card">
             <div class="ra-dyn-name">{{ card.name }}</div>
             <div class="ra-dyn-field">
-              <span class="t-muted">Wants from {{ card.other }}</span>
+              <span class="t-muted">{{ $t("relationshipArc.wantsFrom", { other: card.other }) }}</span>
               <UiTextarea auto-resize :rows="2" :model-value="sideFor(card.id).wants || ''"
                 @update:model-value="updateSide(card.id, 'wants', $event)" />
             </div>
             <div class="ra-dyn-field">
-              <span class="t-muted">Fears from {{ card.other }}</span>
+              <span class="t-muted">{{ $t("relationshipArc.fearsFrom", { other: card.other }) }}</span>
               <UiTextarea auto-resize :rows="2" :model-value="sideFor(card.id).fears || ''"
                 @update:model-value="updateSide(card.id, 'fears', $event)" />
             </div>
             <div class="ra-dyn-field">
-              <span class="t-muted">Speaks to {{ card.other }} like…</span>
+              <span class="t-muted">{{ $t("relationshipArc.speaksTo", { other: card.other }) }}</span>
               <UiInput :model-value="sideFor(card.id).speaksLike || ''"
                 @update:model-value="updateSide(card.id, 'speaksLike', $event)" />
             </div>
@@ -271,11 +270,11 @@ const TRAJECTORY_COLOURS = {
       <!-- Chart -->
       <section v-if="lineGeom" class="ra-section">
         <div class="ra-section-h">
-          <span>Warmth + tension over time</span>
+          <span>{{ $t("relationshipArc.chartHeading") }}</span>
           <span class="ra-spacer" />
           <span class="ra-legend">
-            <span class="ra-legend-item"><span class="ra-legend-line warmth" /> Warmth</span>
-            <span class="ra-legend-item"><span class="ra-legend-line tension" /> Tension</span>
+            <span class="ra-legend-item"><span class="ra-legend-line warmth" /> {{ $t("relationshipArc.legendWarmth") }}</span>
+            <span class="ra-legend-item"><span class="ra-legend-line tension" /> {{ $t("relationshipArc.legendTension") }}</span>
           </span>
         </div>
         <svg class="ra-chart" :viewBox="`0 0 ${lineGeom.W} ${lineGeom.H}`" preserveAspectRatio="none">
@@ -296,13 +295,13 @@ const TRAJECTORY_COLOURS = {
       <!-- Per-chapter strip with three rows: warmth / tension / power -->
       <section class="ra-section">
         <div class="ra-section-h">
-          <span>Chapter strip</span>
+          <span>{{ $t("relationshipArc.stripHeading") }}</span>
           <span class="ra-spacer" />
-          <span class="ra-strip-key">Click any cell for the moment</span>
+          <span class="ra-strip-key">{{ $t("relationshipArc.stripHint") }}</span>
         </div>
         <div class="ra-strip-rows">
           <div class="ra-strip-row">
-            <div class="ra-strip-label">Warmth</div>
+            <div class="ra-strip-label">{{ $t("relationshipArc.rowWarmth") }}</div>
             <div class="ra-strip-cells">
               <button v-for="r in arc.chapters" :key="`w-${r.chapterNum}`" type="button"
                       class="ra-cell"
@@ -315,7 +314,7 @@ const TRAJECTORY_COLOURS = {
             </div>
           </div>
           <div class="ra-strip-row">
-            <div class="ra-strip-label">Tension</div>
+            <div class="ra-strip-label">{{ $t("relationshipArc.rowTension") }}</div>
             <div class="ra-strip-cells">
               <button v-for="r in arc.chapters" :key="`t-${r.chapterNum}`" type="button"
                       class="ra-cell"
@@ -328,7 +327,7 @@ const TRAJECTORY_COLOURS = {
             </div>
           </div>
           <div class="ra-strip-row">
-            <div class="ra-strip-label">Power</div>
+            <div class="ra-strip-label">{{ $t("relationshipArc.rowPower") }}</div>
             <div class="ra-strip-cells">
               <button v-for="r in arc.chapters" :key="`p-${r.chapterNum}`" type="button"
                       class="ra-cell"
@@ -347,11 +346,11 @@ const TRAJECTORY_COLOURS = {
       <section v-if="selectedChapter" class="ra-section ra-detail">
         <div class="ra-detail-h">
           <button class="ra-detail-jump" @click="jumpToChapter(selectedChapter.chapterNum)"
-                  v-tooltip.bottom="'Open this chapter'">
-            Ch. {{ selectedChapter.chapterNum }}
+                  v-tooltip.bottom="$t('common.openThisChapter')">
+            {{ $t("common.chapterShort", { num: selectedChapter.chapterNum }) }}
           </button>
           <span class="ra-detail-vals">
-            warmth {{ selectedChapter.warmth }}/10 · tension {{ selectedChapter.tension }}/10 · power: {{ powerLabel(selectedChapter.power, arc.characterAName, arc.characterBName) }}
+            {{ $t("relationshipArc.detailVals", { warmth: selectedChapter.warmth, tension: selectedChapter.tension, power: powerLabel(selectedChapter.power, arc.characterAName, arc.characterBName) }) }}
           </span>
         </div>
         <p v-if="selectedChapter.moment" class="ra-detail-moment">{{ selectedChapter.moment }}</p>
@@ -360,14 +359,14 @@ const TRAJECTORY_COLOURS = {
 
     <template #footer>
       <UiButton v-if="arc && !running" intent="ghost" @click="clearCurrent">
-        Clear this arc
+        {{ $t("relationshipArc.clearThisArc") }}
       </UiButton>
       <span class="ra-foot-spacer" />
       <UiButton v-if="arc && !running" intent="ghost" @click="regenerate">
         <Icon name="Refresh" :size="12" /> {{ $t("common.regenerate") }}
       </UiButton>
       <UiButton v-if="!arc && !running" intent="primary" @click="run">
-        <Icon name="Sparkle" :size="12" /> Analyse
+        <Icon name="Sparkle" :size="12" /> {{ $t("relationshipArc.analyse") }}
       </UiButton>
       <UiButton intent="primary" v-if="arc" @click="emit('close')">{{ $t("common.done") }}</UiButton>
     </template>
