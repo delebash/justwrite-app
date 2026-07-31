@@ -180,38 +180,37 @@ function jumpToChapter(chapterId) {
 <template>
   <div class="rk-pane scrollarea">
     <header class="pane-header">
-      <HelpTrigger slug="reader-knowledge" label="Reader knowledge" class="pane-help-abs" />
+      <HelpTrigger slug="reader-knowledge" :label="$t('readerKnowledge.title')" class="pane-help-abs" />
       <div class="pane-title">
-        <h1 class="pane-h1">Reader knowledge</h1>
+        <h1 class="pane-h1">{{ $t("readerKnowledge.title") }}</h1>
         <p class="pane-sub">
-          Where the reader is ahead of, behind, or aligned with the POV character — chapter by chapter.
-          Best for mystery, thriller, suspense, and unreliable-narrator fiction.
+          {{ $t("readerKnowledge.sub") }}
         </p>
       </div>
       <div class="pane-actions">
-        <AiFeatureChip feature="readerKnowledge" label="Reader knowledge" editable />
-        <span v-if="lastRunAt && !running" class="rk-stamp">Last run {{ ago(lastRunAt) }}</span>
+        <AiFeatureChip feature="readerKnowledge" :label="$t('readerKnowledge.title')" editable />
+        <span v-if="lastRunAt && !running" class="rk-stamp">{{ $t("readerKnowledge.lastRun", { when: ago(lastRunAt) }) }}</span>
         <UiButton v-if="hasAny && !running" intent="ghost" @click="clearAll"
-                  v-tooltip.bottom="'Discard the saved analysis'">
-          Clear
+                  v-tooltip.bottom="$t('readerKnowledge.clearTooltip')">
+          {{ $t("common.clear") }}
         </UiButton>
         <!-- QC-31: no view-local Cancel — the progress strip below (and the
              AI-tasks panel) own cancel, and one Cancel stops the WHOLE sweep. -->
         <UiButton v-if="!running" intent="primary" @click="runScan"
-          v-tooltip.bottom="'Classify each chapter by dramatic irony — one LLM call per chapter'">
+          v-tooltip.bottom="$t('readerKnowledge.analyseTooltip')">
           <Icon name="Sparkle" :size="13" />
-          {{ hasAny ? "Re-analyse" : "Analyse manuscript" }}
+          {{ hasAny ? $t("readerKnowledge.reanalyse") : $t("readerKnowledge.analyse") }}
         </UiButton>
       </div>
     </header>
 
-    <p class="rk-desc">
-      <strong>Reader knowledge</strong> is a chapter-by-chapter map of what your reader knows
-      vs. what your POV character knows — the dramatic-irony view. Each chapter is classified as
-      <strong>aligned</strong>, <strong>dramatic irony</strong>, <strong>reader confused</strong>,
-      or <strong>neutral</strong>, and you can see the gap grow or close across the manuscript.
-      Most useful for mystery, thriller, and suspense writers tracking a deliberate reveal.
-    </p>
+    <i18n-t keypath="readerKnowledge.intro" tag="p" class="rk-desc" scope="global">
+      <template #readerKnowledge><strong>{{ $t("readerKnowledge.title") }}</strong></template>
+      <template #aligned><strong>{{ $t("readerKnowledge.alignedTerm") }}</strong></template>
+      <template #irony><strong>{{ $t("readerKnowledge.ironyTerm") }}</strong></template>
+      <template #confused><strong>{{ $t("readerKnowledge.confusedTerm") }}</strong></template>
+      <template #neutral><strong>{{ $t("readerKnowledge.neutralTerm") }}</strong></template>
+    </i18n-t>
 
     <div v-if="error" class="rk-error">
       <Icon name="Alert" :size="13" /> {{ error }}
@@ -223,8 +222,8 @@ function jumpToChapter(chapterId) {
     <div v-if="!hasAny && !running" class="rk-empty">
       <EmptyState
         icon="Eye"
-        title="No analysis yet"
-        message="Click Analyse manuscript to map the gap between reader and POV knowledge, chapter by chapter. The coloured chapter strip and growth chart let you see where dramatic irony builds and resolves across the whole manuscript." />
+        :title="$t('readerKnowledge.emptyTitle')"
+        :message="$t('readerKnowledge.emptyMessage')" />
     </div>
 
     <template v-else>
@@ -246,12 +245,12 @@ function jumpToChapter(chapterId) {
           <span class="rk-stat-dot" :style="{ background: STATUS_COLOURS.neutral }" />
           {{ counts.neutral }} {{ STATUS_LABELS.neutral }}
         </span>
-        <span class="rk-stat-chip muted">{{ analysedCount }} of {{ totalCount }} chapters analysed</span>
+        <span class="rk-stat-chip muted">{{ $t("readerKnowledge.chaptersAnalysed", { analysed: analysedCount, total: totalCount }) }}</span>
       </div>
 
       <!-- Chapter strip — one cell per chapter, coloured by status. -->
       <section class="rk-card">
-        <div class="rk-card-h">Chapter map</div>
+        <div class="rk-card-h">{{ $t("readerKnowledge.chapterMap") }}</div>
         <div class="rk-strip">
           <button v-for="e in entries" :key="e.chapter.id"
                   type="button"
@@ -267,17 +266,17 @@ function jumpToChapter(chapterId) {
             <span class="rk-cell-num">{{ e.chapter.num }}</span>
           </button>
         </div>
-        <p class="rk-strip-hint">Click any analysed cell to see the chapter's reading.</p>
+        <p class="rk-strip-hint">{{ $t("readerKnowledge.stripHint") }}</p>
       </section>
 
       <!-- Knowledge growth chart -->
       <section v-if="chartGeom" class="rk-card">
         <div class="rk-card-h">
-          Knowledge growth
+          {{ $t("readerKnowledge.knowledgeGrowth") }}
           <span class="rk-card-h-spacer" />
           <span class="rk-legend">
-            <span class="rk-legend-item"><span class="rk-legend-line reader" /> Reader</span>
-            <span class="rk-legend-item"><span class="rk-legend-line pov" /> POV</span>
+            <span class="rk-legend-item"><span class="rk-legend-line reader" /> {{ $t("readerKnowledge.legendReader") }}</span>
+            <span class="rk-legend-item"><span class="rk-legend-line pov" /> {{ $t("readerKnowledge.legendPov") }}</span>
           </span>
         </div>
         <svg class="rk-chart" :viewBox="`0 0 ${chartGeom.w} ${chartGeom.h}`" preserveAspectRatio="none">
@@ -287,8 +286,7 @@ function jumpToChapter(chapterId) {
                     stroke="var(--gold)" stroke-width="1.6" stroke-dasharray="2 2" vector-effect="non-scaling-stroke" />
         </svg>
         <p class="rk-chart-hint">
-          The gap between the reader line and the POV line is the size of the dramatic-irony reservoir.
-          A widening gap creates suspense; a narrowing one resolves it.
+          {{ $t("readerKnowledge.chartHint") }}
         </p>
       </section>
 
@@ -296,8 +294,8 @@ function jumpToChapter(chapterId) {
       <section v-if="selected?.rk" class="rk-card rk-detail">
         <div class="rk-card-h">
           <button class="rk-detail-jump" @click="jumpToChapter(selected.chapter.id)"
-                  v-tooltip.bottom="'Open chapter in editor'">
-            Ch. {{ selected.chapter.num }} — {{ selected.chapter.title || "Untitled" }}
+                  v-tooltip.bottom="$t('readerKnowledge.openChapterTooltip')">
+            {{ $t("readerKnowledge.detailTitle", { num: selected.chapter.num, title: selected.chapter.title || $t("readerKnowledge.untitled") }) }}
           </button>
           <span class="rk-card-h-spacer" />
           <span class="rk-status-chip" :style="{ background: STATUS_COLOURS[selected.rk.status] }">
@@ -306,26 +304,26 @@ function jumpToChapter(chapterId) {
         </div>
         <p v-if="selected.rk.rationale" class="rk-rationale">{{ selected.rk.rationale }}</p>
         <div class="rk-meta">
-          <span v-if="selected.rk.povCharacter"><span class="k">POV</span> {{ selected.rk.povCharacter }}</span>
-          <span><span class="k">Reader knows</span> {{ selected.rk.totalReaderKnown }} facts</span>
-          <span><span class="k">POV knows</span> {{ selected.rk.totalPovKnown }} facts</span>
-          <span><span class="k">Active irony</span> {{ selected.rk.activeIronyCount }} facts</span>
+          <span v-if="selected.rk.povCharacter"><span class="k">{{ $t("readerKnowledge.povLabel") }}</span> {{ selected.rk.povCharacter }}</span>
+          <span><span class="k">{{ $t("readerKnowledge.readerKnows") }}</span> {{ $t("readerKnowledge.factsCount", { n: selected.rk.totalReaderKnown }) }}</span>
+          <span><span class="k">{{ $t("readerKnowledge.povKnows") }}</span> {{ $t("readerKnowledge.factsCount", { n: selected.rk.totalPovKnown }) }}</span>
+          <span><span class="k">{{ $t("readerKnowledge.activeIrony") }}</span> {{ $t("readerKnowledge.factsCount", { n: selected.rk.activeIronyCount }) }}</span>
         </div>
 
         <div class="rk-facts-grid">
           <div class="rk-facts">
-            <h4>New for the reader</h4>
+            <h4>{{ $t("readerKnowledge.newForReader") }}</h4>
             <ul v-if="selected.rk.newReaderFacts?.length">
               <li v-for="f in selected.rk.newReaderFacts" :key="f">{{ f }}</li>
             </ul>
-            <p v-else class="rk-facts-empty">No new facts this chapter.</p>
+            <p v-else class="rk-facts-empty">{{ $t("readerKnowledge.noNewFacts") }}</p>
           </div>
           <div class="rk-facts">
-            <h4>New for the POV character</h4>
+            <h4>{{ $t("readerKnowledge.newForPov") }}</h4>
             <ul v-if="selected.rk.newPovFacts?.length">
               <li v-for="f in selected.rk.newPovFacts" :key="f">{{ f }}</li>
             </ul>
-            <p v-else class="rk-facts-empty">No new facts this chapter.</p>
+            <p v-else class="rk-facts-empty">{{ $t("readerKnowledge.noNewFacts") }}</p>
           </div>
         </div>
       </section>
