@@ -16,6 +16,24 @@ through).
 
 ## AI / authoring
 
+### Quantized KV cache — a context lever we haven't needed yet (2026-07-30)
+
+**The itch:** an 8 GB-VRAM coding roundup (ai.plainenglish.io, "Best local LLM for 8GB
+VRAM", 2026-07) runs Qwen3.6-35B-A3B at a 65k context on a GTX 1070 by quantizing the
+KV cache to q4_0 (`--cache-type-k/v q4_0`). We've never needed it — Gemma's iSWA keeps
+the KV small at JW's actual context sizes (writer 8k, book chat 32k; no OOM measured at
+28k on the 2070S) — but it's the first lever to reach for if book-chat context ever
+needs to grow past 32k on the small classes.
+
+**The shape:** nothing to build — Tune & measure already accepts the cache-type rows
+(f32…q4_0 are listed in its hover help). The work is an on-box A/B: measure the
+VRAM/context headroom it buys vs. what it costs in speed, and **read prose side by
+side** — quantized KV can degrade quality, and that matters more for prose than for the
+code workloads the roundup tested. Never a silent default; at most a documented switch
+in a PC class config.
+
+**Trigger:** a real feature wanting >32k book-chat context on the 8/12 GB classes.
+
 ### The writer's-editor gap table — 5 ranked candidates, executor plan written (2026-07-26)
 
 **The itch:** finish the editor to Word/Scrivener parity where it actually matters for

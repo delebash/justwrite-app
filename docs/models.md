@@ -433,3 +433,51 @@ one empty and that side embeds raw. If you edit a template after building an ind
 > naming the preset and how many features share it. (The old per-surface
 > provider/model dropdowns are gone; they edited a side channel that the preset
 > overrode anyway.)
+
+## How the recommendations were chosen
+
+The curated list and the **Recommended for this PC** badge don't come from leaderboards.
+Every default was **measured in the app** — the same chat-with-your-book, in-character
+chat, entity extraction, critique, continue-writing and rewrite features you use, run
+end-to-end on real book material — on a reference machine for the class (an 8 GB
+RTX 2070 SUPER with 32 GB RAM), with a portable speed kit re-run on other hardware.
+Speed is measured; quality is judged by reading the outputs side by side.
+
+The headline decision (July 2026): **Gemma 4 26B-A4B (QAT) against Qwen3.6-35B-A3B**,
+the two flagship-class MoE models that run on an 8 GB card by offloading their experts
+to system RAM. Both were loaded exactly as the app loads them, speculative decoding on.
+Gemma generated at 25–29 tokens/s against Qwen's 14–24, and finished every writing
+feature faster — most of them in about half the time:
+
+| Feature (median, whole run) | Gemma 4 26B-A4B | Qwen3.6-35B-A3B |
+|---|---:|---:|
+| Chat with the book | 13s | 23s |
+| Entity extraction sweep | 39s | 101s |
+| Critique | 17s | 35s |
+| Continue writing | 11s | 19s |
+
+So the 35B left the catalog: a bigger model that's slower at everything it does here
+isn't a better model. The Qwen family stays for bigger cards through the
+**Qwen3.6-27B** row.
+
+You may read the opposite online — 8 GB roundups that crown the Qwen 35B. Look at what
+they test: **coding**. Qwen's strengths lean code and agentic work; Gemma's lean prose.
+Both results can be true at once, and this catalog is tuned for writing. The
+long-context slowdowns some reviews report for Gemma also start well beyond the context
+sizes JustWrite's features actually use — Gemma's sliding-window attention keeps its
+memory small exactly in that working range.
+
+The other picks came the same way:
+
+- **Per PC class:** a 12 GB card gets **Gemma 4 12B (QAT)** fully resident; 16 GB VRAM
+  with 32 GB of RAM or more — and everything above — gets the **26B-A4B** flagship. A
+  16 GB card in a 16 GB-RAM box also gets the 12B: the flagship wants about 24 GB of
+  system RAM for its offloaded experts.
+- **A dense model that only fits by spilling onto the CPU loses:** a dense Gemma 4 31B
+  managed about **1 token/s** on the reference card. That measurement is why Quick Setup
+  skips that shape entirely rather than "recommending" the biggest number that loads.
+- **Embeddings:** **Qwen3-4B** won an on-box A/B against the smaller 0.6B and is the
+  default; **Qwen3-8B** is the proven step up for bigger machines; KaLM-Gemma3-12B is
+  listed for big cards as a contender you can choose, not a recommendation.
+- **The style-tune and uncensored rows** were measured too (close to the flagship's
+  speed, same base family) — they stay deliberate choices, never auto-picked.

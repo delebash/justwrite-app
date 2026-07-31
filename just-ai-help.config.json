@@ -1,0 +1,50 @@
+{
+  "_why": "The just-ai-help config for THIS catalogue, committed. Two full 846/867-key runs in July 2026 were unreproducible because the config that drove them was never kept — the output survived in .evidence/ and nobody could say what glossary or context produced it. Run it from this directory: `node ../just-ai-help/src/translate.js just-ai-help.config.json`.",
+
+  "localesDir": "src/renderer/src/i18n/locales",
+  "sourceLanguage": "en",
+  "targets": ["es"],
+
+  "placeholder": { "prefix": "{", "suffix": "}" },
+  "pluralSeparator": "|",
+
+  "context": "JustWrite, a desktop app for writing novels — chapters, scenes, a story bible of characters, locations, objects and narrative strands, and AI writing tools",
+
+  "glossary": {
+    "_why": "Brand names AND technical identifiers. Both are shielded from the model during translation, and both stop `untranslated` flagging a string that correctly came back unchanged. Measured 2026-07-30 on the 867-key run: adding the technical rows took that check from 11 findings to 7 with no code change. Anything left after this is a genuine judgement call — see es.accepted.json.",
+    "doNotTranslate": [
+      "JustWrite",
+      "Strands",
+      "Tauri",
+      "Vue",
+      "Pinia",
+      "Ollama",
+      "OpenAI",
+      "Anthropic",
+      "OpenRouter",
+      "DeepSeek",
+      "LM Studio",
+      "llama.cpp",
+      "vLLM",
+      "llama3.1:8b",
+      "gpt-4o-mini",
+      "tokens",
+      "token",
+      "EPUB",
+      "DOCX",
+      "PDF",
+      "JSON",
+      "Markdown",
+      "Calibre",
+      "Kobo",
+      "Apple Books",
+      "Save the Cat"
+    ]
+  },
+
+  "engine": "ollama",
+
+  "suspects": { "topN": 30 },
+
+  "_notes": "engine `ollama` is the shipped default — the Gemma-4 26B-A4B QAT MoE, which carries think:false in its engine row because it is a thinking model. Switch to `ollama-gemma3` if 15 GB will not fit. A full pass over this catalogue took 21.7 min for BOTH passes of --probe at 867 keys; the catalogue is now 1,965 keys, so budget accordingly."
+}
