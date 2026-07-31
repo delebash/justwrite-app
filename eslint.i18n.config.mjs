@@ -7,8 +7,10 @@
 //
 //   npm run i18n:lint
 //
-// `no-raw-text` is "warn" during the sweep; it flips to "error" once every
-// view is converted, at which point it becomes a real gate.
+// `no-raw-text` was "warn" during the sweep. The sweep finished 2026-07-30 at
+// zero warnings across all 81 renderer .vue files, so it is now "error" — the
+// real gate it was always meant to become. A new hardcoded string fails the
+// build's lint step rather than adding to a backlog nobody reads.
 
 import vueI18n from "@intlify/eslint-plugin-vue-i18n";
 import vueParser from "vue-eslint-parser";
@@ -29,7 +31,7 @@ export default [
     },
     rules: {
       "@intlify/vue-i18n/no-raw-text": [
-        "warn",
+        "error",
         {
           attributes: {
             "/.+/": ["placeholder", "title", "label", "aria-label", "alt"],

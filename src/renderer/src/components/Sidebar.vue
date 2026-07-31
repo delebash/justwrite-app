@@ -808,6 +808,22 @@ function wbDropClass(kind, id) {
   if (!wbDrop.value || wbDrop.value.kind !== kind || wbDrop.value.id !== id) return null;
   return `drop-${wbDrop.value.position}`;
 }
+
+// Avatar initials, derived rather than hardcoded. Both avatars (expanded footer
+// and collapsed rail) previously read a literal "MH" while sitting directly
+// beside project.project.author — a stub from the mockup that survived into the
+// app. Falls back to the project title so a project without an author still
+// shows something, and to empty rather than inventing a placeholder.
+const authorInitials = computed(() => {
+  const source = (project.project.author || project.project.title || "").trim();
+  if (!source) return "";
+  return source
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => [...word][0] || "")
+    .join("")
+    .toUpperCase();
+});
 </script>
 
 <template>
@@ -1097,7 +1113,7 @@ function wbDropClass(kind, id) {
       </template>
     </nav>
     <div class="sidebar-footer">
-      <div class="avatar">MH</div>
+      <div class="avatar">{{ authorInitials }}</div>
       <div class="meta">
         <b>{{ project.project.author || $t('sidebar.footer.untitledAuthor') }}</b>
         <span v-tooltip.bottom="savedAtTitle">{{ $t('sidebar.footer.autosaved') }} · {{ savedAtLabel }}</span>
@@ -1119,7 +1135,7 @@ function wbDropClass(kind, id) {
         :class="{ 'rail-dot-error': aiTasks.unseenErrors }" />
     </button>
     <div style="flex:1" />
-    <div class="rail-avatar">MH</div>
+    <div class="rail-avatar">{{ authorInitials }}</div>
   </aside>
 </template>
 
