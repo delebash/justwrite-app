@@ -254,32 +254,30 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 <template>
   <header class="pane-header home-pane-header">
     <div class="pane-title">
-      <span class="pane-eyebrow">Manuscript</span>
+      <span class="pane-eyebrow">{{ $t("home.eyebrow") }}</span>
       <input class="home-title"
         :value="P.title"
-        placeholder="Untitled manuscript"
+        :placeholder="$t('home.titlePlaceholder')"
         @input="project.updateProjectMeta({ title: $event.target.value })" />
     </div>
     <div class="pane-actions">
       <router-link to="/import" custom v-slot="{ navigate }">
-        <UiButton intent="ghost" @click="navigate"><Icon name="Plus" :size="14" /> Import manuscript</UiButton>
+        <UiButton intent="ghost" @click="navigate"><Icon name="Plus" :size="14" /> {{ $t("home.importManuscript") }}</UiButton>
       </router-link>
-      <UiButton intent="primary" @click="nav.quickWrite()"><Icon name="Plus" :size="14" /> Quick write</UiButton>
+      <UiButton intent="primary" @click="nav.quickWrite()"><Icon name="Plus" :size="14" /> {{ $t("home.quickWrite") }}</UiButton>
     </div>
-    <HelpTrigger slug="writing#home" label="Home" class="pane-help" />
+    <HelpTrigger slug="writing#home" :label="$t('home.helpLabel')" class="pane-help" />
   </header>
 
   <div class="pane-card">
   <div class="scrollarea">
     <div class="card-grid home-card-grid" style="gap:16px">
 
-      <p class="home-desc" style="grid-column:1/-1">
-        <strong>Home</strong> is your daily landing surface — recent activity, your streak and pace,
-        progress toward your goal, and a one-click <strong>Resume writing</strong> card that jumps
-        you back into the chapter you last touched. If you have an AI provider configured, the
-        <strong>Previously on your novel</strong> card hands you a fresh re-orientation paragraph
-        when you return after a break.
-      </p>
+      <i18n-t keypath="home.intro" tag="p" class="home-desc" style="grid-column:1/-1" scope="global">
+        <template #home><strong>{{ $t("home.homeTerm") }}</strong></template>
+        <template #resume><strong>{{ $t("home.resumeTerm") }}</strong></template>
+        <template #briefing><strong>{{ $t("home.briefingTerm") }}</strong></template>
+      </i18n-t>
 
       <!-- Hero -->
       <div class="card hero-card" style="grid-column:1/-1">
@@ -299,10 +297,10 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
               </svg>
               <div class="ring-label">
                 <div class="ring-pct">{{ pct }}%</div>
-                <div class="ring-sub">of goal</div>
+                <div class="ring-sub">{{ $t("home.ofGoal") }}</div>
               </div>
             </div>
-            <div class="ring-words"><b>{{ totalWords.toLocaleString() }}</b> / {{ P.wordsGoal.toLocaleString() }} words</div>
+            <div class="ring-words">{{ $t("home.ringWords", { words: totalWords.toLocaleString(), goal: P.wordsGoal.toLocaleString() }) }}</div>
           </div>
         </div>
 
@@ -313,12 +311,12 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
             <span :style="`width:${(draft / Math.max(1, allCh.length)) * 100}%;background:var(--status-draft)`" />
           </div>
           <div style="display:flex;gap:14px;margin-top:8px;font-size:11.5px;color:var(--muted)">
-            <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--status-done);margin-right:5px" />Done · {{ done }}</span>
-            <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--status-revise);margin-right:5px" />Revise · {{ revise }}</span>
-            <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--status-draft);margin-right:5px" />Draft · {{ draft }}</span>
-            <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--status-todo);margin-right:5px" />To do · {{ todo }}</span>
+            <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--status-done);margin-right:5px" />{{ $t("home.statusDone", { n: done }) }}</span>
+            <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--status-revise);margin-right:5px" />{{ $t("home.statusRevise", { n: revise }) }}</span>
+            <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--status-draft);margin-right:5px" />{{ $t("home.statusDraft", { n: draft }) }}</span>
+            <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--status-todo);margin-right:5px" />{{ $t("home.statusTodo", { n: todo }) }}</span>
             <router-link to="/settings/project" class="deadline-link" style="margin-left:auto"
-              v-tooltip.bottom="'Change deadline in Project settings'">Deadline {{ P.deadline }}</router-link>
+              v-tooltip.bottom="$t('home.deadlineTooltip')">{{ $t("home.deadline", { date: P.deadline }) }}</router-link>
           </div>
         </div>
       </div>
@@ -326,39 +324,39 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
       <!-- Resume -->
       <div v-if="resumeCh" class="card resume-card" style="grid-column:1/-1">
         <div class="resume-body">
-          <div class="resume-lab">Pick up where you left off</div>
+          <div class="resume-lab">{{ $t("home.pickUpWhere") }}</div>
           <h3 class="resume-h">
             <span class="resume-part">{{ resumeCh.partTitle }} ·</span>
-            <span class="resume-ch">Chapter {{ resumeCh.num }} — {{ resumeCh.title }}</span>
+            <span class="resume-ch">{{ $t("home.chapterHeading", { num: resumeCh.num, title: resumeCh.title }) }}</span>
           </h3>
           <p v-if="resumeTeaser" class="resume-quote">{{ resumeTeaser }}</p>
-          <p v-else class="resume-quote resume-empty">A blank page, waiting.</p>
+          <p v-else class="resume-quote resume-empty">{{ $t("home.blankPage") }}</p>
           <div class="resume-sub">
-            <span><b>{{ (resumeCh.words || 0).toLocaleString() }}</b> words</span>
+            <span>{{ $t("home.wordsCount", { n: (resumeCh.words || 0).toLocaleString() }) }}</span>
             <span class="dot-sep">·</span>
-            <span><b>{{ resumeCh.scenes }}</b> scene{{ resumeCh.scenes === 1 ? '' : 's' }}</span>
+            <span>{{ $t("count.scene", { n: resumeCh.scenes }, resumeCh.scenes) }}</span>
             <template v-if="resumeStatus">
               <span class="dot-sep">·</span>
               <span :style="{ color: resumeStatus.color }">{{ resumeStatus.label }}</span>
             </template>
             <template v-if="resumedToday">
               <span class="dot-sep">·</span>
-              <span class="resume-today">Today's chapter</span>
+              <span class="resume-today">{{ $t("home.todaysChapter") }}</span>
             </template>
           </div>
         </div>
         <div class="resume-cta">
-          <UiButton intent="accent2" @click="resume"><Icon name="Play" :size="14" :fill="true" /> Resume writing</UiButton>
+          <UiButton intent="accent2" @click="resume"><Icon name="Play" :size="14" :fill="true" /> {{ $t("home.resumeTerm") }}</UiButton>
         </div>
       </div>
 
       <!-- Previously on your novel — resume briefing -->
       <div v-if="briefingVisible" class="card briefing-card" style="grid-column:1/-1">
         <div class="briefing-head">
-          <div class="briefing-eyebrow">Previously on your novel</div>
-          <AiFeatureChip feature="briefing" label="Briefing" editable />
-          <button class="briefing-x" v-tooltip.bottom="'Hide until tomorrow'"
-                  @click="dismissBriefing" aria-label="Dismiss briefing">
+          <div class="briefing-eyebrow">{{ $t("home.briefingTerm") }}</div>
+          <AiFeatureChip feature="briefing" :label="$t('home.briefingChipLabel')" editable />
+          <button class="briefing-x" v-tooltip.bottom="$t('home.hideUntilTomorrow')"
+                  @click="dismissBriefing" :aria-label="$t('home.dismissBriefing')">
             <Icon name="Close" :size="14" />
           </button>
         </div>
@@ -382,7 +380,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 
         <div class="briefing-foot">
           <span v-if="ui.briefingCache?.model" class="briefing-model">
-            via {{ ui.briefingCache.model }}
+            {{ $t("home.viaModel", { model: ui.briefingCache.model }) }}
           </span>
           <span class="briefing-foot-actions">
             <UiButton intent="ghost" size="small"
@@ -397,31 +395,31 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 
       <!-- Today's session -->
       <div class="card">
-        <div class="gcard-h">Today's session <span class="tag">live</span></div>
-        <div class="gstat">{{ sessions.todayWords.toLocaleString() }}<small>words</small></div>
+        <div class="gcard-h">{{ $t("home.todaysSession") }} <span class="tag">{{ $t("home.liveTag") }}</span></div>
+        <div class="gstat">{{ sessions.todayWords.toLocaleString() }}<small>{{ $t("home.wordsUnit") }}</small></div>
         <div class="gkv">
-          <span class="k">Streak</span><span class="v">{{ $t("count.day", { n: sessions.streak }, sessions.streak) }}</span>
-          <span class="k">This fortnight</span><span class="v">{{ totals14.total.toLocaleString() }}</span>
-          <span class="k">Avg / day</span><span class="v">{{ totals14.avg.toLocaleString() }}</span>
+          <span class="k">{{ $t("home.streak") }}</span><span class="v">{{ $t("count.day", { n: sessions.streak }, sessions.streak) }}</span>
+          <span class="k">{{ $t("home.thisFortnight") }}</span><span class="v">{{ totals14.total.toLocaleString() }}</span>
+          <span class="k">{{ $t("home.avgPerDay") }}</span><span class="v">{{ totals14.avg.toLocaleString() }}</span>
         </div>
         <div class="gticks">
           <i v-for="(active, i) in streakSquares" :key="i" :class="{ on: active }" v-tooltip.bottom="history14[i].date" />
         </div>
-        <div class="gticks-cap">{{ streakSquares.filter(Boolean).length }} of 14 days written</div>
+        <div class="gticks-cap">{{ $t("home.daysWritten", { written: streakSquares.filter(Boolean).length, total: 14 }) }}</div>
         <div class="gtoday-foot">
           <UiButton intent="ghost" size="small"
                     :disabled="!canWrapUp"
                     @click="openRecap"
-                    v-tooltip.bottom="canWrapUp ? 'Generate an AI recap of what you wrote today and pin any open threads' : 'Write something today to enable a recap'">
+                    v-tooltip.bottom="canWrapUp ? $t('home.recapTooltip') : $t('home.recapDisabledTooltip')">
             <Icon name="Sparkle" :size="12" />
-            {{ hasTodayRecap ? "View today's recap" : "Wrap up session" }}
+            {{ hasTodayRecap ? $t("home.viewRecap") : $t("home.wrapUpSession") }}
           </UiButton>
         </div>
       </div>
 
       <!-- The fortnight -->
       <div class="card">
-        <div class="gcard-h">The fortnight</div>
+        <div class="gcard-h">{{ $t("home.fortnight") }}</div>
         <svg class="gspark" viewBox="0 0 100 62" preserveAspectRatio="none">
           <defs>
             <linearGradient id="homeSpark" x1="0" x2="0" y1="0" y2="1">
@@ -433,15 +431,15 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
           <polyline :points="sparkPts.pts" fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke" />
         </svg>
         <div class="gkv">
-          <span class="k">Total</span><span class="v">{{ totals14.total.toLocaleString() }} words</span>
-          <span class="k">Avg / day</span><span class="v">{{ totals14.avg.toLocaleString() }}</span>
-          <span class="k">Peak day</span><span class="v">{{ totals14.peak.toLocaleString() }}</span>
+          <span class="k">{{ $t("home.total") }}</span><span class="v">{{ $t("home.totalWords", { n: totals14.total.toLocaleString() }) }}</span>
+          <span class="k">{{ $t("home.avgPerDay") }}</span><span class="v">{{ totals14.avg.toLocaleString() }}</span>
+          <span class="k">{{ $t("home.peakDay") }}</span><span class="v">{{ totals14.peak.toLocaleString() }}</span>
         </div>
       </div>
 
       <!-- Cadence -->
       <div class="card">
-        <div class="gcard-h">Cadence</div>
+        <div class="gcard-h">{{ $t("home.cadence") }}</div>
         <div class="gdow-bars">
           <div v-for="(v, i) in dowAvg" :key="i"
             class="gdow-bar" :class="{ peak: i === bestDowIdx }"
@@ -451,24 +449,24 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
           <span v-for="(d, i) in DOW_LABELS_MONDAY_FIRST" :key="i" class="lbl">{{ d }}</span>
         </div>
         <div class="gkv" style="margin-top:16px">
-          <span class="k">Best day</span><span class="v">{{ bestDow }}</span>
-          <span class="k">Most words</span><span class="v">avg {{ bestDowAvg.toLocaleString() }}</span>
+          <span class="k">{{ $t("home.bestDay") }}</span><span class="v">{{ bestDow }}</span>
+          <span class="k">{{ $t("home.mostWords") }}</span><span class="v">{{ $t("home.avgWords", { n: bestDowAvg.toLocaleString() }) }}</span>
         </div>
         <div v-if="totals14.total === 0" class="t-muted" style="font-size:11px;margin-top:10px;font-style:italic">
-          Start writing to see your patterns.
+          {{ $t("home.noPatterns") }}
         </div>
       </div>
 
       <!-- Narrative strands -->
       <div class="card" style="grid-column:1/-1">
-        <div class="gcard-h">Narrative strands</div>
+        <div class="gcard-h">{{ $t("home.strandsHeading") }}</div>
         <div class="gthreads">
           <div v-for="s in project.strands" :key="s.id" class="gthread" :style="{ color: s.color }">
             <span class="nm"><span class="dot" :style="{ background: s.color }" /><span class="nm-label">{{ s.name }}</span></span>
             <span class="track"><span class="fill" :style="`width:${(strandCount(s.id) / Math.max(1, allCh.length)) * 100}%;background:${s.color}`" /></span>
-            <span class="ct">{{ strandCount(s.id) }} ch</span>
+            <span class="ct">{{ $t("home.strandChapters", { n: strandCount(s.id) }) }}</span>
           </div>
-          <div v-if="!project.strands.length" class="t-muted" style="font-size:12px;font-style:italic">No strands yet.</div>
+          <div v-if="!project.strands.length" class="t-muted" style="font-size:12px;font-style:italic">{{ $t("home.noStrands") }}</div>
         </div>
       </div>
     </div>
