@@ -129,52 +129,44 @@ const ago = (ts) => {
 
 <template>
   <AppModal
-    eyebrow="Plot holes"
-    title="Continuity audit"
+    :eyebrow="$t('plotHoles.eyebrow')"
+    :title="$t('plotHoles.title')"
     wide
     :closable="!running"
     @close="emit('close')"
   >
     <template #header>
       <div class="ph-titleblock">
-        <div class="t-eyebrow">Plot holes</div>
-        <h2 class="modal-title">Continuity audit</h2>
+        <div class="t-eyebrow">{{ $t("plotHoles.eyebrow") }}</div>
+        <h2 class="modal-title">{{ $t("plotHoles.title") }}</h2>
       </div>
       <div class="ph-header-actions">
-        <AiFeatureChip feature="plotHoles" label="Plot-holes" editable />
+        <AiFeatureChip feature="plotHoles" :label="$t('plotHoles.chipLabel')" editable />
       </div>
     </template>
 
-    <p class="ph-blurb">
-      One pass over the whole-book digest plus a tail of each chapter's prose looks for
-      <strong>contradictions, timeline impossibilities, continuity drift</strong>, and
-      <strong>character-knowledge errors</strong>. The model is told to be selective — a clean
-      audit is meaningful, padded findings are noise. Dismissed findings stay on the project
-      but drop out of the default view.
-    </p>
+    <i18n-t keypath="plotHoles.blurb" tag="p" class="ph-blurb" scope="global">
+      <template #contradictions><strong>{{ $t("plotHoles.contradictionsTerm") }}</strong></template>
+      <template #knowledgeErrors><strong>{{ $t("plotHoles.knowledgeErrorsTerm") }}</strong></template>
+    </i18n-t>
 
     <!-- World rules — optional extra constraint set the audit enforces. -->
     <details class="ph-rules" :open="worldRulesOpen" @toggle="(e) => worldRulesOpen = e.target.open">
       <summary>
-        World rules to enforce
-        <span v-if="project.worldRules?.trim()" class="ph-rules-pill">on</span>
-        <span v-else class="ph-rules-pill muted">off</span>
+        {{ $t("plotHoles.worldRulesSummary") }}
+        <span v-if="project.worldRules?.trim()" class="ph-rules-pill">{{ $t("plotHoles.on") }}</span>
+        <span v-else class="ph-rules-pill muted">{{ $t("plotHoles.off") }}</span>
       </summary>
-      <p class="ph-rules-help">
-        Free-text <strong>rules the writer has explicitly stated this world enforces</strong> —
-        magic-system constraints ("blood magic costs a year of life per use"), hard SF physics
-        ("FTL drives need 48 hours to recharge"), technology limits, social structures. When
-        non-empty, the audit checks each chapter against these in the same pass. If a chapter
-        breaks a rule but the prose <em>earns the exception</em> (a cost paid, a workaround,
-        a stated bypass), it's not flagged. Leave blank for non-SFF projects — the rest of the
-        audit runs identically.
-      </p>
+      <i18n-t keypath="plotHoles.worldRulesHelp" tag="p" class="ph-rules-help" scope="global">
+        <template #rules><strong>{{ $t("plotHoles.worldRulesTerm") }}</strong></template>
+        <template #earns><em>{{ $t("plotHoles.earnsException") }}</em></template>
+      </i18n-t>
       <textarea
         v-model="worldRulesDraft"
         @blur="saveWorldRules"
         class="ph-rules-textarea"
         rows="6"
-        placeholder="e.g. Magic requires a physical cost — wounds, age, exhaustion. No magic is free.&#10;FTL drives need 48 hours between jumps; characters mid-flight cannot communicate.&#10;Vows sworn on the Star Stone cannot be broken without the swearer's death.">
+        :placeholder="$t('plotHoles.worldRulesPlaceholder')">
       </textarea>
     </details>
 
@@ -190,11 +182,10 @@ const ago = (ts) => {
     <div v-else-if="!audit" class="ph-empty">
       <Icon name="Sparkle" :size="20" />
       <p class="ph-empty-text">
-        Scan the whole book for continuity contradictions, timeline issues, and
-        character-knowledge errors. Change the provider in the chip above first if you want.
+        {{ $t("plotHoles.idleBlurb") }}
       </p>
       <UiButton intent="primary" @click="run">
-        <Icon name="Sparkle" :size="13" /> Scan for plot holes
+        <Icon name="Sparkle" :size="13" /> {{ $t("plotHoles.action") }}
       </UiButton>
     </div>
 
@@ -204,16 +195,16 @@ const ago = (ts) => {
           {{ $t("count.finding", { n: findings.length }, findings.length) }}
         </span>
         <span v-if="dismissedCount" class="ph-pill muted">
-          {{ dismissedCount }} dismissed
+          {{ $t("plotHoles.dismissedCount", { n: dismissedCount }) }}
         </span>
         <span class="ph-meta">
-          generated {{ ago(audit.generatedAt) }}
-          <template v-if="audit.model"> · via {{ audit.model }}</template>
+          {{ $t("plotHoles.generatedAgo", { when: ago(audit.generatedAt) }) }}
+          <template v-if="audit.model"> {{ $t("plotHoles.viaModel", { model: audit.model }) }}</template>
         </span>
         <UiButton v-if="dismissedCount" intent="ghost" size="small"
                   @click="showDismissed = !showDismissed"
                   style="margin-left:auto">
-          {{ showDismissed ? "Hide dismissed" : "Show dismissed" }}
+          {{ showDismissed ? $t("plotHoles.hideDismissed") : $t("plotHoles.showDismissed") }}
         </UiButton>
       </div>
 
@@ -221,19 +212,19 @@ const ago = (ts) => {
 
       <EmptyState v-if="!findings.length"
         icon="Check"
-        title="Clean audit"
-        message="The model found no contradictions, timeline issues, or continuity drift across the manuscript." />
+        :title="$t('plotHoles.cleanTitle')"
+        :message="$t('plotHoles.cleanMessage')" />
 
       <EmptyState v-else-if="!visibleFindings.length"
         icon="Eye"
-        title="All findings dismissed"
-        message="Toggle 'Show dismissed' above to bring them back." />
+        :title="$t('plotHoles.allDismissedTitle')"
+        :message="$t('plotHoles.allDismissedMessage')" />
 
       <template v-else>
         <section v-for="g in groups" :key="g.key" class="ph-section">
           <div class="ph-section-h" :style="{ color: SEVERITY_META[g.key].color }">
             <Icon :name="SEVERITY_META[g.key].icon" :size="13" />
-            {{ SEVERITY_META[g.key].label }}s
+            {{ $t("plotHoles.severityPlural", { label: SEVERITY_META[g.key].label }) }}
             <span class="ph-section-count">{{ g.items.length }}</span>
           </div>
           <ul class="ph-list">
@@ -245,8 +236,8 @@ const ago = (ts) => {
                 <span class="ph-chapter-list">
                   <template v-for="(num, i) in f.chapterNums" :key="num">
                     <button class="ph-chap-jump" @click="jumpToChapter(num)"
-                            v-tooltip.bottom="'Open this chapter'">
-                      Ch. {{ num }}
+                            v-tooltip.bottom="$t('common.openThisChapter')">
+                      {{ $t("common.chapterShort", { num }) }}
                     </button>
                     <span v-if="i < f.chapterNums.length - 1" class="ph-sep">·</span>
                   </template>
@@ -255,14 +246,14 @@ const ago = (ts) => {
               <p class="ph-summary-line">{{ f.summary }}</p>
               <blockquote v-if="f.evidence" class="ph-evidence">"{{ f.evidence }}"</blockquote>
               <p v-if="f.fix" class="ph-fix">
-                <span class="ph-fix-label">Cheapest fix:</span> {{ f.fix }}
+                <span class="ph-fix-label">{{ $t("plotHoles.cheapestFix") }}</span> {{ f.fix }}
               </p>
               <div class="ph-item-actions">
                 <UiButton v-if="!f.dismissed" intent="ghost" size="small" @click="dismiss(f.id)">
-                  Dismiss
+                  {{ $t("plotHoles.dismiss") }}
                 </UiButton>
                 <UiButton v-else intent="ghost" size="small" @click="undismiss(f.id)">
-                  Undismiss
+                  {{ $t("plotHoles.undismiss") }}
                 </UiButton>
               </div>
             </li>
@@ -273,11 +264,11 @@ const ago = (ts) => {
 
     <template #footer>
       <UiButton v-if="audit && !running" intent="ghost" @click="clearAll">
-        Clear audit
+        {{ $t("plotHoles.clearAudit") }}
       </UiButton>
       <span class="ph-foot-spacer" />
       <UiButton v-if="audit && !running" intent="ghost" @click="regenerate">
-        <Icon name="Refresh" :size="12" /> Re-run
+        <Icon name="Refresh" :size="12" /> {{ $t("plotHoles.rerun") }}
       </UiButton>
       <UiButton intent="primary" @click="emit('close')">{{ $t("common.done") }}</UiButton>
     </template>
