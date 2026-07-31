@@ -8,14 +8,20 @@
 
 import { createI18n } from "vue-i18n";
 import en from "./locales/en.json";
+import es from "./locales/es.json";
 
 // Add new locales here. The first entry is the fallback when a locale
 // or key is missing.
+//
+// Labels are written in their OWN language on purpose — someone hunting for
+// Spanish is looking for "Español", not for whatever the current UI language
+// happens to call it. They are deliberately not $t() calls.
 export const AVAILABLE_LOCALES = [
   { code: "en", label: "English" },
+  { code: "es", label: "Español" },
 ];
 
-const messages = { en };
+const messages = { en, es };
 
 // Resolve the browser's preferred locale to one we ship, falling back
 // to the first AVAILABLE_LOCALES entry. Called by main.js when there's
