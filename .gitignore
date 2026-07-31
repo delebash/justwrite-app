@@ -21,3 +21,14 @@ server/build/
 
 # Python virtualenv (local, never committed)
 .venv/
+
+# just-ai-help — the translation tool's working state.
+# Its folder holds two kinds of file. config.json and *.accepted.json / *.notes.json are
+# DECISIONS and knowledge: committed, because --check-only runs in CI against a fresh clone and
+# a gitignored verdict would be missing exactly where the gate reads it. Everything below is
+# machine state — regenerable, and *.db holds API keys, which the tool refuses to store unless
+# git genuinely ignores the file.
+just-ai-help/*.probe.json
+just-ai-help/.jah-cache.json
+just-ai-help/.jah-probe-cache.json
+just-ai-help/.jah.db

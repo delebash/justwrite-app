@@ -179,7 +179,31 @@ Rules when adding or converting a string:
 - **Not translated:** thrown `Error` messages, console/debug strings, data values, ids, enum strings, and DB-seeded text (seeded defaults stay English in v1).
 - **Kit strings are a separate, later batch** — `@delebash/llm-ui` does not take vue-i18n as a peer dep yet. Don't convert kit components from here.
 
-Translation tooling for the locale files themselves lives in the `just-ai-help` repo.
+**Adding a language is dropping `<code>.json` into `i18n/locales/`.** Nothing else — no import,
+no list, no label. `i18n/index.js` discovers files with `import.meta.glob` and names each one
+with `Intl.DisplayNames`, so the picker shows "Español" and "Français" without a table anywhere.
+`i18nLocaleDiscovery.test.js` reads that file as text and fails if a locale code or a label is
+ever hardcoded back into it.
+
+Translation tooling for the locale files themselves lives in the `just-ai-help` repo, and its
+entire footprint here is the **`just-ai-help/`** folder at the project root:
+
+| | |
+|---|---|
+| `config.json` | four fields — `locales`, `targets`, `context`, `glossary`. Committed |
+| `es.accepted.json` | reviewer verdicts, with `by`/`at` recording who signed each off. Committed, because `--check-only` runs in CI against a fresh clone |
+| `es.notes.json` | per-key notes, resent on the next translation of that key. Committed |
+| `.jah.db`, `*.probe.json`, `.jah-cache.json` | machine state and API keys. Gitignored |
+
+`locales/` holds **only** locale files — the translations are app assets that ship; the review
+artefacts are the tool's memory and nothing in the app reads them. Delete `just-ai-help/`
+entirely and the app still builds and runs in every language it has.
+
+Run it from anywhere; every path resolves against the config file:
+
+```bash
+node ../just-ai-help/server/translate.js just-ai-help/config.json --check-only
+```
 
 ## Test harness detail
 

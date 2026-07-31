@@ -4,348 +4,464 @@
     "key": "versionHistory.sideA",
     "code": "untranslated",
     "src": "A",
-    "dst": "A"
+    "dst": "A",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "09501d0122c83145": {
     "key": "richEditor.matchCaseGlyph",
     "code": "untranslated",
     "src": "Aa",
-    "dst": "Aa"
+    "dst": "Aa",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "0b8e794b6dae2197": {
     "key": "richEditor.textColorGlyph",
     "code": "untranslated",
     "src": "A",
-    "dst": "A"
+    "dst": "A",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "0ea4e073d609691f": {
     "key": "richEditor.h2Glyph",
     "code": "untranslated",
     "src": "H2",
-    "dst": "H2"
+    "dst": "H2",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "1765d3e96704f682": {
     "key": "settings.server.headlessTitle",
     "code": "brackets",
     "src": "Headless access",
-    "dst": "Acceso sin interfaz (Headless)"
+    "dst": "Acceso sin interfaz (Headless)",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "1a702c207f5a0897": {
     "key": "marketingPack.chipLabel",
     "code": "untranslated",
     "src": "Marketing",
-    "dst": "Marketing"
+    "dst": "Marketing",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "1b7cc42997ac5550": {
     "key": "settings.sections.general",
     "code": "untranslated",
     "src": "General",
-    "dst": "General"
+    "dst": "General",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "202cfc388618012a": {
     "key": "readerKnowledge.legendPov",
     "code": "untranslated",
     "src": "POV",
-    "dst": "POV"
+    "dst": "POV",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "241fcf233a0f4469": {
     "key": "chapters.ai.badge",
     "code": "untranslated",
     "src": "AI",
-    "dst": "AI"
+    "dst": "AI",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "2e1317d04a9d6141": {
     "key": "indexBuild.chatTerm",
     "code": "untranslated",
     "src": "Chat",
-    "dst": "Chat"
+    "dst": "Chat",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "3807b4ac9acef9ce": {
     "key": "strands.beatsTerm",
     "code": "untranslated",
     "src": "beats",
-    "dst": "beats"
+    "dst": "beats",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "3c3ff1c3cdf38642": {
     "key": "settings.about.runtimeLabel",
     "code": "untranslated",
     "src": "Runtime",
-    "dst": "Runtime"
+    "dst": "Runtime",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "417792305acf673d": {
     "key": "indexBuild.dims",
     "code": "untranslated",
     "src": "{n}d",
-    "dst": "{n}d"
+    "dst": "{n}d",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "44df36ac39189ffe": {
     "key": "welcome.brandMark",
     "code": "untranslated",
     "src": "J",
-    "dst": "J"
+    "dst": "J",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "468648bf2c391dd9": {
     "key": "variations.elapsedSeconds",
     "code": "untranslated",
     "src": "{n}s",
-    "dst": "{n}s"
+    "dst": "{n}s",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "4ccf6f25c9ea357f": {
     "key": "projectReplace.matchCaseGlyph",
     "code": "untranslated",
     "src": "Aa",
-    "dst": "Aa"
+    "dst": "Aa",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "518a2649fcb72240": {
     "key": "settings.appearance.bgAppLabel",
     "code": "untranslated",
     "src": "App",
-    "dst": "App"
+    "dst": "App",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "542c265fde256262": {
     "key": "richEditor.fontIncGlyph",
     "code": "untranslated",
     "src": "A+",
-    "dst": "A+"
+    "dst": "A+",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "545b657e65766b7c": {
     "key": "import.wordsShort",
     "code": "untranslated",
     "src": "{n} w",
-    "dst": "{n} w"
+    "dst": "{n} w",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "54946ebe328aff8b": {
     "key": "analysis.pace.total",
     "code": "untranslated",
     "src": "total",
-    "dst": "total"
+    "dst": "total",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "5ee568355d6ee941": {
     "key": "strands.colorLabel",
     "code": "untranslated",
     "src": "Color",
-    "dst": "Color"
+    "dst": "Color",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "6317ef8990cb94ff": {
     "key": "common.no",
     "code": "untranslated",
     "src": "No",
-    "dst": "No"
+    "dst": "No",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "65ba902fdf687d1f": {
     "key": "settings.providerForm.tierAuto",
     "code": "untranslated",
     "src": "auto",
-    "dst": "auto"
+    "dst": "auto",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "6b8583069548a0a3": {
     "key": "panes.ai.eyebrow",
     "code": "untranslated",
     "src": "AI",
-    "dst": "AI"
+    "dst": "AI",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "6d5ebd77362576be": {
     "key": "variations.restream",
     "code": "untranslated",
     "src": "Re-stream",
-    "dst": "Re-stream"
+    "dst": "Re-stream",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "7445fda0a1e4fdb9": {
     "key": "richEditor.h1Glyph",
     "code": "untranslated",
     "src": "H1",
-    "dst": "H1"
+    "dst": "H1",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "769f7024b4e35725": {
     "key": "homeShelf.volNum",
     "code": "untranslated",
     "src": "i.",
-    "dst": "i."
+    "dst": "i.",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "7a0a664e0f6cde5e": {
     "key": "richEditor.subscriptGlyph",
     "code": "untranslated",
     "src": "x₂",
-    "dst": "x₂"
+    "dst": "x₂",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "81d57d17fd88e0a2": {
     "key": "strands.beatsHeading",
     "code": "untranslated",
     "src": "Beats",
-    "dst": "Beats"
+    "dst": "Beats",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "83c3c49bc67d5f70": {
     "key": "sidebar.brand.sub",
     "code": "untranslated",
     "src": "v0.1 · local",
-    "dst": "v0.1 · local"
+    "dst": "v0.1 · local",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "8423079f87740b25": {
     "key": "settings.appearance.fontSpecimen",
     "code": "untranslated",
     "src": "Ag",
-    "dst": "Ag"
+    "dst": "Ag",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "84a13d7e05f50d7c": {
     "key": "groups.colorLabel",
     "code": "untranslated",
     "src": "Color",
-    "dst": "Color"
+    "dst": "Color",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "86b100120281ab96": {
     "key": "writingAi.wordsShort",
     "code": "untranslated",
     "src": "{n} w",
-    "dst": "{n} w"
+    "dst": "{n} w",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "8728020cc60706bd": {
     "key": "settings.appearance.tagError",
     "code": "untranslated",
     "src": "Error",
-    "dst": "Error"
+    "dst": "Error",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "8a8cf05fbce1e3ed": {
     "key": "richEditor.fontDecGlyph",
     "code": "untranslated",
     "src": "A−",
-    "dst": "A−"
+    "dst": "A−",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "8fb6b3fc1ed6f9a0": {
     "key": "characters.fields.voice.sampleLying.hint",
     "code": "endpunc",
     "src": "A line they say while covering or deflecting. e.g. “I was never near the place.”",
-    "dst": "Una frase que dicen mientras encubren o desvían el tema. p. ej. «Nunca estuve cerca del lugar»."
+    "dst": "Una frase que dicen mientras encubren o desvían el tema. p. ej. «Nunca estuve cerca del lugar».",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "9a2b450d341a6c8b": {
     "key": "writingAi.embeddingsEyebrow",
     "code": "untranslated",
     "src": "Embeddings & RAG",
-    "dst": "Embeddings & RAG"
+    "dst": "Embeddings & RAG",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "a298fd08d6cf9eea": {
     "key": "marketingPack.pitchHeading",
     "code": "untranslated",
     "src": "Elevator pitch",
-    "dst": "Elevator pitch"
+    "dst": "Elevator pitch",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "ad1d9221c3fc78da": {
     "key": "settings.providerForm.fieldId",
     "code": "untranslated",
     "src": "ID",
-    "dst": "ID"
+    "dst": "ID",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "ad348cb752066648": {
     "key": "dialog.okLabel",
     "code": "untranslated",
     "src": "OK",
-    "dst": "OK"
+    "dst": "OK",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "b26964d0aec63274": {
     "key": "relations.kbdZoom",
     "code": "untranslated",
     "src": "zoom",
-    "dst": "zoom"
+    "dst": "zoom",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "b2ec82329a9ac2a7": {
     "key": "analysisView.badgeCliffhanger",
     "code": "untranslated",
     "src": "Cliffhanger",
-    "dst": "Cliffhanger"
+    "dst": "Cliffhanger",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "be0bfef25d0a499a": {
     "key": "richEditor.h3Glyph",
     "code": "untranslated",
     "src": "H3",
-    "dst": "H3"
+    "dst": "H3",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "c380b32cde9a2627": {
     "key": "marketingPack.loglineTerm",
     "code": "untranslated",
     "src": "logline",
-    "dst": "logline"
+    "dst": "logline",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "c9639bcf55c722e3": {
     "key": "homeShelf.wordsShort",
     "code": "untranslated",
     "src": "{n} w",
-    "dst": "{n} w"
+    "dst": "{n} w",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "cb85b5a6fea996b7": {
     "key": "markers.idea",
     "code": "untranslated",
     "src": "Idea",
-    "dst": "Idea"
+    "dst": "Idea",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "cbbd8539f1db6e37": {
     "key": "marketingPack.loglineHeading",
     "code": "untranslated",
     "src": "Logline",
-    "dst": "Logline"
+    "dst": "Logline",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "d62ee418a1ed3772": {
     "key": "marketingPack.pitchTerm",
     "code": "untranslated",
     "src": "elevator pitch",
-    "dst": "elevator pitch"
+    "dst": "elevator pitch",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "d6de7c4d9af80a25": {
     "key": "homeShelf.volLabel",
     "code": "untranslated",
     "src": "Vol. I",
-    "dst": "Vol. I"
+    "dst": "Vol. I",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "e58446222aa73fa0": {
     "key": "plotHoles.severityPlural",
     "code": "untranslated",
     "src": "{label}s",
-    "dst": "{label}s"
+    "dst": "{label}s",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "e7198e1218f8c584": {
     "key": "richEditor.superscriptGlyph",
     "code": "untranslated",
     "src": "x²",
-    "dst": "x²"
+    "dst": "x²",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "e74a4fd17fbf5ce4": {
     "key": "home.total",
     "code": "untranslated",
     "src": "Total",
-    "dst": "Total"
+    "dst": "Total",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "eb451d21b0b7b39b": {
     "key": "commandPalette.escHint",
     "code": "untranslated",
     "src": "esc",
-    "dst": "esc"
+    "dst": "esc",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "edaff138309ea8fa": {
     "key": "analysisView.thousandsShort",
     "code": "untranslated",
     "src": "{n}k",
-    "dst": "{n}k"
+    "dst": "{n}k",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "f046d39de05763c7": {
     "key": "characters.fields.voice.sampleAngry.hint",
     "code": "endpunc",
     "src": "An actual furious line they'd say. e.g. “You had one job. One.”",
-    "dst": "Una frase furiosa real que dirían. p. ej. «Solo tenías una tarea. Una»."
+    "dst": "Una frase furiosa real que dirían. p. ej. «Solo tenías una tarea. Una».",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "f4c07f8b5e820643": {
     "key": "readerKnowledge.povLabel",
     "code": "untranslated",
     "src": "POV",
-    "dst": "POV"
+    "dst": "POV",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "f82b411885648796": {
     "key": "readerKnowledge.neutralTerm",
     "code": "untranslated",
     "src": "neutral",
-    "dst": "neutral"
+    "dst": "neutral",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   },
   "f9d2840e3c068cab": {
     "key": "versionHistory.sideB",
     "code": "untranslated",
     "src": "B",
-    "dst": "B"
+    "dst": "B",
+    "by": "claude (bulk, unreviewed)",
+    "at": "2026-07-31"
   }
 }
