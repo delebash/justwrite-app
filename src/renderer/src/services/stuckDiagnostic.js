@@ -22,20 +22,23 @@ export const MOVE_KINDS = [
   "goal-shift", "interrupt", "setting", "reveal", "timeframe",
 ];
 
-export const MOVE_KIND_LABELS = {
-  "goal-shift": "Goal shift",
-  interrupt:    "Interrupt",
-  setting:      "Setting shift",
-  reveal:       "Reveal",
-  timeframe:    "Time cut",
+// Was MOVE_KIND_LABELS / MOVE_KIND_BLURBS holding English. Display strings in a service are
+// unreachable by i18n and invisible to no-raw-text, so these are message keys now and
+// StuckDiagnosticModal resolves them. The object keys stay as the model's wire values.
+export const MOVE_KIND_I18N = {
+  "goal-shift": "stuck.moveKinds.goalShift",
+  interrupt:    "stuck.moveKinds.interrupt",
+  setting:      "stuck.moveKinds.setting",
+  reveal:       "stuck.moveKinds.reveal",
+  timeframe:    "stuck.moveKinds.timeframe",
 };
 
-export const MOVE_KIND_BLURBS = {
-  "goal-shift": "Change what the POV character is trying to do mid-scene.",
-  interrupt:    "Someone or something interrupts the current action.",
-  setting:      "Move the scene to a different place, or have the setting itself shift.",
-  reveal:       "Reveal something the POV character doesn't yet know.",
-  timeframe:    "Cut to a different moment — later, earlier, or somewhere else entirely.",
+export const MOVE_BLURB_I18N = {
+  "goal-shift": "stuck.moveBlurbs.goalShift",
+  interrupt:    "stuck.moveBlurbs.interrupt",
+  setting:      "stuck.moveBlurbs.setting",
+  reveal:       "stuck.moveBlurbs.reveal",
+  timeframe:    "stuck.moveBlurbs.timeframe",
 };
 
 // The prompt lives server-side (features.py, action "unstuck").
@@ -111,10 +114,11 @@ export async function generateUnstuckMoves({
     const label = typeof m.label === "string" ? m.label.trim().slice(0, 110) : "";
     const instruction = m.instruction.trim().slice(0, 500);
     if (!instruction) continue;
+    // No kindLabel: it was a pre-resolved English string baked onto the move. `kind` is the
+    // wire value and the modal resolves the label from it at render time.
     moves.push({
       id: `mv_${moves.length}_${kind}`,
       kind,
-      kindLabel: MOVE_KIND_LABELS[kind],
       label,
       instruction,
     });

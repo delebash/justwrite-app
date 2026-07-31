@@ -6,6 +6,7 @@
 // and links to that entity. Editing/deleting happens on the entity pages.
 
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
@@ -14,6 +15,7 @@ import { Icon } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const router = useRouter();
+const { t } = useI18n({ useScope: "global" });
 
 const KIND_ICON = { character: "Users", location: "Pin", object: "Cube", group: "GroupIcon", setting: "Building" };
 
@@ -63,7 +65,7 @@ function formatWhen(when) {
   };
 }
 
-function ownerLabel(kind) { return EVENTS_KIND_META[kind]?.label || kind; }
+function ownerLabel(kind) { const m = EVENTS_KIND_META[kind]; return m?.i18n ? t(m.i18n) : kind; }
 function goEvent(ev) { router.push(EVENTS_KIND_META[ev.ownerKind].editUrl(ev.ownerId, ev.id)); }
 function goOwner(ev) { router.push(EVENTS_KIND_META[ev.ownerKind].detailUrl(ev.ownerId)); }
 </script>

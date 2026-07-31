@@ -127,7 +127,7 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
         :aria-pressed="selectedKinds.has(kind)"
         @click="toggleKind(kind)">
         <Icon :name="meta.icon" :size="12" />
-        {{ meta.label }}
+        {{ $t(meta.i18n) }}
         <span v-if="q && allKindsForQuery[kind]" class="filter-count">{{ allKindsForQuery[kind] }}</span>
       </button>
     </div>
@@ -174,7 +174,7 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
             <Icon :name="g.meta?.icon || 'Note'" :size="13" />
           </span>
           <span style="font-size:11.5px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted)">
-            {{ g.meta?.label || g.kind }}
+            {{ g.meta?.i18n ? $t(g.meta.i18n) : g.kind }}
           </span>
           <span class="t-muted" style="font-size:11px;font-variant-numeric:tabular-nums">{{ g.list.length }}</span>
           <span style="flex:1;height:1px;background:var(--border-soft);margin-left:8px" />

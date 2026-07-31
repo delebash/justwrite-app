@@ -11,8 +11,8 @@ import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/llm-ui";
 import {
   generateUnstuckMoves,
-  MOVE_KIND_BLURBS,
-  MOVE_KIND_LABELS,
+  MOVE_BLURB_I18N,
+  MOVE_KIND_I18N,
 } from "../services/stuckDiagnostic.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 
@@ -116,8 +116,8 @@ function useMove(move) {
     <ul v-else-if="moves.length" class="su-moves">
       <li v-for="m in moves" :key="m.id" class="su-move" :data-kind="m.kind">
         <div class="su-move-head">
-          <span class="su-kind">{{ MOVE_KIND_LABELS[m.kind] }}</span>
-          <span class="su-kind-blurb">{{ MOVE_KIND_BLURBS[m.kind] }}</span>
+          <span class="su-kind">{{ MOVE_KIND_I18N[m.kind] ? $t(MOVE_KIND_I18N[m.kind]) : m.kind }}</span>
+          <span class="su-kind-blurb">{{ MOVE_BLURB_I18N[m.kind] ? $t(MOVE_BLURB_I18N[m.kind]) : "" }}</span>
         </div>
         <h4 class="su-move-label">{{ m.label }}</h4>
         <p class="su-move-instr">{{ m.instruction }}</p>

@@ -156,16 +156,20 @@ const totalConcerns = computed(() =>
   reviewCharacters.value.reduce((s, c) => s + (c.audit?.noteCount || 0), 0),
 );
 
+// Per-concern badges, so these stay SINGULAR — the same three words that plotHoles.severity.*
+// holds in the plural, because that one labels a section and this one labels one item.
 const SEVERITY_META = {
-  flag:    { icon: "Alert",   label: "Flag",       color: "var(--danger)" },
-  suggest: { icon: "Sparkle", label: "Suggestion", color: "var(--accent)" },
-  info:    { icon: "Check",   label: "Note",       color: "var(--muted)" },
+  flag:    { icon: "Alert",   i18n: "characterAudit.severity.flag",    color: "var(--danger)" },
+  suggest: { icon: "Sparkle", i18n: "characterAudit.severity.suggest", color: "var(--accent)" },
+  info:    { icon: "Check",   i18n: "characterAudit.severity.info",    color: "var(--muted)" },
 };
-const VERDICT_LABELS = {
-  consistent: "Consistent",
-  "minor-drift": "Minor drift",
-  "significant-drift": "Significant drift",
-  "no-scenes": "No scenes yet",
+// The hyphenated keys are the model's wire values and stay as they are; only the display side
+// moves to i18n, so the key names are camelCased to keep the message path clean.
+const VERDICT_I18N = {
+  consistent: "characterAudit.verdict.consistent",
+  "minor-drift": "characterAudit.verdict.minorDrift",
+  "significant-drift": "characterAudit.verdict.significantDrift",
+  "no-scenes": "characterAudit.verdict.noScenes",
 };
 const VERDICT_COLOURS = {
   consistent: "var(--status-done)",
@@ -257,7 +261,7 @@ onMounted(() => {
             </span>
             <span class="ca-card-meta">
               <span class="ca-verdict" :style="{ background: VERDICT_COLOURS[c.audit.verdict] }">
-                {{ VERDICT_LABELS[c.audit.verdict] || c.audit.verdict }}
+                {{ VERDICT_I18N[c.audit.verdict] ? $t(VERDICT_I18N[c.audit.verdict]) : c.audit.verdict }}
               </span>
               <span class="ca-count">
                 {{ $t("count.concern", { n: c.audit.noteCount }, c.audit.noteCount) }}
@@ -275,7 +279,7 @@ onMounted(() => {
                 <div class="ca-concern-head">
                   <span class="ca-sev" :style="{ color: SEVERITY_META[cn.severity]?.color }">
                     <Icon :name="SEVERITY_META[cn.severity]?.icon" :size="12" />
-                    {{ SEVERITY_META[cn.severity]?.label }}
+                    {{ SEVERITY_META[cn.severity] ? $t(SEVERITY_META[cn.severity].i18n) : "" }}
                   </span>
                   <button v-if="cn.chapterNum" class="ca-chap-jump"
                           @click="jumpToChapter(cn.chapterNum)"

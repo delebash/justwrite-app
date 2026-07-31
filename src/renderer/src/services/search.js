@@ -372,14 +372,17 @@ export function renderSnippet(snippet, matches) {
   return out;
 }
 
+// `label` held the English filter-chip text. A display string in a service is unreachable by
+// i18n and invisible to the no-raw-text lint, so it is a message key now and SearchView resolves
+// it. `order` and `icon` stay here — neither is language.
 export const KIND_META = {
-  chapter:       { label: "Chapters",       icon: "Book",      order: 1 },
-  character:     { label: "Characters",     icon: "Users",     order: 2 },
-  location:      { label: "Locations",      icon: "Pin",       order: 3 },
-  object:        { label: "Objects",        icon: "Cube",      order: 4 },
-  group:         { label: "Groups",         icon: "GroupIcon", order: 5 },
-  worldbuilding: { label: "Worldbuilding",  icon: "Sparkle",   order: 6 },
-  note:          { label: "Notes",          icon: "Note",      order: 7 },
-  strand:        { label: "Narrative strands",        icon: "Strands", order: 8 },
-  architecture:  { label: "Architecture",   icon: "Building",  order: 9 },
+  chapter:       { i18n: "search.kinds.chapter",       icon: "Book",      order: 1 },
+  character:     { i18n: "search.kinds.character",     icon: "Users",     order: 2 },
+  location:      { i18n: "search.kinds.location",      icon: "Pin",       order: 3 },
+  object:        { i18n: "search.kinds.object",        icon: "Cube",      order: 4 },
+  group:         { i18n: "search.kinds.group",         icon: "GroupIcon", order: 5 },
+  worldbuilding: { i18n: "search.kinds.worldbuilding", icon: "Sparkle",   order: 6 },
+  note:          { i18n: "search.kinds.note",          icon: "Note",      order: 7 },
+  strand:        { i18n: "search.kinds.strand",        icon: "Strands",   order: 8 },
+  architecture:  { i18n: "search.kinds.architecture",  icon: "Building",  order: 9 },
 };

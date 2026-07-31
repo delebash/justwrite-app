@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useProjectStore, TRASH_KINDS } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
@@ -12,20 +13,23 @@ import { UiTable } from "@delebash/llm-ui";
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
+const { t } = useI18n({ useScope: "global" });
 
+// `label` held the English word directly, which no lint rule could see because this is script,
+// not template. `labelOne` held a second set of twelve and was referenced nowhere at all.
 const KIND_META = {
-  chapters:      { label: "Chapters",      icon: "Book",      labelOne: "chapter" },
-  scenes:        { label: "Scenes",        icon: "Quote",     labelOne: "scene" },
-  characters:    { label: "Characters",    icon: "Users",     labelOne: "character" },
-  locations:     { label: "Locations",     icon: "Pin",       labelOne: "location" },
-  objects:       { label: "Objects",       icon: "Cube",      labelOne: "object" },
-  groups:        { label: "Groups",        icon: "GroupIcon", labelOne: "group" },
-  notes:         { label: "Notes",         icon: "Note",      labelOne: "note" },
-  strands:       { label: "Narrative strands",       icon: "Strands", labelOne: "narrative strand" },
-  worldbuilding: { label: "Worldbuilding", icon: "Sparkle",   labelOne: "article" },
-  events:        { label: "Events",        icon: "Calendar",  labelOne: "event" },
-  statuses:      { label: "Statuses",      icon: "Check",     labelOne: "status" },
-  tagVocab:      { label: "Curated tags",  icon: "Sparkle",   labelOne: "tag" },
+  chapters:      { i18n: "trash.kinds.chapters",      icon: "Book" },
+  scenes:        { i18n: "trash.kinds.scenes",        icon: "Quote" },
+  characters:    { i18n: "trash.kinds.characters",    icon: "Users" },
+  locations:     { i18n: "trash.kinds.locations",     icon: "Pin" },
+  objects:       { i18n: "trash.kinds.objects",       icon: "Cube" },
+  groups:        { i18n: "trash.kinds.groups",        icon: "GroupIcon" },
+  notes:         { i18n: "trash.kinds.notes",         icon: "Note" },
+  strands:       { i18n: "trash.kinds.strands",       icon: "Strands" },
+  worldbuilding: { i18n: "trash.kinds.worldbuilding", icon: "Sparkle" },
+  events:        { i18n: "trash.kinds.events",        icon: "Calendar" },
+  statuses:      { i18n: "trash.kinds.statuses",      icon: "Check" },
+  tagVocab:      { i18n: "trash.kinds.tagVocab",      icon: "Sparkle" },
 };
 
 // Group by kind with metadata; only show kinds that have items.
@@ -38,11 +42,11 @@ const totalCount = computed(() => project.trashCount);
 
 // Item title — different shape per kind.
 function titleOf(kind, item) {
-  if (kind === "chapters")      return `Ch. ${item.num} — ${item.title}`;
-  if (kind === "scenes")        return item.title || "Untitled scene";
+  if (kind === "chapters")      return t("trash.chapterRef", { num: item.num, title: item.title });
+  if (kind === "scenes")        return item.title || t("chapters.edit.untitledScene");
   if (kind === "notes")         return item.title;
   if (kind === "worldbuilding") return item.title;
-  if (kind === "events")        return item.title || "Untitled event";
+  if (kind === "events")        return item.title || t("events.untitled");
   if (kind === "statuses")      return item.label;
   if (kind === "tagVocab")      return item.label;
   return item.name;
@@ -58,22 +62,24 @@ function eventParentName(entityId) {
   return null;
 }
 function subOf(kind, item) {
-  if (kind === "chapters")   return item.partId ? `from ${project.parts.find((p) => p.id === item.partId)?.title || "removed part"}` : null;
+  if (kind === "chapters")   return item.partId ? t("trash.fromPart", { part: project.parts.find((p) => p.id === item.partId)?.title || t("trash.removedPart") }) : null;
   if (kind === "scenes") {
     const parent = project.chapterById(item.chapterId);
-    return parent ? `from "Ch. ${parent.num} — ${parent.title}"` : "from removed chapter";
+    return parent
+      ? t("trash.fromNamed", { name: t("trash.chapterRef", { num: parent.num, title: parent.title }) })
+      : t("trash.fromRemovedChapter");
   }
   if (kind === "characters") return item.role;
   if (kind === "locations")  return item.kind;
   if (kind === "objects")    return item.kind;
-  if (kind === "notes")      return `tag · ${item.tag}`;
-  if (kind === "groups")     return `${(item.members || []).length} members`;
+  if (kind === "notes")      return t("trash.noteTag", { tag: item.tag });
+  if (kind === "groups")     return t("count.member", { n: (item.members || []).length }, (item.members || []).length);
   if (kind === "worldbuilding") return item.category;
   if (kind === "events") {
     const parent = eventParentName(item.entityId);
-    return parent ? `from "${parent}"` : "from removed entity";
+    return parent ? t("trash.fromNamed", { name: parent }) : t("trash.fromRemovedEntity");
   }
-  if (kind === "tagVocab")   return `for ${item.kind}`;
+  if (kind === "tagVocab")   return t("trash.forKind", { kind: item.kind });
   return null;
 }
 function ago(ts) {
@@ -163,7 +169,7 @@ const trashColumns = [
       <section v-for="s in sections" :key="s.kind" class="trash-section">
         <div class="trash-section-head">
           <span class="trash-section-icon"><Icon :name="s.meta.icon" :size="13" /></span>
-          <span class="trash-section-name">{{ s.meta.label }}</span>
+          <span class="trash-section-name">{{ $t(s.meta.i18n) }}</span>
           <span class="t-muted" style="font-size:11px;font-variant-numeric:tabular-nums">{{ s.items.length }}</span>
           <span style="flex:1;height:1px;background:var(--border-soft);margin-left:8px" />
         </div>

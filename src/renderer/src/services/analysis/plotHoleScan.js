@@ -30,14 +30,10 @@ function firstParagraph(text, maxWords = 60) {
 const SEVERITY_LIST = ["flag", "suggest", "info"];
 const KIND_LIST = ["contradiction", "timeline", "continuity", "character-knowledge", "object", "other"];
 
-export const KIND_LABELS = {
-  contradiction:        "Contradiction",
-  timeline:             "Timeline",
-  continuity:           "Continuity",
-  "character-knowledge": "Character knowledge",
-  object:               "Object / detail",
-  other:                "Other",
-};
+// KIND_LABELS lived here and held the English badge text. A display string in the service layer
+// is unreachable by i18n and invisible to the no-raw-text lint, so the labels now live in
+// `plotHoles.kinds.*` and are resolved by the one component that renders them. KIND_LIST above
+// remains the wire contract with the model and stays English.
 
 // The base prompt lives server-side (features.py, action "plotHoles"). The
 // optional world-rules enforcement section is dynamic per-project, so it's

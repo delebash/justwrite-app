@@ -135,10 +135,12 @@ function clearAll() {
   project.clearChapterCritique(props.chapterId);
 }
 
+// Section headers, so these are plural. Distinct from critique.flagsTerm/suggestionsTerm/
+// observationsTerm, which are the lowercase forms used inline inside a sentence above.
 const SEVERITY_META = {
-  flag:    { icon: "Alert",   label: "Flags",       color: "var(--danger-ink, #b91c1c)" },
-  suggest: { icon: "Sparkle", label: "Suggestions", color: "var(--accent-ink)" },
-  info:    { icon: "Check",   label: "Observations",color: "var(--muted)" },
+  flag:    { icon: "Alert",   i18n: "critique.severity.flag",    color: "var(--danger-ink, #b91c1c)" },
+  suggest: { icon: "Sparkle", i18n: "critique.severity.suggest", color: "var(--accent-ink)" },
+  info:    { icon: "Check",   i18n: "critique.severity.info",    color: "var(--muted)" },
 };
 </script>
 
@@ -235,7 +237,7 @@ const SEVERITY_META = {
           class="notes-group">
           <div class="notes-group-h" :style="`color: ${SEVERITY_META[sev].color}`">
             <Icon :name="SEVERITY_META[sev].icon" :size="12" />
-            {{ SEVERITY_META[sev].label }}
+            {{ $t(SEVERITY_META[sev].i18n) }}
             <span class="t-muted" style="font-weight:400">· {{ grouped[sev].length }}</span>
           </div>
           <div v-for="n in grouped[sev]" :key="n.id" class="note-row">

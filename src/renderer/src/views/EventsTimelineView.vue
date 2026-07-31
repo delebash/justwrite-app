@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
@@ -16,9 +17,10 @@ const props = defineProps({
 const project = useProjectStore();
 const router  = useRouter();
 
+const { t } = useI18n({ useScope: "global" });
 const meta   = computed(() => EVENTS_KIND_META[props.kind]);
 const entity = computed(() => meta.value?.getEntity(project, props.entityId));
-const name   = computed(() => meta.value?.entityName(entity.value));
+const name   = computed(() => meta.value?.entityName(entity.value) || (meta.value?.i18n ? t(meta.value.i18n) : ""));
 
 const crumbs = computed(() => [
   { label: meta.value?.label, to: meta.value?.sectionUrl() },
@@ -72,7 +74,7 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
     <div class="pane-actions">
       <UiButton intent="ghost" size="small" @click="goBack">
         <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
-        {{ $t("events.backTo", { name: meta?.label }) }}
+        {{ $t("events.backTo", { name: meta?.i18n ? $t(meta.i18n) : "" }) }}
       </UiButton>
       <UiButton intent="primary" @click="goAdd">
         <Icon name="Plus" :size="13" /> {{ $t("events.addEvent") }}

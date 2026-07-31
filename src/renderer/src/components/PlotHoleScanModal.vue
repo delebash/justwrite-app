@@ -14,7 +14,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, EmptyState } from "@delebash/llm-ui";
-import { scanPlotHoles, KIND_LABELS } from "../services/analysis/plotHoleScan.js";
+import { scanPlotHoles } from "../services/analysis/plotHoleScan.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 
 const emit = defineEmits(["close"]);
@@ -105,10 +105,24 @@ function jumpToChapter(num) {
   if (ch) router.push(`/chapters/${ch.id}`);
 }
 
+// These label section headers, so the keys hold the PLURAL words outright. The old shape was a
+// singular English label run through `severityPlural: "{label}s"` — an English-only rule applied
+// to a label that was itself never translated.
 const SEVERITY_META = {
-  flag:    { label: "Flag",       icon: "Alert",   color: "var(--danger)" },
-  suggest: { label: "Suggestion", icon: "Sparkle", color: "var(--accent)" },
-  info:    { label: "Note",       icon: "Check",   color: "var(--muted)" },
+  flag:    { i18n: "plotHoles.severity.flag",    icon: "Alert",   color: "var(--danger)" },
+  suggest: { i18n: "plotHoles.severity.suggest", icon: "Sparkle", color: "var(--accent)" },
+  info:    { i18n: "plotHoles.severity.info",    icon: "Check",   color: "var(--muted)" },
+};
+// Kind badges. These were English strings in plotHoleScan.js — a display label in the service
+// layer, where i18n cannot reach it. The service keeps KIND_LIST, which is the wire contract
+// with the model and must stay English; only the rendering moved here.
+const KIND_I18N = {
+  contradiction:         "plotHoles.kinds.contradiction",
+  timeline:              "plotHoles.kinds.timeline",
+  continuity:            "plotHoles.kinds.continuity",
+  "character-knowledge": "plotHoles.kinds.characterKnowledge",
+  object:                "plotHoles.kinds.object",
+  other:                 "plotHoles.kinds.other",
 };
 
 const ago = (ts) => {
@@ -224,7 +238,7 @@ const ago = (ts) => {
         <section v-for="g in groups" :key="g.key" class="ph-section">
           <div class="ph-section-h" :style="{ color: SEVERITY_META[g.key].color }">
             <Icon :name="SEVERITY_META[g.key].icon" :size="13" />
-            {{ $t("plotHoles.severityPlural", { label: SEVERITY_META[g.key].label }) }}
+            {{ $t(SEVERITY_META[g.key].i18n) }}
             <span class="ph-section-count">{{ g.items.length }}</span>
           </div>
           <ul class="ph-list">
@@ -232,7 +246,7 @@ const ago = (ts) => {
                 class="ph-item" :class="{ dismissed: f.dismissed }"
                 :data-sev="f.severity">
               <div class="ph-item-head">
-                <span class="ph-kind">{{ KIND_LABELS[f.kind] || f.kind }}</span>
+                <span class="ph-kind">{{ KIND_I18N[f.kind] ? $t(KIND_I18N[f.kind]) : f.kind }}</span>
                 <span class="ph-chapter-list">
                   <template v-for="(num, i) in f.chapterNums" :key="num">
                     <button class="ph-chap-jump" @click="jumpToChapter(num)"

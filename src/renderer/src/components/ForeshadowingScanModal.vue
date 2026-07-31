@@ -79,14 +79,15 @@ const grouped = computed(() => {
   return Array.from(map.values()).sort((a, b) => (a.chapterNum || 0) - (b.chapterNum || 0));
 });
 
-const KIND_LABELS = {
-  promise:  "Promise",
-  object:   "Object",
-  question: "Question",
-  ability:  "Ability",
-  secret:   "Secret",
-  threat:   "Threat",
-  debt:     "Debt",
+// Badge labels. Held raw English, which no-raw-text cannot see because this is script.
+const KIND_I18N = {
+  promise:  "foreshadowing.kinds.promise",
+  object:   "foreshadowing.kinds.object",
+  question: "foreshadowing.kinds.question",
+  ability:  "foreshadowing.kinds.ability",
+  secret:   "foreshadowing.kinds.secret",
+  threat:   "foreshadowing.kinds.threat",
+  debt:     "foreshadowing.kinds.debt",
 };
 
 function initRows() {
@@ -281,7 +282,7 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
           <ul class="fs-list">
             <li v-for="t in g.items" :key="t.id" class="fs-thread" :class="`status-${t.status}`">
               <div class="fs-thread-meta">
-                <span class="fs-kind-badge" :data-kind="t.kind">{{ KIND_LABELS[t.kind] || t.kind }}</span>
+                <span class="fs-kind-badge" :data-kind="t.kind">{{ KIND_I18N[t.kind] ? $t(KIND_I18N[t.kind]) : t.kind }}</span>
                 <span v-if="t.status === 'dangling'" class="fs-status-badge dangling">{{ $t("foreshadowing.statusDangling") }}</span>
                 <span v-else class="fs-status-badge mentioned"
                       v-tooltip.bottom="t.laterMentions.map(m => `Ch. ${m.chapterNum}${m.chapterTitle ? ' — ' + m.chapterTitle : ''}`).join('\n')">

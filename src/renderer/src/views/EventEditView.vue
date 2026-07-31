@@ -19,9 +19,10 @@ const props = defineProps({
 const project = useProjectStore();
 const router  = useRouter();
 
+const { t } = useI18n({ useScope: "global" });
 const meta   = computed(() => EVENTS_KIND_META[props.kind]);
 const entity = computed(() => meta.value?.getEntity(project, props.entityId));
-const name   = computed(() => meta.value?.entityName(entity.value));
+const name   = computed(() => meta.value?.entityName(entity.value) || (meta.value?.i18n ? t(meta.value.i18n) : ""));
 
 const crumbs = computed(() => [
   { label: meta.value?.label, to: meta.value?.sectionUrl() },
