@@ -103,29 +103,28 @@ function formatComps(comps) {
 
 <template>
   <AppModal
-    eyebrow="Marketing pack"
-    title="Logline, blurbs, synopsis, pitch"
+    :eyebrow="$t('marketingPack.eyebrow')"
+    :title="$t('marketingPack.title')"
     wide
     :closable="!running"
     @close="emit('close')"
   >
     <template #header>
       <div class="mp-titleblock">
-        <div class="t-eyebrow">Marketing pack</div>
-        <h2 class="modal-title">Logline, blurbs, synopsis, pitch</h2>
+        <div class="t-eyebrow">{{ $t("marketingPack.eyebrow") }}</div>
+        <h2 class="modal-title">{{ $t("marketingPack.title") }}</h2>
       </div>
       <div class="mp-header-actions">
-        <AiFeatureChip feature="marketingPack" label="Marketing" editable />
+        <AiFeatureChip feature="marketingPack" :label="$t('marketingPack.chipLabel')" editable />
       </div>
     </template>
 
-    <p class="mp-blurb">
-      One LLM call returns the four artifacts a writer needs to query and pitch: a
-      <strong>logline</strong> (one sentence), three <strong>back-cover blurb variants</strong>
-      from different angles, a one-page <strong>synopsis</strong> (including the ending — agents
-      need it), and a three-paragraph <strong>elevator pitch</strong>. Best after a complete
-      draft. Each artifact has a copy button.
-    </p>
+    <i18n-t keypath="marketingPack.blurb" tag="p" class="mp-blurb" scope="global">
+      <template #logline><strong>{{ $t("marketingPack.loglineTerm") }}</strong></template>
+      <template #blurbs><strong>{{ $t("marketingPack.blurbsTerm") }}</strong></template>
+      <template #synopsis><strong>{{ $t("marketingPack.synopsisTerm") }}</strong></template>
+      <template #pitch><strong>{{ $t("marketingPack.pitchTerm") }}</strong></template>
+    </i18n-t>
 
     <div v-if="error" class="mp-error">
       <Icon name="Alert" :size="13" /> {{ error }}
@@ -139,53 +138,52 @@ function formatComps(comps) {
     <div v-else-if="!pack" class="mp-empty">
       <Icon name="Sparkle" :size="20" />
       <p class="mp-empty-text">
-        Generate a logline, back-cover blurbs, synopsis, and elevator pitch from your manuscript.
-        Change the provider in the chip above first if you want.
+        {{ $t("marketingPack.idleBlurb") }}
       </p>
       <UiButton intent="primary" @click="run">
-        <Icon name="Sparkle" :size="13" /> Generate marketing pack
+        <Icon name="Sparkle" :size="13" /> {{ $t("marketingPack.action") }}
       </UiButton>
     </div>
 
     <template v-else-if="pack">
       <div class="mp-head">
         <span class="mp-meta">
-          {{ pack.totalChapters }} chapters · generated {{ ago(pack.generatedAt) }}
-          <template v-if="pack.model"> · via {{ pack.model }}</template>
+          {{ $t("marketingPack.meta", { chapters: pack.totalChapters, when: ago(pack.generatedAt) }) }}
+          <template v-if="pack.model"> {{ $t("marketingPack.viaModel", { model: pack.model }) }}</template>
         </span>
       </div>
 
       <!-- Logline -->
       <section class="mp-section">
         <div class="mp-section-h">
-          <span>Logline</span>
-          <span class="mp-section-meta">{{ wordCount(pack.logline) }} words</span>
+          <span>{{ $t("marketingPack.loglineHeading") }}</span>
+          <span class="mp-section-meta">{{ $t("marketingPack.wordsMeta", { n: wordCount(pack.logline) }) }}</span>
           <span class="mp-spacer" />
           <UiButton intent="ghost" size="small" @click="copyText(pack.logline, 'Logline')">
-            <Icon name="Plus" :size="12" /> Copy
+            <Icon name="Plus" :size="12" /> {{ $t("marketingPack.copy") }}
           </UiButton>
         </div>
-        <p class="mp-logline">{{ pack.logline || "(no logline returned)" }}</p>
+        <p class="mp-logline">{{ pack.logline || $t("marketingPack.noLogline") }}</p>
       </section>
 
       <!-- Blurbs -->
       <section class="mp-section">
         <div class="mp-section-h">
-          <span>Back-cover blurbs</span>
-          <span class="mp-section-meta">3 angles</span>
+          <span>{{ $t("marketingPack.blurbsHeading") }}</span>
+          <span class="mp-section-meta">{{ $t("marketingPack.blurbsAngles", { n: 3 }) }}</span>
         </div>
         <div class="mp-blurbs">
           <article v-for="b in pack.blurbs" :key="b.angle" class="mp-blurb-card">
             <header class="mp-blurb-h">
               <span class="mp-blurb-angle">{{ b.label }}</span>
-              <span class="mp-section-meta">{{ wordCount(b.text) }} words</span>
+              <span class="mp-section-meta">{{ $t("marketingPack.wordsMeta", { n: wordCount(b.text) }) }}</span>
               <span class="mp-spacer" />
-              <UiButton intent="ghost" size="small" @click="copyText(b.text, b.label + ' blurb')">
-                <Icon name="Plus" :size="12" /> Copy
+              <UiButton intent="ghost" size="small" @click="copyText(b.text, $t('marketingPack.blurbCopyLabel', { label: b.label }))">
+                <Icon name="Plus" :size="12" /> {{ $t("marketingPack.copy") }}
               </UiButton>
             </header>
             <p class="mp-blurb-desc">{{ b.description }}</p>
-            <p class="mp-blurb-text">{{ b.text || "(no blurb returned)" }}</p>
+            <p class="mp-blurb-text">{{ b.text || $t("marketingPack.noBlurb") }}</p>
           </article>
         </div>
       </section>
@@ -193,24 +191,24 @@ function formatComps(comps) {
       <!-- Synopsis -->
       <section class="mp-section">
         <div class="mp-section-h">
-          <span>One-page synopsis</span>
-          <span class="mp-section-meta">{{ wordCount(pack.synopsis) }} words · includes ending</span>
+          <span>{{ $t("marketingPack.synopsisHeading") }}</span>
+          <span class="mp-section-meta">{{ $t("marketingPack.synopsisMeta", { n: wordCount(pack.synopsis) }) }}</span>
           <span class="mp-spacer" />
           <UiButton intent="ghost" size="small" @click="copyText(pack.synopsis, 'Synopsis')">
-            <Icon name="Plus" :size="12" /> Copy
+            <Icon name="Plus" :size="12" /> {{ $t("marketingPack.copy") }}
           </UiButton>
         </div>
-        <p class="mp-prose">{{ pack.synopsis || "(no synopsis returned)" }}</p>
+        <p class="mp-prose">{{ pack.synopsis || $t("marketingPack.noSynopsis") }}</p>
       </section>
 
       <!-- Pitch -->
       <section class="mp-section">
         <div class="mp-section-h">
-          <span>Elevator pitch</span>
-          <span class="mp-section-meta">{{ wordCount(pack.pitch) }} words · 3 paragraphs</span>
+          <span>{{ $t("marketingPack.pitchHeading") }}</span>
+          <span class="mp-section-meta">{{ $t("marketingPack.pitchMeta", { n: wordCount(pack.pitch), paragraphs: 3 }) }}</span>
           <span class="mp-spacer" />
           <UiButton intent="ghost" size="small" @click="copyText(pack.pitch, 'Elevator pitch')">
-            <Icon name="Plus" :size="12" /> Copy
+            <Icon name="Plus" :size="12" /> {{ $t("marketingPack.copy") }}
           </UiButton>
         </div>
         <p class="mp-prose">{{ pack.pitch || "(no pitch returned)" }}</p>
@@ -219,32 +217,28 @@ function formatComps(comps) {
       <!-- Comp titles -->
       <section v-if="pack.comps?.length" class="mp-section">
         <div class="mp-section-h">
-          <span>Comp titles</span>
-          <span class="mp-section-meta">{{ pack.comps.length }} suggested</span>
+          <span>{{ $t("marketingPack.compsHeading") }}</span>
+          <span class="mp-section-meta">{{ $t("marketingPack.compsSuggested", { n: pack.comps.length }) }}</span>
           <span class="mp-spacer" />
           <UiButton intent="ghost" size="small" @click="copyText(formatComps(pack.comps), 'Comp titles')">
-            <Icon name="Plus" :size="12" /> Copy as list
+            <Icon name="Plus" :size="12" /> {{ $t("marketingPack.copyAsList") }}
           </UiButton>
         </div>
         <p class="mp-comp-warning">
           <Icon name="Alert" :size="12" />
-          <span>
-            <strong>Verify these before sending anywhere.</strong> Models confidently invent comp
-            titles that don't exist or misattribute them. Confidence labels are the model's own
-            self-assessment — treat as a starting point for research, not a finished list. Agents
-            want comps published in the last 5 years; if a suggestion is older, reach for a more
-            recent equivalent.
-          </span>
+          <i18n-t keypath="marketingPack.compsWarning" tag="span" scope="global">
+            <template #verify><strong>{{ $t("marketingPack.verifyTerm") }}</strong></template>
+          </i18n-t>
         </p>
         <ul class="mp-comps">
           <li v-for="c in pack.comps" :key="c.id" class="mp-comp" :data-confidence="c.confidence">
             <div class="mp-comp-head">
-              <span class="mp-comp-title">{{ c.title || "(untitled)" }}</span>
+              <span class="mp-comp-title">{{ c.title || $t("marketingPack.untitledComp") }}</span>
               <span v-if="c.author" class="mp-comp-author">— {{ c.author }}</span>
               <span v-if="c.year" class="mp-comp-year">({{ c.year }})</span>
               <span class="mp-spacer" />
               <span class="mp-comp-conf" :data-confidence="c.confidence">
-                {{ c.confidence }} confidence
+                {{ $t("marketingPack.confidenceLabel", { level: c.confidence }) }}
               </span>
             </div>
             <p v-if="c.rationale" class="mp-comp-rationale">{{ c.rationale }}</p>
@@ -255,7 +249,7 @@ function formatComps(comps) {
 
     <template #footer>
       <UiButton v-if="pack && !running" intent="ghost" @click="clearAll">
-        Clear pack
+        {{ $t("marketingPack.clearPack") }}
       </UiButton>
       <span class="mp-foot-spacer" />
       <UiButton v-if="pack && !running" intent="ghost" @click="regenerate">
