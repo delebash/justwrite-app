@@ -1535,8 +1535,8 @@ defineExpose({
         <button v-if="show('italic')" class="tb-btn" :class="{ active: isActive('italic') }" @click="run('toggleItalic')" :data-tip="TIP.italic"><Icon name="Italic" :size="14" /></button>
         <button v-if="show('underline')" class="tb-btn" :class="{ active: isActive('underline') }" @click="run('toggleUnderline')" :data-tip="TIP.underline"><Icon name="Underline" :size="14" /></button>
         <button v-if="show('strike')" class="tb-btn" :class="{ active: isActive('strike') }" @click="run('toggleStrike')" :data-tip="TIP.strike"><Icon name="Strike" :size="14" /></button>
-        <button v-if="show('superscript')" class="tb-btn tb-glyph" :class="{ active: isActive('superscript') }" @click="run('toggleSuperscript')" :data-tip="TIP.superscript">x²</button>
-        <button v-if="show('subscript')" class="tb-btn tb-glyph" :class="{ active: isActive('subscript') }" @click="run('toggleSubscript')" :data-tip="TIP.subscript">x₂</button>
+        <button v-if="show('superscript')" class="tb-btn tb-glyph" :class="{ active: isActive('superscript') }" @click="run('toggleSuperscript')" :data-tip="TIP.superscript">{{ $t("richEditor.superscriptGlyph") }}</button>
+        <button v-if="show('subscript')" class="tb-btn tb-glyph" :class="{ active: isActive('subscript') }" @click="run('toggleSubscript')" :data-tip="TIP.subscript">{{ $t("richEditor.subscriptGlyph") }}</button>
       </div>
 
       <div class="group" v-if="show('highlight') || show('textColor') || show('fontDec') || show('fontInc') || show('clearFormat')">
@@ -1546,20 +1546,20 @@ defineExpose({
           </button>
           <div v-if="highlightOpen" class="tb-highlight-menu">
             <button v-for="c in HIGHLIGHT_COLORS" :key="c.color" type="button" class="tb-swatch" :style="{ background: c.color }" :title="c.label" @click="setHighlightColor(c.color)" />
-            <button type="button" class="tb-swatch tb-swatch-none" title="Remove highlight" @click="clearHighlight"><Icon name="Close" :size="11" /></button>
+            <button type="button" class="tb-swatch tb-swatch-none" :title="$t('richEditor.removeHighlight')" @click="clearHighlight"><Icon name="Close" :size="11" /></button>
           </div>
         </div>
         <div v-if="show('textColor')" class="tb-highlight" ref="textColorWrap">
-          <button class="tb-btn tb-btn-split" :class="{ active: textColorOpen }" @click="toggleTextColorMenu" data-tip="Text color">
-            <span class="tb-A" :style="textColorValue() ? { color: textColorValue() } : null">A</span><Icon name="ChevDown" :size="9" class="tb-caret" />
+          <button class="tb-btn tb-btn-split" :class="{ active: textColorOpen }" @click="toggleTextColorMenu" :data-tip="$t('richEditor.textColorTip')">
+            <span class="tb-A" :style="textColorValue() ? { color: textColorValue() } : null">{{ $t("richEditor.textColorGlyph") }}</span><Icon name="ChevDown" :size="9" class="tb-caret" />
           </button>
           <div v-if="textColorOpen" class="tb-highlight-menu">
             <button v-for="c in TEXT_COLORS" :key="c" type="button" class="tb-swatch" :style="{ background: c }" :title="c" @click="setTextColor(c)" />
-            <button type="button" class="tb-swatch tb-swatch-none" title="Default color" @click="clearTextColor"><Icon name="Close" :size="11" /></button>
+            <button type="button" class="tb-swatch tb-swatch-none" :title="$t('richEditor.defaultColor')" @click="clearTextColor"><Icon name="Close" :size="11" /></button>
           </div>
         </div>
-        <button v-if="show('fontDec')" class="tb-btn tb-glyph" @click="bumpFont(-1)" data-tip="Decrease font size">A−</button>
-        <button v-if="show('fontInc')" class="tb-btn tb-glyph" @click="bumpFont(1)" data-tip="Increase font size">A+</button>
+        <button v-if="show('fontDec')" class="tb-btn tb-glyph" @click="bumpFont(-1)" :data-tip="$t('richEditor.fontDecTip')">{{ $t("richEditor.fontDecGlyph") }}</button>
+        <button v-if="show('fontInc')" class="tb-btn tb-glyph" @click="bumpFont(1)" :data-tip="$t('richEditor.fontIncTip')">{{ $t("richEditor.fontIncGlyph") }}</button>
         <button v-if="show('clearFormat')" class="tb-btn" @click="clearFormat" data-tip="Clear formatting"><Icon name="Eraser" :size="14" /></button>
       </div>
 
@@ -1575,9 +1575,9 @@ defineExpose({
       </div>
 
       <div class="group" v-if="show('h1') || show('h2') || show('h3')">
-        <button v-if="show('h1')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 1 }) }" @click="setHeading(1)" :data-tip="TIP.h1">H1</button>
-        <button v-if="show('h2')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 2 }) }" @click="setHeading(2)" :data-tip="TIP.h2">H2</button>
-        <button v-if="show('h3')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 3 }) }" @click="setHeading(3)" :data-tip="TIP.h3">H3</button>
+        <button v-if="show('h1')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 1 }) }" @click="setHeading(1)" :data-tip="TIP.h1">{{ $t("richEditor.h1Glyph") }}</button>
+        <button v-if="show('h2')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 2 }) }" @click="setHeading(2)" :data-tip="TIP.h2">{{ $t("richEditor.h2Glyph") }}</button>
+        <button v-if="show('h3')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 3 }) }" @click="setHeading(3)" :data-tip="TIP.h3">{{ $t("richEditor.h3Glyph") }}</button>
       </div>
 
       <div class="group" v-if="show('link') || show('image') || show('table') || show('newScene')">
@@ -1588,7 +1588,7 @@ defineExpose({
       </div>
 
       <div class="group" v-if="show('comment')">
-        <button class="tb-btn" :class="{ active: isActive('comment') }" :disabled="editor.state.selection.empty" @click="openCommentEditor" data-tip="Add comment"><Icon name="Comment" :size="14" /></button>
+        <button class="tb-btn" :class="{ active: isActive('comment') }" :disabled="editor.state.selection.empty" @click="openCommentEditor" :data-tip="$t('richEditor.addCommentTip')"><Icon name="Comment" :size="14" /></button>
         <button class="tb-btn" :disabled="!hasComments" @click="gotoComment(-1)" data-tip="Previous comment"><Icon name="ChevRight" :size="13" style="transform:rotate(180deg)" /></button>
         <button class="tb-btn" :disabled="!hasComments" @click="gotoComment(1)" data-tip="Next comment"><Icon name="ChevRight" :size="13" /></button>
       </div>
@@ -1612,16 +1612,16 @@ defineExpose({
 
     <!-- Find & replace bar -->
     <div v-if="editor && findOpen" class="find-bar">
-      <input ref="findInput" v-model="findTerm" class="find-input" type="text" placeholder="Find"
+      <input ref="findInput" v-model="findTerm" class="find-input" type="text" :placeholder="$t('richEditor.findPlaceholder')"
         @keydown.enter.prevent="findNext" @keydown.shift.enter.prevent="findPrev" />
       <span class="find-count">{{ searchInfo.count ? `${searchInfo.current}/${searchInfo.count}` : "0/0" }}</span>
       <button class="tb-btn" @click="findPrev" data-tip="Previous"><Icon name="ArrowUp" :size="14" /></button>
       <button class="tb-btn" @click="findNext" data-tip="Next"><Icon name="ArrowDown" :size="14" /></button>
-      <label class="find-case" title="Match case">
-        <input type="checkbox" v-model="caseSensitive" /> Aa
+      <label class="find-case" :title="$t('richEditor.matchCase')">
+        <input type="checkbox" v-model="caseSensitive" /> {{ $t("richEditor.matchCaseGlyph") }}
       </label>
-      <input v-model="replaceTerm" class="find-input" type="text" placeholder="Replace with" />
-      <button class="tb-btn tb-text" @click="doReplace">Replace</button>
+      <input v-model="replaceTerm" class="find-input" type="text" :placeholder="$t('richEditor.replacePlaceholder')" />
+      <button class="tb-btn tb-text" @click="doReplace">{{ $t("richEditor.replace") }}</button>
       <button class="tb-btn tb-text" @click="doReplaceAll">{{ $t("common.all") }}</button>
       <button class="tb-btn" @click="closeFind" data-tip="Close"><Icon name="Close" :size="14" /></button>
     </div>
@@ -1631,7 +1631,7 @@ defineExpose({
       <button v-if="show('newScene')" class="tb-btn" @click="run('setSceneBoundary')"
         :data-tip="TIP.newScene"><Icon name="Strands" :size="14" /></button>
       <button class="tb-btn tb-text" :class="{ active: typewriter }" @click="toggleTypewriter"
-        data-tip="Typewriter scrolling — keep the current line centered">Typewriter</button>
+        :data-tip="$t('richEditor.typewriterTip')">{{ $t("richEditor.typewriter") }}</button>
       <button class="tb-btn" @click="toggleFocus" data-tip="Exit focus mode (Esc)"><Icon name="Close" :size="14" /></button>
     </div>
 
@@ -1641,18 +1641,18 @@ defineExpose({
       <button class="tb-btn" :class="{ active: isActive('italic') }" @click="run('toggleItalic')" :data-tip="TIP.italic"><Icon name="Italic" :size="14" /></button>
       <button class="tb-btn" :class="{ active: isActive('underline') }" @click="run('toggleUnderline')" :data-tip="TIP.underline"><Icon name="Underline" :size="14" /></button>
       <div class="tb-highlight" ref="textColorWrapBubble">
-        <button class="tb-btn tb-btn-split" :class="{ active: textColorBubbleOpen }" @click="toggleTextColorBubble" data-tip="Text color">
-          <span class="tb-A" :style="textColorValue() ? { color: textColorValue() } : null">A</span><Icon name="ChevDown" :size="9" class="tb-caret" />
+        <button class="tb-btn tb-btn-split" :class="{ active: textColorBubbleOpen }" @click="toggleTextColorBubble" :data-tip="$t('richEditor.textColorTip')">
+          <span class="tb-A" :style="textColorValue() ? { color: textColorValue() } : null">{{ $t("richEditor.textColorGlyph") }}</span><Icon name="ChevDown" :size="9" class="tb-caret" />
         </button>
         <div v-if="textColorBubbleOpen" class="tb-highlight-menu">
           <button v-for="c in TEXT_COLORS" :key="c" type="button" class="tb-swatch" :style="{ background: c }" :title="c" @click="setTextColor(c)" />
-          <button type="button" class="tb-swatch tb-swatch-none" title="Default color" @click="clearTextColor"><Icon name="Close" :size="11" /></button>
+          <button type="button" class="tb-swatch tb-swatch-none" :title="$t('richEditor.defaultColor')" @click="clearTextColor"><Icon name="Close" :size="11" /></button>
         </div>
       </div>
-      <button class="tb-btn tb-glyph" @click="bumpFont(-1)" data-tip="Decrease font size">A−</button>
-      <button class="tb-btn tb-glyph" @click="bumpFont(1)" data-tip="Increase font size">A+</button>
+      <button class="tb-btn tb-glyph" @click="bumpFont(-1)" :data-tip="$t('richEditor.fontDecTip')">{{ $t("richEditor.fontDecGlyph") }}</button>
+      <button class="tb-btn tb-glyph" @click="bumpFont(1)" :data-tip="$t('richEditor.fontIncTip')">{{ $t("richEditor.fontIncGlyph") }}</button>
       <button class="tb-btn" :class="{ active: isActive('link') }" @click="setLink" :data-tip="TIP.link"><Icon name="Link" :size="14" /></button>
-      <button class="tb-btn" :class="{ active: isActive('comment') }" @click="openCommentEditor" data-tip="Add comment"><Icon name="Comment" :size="14" /></button>
+      <button class="tb-btn" :class="{ active: isActive('comment') }" @click="openCommentEditor" :data-tip="$t('richEditor.addCommentTip')"><Icon name="Comment" :size="14" /></button>
       <!-- AI assist actions (Rewrite/Expand/Tighten/Continue/Line edits)
            moved to the scene strip's AI dropdown so they're always one
            click away (and not gated by a text selection appearing). -->
@@ -1668,23 +1668,23 @@ defineExpose({
       <template v-if="aiError">
         <Icon name="Alert" :size="13" />
         <span class="ai-bar-msg">{{ aiError }}</span>
-        <button class="tb-btn tb-text ai-bar-dismiss" @click="aiError = ''">Dismiss</button>
+        <button class="tb-btn tb-text ai-bar-dismiss" @click="aiError = ''">{{ $t("richEditor.dismiss") }}</button>
       </template>
       <template v-else>
         <Icon name="Sparkle" :size="13" />
-        <span class="ai-bar-msg">{{ pendingCount }} pending {{ pendingCount === 1 ? "change" : "changes" }}</span>
-        <button class="tb-btn tb-text ai-bar-step" @click="prevChange" :disabled="pendingCount === 0" title="Previous change">
+        <span class="ai-bar-msg">{{ $t("richEditor.pendingChanges", { n: pendingCount }, pendingCount) }}</span>
+        <button class="tb-btn tb-text ai-bar-step" @click="prevChange" :disabled="pendingCount === 0" :title="$t('richEditor.previousChange')">
           <Icon name="ChevRight" :size="11" style="transform:rotate(180deg)" />
         </button>
-        <button class="tb-btn tb-text ai-bar-step" @click="nextChange" :disabled="pendingCount === 0" title="Next change">
+        <button class="tb-btn tb-text ai-bar-step" @click="nextChange" :disabled="pendingCount === 0" :title="$t('richEditor.nextChange')">
           <Icon name="ChevRight" :size="11" />
         </button>
         <span v-if="currentChangeId" class="ai-bar-sep" aria-hidden="true">·</span>
-        <button v-if="currentChangeId" class="tb-btn tb-text ai-bar-accept" @click="acceptCurrentChange">Accept this</button>
-        <button v-if="currentChangeId" class="tb-btn tb-text ai-bar-reject" @click="rejectCurrentChange">Reject this</button>
+        <button v-if="currentChangeId" class="tb-btn tb-text ai-bar-accept" @click="acceptCurrentChange">{{ $t("richEditor.acceptThis") }}</button>
+        <button v-if="currentChangeId" class="tb-btn tb-text ai-bar-reject" @click="rejectCurrentChange">{{ $t("richEditor.rejectThis") }}</button>
         <span class="ai-bar-spacer"></span>
-        <button class="tb-btn tb-text ai-bar-accept" @click="acceptAllAiChanges">Accept all</button>
-        <button class="tb-btn tb-text ai-bar-reject" @click="rejectAllAiChanges">Reject all</button>
+        <button class="tb-btn tb-text ai-bar-accept" @click="acceptAllAiChanges">{{ $t("richEditor.acceptAll") }}</button>
+        <button class="tb-btn tb-text ai-bar-reject" @click="rejectAllAiChanges">{{ $t("richEditor.rejectAll") }}</button>
       </template>
     </div>
 
@@ -1700,8 +1700,8 @@ defineExpose({
     </div>
 
     <div v-if="showWordCount && editor && !focusMode" class="editor-footer">
-      <span>{{ wordCount.toLocaleString() }} words</span>
-      <span>{{ charCount.toLocaleString() }} chars</span>
+      <span>{{ $t("richEditor.wordsCount", { n: wordCount.toLocaleString() }) }}</span>
+      <span>{{ $t("richEditor.charsCount", { n: charCount.toLocaleString() }) }}</span>
     </div>
 
     <input ref="fileInput" type="file" accept="image/*" style="display:none" @change="onImagePicked" />
@@ -1716,36 +1716,36 @@ defineExpose({
       :style="{ left: `${ctxMenu.x}px`, top: `${ctxMenu.y}px` }"
       @keydown.escape="closeCtxMenu">
       <div class="ctx-section">
-        Selection only
-        <span v-if="!hasSelection" class="ctx-section-hint">Highlight text first to enable</span>
+        {{ $t("richEditor.ctxSelectionOnly") }}
+        <span v-if="!hasSelection" class="ctx-section-hint">{{ $t("richEditor.ctxSelectionHint") }}</span>
       </div>
       <button v-for="a in CTX_AI_SELECTION" :key="a.key" class="ctx-item" role="menuitem"
         :disabled="aiRunning || !hasSelection" @click="ctxRun(runWriterAction, a.key)">
         <Icon name="Sparkle" :size="13" class="ctx-ic" /><span class="ctx-label">{{ a.label }}</span>
       </button>
-      <div class="ctx-section">Selection or whole scene</div>
+      <div class="ctx-section">{{ $t("richEditor.ctxSelectionOrScene") }}</div>
       <button v-for="a in CTX_AI_ANY" :key="a.key" class="ctx-item" role="menuitem"
         :disabled="aiRunning" @click="ctxRun(runWriterAction, a.key)">
         <Icon name="Sparkle" :size="13" class="ctx-ic" /><span class="ctx-label">{{ a.label }}</span>
       </button>
       <div class="ctx-divider" />
-      <div class="ctx-section">Line edits <span class="ctx-section-hint">Selection, or whole scene if none</span></div>
+      <div class="ctx-section">{{ $t("richEditor.ctxLineEdits") }} <span class="ctx-section-hint">{{ $t("richEditor.ctxLineEditsHint") }}</span></div>
       <button v-for="r in PROSE_RULES_LIST" :key="r.key" class="ctx-item" role="menuitem"
         :disabled="aiRunning" @click="ctxRun(runProsePass, r.key)">
         <Icon name="Pencil" :size="13" class="ctx-ic" /><span class="ctx-label">{{ r.label }}</span>
       </button>
       <div class="ctx-divider" />
       <button class="ctx-item" role="menuitem" :disabled="!hasSelection" @click="ctxRun(doCut)">
-        <Icon name="Cut" :size="13" class="ctx-ic" /><span class="ctx-label">Cut</span><kbd class="ctx-kbd">{{ sc("mod+X") }}</kbd>
+        <Icon name="Cut" :size="13" class="ctx-ic" /><span class="ctx-label">{{ $t("richEditor.ctxCut") }}</span><kbd class="ctx-kbd">{{ sc("mod+X") }}</kbd>
       </button>
       <button class="ctx-item" role="menuitem" :disabled="!hasSelection" @click="ctxRun(doCopy)">
-        <Icon name="Copy" :size="13" class="ctx-ic" /><span class="ctx-label">Copy</span><kbd class="ctx-kbd">{{ sc("mod+C") }}</kbd>
+        <Icon name="Copy" :size="13" class="ctx-ic" /><span class="ctx-label">{{ $t("richEditor.ctxCopy") }}</span><kbd class="ctx-kbd">{{ sc("mod+C") }}</kbd>
       </button>
       <button class="ctx-item" role="menuitem" @click="ctxRun(doPaste)">
-        <Icon name="Paste" :size="13" class="ctx-ic" /><span class="ctx-label">Paste</span><kbd class="ctx-kbd">{{ sc("mod+V") }}</kbd>
+        <Icon name="Paste" :size="13" class="ctx-ic" /><span class="ctx-label">{{ $t("richEditor.ctxPaste") }}</span><kbd class="ctx-kbd">{{ sc("mod+V") }}</kbd>
       </button>
       <button class="ctx-item" role="menuitem" :disabled="!hasSelection" @click="ctxRun(openCommentEditor)">
-        <Icon name="Comment" :size="13" class="ctx-ic" /><span class="ctx-label">Add comment</span>
+        <Icon name="Comment" :size="13" class="ctx-ic" /><span class="ctx-label">{{ $t("richEditor.ctxAddComment") }}</span>
       </button>
       <!-- The Windows-11 "Show more options" grammar: we cannot open the
            browser's own menu programmatically, so this arms a one-shot
@@ -1753,7 +1753,7 @@ defineExpose({
            spell-check suggestions). Sticky at the menu's bottom so the
            spell-check door stays visible when the item list scrolls. -->
       <button class="ctx-item ctx-item-passthrough" role="menuitem" @click="ctxShowBrowserMenu">
-        <span class="ctx-label">Show browser menu (spell check)</span><kbd class="ctx-kbd">right-click again</kbd>
+        <span class="ctx-label">{{ $t("richEditor.ctxBrowserMenu") }}</span><kbd class="ctx-kbd">right-click again</kbd>
       </button>
     </div>
 
@@ -1762,17 +1762,17 @@ defineExpose({
     <div v-if="commentState.open" ref="commentPopEl" class="comment-pop"
       :style="{ left: `${commentState.x}px`, top: `${commentState.y}px` }" @keydown="onCommentKeydown">
       <template v-if="commentState.mode === 'edit'">
-        <textarea ref="commentInput" v-model="commentState.text" class="comment-pop-input" rows="3" placeholder="Add a comment…" />
+        <textarea ref="commentInput" v-model="commentState.text" class="comment-pop-input" rows="3" :placeholder="$t('richEditor.commentPlaceholder')" />
         <div class="comment-pop-actions">
           <UiButton intent="ghost" size="small" @click="closeComment">{{ $t("common.cancel") }}</UiButton>
-          <UiButton intent="primary" size="small" @click="saveComment">Save</UiButton>
+          <UiButton intent="primary" size="small" @click="saveComment">{{ $t("richEditor.save") }}</UiButton>
         </div>
       </template>
       <template v-else>
         <div class="comment-pop-text">{{ commentState.text }}</div>
         <div class="comment-pop-actions">
           <UiButton intent="ghost" size="small" @click="deleteComment">{{ $t("common.delete") }}</UiButton>
-          <UiButton intent="ghost" size="small" @click="editComment">Edit</UiButton>
+          <UiButton intent="ghost" size="small" @click="editComment">{{ $t("richEditor.edit") }}</UiButton>
           <UiButton intent="primary" size="small" @click="closeComment">{{ $t("common.close") }}</UiButton>
         </div>
       </template>
@@ -1794,13 +1794,13 @@ defineExpose({
         </div>
       </div>
       <input ref="markerLabelInput" v-model="markerState.label" class="marker-pop-input" type="text"
-        placeholder="Optional one-line note (Enter to save)" />
+        :placeholder="$t('richEditor.markerPlaceholder')" />
       <div class="marker-pop-actions">
-        <UiButton v-if="markerState.mode === 'edit'" intent="ghost" size="small" @click="removeMarkerHere">Resolve</UiButton>
+        <UiButton v-if="markerState.mode === 'edit'" intent="ghost" size="small" @click="removeMarkerHere">{{ $t("richEditor.resolve") }}</UiButton>
         <UiButton intent="ghost" size="small" @click="closeMarker">{{ $t("common.cancel") }}</UiButton>
         <UiButton intent="primary" size="small"
           @click="markerState.mode === 'edit' ? saveMarkerEdit() : dropMarker()">
-          {{ markerState.mode === "edit" ? "Save" : "Drop marker" }}
+          {{ markerState.mode === "edit" ? $t("richEditor.save") : $t("richEditor.dropMarker") }}
         </UiButton>
       </div>
     </div>
