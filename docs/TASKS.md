@@ -698,6 +698,50 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   MentionList produced `error  raw text 'Nothing found here' is used`, then restored
   byte-identically.
 
+  **CORRECTION, 2026-07-31 — "the strings `no-raw-text` CANNOT see" was only half of them.**
+  The paragraph above lists template-literal aria-labels and a few JS fallbacks and reads as if
+  that were the whole invisible surface. It was not. **English in a script-level object literal**
+  was never looked for:
+
+  ```js
+  const SEVERITY_META = { flag: { label: "Flag", icon: "Alert" } };
+  ```
+
+  Nine files held labels that way — 60+ user-visible strings — and every one shipped in English
+  inside the translated UI with all gates green. The sharpest case: `TrashView` rendered
+  **"Narrative strands"** untranslated on the same day all 38 locale keys for that feature were
+  renamed to `hilo narrativo`, so the Spanish build disagreed with itself on screen.
+
+  Now converted (+74 keys, 1,965 → 2,039): `TrashView` KIND_META and its `titleOf`/`subOf`
+  strings, `search.js` KIND_META, `eventsKind.js` labels and English `entityName` fallbacks,
+  `plotHoleScan.js` KIND_LABELS, `ForeshadowingScanModal` KIND_LABELS, `stuckDiagnostic.js`
+  MOVE_KIND_LABELS + MOVE_KIND_BLURBS, and the severity/verdict maps in the PlotHole, Critique
+  and CharacterAudit modals. `TrashView.labelOne` — twelve more English strings referenced
+  nowhere — was deleted.
+
+  **Left English deliberately, because they are model input rather than UI:** `rag/cards.js`
+  CARD_KIND_LABELS (feeds `citationLabel()`), `resumeBriefing.js` (returns `{ prompt }`), and
+  `stores/project.js` `"Untitled"` (a persisted default written into the project file).
+
+  **Two bugs fell out.** `plotHoles.severityPlural` was `"{label}s"` — appending an English *s*
+  to a label that was itself never translated; no language pluralises by suffixing a stem, and
+  it is gone. And `analysisView.stripHint` interpolated four `badge*` keys **that were never
+  defined**, so it had been printing `analysisView.badgeCliffhangerliffhanger` to users; the
+  message also split each word into a bolded initial plus a literal remainder
+  (`{cliffhanger}liffhanger`), which no language spelling them differently could render. Slots
+  now carry whole words.
+
+  **New gate: `src/renderer/src/i18n/i18nMapKeys.test.js`.** Holding message keys in a map means
+  resolving them with `$t(variable)`, which no scan for `$t("literal")` can check, and
+  `missingWarn` is `false` — so a typo renders the raw key silently. The test reads the maps as
+  text, resolves all 67 keys, and asserts it matched anything at all, because a regex that
+  quietly matches nothing would make the whole file vacuously pass. **Verified to bite:**
+  breaking `trash.kinds.chapters` to `trash.kinds.chaptrs` failed the suite, then restored.
+
+  The lesson worth keeping: `no-raw-text` is a **template** linter. Green means no raw text in
+  templates — it has never been evidence about `<script>`, and reporting it as "zero raw strings"
+  was overclaiming.
+
   **Final state:** `en.json` holds 1,965 leaf keys across 70 namespaces; 61 `<i18n-t>` blocks,
   all green under `i18nTSlots`; `i18n:report` reports 0 missing and 0 unused; 471 unit tests
   across 52 files; clean `build:vite`.
