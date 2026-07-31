@@ -746,6 +746,10 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   all green under `i18nTSlots`; `i18n:report` reports 0 missing and 0 unused; 471 unit tests
   across 52 files; clean `build:vite`.
 
+  *Superseded 2026-07-31 by the correction above: **2,039 leaf keys**, 474 unit tests across 53
+  files. The 1,965 figure was the count with 60+ user-visible strings still sitting in JS label
+  maps, outside i18n entirely.*
+
   **The two Sidebar stubs are resolved.** The hardcoded `MH` avatars became an `authorInitials`
   computed derived from `project.project.author`, falling back to the project title and then to
   empty. Keying `"MH"` would have written a mockup stub into the translation catalog. The

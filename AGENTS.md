@@ -4,7 +4,7 @@ Contributor-facing conventions for working in this codebase — equally for huma
 contributors and AI coding assistants (Claude Code, Cursor, Copilot, etc.).
 This is the *how we do things* file. The *what's where* primer lives in
 [`CLAUDE.md`](CLAUDE.md). The *why it's built this way* lives in
-[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+[`docs/dev/ARCHITECTURE.md`](docs/dev/ARCHITECTURE.md).
 
 When a new contributor's AI session runs in this repo it sees `CLAUDE.md` and
 `AGENTS.md` automatically. The conventions below assume that.
@@ -46,7 +46,7 @@ onDelta, ... })` from `services/aiStream.js`. The wrapper owns:
 - `friendlyAiError` wrapping
 - `recordUsage` to the cost ledger
 - Registration with the global AI Tasks store (see
-  [Architecture → AI task panel](docs/ARCHITECTURE.md#ai-task-panel))
+  [Architecture → AI task panel](docs/dev/ARCHITECTURE.md#ai-task-panel))
 
 Callers only write prompts. Don't roll your own `fetch` + SSE parse loop —
 the cost dashboard will have holes, the Cancel button will no-op, and the
@@ -257,7 +257,7 @@ behavior, update the relevant page(s) in `docs/` as part of the same change.
 **Why:** `docs/` is user-facing documentation that ships with the app
 (rendered in-app via `HelpView.vue`) AND syncs to the marketing site via
 `docs.tar.gz` at release time (see
-[Architecture → Marketing site & docs flow](docs/ARCHITECTURE.md#marketing-site--docs-flow)).
+[Architecture → Marketing site & docs flow](docs/dev/ARCHITECTURE.md#marketing-site--docs-flow)).
 Out-of-date docs reach real users.
 
 **How to apply:**

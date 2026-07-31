@@ -2,7 +2,7 @@
 
 > **⚠️ Historical note (2026-06-18):** JustWrite is now writing-only. The TTS / Audio Studio / audiobook material below (TTS provider candidates, voicebox, sherpa-onnx, "build our own TTS server", one-engine-at-a-time, etc.) is obsolete for JustWrite — voice production moved to the separate **JustVoice** app. It's kept as a research record; treat any audio / TTS item as out of scope for JustWrite.
 
-A pool of feature candidates, not commitments. Distinct from [`roadmap.md`](roadmap.md) (small concrete planned items) and [`ai-features-roadmap.md`](ai-features-roadmap.md) (AI-specific items already on deck). This page is the bigger, longer-horizon "what could JustWrite become next?" backlog, generated from a multi-source research pass.
+A pool of feature candidates, not commitments. Distinct from [`roadmap.md`](../roadmap.md) (small concrete planned items) and [`ai-features-roadmap.md`](ai-features-roadmap.md) (AI-specific items already on deck). This page is the bigger, longer-horizon "what could JustWrite become next?" backlog, generated from a multi-source research pass.
 
 **Research date:** 2026-06-05.
 **Method.** Six parallel research angles (writer pain-points, competitor roadmaps, AI fatigue/acceptance, mobile/sync/collab, genre-specific tooling, accessibility) across 2024–2026 sources — Reddit writing communities, NaNoWriMo, KBoards, Absolute Write, competitor changelogs (Scrivener, Novelcrafter, Sudowrite, Plottr, Campfire, Dabble, Atticus, World Anvil, Obsidian-for-writers, Living Writer, NovelAI), Authors Guild positions, Jane Friedman, Mythcreants, EFA, and editorial/accessibility blogs. 91 raw findings → merged, filtered against existing JustWrite surface, ranked by demand × novelty.

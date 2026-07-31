@@ -75,6 +75,14 @@ button or error message the user meets. A brand-new doc also needs a `docs/toc.j
 will not appear. The glob is **non-recursive** — `docs/plans/*` and `docs/dev/*` are internal and
 never ship.
 
+**`docs/` root is USER docs only — a dev doc there ships to users.** Anything written for us, not
+for a writer using the app, belongs in `docs/dev/` (notes, trackers, backlogs, architecture) or
+`docs/plans/` (per-task history). This is not a style preference: a file dropped in `docs/` root is
+bundled into the app's Help by the glob and packed into the public `docs.tar.gz`, so
+`docs/TASKS.md` put the open-work tracker in the Help sidebar between "Models" and "Appearance"
+(fixed 2026-07-31 by moving TASKS/IDEAS/ARCHITECTURE/bench to `docs/dev/`).
+`helpTargets.test.js` now fails if a doc appears in `docs/` root without a `toc.json` entry.
+
 ## Tooling
 
 **Biome** (`biome.json`) is the linter — `"formatter": { "enabled": false }`, so it does not format;
@@ -86,9 +94,9 @@ match each file's existing style and never bulk-reformat unrelated code. Scope i
 
 | For | Read |
 |---|---|
-| Open work across all repos | `docs/TASKS.md` (live tracker) · `docs/IDEAS.md` (backlog) |
+| Open work across all repos | `docs/dev/TASKS.md` (live tracker) · `docs/dev/IDEAS.md` (backlog) |
 | How we do things (conventions) | `AGENTS.md` |
-| Why it's built this way | `docs/ARCHITECTURE.md` |
+| Why it's built this way | `docs/dev/ARCHITECTURE.md` |
 | Stores, undo domains, IPC bridge, AI stack, export, images, i18n rules, test harnesses | `docs/dev/architecture-notes.md` |
 | Kit primitives, button intents, sizes, theming, download tasks | `docs/dev/ui-kit.md` |
 | Per-task history and evidence | `docs/plans/*` |

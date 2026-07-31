@@ -9,7 +9,7 @@
 // eighth copy is exactly the habit the EntityIndex extraction was about, so the
 // shared one is created FIRST and the new consumer uses it. The seven existing
 // copies are pre-existing duplication, filed with the whole-repo "extraction vs
-// copies" audit in docs/TASKS.md — they are a drop-in swap for this composable
+// copies" audit in docs/dev/TASKS.md — they are a drop-in swap for this composable
 // whenever that sweep runs.
 import { useProjectStore } from "../stores/project.js";
 

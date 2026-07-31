@@ -112,7 +112,10 @@ jobs:
           ref: ${{ inputs.tag }}
 
       - name: Pack docs
-        run: tar -czf docs.tar.gz docs/
+        # User docs ONLY — `docs/` (recursive) would ship docs/dev/ and
+        # docs/plans/ (trackers, backlogs, per-task history) inside a public
+        # release asset that the marketing site then mirrors.
+        run: tar -czf docs.tar.gz docs/*.md docs/toc.json
 
       - name: Attach to release
         env:

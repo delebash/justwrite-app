@@ -1,7 +1,7 @@
 # Architecture notes
 
 Detail behind the invariants in `CLAUDE.md`. Open the section you need; none of this has to be
-loaded to start work. The "why it's built this way" narrative lives in `docs/ARCHITECTURE.md`;
+loaded to start work. The "why it's built this way" narrative lives in `docs/dev/ARCHITECTURE.md`;
 per-task history lives in `docs/plans/*`.
 
 ## Layout
@@ -122,7 +122,7 @@ think/reasoning; the action keeps only its prompt text and JSON contract; one `d
 RunnerSetting catches unassigned customs. The current model lives in
 `just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrite.md`. The 2026-07-14 plan's Unit-2
 reasoning BACKEND stands; its task-tier language is superseded. The whole-system open-work tracker
-is `docs/TASKS.md`, which points at
+is `docs/dev/TASKS.md`, which points at
 `just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` (§A–J) for detail.
 
 ## Manuscript export

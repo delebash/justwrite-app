@@ -14,7 +14,7 @@
 // are one-off probe scripts for already-shipped work (`rag-probe`, `chip-probe`,
 // `switch-probe`, `shot.js`, …) and still carry their own Linux-only lookup —
 // so they cannot find a browser on Windows at all. Converting them is filed in
-// `docs/TASKS.md`, not silently assumed done. Import from this file; never re-fork.
+// `docs/dev/TASKS.md`, not silently assumed done. Import from this file; never re-fork.
 
 import { existsSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
