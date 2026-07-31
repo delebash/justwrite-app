@@ -691,16 +691,16 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   (`ev.title || "Untitled event"` → `events.untitled`), a Breadcrumb label built inside an array
   literal, and two `PaneHeader`/`AppModal` eyebrows.
 
-  **RUNNING STATE — 1,430 → 466 warnings, 69 → 11 files with warnings; 70 of 81 renderer files
-  are clean (67% of the warnings closed, 86% of the files).** The 11 left, worst first:
-  AnalysisView 80, ImportView 56, HomeView 52, RichEditor 49, ForeshadowingScanModal 40,
-  RelationshipArcModal 40, WritingAiSettings 39, MarketingPackModal 37, ReaderKnowledgeView 37,
-  PlotHoleScanModal 34, Sidebar 2 (the two deliberate stubs below).
+  **RUNNING STATE — 1,430 → 392 warnings, 69 → 9 files with warnings; 72 of 81 renderer files
+  are clean (73% of the warnings closed, 89% of the files).** The 9 left, worst first:
+  AnalysisView 80, ImportView 56, HomeView 52, RichEditor 49, RelationshipArcModal 40,
+  WritingAiSettings 39, MarketingPackModal 37, ReaderKnowledgeView 37, Sidebar 2 (the two
+  deliberate stubs below).
 
-  The three scan modals still open (Foreshadowing, PlotHole, Marketing) share the shape already
-  converted five times — eyebrow/title/chip, a blurb around one emphasised term, an idle blurb
-  with CTA, results, a footer that flips label on state. RelationshipArcModal and
-  ReaderKnowledgeView are entity-ish views. AnalysisView, ImportView, HomeView and RichEditor are
+  MarketingPackModal is the last of the AI-modal family and follows the shape converted seven
+  times now (eyebrow/title/chip, blurb around an emphasised term, idle blurb + CTA, results,
+  state-flipping footer) — it should be quick. RelationshipArcModal, ReaderKnowledgeView and
+  WritingAiSettings are mid-size one-offs. AnalysisView, ImportView, HomeView and RichEditor are
   the genuinely large ones and are best taken a section at a time. Every batch below is committed and pushed to `origin/master`, so this resumes
   from git at any point. Files done since the last note: SensoryResearchModal,
   StuckDiagnosticModal, LinkBackfillModal, CharacterProfileFillModal, EntityReviewModal,
