@@ -552,10 +552,10 @@ const milestoneState = computed(() => {
       </div>
 
       <div class="card">
-        <div class="card-title" style="margin-bottom:10px">Milestones</div>
+        <div class="card-title" style="margin-bottom:10px">{{ $t("analysisView.milestones") }}</div>
         <div class="ms-next" v-if="milestoneState.next">
-          <div class="ms-next-h">Next milestone</div>
-          <div class="ms-next-target">{{ milestoneState.next.toLocaleString() }} words</div>
+          <div class="ms-next-h">{{ $t("analysisView.nextMilestone") }}</div>
+          <div class="ms-next-target">{{ $t("analysisView.targetWords", { n: milestoneState.next.toLocaleString() }) }}</div>
           <div class="ms-bar">
             <div class="ms-fill" :style="`width:${milestoneState.pct}%`" />
           </div>
@@ -564,20 +564,20 @@ const milestoneState = computed(() => {
             <span class="t-muted">· {{ milestoneState.pct }}%</span>
           </div>
         </div>
-        <div v-else class="ms-next-h" style="color:var(--accent-ink)">Every milestone hit.</div>
+        <div v-else class="ms-next-h" style="color:var(--accent-ink)">{{ $t("analysisView.everyMilestoneHit") }}</div>
 
         <div class="ms-grid">
           <div v-for="m in MILESTONES" :key="m"
             class="ms-pip" :class="{ on: milestoneState.reached.includes(m), next: milestoneState.next === m }">
             <Icon :name="milestoneState.reached.includes(m) ? 'Check' : 'Star'" :size="11" />
-            <span>{{ (m / 1000) }}k</span>
+            <span>{{ $t("analysisView.thousandsShort", { n: m / 1000 }) }}</span>
           </div>
         </div>
 
         <div class="ms-streaks">
-          <div><span class="t-muted">Current streak</span><span><b>{{ sessions.streak }}</b> day{{ sessions.streak === 1 ? "" : "s" }}</span></div>
-          <div><span class="t-muted">Lifetime</span><span><b>{{ sessions.allTimeTotals.totalWords.toLocaleString() }}</b></span></div>
-          <div><span class="t-muted">Writing days</span><span><b>{{ sessions.allTimeTotals.writingDays }}</b></span></div>
+          <div><span class="t-muted">{{ $t("analysisView.currentStreak") }}</span><span>{{ $t("count.day", { n: sessions.streak }, sessions.streak) }}</span></div>
+          <div><span class="t-muted">{{ $t("analysisView.lifetime") }}</span><span><b>{{ sessions.allTimeTotals.totalWords.toLocaleString() }}</b></span></div>
+          <div><span class="t-muted">{{ $t("analysisView.writingDays") }}</span><span><b>{{ sessions.allTimeTotals.writingDays }}</b></span></div>
         </div>
       </div>
     </div>
@@ -585,7 +585,7 @@ const milestoneState = computed(() => {
     <!-- Status donut + Strand distribution -->
     <div class="status-row" style="display:grid;gap:18px;margin-bottom:18px">
       <div class="card">
-        <div class="card-title">Status</div>
+        <div class="card-title">{{ $t("analysisView.status") }}</div>
         <div style="display:flex;gap:18px;align-items:center">
           <svg viewBox="0 0 120 120" width="120" height="120">
             <circle :cx="donut.cx" :cy="donut.cy" :r="donut.r" fill="none"
@@ -610,7 +610,7 @@ const milestoneState = computed(() => {
       </div>
 
       <div class="card">
-        <div class="card-title">Narrative strands by word count</div>
+        <div class="card-title">{{ $t("analysisView.strandsByWords") }}</div>
         <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">
           <div v-for="s in strands" :key="s.strandId || 'none'">
             <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px">
@@ -618,7 +618,7 @@ const milestoneState = computed(() => {
                 <span :style="`width:10px;height:10px;border-radius:2px;background:${s.color}`" />
                 {{ s.name }}
               </span>
-              <span class="t-muted t-num">{{ s.words.toLocaleString() }} · {{ s.chapters }} ch</span>
+              <span class="t-muted t-num">{{ $t("analysisView.strandMeta", { words: s.words.toLocaleString(), chapters: s.chapters }) }}</span>
             </div>
             <div style="height:6px;background:var(--surface-3);border-radius:999px;overflow:hidden">
               <div :style="`width:${(s.words / strandTotal) * 100}%;height:100%;background:${s.color};border-radius:999px`" />
@@ -630,7 +630,7 @@ const milestoneState = computed(() => {
 
     <!-- Words per chapter -->
     <div class="card" style="margin-bottom:18px">
-      <div class="card-title">Words per chapter</div>
+      <div class="card-title">{{ $t("analysisView.wordsPerChapter") }}</div>
       <div style="margin-top:8px">
         <button v-for="c in allCh" :key="c.id" type="button"
           class="bar-row" @click="jumpChapter(c.id)">
@@ -646,19 +646,19 @@ const milestoneState = computed(() => {
     <!-- Style + pacing (deterministic) -->
     <div class="card" style="margin-bottom:18px" v-if="style.summary.words > 0">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-        <div class="card-title" style="margin:0">Style &amp; pacing</div>
-        <span class="t-muted" style="font-size:11.5px">Per-chapter prose metrics · {{ POV_LABELS[style.summary.dominantPov] }}</span>
+        <div class="card-title" style="margin:0">{{ $t("analysisView.stylePacing") }}</div>
+        <span class="t-muted" style="font-size:11.5px">{{ $t("analysisView.styleSub", { pov: POV_LABELS[style.summary.dominantPov] }) }}</span>
       </div>
 
       <!-- Book-level rollup pills -->
       <div class="pill-row">
-        <StatPill :value="style.summary.avgSentenceLength.toFixed(1)" label="words / sentence" />
-        <StatPill :value="style.summary.avgParagraphLength.toFixed(1)" label="words / paragraph" />
-        <StatPill :value="`${Math.round(style.summary.dialogueRatio * 100)}%`" label="dialogue" />
-        <StatPill :value="style.summary.filterWordsPer1k.toFixed(1)" label="filter words / 1k" />
-        <StatPill :value="style.summary.adverbsPer1k.toFixed(1)" label="adverbs / 1k" />
-        <StatPill :value="style.summary.passivePer1k.toFixed(1)" label="passive / 1k" />
-        <StatPill :value="`${(style.summary.pacingCoV * 100).toFixed(0)}%`" label="chapter-length variance" />
+        <StatPill :value="style.summary.avgSentenceLength.toFixed(1)" :label="$t('analysisView.pillWordsSentence')" />
+        <StatPill :value="style.summary.avgParagraphLength.toFixed(1)" :label="$t('analysisView.pillWordsParagraph')" />
+        <StatPill :value="`${Math.round(style.summary.dialogueRatio * 100)}%`" :label="$t('analysisView.pillDialogue')" />
+        <StatPill :value="style.summary.filterWordsPer1k.toFixed(1)" :label="$t('analysisView.pillFilterWords')" />
+        <StatPill :value="style.summary.adverbsPer1k.toFixed(1)" :label="$t('analysisView.pillAdverbs')" />
+        <StatPill :value="style.summary.passivePer1k.toFixed(1)" :label="$t('analysisView.pillPassive')" />
+        <StatPill :value="`${(style.summary.pacingCoV * 100).toFixed(0)}%`" :label="$t('analysisView.pillVariance')" />
       </div>
 
       <!-- Per-chapter style table -->
@@ -701,59 +701,59 @@ const milestoneState = computed(() => {
     <!-- Story tension timeline -->
     <div class="card st-card" style="margin-bottom:18px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
-        <div class="card-title" style="margin:0">Story tension</div>
-        <span class="t-muted" style="font-size:11.5px">Per-chapter tension + hook quality from structural analysis</span>
+        <div class="card-title" style="margin:0">{{ $t("analysisView.storyTension") }}</div>
+        <span class="t-muted" style="font-size:11.5px">{{ $t("analysisView.tensionSub") }}</span>
         <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
           <span v-if="analysedTensionRows.length" class="st-pill">
-            {{ analysedTensionRows.length }} of {{ tensionRows.length }} chapters analysed
+            {{ $t("analysisView.chaptersAnalysed", { analysed: analysedTensionRows.length, total: tensionRows.length }) }}
           </span>
           <UiButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     :disabled="!unanalysedCount && analysedTensionRows.length"
                     @click="runTensionSweep(false)"
-                    v-tooltip.bottom="unanalysedCount ? `Analyse ${unanalysedCount} chapter${unanalysedCount === 1 ? '' : 's'} that don't yet have a structural pass` : 'All chapters already analysed'">
+                    v-tooltip.bottom="unanalysedCount ? $t('analysisView.analyseTooltip', { chapters: $t('count.chapter', { n: unanalysedCount }, unanalysedCount) }) : $t('analysisView.allAnalysedTooltip')">
             <Icon name="Sparkle" :size="12" />
-            {{ unanalysedCount ? `Analyse ${unanalysedCount} chapter${unanalysedCount === 1 ? '' : 's'}` : 'All analysed' }}
+            {{ unanalysedCount ? $t('analysisView.analyseAction', { chapters: $t('count.chapter', { n: unanalysedCount }, unanalysedCount) }) : $t('analysisView.allAnalysed') }}
           </UiButton>
           <UiButton v-if="!tensionRunning.value && analysedTensionRows.length" intent="ghost" size="small"
                     @click="runTensionSweep(true)"
-                    v-tooltip.bottom="'Re-run on every chapter, replacing prior results'">
-            <Icon name="Refresh" :size="12" /> Re-analyse all
+                    v-tooltip.bottom="$t('analysisView.reanalyseAllTooltip')">
+            <Icon name="Refresh" :size="12" /> {{ $t("analysisView.reanalyseAll") }}
           </UiButton>
           <UiButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     @click="openReverseOutline"
-                    v-tooltip.bottom="'Read the whole draft and produce the act structure the book actually has'">
+                    v-tooltip.bottom="$t('analysisView.reverseOutlineTooltip')">
             <Icon name="Book" :size="12" />
-            {{ hasReverseOutline ? 'View reverse outline' : 'Reverse outline' }}
+            {{ hasReverseOutline ? $t('analysisView.viewReverseOutline') : $t('analysisView.reverseOutline') }}
           </UiButton>
           <UiButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     @click="openBeatSheet"
-                    v-tooltip.bottom="'Map the draft to Save the Cat, Heros Journey, or 7-Point Story Structure'">
+                    v-tooltip.bottom="$t('analysisView.beatSheetTooltip')">
             <Icon name="Target" :size="12" />
-            {{ hasAnyBeatSheet ? 'View beat sheet' : 'Map to beat sheet' }}
+            {{ hasAnyBeatSheet ? $t('analysisView.viewBeatSheet') : $t('analysisView.mapToBeatSheet') }}
           </UiButton>
           <UiButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     @click="openPlotHoles"
-                    v-tooltip.bottom="'One-pass continuity audit for contradictions, timeline drift, character-knowledge errors'">
+                    v-tooltip.bottom="$t('analysisView.plotHolesTooltip')">
             <Icon name="Alert" :size="12" />
-            {{ hasPlotHoles ? `Plot holes (${plotHolesActiveCount})` : 'Plot-hole audit' }}
+            {{ hasPlotHoles ? $t('analysisView.plotHolesCount', { n: plotHolesActiveCount }) : $t('analysisView.plotHoleAudit') }}
           </UiButton>
           <UiButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     @click="openMarketingPack"
-                    v-tooltip.bottom="'Logline, back-cover blurbs, synopsis, and elevator pitch for querying and pitching'">
+                    v-tooltip.bottom="$t('analysisView.marketingTooltip')">
             <Icon name="Export" :size="12" />
-            {{ hasMarketingPack ? 'View marketing pack' : 'Marketing pack' }}
+            {{ hasMarketingPack ? $t('analysisView.viewMarketingPack') : $t('analysisView.marketingPack') }}
           </UiButton>
           <UiButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     @click="openEntitySweep"
-                    v-tooltip.bottom="'Entity sweep — scan the whole manuscript for new characters, locations, and objects to add to the story bible'">
+                    v-tooltip.bottom="$t('analysisView.entitySweepTooltip')">
             <Icon name="Sparkle" :size="12" />
-            Entity sweep
+            {{ $t("common.entitySweep") }}
           </UiButton>
           <UiButton v-if="!tensionRunning.value" intent="ghost" size="small"
                     @click="openLinkBackfill"
-                    v-tooltip.bottom="'Link scenes — match every story-bible name and alias against your prose (no AI) and review which scenes should be linked to which entities'">
+                    v-tooltip.bottom="$t('analysisView.linkScenesTooltip')">
             <Icon name="Pin" :size="12" />
-            Link scenes
+            {{ $t("analysisView.linkScenes") }}
           </UiButton>
           <UiButton v-else-if="tensionRunning.value" intent="danger" size="small" @click="cancelTensionSweep">
             <Icon name="Close" :size="12" /> {{ $t("common.cancel") }}
@@ -768,7 +768,7 @@ const milestoneState = computed(() => {
       <AiTaskStrip :task="tensionTask" />
 
       <p v-if="!analysedTensionRows.length && !tensionRunning.value" class="st-empty">
-        No chapters have a structural analysis yet. Click the button above to walk every chapter and score tension (1–10), hook quality (1–10), pacing, and ending classification. Sequential — one LLM call per chapter — so longer books take a while. Cancel mid-sweep keeps partial results.
+        {{ $t("analysisView.tensionEmpty") }}
       </p>
 
       <template v-if="tensionGeom && analysedTensionRows.length">
@@ -776,25 +776,25 @@ const milestoneState = computed(() => {
         <div v-if="tensionStats" class="st-stats">
           <div class="st-stat">
             <div class="st-stat-v">{{ tensionStats.avgTension.toFixed(1) }}<small> / 10</small></div>
-            <div class="st-stat-k">avg tension</div>
+            <div class="st-stat-k">{{ $t("analysisView.avgTension") }}</div>
           </div>
           <div class="st-stat">
             <div class="st-stat-v">{{ tensionStats.avgHook.toFixed(1) }}<small> / 10</small></div>
-            <div class="st-stat-k">avg hook quality</div>
+            <div class="st-stat-k">{{ $t("analysisView.avgHookQuality") }}</div>
           </div>
           <div class="st-stat st-stat-wide">
             <button class="st-stat-jump" @click="jumpChapter(tensionStats.peakChapter.id)"
                     v-tooltip.bottom="'Open this chapter'">
-              Ch.{{ tensionStats.peakChapter.num }} — {{ tensionStats.peakChapter.title || 'Untitled' }} ({{ tensionStats.peakValue }}/10)
+              {{ $t("analysisView.chapterScore", { num: tensionStats.peakChapter.num, title: tensionStats.peakChapter.title || $t("analysisView.untitled"), value: tensionStats.peakValue }) }}
             </button>
-            <div class="st-stat-k">peak tension</div>
+            <div class="st-stat-k">{{ $t("analysisView.peakTension") }}</div>
           </div>
           <div class="st-stat st-stat-wide">
             <button class="st-stat-jump" @click="jumpChapter(tensionStats.lowChapter.id)"
                     v-tooltip.bottom="'Open this chapter'">
-              Ch.{{ tensionStats.lowChapter.num }} — {{ tensionStats.lowChapter.title || 'Untitled' }} ({{ tensionStats.lowValue }}/10)
+              {{ $t("analysisView.chapterScore", { num: tensionStats.lowChapter.num, title: tensionStats.lowChapter.title || $t("analysisView.untitled"), value: tensionStats.lowValue }) }}
             </button>
-            <div class="st-stat-k">lowest tension</div>
+            <div class="st-stat-k">{{ $t("analysisView.lowestTension") }}</div>
           </div>
         </div>
 
@@ -819,8 +819,8 @@ const milestoneState = computed(() => {
                     stroke-dasharray="3 2" vector-effect="non-scaling-stroke" />
         </svg>
         <div class="st-legend">
-          <span class="st-legend-item"><span class="st-legend-line tension" /> Tension</span>
-          <span class="st-legend-item"><span class="st-legend-line hook" /> Hook quality</span>
+          <span class="st-legend-item"><span class="st-legend-line tension" /> {{ $t("analysisView.legendTension") }}</span>
+          <span class="st-legend-item"><span class="st-legend-line hook" /> {{ $t("analysisView.legendHook") }}</span>
         </div>
 
         <!-- Per-chapter strip — pacing/ending classification at a glance -->
@@ -838,10 +838,12 @@ const milestoneState = computed(() => {
             </span>
           </button>
         </div>
-        <p class="st-strip-hint">
-          Cell colour = pacing (slow / balanced / fast). Corner badge = ending class
-          (<strong>C</strong>liffhanger · <strong>S</strong>oft hook · <strong>C</strong>losed · <strong>D</strong>ead-end). Click any chapter to open it.
-        </p>
+        <i18n-t keypath="analysisView.stripHint" tag="p" class="st-strip-hint" scope="global">
+          <template #cliffhanger><strong>{{ $t("analysisView.badgeCliffhanger") }}</strong></template>
+          <template #soft><strong>{{ $t("analysisView.badgeSoft") }}</strong></template>
+          <template #closed><strong>{{ $t("analysisView.badgeClosed") }}</strong></template>
+          <template #deadEnd><strong>{{ $t("analysisView.badgeDeadEnd") }}</strong></template>
+        </i18n-t>
       </template>
     </div>
 
@@ -855,27 +857,25 @@ const milestoneState = computed(() => {
     <!-- Voice drift -->
     <div v-if="drift.eligible" class="card vd-card" style="margin-bottom:18px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-        <div class="card-title" style="margin:0">Voice drift</div>
-        <span class="t-muted" style="font-size:11.5px">Per-metric trend across chapters · outliers in red</span>
+        <div class="card-title" style="margin:0">{{ $t("analysisView.voiceDrift") }}</div>
+        <span class="t-muted" style="font-size:11.5px">{{ $t("analysisView.voiceDriftSub") }}</span>
         <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
-          <AiFeatureChip feature="voiceDrift" label="Voice drift" editable />
-          <span class="vd-pill vd-pill-hot">{{ drift.hotChapters.length }} hot chapter{{ drift.hotChapters.length === 1 ? '' : 's' }}</span>
-          <span class="vd-pill vd-pill-muted">{{ Math.round(drift.driftIndex * 100) }}% of the book</span>
+          <AiFeatureChip feature="voiceDrift" :label="$t('analysisView.voiceDrift')" editable />
+          <span class="vd-pill vd-pill-hot">{{ $t("analysisView.hotChapterPill", { n: drift.hotChapters.length }, drift.hotChapters.length) }}</span>
+          <span class="vd-pill vd-pill-muted">{{ $t("analysisView.percentOfBook", { n: Math.round(drift.driftIndex * 100) }) }}</span>
         </span>
       </div>
 
-      <p class="vd-blurb">
-        For each metric, the line shows per-chapter values; the dashed line is the book-wide mean;
-        the band is ±1 standard deviation. Chapters that sit outside the band on this metric are dots
-        rendered in red. A chapter that's an outlier on <strong>two or more</strong> metrics — what we call
-        <strong>hot</strong> — is a likely voice-drift candidate.
-      </p>
+      <i18n-t keypath="analysisView.driftBlurb" tag="p" class="vd-blurb" scope="global">
+        <template #twoOrMore><strong>{{ $t("analysisView.twoOrMoreTerm") }}</strong></template>
+        <template #hot><strong>{{ $t("analysisView.hotTerm") }}</strong></template>
+      </i18n-t>
 
       <div class="vd-grid">
         <div v-for="m in drift.metrics" :key="m.key" class="vd-row">
           <div class="vd-row-label">
             <span class="vd-row-title">{{ m.label }}</span>
-            <span class="vd-row-mean">mean {{ m.format(m.mean) }}</span>
+            <span class="vd-row-mean">{{ $t("analysisView.mean", { value: m.format(m.mean) }) }}</span>
           </div>
           <div class="vd-row-trend"
                :style="{ color: TREND_COLOURS[m.trend.direction] }"
@@ -909,23 +909,23 @@ const milestoneState = computed(() => {
 
       <!-- Hot chapters list -->
       <div v-if="drift.hotChapters.length" class="vd-hot">
-        <div class="vd-hot-h">Hot chapters</div>
+        <div class="vd-hot-h">{{ $t("analysisView.hotChapters") }}</div>
         <AiTaskStrip :task="driftTask" />
         <ul class="vd-hot-list">
           <li v-for="hc in drift.hotChapters" :key="hc.chapterId" class="vd-hot-row">
             <div class="vd-hot-main">
               <button class="vd-hot-jump" @click="jumpChapter(hc.chapterId)"
-                      v-tooltip.bottom="'Open chapter in editor'">
-                Ch. {{ hc.num }} — {{ hc.title || 'Untitled' }}
+                      v-tooltip.bottom="$t('analysisView.openChapterEditor')">
+                {{ $t("analysisView.hotChapterTitle", { num: hc.num, title: hc.title || $t("analysisView.untitled") }) }}
               </button>
-              <span class="vd-hot-count">{{ hc.outlierCount }} outlier metrics</span>
+              <span class="vd-hot-count">{{ $t("analysisView.outlierMetrics", { n: hc.outlierCount }) }}</span>
             </div>
             <UiButton intent="ghost" size="small"
                       :disabled="driftExplainingId && driftExplainingId !== hc.chapterId"
                       @click="explainHot(hc.chapterId)"
-                      v-tooltip.bottom="'Ask your LLM why this chapter\'s metrics are out of range'">
+                      v-tooltip.bottom="$t('analysisView.explainTooltip')">
               <Icon name="Sparkle" :size="12" />
-              {{ driftExplanations[hc.chapterId]?.text ? 'Hide' : driftExplanations[hc.chapterId]?.running ? 'Diagnosing…' : 'Explain' }}
+              {{ driftExplanations[hc.chapterId]?.text ? $t('analysisView.hide') : driftExplanations[hc.chapterId]?.running ? $t('analysisView.diagnosing') : $t('analysisView.explain') }}
             </UiButton>
             <div v-if="driftExplanations[hc.chapterId]" class="vd-hot-explain">
               <p v-if="driftExplanations[hc.chapterId].error" class="vd-hot-err">
@@ -934,30 +934,30 @@ const milestoneState = computed(() => {
               <p v-else-if="driftExplanations[hc.chapterId].text" class="vd-hot-text">
                 {{ driftExplanations[hc.chapterId].text }}
               </p>
-              <p v-else class="vd-hot-loading">Reading the chapter…</p>
+              <p v-else class="vd-hot-loading">{{ $t("analysisView.readingChapter") }}</p>
             </div>
           </li>
         </ul>
       </div>
       <p v-else class="vd-blurb" style="margin-top:14px;font-style:italic">
-        No chapters sit more than 1 standard deviation off on two or more metrics — your voice is consistent so far.
+        {{ $t("analysisView.noDrift") }}
       </p>
     </div>
 
     <!-- Cast presence heatmap -->
     <div class="card" style="margin-bottom:18px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-        <div class="card-title" style="margin:0">Cast presence</div>
-        <span class="t-muted" style="font-size:11.5px">Filled cells = character appears in that chapter</span>
+        <div class="card-title" style="margin:0">{{ $t("analysisView.castPresence") }}</div>
+        <span class="t-muted" style="font-size:11.5px">{{ $t("analysisView.castSub") }}</span>
         <div style="margin-left:auto;display:flex;gap:8px;font-size:11px;color:var(--muted)">
           <span style="display:inline-flex;align-items:center;gap:5px">
-            <span style="width:10px;height:10px;border-radius:2px;background:var(--surface-3)" /> none
+            <span style="width:10px;height:10px;border-radius:2px;background:var(--surface-3)" /> {{ $t("analysisView.legendNone") }}
           </span>
           <span style="display:inline-flex;align-items:center;gap:5px">
-            <span style="width:10px;height:10px;border-radius:2px;background:color-mix(in oklab, var(--accent) 30%, var(--surface))" /> mention
+            <span style="width:10px;height:10px;border-radius:2px;background:color-mix(in oklab, var(--accent) 30%, var(--surface))" /> {{ $t("analysisView.legendMention") }}
           </span>
           <span style="display:inline-flex;align-items:center;gap:5px">
-            <span style="width:10px;height:10px;border-radius:2px;background:var(--accent)" /> featured
+            <span style="width:10px;height:10px;border-radius:2px;background:var(--accent)" /> {{ $t("analysisView.legendFeatured") }}
           </span>
         </div>
       </div>
@@ -982,10 +982,10 @@ const milestoneState = computed(() => {
 
     <!-- Scenes per chapter -->
     <div class="card">
-      <div class="card-title">Scenes per chapter</div>
+      <div class="card-title">{{ $t("analysisView.scenesPerChapter") }}</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(80px, 1fr));gap:6px;margin-top:8px">
         <button v-for="s in scenes" :key="s.num"
-          class="scene-cell" :title="`Ch. ${s.num} — ${s.title}`"
+          class="scene-cell" :title="$t('analysisView.sceneCellTitle', { num: s.num, title: s.title })"
           @click="jumpChapter(allCh.find(c => c.num === s.num)?.id)">
           <div class="scene-bar">
             <div :style="`height:${(s.scenes / maxScenes) * 100}%;background:var(--accent)`" />
