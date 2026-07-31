@@ -691,17 +691,22 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   (`ev.title || "Untitled event"` → `events.untitled`), a Breadcrumb label built inside an array
   literal, and two `PaneHeader`/`AppModal` eyebrows.
 
-  **RUNNING STATE — 1,430 → 392 warnings, 69 → 9 files with warnings; 72 of 81 renderer files
-  are clean (73% of the warnings closed, 89% of the files).** The 9 left, worst first:
-  AnalysisView 80, ImportView 56, HomeView 52, RichEditor 49, RelationshipArcModal 40,
-  WritingAiSettings 39, MarketingPackModal 37, ReaderKnowledgeView 37, Sidebar 2 (the two
-  deliberate stubs below).
+  **THE SWEEP IS DONE — 1,430 → 0 warnings, 69 → 0 files. All 81 renderer .vue files are clean,
+  and `no-raw-text` is now `"error"`.** The rule always said it would flip "once every view is
+  converted"; that condition is met, so `eslint.i18n.config.mjs` now fails on a new hardcoded
+  string instead of adding it to a backlog. **Verified to bite:** injecting a raw string into
+  MentionList produced `error  raw text 'Nothing found here' is used`, then restored
+  byte-identically.
 
-  MarketingPackModal is the last of the AI-modal family and follows the shape converted seven
-  times now (eyebrow/title/chip, blurb around an emphasised term, idle blurb + CTA, results,
-  state-flipping footer) — it should be quick. RelationshipArcModal, ReaderKnowledgeView and
-  WritingAiSettings are mid-size one-offs. AnalysisView, ImportView, HomeView and RichEditor are
-  the genuinely large ones and are best taken a section at a time. Every batch below is committed and pushed to `origin/master`, so this resumes
+  **Final state:** `en.json` holds 1,965 leaf keys across 70 namespaces; 61 `<i18n-t>` blocks,
+  all green under `i18nTSlots`; `i18n:report` reports 0 missing and 0 unused; 471 unit tests
+  across 52 files; clean `build:vite`.
+
+  **The two Sidebar stubs are resolved.** The hardcoded `MH` avatars became an `authorInitials`
+  computed derived from `project.project.author`, falling back to the project title and then to
+  empty. Keying `"MH"` would have written a mockup stub into the translation catalog. The
+  `v0.1 · local` brand sub-line is keyed as `sidebar.brand.sub` but its version is still frozen
+  text — binding it to `APP_VERSION` remains yours to call, and is no longer blocking anything. Every batch below is committed and pushed to `origin/master`, so this resumes
   from git at any point. Files done since the last note: SensoryResearchModal,
   StuckDiagnosticModal, LinkBackfillModal, CharacterProfileFillModal, EntityReviewModal,
   VariationsModal, AiTellScanModal, ProjectReplaceModal, ReverseOutlineModal, SearchView,
