@@ -22,9 +22,9 @@ import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-// …/justwrite-app/src/renderer/src/components/__tests__ → …/Web, then into the kit —
+// …/justwrite-app/src/components/__tests__ → …/Web, then into the kit —
 // the same repo-to-kit relationship vitest.config.js's alias encodes.
-const KIT = resolve(HERE, "../../../../../../just-llm-runner/ui/src");
+const KIT = resolve(HERE, "../../../../just-llm-runner/ui/src");
 
 function readKit(rel) {
   const path = resolve(KIT, rel);

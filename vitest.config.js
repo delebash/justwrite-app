@@ -19,7 +19,7 @@ export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      "@renderer": resolve(__dirname, "src/renderer/src"),
+      "@renderer": resolve(__dirname, "src"),
       // Same source-alias as vite.config.js — tests mock it with vi.mock where
       // network transport is involved.
       "@delebash/llm-ui": resolve(__dirname, "../just-llm-runner/ui/src"),
@@ -35,6 +35,6 @@ export default defineConfig({
     // scripts/** carries the bench harness's pure-JS units (config validation,
     // llama-bench output parsing, summary rendering, restore round-trip) — the
     // parts of the harness that can be gated without models or a box.
-    include: ["src/renderer/src/**/*.test.js", "bench/harness/**/*.test.js", "scripts/**/*.test.js"],
+    include: ["src/**/*.test.js", "bench/harness/**/*.test.js", "scripts/**/*.test.js"],
   },
 });

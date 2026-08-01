@@ -30,10 +30,10 @@ import { fileURLToPath } from "url";
 import { usePanelDismiss } from "@delebash/llm-ui";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-// …/justwrite-app/src/renderer/src/components/__tests__ → …/Web, then into the kit.
+// …/justwrite-app/src/components/__tests__ → …/Web, then into the kit.
 // Same repo-to-kit relationship vitest.config.js's alias encodes (identical to
 // modalDragAndScrim.test.js — deliberately, so a kit move breaks both at once).
-const WEB = resolve(HERE, "../../../../../..");
+const WEB = resolve(HERE, "../../../..");
 const readKit = (rel) => readFileSync(resolve(WEB, "just-llm-runner/ui/src", rel), "utf8");
 const readJw = (rel) => readFileSync(resolve(HERE, "../..", rel), "utf8");
 
@@ -249,7 +249,7 @@ describe("the dismissal logic lives in ONE place (R3)", () => {
     const stripComments = (s) =>
       s.replace(/<!--[\s\S]*?-->/g, "").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-    const ROOTS = [resolve(HERE, "../.."), resolve(HERE, "../../../../../scripts")];
+    const ROOTS = [resolve(HERE, "../.."), resolve(HERE, "../../../scripts")];
     const offenders = [];
     const walk = (dir) => {
       for (const e of readdirSync(dir, { withFileTypes: true })) {

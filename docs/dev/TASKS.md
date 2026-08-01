@@ -47,7 +47,7 @@ committed and pushed — JW `b78337e`, runner `825b9af` + `40737fe`.)*
   `splash-plate.source.png` + `assets/README.md`. Fit settled as `fill` (stretch): `contain`
   bands, `cover` cuts the baked lettering, `fill` never loses content — 2.6% distortion at your
   1920, ~14% at the 1440 default. Detail: plan doc §30-33.
-- **Fonts self-hosted.** 16 `@fontsource` families + `src/renderer/src/fonts.css`; the
+- **Fonts self-hosted.** 16 `@fontsource` families + `src/fonts.css`; the
   render-blocking Google `<link>` and both preconnects are gone. Verified on the production
   build: 0 external requests, 16/16 families render. **`vite.config.js` changed — a fresh
   `npm run dev` is required.** §21, §24.
@@ -653,7 +653,7 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   cosmetic: no other language pluralizes by appending "s".
 
   **A NEW GATE, because `<i18n-t>` had two invisible failure modes:**
-  `src/renderer/src/i18n/i18nTSlots.test.js`. A wrong or renamed keypath renders an **EMPTY**
+  `src/i18n/i18nTSlots.test.js`. A wrong or renamed keypath renders an **EMPTY**
   element (missingWarn/fallbackWarn are off); a slot named differently from its placeholder
   renders the placeholder **LITERALLY**, shipping `{chapters}` in visible copy. `i18n:lint` finds
   no raw text inside an `<i18n-t>`; `i18n:report` matches string literals, not keypath attributes;
@@ -693,7 +693,7 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
 
   **THE SWEEP IS DONE — 1,430 → 0 warnings, 69 → 0 files. All 81 renderer .vue files are clean,
   and `no-raw-text` is now `"error"`.** The rule always said it would flip "once every view is
-  converted"; that condition is met, so `eslint.i18n.config.mjs` now fails on a new hardcoded
+  converted"; that condition is met, so `eslint.i18n.config.js` now fails on a new hardcoded
   string instead of adding it to a backlog. **Verified to bite:** injecting a raw string into
   MentionList produced `error  raw text 'Nothing found here' is used`, then restored
   byte-identically.
@@ -731,7 +731,7 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   (`{cliffhanger}liffhanger`), which no language spelling them differently could render. Slots
   now carry whole words.
 
-  **New gate: `src/renderer/src/i18n/i18nMapKeys.test.js`.** Holding message keys in a map means
+  **New gate: `src/i18n/i18nMapKeys.test.js`.** Holding message keys in a map means
   resolving them with `$t(variable)`, which no scan for `$t("literal")` can check, and
   `missingWarn` is `false` — so a typo renders the raw key silently. The test reads the maps as
   text, resolves all 67 keys, and asserts it matched anything at all, because a regex that
@@ -762,7 +762,7 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   NotesView.
 
   **HOW TO CARRY ON — the method that is working, so the next session need not rediscover it:**
-  1. `npx eslint -c eslint.i18n.config.mjs <file>` for one file's warnings; convert the whole
+  1. `npx eslint -c eslint.i18n.config.js <file>` for one file's warnings; convert the whole
      file; lint it again. Do NOT chase individual warnings across files.
   2. Add keys with a small Python patch script (heredoc) doing exact-string replacements and
      PRINTING any that miss — sed mangles the `$t` and the curly quotes, and `en.json` is
@@ -809,7 +809,7 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   `LIFE_STATUS_OPTIONS` + `columns` DID become `computed()` (their labels are consumed as
   props, not rendered). Two shared keys minted for every entity list: `common.all`,
   `common.countOf`. Dead code removed: `LIFE_STATUS_LABEL` (declared, never read).
-  **New gate — `src/renderer/src/i18n/characterFieldKeys.test.js`:** the dynamic key form is
+  **New gate — `src/i18n/characterFieldKeys.test.js`:** the dynamic key form is
   invisible to every other check (vue-i18n-extract sees no literal; `missingWarn:false`
   means a typo renders an EMPTY STRING with no console error, so even the smoke passes), so
   this test parses the view's descriptor arrays and asserts a non-blank label+hint for each,
@@ -870,7 +870,7 @@ compute from whatever floors/estimates exist; blank → "unknown", never a guess
   for words with no existing key of the same MEANING (an aria-label is not a noun in prose).
   **Code identifiers stay out of the catalog** — `accent2`, `.zip`, `.prev.json`, `@` are
   data values, which the i18n rules never translate; they live in the template inside
-  `<code>`, and `eslint.i18n.config.mjs` gained `code` in `ignoreNodes` (the rule's own
+  `<code>`, and `eslint.i18n.config.js` gained `code` in `ignoreNodes` (the rule's own
   option for this, not a workaround).
   **Bonus, same pattern:** `settings.backups.dataFolderHint` — the last documented
   "deliberate leftover", a sentence wrapped around a `<UiButton>` — is now one keypath with a

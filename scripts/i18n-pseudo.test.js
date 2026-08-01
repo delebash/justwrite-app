@@ -2,10 +2,10 @@
 // segments survive byte-identical. The `pseudo-localization` package alone
 // mangles them ({n} → {ƞ}, probed before adoption — Ruling 4 in
 // docs/plans/2026-07-26-i18n-phase1-coverage-plan.md); the wrapper in
-// i18n-pseudo.mjs splits them out first. If this test fails, the pseudo
+// i18n-pseudo.js splits them out first. If this test fails, the pseudo
 // locale would BREAK interpolation instead of revealing i18n bugs.
 import { describe, expect, it } from "vitest";
-import { pseudo } from "./i18n-pseudo.mjs";
+import { pseudo } from "./i18n-pseudo.js";
 
 describe("i18n-pseudo", () => {
   it("round-trips {…} interpolation and <…> markup untouched", () => {

@@ -32,8 +32,8 @@ import { describe, expect, it } from "vitest";
 import { useCatalogMeta } from "@delebash/llm-ui/composables/useCatalogMeta.js";
 import { useHardware } from "@delebash/llm-ui/composables/useHardware.js";
 
-// <repo>/src/renderer/src/components/__tests__ → the sibling kit checkout.
-const KIT_SRC = fileURLToPath(new URL("../../../../../../just-llm-runner/ui/src", import.meta.url));
+// <repo>/src/components/__tests__ → the sibling kit checkout.
+const KIT_SRC = fileURLToPath(new URL("../../../../just-llm-runner/ui/src", import.meta.url));
 
 function sourceFiles(dir) {
   const out = [];

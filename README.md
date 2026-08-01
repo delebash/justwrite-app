@@ -303,7 +303,7 @@ justwrite-app/
 
 ## How the IPC bridge works
 
-The renderer never calls `invoke()` directly. `src/renderer/src/services/tauri-bridge.js` is a side-effect import in `main.js`. When running inside Tauri it populates `window.justwrite`:
+The renderer never calls `invoke()` directly. `src/services/tauri-bridge.js` is a side-effect import in `main.js`. When running inside Tauri it populates `window.justwrite`:
 
 ```js
 window.justwrite = {
@@ -323,7 +323,7 @@ When adding a new Tauri command:
 
 ## AI providers
 
-JustWrite uses one client class for everything: **`OpenAICompatClient`** (`src/renderer/src/services/openai-compat.js`).
+JustWrite uses one client class for everything: **`OpenAICompatClient`** (`src/services/openai-compat.js`).
 
 Pre-configured presets in Settings → **AI engines**:
 
@@ -397,11 +397,11 @@ Four dev-only tools are wired into devDependencies for periodic cleanup. None ru
 ### Light audit — run by hand
 
 ```bash
-npx biome check src/renderer/src/        # lint findings (add --apply for safe auto-fixes)
+npx biome check src/        # lint findings (add --apply for safe auto-fixes)
 npx depcheck                              # unused / missing deps
-npx jscpd src/renderer/src/               # writes a report to ./report/
-npx madge --circular src/renderer/src/    # circular deps only
-npx madge --orphans src/renderer/src/     # files not imported anywhere
+npx jscpd src/               # writes a report to ./report/
+npx madge --circular src/    # circular deps only
+npx madge --orphans src/     # files not imported anywhere
 ```
 
 Read the output, fix what's obvious, skip what isn't. Biome's `--apply` is safe to run blind; the other three are read-only.

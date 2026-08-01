@@ -11,8 +11,8 @@ const pkg = JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf8"))
 // and is built by the `tauri` CLI; vite only handles the renderer.
 //
 // Layout:
-//   src/renderer/index.html        ← vite root
-//   src/renderer/src/main.js       ← Vue entry
+//   index.html                     ← vite root
+//   src/main.js                    ← Vue entry
 //   dist/                          ← vite build output, fed to Tauri's `frontendDist`
 //   src-tauri/                     ← Rust crate
 //
@@ -20,11 +20,10 @@ const pkg = JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf8"))
 // `src-tauri/tauri.conf.json` (`devUrl`). Keep these in lock-step.
 
 export default defineConfig({
-  root: resolve(__dirname, "src/renderer"),
   publicDir: false,
   resolve: {
     alias: {
-      "@renderer": resolve(__dirname, "src/renderer/src"),
+      "@renderer": resolve(__dirname, "src"),
       // Shared LLM UI package, consumed from its src for the dev/HMR loop
       // (alias now). The release form is the git/published dependency in
       // package.json (later). Sibling repo: ../just-llm-runner/ui.
@@ -45,30 +44,19 @@ export default defineConfig({
     port: 1420,
     strictPort: true,
     host: process.env.TAURI_DEV_HOST || false,
+    // Same shape create-tauri-app ships, extended for what THIS repo keeps beside the
+    // frontend: a Python venv (13k files) and e2e fixtures (13k) as well as the Rust target
+    // dir. The vite root is the repo, so all of it is in the watcher's path otherwise.
+    watch: { ignored: ["**/src-tauri/**", "**/.venv/**", "**/e2e/**", "**/dist/**"] },
     fs: {
-      // The vite root is `src/renderer/`, so anything the dev server must READ from
-      // outside it needs an entry here (the production build is unaffected — this is
-      // the dev server's file-serving guard only):
-      //   docs/            — docs/*.md for the in-app Help viewer (import.meta.glob in
-      //                      services/helpDocs.js bundles them at build time; this lets
-      //                      the dev server serve them too).
-      //   ../just-llm-runner/ui — the shared kit, consumed from source for HMR.
-      //   node_modules/    — dependency ASSETS referenced from bundled CSS. Added
-      //                      2026-07-24: self-hosting the fonts made main.js import
-      //                      @fontsource CSS whose url()s point at
-      //                      node_modules/@fontsource/*/files/*.woff2 — outside the
-      //                      root, so `npm run dev` refused every font file ("is
-      //                      outside of Vite serving allow list") and the app silently
-      //                      fell back to system fonts. It only broke in DEV: `vite
-      //                      preview` serves the built bundle and never consults this
-      //                      list, which is exactly why verifying against preview
-      //                      missed it. Allowing the dependency ROOT (not just
-      //                      @fontsource) so the next dependency that ships an asset
-      //                      does not fail the same way.
+      // The dev server refuses to read outside its root. The repo root now covers docs/
+      // (the in-app Help viewer globs docs/*.md), node_modules/ (bundled CSS references
+      // @fontsource woff2 files by url(), which DEV refuses without this — `vite preview`
+      // serves the built bundle and never consults this list, which is why verifying
+      // against preview once missed it) and the app itself. The sibling kit is a genuine
+      // outsider, consumed from source for HMR.
       allow: [
-        resolve(__dirname, "src/renderer"),
-        resolve(__dirname, "docs"),
-        resolve(__dirname, "node_modules"),
+        resolve(__dirname, "."),
         resolve(__dirname, "../just-llm-runner/ui"),
       ],
     },

@@ -6,7 +6,7 @@ per-task history lives in `docs/plans/*`.
 
 ## Layout
 
-- `src/renderer/` — Vite root for the Vue 3 + Pinia renderer. Vite's `root` is `src/renderer/`, not the repo root.
+- `` — Vite root for the Vue 3 + Pinia renderer. Vite's `root` is ``, not the repo root.
 - `src-tauri/` — Rust crate. `main.rs` calls `justwrite_lib::run()`; all `#[tauri::command]`s live in `lib.rs`.
 - `dist/` — Vite output, consumed by Tauri as `frontendDist`.
 
@@ -15,7 +15,7 @@ The Rust crate is built by the Tauri CLI; Vite never sees it. The renderer dev s
 
 ## IPC bridge (Tauri ↔ renderer)
 
-`src/renderer/src/services/tauri-bridge.js` is a side-effect import in `main.js`. It detects
+`src/services/tauri-bridge.js` is a side-effect import in `main.js`. It detects
 `window.__TAURI_INTERNALS__` and populates `window.justwrite`:
 
 ```
@@ -49,7 +49,7 @@ elsewhere requires widening the scope in `tauri.conf.json`.
 
 ## Stores
 
-All in `src/renderer/src/stores/`:
+All in `src/stores/`:
 
 - `project` — every entity (chapters, characters and extras, locations, objects, groups, notes, strands, worldbuilding, architecture), images, events, trash, and chapter bodies. Owns persistence and undo/redo. This single monolithic store is JustWrite's sanctioned exception to per-domain stores, because it owns snapshot-based undo/redo across all entities.
 - `ui` — sidebar, selections, toasts.
@@ -153,14 +153,14 @@ and disabled inside the rich editor, where TipTap owns its own history.
 
 ## i18n detail
 
-`src/renderer/src/i18n/locales/en.json` is the world; the renderer reads it through vue-i18n
+`src/i18n/locales/en.json` is the world; the renderer reads it through vue-i18n
 (`i18n/index.js`, Composition mode, `globalInjection` so `$t` works in templates without an import).
 Coverage is being brought up view by view, so expect raw strings still in unconverted files.
 
 ```bash
-npm run i18n:lint      # @intlify no-raw-text over src/renderer/src/**/*.vue — finds English still
+npm run i18n:lint      # @intlify no-raw-text over src/**/*.vue — finds English still
                        # hard-coded in templates. "warn" during the sweep; flips to "error" once
-                       # coverage completes. Config: eslint.i18n.config.mjs (i18n rules ONLY —
+                       # coverage completes. Config: eslint.i18n.config.js (i18n rules ONLY —
                        # Biome remains the style linter).
 npm run i18n:report    # vue-i18n-extract: keys referenced but missing from the catalog, and
                        # catalog keys nobody references. MISSING must always be zero.

@@ -1,17 +1,17 @@
 // In-app Help docs loader.
 //
 // docs/*.md and docs/toc.json live at the repo root (one level above
-// the vite root, `src/renderer/`). Both are bundled at build time —
+// the vite root, ``). Both are bundled at build time —
 // markdown via import.meta.glob as raw strings, the TOC as a plain
 // JSON import. The same docs/ folder is packed into docs.tar.gz at
 // release time and consumed by the marketing site, so this file and
 // the website's DocsLayout.astro share a single source of truth.
 
-import HELP_TOC_DATA from "../../../../docs/toc.json";
+import HELP_TOC_DATA from "../../docs/toc.json";
 
 // Lazy (no `eager`): a doc's markdown is fetched only when something opens it,
 // not bundled into / fetched on the boot path. Loaded docs are cached.
-const loaders = import.meta.glob("../../../../docs/*.md", {
+const loaders = import.meta.glob("../../docs/*.md", {
   query: "?raw",
   import: "default",
 });

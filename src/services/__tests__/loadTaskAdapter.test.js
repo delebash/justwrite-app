@@ -125,7 +125,7 @@ describe("the ONE vocabulary (loadPhases.js)", () => {
     // vocabulary INDIRECTLY: it imports the factories from useDownloadTask.js,
     // which is the one module that imports loadPhases.js.
     const HERE = dirname(fileURLToPath(import.meta.url));
-    const KIT = resolve(HERE, "../../../../../../just-llm-runner/ui/src");
+    const KIT = resolve(HERE, "../../../../just-llm-runner/ui/src");
     const qs = readFileSync(resolve(KIT, "views/QuickSetup.vue"), "utf8");
     expect(qs).not.toMatch(/const\s+PHASE_WORDS/);
     expect(qs).not.toMatch(/function\s+friendlyPhase/);

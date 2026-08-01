@@ -17,7 +17,7 @@ import vueParser from "vue-eslint-parser";
 
 export default [
   {
-    files: ["src/renderer/src/**/*.vue"],
+    files: ["src/**/*.vue"],
     languageOptions: {
       parser: vueParser,
       ecmaVersion: "latest",
@@ -26,7 +26,7 @@ export default [
     plugins: { "@intlify/vue-i18n": vueI18n },
     settings: {
       "vue-i18n": {
-        localeDir: "src/renderer/src/i18n/locales/*.json",
+        localeDir: "src/i18n/locales/*.json",
       },
     },
     rules: {

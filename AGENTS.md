@@ -13,7 +13,7 @@ When a new contributor's AI session runs in this repo it sees `CLAUDE.md` and
 
 ## 1. RichEditor has two variants — keep them in sync
 
-There is ONE editor component, `src/renderer/src/components/RichEditor.vue`,
+There is ONE editor component, `src/components/RichEditor.vue`,
 exposed via the `variant` prop:
 
 - `manuscript` — scene/chapter editor

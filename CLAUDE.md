@@ -52,7 +52,7 @@ Windows, macOS and Linux layouts) or set `JW_CHROME`. Never hardcode a browser p
 - **`i18n/locales/en.json` is the world** for user-facing English. Reuse an existing key before minting a new one; `MISSING` in `i18n:report` must stay zero.
 - **NOTHING hardcoded** — every value, threshold, name, mapping, flag and preset lives in the DB, seeded and user-editable. Code is only the engine.
 - **No JSON blobs in SQL** — relational data gets real columns and rows. JSON only for genuinely freeform data, with a cited reason.
-- The **`@renderer` alias** is `src/renderer/src/`. Prefer relative imports within a directory, `@renderer/...` across the tree.
+- The **`@renderer` alias** is `src/`. Prefer relative imports within a directory, `@renderer/...` across the tree.
 - The renderer dev server is fixed at `http://localhost:1420` and `tauri.conf.json` references that URL — keep them in lock-step.
 
 ## Product and design rules
@@ -87,7 +87,7 @@ bundled into the app's Help by the glob and packed into the public `docs.tar.gz`
 
 **Biome** (`biome.json`) is the linter — `"formatter": { "enabled": false }`, so it does not format;
 match each file's existing style and never bulk-reformat unrelated code. Scope is
-`src/renderer/src/**/*.{js,vue}`. The Python server uses **ruff**. i18n linting is a separate
+`src/**/*.{js,vue}`. The Python server uses **ruff**. i18n linting is a separate
 `eslint.i18n.config.mjs` carrying i18n rules only.
 
 ## Where to look

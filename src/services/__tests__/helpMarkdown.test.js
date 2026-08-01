@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 import { renderHelpMarkdown } from "@delebash/llm-ui";
 import { describe, expect, it } from "vitest";
 
-const DOCS = fileURLToPath(new URL("../../../../../docs", import.meta.url));
+const DOCS = fileURLToPath(new URL("../../../docs", import.meta.url));
 const DOC_FILES = readdirSync(DOCS).filter((f) => f.endsWith(".md"));
 
 describe("renderHelpMarkdown", () => {

@@ -103,7 +103,7 @@ of truth for text**, feeding the in-app help, the labels, and the translations.
 
 **Current i18n state (grounded 2026-07-19):**
 
-- JW renders text via **vue-i18n ^11.4.6** + `src/renderer/src/i18n/locales/en.json`
+- JW renders text via **vue-i18n ^11.4.6** + `src/i18n/locales/en.json`
   (389 lines); many views use `$t()`. The kit follows locale via `setUiLocale` (Intl
   number formatting) and takes dialog/help labels via `configureDialog`/`configureHelp`.
   JV has its own i18n (Settings → Appearance already exposes a **Language** select).
