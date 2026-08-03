@@ -34,6 +34,15 @@ function detectEdgeVersion() {
   return out && /^\d+(\.\d+){2,3}$/.test(out) ? out : null;
 }
 
+function detectWebView2Version() {
+  // tauri-driver drives the WEBVIEW2 RUNTIME, which versions independently of
+  // the Edge browser — found live 2026-08-02 with Edge at 151 and the runtime
+  // at 150: the Edge-matched driver refused the session. Prefer the runtime.
+  const ps = `powershell -NoProfile -Command "(Get-ItemProperty 'HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}' -ErrorAction SilentlyContinue).pv"`;
+  const out = tryExec(ps);
+  return out && /^\d+(\.\d+){2,3}$/.test(out) ? out : null;
+}
+
 async function fetchLatestStable() {
   // Endpoint returns the version string as UTF-16 LE with BOM.
   const res = await fetch("https://msedgedriver.microsoft.com/LATEST_STABLE");
@@ -55,9 +64,11 @@ function existingDriverVersion() {
 const majorOf = (v) => v ? v.split(".")[0] : null;
 
 async function main() {
-  let target = detectEdgeVersion();
+  let target = detectWebView2Version();
   if (target) {
-    console.log(`Local Edge: ${target}`);
+    console.log(`WebView2 runtime: ${target}`);
+  } else if ((target = detectEdgeVersion())) {
+    console.log(`Local Edge (no WebView2 runtime key found): ${target}`);
   } else {
     console.log("Could not detect local Edge — falling back to LATEST_STABLE.");
     target = await fetchLatestStable();
@@ -83,8 +94,13 @@ async function main() {
   await writeFile(zipPath, buf);
 
   console.log("Extracting…");
-  // Windows 10+ ships bsdtar, which handles zip via -xf.
-  execSync(`tar -xf "${zipPath}" -C "${DRIVERS}"`, { stdio: "inherit" });
+  // Windows 10+ ships bsdtar, which handles zip via -xf. Pin the System32 binary:
+  // under Git Bash, PATH finds GNU tar, which parses "E:\…" as host "E" and dies
+  // with "Cannot connect … resolve failed" (found live 2026-08-02).
+  const tar = process.platform === "win32"
+    ? `${process.env.SystemRoot || "C:\\Windows"}\\System32\\tar.exe`
+    : "tar";
+  execSync(`"${tar}" -xf "${zipPath}" -C "${DRIVERS}"`, { stdio: "inherit" });
   await unlink(zipPath);
 
   const installed = existingDriverVersion();

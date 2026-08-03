@@ -9,12 +9,5 @@
     "fetch-driver": "node scripts/fetch-driver.js --force",
     "test": "node --test --test-reporter=spec tests/*.test.js",
     "capture": "node capture-direct.js"
-  },
-  "devDependencies": {
-    "@wdio/cli": "^8.46.0",
-    "@wdio/local-runner": "^8.46.0",
-    "@wdio/mocha-framework": "^8.46.0",
-    "@wdio/spec-reporter": "^8.43.0",
-    "webdriverio": "^8.46.0"
   }
 }
