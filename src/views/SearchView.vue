@@ -2,7 +2,7 @@
 import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import PaneHeader from "../components/PaneHeader.vue";
+import { PaneHeader } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { buildIndex, searchIndex, renderSnippet, KIND_META } from "../services/search.js";
 import { useUiStore } from "../stores/ui.js";

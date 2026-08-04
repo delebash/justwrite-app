@@ -93,7 +93,6 @@
   "boot": {
     "splashAlt": "JustWrite — una habitación tranquila para la escritura extensa",
     "settingUpEngine": "Configurando el motor de IA",
-    "loadingModel": "Cargando tu modelo de escritura",
     "continueWithoutWaiting": "Continuar sin esperar"
   },
   "count": {

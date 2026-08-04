@@ -10,7 +10,7 @@ import { readSetting, writeSetting } from "../services/settings.js";
 import { exportProject, importProject, saveBackupBlob, canTransferBooks } from "../services/bookTransfer.js";
 import { serverDataDir, chooserDir, rememberDir } from "../services/chooserDirs.js";
 import * as autosaveApi from "../services/autosaveApi.js";
-import PaneHeader from "../components/PaneHeader.vue";
+import { PaneHeader } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";

@@ -4,7 +4,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { PLOT_TEMPLATES, TEMPLATE_ORDER, applyTemplate } from "../services/plotTemplates.js";
 import { promptDialog, confirmDialog } from "@delebash/llm-ui";
-import PaneHeader from "../components/PaneHeader.vue";
+import { PaneHeader } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 

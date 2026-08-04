@@ -11,7 +11,7 @@ import { useRoute, useRouter } from "vue-router";
 import { Icon } from "@delebash/llm-ui";
 import RichEditor from "../components/RichEditor.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
-import PaneHeader from "../components/PaneHeader.vue";
+import { PaneHeader } from "@delebash/llm-ui";
 import { parseFile } from "../services/import/index.js";
 
 const props = defineProps({ id: { type: String, default: "" } });

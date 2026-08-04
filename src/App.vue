@@ -5,13 +5,12 @@ import { useUiStore } from "./stores/ui.js";
 import { useProjectStore } from "./stores/project.js";
 import { applyAppearance } from "./services/appearance.js";
 import { applyEditorSettings } from "./services/editorSettings.js";
-import { warmModelId } from "./services/warmStartup.js";
+import { BootModelLoad, warmModelId } from "@delebash/llm-ui";
 import TitleBar from "./components/TitleBar.vue";
 import Sidebar from "./components/Sidebar.vue";
 import OnboardingShell from "./components/OnboardingShell.vue";
 import { Toast } from "@delebash/llm-ui";
 import { AppDialog } from "@delebash/llm-ui";
-import { DownloadBar, useRunnerModels } from "@delebash/llm-ui";
 import CommandPalette from "./components/CommandPalette.vue";
 import ProjectReplaceModal from "./components/ProjectReplaceModal.vue";
 import AiSetupDialog from "./components/AiSetupDialog.vue";
@@ -34,29 +33,10 @@ const router = useRouter();
 const ui = useUiStore();
 const project = useProjectStore();
 
-// Boot warm overlay (2026-07-21): when the "load model on startup" toggle warmed the default
-// local model, show the SAME DownloadBar the engine panel uses (the runner-models singleton's
-// per-model task) below the splash spinner, until the model is resident. Reuse only — no new
-// load path, no new bar. `warmModelId` is set by warmStartup.startWarmOnBoot before mount.
-const rm = useRunnerModels();
-const warmTask = computed(() => (warmModelId.value ? rm.taskFor(warmModelId.value) : null));
-// ONE workflow (2026-07-21): a boot warm with no engine installs it FIRST via retryLoad, which
-// exposes that install as `engineGateTask` — show ITS bar during the install phase (the same
-// shared DownloadBar), then the model bar takes over when the load begins.
-const engineTask = computed(() =>
-  rm.engineGateTask.value && rm.engineGateTask.value.state === "running" ? rm.engineGateTask.value : null);
-const warmRowStatus = computed(() =>
-  warmModelId.value ? (rm.models.value.find((m) => m.id === warmModelId.value)?.status || "") : "");
-// Auto-dismiss shortly after the model goes resident — a 700ms beat (taskFor emits only
-// running/error/empty, never a "done" state, so the bar just stops; there is no "Ready ✓").
-// Cancel/error leave the overlay showing the bar's Retry; the always-present Continue is the
-// universal escape, so a slow or failed load never traps the user on the boot screen.
-watch(warmRowStatus, (s) => {
-  if (warmModelId.value && (s === "loaded" || s === "sleeping")) {
-    setTimeout(() => { warmModelId.value = ""; }, 700);
-  }
-});
-function dismissWarm() { warmModelId.value = ""; }
+// Boot warm overlay (2026-07-21; KIT-OWNED since 2026-08-04): `warmModelId` and the whole
+// load group — engine bar, model bar (titled with the model NAME now, the shared behavior),
+// Continue, the 700ms auto-dismiss — live in the kit's <BootModelLoad /> + startWarmOnBoot.
+// This file keeps only the splash PAGE: the plate and where the load group sits on it.
 
 // (The boot overlay's book/week computeds were REMOVED 2026-07-24 with the hand-built plate.
 // They had been dead since the corners were frozen to sample text — each was defined and
@@ -184,11 +164,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
     <div v-if="warmModelId" class="jw-bootwarm">
       <div class="jw-bw-plate">
         <img class="jw-bw-art" :src="splashPlate" :alt="$t('boot.splashAlt')" />
-        <div v-if="engineTask || (warmTask && warmTask.state)" class="jw-bw-loadgroup">
-          <DownloadBar v-if="engineTask" class="jw-bw-bar" :task="engineTask" :title="$t('boot.settingUpEngine')" />
-          <DownloadBar v-else class="jw-bw-bar" :task="warmTask" :title="$t('boot.loadingModel')" />
-          <button type="button" class="jw-bw-skip" @click="dismissWarm">{{ $t("boot.continueWithoutWaiting") }}</button>
-        </div>
+        <BootModelLoad
+          class="jw-bw-loadgroup"
+          :engine-title="$t('boot.settingUpEngine')"
+          :continue-label="$t('boot.continueWithoutWaiting')"
+        />
       </div>
     </div>
     <TitleBar :title="barTitle" />
@@ -249,13 +229,15 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
    gap the artwork leaves between "The Book" (ends ~27%) and "The Instrument" (starts ~68%),
    and inside the compass's left edge. Sized in cqw so it tracks the plate, and kept SHORT:
    bar + escape on one tight panel. */
-.jw-bw-loadgroup { position: absolute; z-index: 3; left: 5%; top: 36%;
-  display: flex; flex-direction: column; align-items: flex-start; gap: .35cqw; width: 17%;
+/* The group itself is the kit's <BootModelLoad>; these rules PARK it (absolute, in the
+   parchment gap) and skin it to the plate. Two-class selectors so the host's alignment
+   deliberately outweighs the control's neutral defaults. */
+.jw-bw-plate .jw-bw-loadgroup { position: absolute; z-index: 3; left: 5%; top: 36%;
+  align-items: flex-start; gap: .35cqw; width: 17%;
   padding: .7cqw .9cqw; border-radius: .5cqw;
   background: rgba(244, 232, 205, 0.86); box-shadow: 0 .3cqw 1.1cqw rgba(70, 48, 18, 0.14); }
-.jw-bw-bar { width: 100%; font-size: .9cqw; }
-.jw-bw-skip { background: none; border: 0; padding: 0; cursor: pointer; font-size: .88cqw;
-  color: #7d6a4c; text-decoration: underline; text-underline-offset: 2px;
+.jw-bw-plate :deep(.lu-bootload__bar) { width: 100%; font-size: .9cqw; }
+.jw-bw-plate :deep(.lu-bootload__skip) { font-size: .88cqw; color: #7d6a4c;
   font-family: "Fraunces", Georgia, serif; }
 .jw-bw-skip:hover { color: #7a2532; }
 </style>

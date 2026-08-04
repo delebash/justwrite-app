@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import PaneHeader from "../components/PaneHeader.vue";
+import { PaneHeader } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { buildManuscript, slug } from "../services/export/manuscript.js";
 import { UiButton } from "@delebash/llm-ui";

@@ -29,7 +29,7 @@ import MentionRefList from "../components/MentionRefList.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
 import { HelpTrigger } from "@delebash/llm-ui";
 import { confirmDialog } from "@delebash/llm-ui";
-import PaneHeader from "../components/PaneHeader.vue";
+import { PaneHeader } from "@delebash/llm-ui";
 import { saveImage } from "../services/imageStore.js";
 
 const props = defineProps({ id: { type: String, default: "" } });

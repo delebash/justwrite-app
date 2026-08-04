@@ -3,7 +3,7 @@
 The **one** place to drop ideas that aren't yet scheduled work, across the system we
 work as a whole — **JustWrite**, the shared **AI stack** (`just-llm-runner` +
 `@delebash/llm-ui`), and **JustVoice**. Not a plan, not a spec — a holding pen so
-nothing good gets lost. Committed work lives in `docs/TASKS.md`; when an idea is
+nothing good gets lost. Committed work lives in `docs/dev/TASKS.md`; when an idea is
 picked up it graduates to a `docs/plans/*` doc and gets a link here (or is struck
 through).
 
@@ -15,6 +15,25 @@ through).
 ---
 
 ## AI / authoring
+
+### Brainstorm → point-of-use generation (2026-07-26; moved here from TASKS in the 2026-08-04 sweep)
+
+**The itch (user):** "take brainstorm and move some features to where they relate to, such
+as characters creating a new character from description or creating a name, we do this
+across app, a brainstorm/character/location creation by description, fill in character
+background."
+
+**Current-state evidence:** Brainstorm results are clipboard-only (`useItem`,
+`BrainstormView.vue:165`) — nothing flows into entities; `characterProfile` already drafts
+background/motivation/arc **from scenes** (`feature_catalog.py`) but there is no
+create-from-DESCRIPTION path on any entity page.
+
+**The shape (a design pass before any build):** which generation affordances live ON the
+Characters/Locations/Objects pages (generate name · create from description · fill
+background), what Brainstorm keeps as the freeform hub, and whether the existing
+brainstorm/characterProfile prompts are reused as-is (they should be — one source). Related:
+the thesaurus popover's "More alternatives in Brainstorm →" deep-link (executor plan STEP 2)
+is the first instance of the pattern pointing the other way.
 
 ### Quantized KV cache — a context lever we haven't needed yet (2026-07-30)
 
@@ -92,7 +111,7 @@ review.)*
 
 ### Single-source text system: docs → help/labels → translation (2026-07-19)
 
-> Tracked as the **Research** item in `docs/TASKS.md` — this is the detail it points to.
+> Tracked as the **Research** item in `docs/dev/TASKS.md` — this is the detail it points to.
 
 **The itch (user):** two problems that likely share ONE fix. **(1)** Every field's
 inline hint/example on the character sheet is hand-written in `CharactersView.vue`

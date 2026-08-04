@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch, onMounted, nextTick } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import PaneHeader from "../components/PaneHeader.vue";
+import { PaneHeader } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import {

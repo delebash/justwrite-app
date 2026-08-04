@@ -29,7 +29,7 @@ import "./styles.css";
 import { tooltipDirective } from "@delebash/llm-ui";
 import { i18n, detectLocale, setLocale as setI18nLocale } from "./i18n/index.js";
 import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
-import { startWarmOnBoot } from "./services/warmStartup.js";
+import { startWarmOnBoot } from "@delebash/llm-ui";
 
 // Shared LLM UI (@delebash/llm-ui) — configure its origin-aware client ONCE with
 // the base the app already resolved, so the shared AI views call the same server
@@ -192,11 +192,20 @@ configureHelp({
   useProjectStore(pinia).ensureActiveProjectPersisted();
 
   // Warm the default local chat model into VRAM BEFORE mount, so App.vue comes up with the
-  // boot overlay (spinner + the shared DownloadBar) already showing the load — a seamless
-  // hand-off from the static index.html splash. Only the DECISION + load kickoff is awaited;
-  // the load itself runs in the background (the runner-models singleton polls it). A no-op
-  // when the toggle is off / the default isn't a downloaded local model. See warmStartup.js.
-  await startWarmOnBoot();
+  // boot overlay (the kit's <BootModelLoad />) already showing the load — a seamless hand-off
+  // from the static index.html splash. Only the DECISION + load kickoff is awaited; the load
+  // itself runs in the background. A no-op when the toggle is off / the default isn't a
+  // downloaded local model. KIT-OWNED since 2026-08-04; the bench suppression (defect F,
+  // 2026-07-22: a warm co-load rode along every leg) rides the skip option now.
+  await startWarmOnBoot({
+    skip: () => {
+      if (typeof window !== "undefined" && window.__JW_BENCH__) {
+        console.info("[bench] warm-boot suppressed");
+        return true;
+      }
+      return false;
+    },
+  });
 
   app.mount("#app");
 

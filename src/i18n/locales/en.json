@@ -93,7 +93,6 @@
   "boot": {
     "splashAlt": "JustWrite — a quiet room for the long form",
     "settingUpEngine": "Setting up the AI engine",
-    "loadingModel": "Loading your writing model",
     "continueWithoutWaiting": "Continue without waiting"
   },
   "count": {

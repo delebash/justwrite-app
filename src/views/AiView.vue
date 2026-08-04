@@ -6,7 +6,7 @@
 // "jw has its card layout, we just put the control in it.")
 import { onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import PaneHeader from "../components/PaneHeader.vue";
+import { PaneHeader } from "@delebash/llm-ui";
 import { AiModelsArea, runAiFeatureStream } from "@delebash/llm-ui";
 import WritingAiSettings from "../components/WritingAiSettings.vue";
 import { useAiStore } from "../stores/ai.js";

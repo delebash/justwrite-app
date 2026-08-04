@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRoute, useRouter } from "vue-router";
-import PaneHeader from "../components/PaneHeader.vue";
+import { PaneHeader } from "@delebash/llm-ui";
 import EntityIndex from "../components/EntityIndex.vue";
 import { useStatusDisplay } from "../composables/useStatusDisplay.js";
 import { Icon } from "@delebash/llm-ui";

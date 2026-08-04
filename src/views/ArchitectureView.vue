@@ -11,7 +11,7 @@ import { UiTag } from "@delebash/llm-ui";
 import { UiTable } from "@delebash/llm-ui";
 import StatusSelect from "../components/StatusSelect.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
-import PaneHeader from "../components/PaneHeader.vue";
+import { PaneHeader } from "@delebash/llm-ui";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();

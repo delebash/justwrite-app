@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from "vue";
-import PaneHeader from "../components/PaneHeader.vue";
+import { PaneHeader } from "@delebash/llm-ui";
 import { UiButton, UiSelect, UiTextarea, useAiTasksStore, runAiFeature, AiTaskStrip } from "@delebash/llm-ui";
 import { useUiStore } from "../stores/ui.js";
 import AiFeatureChip from "../components/AiFeatureChip.vue";

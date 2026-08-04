@@ -15,7 +15,7 @@ import { EDITOR_TOOLBAR_SLIM } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
-import PaneHeader from "../components/PaneHeader.vue";
+import { PaneHeader } from "@delebash/llm-ui";
 import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 

@@ -19,7 +19,7 @@ import TagEditor from "../components/TagEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
-import PaneHeader from "../components/PaneHeader.vue";
+import { PaneHeader } from "@delebash/llm-ui";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
