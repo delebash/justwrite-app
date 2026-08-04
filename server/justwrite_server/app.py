@@ -205,6 +205,10 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         # The bundled runner's engine + model cache lives under the app data dir
         # (<data_dir>/ai-cache) so all on-disk data shares one portable root.
         data_dir=data_dir,
+        # Names JW in the family cache registry (2026-08-03) so a sibling app's Quick
+        # Setup can offer to SHARE these engine + model files instead of downloading
+        # the same 14 GB again. Registration only — JW's own cache does not move.
+        product=PRODUCT,
         # #12 C6: JW guards mutating /v1 with CsrfOriginMiddleware (app.py above), so it
         # opts IN to the POST key/reveal route (pre-fill a masked, editable key field).
         # JV, with no origin-check middleware, leaves the safe default OFF.
