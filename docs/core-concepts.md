@@ -171,10 +171,10 @@ Things JustWrite does not require:
 
 Trash groups deleted items by kind — all twelve of them (chapters, scenes,
 characters, locations, objects, groups, notes, strands, worldbuilding articles,
-events, markers, images) — each with its own restore. A restored scene goes back
+events, statuses, tag vocabularies) — each with its own restore. A restored scene goes back
 into its chapter, a chapter back into its part. **Empty trash** (and the per-item
-permanent delete inside Trash) is the only genuinely destructive act in the app,
-and both confirm first.
+permanent delete inside Trash) is destructive — as is Settings → Backups → Reset workspace — and every
+destructive act confirms first; everything else is undoable.
 
 ## Curated tag vocabularies
 
