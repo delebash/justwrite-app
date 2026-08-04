@@ -76,6 +76,24 @@
     "cancelLabel": "Cancelar",
     "closeLabel": "Cerrar"
   },
+  "family": {
+    "aiTabs": {
+      "providers": "Proveedores y modelos",
+      "routing": "Enrutamiento por función",
+      "usage": "Uso",
+      "console": "Consola del servidor"
+    },
+    "downloadBar": {
+      "cancel": "Cancelar",
+      "retry": "Reintentar",
+      "dismiss": "Descartar",
+      "ready": "Listo ✓"
+    },
+    "connectionError": {
+      "title": "No se puede conectar con el servidor de {appName}",
+      "retry": "Reintentar"
+    }
+  },
   "editor": {
     "mentions": {
       "ariaLabel": "Sugerencias de entidades",

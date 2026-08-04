@@ -16,6 +16,10 @@
 
 ## Now / near-term (JustWrite)
 
+- **`family.*` es values are HAND-TRANSLATED (2026-08-04)** — the new catalog block
+  behind the kit's labels feed (`src/i18n/familyLabelsFeed.js`: AI tabs, download-bar
+  actions, connection-error copy) got hand-es'd values; run them through the docgen
+  translator + review workspace when that pipeline goes live, like the rest of es.json.
 - **"Serve `/health` before `seed_workspace`" — recommend DROPPING; your ruling owed.**
   Measured 2026-07-25: it buys 36 ms of a ~975 ms pre-listen window dominated by framework
   imports that cannot be deferred. Re-measure snippet: the 2026-07-25 session record.

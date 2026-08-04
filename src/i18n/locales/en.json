@@ -76,6 +76,24 @@
     "cancelLabel": "Cancel",
     "closeLabel": "Close"
   },
+  "family": {
+    "aiTabs": {
+      "providers": "Providers & models",
+      "routing": "Routing by feature",
+      "usage": "Usage",
+      "console": "Server console"
+    },
+    "downloadBar": {
+      "cancel": "Cancel",
+      "retry": "Retry",
+      "dismiss": "Dismiss",
+      "ready": "Ready ✓"
+    },
+    "connectionError": {
+      "title": "Can't reach the {appName} server",
+      "retry": "Retry"
+    }
+  },
   "editor": {
     "mentions": {
       "ariaLabel": "Entity suggestions",

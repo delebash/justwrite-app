@@ -14,7 +14,7 @@ import "./services/tauri-bridge.js";
 import { applyAppearance, migrateAppearance, DEFAULT_APPEARANCE } from "./services/appearance.js";
 applyAppearance(DEFAULT_APPEARANCE);
 
-import { createApp } from "vue";
+import { createApp, watch } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./router/index.js";
@@ -34,7 +34,8 @@ import { startWarmOnBoot } from "@delebash/llm-ui";
 // Shared LLM UI (@delebash/llm-ui) — configure its origin-aware client ONCE with
 // the base the app already resolved, so the shared AI views call the same server
 // endpoints the rest of the app does (no per-app data adapter).
-import { configureLlmUi, configureServerApi, checkServer, configureDialog, configureExternal, configureHelp, configureTestData, closeHelp, openExternal, setUiLocale, ConnectionError } from "@delebash/llm-ui";
+import { configureLlmUi, configureServerApi, checkServer, configureFamilyLabels, configureExternal, configureHelp, configureTestData, closeHelp, openExternal, setUiLocale, ConnectionError } from "@delebash/llm-ui";
+import { buildFamilyLabels } from "./i18n/familyLabelsFeed.js";
 import { SERVER_BASE, resolveBase } from "./services/serverApi.js";
 import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "./services/helpDocs.js";
 import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "./services/labTestData.js";
@@ -123,19 +124,11 @@ configureHelp({
     setUiLocale(loc);
   }
 
-  // Source the shared AppDialog's default labels from JustWrite's i18n (so the
-  // copy lives in en.json, not hardcoded in the kit). Re-call on locale change
-  // if/when JustWrite adds a runtime language switcher.
-  const td = i18n.global.t;
-  configureDialog({
-    labels: {
-      defaultTitle: td("dialog.defaultTitle"),
-      confirmLabel: td("dialog.confirmLabel"),
-      okLabel: td("dialog.okLabel"),
-      cancelLabel: td("dialog.cancelLabel"),
-      closeLabel: td("dialog.closeLabel"),
-    },
-  });
+  // Feed the kit's ONE labels store (dialog verbs, AI tabs, download-bar actions,
+  // connection-error copy) from JustWrite's catalog — immediately, and again on
+  // every locale switch. (The old configureDialog call fed dialog verbs once at
+  // boot and went stale the day the runtime language switcher shipped.)
+  watch(i18n.global.locale, () => configureFamilyLabels(buildFamilyLabels()), { immediate: true });
 
   const app = createApp(App);
   const pinia = createPinia();

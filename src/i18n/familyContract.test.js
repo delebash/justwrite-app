@@ -27,4 +27,13 @@ describe("family surface contract — canon words present in the English catalog
   it("quick-setup canon: the run button's words", () => {
     expect(flat).toContain(`"${FAMILY_LABELS.quickSetup.runButton}"`);
   });
+
+  // The family.* block is the catalog's 1:1 image of the kit-rendered groups the
+  // locale feed maps (familyLabelsFeed.js) — exact equality, so a reworded canon
+  // or a drifted catalog fails here, not on a user's screen.
+  it("the family.* block mirrors the kit-rendered groups exactly", () => {
+    expect(en.family.aiTabs).toEqual(FAMILY_LABELS.aiTabs);
+    expect(en.family.downloadBar).toEqual(FAMILY_LABELS.downloadBar);
+    expect(en.family.connectionError).toEqual(FAMILY_LABELS.connectionError);
+  });
 });
