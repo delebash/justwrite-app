@@ -14,6 +14,59 @@ is for contributors.
 
 ---
 
+## Headless operation — why there is a Python server
+
+**JustWrite must run headless: `justwrite-server serve` plus a browser gives the
+whole app with no Tauri shell.** This is a product requirement, not a dev
+convenience, and it is the reason JustWrite has a Python backend at all.
+
+Headless means there is no webview to hold state, so every durable operation —
+the book, projects, RAG, settings, AI — has to be served by a long-lived process
+that runs with no renderer present. That process is the FastAPI + SQLite server
+in `server/justwrite_server/`.
+
+The pieces that implement it, so a reader can verify rather than trust this page:
+
+- **`app.py`** — after every `/v1/*` router is mounted, `_locate_ui_dir()` finds
+  the Vite build and `app.mount("/", StaticFiles(..., html=True))` serves it. The
+  static mount is LAST so API routes always win. `JUSTWRITE_UI_DIR` overrides the
+  search; without a `dist/` the server logs a warning and the API still runs.
+  The renderer reaches it because `services/serverApi.js` is origin-aware — it
+  targets `window.location.origin`, so the same bundle works under Tauri and
+  under the server's own origin unchanged.
+- **`cli.py`** — `serve --host/--port/--data-dir`, defaulting to
+  `127.0.0.1:17495`, with `JUSTWRITE_HOST` / `JUSTWRITE_PORT` /
+  `JUSTWRITE_DATA_DIR` env overrides. A configurable bind is the tell: a
+  loopback-only sidecar would hardcode it.
+- **`auth.py`** — bearer-token middleware for running exposed. Off when no
+  tokens are set; loopback bypasses unless `requireForLoopback`. Gates `/v1`
+  only, so the UI and its assets always load and a browser can reach the app.
+  Surfaced in **Settings → General** (`SettingsView.vue`), documented for users
+  in [`docs/headless-access.md`](../headless-access.md).
+- **`csrf.py`** — same-origin mutations are allowed precisely because the
+  self-hosted UI is a first-class mode. This was a real 403 found on 2026-07-15
+  driving the server-hosted UI; the smoke missed it by running against the dev
+  origin.
+
+### What this rules out
+
+- **The Tauri SQL plugin cannot replace the server.** It lives inside the Tauri
+  app — no app, no database — so it cannot serve a headless client by
+  construction. It is recorded as a "no backend process" option in
+  `docs/plans/2026-06-18-cross-app-runner-and-jw-backend-decision.md`; headless
+  is what closed that door.
+- **`llm_runner` staying Python is downstream of this.** JustWrite has a
+  long-lived Python process because of headless, and JustVoice has one for its
+  DSP stack (scipy / pyloudnorm / python-stretch). The shared runner mounts
+  in-process in both, so its language costs neither app an extra process. Any
+  "port the runner to Rust" proposal has to start by re-deciding headless.
+
+The 2026-06-18 decision doc reached this outcome but recorded the trigger as
+Android-readiness, with Android still a "maybe". Headless is the actual and much
+stronger justification; that doc is history, this is the current statement.
+
+---
+
 ## What's shipped
 
 A multi-phase build closed out late May / early June 2026, designed against

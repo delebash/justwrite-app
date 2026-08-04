@@ -36,6 +36,7 @@
       { "slug": "appearance",        "title": "Appearance",        "hint": "Theme, fonts, accents, layout" },
       { "slug": "backups-and-data",  "title": "Backups and data",  "hint": "Autosave, snapshots, restoring" },
       { "slug": "storage",           "title": "Storage & engine",  "hint": "Where data lives, moving it, installing the local AI engine" },
+      { "slug": "headless-access",   "title": "Headless access",   "hint": "Run the server on its own and use JustWrite in a browser" },
       { "slug": "keyboard-shortcuts", "title": "Keyboard shortcuts", "hint": "Full reference" }
     ]
   },

@@ -45,6 +45,7 @@ Windows, macOS and Linux layouts) or set `JW_CHROME`. Never hardcode a browser p
 
 ## Invariants that bite
 
+- **JW must run headless** — `justwrite-server serve` + a browser is the whole app, no Tauri shell (`app.py` mounts `dist/` after the routers). So the Python server is REQUIRED, the book cannot move to the Tauri SQL plugin, and `llm_runner` staying Python is downstream of it. Rationale in `docs/dev/ARCHITECTURE.md`.
 - **Don't call `invoke()` from views or stores** — go through `window.justwrite` (`services/tauri-bridge.js`), or the browser-only dev path breaks.
 - **A new mutating store action must be added to `ACTION_DOMAINS`** — an unmapped action warns and records nothing, so undo silently skips it. Keystroke-grain mutators also go in `COALESCED_ACTIONS` or the undo buffer fills instantly.
 - **`project` is one monolithic Pinia store on purpose** — it owns snapshot-based undo/redo across all entities. That is JustWrite's sanctioned exception to per-domain stores.
