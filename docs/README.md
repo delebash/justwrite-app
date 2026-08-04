@@ -33,7 +33,7 @@ If you want to plan first:
 
 - **[Getting started](getting-started.md)** — install, first launch, the seed project, optional AI setup
 - **[Core concepts](core-concepts.md)** — Parts → Chapters → Scenes, the Story Bible, soft delete + undo, autosave
-- **[Writing](writing.md)** — Home, Chapters, the editor, Edit / Outline / Cards / Read modes, the Links panel, AI rewrites, Version History
+- **[Writing](writing.md)** — Home, Chapters, the editor, Edit / Outline / Read modes (with the Cards corkboard inside Edit), the Links panel, AI rewrites, Version History
 
 ### Planning your story
 

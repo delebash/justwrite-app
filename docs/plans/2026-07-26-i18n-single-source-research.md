@@ -1,5 +1,13 @@
 # Single-source text + i18n/translation — the research (2026-07-26)
 
+> **Correction (docs campaign 2026-08-04):** every section below describing
+> `just-ai-help` as the existing/current tool ("THE TOOL EXISTS", command lines,
+> repo paths) now refers to a RETIRED app — the Node original was archived on GitHub
+> and its local folder deleted 2026-08-04. Its Python successor, with the same
+> one-resolver design and the review workspace, is **`../just_ai_i18n_docgen`**.
+> The research and decisions stand; substitute the successor wherever the old tool
+> is named.
+
 The user's roadmap ruling (2026-07-26): *"the main goal is to completely finish JW and all AI
 stuff… 12 we need to do and do the full translation research on how we do it automatically,
 there are several ways to automate translation so we need to research unless already done, i

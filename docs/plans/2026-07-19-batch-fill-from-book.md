@@ -1,5 +1,7 @@
 # Batch Fill-from-book (character list) + sweep chaining + auto-apply toggle — Opus execution plan
 
+> ✅ **CLOSED (docs campaign 2026-08-04)** — shipped 2026-07-19 from unit-tested pieces; the review phase + auto-apply write still owe their FIRST LIVE RUN - tracked in docs/dev/TASKS.md. History/evidence only; live work: `docs/dev/TASKS.md`.
+
 **Date:** 2026-07-19 · **Status: ✅ SHIPPED 2026-07-19** — WS-A `d7a66e4` · WS-B `75d182c` ·
 WS-C `f1f4736`. Gates: vitest 286 (+7 WS-A property tests) · build · headless smoke 0 errors ·
 rag-probe 18/18 (0 page errors, with the WS-C "Later"-decline). Container has no model, so

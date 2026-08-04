@@ -1,5 +1,7 @@
 # Session handoff — 2026-06-27 (read this in full after a compact)
 
+> ✅ **CLOSED (docs campaign 2026-08-04)** — a June session's handoff; its MORNING_RECAP.md pointer refers to a deleted root file (its archive lives at docs/plans/2026-07-08-recap-archive.md). History/evidence only; live work: `docs/dev/TASKS.md`.
+
 > # ⛔⛔ THE #1 OPERATING RULE — read this FIRST, every time ⛔⛔
 > **NEVER act until the user literally types the word "go".** A question is ONLY a question —
 > answer it in words, then STOP and WAIT. Do NOT read/grep, edit, spawn an agent, run a

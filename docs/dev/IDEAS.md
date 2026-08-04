@@ -192,9 +192,10 @@ These stay where they are; this list just points at them so nothing's lost:
   items: tag-filter chips on Characters/Locations/Objects, curated tag vocabulary,
   sidebar arrow-key nav, per-feature token budgets, KFX export, …). Feeds the in-app
   `?` drawer + the docs index.
-- **`docs/ai-features-roadmap.md`** — the published AI-features direction; now mostly a
-  **shipped/won't-ship record** (~24 of 29 resolved), kept for that history.
-- **`docs/potential-roadmap.md`** — the bigger research-driven candidate pool (2026-06-05
+- **`ai-features-roadmap.md`** (this folder — moved from `docs/` 2026-07-31) — the
+  AI-features direction; now mostly a **shipped/won't-ship record** (~24 of 29
+  resolved), kept for that history.
+- **`potential-roadmap.md`** (this folder — same move) — the bigger research-driven candidate pool (2026-06-05
   multi-source pass). Half is obsolete (its TTS/audio material moved to JustVoice — see
   its historical banner); the live parts worth revisiting are the four **strategic bets**
   (disclosure-compliant/NDA-safe positioning · genre presets · continuity enforcement as

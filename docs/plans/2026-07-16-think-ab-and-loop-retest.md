@@ -1,5 +1,7 @@
 # On-box tests — think OFF vs ON A/B + the b9993 loop re-test (2026-07-16)
 
+> ⚠️ **RESULTS NEVER FILLED (found by the docs campaign 2026-08-04).** The two user-ordered on-box tests (think OFF/ON A/B - b9993 loop re-test) appear never to have run: the RESULTS block below is an empty template. Run-or-kill is the user's ruling, tracked in `docs/dev/TASKS.md`.
+
 **For the user's 2070S box.** Two tests, both user-ordered. Fill the RESULTS block and
 paste it back. Pattern + method inherited from the proven 2026-07-06 instrument
 (`2026-07-06-onbox-profile-ab-test.md`): run 0 of every arm is warm-up and discarded,

@@ -1,5 +1,7 @@
 # The per-band model survey — Part 2 (2026-07-25, the user's "do 1 and 2")
 
+> ✅ **CLOSED (docs campaign 2026-08-04)** — the band arc is COMPLETE; the two decisions still open for the user are tracked in docs/dev/TASKS.md. History/evidence only; live work: `docs/dev/TASKS.md`.
+
 The widened survey (supersedes the old "higher-tier 24 GB+ survey" item): every dGPU band
 resolves to appropriate models — the user's ruling. Keys are BANDS since the same-day band
 ruling (recovery doc §22), so each band's recommendation is a plain `(model, band-key)`

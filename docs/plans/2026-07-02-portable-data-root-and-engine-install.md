@@ -1,5 +1,7 @@
 # Plan — Portable unified data root + separate "Install engine" from "download model" + spawn diagnostics
 
+> ✅ **CLOSED (docs campaign 2026-08-04)** — feature COMPLETE (its own tail: Phases 1-3 + docs); the "LIVE STATUS" header below is historical. History/evidence only; live work: `docs/dev/TASKS.md`.
+
 > **Validated by a 3-checker rules panel (architecture-fit · reuse · grounding).** All three approve the shape
 > (no rewrite); their FAIL findings are folded below and marked 【panel】. The biggest one (first-upgrade
 > migration, T5) is **removed** by the user's "no existing users / not in production" — day-one greenfield.

@@ -33,7 +33,7 @@ If you'd rather explore with a complete example first, the project switcher has 
 
 The sidebar on the left is the main map. It is grouped into five sections:
 
-- **Manuscript** — Search, Home, Architecture, Narrative strands, Chapters, Ask the book
+- **Manuscript** — Search, Home, Architecture, Strands, Chapters, Ask the book
 - **Story world** — Characters, Locations, Objects, Groups, Worldbuilding
 - **Planning** — Plot board, Timeline, Notes, Relations
 - **Project** — Analysis, Export, Trash, Settings

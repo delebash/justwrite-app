@@ -121,7 +121,7 @@ Seven rooms, one house — organised by what part of the work you're in.
 - **Local first.** Your manuscript is a file on your computer. No account, no upload, no server lock-in.
 - **Soft delete + Trash.** Every deletion is undoable; Trash holds items indefinitely until you empty it.
 - **Project-wide undo / redo.** 100 steps in-memory, last 10 persisted. ⌘Z / ⌘⇧Z.
-- **Autosave.** Every change flushes to IndexedDB instantly and to disk within ~10 seconds.
+- **Autosave.** Every change persists through the app's local Python server within seconds — the renderer holds no data of its own.
 - **Backups.** Export the whole project as a single JSON snapshot at any time; restore from one with a click.
 - **i18n-ready.** All UI strings flow through vue-i18n; locale-aware number formatting.
 
@@ -134,6 +134,7 @@ Seven rooms, one house — organised by what part of the work you're in.
 | Tool | Purpose | Install |
 |---|---|---|
 | **Node 24+** | Renderer build + scripts | <https://nodejs.org/> |
+| **Python 3.11+** | The app's local data server (`server/` — spawned by the shell; all persistence lives there) | one-time: `cd server && python -m venv .venv && .venv/Scripts/pip install -e .[dev]` |
 | **Rust (stable)** | Tauri backend compilation | <https://www.rust-lang.org/tools/install> |
 | **Tauri CLI** | Drives `tauri dev` / `tauri build` | Pulled in as a `devDependency`; `npx tauri` works out of the box. Optional global: `cargo install tauri-cli --version "^2.0"`. |
 | **gh CLI** | Triggering the release workflow only | <https://cli.github.com/> + `gh auth login` |
@@ -145,7 +146,7 @@ Seven rooms, one house — organised by what part of the work you're in.
 npm install            # also: cd e2e && npm install (if you'll run screenshots/smoke tests)
 ```
 
-The e2e harness has its own `package.json` and its `postinstall` fetches the right `msedgedriver.exe` for your installed Edge version (Windows only).
+The e2e harness has its own `package.json` and its `postinstall` fetches the `msedgedriver.exe` matching your **WebView2 runtime** version — not Edge's; the two diverge (`e2e/scripts/fetch-driver.js`). Windows only.
 
 ---
 
@@ -157,7 +158,8 @@ Run from the repo root unless noted.
 |---|---|
 | `npm run dev` | Tauri dev — launches the Rust crate **and** a Vite dev server, opens the native window. First run is slow (compiles Rust); subsequent runs cache. |
 | `npm run build` | Packaged app for the current OS. Outputs to `src-tauri/target/release/bundle/`. |
-| `npm run dev:vite` | Renderer only, in a plain browser tab at `http://localhost:1420` — no Tauri APIs. Falls back to IndexedDB / data-URLs. Useful for fast iteration on UI that doesn't need filesystem. |
+| `npm run dev:vite` | Renderer only, in a plain browser tab at `http://localhost:1420` — no Tauri APIs; data still flows through the Python server (start it yourself: `npm run server`). |
+| `npm run server` | The Python server on :17495 (venv-resolved via `scripts/py.js`). |
 | `npm run build:vite` | Renderer build only. Tauri invokes this via `beforeBuildCommand`. |
 | `npm run preview:vite` | Serves the built renderer over Vite preview — handy for sanity-checking the bundle. |
 | `npm run tauri <cmd>` | Pass-through to the Tauri CLI (`npm run tauri icon source.png`, etc.). |
@@ -166,8 +168,11 @@ Run from the repo root unless noted.
 | `npm run release:windows` · `:macos` · `:linux` | Same as `release` but builds a single platform. |
 | `npm run screenshots` | Runs the e2e screenshot capture (same as `cd e2e && npm run capture`). Drives the prod binary, writes PNGs to `../justwrite-website/public/screenshots/`. Requires `npm run build` first. |
 | `npm test` | Runs the e2e smoke suite (delegates to `npm test --prefix e2e`). Drives the prod binary through every major route and asserts each surface renders. Requires `npm run build` first. |
+| `npm run test:unit` · `test:server` · `test:fast` | vitest (567 tests) · server pytest · the quick gate chaining both plus `build:vite`. |
+| `npm run i18n:lint` · `i18n:report` · `i18n:pseudo` | i18n-only eslint rules · locale coverage report (MISSING must stay zero) · pseudo-locale build. |
+| `npm run bench` (`:gpu`, `:cpu`) · `npm run smoke` · `npm run dup` | LLM bench harness · scripted smoke · jscpd duplicate scan. |
 
-> No linter or formatter is wired into the dev loop on purpose — writing prose is the priority. Reach for the audit tools below when imports/locals drift, not on every commit.
+> Linting is **biome** (`biome.json`, checker only — the formatter is deliberately off) plus the i18n eslint config; run them by hand, nothing hooks the dev loop.
 
 ---
 
@@ -179,8 +184,8 @@ Lives in `e2e/`. WebDriver-driven automation against the real Tauri build via [`
 
 ```bash
 cargo install --locked tauri-driver
-cd e2e && npm install        # postinstall fetches msedgedriver for your Edge version
-npm run fetch-driver         # rerun manually after a major Edge update
+cd e2e && npm install        # postinstall fetches msedgedriver for your WebView2 runtime version
+npm run fetch-driver         # rerun manually after a WebView2 runtime update
 ```
 
 ### Smoke tests
@@ -189,7 +194,7 @@ npm run fetch-driver         # rerun manually after a major Edge update
 cd e2e && npm test
 ```
 
-Spins up the prod binary, runs `tests/*.test.mjs`, asserts the major routes render. Used as the green-light gate before a release.
+Spins up the prod binary, runs `tests/*.test.js`, asserts the major routes render. Used as the green-light gate before a release.
 
 ### Screenshots
 
@@ -199,11 +204,11 @@ npm run screenshots          # from repo root
 cd e2e && npm run capture
 ```
 
-Drives `src-tauri/target/release/justwrite.exe` through a fixed list of routes (`TARGETS` in `e2e/capture-direct.mjs`) and writes PNGs straight into the marketing site's `public/screenshots/` folder. Rebuild first with `npm run build` if the renderer has drifted.
+Drives `src-tauri/target/release/justwrite.exe` through a fixed list of routes (`TARGETS` in `e2e/capture-direct.js`) and writes PNGs straight into the marketing site's `public/screenshots/` folder. Rebuild first with `npm run build` if the renderer has drifted.
 
 #### Re-capture with a different theme
 
-`capture-direct.mjs` clicks the named preset tile in Settings → Appearance before the capture loop runs, so every shot reflects a chosen theme. Default is **Fine Press**.
+`capture-direct.js` clicks the named preset tile in Settings → Appearance before the capture loop runs, so every shot reflects a chosen theme. Default is **Fine Press**.
 
 ```bash
 JW_THEME="Fine Press"   npm run screenshots   # default
@@ -261,34 +266,34 @@ Watch with `gh run watch` or open the workflow runs page. A full all-platform bu
 justwrite-app/
 ├── CLAUDE.md                  ← instructions for Claude Code (project context, conventions)
 ├── README.md
-├── docs/                      ← user-facing docs, bundled into docs.tar.gz on release
-├── biome.json
+├── docs/                      ← user-facing docs (the in-app Help corpus; docs.tar.gz on release)
+│   ├── dev/                   ← TASKS.md (live tracker) · IDEAS.md · architecture notes
+│   └── plans/                 ← dated plan/history docs (archive/ = closed history)
+├── biome.json                 ← the linter (checker only; formatter off)
 ├── package.json
-├── vite.config.js
+├── vite.config.js             ← vite root is the REPO root; aliases @delebash/llm-ui → ../just-llm-runner/ui/src
+├── index.html
 ├── scripts/
-│   ├── bump.mjs               ← version bumper (3 manifests)
-│   └── release.mjs            ← wraps gh workflow run
-├── e2e/                       ← screenshot capture + smoke tests
-│   ├── capture-direct.mjs
-│   ├── lib/driver.mjs
-│   └── tests/smoke.test.mjs
-├── src/
-│   └── renderer/
-│       ├── index.html
-│       └── src/
-│           ├── main.js                ← Vue entry; imports the Tauri bridge
-│           ├── App.vue
-│           ├── router/index.js
-│           ├── assets/styles/tokens.css
-│           ├── stores/                ← project, ui, ai, sessions
-│           ├── services/
-│           │   ├── tauri-bridge.js    ← exposes window.justwrite
-│           │   ├── openai-compat.js   ← unified HTTP client for every LLM call
-│           │   ├── search.js, analysis.js
-│           │   ├── imageStore.js
-│           │   └── export/{manuscript,pdf,docx,epub}.js
-│           ├── components/
-│           └── views/
+│   ├── py.js                  ← venv-resolving python launcher for server scripts
+│   ├── bump.js                ← version bumper (3 manifests)
+│   └── release.js             ← wraps gh workflow run
+├── e2e/                       ← screenshot capture + smoke tests (own package.json)
+│   ├── capture-direct.js
+│   ├── lib/driver.js
+│   └── tests/smoke.test.js
+├── server/                    ← the Python data server (FastAPI, :17495) — ALL persistence
+│   ├── justwrite_server/
+│   └── tests/                 ← pytest suite
+├── src/                       ← the Vue renderer (no src/renderer nesting)
+│   ├── main.js                ← Vue entry; imports the Tauri bridge; boots stores off the server
+│   ├── App.vue
+│   ├── router/index.js
+│   ├── i18n/                  ← vue-i18n setup + locales/ (en, es)
+│   ├── tokens.css · styles.css · fonts.css
+│   ├── stores/                ← project, ui, ai, sessions (Pinia)
+│   ├── services/              ← tauri-bridge.js (window.justwrite) · serverApi.js · rag/ · export/
+│   ├── components/
+│   └── views/
 └── src-tauri/
     ├── Cargo.toml
     ├── tauri.conf.json
@@ -296,7 +301,7 @@ justwrite-app/
     ├── capabilities/default.json      ← plugin permissions
     └── src/
         ├── main.rs                    ← `fn main()` -> justwrite_lib::run()
-        └── lib.rs                     ← #[tauri::command]s + Builder
+        └── lib.rs                     ← #[tauri::command]s + Builder; spawns/kills the server
 ```
 
 ---
@@ -323,17 +328,15 @@ When adding a new Tauri command:
 
 ## AI providers
 
-JustWrite uses one client class for everything: **`OpenAICompatClient`** (`src/services/openai-compat.js`).
-
-Pre-configured presets in Settings → **AI engines**:
-
-| Preset                        | Base URL                            | Notes                                                                                                                |
-| ----------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| OpenAI-compatible (local)     | `http://localhost:11434/v1`         | Generic LLM endpoint. Point at Ollama, LM Studio, llama.cpp, etc. — change the URL to whatever local server you run. |
-| OpenAI                        | `https://api.openai.com/v1`         | LLM + embeddings. Add your API key.                                                                                         |
-| Claude (Anthropic)            | `https://api.anthropic.com/v1`      | LLM only, via Anthropic's OpenAI-compatible endpoint. Add your `sk-ant-...` key. Default model: `claude-haiku-4-5`.   |
-
-Add any other OpenAI-compatible provider via **Add provider**.
+AI runs through the family's **shared LLM stack** (`../just-llm-runner`): the server
+mounts its providers/routing/usage API (`/v1/llm-providers`, `/v1/ai/*`) with
+official-SDK adapters per vendor (OpenAI · Anthropic · Gemini) plus the
+OpenAI-compatible shape for local servers, and the renderer consumes the shared
+`@delebash/llm-ui` views (providers & models · routing by feature · usage) via a
+Vite source alias. A bundled llama.cpp runner downloads, tunes, and serves local
+GGUF models — no separate install. Add any OpenAI-compatible provider (Ollama, LM
+Studio, vLLM, …) via **Add provider** on the AI Settings page. (The old
+single-client `openai-compat.js` era ended with the 2026-06 gateway retirement.)
 
 ---
 
@@ -343,7 +346,7 @@ This repo is set up to be developed with [Claude Code](https://claude.com/claude
 
 ### Project context
 
-- **`CLAUDE.md`** at the repo root is the agent's project brief. It captures: active work, the renderer/Rust split, the IPC bridge contract, the Pinia store invariants (snapshot-based undo, soft delete via `state.trash`, coalesced keystroke actions), the OpenAI-compat client, the export adapters, the Jw* UI component layer's design contract, and a "Don't" list (no PrimeVue, no `.btn-*` classes, no bypassing `window.justwrite`). Read it before changing renderer code.
+- **`CLAUDE.md`** at the repo root is the agent's project brief: the thin-client/server split, the IPC bridge contract, the Pinia store invariants (snapshot-based undo, soft delete, coalesced keystroke actions), the shared-kit rules, the export adapters, and the "Don't" list. Read it before changing renderer code; the live tracker is `docs/dev/TASKS.md`.
 - **`docs/`** is user-facing reference, mirrored to the marketing site. When you ship a feature, update the relevant doc in the same commit (this is enforced by repo convention, not by hooks).
 
 ### Recommended workflow

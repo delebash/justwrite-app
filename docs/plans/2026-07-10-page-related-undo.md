@@ -1,5 +1,7 @@
 # #235 — Book-wide page-related undo (per-domain history rework)
 
+> ✅ **CLOSED (docs campaign 2026-08-04)** — shipped 2026-07-10 (the follow-up too). Its :276 doc-bug note (core-concepts delete-toast) verified FIXED 2026-08-04. History/evidence only; live work: `docs/dev/TASKS.md`.
+
 ## Context
 
 The user's law (QC-36, verbatim): *"no not global undo undo should always be page related, not global that is bad idea"* — and #235 (verbatim): *"no global book undo that is bad, so yes add it as a task but since it is big lets do it last"*. Today the project store keeps ONE linear history: every recorded mutation deep-clones ALL 18 `HISTORY_SLICES` (`stores/project.js:302-320`) onto one `_past` stack, so ⌘Z on any page reverts the last mutation ANYWHERE — a character edit reverts while you look at chapters (the exact hazard the user named). #233 already scoped the AI page (`ui.pageUndoScopes` + a kit-local stack); #235 makes the whole book follow the law.

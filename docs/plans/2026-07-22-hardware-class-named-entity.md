@@ -1,5 +1,7 @@
 # Hardware class = a named entity (name + VRAM + RAM) holding model-configs — 2026-07-22
 
+> ✅ **CLOSED (docs campaign 2026-08-04)** — shipped in three commits (its :105); the "BUILDING" status line below is stale. History/evidence only; live work: `docs/dev/TASKS.md`.
+
 **Status: BUILDING (user's "yes go", 2026-07-22 evening).** Supersedes the Pass-4 class panel
 (the `vram8|ram32`-as-visible-key + override popup). This is the design the user converged on
 across a long chat; their rulings are quoted below.

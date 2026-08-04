@@ -1,4 +1,8 @@
-> ⛔ **NOT THE CURRENT PLAN.** The ONE current plan is `just-llm-runner/docs/plans/2026-06-28-MASTER-PLAN.md` — everything is folded in there (✅ done + ⬜ outstanding, full detail). This doc is kept as **historical background only** (past plan / design / research / evidence). Read it for context; **plan from the master.**
+> ⛔ **NOT THE CURRENT PLAN** — but **THE DB RULING IN IT IS LIVE** (banner amended by
+> the docs campaign 2026-08-04): "drop and reseed, no migrations" is the standing
+> storage policy `CLAUDE.md` cites this doc for. The migration PLAN below is history;
+> the ruling is not. (The master it defers to is itself archived now:
+> `just-llm-runner/docs/plans/archive/2026-06-28-MASTER-PLAN.md`.)
 
 # Storage: full SQL rewrite — no IndexedDB, no localStorage shim (JW + JV)
 

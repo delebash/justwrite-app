@@ -1,5 +1,7 @@
 # Provider tabs + first-run setup landing (2026-07-19) — build record
 
+> ✅ **CLOSED (docs campaign 2026-08-04)** — build record; closed. History/evidence only; live work: `docs/dev/TASKS.md`.
+
 ## What changed
 
 Three things on the AI providers surface, all in the shared kit (`just-llm-runner/ui`)

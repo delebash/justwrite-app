@@ -1,5 +1,7 @@
 # Sample novel *The Ninth Facet* + data-driven samples + per-project JSON export/import
 
+> ✅ **CLOSED (docs campaign 2026-08-04)** — Phase 2 build record shipped 2026-07-12 (whats-new v1.2.0/v1.3.0). History/evidence only; live work: `docs/dev/TASKS.md`.
+
 > ⛔ **UPDATE 2026-07-12 (LATER, same session — SUPERSEDES the folder / no-zip / no-server / no-shared
 > front matter below).** The user reversed several early calls; the **current design is the Phase 2
 > section: a ZIP, server-executed, with an Origin CSRF check.** Their reversing words:

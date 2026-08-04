@@ -11,7 +11,7 @@ switches — for performance and accuracy against the default tutorial book and 
 default feature settings, repeatedly, **without spending agent tokens driving the
 runs**. Every prior round was driven live from a session: the 2070S tuning sweep's
 harness was a scratchpad `bench.py` that died with the session
-(`docs/plans/2026-07-06-llamacpp-config-tuning-2070s.md:209`), and the pending
+(`docs/plans/archive/2026-07-06-llamacpp-config-tuning-2070s.md:209`), and the pending
 CPU-band test is written as a recipe for a human to execute by hand.
 
 The user's own framing: *"we actually just have a test preset and a test hardware

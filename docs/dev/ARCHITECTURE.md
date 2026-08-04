@@ -2,9 +2,16 @@
 
 > **⚠️ Historical note (2026-06-18):** JustWrite is now writing-only — all audio (Audio Studio, TTS, audiobook render, M4B, Speaker Lab / quote attribution, smart-cast) has moved to the separate **JustVoice** app, which JustWrite drives over an HTTP contract. Sections below that describe an in-app audio / TTS / Speaker-Lab subsystem are retained as project history and no longer reflect the shipping app.
 
+> **⚠️ Second banner (docs campaign, 2026-08-04):** the phase narrative and "known
+> limits" below are a BUILD-ERA record; several present-tense claims predate later
+> rebuilds (usage → `/v1/ai-usage` server-side · RAG → server SQLite, no IndexedDB ·
+> auto-rebuild + BM25 hybrid since shipped · Writer-Lab routes removed · CI/lint/test
+> runner all exist now). The worst offenders are corrected inline with dated notes;
+> where this file and `ai-features-roadmap.md` disagree, code sides with the roadmap.
+
 The *why* behind major substrates and design decisions. Pairs with
-[`CLAUDE.md`](../CLAUDE.md) (the *what's where* primer) and
-[`AGENTS.md`](../AGENTS.md) (the *how we do things* conventions). This file
+[`CLAUDE.md`](../../CLAUDE.md) (the *what's where* primer) and
+[`AGENTS.md`](../../AGENTS.md) (the *how we do things* conventions). This file
 captures the architectural notes that aren't visible from reading code alone
 — in-flight design explorations, deliberate trade-offs, lessons baked into
 the substrate.
@@ -53,7 +60,7 @@ The pieces that implement it, so a reader can verify rather than trust this page
 - **The Tauri SQL plugin cannot replace the server.** It lives inside the Tauri
   app — no app, no database — so it cannot serve a headless client by
   construction. It is recorded as a "no backend process" option in
-  `docs/plans/2026-06-18-cross-app-runner-and-jw-backend-decision.md`; headless
+  `docs/plans/archive/2026-06-18-cross-app-runner-and-jw-backend-decision.md`; headless
   is what closed that door.
 - **`llm_runner` staying Python is downstream of this.** JustWrite has a
   long-lived Python process because of headless, and JustVoice has one for its
@@ -111,12 +118,14 @@ Phases were locked up front; built and shipped in order.
 
 - **Multi-turn RAG chat.** `rag/chat.js` is single-turn (Q → A, reset on
   next Q). Multi-turn would need a thread store + truncation policy.
-- **Auto-rebuild RAG index.** Incremental SHA-diff is implemented but never
-  auto-fires; user must hit "Update" in the chat panel. Burning local-LLM
-  tokens silently on every save felt wrong.
-- **Hybrid keyword + semantic RAG.** Pure cosine only. Exact-string queries
-  ("find every mention of the brass key") miss when the embedding model
-  doesn't preserve surface form.
+- ~~**Auto-rebuild RAG index.**~~ *Shipped since (2026-08-04 correction):*
+  `services/rag/autoIndex.js` silently re-embeds a minute after the last edit,
+  gated on the `ai.autoRebuildRagIndex` setting — the "burning tokens silently"
+  concern became an opt-in.
+- ~~**Hybrid keyword + semantic RAG.**~~ *Shipped since (2026-08-04 correction):*
+  BM25 rides beside cosine (`rag/{chunker,vectorStore,cards,chat}.js` +
+  `server …/api/rag.py`); exact-string queries no longer depend on the embedding
+  preserving surface form.
 - **EPUB/ODT import strips images.** Only paragraph text comes through, with
   a warning. Real image carry-through would need to thread bytes into
   `imageStore` and rewrite `<img>` `src`.
@@ -390,8 +399,10 @@ repository\_dispatch to `delebash/justwrite-website` so its CI rebuilds).
 - Code signing (macOS Gatekeeper + Windows SmartScreen warnings expected;
   cost of certs not yet justified)
 - Auto-update
-- Per-push CI checks (no `check.yml`, no lint, no test runner — consistent
-  with the existing "no test runner" project rule)
+- Per-push CI checks — *stale as written (2026-08-04 correction): the repo now has
+  `.github/workflows/release.yml`, biome (`biome.json`), and a 55-file vitest suite
+  (`npm run test:unit`); what remains true is that none of it is per-push CI — the
+  gates are run-by-hand (`npm run test:fast`).*
 
 ### Docs-only refresh without a full release
 
@@ -410,12 +421,13 @@ JustWrite has a working WebDriver-driven test and screenshot harness at
 `e2e/`.
 
 **Stack:** `tauri-driver` (cargo-installed, `cargo install --locked
-tauri-driver`) + a bundled `msedgedriver.exe` matched to the local Edge
-version (downloaded from `https://msedgedriver.microsoft.com/<version>/
-edgedriver_win64.zip`). Talks raw W3C WebDriver HTTP from Node — **no
-WebdriverIO** (v9 fails with `UND_ERR_INVALID_ARG` on session create; v8
-hangs at session handshake with no diagnostic). Wrapper is
-`lib/driver.js` (~150 lines); tests via Node's built-in `node --test`.
+tauri-driver`) + a bundled `msedgedriver.exe` matched to the **WebView2
+runtime** version — NOT Edge's (`e2e/scripts/fetch-driver.js`; the two
+diverge and the mismatch bites). Talks raw W3C WebDriver HTTP from Node —
+**no WebdriverIO** (the wdio deps were dropped in `f345de6`; v9 failed with
+`UND_ERR_INVALID_ARG` on session create, v8 hung at session handshake).
+Wrapper is `e2e/lib/driver.js` (~150 lines); tests via Node's built-in
+`node --test`.
 
 **Why this matters:** earlier attempts to capture views by driving the
 renderer in browser-mode (`npm run dev:vite` + Playwright + IDB injection)

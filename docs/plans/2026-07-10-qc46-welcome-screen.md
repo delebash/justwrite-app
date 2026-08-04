@@ -1,5 +1,7 @@
 # QC-46 — the first-run welcome screen ("W-A Paper hero")
 
+> ✅ **CLOSED (docs campaign 2026-08-04)** — built 2026-07-10. History/evidence only; live work: `docs/dev/TASKS.md`.
+
 **Status: BUILT (2026-07-10).** The user's decision, verbatim (queue doc
 `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md`, "QC-46 DECIDED"):
 *"i want the welcome scree as firtst run surface with something about the ai

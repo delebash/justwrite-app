@@ -18,8 +18,8 @@ npm run dev:vite       # Renderer only, in a browser tab (no Tauri APIs; data st
 npm run build:vite     # Renderer build only — a COMPILE check, not a substitute for the smoke
 
 npm run test:fast      # quick gate (~53s): vitest + build:vite + server pytest
-npm run test:unit      # vitest only (429 tests, ~8s)
-npm run test:server    # server pytest only (121 tests, ~38s, parallel)
+npm run test:unit      # vitest only (567 tests as of 2026-08-04, ~9s)
+npm run test:server    # server pytest only (~38s, parallel)
 npm run i18n:report    # locale coverage — MISSING must always be zero
 ```
 
@@ -67,7 +67,7 @@ Windows, macOS and Linux layouts) or set `JW_CHROME`. Never hardcode a browser p
 ## User docs ship from `docs/`
 
 **`docs/*.md` IS the in-app help corpus.** `services/helpDocs.js` bundles those files via
-`import.meta.glob("../../../../docs/*.md")`, `docs/toc.json` indexes them, and the same folder is
+`import.meta.glob("../../docs/*.md")`, `docs/toc.json` indexes them, and the same folder is
 packed into `docs.tar.gz` at release for the marketing site — one source of truth for in-app help
 and the website. Editing `docs/writing.md` changes what users read in both places.
 
@@ -89,7 +89,7 @@ bundled into the app's Help by the glob and packed into the public `docs.tar.gz`
 **Biome** (`biome.json`) is the linter — `"formatter": { "enabled": false }`, so it does not format;
 match each file's existing style and never bulk-reformat unrelated code. Scope is
 `src/**/*.{js,vue}`. The Python server uses **ruff**. i18n linting is a separate
-`eslint.i18n.config.mjs` carrying i18n rules only.
+`eslint.i18n.config.js` carrying i18n rules only.
 
 ## Where to look
 

@@ -1,8 +1,10 @@
-# TASKS — the live open-work tracker (whole system)
+# TASKS — the live open-work tracker (JustWrite)
 
-> **THIS is the live tracker.** One place for everything open across the system we work as a
-> whole — **JustWrite**, the shared **AI stack** (`just-llm-runner` + `@delebash/llm-ui`), and
-> **JustVoice**. Unscheduled ideas live in `docs/dev/IDEAS.md`.
+> **THIS is JustWrite's live tracker.** Since 2026-08-04 every repo carries its own
+> (the docs campaign; the rule: **an item lives where the code that closes it
+> lives**): kit + shared-server work → `../just-llm-runner/docs/dev/TASKS.md` ·
+> JustVoice → `../JustVioce/docs/dev/TASKS.md` · this file = JustWrite + the
+> cross-app coordination items only. Unscheduled ideas live in `docs/dev/IDEAS.md`.
 >
 > **How to use.** One line per item + a pointer to its detail doc — the depth lives in the
 > linked doc, not here. **Close = delete** (the user's ruling, 2026-08-04): when an item ships
@@ -44,11 +46,11 @@
   the i18n plan docs + git):
   - Flaky `projectHistory.test.js` cap test — failed once in four identical runs under GPU
     load, mechanism unexplained, not i18n's — yours to call.
-  - `Sidebar.vue:820` still freezes `v0.1 · local`; binding it to `APP_VERSION` is the fix —
-    yours to call.
+  - The frozen `v0.1 · local` brand line MOVED, it didn't die (docs campaign
+    2026-08-04, verified): it now lives as the catalog value `sidebar.brand.sub`
+    (`en.json` + `es.json`); binding it to `APP_VERSION` (an interpolated message)
+    is still the fix — yours to call.
   - Key-naming style + the `|` plural pipes in `en.json` — your veto still open.
-  - `chapters.outline.intro` copy bug: says "Outline / Cards / Read view modes" but the modes
-    are Edit / Outline / Read — preserved word-for-word, yours to call.
   - ~200 duplicate call sites could point at existing `common.*`/`count.*` keys — optional
     reuse polish.
   - Trap to remember: `@` is vue-i18n's linked-message syntax — write `{'@'}` in messages;
@@ -62,32 +64,36 @@
   `es.json` into JW · the upstream `--think` PR · whether to rotate the Gemini key that
   appeared in chat.
 
-## Open — awaiting a go (shared AI stack)
+## Open — awaiting a go
 
 - **B5-4 — nav prominence for Ask the Book** — a design call, nothing else remains from
   Batches 5+6. `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` §8.
 - **QC queue** — the live findings you drop while QC-ing on your box; discussion-first, each
   needs its own go. Same doc, §9.
-- **I2 — cloud prompt caching — research pass owed, then your build/skip call.** Verified
-  2026-07-26: the Anthropic and Gemini adapters send no caching hints. Output = a
-  recommendation with numbers (what each vendor's caching is TODAY, costs/savings, whether our
-  request shapes benefit, the wrong-in-a-costly-way case). Ledger §I2.
+- **Adopt the kit boot contract (recorded deviation, app-structure.md §4/§1):** swap the
+  hand-wired `configureLlmUi`/`configureServerApi`/`configureExternal` calls
+  (`main.js`) for `installLlmUi`, mount `<LlmUiHosts />` instead of individual
+  `<Toast />`+`<AppDialog />` (`App.vue:192-193`), take the AI-tasks nav row from
+  `useAiTasksNav()` (`Sidebar.vue:148` hand-builds it). Also grandfathered: no
+  `lint` script; console script named `justwrite_server.cli` not `<snake>.serve`.
+- **Rust D2 — delete legacy `images_read`/`images_delete` — YOUR CALL, never made**
+  (explained 2026-07-13, rec: delete; two dead fns reading pre-server disk-file
+  image records). Extracted from `docs/plans/2026-07-13-rust-minimization-and-choosers.md`
+  by the docs campaign — the decision had fallen out of the tracker.
+- **Per-band model survey — two decisions still open for you** [attributed:
+  `docs/plans/2026-07-25-per-band-model-survey.md:5`; the band arc itself is complete].
+- **Think-A/B + b9993 loop re-test — RESULTS never filled: dead or owed?** The
+  user-ordered on-box batch in `docs/plans/2026-07-16-think-ab-and-loop-retest.md`
+  has an empty results template. Rule it: run the two tests, or kill the doc.
+- **2026-06-20 deep-audit backlog — merge call before it archives:** its untriaged
+  findings overlap the open "extraction vs copies" audit above; decide fold-or-drop
+  (`docs/plans/2026-06-20-deep-audit.md`).
 
-## JustVoice — AFTER JustWrite (the user's roadmap ruling, 2026-07-26)
-
-*"The main goal is to completely finish JW and all AI stuff, then we will work on JV."* So
-everything below is deliberately parked behind the JW/AI-stack work and the i18n task above —
-listed for shape, not queued.
-
-- **F1 — convergence onto the current shared stack (THE big one)** — JV can't even import today's
-  `llm_runner` (`models.py` imports `LLMRolesSettings`, gone from the shared schema; 30 tests die
-  at collection). Blocks F2/F5-adjacent work/F6/I6; delivers the whole month's shared work
-  (catalog/tune, auto-MTP, Logs, provider connect) for free. Ledger §F1.
-- **F5 — JV Appearance knob-set gap** — JV exposes Theme/size/accent/language only, while the
-  shared engine it already adopted supports the full JW set. Independent of F1. Ledger §F5.
-- **F6 — online TTS providers, official-SDK way** — after the JW SDK pivot proved the glue.
-  Survey-first; after F1. Ledger §F6.
-- **F2 — speaker-attribution task scaffolding** — meaningful only after F1. Ledger §F2.
+*(Moved 2026-08-04 by the placement rule: I2 cloud prompt caching → the runner's
+`docs/dev/TASKS.md`; the whole JustVoice section (F1/F5/F6/F2, still parked behind
+JW by your roadmap ruling) → `../JustVioce/docs/dev/TASKS.md` — with F1's stale
+"JV can't even import llm_runner" claim corrected there: check-consumers passes for
+JV as of 2026-08-04; the convergence scope itself stands.)*
 
 ## Your-box checks (only the Windows / 2070S machine can finish these)
 
@@ -112,6 +118,14 @@ listed for shape, not queued.
   failed / "Getting ready" states is all that's left.
 - **Delete the 31B row in your local catalog UI if you want it gone** — the seeder is
   insert-only, so the 2026-07-26 removal reaches fresh installs only.
+- **Batch Fill-from-book: the review phase + auto-apply write have never had a live
+  run** [attributed: `docs/plans/2026-07-19-batch-fill-from-book.md` — shipped from
+  unit-tested pieces; "get their first live run on the user's box"]. One real batch
+  on your box is the acceptance.
+- **Pass-1 execution tail** [attributed: `docs/plans/2026-07-22-pass1-execution-plan.md`
+  tail — "paused pending the planner's decision"]: the smoke's splash-aware wait ·
+  your box-look at the new panel line / editor Copy / override flow / the rename ·
+  the iGPU laptop kit queue.
 - **Bench harness `--restore` fire-test** — one deliberate mid-leg kill → `npm run bench --
   --restore bench/results/<run-id>` → the Routing tab shows the original assignments. Still only
   proven against a fake client. `docs/plans/2026-07-19-llm-bench-harness.md`.
@@ -146,25 +160,18 @@ listed for shape, not queued.
 
 ## Parked (wakes on a trigger or a fresh ask — not active work)
 
-- **D5 — remote curated model catalog** (shape recorded, ready) · **D6 — in-app HF "Discover"
-  surface** · **I3 — Apple-Silicon fit/tune refinements** (needs a Mac) · **I5 — the deferred
-  parking lot** (per-scene snapshots · per-entity write REST · RAG sqlite-vec ANN · extract kit
-  `common/` → `@delebash/ui` · llama-swap layer · the Tauri/package rename PR) · **F3 — audiobook
-  converters + speaker-attribution deep research** (JV) · **I6 — the JV tail beyond F1–F5**.
-  Each: the ledger section of the same name.
+- **I5 — the deferred parking lot** (per-scene snapshots · per-entity write REST · RAG
+  sqlite-vec ANN · extract kit `common/` → `@delebash/ui` · llama-swap layer · the
+  Tauri/package rename PR). Ledger §I5.
 - **claude-config standalone provisioning** — only the fresh-container proof is outstanding
   (prove `~/.claude` provisions from `github.com/delebash/claude-config`, then JW's vendored
   copy can go).
 - **`uma` → `mem_arch`** — a design call parked until a unified-memory NVIDIA box actually
   exists; the "Use for this PC" override covers such a user today.
-- **Upstream WATCH: `--fit` silently kills Gemma-4 MTP drafts** (llama.cpp #24350; `--fit off`
-  is the verified cure; our fit-by-omission placement walks into it) — re-test on a build newer
-  than b10107 (#24795 shows the family regressing and being fixed across builds).
-- **Model watchlist:** Harrier-27B (MIT, real, no GGUF yet) · the KaLM-Gemma3-12B embed trial
-  when your 32 GB card arrives · Ternary Bonsai (its own IDEAS.md entry).
-- **LICENCE flag** — Gemma-ToU propagation matters only if we ever BUNDLE weights; your call
-  then.
-- **Provider SDK pivot re-opens only if funded keys appear** — OpenAI/xAI/Mistral ship wired,
-  live-unverified, by your "close 3 i dont have keys".
 - **The bench-autostart venv re-exec oddity** — a `F:\Python312` child owned the llama-servers
   on 2026-07-26; ran green, cause unverified; sits on the "which Python runs" trap.
+
+*(Moved 2026-08-04 by the placement rule — runner-owned parked items (D5 · D6 · I3 ·
+the `--fit`/MTP upstream WATCH · the Harrier/KaLM model watchlist · the LICENCE flag ·
+the SDK-pivot re-open trigger) → `../just-llm-runner/docs/dev/TASKS.md`; JV-owned
+(F3 · I6) → `../JustVioce/docs/dev/TASKS.md`.)*

@@ -21,7 +21,7 @@ in-session)" were read against the working tree during that session, not asserte
 The user asked whether the CPU band needs the CPU build of llama.cpp. First answer (from the bench
 config's own comment) was "no — `nGpuLayers: 0` on the CUDA build forces pure CPU"; the user pushed
 back ("i think you are mistaken that is old info… think again") and was right. The on-box measurement
-of 2026-07-06 (`docs/plans/2026-07-06-llamacpp-config-tuning-2070s.md:176`) shows a CUDA-build child
+of 2026-07-06 (`docs/plans/archive/2026-07-06-llamacpp-config-tuning-2070s.md:176`) shows a CUDA-build child
 at `ngl 0` still holds ~549 MB VRAM **and still GPU-offloads large-batch matmuls** (bulk-embed 3.2 s
 vs 22–33 s with `--device none` — a ~10× swing on exactly the prefill path). So measuring the CPU
 band on the CUDA build would have returned GPU-accelerated, falsely-fast `pp` numbers on the one axis
@@ -1653,7 +1653,7 @@ table reported only `ui/src` and `models.md`, leaving the runner side unstated).
 pattern was run over BOTH `docs/` roots. **just-llm-runner:** `docs/` holds exactly two things —
 `llama-cpp-watch.md` (no hits) and `docs/plans/`, whose seven hits
 (`2026-07-08-big-batch-queue.md`, `2026-07-16-reasoning-budget-house-layering.md`,
-`2026-07-14-feature-override-and-reasoning-plan.md`, `2026-07-14-thinking-budget-design-discussion.md`,
+`archive/2026-07-14-feature-override-and-reasoning-plan.md`, `archive/2026-07-14-thinking-budget-design-discussion.md`,
 `2026-07-06-providers-surface-redesign.md`, `2026-07-04-serving-vram-manager-implementation.md`,
 plus this pass's own plan doc) are all dated historical records and stay untouched by charter. The
 one LIVE runner doc carrying the old shorthand is `README.md:19`, outside `docs/` and therefore
@@ -1666,7 +1666,7 @@ config**" / "the visible PC-class-config library" (visible-doc), while the ident
 (§24). `docs/ARCHITECTURE.md`'s single hit is the false-positive analysed under OPEN below. The
 remaining five (`2026-07-20-mtp-verify-think-ab-bench.md`, `2026-07-25-per-band-model-survey.md`,
 `2026-07-25-session-handoff-and-verification-debt.md`, `2026-07-22-hardware-class-named-entity.md`,
-`2026-07-08-recap-archive.md`) are historical plan docs, deliberately kept as written records.
+`archive/2026-07-08-recap-archive.md`) are historical plan docs, deliberately kept as written records.
 
 One reconciliation on the test baseline: the plan predicted JW vitest at 450 passed / 49 files
 (the §23 figure) and the run reported 458 / 50. The extra file is

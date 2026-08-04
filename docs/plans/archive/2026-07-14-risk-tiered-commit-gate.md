@@ -1,5 +1,7 @@
 # Risk-tiered commit-gate — plan + build record (2026-07-14)
 
+> ✅ **CLOSED (docs campaign 2026-08-04)** — BUILT, then REVERSED by the user's ruling (TASKS: "commit-gate hooks are REJECTED" - the remedy is asking before UI-behaviour changes, not machinery). Kept so the built-then-killed fact survives. History/evidence only; live work: `docs/dev/TASKS.md`.
+
 > Deferred follow-up from the 2026-07-13 Rust-minimization build. Global hook change
 > (`claude-config/hooks/`, provisioned to every session by `install.sh`). Planned in plan
 > mode, 3-lens rules-checker panel run before locking, user-approved.

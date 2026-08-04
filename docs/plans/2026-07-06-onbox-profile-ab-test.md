@@ -1,4 +1,6 @@
 
+
+> ✅ **CLOSED (docs campaign 2026-08-04)** — results consumed by the 07-06 tuning verdict; instrument spent. History/evidence only; live work: `docs/dev/TASKS.md`.
 # On-box tests — profile A/B + switch cost + optimize check (2026-07-06)
 
 **For the local Claude running on the 2070 SUPER box (8 GB VRAM · 32 GB RAM · Ryzen 5700X).**

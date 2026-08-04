@@ -6,7 +6,7 @@ per-task history lives in `docs/plans/*`.
 
 ## Layout
 
-- `` — Vite root for the Vue 3 + Pinia renderer. Vite's `root` is ``, not the repo root.
+- The REPO ROOT is the Vite root (`index.html` at top level; the Vue 3 + Pinia renderer lives in `src/`). This line once pointed at a `src/renderer/` nesting that no longer exists.
 - `src-tauri/` — Rust crate. `main.rs` calls `justwrite_lib::run()`; all `#[tauri::command]`s live in `lib.rs`.
 - `dist/` — Vite output, consumed by Tauri as `frontendDist`.
 
@@ -185,25 +185,14 @@ with `Intl.DisplayNames`, so the picker shows "Español" and "Français" without
 `i18nLocaleDiscovery.test.js` reads that file as text and fails if a locale code or a label is
 ever hardcoded back into it.
 
-Translation tooling for the locale files themselves lives in the `just-ai-help` repo, and its
-entire footprint here is the **`just-ai-help/`** folder at the project root:
-
-| | |
-|---|---|
-| `config.json` | four fields — `locales`, `targets`, `context`, `glossary`. Committed |
-| `es.accepted.json` | reviewer verdicts, with `by`/`at` recording who signed each off. Committed, because `--check-only` runs in CI against a fresh clone |
-| `es.notes.json` | per-key notes, resent on the next translation of that key. Committed |
-| `.jah.db`, `*.probe.json`, `.jah-cache.json` | machine state and API keys. Gitignored |
-
-`locales/` holds **only** locale files — the translations are app assets that ship; the review
-artefacts are the tool's memory and nothing in the app reads them. Delete `just-ai-help/`
-entirely and the app still builds and runs in every language it has.
-
-Run it from anywhere; every path resolves against the config file:
-
-```bash
-node ../just-ai-help/server/translate.js just-ai-help/config.json --check-only
-```
+Translation tooling for the locale files lives OUTSIDE this repo. The Node tool
+(`just-ai-help`) was retired 2026-08-04 — GitHub repo archived, the local
+`just-ai-help/` project folder deleted (`9886174`) — and its Python successor is
+**`../just_ai_i18n_docgen`** (same one-resolver design: committed per-project
+`config.json` / `<lang>.accepted.json` / `<lang>.notes.json`, machine state
+gitignored). The principle stands: `locales/` holds only locale files (app assets
+that ship); the reviewer artefacts are the TOOL's memory, and deleting the tool's
+folder leaves the app building and running in every language it has.
 
 ## Test harness detail
 
@@ -229,4 +218,4 @@ Harnesses in the repo:
 - **vitest** (`vitest.config.js`, node environment) — pure-JS service and composable tests such as the embedApi ensure-cache and modelMeta suites. Complements, never replaces, the headless smoke.
 - **Playwright headless renderer smoke** (`tests/smoke/headless-smoke.js`, plus `tests/smoke/book-smoke.js`) — THE renderer gate. See `CLAUDE.md` for how to run it and the `findChrome()` rule.
 - **`e2e/` WebDriver harness** (`tauri-driver` + `msedgedriver` driving the built desktop binary) — `npm test` runs the smoke suite, `npm run screenshots` the marketing shots. Both need a compiled `.exe` plus Edge/WebView2, so this is the packaged-desktop check, not a quick dev gate.
-- **Python `server/`** — pytest plus ruff (server-mode migration: `docs/plans/2026-06-18-jw-server-migration.md`).
+- **Python `server/`** — pytest plus ruff (server-mode migration: `docs/plans/archive/2026-06-18-jw-server-migration.md`).

@@ -1,5 +1,7 @@
 # Plan — Rust→server minimization + autosave/backup choosers + samples→data-dir + #293
 
+> ✅ **CLOSED (docs campaign 2026-08-04)** — P3/P4/P5 shipped. D2 (delete legacy images_read/images_delete) is STILL OPEN - the user's call, now tracked in docs/dev/TASKS.md. History/evidence only; live work: `docs/dev/TASKS.md`.
+
 ## Context
 
 The user's rule: **Rust is only the desktop shell** — anything that can run server-side must be a plain JS `fetch` → the Python server; Rust stays minimal (native file/folder dialogs + OS-browser open + spawn/relocate the server). Today ~1138 lines of Rust expose 17 commands, several doing file IO under the data dir the server already owns (`JUSTWRITE_DATA_DIR`). Alongside the migration the user wants: autosave + backup each with their **own** folder selector (default = data dir, remember last), the **choosers-open-at-home bug** fixed, **autosave select/delete (individual + all)**, samples in **`<data>/samples/`** (Option A: one-time materialize, source shipped as a bundled resource), and **#293** (embed card stuck on "loads on first search" after an index build).

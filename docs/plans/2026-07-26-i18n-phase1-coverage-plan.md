@@ -1,5 +1,7 @@
 # i18n Phase 1a — coverage groundwork + the first three views (EXECUTOR PLAN)
 
+> ✅ **CLOSED (docs campaign 2026-08-04)** — Phase 1a merged (TASKS records it). History/evidence only; live work: `docs/dev/TASKS.md`.
+
 Executor: an Opus coding agent. Every decision is CLOSED here — the executor codes,
 verifies, commits, reports. Any case this plan does not decide: STOP, collect it in the
 report's OPEN QUESTIONS, do not improvise. The seven governing decisions were blessed by

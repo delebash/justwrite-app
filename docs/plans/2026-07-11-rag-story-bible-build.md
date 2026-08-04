@@ -1,5 +1,7 @@
 # 2026-07-11 — RAG + extraction BUILD plan (executes the armed go)
 
+> ✅ **CLOSED (docs campaign 2026-08-04)** — RAG shipped (src/services/rag/* + server rag_search.py). History/evidence only; live work: `docs/dev/TASKS.md`.
+
 The user's go (verbatim, 2026-07-11): *"i will take your recs, we need to
 compact first."* This plan derives the task list from THE SPEC —
 `docs/plans/2026-07-10-rag-story-bible-research.md` §10–§11 (four passes,

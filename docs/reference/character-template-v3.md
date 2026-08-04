@@ -2,7 +2,7 @@
 
 > Provenance: authored in a separate Claude session for the user; committed here
 > 2026-07-18 as the source document for the character-sheet v3 merge
-> (`docs/plans/2026-07-18-character-sheet-v3-and-relations.md`). The in-app help
+> (`docs/plans/archive/2026-07-18-character-sheet-v3-and-relations.md`). The in-app help
 > doc (`docs/character-sheet.md`) and the per-field label hints derive from this
 > file — when they disagree, this file is the intent, the plan doc is the spec.
 

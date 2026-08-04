@@ -9,7 +9,7 @@ Items are loosely grouped by area and by how concrete they are.
 ## Story bible
 
 - **Tag filter chips on Characters / Locations / Objects.** Worldbuilding already has filter chips for tags. The other entity grids don't yet. Adding them is mechanical work — the pattern's been established.
-- **Curated project-wide tag vocabulary.** A small editable default set in Settings (alongside the existing per-entity-type categories) would prevent typo splintering ("antagonist" / "Antagonist" / "antag"). The current freeform + typeahead system catches most of this, but a curated baseline would catch the rest.
+- ~~Curated project-wide tag vocabulary~~ — **shipped** (Settings → tag vocabularies; TagEditor canonicalises against it). Deliberately ships EMPTY: a starter default set was considered and rejected — your tags are your own.
 
 ---
 
@@ -24,7 +24,7 @@ Items are loosely grouped by area and by how concrete they are.
 
 - **Token budgets per feature.** A per-feature monthly cap that pauses AI calls when exceeded, to prevent surprise bills on cloud providers.
 - **Embedding rebuild status.** The auto-rebuild RAG indicator could be more visible when it's actively running.
-- **Per-model temperature, resolved via tier.** AI services currently hard-code their temperature (0.3 for JSON-output features, 0.4–0.55 for prose critique, etc.). One value applies regardless of which model runs the call. A more nuanced approach would extend the tier system (`Guided` / `Direct` / `Reasoned`) with a per-tier temperature so that, say, Claude or `gpt-5.5` on Direct could run at 0.4 for a touch more nuance while Qwen3:8B on Guided stays at 0.3 for JSON safety. Services would read `tier.temperature` the same way they currently read `tier.think`.
+- **Finer per-feature engine tuning.** Every tunable (temperature, samplers, think) now lives on the **engine preset** a feature routes to (AI Settings → Routing by feature) — one source, editable today. The remaining roadmap idea is finer grain: distinct preset defaults per feature *class* (JSON-strict extraction vs prose critique) shipped out of the box, so new users get sensible splits without hand-tuning.
 
 ---
 

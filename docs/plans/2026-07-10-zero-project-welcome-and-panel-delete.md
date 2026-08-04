@@ -1,5 +1,7 @@
 # 2026-07-10 — The zero-project law + the scene-notes panel delete
 
+> ✅ **CLOSED (docs campaign 2026-08-04)** — produced two builds + one recorded decision; closed. History/evidence only; live work: `docs/dev/TASKS.md`.
+
 The user's three answers this evening (verbatim: *"1 it seems to switch now,
 but i have reset the database twice and restarted and i still have untitled
 project. 2 is there any reason not to strip it for ai reasons? 3 not sure what

@@ -245,7 +245,7 @@ the old `data-chat-toggle` / `data-ai-status-toggle` names are gone) so the
 handler doesn't close a panel just before its own trigger re-opens it.
 
 Full reasoning + the user's rulings:
-`just-llm-runner/docs/plans/2026-07-19-panel-dismiss-and-no-dim.md`.
+`just-llm-runner/docs/plans/archive/2026-07-19-panel-dismiss-and-no-dim.md`.
 
 ---
 

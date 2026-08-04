@@ -1,5 +1,7 @@
 # MTP verified + think A/B + human bench report — findings, decisions, and the execution plan
 
+> ✅ **CLOSED (docs campaign 2026-08-04)** — the design shipped (its :555). History/evidence only; live work: `docs/dev/TASKS.md`.
+
 > **2026-07-20/21.** Born from the user's question "can we verify that MTP is actually working —
 > I think until the recent download fix the MTP file wasn't on disk, so we may never have used
 > it." The investigation answered that (yes, it works now; no, it mostly didn't before

@@ -291,7 +291,7 @@ untouched; the Bench preset row itself remains (harmless, the bench reuses it).
 
 1. `scripts/bench/configs/cpu.json:8` — replace the "nGpuLayers 0 forces it even on the CUDA
    build" claim with the truth: pure-CPU measurement REQUIRES the CPU build; `-ngl 0` on CUDA
-   still GPU-offloads large-batch matmuls (cite `docs/plans/2026-07-06-llamacpp-config-tuning-2070s.md:176`).
+   still GPU-offloads large-batch matmuls (cite `docs/plans/archive/2026-07-06-llamacpp-config-tuning-2070s.md:176`).
 2. Same correction in `docs/plans/2026-07-19-cpu-only-band-test.md:60` (banner-style note, don't
    rewrite history silently).
 3. `just-llm-runner/llm_runner/llm/db.py:316-317` — the ModelClassPick docstring: drop
