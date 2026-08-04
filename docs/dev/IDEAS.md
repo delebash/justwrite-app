@@ -200,3 +200,7 @@ These stay where they are; this list just points at them so nothing's lost:
   its historical banner); the live parts worth revisiting are the four **strategic bets**
   (disclosure-compliant/NDA-safe positioning · genre presets · continuity enforcement as
   the headline AI feature · a series container across books).
+
+- **Multi-chat list per book/character** (2026-08-04, extracted from the archived
+  big-batch ledger B5-3): delete-current shipped; a saved LIST of chats per
+  book/character is a new feature you never drew — say so and it becomes an item.

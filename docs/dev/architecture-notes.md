@@ -31,7 +31,7 @@ removed 2026-07-13 — per-project backup and transfer live in Settings → Back
 
 The **data root** is a portable, user-settable folder holding ALL app data (projects DB, images, AI
 engine, models, logs); `storage_relocate` moves it and respawns the server (see
-`docs/plans/2026-07-02-portable-data-root-and-engine-install.md`).
+`docs/plans/archive/2026-07-02-portable-data-root-and-engine-install.md`).
 
 When `window.justwrite` is undefined (plain `vite dev` in a browser), project data still persists to
 the server via `projectApi`, and images upload via `imageStore` (inline data-URL fallback only when
@@ -71,7 +71,7 @@ the QC-37 toast law (2026-07-09): the row visibly leaves, and undo never rides a
 
 ### Undo/redo — page-related, snapshot-based, in-memory only
 
-Full design: `docs/plans/2026-07-10-page-related-undo.md` (#235). History is partitioned into 13
+Full design: `docs/plans/archive/2026-07-10-page-related-undo.md` (#235). History is partitioned into 13
 disjoint data domains (`DOMAIN_SLICES`); every recorded action maps to exactly ONE domain
 (`ACTION_DOMAINS`; image actions take the owner kind). `this._record(actionId)` deep-clones only
 that domain's slices onto `_past[domain]` (trash captured per-kind, images per-entity-key; limit
@@ -120,10 +120,10 @@ AI routing is **one-source** (2026-07-15): each action points at ONE engine pres
 (`feature_preset_refs`, seeded full) which owns the model and every tunable including
 think/reasoning; the action keeps only its prompt text and JSON contract; one `default_preset_id`
 RunnerSetting catches unassigned customs. The current model lives in
-`just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrite.md`. The 2026-07-14 plan's Unit-2
+`just-llm-runner/docs/plans/archive/2026-07-15-preset-one-source-rewrite.md`. The 2026-07-14 plan's Unit-2
 reasoning BACKEND stands; its task-tier language is superseded. The whole-system open-work tracker
 is `docs/dev/TASKS.md`, which points at
-`just-llm-runner/docs/plans/2026-07-06-outstanding-master-plan.md` (§A–J) for detail.
+`just-llm-runner/docs/plans/archive/2026-07-06-outstanding-master-plan.md` (§A–J) for detail.
 
 ## Manuscript export
 

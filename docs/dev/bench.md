@@ -209,3 +209,53 @@ npm run bench -- --restore bench/results/<run-id>
 
 Re-applies the assignment snapshot and verifies it by re-reading. Everything
 completed before the crash is already on disk; legs are written as they finish.
+
+## Deep detail absorbed from the build plan (docs campaign 2026-08-04)
+
+The 2026-07-19 harness plan is archived (`../plans/archive/2026-07-19-llm-bench-harness.md`);
+these are the load-bearing facts it carried that this doc lacked:
+
+- **Routing rides `feature_preset_refs`, never per-request overrides** — the
+  resolved preset's long-tail samplers apply wherever the request doesn't name the
+  key, so an override payload can't carry a full leg config and can't null a preset
+  sampler; there is no per-request preset id.
+- **The bench writes ZERO tune rows by construction** — presets carry no launch
+  switches; switches ride `POST /v1/llm-runner/load` as transient measure-only
+  inputs, so a crashed run can't degrade the daily setup. There is deliberately no
+  "test hardware" row.
+- **The DEV seam**: `window.__jwBench` (`services/benchHook.js`) — `info() ·
+  activate() · ensureIndex() · features() · run(featureKey, args)`; owns the
+  per-run AbortController + timeout and NEVER throws ("a model that wedges is a
+  finding"). Dynamically imported under `import.meta.env.DEV`; `grep __jwBench
+  dist/` is empty — it cannot ship.
+- Why not bare HTTP: chat/characterChat/entitySweep assemble prompts CLIENT-side —
+  HTTP would measure a different prompt.
+- **Store semantics**: the unit of truth is the LEG (grouped by leg id, newest
+  wins, no index to drift); `leg.json` keeps metrics only (model text lives once in
+  the per-feature capture); `legFingerprint` deliberately EXCLUDES `repeats` and
+  INCLUDES tunables (a think leg gets its own identity); the run stamps the ACTUAL
+  measured project id and `stalenessOf` flags book A→B; `--missing` counts DATA,
+  not presence (the Bonsai trap). `legRecord.measure` carries
+  `draftN`/`draftNAccepted`/`draftAcceptance` (the MTP fields).
+- **Engine discipline**: load ceilings 4 h with downloads / 30 min default (and the
+  ordering lesson: llama-bench must run AFTER the load or a model's first leg
+  silently skips its raw matrix); `POST /stop` returns while the child still exits —
+  `waitEngineQuiet()` polls the OS process list and logs a timeout as a
+  CONTAMINATION warning; `resolveGguf()` requires ≥ half the id's tokens to match
+  and refuses ambiguity (reporting one model's numbers under another's name is the
+  worst failure this harness could have).
+- **Endpoint anchors**: `POST /engine-presets` mints its own id → find-by-name-
+  then-update; `GET/PUT /v1/ai/preset-assignments[/feature]`; `/measure` takes
+  QUERY params, not a body; residency from `/resident`, never the single-model
+  `/status`.
+- Drive modes: Playwright attaches to WebView2 over CDP via
+  `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=<port>`;
+  `bench:gpu`/`bench:cpu` are BAND aliases composing with mode flags. (The plan's
+  `--headed`/`--tauri` flags were removed 2026-07-20 — superseded, do not revive
+  from the archive.) NOTE the plan's paths (`scripts/bench/`, `bench-results/`) are
+  the OLD layout; this doc's `bench/harness/` + `bench/results/` are current.
+- The hard-question answer keys live in
+  `../plans/archive/2026-07-20-mtp-verify-think-ab-bench.md` §6.
+- **Standing debt** (also tracked): no end-to-end bench run has reached a live
+  model through the harness; `--restore` proven only against a fake client;
+  `book-smoke.js` needs port 1420 free.

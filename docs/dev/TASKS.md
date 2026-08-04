@@ -24,9 +24,11 @@
   translator + review workspace when that pipeline goes live, like the rest of es.json.
 - **"Serve `/health` before `seed_workspace`" — recommend DROPPING; your ruling owed.**
   Measured 2026-07-25: it buys 36 ms of a ~975 ms pre-listen window dominated by framework
-  imports that cannot be deferred. Re-measure snippet: the 2026-07-25 session record.
+  imports that cannot be deferred. (Correction, docs campaign: there is no "re-measure
+  snippet" — the record holds one measured breakdown, now in
+  `docs/dev/measured-performance.md` §Boot.)
 - **Fit-estimate label wording — your veto still open.** Shipped with the PC-class work;
-  `docs/plans/2026-07-22-igpu-research-and-cpu-band-recovery.md` §25 addendum 9.
+  `docs/plans/archive/2026-07-22-igpu-research-and-cpu-band-recovery.md` §25 addendum 9.
 - **Writer's-editor expansion — decision-closed plan written, NOT launched; launch = your
   word.** Order 3→2→1-spike→4 (prose highlights · thesaurus · bible-aware spell/grammar
   spike · session word target). Plan: `docs/plans/2026-07-26-editor-expansion-executor-plan.md`;
@@ -66,10 +68,42 @@
 
 ## Open — awaiting a go
 
-- **B5-4 — nav prominence for Ask the Book** — a design call, nothing else remains from
-  Batches 5+6. `just-llm-runner/docs/plans/2026-07-08-big-batch-queue.md` §8.
-- **QC queue** — the live findings you drop while QC-ing on your box; discussion-first, each
-  needs its own go. Same doc, §9.
+- **QC queue posture (standing)** — the live findings you drop while QC-ing on your
+  box; discussion-first, each needs its own go. (B5-4 CLOSED by the docs campaign —
+  the big-batch build record shows the accent nav row SHIPPED, probe-measured; the
+  old "design call remains" line was stale. Batches 4-6 have nothing left open.)
+- **Big-batch residuals — your words owed** [extracted from the archived
+  `just-llm-runner/docs/plans/archive/2026-07-08-big-batch-queue.md`]: the §7.1
+  sub-questions (a) blast-radius confirm named-vs-generic (shipped as NAMED per the
+  rec — one line changes it) · (b) the Apply verb/label · (c) the help-popover copy
+  (built as a lede; the popover awaits the copy) · (d) provenance-badge wording ·
+  plus the QC-38 AI-queue main-menu doorway's label ("AI tasks" flagged default).
+- **I1 + queued follow-ups (each needs a word)** [same source]: shared
+  `runJsonAnalysis` · `useEntityCrudView` (the 7 byte-identical focus-watches ride
+  it) · gate ratchets · per-model GGUF delete · ensure-resident timeout test ·
+  "loading the model" progress label · hooks payload channel · DOM-env `htmlToText`
+  suite · SceneNotesPanel i18n · CommandPalette direct-creates lack `?new=1` ·
+  the `.wb-search*`/`.set-desc strong` CSS fold · promote the scratchpad
+  popup-probe to `scripts/` if the flows need a standing guard.
+- **Class-library copy/UX calls — yours** [extracted from the archived igpu doc
+  §25]: the Add-model picker filters to class members (you hit this and hated it) ·
+  MoE-vs-dense visibility wherever hardware numbers show · `LuMeasureHistory`'s
+  bare "measured" word · the class-library lede says "a memory RANGE" (factually
+  wrong; rewrite drafted, you own copy) · whether the library is a single-machine
+  view · whether "Recommended" becomes user-settable · rename ARCHITECTURE's
+  "Model class defaults" heading ("Model family thinking defaults") to end the
+  vocabulary collision.
+- **RAG corpus follow-ups**: imported chapters land as ONE scene → one diluted
+  embedding per chapter (fix E5: scene-break splitting on import) · editing an
+  embed template needs a manual Rebuild with no surfaced affordance. Design:
+  `docs/dev/rag-design.md`.
+- **Catalog-row download: Retry without Cancel** on the failed/"Getting ready"
+  state (your screenshot) — distinct from the shipped Cancel/Dismiss surface.
+- **Boot hardening pair**: providerBackend/routingBackend retry 3×700 ms = a
+  silent 2.8 s on any shape-check failure (worth a guard) · verify the stale
+  "loads on first use" chip after a confirmed load next app boot · the 2026-07-11
+  0.6B-weights deletion was never root-caused (suspects: row Delete / re-download
+  cache-clear / verify purge on an AV race).
 - **Adopt the kit boot contract (recorded deviation, app-structure.md §4/§1):** swap the
   hand-wired `configureLlmUi`/`configureServerApi`/`configureExternal` calls
   (`main.js`) for `installLlmUi`, mount `<LlmUiHosts />` instead of individual
@@ -78,16 +112,20 @@
   `lint` script; console script named `justwrite_server.cli` not `<snake>.serve`.
 - **Rust D2 — delete legacy `images_read`/`images_delete` — YOUR CALL, never made**
   (explained 2026-07-13, rec: delete; two dead fns reading pre-server disk-file
-  image records). Extracted from `docs/plans/2026-07-13-rust-minimization-and-choosers.md`
+  image records). Extracted from `docs/plans/archive/2026-07-13-rust-minimization-and-choosers.md`
   by the docs campaign — the decision had fallen out of the tracker.
-- **Per-band model survey — two decisions still open for you** [attributed:
-  `docs/plans/2026-07-25-per-band-model-survey.md:5`; the band arc itself is complete].
+- **Per-band survey residue — CORRECTED (docs campaign): the "two open decisions"
+  cite was CIRCULAR** (the banner pointed at this tracker, the doc body says "no
+  open decisions remain"). Best reconstruction of the two user-word items actually
+  in the doc: (a) one word flips the vram16|ram32 band to the 27B if a prose trial
+  favors it; (b) the 70B/GLM availability rows — keep or remove. Both yours.
+  Verdicts distilled: `docs/dev/measured-performance.md` §Per-band.
 - **Think-A/B + b9993 loop re-test — RESULTS never filled: dead or owed?** The
-  user-ordered on-box batch in `docs/plans/2026-07-16-think-ab-and-loop-retest.md`
+  user-ordered on-box batch in `docs/plans/archive/2026-07-16-think-ab-and-loop-retest.md`
   has an empty results template. Rule it: run the two tests, or kill the doc.
 - **2026-06-20 deep-audit backlog — merge call before it archives:** its untriaged
   findings overlap the open "extraction vs copies" audit above; decide fold-or-drop
-  (`docs/plans/2026-06-20-deep-audit.md`).
+  (`docs/plans/archive/2026-06-20-deep-audit.md`).
 
 *(Moved 2026-08-04 by the placement rule: I2 cloud prompt caching → the runner's
 `docs/dev/TASKS.md`; the whole JustVoice section (F1/F5/F6/F2, still parked behind
@@ -107,7 +145,22 @@ JV as of 2026-08-04; the convergence scope itself stands.)*
 - **QC the shipped 2026-07-24/25 batch — pushed; your eyes are the only outstanding half:**
   the boot-splash plate (fit = fill) · self-hosted fonts (**needs one fresh `npm run dev`** —
   `vite.config.js` changed) · boot 4.1 s → 2.3 s · the downloader rate-limit fix · the Model
-  Catalog layout. Detail: `docs/plans/2026-07-22-igpu-research-and-cpu-band-recovery.md` §20-33.
+  Catalog layout. (Cite CORRECTED by the docs campaign: these were §20-33 of the
+  mtp-verify doc, not the igpu doc; the numbers are distilled in
+  `docs/dev/measured-performance.md` §Boot + downloads.)
+- **Bench legs still owed on your box** [extracted from the archived igpu doc §7]:
+  the CPU raw llama-bench pp/tg matrices (unmeasured since the `-c` flag fix) · the
+  GPU RAG bible-vs-index comparison (`forceBibleOnly` + permanent `-bible` legs —
+  your "i cant believe we did not do that in the first place") · the characterChat
+  bible-leg variant · Bonsai's CPU leg under the corrected id
+  `ternary-bonsai-27b-q2-g64` (loads in 13 s; 0/10 chats completed last try).
+- **drive.js `findPython`/autostart has still never fired** — the 13:46 bench
+  attached to your live server; closes on any `--autostart` bench with the app
+  closed. Plus two glances: PricingEditor + LuRunnerBinaries have never been
+  RENDERED by eyes (code-verified only) · StyleTune's drafter re-scope — the 8 GB
+  class tune sets `spec_type: none` BY DESIGN, so a drafter load needs a deliberate
+  override or a bigger box (and its drafter measured no gain anyway:
+  `docs/dev/measured-performance.md` §MTP).
 - **LOOK at the PC-class surfaces the 2026-07-27 look pass did not cover:** the catalog row's
   needs line beside the download size · the Fit hover's "Estimated / not yet tested on your PC
   class" wording · the renamed badge with your class after it. (The class-configs modal and the
@@ -119,16 +172,16 @@ JV as of 2026-08-04; the convergence scope itself stands.)*
 - **Delete the 31B row in your local catalog UI if you want it gone** — the seeder is
   insert-only, so the 2026-07-26 removal reaches fresh installs only.
 - **Batch Fill-from-book: the review phase + auto-apply write have never had a live
-  run** [attributed: `docs/plans/2026-07-19-batch-fill-from-book.md` — shipped from
+  run** [attributed: `docs/plans/archive/2026-07-19-batch-fill-from-book.md` — shipped from
   unit-tested pieces; "get their first live run on the user's box"]. One real batch
   on your box is the acceptance.
-- **Pass-1 execution tail** [attributed: `docs/plans/2026-07-22-pass1-execution-plan.md`
+- **Pass-1 execution tail** [attributed: `docs/plans/archive/2026-07-22-pass1-execution-plan.md`
   tail — "paused pending the planner's decision"]: the smoke's splash-aware wait ·
   your box-look at the new panel line / editor Copy / override flow / the rename ·
   the iGPU laptop kit queue.
 - **Bench harness `--restore` fire-test** — one deliberate mid-leg kill → `npm run bench --
   --restore bench/results/<run-id>` → the Routing tab shows the original assignments. Still only
-  proven against a fake client. `docs/plans/2026-07-19-llm-bench-harness.md`.
+  proven against a fake client. `docs/plans/archive/2026-07-19-llm-bench-harness.md`.
 - **`book-smoke.js`** — unverified since the shared-helper extraction; needs port 1420 free once.
 - **19 probe scripts still carry a Linux-only `findChrome()`** — they cannot find a browser on
   Windows at all; convert to the shared `tests/lib/smoke-common.js` import or delete the dead
@@ -139,7 +192,7 @@ JV as of 2026-08-04; the convergence scope itself stands.)*
   failure (now self-reporting) · marketing screenshots · full RAG end-to-end + router-flag
   confirm · Windows AMD/Intel detection spot-check. Ledger §G.
 - **Providers-surface rounds 9–19** — the per-round box checks.
-  `just-llm-runner/docs/plans/2026-07-06-providers-surface-redesign.md`.
+  `just-llm-runner/docs/plans/archive/2026-07-06-providers-surface-redesign.md`.
 
 ## Standing rulings (constraints, not tasks — they gate future work)
 

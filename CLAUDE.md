@@ -59,7 +59,7 @@ Windows, macOS and Linux layouts) or set `JW_CHROME`. Never hardcode a browser p
 ## Product and design rules
 
 - **The seed ships FACTS and RULES.** The machine supplies MEASUREMENTS, the pair (model × machine) owns the numbers, and the user or the wizard supplies CHOICES. No measurement rows in the product seed, and no auto-anything behind the user's back.
-- **DB policy: drop and reseed, no migrations** (pre-release — `docs/plans/2026-06-18-unified-storage-no-idb.md`). Additive-only schema changes need no reset; `create_all` picks up new tables on boot.
+- **DB policy: drop and reseed, no migrations** (pre-release; the 2026-06-18 ruling — now stated in `docs/dev/ARCHITECTURE.md` §Storage policy, history in `docs/plans/archive/2026-06-18-unified-storage-no-idb.md`). Additive-only schema changes need no reset; `create_all` picks up new tables on boot.
 - **Don't cram.** Hierarchy and breathing room on every surface: one short lede sentence at most on a working surface (detail goes behind the help affordance), one fact shown once, one primary thing on screen per mode.
 - **No naming popups.** Creating or renaming a thing never goes through a name-popup — every entity opens its one add/edit form directly, where the name is a plain field editable at any time, and the form refuses to save until its required assignments are set.
 - **Design against precedent.** Before UI-design work, name in writing the existing precedent surface in this app plus a real-world reference. The user's reference screenshots are the spec.
@@ -100,7 +100,10 @@ match each file's existing style and never bulk-reformat unrelated code. Scope i
 | Why it's built this way | `docs/dev/ARCHITECTURE.md` |
 | Stores, undo domains, IPC bridge, AI stack, export, images, i18n rules, test harnesses | `docs/dev/architecture-notes.md` |
 | Kit primitives, button intents, sizes, theming, download tasks | `docs/dev/ui-kit.md` |
-| Per-task history and evidence | `docs/plans/*` |
+| Measured performance (tunes, boot, bands, A/Bs — distilled) | `docs/dev/measured-performance.md` |
+| RAG design decisions (cards, pinning, templates) | `docs/dev/rag-design.md` |
+| The LLM bench harness | `docs/dev/bench.md` |
+| Per-task history and evidence | `docs/plans/*` — live plans only; closed history in `docs/plans/archive/` |
 
 Read the branch and working-tree state from git, never from a doc — that line goes stale within
 hours and has been relayed as fact more than once.

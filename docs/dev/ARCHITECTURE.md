@@ -55,6 +55,15 @@ The pieces that implement it, so a reader can verify rather than trust this page
   driving the server-hosted UI; the smoke missed it by running against the dev
   origin.
 
+### Storage policy — drop and reseed, no migrations (the live ruling)
+
+Decided with the user 2026-06-18, still the standing pre-release policy `CLAUDE.md`
+enforces: every datum is a real SQL resource behind a typed `/v1/*` API — no
+IndexedDB, no localStorage shim, no generic blob store. Schema changes ship by
+DROP-AND-RESEED, never migrations; additive-only changes need no reset because
+`create_all` picks up new tables on boot. (The migration-era plan that produced
+this ruling is history: `docs/plans/archive/2026-06-18-unified-storage-no-idb.md`.)
+
 ### What this rules out
 
 - **The Tauri SQL plugin cannot replace the server.** It lives inside the Tauri

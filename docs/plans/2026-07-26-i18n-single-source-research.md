@@ -834,7 +834,7 @@ restores parity with the earlier llama-server measurement, which ran `--reasonin
 
 **The `-ngl 0` CPU question, checked rather than assumed.** The user raised that a CUDA build
 at zero GPU layers is not pure CPU, which this repo already proves for llama.cpp at
-`docs/plans/2026-07-22-igpu-research-and-cpu-band-recovery.md:19-34` — a CUDA-build child at
+`docs/plans/archive/2026-07-22-igpu-research-and-cpu-band-recovery.md:19-34` — a CUDA-build child at
 `ngl 0` still holds ~549 MB VRAM and still GPU-offloads large-batch matmuls, a ~10x swing on
 the prefill path, which is exactly the path a 16-key translation batch exercises. So the
 `num_gpu: 0` figure was re-taken against a genuinely CPU-only instrument: a second Ollama
