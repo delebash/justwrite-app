@@ -190,3 +190,33 @@ When you want to ask a question about your book:
 - **[Writing](writing.md)** — the editor's own in-chapter find-and-replace
 - **[Keyboard shortcuts](keyboard-shortcuts.md)** — full shortcut reference
 - **[AI providers](ai-providers.md)** — setting up the embedding model for "Ask the book"
+
+---
+
+## Chat history
+
+Ask-the-book conversations are saved **per project as a list of sessions**. "New
+chat" starts a fresh one; a session auto-titles itself from your first question
+(rename it and your name sticks); delete removes it. Switching scope between the
+book and a character resumes that scope's most recent conversation. Empty
+sessions are never saved, so experiments don't litter the list. Sessions are
+storage only — they don't change what a question costs.
+
+## The manuscript index
+
+Ask-the-book reads from an index of your prose and story bible. **Build / Refresh
+index** (in the chat panel) shows per-scene rows and offers an incremental update
+(only changed scenes re-embed) or a full rebuild, plus **Clear index**.
+**Auto-rebuild** (AI Settings → Writing AI) quietly re-embeds about a minute
+after your last edit — it only starts working after your first manual build, and
+it fails silently by design (no toast spam mid-writing). One recorded limit: if
+you change an embedding template on the AI page, run a manual Refresh — the
+auto-rebuild can't detect template changes.
+
+## The command palette (⌘P)
+
+Not just search — three kinds of results: **navigation** (over twenty
+destinations), **your entities** (chapters, characters, locations, objects,
+groups, notes, worldbuilding, strands — jump straight to one), and **actions**
+(New chapter/part/character/location/object/note/strand/article, Find & replace,
+Save chapter version, Toggle sidebar, Undo/Redo, Shortcuts, Help).

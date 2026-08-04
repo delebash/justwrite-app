@@ -204,3 +204,8 @@ These stay where they are; this list just points at them so nothing's lost:
 - **Multi-chat list per book/character** (2026-08-04, extracted from the archived
   big-batch ledger B5-3): delete-current shipped; a saved LIST of chats per
   book/character is a new feature you never drew — say so and it becomes an item.
+
+- **`/home-v2` "Paper Shelf"** (2026-08-04, code-first audit): a live route
+  (`HomeShelfView.vue`, "Direction C, promoted from mockups") with NO UI entry
+  point anywhere — an unshipped Home experiment. Ship it behind an entry, or
+  delete the route; until then it stays out of user docs on purpose.

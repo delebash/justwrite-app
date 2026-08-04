@@ -291,3 +291,18 @@ Almost nothing. Specifically:
 - **[Writing](writing.md)** — the editor that feeds the word counts and session log
 - **[Reader knowledge](reader-knowledge.md)** — the dramatic-irony map (separate view, LLM-powered)
 - **[Plot and time](plot-and-time.md)** — strand tagging that powers strand distribution
+
+---
+
+## Link scenes — deterministic backfill
+
+> *"I imported my draft, so none of my scenes are linked to characters — do I
+> really have to tag 300 scenes by hand?"*
+
+**Link scenes** (on this page) scans your prose for your entities' names and
+aliases and proposes scene links — grouped per entity so you review "Elena: 41
+scenes" as one decision, not 41. It is **deterministic string matching, no AI**:
+no cost, instant, and it never guesses. It also never auto-applies — a character
+named "Rose" would otherwise link every flower in the book, which is exactly why
+you get the review step. Accept per entity or per scene; nothing changes until
+you do.

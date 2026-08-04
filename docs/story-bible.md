@@ -275,3 +275,20 @@ Most writers don't fill the whole Story Bible up front. A realistic progression:
 - **[Worldbuilding](worldbuilding.md)** — the long-form reference library, separate from per-entity sheets
 - **[Plot and time](plot-and-time.md)** — Strands and Events, which connect to characters and locations
 - **[Writing](writing.md)** — the editor's Links panel, where Story Bible items get attached to scenes
+
+---
+
+## Batch Fill from book
+
+> *"Twelve characters joined the bible from the entity sweep — do I run Fill
+> from book twelve times?"*
+
+The batch modal runs Fill from book across your cast in four phases: **pick**
+(main characters pre-checked; anyone with zero linked scenes is disabled — there
+is nothing to fill from), **run** (sequential on purpose — one model, live
+per-character progress), **review** (every proposed profile and voice side by
+side), **done**. The **auto-apply empty only** toggle is the safe default: it
+fills blank fields and never overwrites something you wrote. The cost line above
+the run button tells you what you're about to spend — profile + voice is two
+calls per character. Failed characters get a **Retry failed** without re-running
+the successes.

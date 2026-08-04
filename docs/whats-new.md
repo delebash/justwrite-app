@@ -83,3 +83,9 @@ in the Notes view ("Manage all notes ↗").
 ## Earlier
 
 For the full history of shipped features, dip into the [Roadmap](roadmap.md) and [AI features roadmap](ai-features-roadmap.md) — items annotated with a ship date.
+
+---
+
+*This page is also what **Settings → Updates** shows in-app: your current version
+plus these release notes. The panel is informational — it doesn't check for or
+install updates.*

@@ -219,3 +219,43 @@ Harnesses in the repo:
 - **Playwright headless renderer smoke** (`tests/smoke/headless-smoke.js`, plus `tests/smoke/book-smoke.js`) — THE renderer gate. See `CLAUDE.md` for how to run it and the `findChrome()` rule.
 - **`e2e/` WebDriver harness** (`tauri-driver` + `msedgedriver` driving the built desktop binary) — `npm test` runs the smoke suite, `npm run screenshots` the marketing shots. Both need a compiled `.exe` plus Edge/WebView2, so this is the packaged-desktop check, not a quick dev gate.
 - **Python `server/`** — pytest plus ruff (server-mode migration: `docs/plans/archive/2026-06-18-jw-server-migration.md`).
+
+## Additions from the 2026-08-04 code-first audit
+
+**Stores list correction:** `src/stores/` also holds `versions.js` (named chapter
+versions — the store behind Version History; `versionDiff.js` renders the diffs).
+**IPC bridge correction:** `lib.rs` also exposes `pick_file` (used by import and
+backup-restore flows) — the bridge list above predates it.
+
+**Chat sessions (storage model).** Sessions are STORAGE-ONLY — per-request LLM
+cost is unchanged; the server keeps a list per project (`api/chat.py`:
+list/rename/delete). Ids are minted client-side; the title derives from the first
+question and a manual rename overrides it permanently; empty sessions are never
+persisted; a monotonic hydration token guards scope switches (book ↔ character)
+so a stale response can't hydrate the wrong session.
+
+**Sweep draft protocol (v1).** The entity sweep persists RAW per-chapter results
+server-side (`api/sweep_draft.py`) rather than the merged aggregate — resume
+re-merges with the same `mergeProposals`, so a merge-logic fix benefits old
+drafts. A chapter re-runs when pending, failed, or its `textHash` changed.
+
+**Editor extension inventory.** `RichEditor.vue` defines four local TipTap
+extensions — `fontSize`, `indent`, `pageBreak`, `sceneBoundary` — plus the
+`comment` mark; `editorToolbars.js` defines three toolbar profiles (FULL / DOC /
+SLIM). The editor-echo law above governs all of them.
+
+**Sidecar lifecycle.** `lib.rs` spawns the Python server every launch: detect a
+holder on the port → `kill_listeners_on_port` (two `#[cfg]` variants) → spawn →
+wait for `/health`. Server reuse across launches is VETOED by the user (recorded
+in TASKS' standing rulings); the respawn cost is measured in
+`measured-performance.md`.
+
+**Analysis service map.** `src/services/analysis/` holds 19 modules; the catalog
+features they back: styleMetrics (style table), critique + critiqueStructure,
+entityExtraction + entitySweep + sweepDraft, voiceDrift, plotHoles,
+reverseOutline, beatSheet, marketingPack, foreshadowingScan, readerKnowledge,
+multiReader, characterAudit, characterProfile/Voice, relationshipArc, sensory,
+unstuck, linkBackfill (deterministic, no LLM), briefing/recap composers.
+
+**i18n status note.** The runtime language SWITCHER SHIPPED (Appearance section;
+`es.json` live); the tooling notes above predate that and read as future tense.

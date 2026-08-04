@@ -97,11 +97,11 @@ In short: edit freely. There is almost always a way back.
 
 > *"I wrote for two hours and then the power flickered. Please tell me I didn't just lose all of that."*
 
-You do not need to save. Every change you make — typing in a chapter, adding a character, dragging a beat — is saved to your computer's local storage instantly, and to a JSON file on disk within about ten seconds.
+You do not need to save. Every change you make — typing in a chapter, adding a character, dragging a beat — is saved through JustWrite's local server (a database on your own computer) within seconds, plus a rotating on-disk autosave shortly after — nothing lives only in the window.
 
 The sidebar footer shows "Autosaved · Xs ago" so you can confirm at a glance that things are flowing.
 
-If you ever want to force a backup to a file you can move or archive, open **Settings → Backups → Export snapshot**. See [Backups and data](backups-and-data.md) for the full story on backups and recovery.
+If you ever want to force a backup to a file you can move or archive, open **Settings → Backups** and use **Export backup** (the whole workspace) or **Export this book…** (one project). See [Backups and data](backups-and-data.md) for the full story on backups and recovery.
 
 ---
 
@@ -164,3 +164,24 @@ Things JustWrite does not require:
 - **Use every section of the app** — many writers only ever touch Chapters and Characters; that's a complete way to use JustWrite.
 - **Configure AI** — every AI feature is optional.
 - **Pay anyone** — JustWrite itself is yours, and you can use it with free local AI engines or none at all.
+
+---
+
+## Trash, in detail
+
+Trash groups deleted items by kind — all twelve of them (chapters, scenes,
+characters, locations, objects, groups, notes, strands, worldbuilding articles,
+events, markers, images) — each with its own restore. A restored scene goes back
+into its chapter, a chapter back into its part. **Empty trash** (and the per-item
+permanent delete inside Trash) is the only genuinely destructive act in the app,
+and both confirm first.
+
+## Curated tag vocabularies
+
+Freeform tags splinter: "antagonist", "Antagonist", "antag". **Settings →
+Project → Tag vocabularies** holds an optional curated list per entity kind —
+when one exists, tags you type are canonicalised against it on save, so the
+three spellings above become one tag. The lists ship **empty on purpose** (your
+taxonomy is your own; a starter set was considered and rejected). Alongside the
+word goal, the goals card also takes a **daily target** — the number your Home
+streak and session cards measure the day against.

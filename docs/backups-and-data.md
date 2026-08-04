@@ -26,7 +26,7 @@ The Backups section shows you the **path** where this is stored on your machine.
 
 - **Point a cloud sync tool at this folder** — OneDrive, Dropbox, iCloud, Google Drive, Time Machine. Now your manuscript is also in the cloud as a side effect of normal use, without JustWrite itself needing any cloud account.
 - **Open the folder in Finder / Explorer** to confirm files are appearing.
-- **Click Restore from autosave…** to roll back to any of the three generations.
+- **Click Show autosaves** to reveal the list — each of the three generations has its own **Restore** button (plus Delete selected / Delete all).
 
 **Why three generations.** If autosave runs while you're in the middle of a regrettable edit, the current and the .prev may both be the bad state — but .prev2 is from before. Three generations is usually enough for "I made a mess, give me what it looked like a minute ago."
 
@@ -78,14 +78,14 @@ All of JustWrite's data — your books, images, the AI engine and its models, an
 
 If something goes wrong:
 
-1. Open **Settings → Backups → Restore from autosave…**
+1. Open **Settings → Backups** and click **Show autosaves**, then **Restore** on the generation you want
 2. JustWrite lists the available autosave generations with their timestamps.
 3. Pick one. JustWrite shows you what's in it (project title, chapter count) before committing.
 4. Confirm.
 
 Your current state is replaced. The autosave you chose becomes the new current.
 
-If you'd rather not lose the current state in case the autosave is wrong, **export a snapshot first** — then restoring autosave is reversible by importing your fresh snapshot.
+If you'd rather not lose the current state in case the autosave is wrong, **export a backup first** — then restoring autosave is reversible by importing your fresh snapshot.
 
 ---
 
@@ -93,7 +93,7 @@ If you'd rather not lose the current state in case the autosave is wrong, **expo
 
 At the bottom of the Backups section, in red, is **Reset workspace**.
 
-This wipes **all** JustWrite data from your computer's local storage — every project, every chapter, every character, every AI provider configuration, every voice assignment, every session log. You start clean on the welcome screen — no demo is reloaded; use **Try tutorial project** if you want the sample book (*The Ninth Facet*) back.
+This wipes **all** JustWrite data from JustWrite's local database — every project, every chapter, every character, every AI provider configuration, every voice assignment, every session log. You start clean on the welcome screen — no demo is reloaded; use **Try tutorial project** if you want the sample book (*The Ninth Facet*) back.
 
 It does not delete autosave files on disk; those remain unless you delete them manually.
 
@@ -105,7 +105,7 @@ To trigger it, you have to **type `RESET`** in the confirmation dialog. JustWrit
 - You're starting completely over and the autosaves don't matter.
 - Something has gone deeply wrong (very rare) and a fresh slate is the simplest fix.
 
-Almost no normal use case needs this button. If you're considering it for any reason that isn't one of the above, **export a snapshot first** so you can come back.
+Almost no normal use case needs this button. If you're considering it for any reason that isn't one of the above, **export a backup first** so you can come back.
 
 ---
 
@@ -129,7 +129,7 @@ You can move a JustWrite project from one computer to another by exporting it �
 You don't need to do much; the defaults are safe. A practical approach:
 
 1. **Let autosave do its job.** It's automatic and reliable.
-2. **Once a week, export a snapshot** to a known location.
+2. **Once a week, export a backup** to a known location.
 3. **Point your cloud sync at the autosave folder** if you want off-machine redundancy.
 4. **Before any aggressive edit, export a fresh snapshot** so you have a known-good return point.
 

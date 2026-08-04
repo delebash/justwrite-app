@@ -43,7 +43,7 @@ When you open Home, JustWrite generates a 150–250 word **briefing** addressed 
 
 **Why a writer would use it.** Most writers re-orient by scrolling back and re-reading the last chapter, which is slow and easy to skip on a busy day. A two-paragraph briefing closes the gap in about 20 seconds and explicitly names what's at stake and what's open — including the threads you'd planted and forgotten about. It also catches your own **Loose thread** pins from previous sessions, so the markers you dropped in the heat of drafting actually come back to you when you sit down to write.
 
-The model used is whichever provider you've pinned for **briefing** in **Settings → AI** (or your default LLM provider if none is pinned). The footer of the card names it.
+The model used is whichever provider you've assigned to **briefing** on the AI Settings page → Routing by feature (or the default preset if none is assigned). The footer of the card names it.
 
 ### "Wrap up session" — end-of-day recap
 
@@ -63,7 +63,7 @@ The recap also persists. Tomorrow's **Previously on your novel** card folds your
 - **Caches for the day.** Once generated, today's recap is saved on the project. Re-opening the modal reads from cache; **Regenerate** asks for a fresh pass.
 - **Persists across sessions.** Recaps are stored per-day and don't roll back when you undo prose changes — they're append-only by design.
 - **Discard recap** in the footer wipes today's saved recap if it missed the mark or you don't want it folded into tomorrow's briefing.
-- **Routable** as the **recap** feature in Settings → AI. A small, fast local model is plenty here.
+- **Routable** as the **recap** feature on the AI Settings page → Routing by feature. A small, fast local model is plenty here.
 
 **Why a writer would use it.** The pieces you forget overnight are exactly the ones you should remember — the throwaway line that's actually a setup, the decision you almost-made-but-deferred, the character moment that didn't get its reaction. The recap catches these and converts them into manuscript-anchored markers so tomorrow's draft inherits the throughline you built today, rather than restarting from scratch.
 
@@ -224,7 +224,7 @@ By default every AI dropdown action returns one result. **Three-alternative stre
 
 There are two ways to turn it on:
 
-- **Settings → AI → Three-alternative streaming.** A single toggle: *"Show 3 variations on every AI action."* Off by default. When on, every Rewrite / Expand / Tighten / Continue / Describe / line edit / Continue-with-direction opens the three-column modal automatically.
+- **AI Settings page → Writing AI tab → Three-alternative streaming.** A single toggle: *"Show 3 variations on every AI action."* Off by default. When on, every Rewrite / Expand / Tighten / Continue / Describe / line edit / Continue-with-direction opens the three-column modal automatically.
 - **Shift-click any AI dropdown item.** Per-call opt-in regardless of the toggle. When you trust the prose for most actions but want to see the space on one tough paragraph, shift-click is the escape hatch.
 
 **Why the opt-in.** Variations mode triples the token cost on cloud providers. The toggle lets you choose cost vs. choice once and forget it; the shift-click lets you make the choice case by case. There's no surprise bills surface — the dashboard's Usage page records all three streams independently so the cost is honest.
@@ -239,7 +239,7 @@ The chosen column threads back into the existing accept/reject AI-diff machinery
 
 JustWrite has a project-level setting called the **voice canon** — a small list of your own chapters that represent how you write at your best. Once you've nominated a few, every Rewrite / Expand / Tighten / Continue / Describe / line-edit pass automatically injects a sample from those chapters plus a measured style summary into the model's instructions. The result matches your sentence rhythm, dialogue ratio, register, and POV distance instead of defaulting to generic LLM prose.
 
-Set it in **Settings → AI & Audio engines → Voice canon**. The picker shows every chapter with prose; tick two or three middle-of-book chapters that read like your voice at its strongest. The settings panel shows the measured style summary it'll inject ("Average sentence ~14 words. Dialogue ~32%. Low filter-word density.") plus a collapsible preview of the full block. Clear or re-pick at any time; the change applies to the next AI action.
+Set it on the **AI Settings page → Writing AI tab → Voice canon**. The picker shows every chapter with prose; tick two or three middle-of-book chapters that read like your voice at its strongest. The settings panel shows the measured style summary it'll inject ("Average sentence ~14 words. Dialogue ~32%. Low filter-word density.") plus a collapsible preview of the full block. Clear or re-pick at any time; the change applies to the next AI action.
 
 **Why a writer would use it.** Surface-level style mimicry is the single most reliable lever to make AI prose stop feeling like AI prose. The model has no innate sense of "your voice" — it has to infer it from the prose you put in front of it. Two pages of your own writing in the system prompt closes most of the gap. Best ship after a complete draft, when you know which chapters you're proud of; less useful in early drafting when your own voice is still settling.
 
@@ -428,3 +428,40 @@ That's it. Everything else in the app is in service of this loop.
 - **[Plot and time](plot-and-time.md)** — Strands, Plot Board, Events
 - **[AI providers](ai-providers.md)** — getting AI features running
 - **[Keyboard shortcuts](keyboard-shortcuts.md)** — the full reference
+
+---
+
+## More editor tools worth knowing
+
+- **Typewriter mode.** Inside Focus mode, a second toggle keeps the line you are
+  typing vertically centred — the page scrolls under your cursor instead of your
+  eyes chasing the cursor down the screen. Long drafting sessions feel
+  noticeably calmer with it on.
+- **Page break.** A hard page-break node for the rare place you need one (a part
+  opening, a letter inside the story). Export honours it.
+- **Clean up → Clear strikethroughs.** After an AI diff session leaves
+  struck-through rejected text behind, this one item in the AI dropdown removes
+  every strikethrough in the scene at once — no hunting.
+- **The per-change diff stepper.** When an AI rewrite comes back as a diff, the
+  stepper walks change-by-change — accept this one, reject that one — instead of
+  the all-or-nothing buttons. The habit worth building: step through the first
+  few, then bulk-accept the rest once you trust the pass.
+
+## Entity sweep — resume and concurrency
+
+The whole-book sweep is built for the realistic case: a 40-chapter book, a local
+model, and an interruption at chapter 23. Progress persists **per chapter** on
+the server as it goes — close the app, come back tomorrow, reopen the sweep and
+it resumes, re-running only chapters that are pending, failed, or whose text
+changed since. Online providers run four chapters at a time; a local model runs
+one (it is the bottleneck anyway); a per-call watchdog means one wedged chapter
+becomes a "failed, retry me" row rather than a hung modal. **Start over** wipes
+the draft when you'd rather re-sweep clean.
+
+## Scene notes — the docked panel
+
+Notes about a scene live in a panel docked beside the editor (never an overlay
+covering your prose). Click a note to edit in place; the scope toggle switches
+between this scene's notes and the whole chapter's. It's deliberately a side
+surface — for "fix the timeline here" and "she still has the locket" reminders —
+with one exit, **Manage all notes ↗**, when a reminder grows into a real Note.

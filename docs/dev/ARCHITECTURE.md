@@ -6,8 +6,10 @@
 > limits" below are a BUILD-ERA record; several present-tense claims predate later
 > rebuilds (usage → `/v1/ai-usage` server-side · RAG → server SQLite, no IndexedDB ·
 > auto-rebuild + BM25 hybrid since shipped · Writer-Lab routes removed · CI/lint/test
-> runner all exist now). The worst offenders are corrected inline with dated notes;
-> where this file and `ai-features-roadmap.md` disagree, code sides with the roadmap.
+> runner all exist now). All six named offenders are corrected inline with dated
+> notes (2026-08-04 second pass — chat sessions, image carry-through, SQLite RAG,
+> pooled sweep, removed Writer-Lab routes, display-only UpdatesPanel); where this
+> file and `ai-features-roadmap.md` disagree, code sides with the roadmap.
 
 The *why* behind major substrates and design decisions. Pairs with
 [`CLAUDE.md`](../../CLAUDE.md) (the *what's where* primer) and
@@ -102,7 +104,9 @@ Phases were locked up front; built and shipped in order.
 - **Phase 3 — Analysis layer.** `services/analysis/styleMetrics.js`
   (deterministic per-chapter metrics — words / sentences / dialogue ratio /
   filter words / adverbs / passive / POV), `critique.js` (notes + structural
-  analysis), `entityExtraction.js`, `entitySweep.js` (whole-book sweep).
+  analysis), `entityExtraction.js`, `entitySweep.js` (whole-book sweep — since
+  rebuilt as a bounded-concurrency provider-aware pool with a crash-safe resume
+  draft; the build-era sequential shape is history).
   `AnalysisView` gets the writing-year heatmap, milestones, style table.
   `chapter.critique` persists per chapter.
 - **Phase 4 — Named versions + diff viewer.** `services/versionDiff.js` —
@@ -116,17 +120,20 @@ Phases were locked up front; built and shipped in order.
 - **Phase 6 — RAG.** `services/rag/` (chunker / vectorStore / indexer /
   chat). `OpenAICompatClient.embed()` works with OpenAI shape and Ollama
   native. `IndexBuildModal` for the indexing flow; `ChatPanel.vue` slide-in
-  (⌘J) with citation chips that route back to chapters. Per-project
-  IndexedDB store with per-scene SHA dirty-detection.
+  (⌘J) with citation chips that route back to chapters. Per-scene SHA
+  dirty-detection. *(2026-08-04: the build-era "per-project IndexedDB store"
+  became server SQLite — see `rag-design.md`.)*
 - **Cross-cutting polish.** Command palette (⌘P), global find & replace
-  (⌘⇧F), Writer Lab (user `/writer-lab` + debug `/debug/writer-lab`),
+  (⌘⇧F), Writer Lab (its `/writer-lab` + `/debug/writer-lab` routes were later
+  removed from the router — build-era note),
   Settings → AI usage dashboard, auto-save indicator, AI marks stripped from
   read / export / TTS / search / analysis, per-change diff stepper.
 
 ### Known limits / deferred
 
-- **Multi-turn RAG chat.** `rag/chat.js` is single-turn (Q → A, reset on
-  next Q). Multi-turn would need a thread store + truncation policy.
+- ~~Multi-turn RAG chat~~ *Shipped since (2026-08-04 correction):* `rag/chat.js`
+  carries the last 8 messages with a stated truncation policy, and chat SESSIONS
+  persist server-side (`api/chat.py`) — list/rename/delete, auto-titled.
 - ~~**Auto-rebuild RAG index.**~~ *Shipped since (2026-08-04 correction):*
   `services/rag/autoIndex.js` silently re-embeds a minute after the last edit,
   gated on the `ai.autoRebuildRagIndex` setting — the "burning tokens silently"
@@ -135,8 +142,10 @@ Phases were locked up front; built and shipped in order.
   BM25 rides beside cosine (`rag/{chunker,vectorStore,cards,chat}.js` +
   `server …/api/rag.py`); exact-string queries no longer depend on the embedding
   preserving surface form.
-- **EPUB/ODT import strips images.** Only paragraph text comes through, with
-  a warning. Real image carry-through would need to thread bytes into
+- ~~EPUB/ODT import strips images~~ *Corrected 2026-08-04:* `rewriteImageSrcs`
+  (`services/import/index.js`) carries images into `imageStore` now. The old
+  limitation as recorded: only paragraph text came through, with
+  a warning; real image carry-through needed to thread bytes into
   `imageStore` and rewrite `<img>` `src`.
 - **Scene-move detection in version diff.** ID-preserving moves work fine
   (matched by id). When ids change between versions (rare) it shows as full
@@ -407,7 +416,9 @@ repository\_dispatch to `delebash/justwrite-website` so its CI rebuilds).
 
 - Code signing (macOS Gatekeeper + Windows SmartScreen warnings expected;
   cost of certs not yet justified)
-- Auto-update
+- Auto-update — *still true as of 2026-08-04, with a nuance: Settings mounts the
+  kit `UpdatesPanel`, which is DISPLAY-ONLY (current version + release notes from
+  whats-new.md); there is no check/download/install machinery in Rust or JS.*
 - Per-push CI checks — *stale as written (2026-08-04 correction): the repo now has
   `.github/workflows/release.yml`, biome (`biome.json`), and a 55-file vitest suite
   (`npm run test:unit`); what remains true is that none of it is per-push CI — the
