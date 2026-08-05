@@ -44,6 +44,7 @@ export function buildFamilyLabels() {
       editCopies: t("family.lab.editCopies"),
       lockCopies: t("family.lab.lockCopies"),
       restoreGenerated: t("family.lab.restoreGenerated"),
+      changeData: t("family.lab.changeData"),
     },
   };
 }

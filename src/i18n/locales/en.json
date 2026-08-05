@@ -99,7 +99,8 @@
       "refresh": "Refresh",
       "editCopies": "Edit copies for this test",
       "lockCopies": "Lock copies",
-      "restoreGenerated": "Restore generated"
+      "restoreGenerated": "Restore generated",
+      "changeData": "Change what this prompt says:"
     }
   },
   "editor": {

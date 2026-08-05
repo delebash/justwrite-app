@@ -99,7 +99,8 @@
       "refresh": "Actualizar",
       "editCopies": "Editar copias para esta prueba",
       "lockCopies": "Bloquear copias",
-      "restoreGenerated": "Restaurar generado"
+      "restoreGenerated": "Restaurar generado",
+      "changeData": "Cambiar lo que dice este prompt:"
     }
   },
   "editor": {
