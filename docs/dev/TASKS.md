@@ -18,6 +18,14 @@
 
 ## Found by the 2026-08-05 family audit — tonight's tray/Server port, verified
 
+- **Auth lockout is reachable here too (found via docgen's 2026-08-05 audit
+  twin):** `requireForLoopback` + a lost token gates even `/v1/health`, so the
+  desktop boot gate dies on ConnectionError forever. Docgen fixed itself
+  (loopback always reaches /v1/health + /v1/server-auth — its route docstring
+  already promised never-lock-out). JW's auth lives in the GENERIC settings
+  rows, so the fix-door shape needs a decision: health-only exemption (boot
+  survives, token fix needs a manual DB edit) vs a dedicated /v1/server-auth
+  route like docgen's. Your call before coding.
 - **i18n gaps, surfaced not regressed:** the tray menu is hardcoded English in
   Rust inside an es-localized app (donor-shaped; the family full-menu ruling
   should localize it), and the labels feed maps no `quickSetup`/`aiOffer`
