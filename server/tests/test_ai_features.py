@@ -77,7 +77,8 @@ def test_run_unregistered_provider_override_501(tmp_path):
     # A request provider override to an unregistered provider surfaces 501 cleanly (the
     # Lab's per-call route override; JW per-feature pins are gone 2026-07-15).
     c = _client(tmp_path)
-    r = c.post("/v1/ai/run", json={"action": "critique", "variables": {"chapter_text": "x"},
+    r = c.post("/v1/ai/run", json={"action": "critique",
+                                   "variables": {"chapter_label": "", "chapter_text": "x"},
                                    "providerId": "ghost"})
     assert r.status_code == 501
 
@@ -161,7 +162,7 @@ def test_provider_override_routes_to_named_provider(tmp_path):
 
     get_llm_registry().register(Fake2())
     r = c.post("/v1/ai/run", json={
-        "action": "critique", "variables": {"chapter_text": "x"},
+        "action": "critique", "variables": {"chapter_label": "", "chapter_text": "x"},
         "providerId": "p2", "model": "m2",
     })
     assert r.status_code == 200, r.text
