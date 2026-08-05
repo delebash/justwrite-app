@@ -142,6 +142,13 @@ onMounted(() => {
   // Capture phase so we beat default browser/Tauri accelerators (e.g.
   // Ctrl+P opening the OS print dialog before our palette can intercept).
   window.addEventListener("keydown", onKey, { capture: true });
+  // Re-apply the persisted keep-running flag to the shell every boot (the Rust
+  // side resets per launch; the family headless ruling 2026-08-04).
+  if (ui.keepServerRunning) {
+    import("@tauri-apps/api/core")
+      .then(({ invoke }) => invoke("set_keep_server_running", { keepRunning: true }))
+      .catch(() => {});
+  }
 });
 onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: true }));
 </script>

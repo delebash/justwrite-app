@@ -1579,6 +1579,8 @@
       "copied": "Headless URL copied",
       "authTitle": "API access (bearer tokens)",
       "authHint": "Off by default. Add a token to require an Authorization: Bearer header on every /v1 API call — for when you run the server exposed beyond this machine.",
+      "keepRunning": "Keep server running after the app closes",
+      "keepRunningHint": "With this on, closing the window hides JustWrite to the system tray and the server keeps serving — left-click the tray icon to bring the window back, or use its menu to quit for real.",
       "requireLoopback": "Require a token even on localhost",
       "noTokens": "No tokens — the API is open (fine for local-only use).",
       "tokenPlaceholder": "Paste or generate a token",

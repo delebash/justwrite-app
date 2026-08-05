@@ -14,6 +14,8 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 use std::{fs, path::PathBuf};
+use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{
     ipc::{InvokeBody, Request},
     AppHandle, Manager, WindowEvent,
@@ -340,11 +342,14 @@ const SERVER_PORT: u16 = 17495;
 
 struct SidecarState {
     child: Mutex<Option<Child>>,
+    // The family headless ruling (2026-08-04, JV's donor): OFF ⇒ closing the
+    // window stops everything; ON ⇒ the window hides, the tray + server stay.
+    keep_running_on_close: Mutex<bool>,
 }
 
 impl SidecarState {
     fn new(child: Option<Child>) -> Self {
-        Self { child: Mutex::new(child) }
+        Self { child: Mutex::new(child), keep_running_on_close: Mutex::new(false) }
     }
 
     fn kill_child(&self) {
@@ -543,6 +548,79 @@ fn kill_listeners_on_port(port: u16) {
 
 // ─── Runner ──────────────────────────────────────────────────────────
 
+#[tauri::command]
+fn set_keep_server_running(
+    keep_running: bool,
+    state: tauri::State<'_, SidecarState>,
+) -> Result<(), String> {
+    if let Ok(mut guard) = state.keep_running_on_close.lock() {
+        *guard = keep_running;
+    }
+    Ok(())
+}
+
+// ── System tray (the family headless/tray spec, JV's donor — generic entries
+// only: Show/Hide · Server Start/Stop/Restart · Quit; the decided minimum) ──
+
+fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
+    let show = MenuItem::with_id(app, "show", "Show window", true, None::<&str>)?;
+    let hide = MenuItem::with_id(app, "hide", "Hide window", true, None::<&str>)?;
+    let sep1 = PredefinedMenuItem::separator(app)?;
+    let server_start = MenuItem::with_id(app, "server_start", "Start server", true, None::<&str>)?;
+    let server_stop = MenuItem::with_id(app, "server_stop", "Stop server", true, None::<&str>)?;
+    let server_restart = MenuItem::with_id(app, "server_restart", "Restart server", true, None::<&str>)?;
+    let server_submenu = Submenu::with_id_and_items(
+        app, "server", "Server", true,
+        &[&server_start, &server_stop, &server_restart],
+    )?;
+    let sep2 = PredefinedMenuItem::separator(app)?;
+    let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+    Menu::with_items(app, &[&show, &hide, &sep1, &server_submenu, &sep2, &quit])
+}
+
+fn handle_tray_menu_event(app: &AppHandle, event_id: &str) {
+    let Some(window) = app.get_webview_window("main") else {
+        return;
+    };
+    match event_id {
+        "show" => {
+            let _ = window.show();
+            let _ = window.set_focus();
+        }
+        "hide" => {
+            let _ = window.hide();
+        }
+        "server_start" => {
+            if let Some(state) = app.try_state::<SidecarState>() {
+                if !port_in_use(SERVER_PORT) {
+                    let root = resolve_data_root(app);
+                    state.set_child(spawn_sidecar(&root).ok().flatten());
+                }
+            }
+        }
+        "server_stop" => {
+            if let Some(state) = app.try_state::<SidecarState>() {
+                state.kill_child();
+            }
+        }
+        "server_restart" => {
+            if let Some(state) = app.try_state::<SidecarState>() {
+                state.kill_child();
+                let _ = wait_for_port_free(SERVER_PORT, Duration::from_secs(5));
+                let root = resolve_data_root(app);
+                state.set_child(spawn_sidecar(&root).ok().flatten());
+            }
+        }
+        "quit" => {
+            if let Some(state) = app.try_state::<SidecarState>() {
+                state.kill_child();
+            }
+            app.exit(0);
+        }
+        _ => {}
+    }
+}
+
 // D5 (2026-07-13): re-entry guard for the CloseRequested drain grace. The FIRST
 // close is held briefly so an in-flight keepalive autosave/DB POST can reach the
 // sidecar before it dies; the second (programmatic) close proceeds.
@@ -576,6 +654,36 @@ pub fn run() {
                 }
             };
             app.manage(sidecar);
+            // The family tray (JV's donor, generic entries): left-click toggles the
+            // window; the menu drives the server. The app icon is the tray icon.
+            let menu = build_tray_menu(app.handle())?;
+            let _tray = TrayIconBuilder::with_id("justwrite-tray")
+                .tooltip("JustWrite")
+                .icon(app.default_window_icon().cloned().expect("app icon"))
+                .menu(&menu)
+                .on_menu_event(|app, event| {
+                    handle_tray_menu_event(app, event.id.as_ref());
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } = event
+                    {
+                        let app = tray.app_handle();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let visible = window.is_visible().unwrap_or(false);
+                            if visible {
+                                let _ = window.hide();
+                            } else {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                            }
+                        }
+                    }
+                })
+                .build(app)?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -585,9 +693,21 @@ pub fn run() {
             pick_file,
             storage_get_root,
             storage_relocate,
+            set_keep_server_running,
         ])
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
+                // The family headless ruling (2026-08-04): keep-running ON ⇒ hide
+                // to the tray, the server stays — nothing needs draining, so this
+                // branch runs BEFORE the D5 close sequence and sets no CLOSING flag.
+                if let Some(state) = window.app_handle().try_state::<SidecarState>() {
+                    let keep = state.keep_running_on_close.lock().map(|g| *g).unwrap_or(false);
+                    if keep {
+                        api.prevent_close();
+                        let _ = window.hide();
+                        return;
+                    }
+                }
                 // Single window, no tray: closing it quits the app, so tear the
                 // sidecar down with it instead of leaking a Python process.
                 //

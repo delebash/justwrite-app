@@ -1579,6 +1579,8 @@
       "copied": "URL sin cabecera copiada",
       "authTitle": "Acceso a la API (bearer tokens)",
       "authHint": "Desactivado por defecto. Añade un token para requerir un encabezado Authorization: Bearer en cada llamada a la API /v1 — para cuando ejecutes el servidor expuesto fuera de esta máquina.",
+      "keepRunning": "Mantener el servidor en ejecución al cerrar la aplicación",
+      "keepRunningHint": "Con esto activado, cerrar la ventana oculta JustWrite en la bandeja del sistema y el servidor sigue funcionando — haz clic izquierdo en el icono de la bandeja para volver a mostrar la ventana, o usa su menú para salir de verdad.",
       "requireLoopback": "Requerir un token incluso en localhost",
       "noTokens": "Sin tokens — la API es abierta (ideal para uso solo local).",
       "tokenPlaceholder": "Pega o genera un token",

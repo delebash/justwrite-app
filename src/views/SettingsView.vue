@@ -78,6 +78,16 @@ const headlessUrl = computed(
 );
 const authTokens = ref([]);
 
+// The keep-running toggle writes the shell flag immediately AND persists in the
+// ui store (App.vue re-applies it every boot — the Rust flag resets per launch).
+async function setKeepRunning(v) {
+  ui.setKeepServerRunning(!!v);
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    await invoke("set_keep_server_running", { keepRunning: !!v });
+  } catch { /* browser dev — no shell; the store still remembers */ }
+}
+
 // Updates / changelog — version + the rendered whats-new.md (single-sourced with
 // the WhatsNew modal). Loaded lazily the first time the Updates tab opens.
 const APP_VERSION = import.meta.env.VITE_APP_VERSION || "1.0.0";
@@ -1433,6 +1443,13 @@ async function deleteCategory(c) {
             <code style="flex:1;min-width:0;padding:8px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ headlessUrl }}</code>
             <UiButton intent="secondary" size="small" @click="copyHeadlessUrl">{{ $t('settings.server.copy') }}</UiButton>
           </div>
+          <!-- The family headless/tray ruling (2026-08-04, JV's donor): OFF ⇒
+               closing the window stops everything; ON ⇒ hide to tray, server stays. -->
+          <label style="display:flex;align-items:center;gap:10px;margin:12px 0 0">
+            <UiToggle :model-value="ui.keepServerRunning" @update:model-value="setKeepRunning" />
+            <span>{{ $t('settings.server.keepRunning') }}</span>
+          </label>
+          <p class="t-muted" style="font-size:12.5px;margin:4px 0 0">{{ $t('settings.server.keepRunningHint') }}</p>
         </div>
 
         <div class="card">

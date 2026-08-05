@@ -72,6 +72,9 @@ export const useUiStore = defineStore("ui", {
       // UI language. null = browser-default at boot; setLocale() pins it.
       // Date / number formatting (Intl.*) tracks the same value.
       locale: null,
+      // The family headless ruling (2026-08-04): keep the server + tray alive
+      // when the window closes. Applied to the shell at boot + on toggle.
+      keepServerRunning: false,
       // Chapter editor mode. true = "continuous" (all scenes stitched
       // into one editable surface); false = "single scene" (default).
       // Persists across chapters AND reloads — once a writer turns it
@@ -347,6 +350,12 @@ export const useUiStore = defineStore("ui", {
       this.chapterEditStyle = s;
       this._persist();
     },
+    // The family headless ruling (2026-08-04): persisted here, re-applied to the
+    // shell every boot (App.vue) — the Rust flag resets per launch.
+    setKeepServerRunning(v) {
+      this.keepServerRunning = !!v;
+      this._persist();
+    },
 
     _persist() {
       save({
@@ -366,6 +375,7 @@ export const useUiStore = defineStore("ui", {
         briefingCache: this.briefingCache,
         briefingDismissedOn: this.briefingDismissedOn,
         showVariations: this.showVariations,
+        keepServerRunning: this.keepServerRunning,
       });
     },
   },
