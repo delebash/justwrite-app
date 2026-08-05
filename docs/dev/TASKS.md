@@ -32,9 +32,20 @@
   copy-URL toasts in App.vue ride the same gap), and the labels feed maps no `quickSetup`/`aiOffer`
   groups — those kit surfaces render English canon in Spanish (same as before
   the labels store; now mappable and unmapped).
-- **Release-build note:** `server/pyproject.toml`'s `bundle` extra pins
-  llm-runner to a git BRANCH — whether it carries tonight's shared-stack changes
-  is unverified (dev runs an editable install and is current).
+- **Found by the 2026-08-05 s2 three-app parity audit** (the bundle-extra branch
+  pin from the earlier note is FIXED — it pinned the stale July branch
+  `claude/admiring-galileo-il3q0o`; now `@main`, matching its own "never goes
+  stale" comment):
+  - **No Origin-header CORS test.** §6's rule — "the test that bites sends an
+    `Origin:` header and asserts `access-control-allow-origin` comes back" —
+    exists in docgen (`tests/test_app.py`) and JV (`tests/test_error_cors.py`)
+    but NOT in JW, the app the standard cites as the canonical envelope+CORS
+    text. Mirror docgen's test.
+  - **`100vh` violation:** `src/components/SceneLinks.vue:264` —
+    `max-height: calc(100vh - 48px)` on the popover. Under the UI-scale zoom,
+    100vh references the UNZOOMED viewport (the family rule's stated reason),
+    so the popover can overflow at zoom ≠ 1. Fix with a zoom-safe bound; the
+    shell chain itself is clean.
 - *(Non-issue, recorded: `family.lab.changeData` is fed but JW passes no
   dataLinks — JW has no promptless features, so the line never renders; the key
   is future-proofing.)*
@@ -133,6 +144,9 @@
   `<Toast />`+`<AppDialog />` (`App.vue:198-199`), take the AI-tasks nav row from
   `useAiTasksNav()` (`Sidebar.vue:148` hand-builds it). Also grandfathered: no
   `lint` script; console script named `justwrite_server.cli` not `<snake>.serve`.
+  Same adoption class (R3's recorded destination): swap the app-local
+  `AiSetupDialog` (`App.vue:17,221`) for the kit `AiSetupOffer` lifted FROM it —
+  the twin-line guard is the interim.
 - **Rust D2 — delete legacy `images_read`/`images_delete` — YOUR CALL, never made**
   (explained 2026-07-13, rec: delete; two dead fns reading pre-server disk-file
   image records). Extracted from `docs/plans/archive/2026-07-13-rust-minimization-and-choosers.md`

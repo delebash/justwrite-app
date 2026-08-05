@@ -27,10 +27,12 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-xdist>=3", "ruff>=0.7"]
-# Bundle/CI ONLY — the frozen build pulls the shared runner from git (branch HEAD,
-# so it never goes stale). Dev does NOT use this; dev uses the editable local link
-# described in the dependencies note above.
-bundle = ["llm-runner @ git+https://github.com/delebash/just-llm-runner.git@claude/admiring-galileo-il3q0o"]
+# Bundle/CI ONLY — the frozen build pulls the shared runner from git MAIN (branch
+# HEAD, so it never goes stale). Dev does NOT use this; dev uses the editable local
+# link described in the dependencies note above. (2026-08-05 s2 audit: this extra
+# pinned a July work branch — claude/admiring-galileo-il3q0o — so a frozen build
+# would have shipped July code while the comment promised freshness.)
+bundle = ["llm-runner @ git+https://github.com/delebash/just-llm-runner.git@main"]
 
 [project.scripts]
 # `justwrite-server`, NOT `justwrite` — the Tauri desktop binary is
