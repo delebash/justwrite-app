@@ -1,0 +1,8 @@
+{
+  "source": "../src/i18n/locales/en.json",
+  "targets": [
+    "es"
+  ],
+  "context": "",
+  "glossary": []
+}

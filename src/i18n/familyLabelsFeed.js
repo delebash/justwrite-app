@@ -37,5 +37,13 @@ export function buildFamilyLabels() {
       title: t("family.connectionError.title", { appName: "{appName}" }),
       retry: t("family.connectionError.retry"),
     },
+    lab: {
+      generatedPrompt: t("family.lab.generatedPrompt"),
+      generatedNote: t("family.lab.generatedNote"),
+      refresh: t("family.lab.refresh"),
+      editCopies: t("family.lab.editCopies"),
+      lockCopies: t("family.lab.lockCopies"),
+      restoreGenerated: t("family.lab.restoreGenerated"),
+    },
   };
 }

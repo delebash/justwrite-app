@@ -35,5 +35,6 @@ describe("family surface contract — canon words present in the English catalog
     expect(en.family.aiTabs).toEqual(FAMILY_LABELS.aiTabs);
     expect(en.family.downloadBar).toEqual(FAMILY_LABELS.downloadBar);
     expect(en.family.connectionError).toEqual(FAMILY_LABELS.connectionError);
+    expect(en.family.lab).toEqual(FAMILY_LABELS.lab);
   });
 });

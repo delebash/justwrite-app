@@ -92,6 +92,14 @@
     "connectionError": {
       "title": "Can't reach the {appName} server",
       "retry": "Retry"
+    },
+    "lab": {
+      "generatedPrompt": "Generated prompt",
+      "generatedNote": "built by the app for every real run — test only; nothing here is saved or applied",
+      "refresh": "Refresh",
+      "editCopies": "Edit copies for this test",
+      "lockCopies": "Lock copies",
+      "restoreGenerated": "Restore generated"
     }
   },
   "editor": {

@@ -92,6 +92,14 @@
     "connectionError": {
       "title": "No se puede conectar con el servidor de {appName}",
       "retry": "Reintentar"
+    },
+    "lab": {
+      "generatedPrompt": "Prompt generado",
+      "generatedNote": "construido por la aplicación en cada ejecución real — solo prueba; nada de esto se guarda ni se aplica",
+      "refresh": "Actualizar",
+      "editCopies": "Editar copias para esta prueba",
+      "lockCopies": "Bloquear copias",
+      "restoreGenerated": "Restaurar generado"
     }
   },
   "editor": {
