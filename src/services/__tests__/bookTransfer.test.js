@@ -1,6 +1,7 @@
 // requestBlob path-first regression guard for the Phase-2 book export. The kit's
-// requestBlob is PATH-FIRST (`requestBlob(path, {method="GET"})`, client.js:65,
-// publicly exported via index.js:14); a stale `requestBlob("GET", path)` would
+// requestBlob is PATH-FIRST (`requestBlob(path, {method="GET"})` — the shared
+// serverApi transport since 2026-08-05, publicly exported via common/index.js);
+// a stale `requestBlob("GET", path)` would
 // fetch the path "GET". These cases lock the corrected single-arg export call and
 // the import POST. `bookTransfer.js` captures `window.justwrite` at module load,
 // so the module is imported AFTER window is set (beforeAll + dynamic import).

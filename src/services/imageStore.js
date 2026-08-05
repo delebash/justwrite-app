@@ -94,7 +94,8 @@ export async function readImageBytes(image) {
     try {
       // requestBlob keeps the raw bytes (the json/text transport would corrupt
       // them); blob.type carries the server's content-type. Path-first single
-      // arg — the kit's requestBlob(path, {method="GET"}) (client.js).
+      // arg — the kit's requestBlob(path, {method="GET"}) (serverApi.js since
+      // 2026-08-05; same base, authed only when a token is set — JW sets none).
       const blob = await requestBlob(`/v1/images/${image.serverId}`);
       const mime = blob.type || "application/octet-stream";
       const bytes = new Uint8Array(await blob.arrayBuffer());

@@ -1,7 +1,8 @@
 // requestBlob path-first regression guard for readImageBytes — the EPUB/PDF
 // cover-read path (services/export/epub.js:68). The kit's requestBlob is
-// PATH-FIRST (`requestBlob(path, {method="GET"})`, client.js:65, publicly
-// exported via index.js:14); a stale `requestBlob("GET", path)` would fetch the
+// PATH-FIRST (`requestBlob(path, {method="GET"})` — the shared serverApi
+// transport since 2026-08-05, publicly exported via common/index.js); a stale
+// `requestBlob("GET", path)` would fetch the
 // path "GET" → throw → be swallowed → the cover silently dropped. These cases
 // lock the corrected single-arg call AND the blob→bytes decode (the cover
 // "lands"). Node env: global Blob is available (Node 18+).
