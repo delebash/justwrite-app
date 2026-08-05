@@ -125,5 +125,14 @@ if (isTauri) {
         ),
     },
 
+    server: {
+      // The family headless ruling (2026-08-04): flips the shell's
+      // keep-server-running-on-close flag. Views/stores call THIS, never
+      // invoke() directly (this repo's own bridge invariant — restored
+      // 2026-08-05 after two direct-invoke sites slipped in).
+      setKeepRunning: (keepRunning) =>
+        safe(invoke("set_keep_server_running", { keepRunning: !!keepRunning })),
+    },
+
   };
 }

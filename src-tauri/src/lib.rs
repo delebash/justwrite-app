@@ -244,8 +244,9 @@ async fn pick_file(
 // (FastAPI + SQLite on :17495). The desktop shell must spawn that server on
 // startup — without it the renderer's boot-time health check fails and shows
 // the connection-error screen. Mirrors JustVoice's sidecar (kept in lock-step;
-// JustVoice is the precedent), trimmed to JustWrite's needs: a single window
-// with no tray, so closing it quits the app and tears the server down.
+// JustVoice is the precedent). Since 2026-08-04 the family tray rides along:
+// closing the window quits the app UNLESS keep-server-running is on, in which
+// case the window hides to the tray and the server stays.
 
 // ─── Data root (the portable, user-settable location for ALL app data) ───────
 // Resolved by the shell BEFORE the server spawns (the server owns the DB + logs
@@ -612,10 +613,17 @@ fn handle_tray_menu_event(app: &AppHandle, event_id: &str) {
             }
         }
         "quit" => {
-            if let Some(state) = app.try_state::<SidecarState>() {
-                state.kill_child();
-            }
-            app.exit(0);
+            // The D5 drain grace applies to a tray quit too (2026-08-05 audit):
+            // an in-flight keepalive autosave POST must reach the sidecar before
+            // it dies — same 400ms hold the window-close path takes.
+            let app = app.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(Duration::from_millis(400));
+                if let Some(state) = app.try_state::<SidecarState>() {
+                    state.kill_child();
+                }
+                app.exit(0);
+            });
         }
         _ => {}
     }
@@ -697,6 +705,13 @@ pub fn run() {
         ])
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
+                // The drain thread's programmatic close proceeds UNCONDITIONALLY —
+                // checked before the keep branch, so a keep toggled ON during the
+                // 400ms drain can never intercept it (the 2026-08-05 audit race:
+                // window hidden with the sidecar already dead + CLOSING stuck).
+                if CLOSING.load(Ordering::SeqCst) {
+                    return;
+                }
                 // The family headless ruling (2026-08-04): keep-running ON ⇒ hide
                 // to the tray, the server stays — nothing needs draining, so this
                 // branch runs BEFORE the D5 close sequence and sets no CLOSING flag.
@@ -708,8 +723,9 @@ pub fn run() {
                         return;
                     }
                 }
-                // Single window, no tray: closing it quits the app, so tear the
-                // sidecar down with it instead of leaking a Python process.
+                // keep-running OFF: closing the window quits the app, so tear the
+                // sidecar down with it instead of leaking a Python process (the
+                // tray + keep switch arrived 2026-08-04; ON hides above instead).
                 //
                 // D5 (2026-07-13): the disk autosave + DB save now flush over HTTP
                 // to the Python sidecar (keepalive fetch on pagehide). Killing the

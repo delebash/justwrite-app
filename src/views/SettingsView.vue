@@ -80,12 +80,10 @@ const authTokens = ref([]);
 
 // The keep-running toggle writes the shell flag immediately AND persists in the
 // ui store (App.vue re-applies it every boot — the Rust flag resets per launch).
+// Through the bridge, never a direct invoke (this repo's invariant).
 async function setKeepRunning(v) {
   ui.setKeepServerRunning(!!v);
-  try {
-    const { invoke } = await import("@tauri-apps/api/core");
-    await invoke("set_keep_server_running", { keepRunning: !!v });
-  } catch { /* browser dev — no shell; the store still remembers */ }
+  await window.justwrite?.server?.setKeepRunning?.(!!v);
 }
 
 // Updates / changelog — version + the rendered whats-new.md (single-sourced with

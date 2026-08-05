@@ -10,9 +10,15 @@ on a home server and just open a tab.
 
 ## Opening JustWrite in a browser
 
-Under **Settings → General**, the **Headless access** card shows the address the
+Under **Settings → Server**, the **Headless access** card shows the address the
 server is hosting the app at, with a **Copy** button. Paste it into any browser
 on the same machine and JustWrite loads.
+
+The same section carries **Keep server running after the app closes**: with it
+on, closing the window hides JustWrite to the system tray and the server keeps
+serving — left-click the tray icon to bring the window back, or use its menu
+(Show/Hide · Server Start/Stop/Restart · Quit) to control the server or quit
+for real. With it off, closing the window stops everything.
 
 By default that's `http://127.0.0.1:17495/` — which only accepts connections
 from the machine it's running on. To reach it from another device, see
@@ -47,7 +53,7 @@ Leave the desktop app closed while doing this — both use the same port.
 
 ## API access (bearer tokens)
 
-The **API access** card, also under **Settings → General**, controls who may
+The **API access** card, also under **Settings → Server**, controls who may
 call JustWrite's API.
 
 It is **off by default**, which is the right setting when the server only

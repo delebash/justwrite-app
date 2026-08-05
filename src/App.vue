@@ -143,11 +143,10 @@ onMounted(() => {
   // Ctrl+P opening the OS print dialog before our palette can intercept).
   window.addEventListener("keydown", onKey, { capture: true });
   // Re-apply the persisted keep-running flag to the shell every boot (the Rust
-  // side resets per launch; the family headless ruling 2026-08-04).
+  // side resets per launch; the family headless ruling 2026-08-04). Through the
+  // bridge, never a direct invoke (this repo's invariant, restored 2026-08-05).
   if (ui.keepServerRunning) {
-    import("@tauri-apps/api/core")
-      .then(({ invoke }) => invoke("set_keep_server_running", { keepRunning: true }))
-      .catch(() => {});
+    window.justwrite?.server?.setKeepRunning?.(true);
   }
 });
 onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: true }));

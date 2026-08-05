@@ -16,11 +16,25 @@
 > veto, a watch) survives below as its own line. The prior sweep notes, the 2026-07-26
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
+## Found by the 2026-08-05 family audit — tonight's tray/Server port, verified
+
+- **i18n gaps, surfaced not regressed:** the tray menu is hardcoded English in
+  Rust inside an es-localized app (donor-shaped; the family full-menu ruling
+  should localize it), and the labels feed maps no `quickSetup`/`aiOffer`
+  groups — those kit surfaces render English canon in Spanish (same as before
+  the labels store; now mappable and unmapped).
+- **Release-build note:** `server/pyproject.toml`'s `bundle` extra pins
+  llm-runner to a git BRANCH — whether it carries tonight's shared-stack changes
+  is unverified (dev runs an editable install and is current).
+- *(Non-issue, recorded: `family.lab.changeData` is fed but JW passes no
+  dataLinks — JW has no promptless features, so the line never renders; the key
+  is future-proofing.)*
+
 ## Now / near-term (JustWrite)
 
 - **`family.*` es values are HAND-TRANSLATED (2026-08-04)** — the new catalog block
   behind the kit's labels feed (`src/i18n/familyLabelsFeed.js`: AI tabs, download-bar
-  actions, connection-error copy) got hand-es'd values; run them through the docgen
+  actions, connection-error copy, the `family.lab` group) got hand-es'd values; run them through the docgen
   translator + review workspace when that pipeline goes live, like the rest of es.json.
 - **"Serve `/health` before `seed_workspace`" — recommend DROPPING; your ruling owed.**
   Measured 2026-07-25: it buys 36 ms of a ~975 ms pre-listen window dominated by framework
@@ -107,7 +121,7 @@
 - **Adopt the kit boot contract (recorded deviation, app-structure.md §4/§1):** swap the
   hand-wired `configureLlmUi`/`configureServerApi`/`configureExternal` calls
   (`main.js`) for `installLlmUi`, mount `<LlmUiHosts />` instead of individual
-  `<Toast />`+`<AppDialog />` (`App.vue:192-193`), take the AI-tasks nav row from
+  `<Toast />`+`<AppDialog />` (`App.vue:198-199`), take the AI-tasks nav row from
   `useAiTasksNav()` (`Sidebar.vue:148` hand-builds it). Also grandfathered: no
   `lint` script; console script named `justwrite_server.cli` not `<snake>.serve`.
 - **Rust D2 — delete legacy `images_read`/`images_delete` — YOUR CALL, never made**
@@ -135,10 +149,10 @@ JV as of 2026-08-04; the convergence scope itself stands.)*
 
 ## Your-box checks (only the Windows / 2070S machine can finish these)
 
-- **Boot splash after the kit adoption (2026-08-04, uncommitted):** the load group is the
+- **Boot splash after the kit adoption (2026-08-04):** the load group is the
   kit's `<BootModelLoad />` now and the model bar shows the MODEL NAME (your shared-behavior
   ruling) instead of "Loading your writing model". One boot with warm-start on is the look
-  pass. Gates already green: 560/560 vitest, build, i18n report (its `literal`/`nav.settings`
+  pass. Gates already green: 567/567 vitest, build, i18n report (its `literal`/`nav.settings`
   rows pre-exist, proven on a stashed clean tree). `warmStartup.js` deleted; the bench
   suppression rides the kit's `skip` option (`main.js`).
 
