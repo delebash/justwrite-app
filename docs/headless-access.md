@@ -16,9 +16,11 @@ on the same machine and JustWrite loads.
 
 The same section carries **Keep server running after the app closes**: with it
 on, closing the window hides JustWrite to the system tray and the server keeps
-serving — left-click the tray icon to bring the window back, or use its menu
-(Show/Hide · Server Start/Stop/Restart · Quit) to control the server or quit
-for real. With it off, closing the window stops everything.
+serving — left-click the tray icon to bring the window back. The tray menu
+carries 📺 Show / 🔵 Hide window, ▶️ Start / ⏹ Stop / 🔄 Restart server,
+⚙️ Open settings, 📋 Copy server URL (copies and confirms), 📜 Open log file,
+ℹ️ About, and 🚪 Quit — which stops the server too. With the switch off,
+closing the window stops everything.
 
 By default that's `http://127.0.0.1:17495/` — which only accepts connections
 from the machine it's running on. To reach it from another device, see

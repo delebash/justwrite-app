@@ -28,7 +28,8 @@
   route like docgen's. Your call before coding.
 - **i18n gaps, surfaced not regressed:** the tray menu is hardcoded English in
   Rust inside an es-localized app (donor-shaped; the family full-menu ruling
-  should localize it), and the labels feed maps no `quickSetup`/`aiOffer`
+  should localize it — and since the 2026-08-05 full-menu port the two tray
+  copy-URL toasts in App.vue ride the same gap), and the labels feed maps no `quickSetup`/`aiOffer`
   groups — those kit surfaces render English canon in Spanish (same as before
   the labels store; now mappable and unmapped).
 - **Release-build note:** `server/pyproject.toml`'s `bundle` extra pins

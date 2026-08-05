@@ -11,6 +11,7 @@ import Sidebar from "./components/Sidebar.vue";
 import OnboardingShell from "./components/OnboardingShell.vue";
 import { Toast } from "@delebash/llm-ui";
 import { AppDialog } from "@delebash/llm-ui";
+import { pushToast } from "@delebash/llm-ui";
 import CommandPalette from "./components/CommandPalette.vue";
 import ProjectReplaceModal from "./components/ProjectReplaceModal.vue";
 import AiSetupDialog from "./components/AiSetupDialog.vue";
@@ -148,6 +149,22 @@ onMounted(() => {
   if (ui.keepServerRunning) {
     window.justwrite?.server?.setKeepRunning?.(true);
   }
+  // The tray's renderer half (the full-donor ruling 2026-08-04): settings/about
+  // navigate, Copy URL writes the clipboard + says so — the donor's versions
+  // were dead emits with no listeners (audit 2026-08-05). Dynamic import so
+  // plain `vite dev` in a browser stays a no-op.
+  import("@tauri-apps/api/event").then(({ listen }) => {
+    listen("tray:open-settings", () => router.push("/settings"));
+    listen("tray:about", () => router.push("/settings/about"));
+    listen("tray:copy-url", async (e) => {
+      try {
+        await navigator.clipboard.writeText(String(e.payload));
+        pushToast({ kind: "success", title: "Server URL copied", description: String(e.payload) });
+      } catch (err) {
+        pushToast({ kind: "error", title: "Copy failed", description: String(err?.message || err) });
+      }
+    });
+  }).catch(() => {});
 });
 onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: true }));
 </script>
