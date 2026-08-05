@@ -1561,7 +1561,7 @@
     "sections": {
       "project": "Proyecto",
       "appearance": "Apariencia",
-      "general": "General",
+      "general": "Servidor",
       "backups": "Copias de seguridad",
       "storage": "Almacenamiento",
       "logs": "Registros",
@@ -1853,6 +1853,7 @@
       "managedInLogs": "Gestionado en la sección de Registros",
       "spawnLogsLabel": "Registros de spawn del motor",
       "databaseLabel": "Base de datos",
+      "totalLabel": "Total",
       "freeSpaceLabel": "Espacio libre en disco"
     },
     "about": {

@@ -1561,7 +1561,7 @@
     "sections": {
       "project": "Project",
       "appearance": "Appearance",
-      "general": "General",
+      "general": "Server",
       "backups": "Backups",
       "storage": "Storage",
       "logs": "Logs",
@@ -1853,6 +1853,7 @@
       "managedInLogs": "Managed in the Logs section",
       "spawnLogsLabel": "Engine spawn logs",
       "databaseLabel": "Database",
+      "totalLabel": "Total",
       "freeSpaceLabel": "Free disk space"
     },
     "about": {

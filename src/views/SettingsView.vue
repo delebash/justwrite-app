@@ -1413,6 +1413,10 @@ async function deleteCategory(c) {
             <span class="t-muted">{{ $t('settings.storage.databaseLabel') }}</span>
             <span>{{ diskSize(diskUsage?.database) }}</span>
 
+            <!-- The Total row — docgen's invention, canon BOTH apps render (ruling R2). -->
+            <span class="t-muted">{{ $t('settings.storage.totalLabel') }}</span>
+            <span>{{ diskSize(diskUsage?.total) }}</span>
+
             <span class="t-muted">{{ $t('settings.storage.freeSpaceLabel') }}</span>
             <span>{{ diskSize(diskUsage?.diskFree) }}</span>
           </div>
