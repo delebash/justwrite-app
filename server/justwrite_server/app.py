@@ -32,6 +32,7 @@ from .api import (
     images,
     projects,
     rag,
+    server_auth,
     sessions,
     settings,
     sweep_draft,
@@ -142,6 +143,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
     app.include_router(health.router)
+    app.include_router(server_auth.router)  # the auth door + lockout escape (family shape)
     # Mounted BEFORE projects.router so the literal /autosaves + /autosave-dir
     # segments win over projects' catch-all /{project_id} (FastAPI matches in
     # registration order). The renderer already PUTs snapshots to the DB; this

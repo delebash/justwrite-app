@@ -4,7 +4,7 @@ import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor } from "../services/imageStore.js";
-import { promptDialog, confirmDialog, DataManagement, LogsPanel, UpdatesPanel, renderHelpMarkdown } from "@delebash/llm-ui";
+import { promptDialog, confirmDialog, DataManagement, LogsPanel, UpdatesPanel, renderHelpMarkdown, get, put } from "@delebash/llm-ui";
 import { loadDoc } from "../services/helpDocs.js";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { exportProject, importProject, saveBackupBlob, canTransferBooks } from "../services/bookTransfer.js";
@@ -241,14 +241,29 @@ async function importAProject() {
 
 const requireLoopbackAuth = ref(false);
 const newToken = ref("");
-function loadAuthCfg() {
-  const a = readSetting("auth") || {};
-  authTokens.value = Array.isArray(a.tokens) ? a.tokens.filter((t) => typeof t === "string" && t) : [];
-  requireLoopbackAuth.value = !!a.requireForLoopback;
+// The auth door is its OWN route since 2026-08-05 (/v1/server-auth — the family
+// lockout escape, docgen's shape; user ruling: the apps work the same). The
+// middleware exempts exactly this route + /v1/health for loopback, so this
+// section can ALWAYS fix a lost token; it stopped riding the settings doc
+// because exempting the whole settings API would gut requireForLoopback.
+async function loadAuthCfg() {
+  try {
+    const a = await get("/v1/server-auth");
+    authTokens.value = Array.isArray(a.tokens) ? a.tokens : [];
+    requireLoopbackAuth.value = !!a.requireForLoopback;
+  } catch { /* server down — the section shows empty; reopening reloads */ }
 }
 loadAuthCfg();
-function saveAuthCfg() {
-  writeSetting("auth", { tokens: authTokens.value, requireForLoopback: requireLoopbackAuth.value });
+async function saveAuthCfg() {
+  try {
+    const a = await put("/v1/server-auth", {
+      tokens: authTokens.value, requireForLoopback: requireLoopbackAuth.value,
+    });
+    authTokens.value = a.tokens;
+    requireLoopbackAuth.value = !!a.requireForLoopback;
+  } catch (e) {
+    ui.showToast({ message: String(e?.message || e) });
+  }
 }
 function addToken() {
   const t = newToken.value.trim();
