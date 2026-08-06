@@ -45,5 +45,9 @@ describe("family surface contract — canon words present in the English catalog
     expect(en.family.downloadBar).toEqual(FAMILY_LABELS.downloadBar);
     expect(en.family.connectionError).toEqual(FAMILY_LABELS.connectionError);
     expect(en.family.lab).toEqual(FAMILY_LABELS.lab);
+    // + the two groups mapped by the parity batch (2026-08-05): the once-ever
+    // offer (kit AiSetupOffer replaced JW's dialog) and Quick Setup's canon.
+    expect(en.family.aiOffer).toEqual(FAMILY_LABELS.aiOffer);
+    expect(en.family.quickSetup).toEqual(FAMILY_LABELS.quickSetup);
   });
 });

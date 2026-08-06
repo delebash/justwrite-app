@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, onBeforeUnmount, watch, watchEffect, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { i18n, t } from "./i18n/index.js";
 import { useUiStore } from "./stores/ui.js";
 import { useProjectStore } from "./stores/project.js";
 import { applyAppearance } from "./services/appearance.js";
@@ -9,12 +10,9 @@ import { BootModelLoad, warmModelId } from "@delebash/llm-ui";
 import TitleBar from "./components/TitleBar.vue";
 import Sidebar from "./components/Sidebar.vue";
 import OnboardingShell from "./components/OnboardingShell.vue";
-import { Toast } from "@delebash/llm-ui";
-import { AppDialog } from "@delebash/llm-ui";
-import { pushToast } from "@delebash/llm-ui";
+import { pushToast, AiSetupOffer } from "@delebash/llm-ui";
 import CommandPalette from "./components/CommandPalette.vue";
 import ProjectReplaceModal from "./components/ProjectReplaceModal.vue";
-import AiSetupDialog from "./components/AiSetupDialog.vue";
 import ChatPanel from "./components/ChatPanel.vue";
 import { HelpDrawer } from "@delebash/llm-ui";
 import ShortcutCheatsheet from "./components/ShortcutCheatsheet.vue";
@@ -159,12 +157,29 @@ onMounted(() => {
     listen("tray:copy-url", async (e) => {
       try {
         await navigator.clipboard.writeText(String(e.payload));
-        pushToast({ kind: "success", title: "Server URL copied", description: String(e.payload) });
+        pushToast({ kind: "success", title: t("tray.urlCopiedTitle"), description: String(e.payload) });
       } catch (err) {
-        pushToast({ kind: "error", title: "Copy failed", description: String(err?.message || err) });
+        pushToast({ kind: "error", title: t("tray.copyFailedTitle"), description: String(err?.message || err) });
       }
     });
   }).catch(() => {});
+  // The tray menu's words follow the UI language (parity batch 2026-08-05 —
+  // the menu was hardcoded English inside an es-localized app). Fed through
+  // the bridge at boot + on every locale switch; a no-op in plain `vite dev`.
+  watch(i18n.global.locale, () => {
+    window.justwrite?.tray?.setLabels?.({
+      show: t("tray.show"),
+      hide: t("tray.hide"),
+      serverStart: t("tray.serverStart"),
+      serverStop: t("tray.serverStop"),
+      serverRestart: t("tray.serverRestart"),
+      openSettings: t("tray.openSettings"),
+      copyUrl: t("tray.copyUrl"),
+      openLogs: t("tray.openLogs"),
+      about: t("tray.about"),
+      quit: t("tray.quit"),
+    });
+  }, { immediate: true });
 });
 onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: true }));
 </script>
@@ -212,13 +227,21 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
         <component :is="Component" />
       </router-view>
     </OnboardingShell>
-    <Toast />
-    <AppDialog />
+    <!-- Toast + AppDialog arrive as ONE named component now (registered by
+         installLlmUi) — forgetting it is one missing thing, not two silent ones. -->
+    <LlmUiHosts />
     <CommandPalette ref="palette" />
     <ProjectReplaceModal v-if="ui.replaceModal.open"
       :initial-term="ui.replaceModal.initialTerm"
       @close="ui.closeProjectReplace()" />
-    <AiSetupDialog v-if="ui.aiSetupPromptOpen" @close="ui.closeAiSetupPrompt()" />
+    <!-- The once-ever AI offer — the kit component LIFTED FROM this app's
+         AiSetupDialog (ruling R3); JW keeps its own moment (projectStart's
+         once-flag opens it after the FIRST project) and routes on the emits.
+         Words come through the labels feed (family.aiOffer) so es stays es. -->
+    <AiSetupOffer v-if="ui.aiSetupPromptOpen" app-name="JustWrite"
+      @close="ui.closeAiSetupPrompt()"
+      @quick-setup="router.push('/ai?quicksetup=1')"
+      @connect-provider="router.push('/ai?providers=online')" />
     <ChatPanel v-model="ui.chatPanelOpen" />
     <HelpDrawer />
     <ShortcutCheatsheet />

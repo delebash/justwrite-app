@@ -31,33 +31,40 @@ import { i18n, detectLocale, setLocale as setI18nLocale } from "./i18n/index.js"
 import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
 import { startWarmOnBoot } from "@delebash/llm-ui";
 
-// Shared LLM UI (@delebash/llm-ui) — configure its origin-aware client ONCE with
-// the base the app already resolved, so the shared AI views call the same server
-// endpoints the rest of the app does (no per-app data adapter).
-import { configureLlmUi, configureServerApi, checkServer, configureFamilyLabels, configureExternal, configureHelp, configureTestData, closeHelp, openExternal, setUiLocale, ConnectionError } from "@delebash/llm-ui";
+// The whole shared LLM front end, in ONE call (the UI twin of the server's
+// install_llm; the family shape — docgen is the reference). It resolves ONE
+// origin-aware base for the app transport AND the kit's LLM views (they were
+// separate configure* calls here, the exact per-step wiring the installer
+// exists to make un-forgettable), wires the external opener, and registers
+// <LlmUiHosts /> (Toast + AppDialog, mounted once in App.vue).
+import { installLlmUi, checkServer, configureFamilyLabels, configureHelp, configureTestData, closeHelp, openExternal, setUiLocale, ConnectionError } from "@delebash/llm-ui";
 import { buildFamilyLabels } from "./i18n/familyLabelsFeed.js";
 import { SERVER_BASE, resolveBase } from "./services/serverApi.js";
 import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "./services/helpDocs.js";
 import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "./services/labTestData.js";
-configureLlmUi({ baseUrl: SERVER_BASE });
+
+const app = createApp(App);
+const pinia = createPinia();
+app.use(pinia);
+
+installLlmUi(app, {
+  // JW's own resolver (services/serverApi.js) — one base feeds both transports.
+  resolveBase,
+  // External links — the Tauri webview swallows target=_blank/window.open, so
+  // route through the shell bridge; the browser dev path (no window.justwrite)
+  // keeps window.open.
+  external: (url) => {
+    if (window.justwrite?.shell?.openExternal) window.justwrite.shell.openExternal(url);
+    else window.open(url, "_blank", "noopener,noreferrer");
+  },
+  // No catalogCopy / quickSetupCopy: the kit defaults ARE JustWrite's words.
+});
+
 // The AI Lab's test-input affordances (§7.3 + QC-35): JW's book material
 // (chapters / characters, read lazily from the live stores) plus the
 // per-action declaration table — pickers, "From this book" composers, and
 // the sample labels that fit each action's prompt contract.
 configureTestData({ sources: LAB_TEST_SOURCES, actions: LAB_TEST_ACTIONS });
-// The shared server transport (request/verbs/safeRequest/...) — JustWrite has no
-// auth, so only the base resolver is configured.
-configureServerApi({ resolveBase });
-
-// External links (kit anchors + help docs + our own views) — the Tauri webview
-// swallows target=_blank/window.open, so route through the shell bridge; the
-// browser dev path (no window.justwrite) keeps window.open via the kit fallback.
-configureExternal({
-  open: (url) => {
-    if (window.justwrite?.shell?.openExternal) window.justwrite.shell.openExternal(url);
-    else window.open(url, "_blank", "noopener,noreferrer");
-  },
-});
 
 // Shared in-app Help (kit HelpDrawer + HelpTrigger). JustWrite supplies the
 // content adapter over its docs/*.md corpus plus both handoffs: "Open full
@@ -130,9 +137,8 @@ configureHelp({
   // boot and went stale the day the runtime language switcher shipped.)
   watch(i18n.global.locale, () => configureFamilyLabels(buildFamilyLabels()), { immediate: true });
 
-  const app = createApp(App);
-  const pinia = createPinia();
-  app.use(pinia);
+  // (app + pinia are created at module scope now, before installLlmUi —
+  // the installer needs the app instance to register <LlmUiHosts />.)
 
   // QC-46 — the welcome screen owns two redirect rules:
   //

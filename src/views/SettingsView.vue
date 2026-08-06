@@ -4,7 +4,7 @@ import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor } from "../services/imageStore.js";
-import { promptDialog, confirmDialog, DataManagement, LogsPanel, UpdatesPanel, renderHelpMarkdown, get, put, post, fmtBytes, refreshRunnerModels } from "@delebash/llm-ui";
+import { promptDialog, confirmDialog, DataManagement, LogsPanel, SettingsShell, UpdatesPanel, renderHelpMarkdown, get, put, post, fmtBytes, refreshRunnerModels } from "@delebash/llm-ui";
 import { loadDoc } from "../services/helpDocs.js";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { exportProject, importProject, saveBackupBlob, canTransferBooks } from "../services/bookTransfer.js";
@@ -53,19 +53,26 @@ function onLocaleChange(code) {
   setI18nLocale(next);
 }
 
+// The canon relative order (family parity batch 2026-08-05): … Backups · Storage ·
+// Server · Logs · Updates · About, with app sections (Project) leading. The old
+// "general" id was the SERVER section wearing the wrong key — its label already
+// read "Server"; the id and position now match what the tab actually holds.
 const SECTIONS = computed(() => [
   { id: "project",    label: t("settings.sections.project") },
   { id: "appearance", label: t("settings.sections.appearance") },
-  { id: "general",    label: t("settings.sections.general") },
   { id: "backups",    label: t("settings.sections.backups") },
   { id: "storage",    label: t("settings.sections.storage") },
+  { id: "server",     label: t("settings.sections.server") },
   { id: "logs",       label: t("settings.sections.logs") },
   { id: "updates",    label: t("settings.sections.updates") },
   { id: "about",      label: t("settings.sections.about") },
 ]);
 
-const active = ref(props.section || "project");
-watch(() => props.section, (s) => { if (s) active.value = s; });
+// Pre-batch deep links said /settings/general — keep them landing on the row set
+// they meant (the server section).
+const normalizeSection = (s) => (s === "general" ? "server" : s);
+const active = ref(normalizeSection(props.section) || "project");
+watch(() => props.section, (s) => { if (s) active.value = normalizeSection(s); });
 
 // ── Server: headless access + optional bearer-auth tokens ──────────
 // The server hosts the UI itself (StaticFiles at /), so `justwrite-server
@@ -679,7 +686,7 @@ async function deleteCategory(c) {
 <template>
   <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('settings.title')" help-key="appearance" />
   <div class="pane-card">
-    <div class="scrollarea" style="padding:22px">
+    <div class="set-wrap">
     <!-- i18n-t + named slots (the user's ruling, 2026-07-26: "i18n-t with slots, no html
          in messages"). Each emphasised term reuses the key that already names that thing —
          the section names come from settings.sections.*, so the intro can never drift from
@@ -688,17 +695,14 @@ async function deleteCategory(c) {
       <template #settings><strong>{{ $t("settings.title") }}</strong></template>
       <template #project><strong>{{ $t("settings.sections.project") }}</strong></template>
       <template #appearance><strong>{{ $t("settings.sections.appearance") }}</strong></template>
-      <template #general><strong>{{ $t("settings.sections.general") }}</strong></template>
       <template #backups><strong>{{ $t("settings.sections.backups") }}</strong></template>
+      <template #server><strong>{{ $t("settings.sections.server") }}</strong></template>
       <template #ai><strong>{{ $t("settings.introTerms.ai") }}</strong></template>
     </i18n-t>
-    <div class="settings-layout">
-      <!-- Section tabs — horizontal strip, full width (matches JV's settings) -->
-      <nav class="set-tabs">
-        <button v-for="s in SECTIONS" :key="s.id"
-          type="button" class="set-tab" :class="{ on: active === s.id }"
-          @click="active = s.id">{{ s.label }}</button>
-      </nav>
+    <!-- The family Settings chrome (kit SettingsShell — the strip this page used
+         to hand-roll was the shell's donor; JW consumes it back now). Sections
+         stay JW's data; the shell owns tabs + the scrolling panel. -->
+    <SettingsShell :sections="SECTIONS" v-model="active">
 
       <!-- ── PROJECT ─────────────────────────────── -->
       <div v-if="active === 'project'" style="display:flex;flex-direction:column;gap:14px;min-width:0">
@@ -1447,7 +1451,7 @@ async function deleteCategory(c) {
       </div>
 
       <!-- ── SERVER (headless + API access) ─────────── -->
-      <div v-else-if="active === 'general'" style="display:flex;flex-direction:column;gap:14px">
+      <div v-else-if="active === 'server'" style="display:flex;flex-direction:column;gap:14px">
         <div class="card">
           <div class="card-title">{{ $t('settings.server.headlessTitle') }}</div>
           <p class="t-muted">{{ $t('settings.server.headlessHint') }}</p>
@@ -1655,7 +1659,7 @@ async function deleteCategory(c) {
           </div>
         </div>
       </div>
-    </div>
+    </SettingsShell>
     </div>
   </div>
 </template>
@@ -2024,12 +2028,11 @@ async function deleteCategory(c) {
 }
 .usage-dt { font-size: 12px; font-variant-numeric: tabular-nums; }
 
-/* Settings = horizontal tab strip on top + full-width content (matches JV). */
-.settings-layout { display: flex; flex-direction: column; gap: 18px; }
-.set-tabs { display: flex; flex-wrap: wrap; gap: 2px; border-bottom: 1px solid var(--border); }
-.set-tab { appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 10px 16px; font: inherit; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
-.set-tab:hover { color: var(--ink); }
-.set-tab.on { color: var(--ink); border-bottom-color: var(--accent); }
+/* Settings chrome = the kit SettingsShell now (this page was its donor — the
+   hand-rolled .set-tabs strip moved into the kit 2026-08-04 and JW consumes it
+   back). What remains here is the wrap: intro fixed above, the shell's panel is
+   the one scroller. */
+.set-wrap { padding: 22px; display: flex; flex-direction: column; gap: 14px; height: 100%; min-height: 0; }
 
 @media (max-width: 900px) {
   /* Mode tiles (3 cols) → 2 cols */

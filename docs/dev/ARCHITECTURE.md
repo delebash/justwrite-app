@@ -50,7 +50,8 @@ The pieces that implement it, so a reader can verify rather than trust this page
 - **`auth.py`** — bearer-token middleware for running exposed. Off when no
   tokens are set; loopback bypasses unless `requireForLoopback`. Gates `/v1`
   only, so the UI and its assets always load and a browser can reach the app.
-  Surfaced in **Settings → General** (`SettingsView.vue`), documented for users
+  Surfaced in **Settings → Server** (`SettingsView.vue`; the section was keyed
+  "general" until the 2026-08-06 parity batch), documented for users
   in [`docs/headless-access.md`](../headless-access.md).
 - **`csrf.py`** — same-origin mutations are allowed precisely because the
   self-hosted UI is a first-class mode. This was a real 403 found on 2026-07-15

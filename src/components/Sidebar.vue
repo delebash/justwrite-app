@@ -4,7 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
-import { promptDialog, confirmDialog, useAiTasksStore } from "@delebash/llm-ui";
+import { promptDialog, confirmDialog, useAiTasksNav } from "@delebash/llm-ui";
 import { promptNewProject, openTutorialProject } from "../services/projectStart.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import { Icon } from "@delebash/llm-ui";
@@ -204,7 +204,7 @@ const activeSection = computed(() => String(route.name || "").toLowerCase());
 // so the sidebar accurately reflects what the user is looking at.
 function isNavActive(n) {
   if (n.action === "toggleChatPanel") return ui.chatPanelOpen;
-  if (n.action === "toggleAiTasksPanel") return aiTasks.panelOpen;
+  if (n.action === "toggleAiTasksPanel") return aiTasksOpen.value;
   return activeSection.value === (n.activeName || n.id).toLowerCase();
 }
 
@@ -218,10 +218,15 @@ function isNavActive(n) {
 const PANEL_NAV_IDS = new Set(["ask", "ai-tasks"]);
 const panelToggleAttr = (n) => (PANEL_NAV_IDS.has(n.id) ? "" : null);
 
-// QC-38: the AI-tasks nav row carries the same live signal as the titlebar
-// chip — the unseen-error count wins (red), else the running count.
-const aiTasks = useAiTasksStore();
-const aiTasksBadge = computed(() => aiTasks.unseenErrors || aiTasks.runningCount || 0);
+// QC-38 → kit-owned (family parity batch 2026-08-05): the AI-tasks row's badge,
+// error state, open state and toggle come from the ONE composable
+// (useAiTasksNav) — the badge rule (unseen errors outrank the running count)
+// and the toggle-through-the-store discipline (togglePanel clears the badge;
+// a raw panelOpen flip left it stuck red — the audit's exact finding) live in
+// the kit now, not re-derived here. The rendering + $t label stay JW's; the
+// required [data-panel-toggle] rides panelToggleAttr (one binding for the ask
+// row too).
+const { badge: aiTasksBadge, hasErrors: aiTasksHasErrors, isOpen: aiTasksOpen, toggle: toggleAiTasks } = useAiTasksNav();
 
 function go(id) {
   // NAV entries can carry a `path` override for one-off routes that
@@ -241,6 +246,9 @@ function clickParent(item) {
     go(item.id);
     return;
   }
+  // The AI-tasks row toggles through the kit composable (badge-clear semantics
+  // ride togglePanel); other actions stay ui-store dispatches.
+  if (item.action === "toggleAiTasksPanel") { toggleAiTasks(); return; }
   if (item.action && typeof ui[item.action] === "function") { ui[item.action](); return; }
   if (item.path) { router.push(item.path); return; }
   go(item.id);
@@ -895,7 +903,7 @@ const authorInitials = computed(() => {
             <span class="nav-icon"><Icon :name="n.icon" :size="15" /></span>
             <span class="nav-label">{{ $t(n.label) }}</span>
             <span v-if="n.id === 'ai-tasks' && aiTasksBadge" class="nav-count"
-              :class="{ 'nav-count-error': aiTasks.unseenErrors }">{{ aiTasksBadge }}</span>
+              :class="{ 'nav-count-error': aiTasksHasErrors }">{{ aiTasksBadge }}</span>
             <span v-if="n.kbd" class="kbd-pill">{{ n.kbd }}</span>
             <span v-if="n.expandable" class="nav-chev" :class="{ open: ui.expanded[n.id] }">
               <Icon name="ChevRight" :size="12" />
@@ -1132,7 +1140,7 @@ const authorInitials = computed(() => {
       @click="clickParent(n)">
       <Icon :name="n.icon" :size="16" />
       <span v-if="n.id === 'ai-tasks' && aiTasksBadge" class="rail-dot"
-        :class="{ 'rail-dot-error': aiTasks.unseenErrors }" />
+        :class="{ 'rail-dot-error': aiTasksHasErrors }" />
     </button>
     <div style="flex:1" />
     <div class="rail-avatar">{{ authorInitials }}</div>

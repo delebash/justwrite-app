@@ -8,7 +8,7 @@ import { defineStore } from "pinia";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
 import { DEFAULT_APPEARANCE, migrateAppearance } from "../services/appearance.js";
-import { pushToast, clearToasts, useAiTasksStore } from "@delebash/llm-ui";
+import { pushToast, clearToasts } from "@delebash/llm-ui";
 
 const SECTION = "ui";
 
@@ -249,12 +249,8 @@ export const useUiStore = defineStore("ui", {
       if (this.chatPanelOpen) this.closeChatPanel();
       else this.chatPanelOpen = true;
     },
-    // QC-38: the sidebar "AI tasks" nav item opens the shared AI-tasks panel
-    // (the same panel the titlebar chip toggles) — thin delegation so the
-    // sidebar's existing `ui[item.action]()` dispatch works unchanged.
-    toggleAiTasksPanel() {
-      useAiTasksStore().togglePanel();
-    },
+    // (The QC-38 toggleAiTasksPanel delegation left 2026-08-06 — the sidebar's
+    // AI-tasks row rides the kit's useAiTasksNav composable now.)
     openChatPanelFor(target) {
       const key = target?.sourceKey || null;
       if (this.chatPanelOpen && key && this.chatPanelSourceKey === key) {

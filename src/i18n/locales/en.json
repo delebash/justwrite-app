@@ -102,7 +102,44 @@
       "lockCopies": "Lock copies",
       "restoreGenerated": "Restore generated",
       "changeData": "Change what this prompt says:"
+    },
+    "aiOffer": {
+      "eyebrow": "Optional",
+      "title": "Set up AI features",
+      "body": "{appName}'s AI runs where you choose — on this PC, private and free, or through an online provider. You can set this up anytime from the AI page.",
+      "quickSetup": "Run Quick Setup",
+      "quickSetupSub": "Local — uses this PC, private & free",
+      "connectProvider": "Connect an online provider",
+      "connectProviderSub": "OpenAI-compatible endpoint",
+      "skip": "Skip for now"
+    },
+    "quickSetup": {
+      "runButton": "Run Quick Setup",
+      "bandScope": "Sets up the built-in llama.cpp provider only",
+      "applyButton": "Apply setup",
+      "cancelButton": "Cancel",
+      "closeButton": "Close",
+      "engineBarTitle": "The engine",
+      "engineBarRole": "the program that runs models",
+      "configuredBand": "Local AI is set up — {model} is the default",
+      "rerunButton": "Re-run Quick Setup",
+      "alreadyTitle": "Already set up",
+      "changeModelButton": "Change model"
     }
+  },
+  "tray": {
+    "show": "📺 Show window",
+    "hide": "🔵 Hide window",
+    "serverStart": "▶️ Start server",
+    "serverStop": "⏹ Stop server",
+    "serverRestart": "🔄 Restart server",
+    "openSettings": "⚙️ Open settings",
+    "copyUrl": "📋 Copy server URL",
+    "openLogs": "📜 Open log file",
+    "about": "ℹ️ About JustWrite",
+    "quit": "🚪 Quit JustWrite",
+    "urlCopiedTitle": "Server URL copied",
+    "copyFailedTitle": "Copy failed"
   },
   "editor": {
     "mentions": {
@@ -1555,14 +1592,14 @@
   "settings": {
     "title": "Settings",
     "eyebrow": "Project",
-    "intro": "{settings} is divided into sections — {project} (metadata, goals, statuses, deadlines), {appearance} (themes, fonts, colours, density), {general} (data location & connection), and {backups} (autosave, full backup / restore, and workspace reset). AI providers, routing, usage, and writing-AI settings live in the {ai} menu. Nothing here touches your manuscript prose.",
+    "intro": "{settings} is divided into sections — {project} (metadata, goals, statuses, deadlines), {appearance} (themes, fonts, colours, density), {backups} (autosave, full backup / restore, and workspace reset), and {server} (reach JustWrite from a browser, keep it running in the tray, access tokens). AI providers, routing, usage, and writing-AI settings live in the {ai} menu. Nothing here touches your manuscript prose.",
     "introTerms": {
       "ai": "AI"
     },
     "sections": {
       "project": "Project",
       "appearance": "Appearance",
-      "general": "Server",
+      "server": "Server",
       "backups": "Backups",
       "storage": "Storage",
       "logs": "Logs",
@@ -2540,16 +2577,6 @@
         "title": "Export",
         "body": "Produce PDF, DOCX and EPUB — a clean manuscript ready to send."
       }
-    },
-    "aiSetup": {
-      "eyebrow": "Optional",
-      "title": "Set up AI features",
-      "body": "JustWrite's AI runs where you choose — on this PC, private and free, or through an online provider. You can set this up anytime from the AI page.",
-      "quickSetup": "Run Quick Setup",
-      "quickSetupSub": "Local — uses this PC, private & free",
-      "connectProvider": "Connect an online provider",
-      "connectProviderSub": "OpenAI-compatible endpoint",
-      "skip": "Skip for now"
     }
   }
 }

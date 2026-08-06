@@ -134,5 +134,14 @@ if (isTauri) {
         safe(invoke("set_keep_server_running", { keepRunning: !!keepRunning })),
     },
 
+    tray: {
+      // The tray menu's words, fed from vue-i18n (App.vue, at boot + every
+      // locale switch) — Rust holds only pre-boot English defaults. Missing
+      // keys keep those defaults; the labels object is { show, hide,
+      // serverStart, serverStop, serverRestart, openSettings, copyUrl,
+      // openLogs, about, quit }.
+      setLabels: (labels) => safe(invoke("set_tray_labels", { labels })),
+    },
+
   };
 }

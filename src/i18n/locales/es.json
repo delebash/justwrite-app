@@ -102,7 +102,44 @@
       "lockCopies": "Bloquear copias",
       "restoreGenerated": "Restaurar generado",
       "changeData": "Cambiar lo que dice este prompt:"
+    },
+    "aiOffer": {
+      "eyebrow": "Opcional",
+      "title": "Configurar funciones de IA",
+      "body": "La IA de {appName} se ejecuta donde tú elijas: en este PC, de forma privada y gratuita, o a través de un proveedor en línea. Puedes configurar esto en cualquier momento desde la página de IA.",
+      "quickSetup": "Ejecutar configuración rápida",
+      "quickSetupSub": "Local: usa este PC, privado y gratuito",
+      "connectProvider": "Conectar un proveedor en línea",
+      "connectProviderSub": "Endpoint compatible con OpenAI",
+      "skip": "Omitir por ahora"
+    },
+    "quickSetup": {
+      "runButton": "Ejecutar configuración rápida",
+      "bandScope": "Configura solo el proveedor integrado llama.cpp",
+      "applyButton": "Aplicar configuración",
+      "cancelButton": "Cancelar",
+      "closeButton": "Cerrar",
+      "engineBarTitle": "El motor",
+      "engineBarRole": "el programa que ejecuta los modelos",
+      "configuredBand": "La IA local está configurada — {model} es el modelo predeterminado",
+      "rerunButton": "Volver a ejecutar la configuración rápida",
+      "alreadyTitle": "Ya está configurado",
+      "changeModelButton": "Cambiar modelo"
     }
+  },
+  "tray": {
+    "show": "📺 Mostrar ventana",
+    "hide": "🔵 Ocultar ventana",
+    "serverStart": "▶️ Iniciar servidor",
+    "serverStop": "⏹ Detener servidor",
+    "serverRestart": "🔄 Reiniciar servidor",
+    "openSettings": "⚙️ Abrir ajustes",
+    "copyUrl": "📋 Copiar URL del servidor",
+    "openLogs": "📜 Abrir archivo de registro",
+    "about": "ℹ️ Acerca de JustWrite",
+    "quit": "🚪 Salir de JustWrite",
+    "urlCopiedTitle": "URL del servidor copiada",
+    "copyFailedTitle": "Error al copiar"
   },
   "editor": {
     "mentions": {
@@ -1555,14 +1592,14 @@
   "settings": {
     "title": "Ajustes",
     "eyebrow": "Proyecto",
-    "intro": "{settings} se divide en secciones: {project} (metadatos, objetivos, estados, plazos), {appearance} (temas, fuentes, colores, densidad), {general} (ubicación de datos y conexión) y {backups} (autoguardado, copia de seguridad completa / restauración y restablecimiento del espacio de trabajo). Los proveedores de IA, el enrutamiento, el uso y los ajustes de escritura con IA se encuentran en el menú {ai}. Nada de esto afecta a la prosa de tu manuscrito.",
+    "intro": "{settings} se divide en secciones: {project} (metadatos, objetivos, estados, plazos), {appearance} (temas, fuentes, colores, densidad), {backups} (autoguardado, copia de seguridad completa / restauración y restablecimiento del espacio de trabajo) y {server} (accede a JustWrite desde un navegador, mantenlo en ejecución en la bandeja, tokens de acceso). Los proveedores de IA, el enrutamiento, el uso y los ajustes de escritura con IA se encuentran en el menú {ai}. Nada de esto afecta a la prosa de tu manuscrito.",
     "introTerms": {
       "ai": "IA"
     },
     "sections": {
       "project": "Proyecto",
       "appearance": "Apariencia",
-      "general": "Servidor",
+      "server": "Servidor",
       "backups": "Copias de seguridad",
       "storage": "Almacenamiento",
       "logs": "Registros",
@@ -2540,16 +2577,6 @@
         "title": "Exportar",
         "body": "Produce PDF, DOCX y EPUB: un manuscrito limpio listo para enviar."
       }
-    },
-    "aiSetup": {
-      "eyebrow": "Opcional",
-      "title": "Configurar funciones de IA",
-      "body": "La IA de JustWrite se ejecuta donde tú elijas: en este PC, de forma privada y gratuita, o a través de un proveedor en línea. Puedes configurar esto en cualquier momento desde la página de IA.",
-      "quickSetup": "Ejecutar configuración rápida",
-      "quickSetupSub": "Local: usa este PC, privado y gratuito",
-      "connectProvider": "Conectar un proveedor en línea",
-      "connectProviderSub": "Endpoint compatible con OpenAI",
-      "skip": "Omitir por ahora"
     }
   }
 }

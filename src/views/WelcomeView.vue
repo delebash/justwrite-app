@@ -6,9 +6,11 @@
 // to fit a normal window without scrolling.
 //
 // AI setup is NO LONGER on this screen. The old "Run Quick Setup / Connect online"
-// band moved into a one-time AiSetupDialog that opens right after the user's FIRST
-// project is created/opened (services/projectStart.js). Here, AI is just one of the
-// nine feature cards — a description, not a setup step.
+// band became the one-time offer that opens right after the user's FIRST project
+// is created/opened (services/projectStart.js) — since the parity batch that is
+// the kit's AiSetupOffer (lifted FROM this app's dialog, ruling R3), mounted in
+// App.vue. Here, AI is just one of the nine feature cards — a description, not a
+// setup step.
 //
 // First-run detection lives in main.js (a run-once router guard on the initial root
 // navigation, gated on the `welcomeSeen` setting). Both CTAs mark the screen seen

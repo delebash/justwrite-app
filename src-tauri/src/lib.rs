@@ -569,26 +569,55 @@ fn set_keep_server_running(
 // settings/about/copy show the window and ride a renderer listener (a focused
 // webview's clipboard write is reliable; a hidden one's is not); Open log file
 // opens the server's live log directly. Flat like the donor.
-fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
-    let show = MenuItem::with_id(app, "show", "📺 Show window", true, None::<&str>)?;
-    let hide = MenuItem::with_id(app, "hide", "🔵 Hide window", true, None::<&str>)?;
+//
+// LOCALIZED renderer-fed (family parity batch 2026-08-05: a hardcoded-English
+// tray inside an es-localized app): the words below are only the pre-boot
+// defaults — App.vue feeds the active locale's strings through
+// `set_tray_labels` at boot and on every language switch, and the menu is
+// rebuilt in place. Rust holds no locale table; vue-i18n stays the one source.
+fn tray_label<'a>(labels: &'a std::collections::HashMap<String, String>, key: &str, default: &'a str) -> &'a str {
+    labels.get(key).map(String::as_str).filter(|s| !s.trim().is_empty()).unwrap_or(default)
+}
+
+fn build_tray_menu(
+    app: &AppHandle,
+    labels: &std::collections::HashMap<String, String>,
+) -> tauri::Result<Menu<tauri::Wry>> {
+    let l = |key: &str, default: &'static str| tray_label(labels, key, default).to_string();
+    let show = MenuItem::with_id(app, "show", l("show", "📺 Show window"), true, None::<&str>)?;
+    let hide = MenuItem::with_id(app, "hide", l("hide", "🔵 Hide window"), true, None::<&str>)?;
     let sep1 = PredefinedMenuItem::separator(app)?;
-    let server_start = MenuItem::with_id(app, "server_start", "▶️ Start server", true, None::<&str>)?;
-    let server_stop = MenuItem::with_id(app, "server_stop", "⏹ Stop server", true, None::<&str>)?;
-    let server_restart = MenuItem::with_id(app, "server_restart", "🔄 Restart server", true, None::<&str>)?;
+    let server_start = MenuItem::with_id(app, "server_start", l("serverStart", "▶️ Start server"), true, None::<&str>)?;
+    let server_stop = MenuItem::with_id(app, "server_stop", l("serverStop", "⏹ Stop server"), true, None::<&str>)?;
+    let server_restart = MenuItem::with_id(app, "server_restart", l("serverRestart", "🔄 Restart server"), true, None::<&str>)?;
     let sep2 = PredefinedMenuItem::separator(app)?;
-    let settings = MenuItem::with_id(app, "open_settings", "⚙️ Open settings", true, None::<&str>)?;
-    let copy_url = MenuItem::with_id(app, "copy_url", "📋 Copy server URL", true, None::<&str>)?;
-    let open_logs = MenuItem::with_id(app, "open_logs", "📜 Open log file", true, None::<&str>)?;
+    let settings = MenuItem::with_id(app, "open_settings", l("openSettings", "⚙️ Open settings"), true, None::<&str>)?;
+    let copy_url = MenuItem::with_id(app, "copy_url", l("copyUrl", "📋 Copy server URL"), true, None::<&str>)?;
+    let open_logs = MenuItem::with_id(app, "open_logs", l("openLogs", "📜 Open log file"), true, None::<&str>)?;
     let sep3 = PredefinedMenuItem::separator(app)?;
-    let about = MenuItem::with_id(app, "about", "ℹ️ About JustWrite", true, None::<&str>)?;
-    let quit = MenuItem::with_id(app, "quit", "🚪 Quit JustWrite", true, None::<&str>)?;
+    let about = MenuItem::with_id(app, "about", l("about", "ℹ️ About JustWrite"), true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, "quit", l("quit", "🚪 Quit JustWrite"), true, None::<&str>)?;
     Menu::with_items(app, &[
         &show, &hide, &sep1,
         &server_start, &server_stop, &server_restart, &sep2,
         &settings, &copy_url, &open_logs, &sep3,
         &about, &quit,
     ])
+}
+
+// The renderer's locale feed (through the bridge, like every other command).
+// Rebuilds the tray menu with the given words; missing/empty keys keep the
+// English defaults so a partial feed can't blank an entry.
+#[tauri::command]
+fn set_tray_labels(
+    app: AppHandle,
+    labels: std::collections::HashMap<String, String>,
+) -> Result<(), String> {
+    let menu = build_tray_menu(&app, &labels).map_err(|e| e.to_string())?;
+    if let Some(tray) = app.tray_by_id("justwrite-tray") {
+        tray.set_menu(Some(menu)).map_err(|e| e.to_string())?;
+    }
+    Ok(())
 }
 
 fn handle_tray_menu_event(app: &AppHandle, event_id: &str) {
@@ -699,7 +728,9 @@ pub fn run() {
             app.manage(sidecar);
             // The family tray (JV's donor, generic entries): left-click toggles the
             // window; the menu drives the server. The app icon is the tray icon.
-            let menu = build_tray_menu(app.handle())?;
+            // English defaults at setup; the renderer re-feeds the active locale
+            // the moment it boots (set_tray_labels).
+            let menu = build_tray_menu(app.handle(), &std::collections::HashMap::new())?;
             let _tray = TrayIconBuilder::with_id("justwrite-tray")
                 .tooltip("JustWrite")
                 .icon(app.default_window_icon().cloned().expect("app icon"))
@@ -737,6 +768,7 @@ pub fn run() {
             storage_get_root,
             storage_relocate,
             set_keep_server_running,
+            set_tray_labels,
         ])
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {

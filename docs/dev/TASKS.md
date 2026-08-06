@@ -26,33 +26,8 @@
   the after-batch order (UiTable → e2e harness → THE deep exhaustive audit →
   product calls). This repo's slices are marked per-app inside it.
 
-## QC finds 2026-08-05 (user's eyes, added on sight)
+## Found by the 2026-08-05 family audit
 
-- **JW dev is BROKEN — duplicate `get` import in SettingsView.vue [verified in
-  code]:** `import { …, get, put }` at :7 AND `import { get, post, fmtBytes,
-  refreshRunnerModels }` at :25, both from `@delebash/llm-ui` —
-  vue/compiler-sfc raises "Identifier 'get' has already been declared" and the
-  vite dev overlay blocks the whole app (screenshot 2026-08-05). Pre-existing
-  in the file (last commits to it predate today); fix = merge the two imports
-  into one. Note the tooling gap it exposes: `npm run build:vite`/vitest never
-  compile this SFC path the way dev does, so it sat invisible until a dev run.
-
-## Found by the 2026-08-05 family audit — tonight's tray/Server port, verified
-
-- **Auth lockout is reachable here too (found via docgen's 2026-08-05 audit
-  twin):** `requireForLoopback` + a lost token gates even `/v1/health`, so the
-  desktop boot gate dies on ConnectionError forever. Docgen fixed itself
-  (loopback always reaches /v1/health + /v1/server-auth — its route docstring
-  already promised never-lock-out). JW's auth lives in the GENERIC settings
-  rows, so the fix-door shape needs a decision: health-only exemption (boot
-  survives, token fix needs a manual DB edit) vs a dedicated /v1/server-auth
-  route like docgen's. Your call before coding.
-- **i18n gaps, surfaced not regressed:** the tray menu is hardcoded English in
-  Rust inside an es-localized app (donor-shaped; the family full-menu ruling
-  should localize it — and since the 2026-08-05 full-menu port the two tray
-  copy-URL toasts in App.vue ride the same gap), and the labels feed maps no `quickSetup`/`aiOffer`
-  groups — those kit surfaces render English canon in Spanish (same as before
-  the labels store; now mappable and unmapped).
 - **Found by the 2026-08-05 s2 three-app parity audit** (the bundle-extra branch
   pin from the earlier note is FIXED — it pinned the stale July branch
   `claude/admiring-galileo-il3q0o`; now `@main`, matching its own "never goes
@@ -159,15 +134,10 @@
   "loads on first use" chip after a confirmed load next app boot · the 2026-07-11
   0.6B-weights deletion was never root-caused (suspects: row Delete / re-download
   cache-clear / verify purge on an AV race).
-- **Adopt the kit boot contract (recorded deviation, app-structure.md §4/§1):** swap the
-  hand-wired `configureLlmUi`/`configureServerApi`/`configureExternal` calls
-  (`main.js`) for `installLlmUi`, mount `<LlmUiHosts />` instead of individual
-  `<Toast />`+`<AppDialog />` (`App.vue:198-199`), take the AI-tasks nav row from
-  `useAiTasksNav()` (`Sidebar.vue:148` hand-builds it). Also grandfathered: no
-  `lint` script; console script named `justwrite_server.cli` not `<snake>.serve`.
-  Same adoption class (R3's recorded destination): swap the app-local
-  `AiSetupDialog` (`App.vue:17,221`) for the kit `AiSetupOffer` lifted FROM it —
-  the twin-line guard is the interim.
+- **Kit boot contract residue (the adoption itself SHIPPED in the parity batch,
+  2026-08-06 — installLlmUi + LlmUiHosts + useAiTasksNav + AiSetupOffer are all
+  live):** still grandfathered: no `lint` script; console script named
+  `justwrite_server.cli` not `<snake>.serve`.
 - **Rust D2 — delete legacy `images_read`/`images_delete` — YOUR CALL, never made**
   (explained 2026-07-13, rec: delete; two dead fns reading pre-server disk-file
   image records). Extracted from `docs/plans/archive/2026-07-13-rust-minimization-and-choosers.md`
