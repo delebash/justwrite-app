@@ -16,6 +16,17 @@
 > veto, a watch) survives below as its own line. The prior sweep notes, the 2026-07-26
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
+## QC finds 2026-08-05 (user's eyes, added on sight)
+
+- **JW dev is BROKEN — duplicate `get` import in SettingsView.vue [verified in
+  code]:** `import { …, get, put }` at :7 AND `import { get, post, fmtBytes,
+  refreshRunnerModels }` at :25, both from `@delebash/llm-ui` —
+  vue/compiler-sfc raises "Identifier 'get' has already been declared" and the
+  vite dev overlay blocks the whole app (screenshot 2026-08-05). Pre-existing
+  in the file (last commits to it predate today); fix = merge the two imports
+  into one. Note the tooling gap it exposes: `npm run build:vite`/vitest never
+  compile this SFC path the way dev does, so it sat invisible until a dev run.
+
 ## Found by the 2026-08-05 family audit — tonight's tray/Server port, verified
 
 - **Auth lockout is reachable here too (found via docgen's 2026-08-05 audit
