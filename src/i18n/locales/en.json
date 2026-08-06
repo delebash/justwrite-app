@@ -1614,7 +1614,7 @@
       "headlessTitle": "Headless access",
       "headlessHint": "Run the server on its own and open the app in any browser — no desktop install needed. The server hosts the UI at:",
       "copy": "Copy",
-      "copied": "Headless URL copied",
+      "copied": "Server URL copied",
       "authTitle": "API access (bearer tokens)",
       "authHint": "Off by default. Add a token to require an Authorization: Bearer header on every /v1 API call — for when you run the server exposed beyond this machine.",
       "keepRunning": "Keep server running after the app closes",
@@ -1650,9 +1650,6 @@
       "wordGoalHint": "total words for the manuscript",
       "dailyTarget": "Daily target",
       "dailyTargetHint": "words/day — drives the Home streak ring"
-    },
-    "preferences": {
-      "cardTitle": "Preferences"
     },
     "appearance": {
       "presetCardTitle": "Theme preset",
@@ -1910,38 +1907,6 @@
       "inTrashLabel": "In trash",
       "shortcutFocusSearch": "Focus search",
       "shortcutUndo": "Undo (outside the rich editor)"
-    },
-    "providerForm": {
-      "fieldId": "ID",
-      "fieldIdPlaceholder": "e.g. my-ollama",
-      "fieldName": "Name",
-      "fieldNamePlaceholder": "Display name",
-      "fieldBaseUrl": "Base URL",
-      "fieldApiKey": "API key",
-      "fieldApiKeyPlaceholder": "Optional — leave blank for local providers",
-      "fieldApiFormat": "API format",
-      "fieldApiFormatTitle": "Which request format this provider speaks. OpenAI-compatible covers OpenAI, Anthropic, Google, OpenRouter, DeepSeek, LM Studio, llama.cpp, vLLM — anything that exposes /v1/chat/completions. Pick Ollama only for an Ollama daemon — its native /api/chat is the only path that honors think:false.",
-      "runnerOpenai": "OpenAI-compatible (most providers — OpenAI, Anthropic, Google, OpenRouter, DeepSeek, LM Studio, llama.cpp, vLLM…)",
-      "runnerOllama": "Ollama native (only for an Ollama daemon — honors think:false)",
-      "fieldChatModel": "Chat model",
-      "chatModelPlaceholder": "llama3.1:8b, gpt-4o-mini, …",
-      "chevShowFetched": "Show fetched models",
-      "chevFetchFirst": "Fetch models first",
-      "tooltipFetchModels": "Query GET /v1/models on the Base URL above",
-      "tooltipFillBaseUrl": "Fill the Base URL first",
-      "btnLoading": "Loading…",
-      "btnRefresh": "Refresh",
-      "btnFetchModels": "Fetch models",
-      "fieldTier": "Tier",
-      "fieldTierTitle": "Attribution pipeline capability bucket for this model. Auto-picked by name pattern; you can pin a different choice if you know better. Guided = scaffolded examples for sub-12B models. Direct = strict rules for 12B-class non-reasoning. Reasoned = strict rules + implicit reasoning for hybrid models (Qwen3:14B+).",
-      "tierPinned": "pinned",
-      "tierAuto": "auto",
-      "tooltipClearPin": "Revert to the auto-detected tier",
-      "btnClearPin": "Clear pin",
-      "fieldEmbeddingModel": "Embedding model",
-      "fieldEmbeddingModelTitle": "Optional embedding model — fills the RAG (manuscript chat) index. Leave blank if this provider isn't your embedding provider. OpenAI: text-embedding-3-small. Ollama: nomic-embed-text. Anthropic / Google / OpenRouter generally don't expose embedding endpoints — leave blank.",
-      "btnCancel": "Cancel",
-      "btnSave": "Save"
     }
   },
   "chapters": {

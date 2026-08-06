@@ -1614,7 +1614,7 @@
       "headlessTitle": "Acceso sin interfaz (Headless)",
       "headlessHint": "Ejecuta el servidor por separado y abre la aplicación en cualquier navegador; no es necesaria una instalación de escritorio. El servidor aloja la UI en:",
       "copy": "Copiar",
-      "copied": "URL sin cabecera copiada",
+      "copied": "URL del servidor copiada",
       "authTitle": "Acceso a la API (bearer tokens)",
       "authHint": "Desactivado por defecto. Añade un token para requerir un encabezado Authorization: Bearer en cada llamada a la API /v1 — para cuando ejecutes el servidor expuesto fuera de esta máquina.",
       "keepRunning": "Mantener el servidor en ejecución al cerrar la aplicación",
@@ -1650,9 +1650,6 @@
       "wordGoalHint": "total de palabras para el manuscrito",
       "dailyTarget": "Objetivo diario",
       "dailyTargetHint": "palabras/día — impulsa el anillo de racha en Inicio"
-    },
-    "preferences": {
-      "cardTitle": "Preferencias"
     },
     "appearance": {
       "presetCardTitle": "Preajuste de tema",
@@ -1910,38 +1907,6 @@
       "inTrashLabel": "En la papelera",
       "shortcutFocusSearch": "Búsqueda enfocada",
       "shortcutUndo": "Deshacer (fuera del editor enriquecido)"
-    },
-    "providerForm": {
-      "fieldId": "ID",
-      "fieldIdPlaceholder": "ej. mi-ollama",
-      "fieldName": "Nombre",
-      "fieldNamePlaceholder": "Nombre para mostrar",
-      "fieldBaseUrl": "URL base",
-      "fieldApiKey": "Clave API",
-      "fieldApiKeyPlaceholder": "Opcional — deja en blanco para proveedores locales",
-      "fieldApiFormat": "Formato de la API",
-      "fieldApiFormatTitle": "El formato de solicitud que entiende este proveedor. Compatible con OpenAI cubre OpenAI, Anthropic, Google, OpenRouter, DeepSeek, LM Studio, llama.cpp, vLLM — cualquier cosa que exponga /v1/chat/completions. Elige Ollama solo para un demonio Ollama; su /api/chat nativo es la única ruta que respeta think:false.",
-      "runnerOpenai": "Compatible con OpenAI (la mayoría de los proveedores — OpenAI, Anthropic, Google, OpenRouter, DeepSeek, LM Studio, llama.cpp, vLLM…)",
-      "runnerOllama": "Nativo de Ollama (solo para un daemon Ollama; respeta think:false)",
-      "fieldChatModel": "Modelo de chat",
-      "chatModelPlaceholder": "llama3.1:8b, gpt-4o-mini, …",
-      "chevShowFetched": "Mostrar modelos obtenidos",
-      "chevFetchFirst": "Primero obtén los modelos",
-      "tooltipFetchModels": "Consulta GET /v1/models en la URL base anterior",
-      "tooltipFillBaseUrl": "Completa primero la URL base",
-      "btnLoading": "Cargando…",
-      "btnRefresh": "Actualizar",
-      "btnFetchModels": "Obtener modelos",
-      "fieldTier": "Nivel",
-      "fieldTierTitle": "Categoría de capacidad del pipeline de atribución para este modelo. Seleccionada automáticamente por patrón de nombre; puedes fijar una opción diferente si lo sabes mejor. Guided = ejemplos estructurados para modelos inferiores a 12B. Direct = reglas estrictas para modelos de clase 12B sin razonamiento. Reasoned = reglas estrictas + razonamiento implícito para modelos híbridos (Qwen3:14B+).",
-      "tierPinned": "fijado",
-      "tierAuto": "auto",
-      "tooltipClearPin": "Revertir al nivel detectado automáticamente",
-      "btnClearPin": "Desanclar",
-      "fieldEmbeddingModel": "Modelo de embedding",
-      "fieldEmbeddingModelTitle": "Modelo de embedding opcional — completa el índice RAG (chat del manuscrito). Déjalo en blanco si este proveedor no es tu proveedor de embedding. OpenAI: text-embedding-3-small. Ollama: nomic-embed-text. Anthropic / Google / OpenRouter generalmente no exponen endpoints de embedding — déjalo en blanco.",
-      "btnCancel": "Cancelar",
-      "btnSave": "Guardar"
     }
   },
   "chapters": {
