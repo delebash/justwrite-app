@@ -1097,7 +1097,7 @@ export const useProjectStore = defineStore("project", {
     // on the scene is never duplicated; unknown scenes are skipped.
     applyScenePresenceLinks(entries = []) {
       const valid = entries.filter((e) =>
-        e && e.chapterId && e.sceneId && e.id &&
+        e?.chapterId && e.sceneId && e.id &&
         ["characters", "locations", "objects"].includes(e.field));
       if (!valid.length) return 0;
       this._record("applyScenePresenceLinks");

@@ -628,8 +628,11 @@ async function addSceneToChapter(chapterId) {
     }],
   });
   if (!values) return;
-  const t = (values.title || "").trim();
-  const id = project.addScene(chapterId, t ? { title: t } : {});
+  // NOT `const t` — that shadowed the i18n `t` for the whole function scope,
+  // so the t() calls in the dialog above hit the temporal dead zone and adding
+  // a scene CRASHED. Caught by the slice-11 lint gate's first run.
+  const title = (values.title || "").trim();
+  const id = project.addScene(chapterId, title ? { title } : {});
   ui.expanded = { ...ui.expanded, [`chapter:${chapterId}`]: true };
   // Stay in outline mode so the user sees the new scene appear in place.
 }

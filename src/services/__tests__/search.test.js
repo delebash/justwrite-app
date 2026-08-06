@@ -12,9 +12,9 @@
 //
 // stripHtml uses document.createElement → jsdom.
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "fs";
-import { dirname, resolve } from "path";
-import { fileURLToPath } from "url";
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { buildIndex, searchIndex } from "../search.js";
 

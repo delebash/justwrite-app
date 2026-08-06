@@ -16,7 +16,11 @@ import { resolve } from "path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  plugins: [vue()],
+  // transformAssetUrls off IN TESTS ONLY (parity batch slice 11): a template's
+  // `/public-asset.svg` src stays a URL string (vite dev/build behavior) instead
+  // of becoming a file import node can't resolve (the boot smoke hits this on
+  // splash images).
+  plugins: [vue({ template: { transformAssetUrls: false } })],
   resolve: {
     alias: {
       "@renderer": resolve(__dirname, "src"),

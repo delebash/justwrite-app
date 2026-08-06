@@ -30,6 +30,7 @@ import {
   BUTTON_RADIUS_OPTIONS, BUTTON_DENSITY_OPTIONS, BUTTON_LABEL_CASE_OPTIONS,
 } from "../services/appearance.js";
 import { AVAILABLE_LOCALES, setLocale as setI18nLocale } from "../i18n/index.js";
+import { SETTINGS_SECTION_IDS } from "./settingsSections.js";
 import { useI18n } from "vue-i18n";
 
 import { UiTag } from "@delebash/llm-ui";
@@ -57,16 +58,11 @@ function onLocaleChange(code) {
 // Server · Logs · Updates · About, with app sections (Project) leading. The old
 // "general" id was the SERVER section wearing the wrong key — its label already
 // read "Server"; the id and position now match what the tab actually holds.
-const SECTIONS = computed(() => [
-  { id: "project",    label: t("settings.sections.project") },
-  { id: "appearance", label: t("settings.sections.appearance") },
-  { id: "backups",    label: t("settings.sections.backups") },
-  { id: "storage",    label: t("settings.sections.storage") },
-  { id: "server",     label: t("settings.sections.server") },
-  { id: "logs",       label: t("settings.sections.logs") },
-  { id: "updates",    label: t("settings.sections.updates") },
-  { id: "about",      label: t("settings.sections.about") },
-]);
+// The id list lives in settingsSections.js so the canon contract test asserts
+// EXACTLY what renders (slice 11).
+const SECTIONS = computed(() =>
+  SETTINGS_SECTION_IDS.map((id) => ({ id, label: t(`settings.sections.${id}`) })),
+);
 
 // Pre-batch deep links said /settings/general — keep them landing on the row set
 // they meant (the server section).

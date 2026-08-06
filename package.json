@@ -29,7 +29,8 @@
     "bench": "node bench/harness/run.js",
     "bench:gpu": "npm run bench -- --config bench/harness/configs/gpu.json --autostart",
     "bench:cpu": "npm run bench -- --config bench/harness/configs/cpu.json --autostart",
-    "dup": "jscpd"
+    "dup": "jscpd",
+    "lint": "biome check src"
   },
   "dependencies": {
     "@floating-ui/dom": "^1.7.6",

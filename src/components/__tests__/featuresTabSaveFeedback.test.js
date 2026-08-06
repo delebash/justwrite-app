@@ -17,9 +17,9 @@
 // next door (the kit has no harness of its own; JW's is where kit components get
 // pinned). NOTE the asymmetry: JustVoice consumes the same kit and gets no guard here.
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "fs";
-import { dirname, resolve } from "path";
-import { fileURLToPath } from "url";
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // …/justwrite-app/src/components/__tests__ → …/Web, then into the kit —

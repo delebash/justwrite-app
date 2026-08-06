@@ -149,20 +149,25 @@ onMounted(() => {
   }
   // The tray's renderer half (the full-donor ruling 2026-08-04): settings/about
   // navigate, Copy URL writes the clipboard + says so — the donor's versions
-  // were dead emits with no listeners (audit 2026-08-05). Dynamic import so
-  // plain `vite dev` in a browser stays a no-op.
-  import("@tauri-apps/api/event").then(({ listen }) => {
-    listen("tray:open-settings", () => router.push("/settings"));
-    listen("tray:about", () => router.push("/settings/about"));
-    listen("tray:copy-url", async (e) => {
-      try {
-        await navigator.clipboard.writeText(String(e.payload));
-        pushToast({ kind: "success", title: t("tray.urlCopiedTitle"), description: String(e.payload) });
-      } catch (err) {
-        pushToast({ kind: "error", title: t("tray.copyFailedTitle"), description: String(err?.message || err) });
-      }
-    });
-  }).catch(() => {});
+  // were dead emits with no listeners (audit 2026-08-05). Gated on the Tauri
+  // bridge: the dynamic import alone is NOT a browser no-op — the package
+  // bundles fine and each listen() then REJECTS on the missing internals,
+  // three unhandled rejections per browser boot (the slice-11 boot smoke
+  // caught it).
+  if (window.__TAURI_INTERNALS__) {
+    import("@tauri-apps/api/event").then(({ listen }) => {
+      listen("tray:open-settings", () => router.push("/settings"));
+      listen("tray:about", () => router.push("/settings/about"));
+      listen("tray:copy-url", async (e) => {
+        try {
+          await navigator.clipboard.writeText(String(e.payload));
+          pushToast({ kind: "success", title: t("tray.urlCopiedTitle"), description: String(e.payload) });
+        } catch (err) {
+          pushToast({ kind: "error", title: t("tray.copyFailedTitle"), description: String(err?.message || err) });
+        }
+      });
+    }).catch(() => {});
+  }
   // The tray menu's words follow the UI language (parity batch 2026-08-05 —
   // the menu was hardcoded English inside an es-localized app). Fed through
   // the bridge at boot + on every locale switch; a no-op in plain `vite dev`.

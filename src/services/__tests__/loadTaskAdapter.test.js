@@ -9,9 +9,9 @@
 //
 // The kit modules are imported REAL (subpath alias); fetch is stubbed so refresh() populates the
 // singleton from crafted /models + /status + /download/status bodies.
-import { readFileSync } from "fs";
-import { dirname, resolve } from "path";
-import { fileURLToPath } from "url";
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { refresh, taskFor } from "@delebash/llm-ui/composables/useRunnerModels.js";

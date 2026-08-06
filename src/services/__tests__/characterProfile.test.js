@@ -138,7 +138,7 @@ describe("profileFieldDefs / voiceFieldDefs", () => {
     const pd = Object.fromEntries(profileFieldDefs(c, x).map((d) => [d.key, d.current]));
     expect(pd["identity.role"]).toBe("Prism");
     expect(pd["identity.age"]).toBe("34");            // number → String
-    expect(pd["oneLiner"]).toBe("one");
+    expect(pd.oneLiner).toBe("one");
     expect(pd["motivation.fear"]).toBe("oblivion");
     expect(pd["motivation.want"]).toBe("");           // absent → ""
     const vd = Object.fromEntries(voiceFieldDefs(x).map((d) => [d.key, d.current]));

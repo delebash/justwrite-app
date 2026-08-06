@@ -18,7 +18,13 @@ const MB = 1024 * 1024;
 function trackerAt(startMs = 0, opts = {}) {
   let t = startMs;
   const tracker = createRateTracker({ now: () => t, ...opts });
-  return { tracker, tick: (ms, bytes) => ((t += ms), tracker.update(bytes)) };
+  return {
+    tracker,
+    tick: (ms, bytes) => {
+      t += ms;
+      return tracker.update(bytes);
+    },
+  };
 }
 
 describe("createRateTracker", () => {

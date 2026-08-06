@@ -191,7 +191,7 @@ describe("shared channel read-mappers", () => {
     expect(readDownloadStatus({ status: "downloading", downloaded: 9, total: 10 }).terminal).toBeUndefined();
   });
   it("factories wire the model channels through the live getId thunk", () => {
-    let id = "m1";
+    const id = "m1";
     const dl = modelDownloadChannel(() => id);
     const load = modelLoadChannel(() => id);
     expect(dl.statusUrl).toBe("/v1/llm-runner/download/status");

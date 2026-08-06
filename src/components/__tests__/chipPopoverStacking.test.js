@@ -26,9 +26,9 @@
 // LuFeatureChip.save.test.js next door. NOTE the asymmetry: JustVoice consumes the same
 // kit and gets no guard from this.
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "fs";
-import { dirname, resolve } from "path";
-import { fileURLToPath } from "url";
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // …/justwrite-app/src/components/__tests__ → …/Web, then into the kit.

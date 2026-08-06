@@ -23,9 +23,9 @@
 // are real tests of real dismissal, not source greps.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, ref, nextTick } from "vue";
-import { readFileSync, readdirSync } from "fs";
-import { dirname, resolve } from "path";
-import { fileURLToPath } from "url";
+import { readFileSync, readdirSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { usePanelDismiss } from "@delebash/llm-ui";
 

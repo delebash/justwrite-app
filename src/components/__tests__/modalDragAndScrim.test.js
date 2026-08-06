@@ -28,9 +28,9 @@
 // tested here: it reads offsetWidth and window.innerWidth, which jsdom stubs to zero.
 import { afterEach, describe, expect, it } from "vitest";
 import { createApp, h, nextTick } from "vue";
-import { readFileSync } from "fs";
-import { dirname, resolve } from "path";
-import { fileURLToPath } from "url";
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import AppModal from "@delebash/llm-ui/common/components/AppModal.vue";
 
