@@ -136,7 +136,8 @@
   cache-clear / verify purge on an AV race).
 - **Kit boot contract residue (the adoption itself SHIPPED in the parity batch,
   2026-08-06 — installLlmUi + LlmUiHosts + useAiTasksNav + AiSetupOffer are all
-  live):** still grandfathered: no `lint` script; console script named
+  live; the `lint` script landed with slice 11, whose first run caught the
+  ChaptersView add-scene TDZ crash):** still grandfathered: console script named
   `justwrite_server.cli` not `<snake>.serve`.
 - **Rust D2 — delete legacy `images_read`/`images_delete` — YOUR CALL, never made**
   (explained 2026-07-13, rec: delete; two dead fns reading pre-server disk-file

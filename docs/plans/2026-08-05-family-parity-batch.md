@@ -281,3 +281,81 @@ verify-at-build flags: captures-audio root · docgen server-auth mount ·
 JW's three bespoke progress surfaces (HomeShelf/RichEditor/VariationsModal —
 likely domain-legit) · docgen HomeView progress · TTS-provider CRUD lift
 shape · RecommendCard's exact dead call.
+
+## BUILD LOG — deviations + findings (2026-08-06, all twelve slices shipped)
+
+Everything below is what execution ADDED to or AMENDED in the approved text —
+the approved decisions themselves shipped as written. Commits: kit `39ee8e1 →
+51648df` · JW `ff2c597 → b766c53` · JV `3868a17 → 1edd69c` · docgen `42ff9ad
+→ f1c0eb7` (+ each repo's slice-9/10 commits between).
+
+**Resolved premise-vs-code contradictions / entailed calls:**
+- "LLM models = the kit Models tab relabeled" became the OPT-IN `modelsTab`
+  split (slice 1's own siblings-unchanged commitment forced it; JV opts in,
+  JW/docgen strips are untouched).
+- Decision ④'s data move ENTAILED the measured class tunes traveling with
+  the catalog rows: the flagship's 6 measured tunes ride JV's and docgen's
+  seeds (identity-bound to docgen's `-xl` id) so fresh installs keep the
+  measured launch configs.
+- JW's Settings "General" WAS the server section mislabeled (its label
+  already read "Server") — renamed id + position, `/settings/general` alias
+  kept.
+- JV's include-audio toggle had been sending `include_audio` to a route that
+  read `include_generations` — a silently-ignored toggle; the kit options
+  seam (`?exclude=`) replaced the whole wire.
+- SpeechAiSettings' all-projects corrections table collapsed into the Lab
+  renderer's ACTIVE-project card (clear another project's memory by opening
+  it) — "corrections move with the renderer" as approved.
+
+**Mechanisms the batch grew that the plan didn't spell out:**
+- Kit deep-link focus seam: AiModelsArea `initialFeatureAction` →
+  FeatureWorkbench `initialAction` (JV's `#speakerlab` redirect rides it).
+- `record_correction` — THE one correction writer (Studio block-PATCH + the
+  Lab's new reassign-teaches door `POST /v1/projects/{id}/corrections`).
+  The old SpeakerLab had NO reassign; the teach-door is NEW capability. Its
+  test round found the FK truth (character_id → personas): the reassign
+  dropdown offers the ACTIVE project's REAL cast, never the typed lab cast's
+  synthetic ids; the route 404s unknown personas.
+- `/v1/extraction/discover-speakers` — the ad-hoc identify twin of
+  analyze-text (the scene-scoped route can't serve a Lab passage); column
+  pins thread through run_fn.
+- Kit prompt reseed grew an EMPTY-ONLY nav-metadata backfill so the 13
+  approved row texts land on EXISTING data dirs (insert-if-missing alone
+  only reached fresh installs) — verified live on JV's real DB at the end
+  gate.
+- `python-multipart` declared at the kit (data_api restore imported it
+  undeclared — surfaced by docgen's venv).
+
+**Real bugs the batch's own guards caught (all fixed in-batch):**
+- JV 200-cap drift (pre-existing): SessionLocal runs autoflush=False, so
+  record_correction's overflow query never saw the pending insert —
+  db.flush() fixes; test pins it.
+- JW ChaptersView `addSceneToChapter`: `const t` (trimmed title) shadowed
+  the i18n `t` for the whole function — the dialog's t() calls hit the TDZ
+  and adding a scene CRASHED. Caught by JW's brand-new lint gate.
+- JW + docgen tray listeners were NOT the claimed browser no-op: the dynamic
+  import bundles fine and every `listen()` rejects on the missing Tauri
+  internals — three unhandled rejections per browser boot. Now gated on
+  `window.__TAURI_INTERNALS__` (JV's was already guarded). Caught by the
+  new boot smokes.
+- JV AudioKeepAlive assumed `play()` returns a promise (undefined is
+  spec-legal in older engines) — boot died in the mounted hook. Caught by
+  JV's boot smoke.
+- The copy law caught its own slice: the Lab renderer printed `tier_used`
+  raw ("guided instructions") — now the approved human words; the voice
+  wizard's "Tier"/"Auto-tier" row became "Hardware fit"/"Suggested"; one
+  missed pins-era line in its install step rewritten.
+- Doc rot fixed on the way: providers.md still described the dead combined
+  provider form + tier picker (slice-7 miss); JW's `settings.providerForm` +
+  `settings.preferences` i18n groups were dead (removed en+es); JV's
+  `sidebar.ai`/`sidebar.labs` keys were missing (warned every boot).
+
+**End gates (2026-08-06):** pytest — runner 766 (the lspci case is the known
+Windows env failure) · JV 389 · JW 122 · docgen 148; vitest — JW 571 · JV 3 ·
+docgen 3 (each incl. the new canon + boot-smoke guards); vite build + biome
+clean ×3 (JW's lint script is NEW — first run caught the ChaptersView crash);
+cargo check ×3 clean (docgen's via the release build); REAL-server boots on
+real data dirs ×3 green (JW 37 prompt rows · JV 13 rows serving the approved
+labels + 3 tiers · docgen health/logs/disk); docgen real-webview screenshots
+smoke run at the gate. QC note stands: the once-ever AI setup offer WILL pop
+once on the real JV install at first project-open — that's it working.
