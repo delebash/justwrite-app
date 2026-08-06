@@ -350,6 +350,25 @@ the approved decisions themselves shipped as written. Commits: kit `39ee8e1 →
   `settings.preferences` i18n groups were dead (removed en+es); JV's
   `sidebar.ai`/`sidebar.labs` keys were missing (warned every boot).
 
+**QC WALK CORRECTION #1 (2026-08-06, user's eyes — fixed same day, JV
+`d4f6082`):** the §7 seven-tab strip was WRONG and the user rejected it live
+("makes no sense"): it split along online-vs-local — an implementation axis —
+instead of domains; the LLM models tab DUPLICATED the catalog already inside
+the kit providers pane (the modelsTab opt-in adds a second mount, it never
+split anything); the TTS providers tab listed nothing while its self-hosted
+rows teased read-only under Speech engines. The user's ruling, approved
+verbatim ("yes 1-5 is correct"): 1. LLM providers stays exactly as it is ·
+2. LLM models tab deleted · 3. Speech engines = the one speech surface with
+the normal Local/Online pair (Local = installable engines + self-hosted
+servers, Online = the cloud TTS provider list/add/edit) · 4. TTS providers
+tab deleted into it · 5. strip = LLM providers · Speech engines · Routing by
+feature · Usage · AI engine console. Built as SpeechProvidersPanel (scoped
+cloud/selfhosted, one CRUD) inside SpeechEnginesTab's folder-tab pair (the
+donor v7 mock's own shape). The kit `modelsTab` seam stays but is dormant —
+no consumer. Verified same walk: the "Where it runs" provider form the user
+flagged is the SHARED kit form from 2026-06-21 (`806d353`), untouched by the
+batch — JV met it for the first time, it is not batch-new.
+
 **End gates (2026-08-06):** pytest — runner 766 (the lspci case is the known
 Windows env failure) · JV 389 · JW 122 · docgen 148; vitest — JW 571 · JV 3 ·
 docgen 3 (each incl. the new canon + boot-smoke guards); vite build + biome
