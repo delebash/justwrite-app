@@ -81,7 +81,7 @@
       "providers": "Providers & models",
       "routing": "Routing by feature",
       "usage": "Usage",
-      "console": "Server console"
+      "console": "AI engine console"
     },
     "downloadBar": {
       "cancel": "Cancel",

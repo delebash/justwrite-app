@@ -81,7 +81,7 @@
       "providers": "Proveedores y modelos",
       "routing": "Enrutamiento por función",
       "usage": "Uso",
-      "console": "Consola del servidor"
+      "console": "Consola del motor de IA"
     },
     "downloadBar": {
       "cancel": "Cancelar",
