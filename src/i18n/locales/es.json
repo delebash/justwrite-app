@@ -79,6 +79,7 @@
   "family": {
     "aiTabs": {
       "providers": "Proveedores y modelos",
+      "models": "Modelos",
       "routing": "Enrutamiento por función",
       "usage": "Uso",
       "console": "Consola del motor de IA"

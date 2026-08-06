@@ -179,6 +179,10 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         DEFAULT_MODEL_CATALOG_EXTRA,
         DEFAULT_PRESET_ID,
         DEFAULT_TEST_SAMPLES,
+        JW_CLASS_TUNE_IDENTITY,
+        JW_CLASS_TUNES,
+        JW_CURATED_CATALOG,
+        JW_EMBED_TEMPLATES,
     )
 
     install_llm(
@@ -194,10 +198,16 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         engine_presets=DEFAULT_ENGINE_PRESETS,
         feature_presets=DEFAULT_FEATURE_PRESETS,
         default_preset_id=DEFAULT_PRESET_ID,
-        # JW's tuned Gemma daily drivers (2026-07-06): two catalog rows over one
-        # GGUF + this box's measured starting tunes. Insert-if-missing — a dev-DB
-        # reset re-creates them; user edits / Quick-tune saves never clobbered.
-        model_catalog_extra=DEFAULT_MODEL_CATALOG_EXTRA,
+        # JW's WHOLE model catalog (decision ④, 2026-08-05): the daily-driver 26B
+        # row + the curated writing ladder that used to be the kit's shared
+        # DEFAULT_CATALOG — a model ladder is app data, and this is the writing
+        # app's. Ids unchanged, so existing DBs keep everything (insert-if-missing).
+        model_catalog_extra=[*DEFAULT_MODEL_CATALOG_EXTRA, *JW_CURATED_CATALOG],
+        # The measured class-tune library + what each tune was measured on + the
+        # embed task templates — moved from the kit with the rows they describe.
+        class_tunes_seed=JW_CLASS_TUNES,
+        class_tune_identity=JW_CLASS_TUNE_IDENTITY,
+        embed_templates=JW_EMBED_TEMPLATES,
         # §7.3 Lab test samples — synthesized per-ACTION rows for the Lab's Sample
         # button; fill-if-empty, so edited rows survive reseeds.
         test_samples=DEFAULT_TEST_SAMPLES,

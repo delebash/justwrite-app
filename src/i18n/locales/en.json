@@ -79,6 +79,7 @@
   "family": {
     "aiTabs": {
       "providers": "Providers & models",
+      "models": "Models",
       "routing": "Routing by feature",
       "usage": "Usage",
       "console": "AI engine console"

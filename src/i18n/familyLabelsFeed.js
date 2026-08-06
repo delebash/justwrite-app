@@ -20,6 +20,7 @@ export function buildFamilyLabels() {
     },
     aiTabs: {
       providers: t("family.aiTabs.providers"),
+      models: t("family.aiTabs.models"),
       routing: t("family.aiTabs.routing"),
       usage: t("family.aiTabs.usage"),
       console: t("family.aiTabs.console"),

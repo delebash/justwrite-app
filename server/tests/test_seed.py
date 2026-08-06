@@ -228,3 +228,52 @@ def test_seed_presets_refs_and_samples(tmp_path):
     expected = sum(len(r["actions"]) for r in SP.DEFAULT_TEST_SAMPLES)
     assert len(samples) == expected
     assert {r["action"] for r in samples} == set(refs)
+
+
+def test_curated_catalog_and_measured_knowledge_are_jw_data_now(tmp_path):
+    """Decision ④ (family parity batch 2026-08-05): the writing-curated catalog +
+    its measured class tunes + the embed task templates moved from the kit's
+    shared seed into JW's own — ids unchanged, so existing DBs keep everything.
+    This guards the moved data end-to-end: it must SERVE through the app, and the
+    embed ladder's rank facts (which the kit's test_embed_templates used to pin)
+    hold here now."""
+    from justwrite_server import seed_presets as SP
+    from llm_runner.llm import db as _db, stores
+
+    c = _c(tmp_path)
+    seed_workspace()
+
+    # The whole catalog = the daily driver + the moved curated ladder, exact ids.
+    rows = {r.id: r for r in stores.get_model_catalog_store().list()}
+    expect = {d["id"] for d in SP.DEFAULT_MODEL_CATALOG_EXTRA} | {d["id"] for d in SP.JW_CURATED_CATALOG}
+    assert set(rows) == expect and len(SP.JW_CURATED_CATALOG) == 10
+
+    # The embed ladder facts (moved with the rows): proven 8B outranks the
+    # untested KaLM contender ON PURPOSE; the 4B is the always-eligible CPU band.
+    ranks = {d["id"]: d["quality_rank"] for d in SP.JW_CURATED_CATALOG if d.get("embedding")}
+    assert ranks["qwen3-embedding-8b"] < ranks["kalm-embedding-gemma3-12b"] < ranks["qwen3-embedding-4b"]
+    assert rows["qwen3-embedding-4b"].tier == "cpu"
+
+    # The instruct-side embed templates seed for all three rows.
+    st = stores.get_embed_template_store()
+    for tpl in SP.JW_EMBED_TEMPLATES:
+        row = st.get(tpl["id"])
+        assert row is not None and row.queryTemplate.startswith("Instruct: ")
+
+    # The 13 measured class-tune rows (incl. the author's 8 GB/32 GB n_cpu_moe 21)
+    # seed under their measured ids.
+    s = database.SessionLocal()
+    try:
+        pairs = {(r.model_id, r.class_key) for r in s.query(_db.ClassTune).all()}
+        got = {r.flag_name: r.flag_value for r in s.query(_db.ClassTune).filter(
+            _db.ClassTune.model_id == "gemma-4-26b-a4b-qat",
+            _db.ClassTune.class_key == "dgpu-vram8|ram32").all()}
+    finally:
+        s.close()
+    assert {(t["model_id"], t["class_key"]) for t in SP.JW_CLASS_TUNES} <= pairs
+    assert len(SP.JW_CLASS_TUNES) == 13
+    assert got.get("n_cpu_moe") == "21" and got.get("ctx_len") == "32768"
+
+    # And the moved rows actually SERVE — the catalog endpoint carries the ladder.
+    served = {r["id"] for r in c.get("/v1/ai/model-catalog").json()["rows"]}
+    assert expect <= served
