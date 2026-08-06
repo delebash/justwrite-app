@@ -16,6 +16,16 @@
 > veto, a watch) survives below as its own line. The prior sweep notes, the 2026-07-26
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
+
+## THE FAMILY PARITY BATCH — approved 2026-08-05, THE next build
+- **The master plan (read WHOLE before coding any slice):**
+  `../justwrite-app/docs/plans/2026-08-05-family-parity-batch.md` — all
+  decisions verbatim (①-⑤, the no-escape-valve commitments, the governing
+  mechanism-vs-data principle), the 12-slice checklist, the Speaker-Lab
+  12-point acceptance inventory, the approved human copy for the 13 rows,
+  the after-batch order (UiTable → e2e harness → THE deep exhaustive audit →
+  product calls). This repo's slices are marked per-app inside it.
+
 ## QC finds 2026-08-05 (user's eyes, added on sight)
 
 - **JW dev is BROKEN — duplicate `get` import in SettingsView.vue [verified in
