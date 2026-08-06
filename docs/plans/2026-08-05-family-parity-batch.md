@@ -356,6 +356,10 @@ docgen 3 (each incl. the new canon + boot-smoke guards); vite build + biome
 clean ×3 (JW's lint script is NEW — first run caught the ChaptersView crash);
 cargo check ×3 clean (docgen's via the release build); REAL-server boots on
 real data dirs ×3 green (JW 37 prompt rows · JV 13 rows serving the approved
-labels + 3 tiers · docgen health/logs/disk); docgen real-webview screenshots
-smoke run at the gate. QC note stands: the once-ever AI setup offer WILL pop
+labels + 3 tiers · docgen health/logs/disk); docgen real-webview screenshots:
+the no-server run captured the ConnectionError screen on every surface (the
+boot gate rendering correctly in production — not an acceptance pass), the
+with-server rerun hung at the tauri-driver/session layer and the USER took
+the visual check manually (the ~15-min driver-layer stall is an open harness
+nit in docgen's TASKS). QC note stands: the once-ever AI setup offer WILL pop
 once on the real JV install at first project-open — that's it working.
