@@ -74,7 +74,7 @@ The choice is yours, and you can have several at once. Common options:
 
 - **OpenAI** (paid, cloud) — writing. Excellent quality. Add your API key in Settings.
 - **Anthropic Claude** (paid, cloud) — writing only. Excellent quality, particularly for critique and longer prose work. Add your `sk-ant-…` key.
-- **Ollama / LM Studio / llama.cpp** (free, local) — writing only. Runs on your own machine. No internet required, no data leaves your computer, no API bills. The **Quick Setup** wizard on the AI Settings page detects your GPU, downloads the right models for your card, and applies a sensible routing preset in one click — the easiest path to a working local-LLM setup.
+- **The built-in local engine** (free, private) — writing only. Runs entirely on your machine: the **Quick Setup** wizard on the AI page checks your graphics card, downloads the best catalog model that fits it, and sets it as the model every AI feature uses — one click, nothing else to install. Prefer running your own server? **Ollama, LM Studio and any OpenAI-compatible endpoint** are supported as providers too.
 
 To add a provider:
 

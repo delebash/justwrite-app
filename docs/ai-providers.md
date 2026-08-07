@@ -53,37 +53,15 @@ The connection test shows green (Online), yellow (Checking), or red (Offline). O
 
 ---
 
-## Quick setup for local LLM
+## Quick setup for local AI
 
 > *"I want to run AI locally, but every guide tells me to pick a model, figure out the right quantization, install it, then configure four different things in Settings. Just tell me what to do."*
 
-The **Quick setup** wizard (on the **AI** page, Providers & models tab) does the picking and configuring for you. It detects your GPU, picks the right models for your card, downloads them through Ollama, creates the provider entries, and applies a routing preset that sends each feature to the right model. One click; ~5 minutes of model downloads on a typical card; nothing else to configure.
+The **Quick Setup** wizard (on the **AI** page, Providers & models tab) does the picking and configuring for you — with the **built-in local engine**, not an external server. It checks your graphics card and memory, offers the best model from the **Model catalog** that actually fits your machine, and one click then installs the bundled llama.cpp engine if it's missing, downloads the model, loads it, and makes it your **default** — the model every AI feature runs on until you route a feature elsewhere under **Routing by feature**. Re-running it later (new GPU, new model) is safe: it changes the default; a preset you pointed somewhere yourself is never touched.
 
-**What it does, in order:**
+There is nothing to install first — no Ollama, no LM Studio, no terminal. Both remain fully supported as *providers* (see the walkthroughs below) if you prefer running your own server; the wizard simply doesn't need them, and it never touches external providers.
 
-1. **Detects your GPU and VRAM** (via `nvidia-smi` on NVIDIA cards, `system_profiler` on macOS, `rocm-smi` on AMD, with a manual picker fallback when detection fails).
-2. **Probes your local Ollama server.** If Ollama isn't running, the wizard shows the install link and a Recheck button — it does not try to install Ollama itself (too many OS-specific failure modes).
-3. **Picks a hardware preset** — one of CPU / 8 GB / 12 GB / 16 GB / 24 GB / 32 GB. You can override the detected tier from a dropdown.
-4. **Lets you (optionally) pick a cloud provider** for heavy analysis features (Critique, Plot-hole audit, etc.). If you don't have one configured, those features stay local on the heavy model.
-5. **Shows what it's about to download AND what the routing will look like** — typically 1–3 models, ~5–15 GB depending on tier — plus a Routing block that lists the heavy model, the fast model (when applicable), and the cloud target (when picked) with the feature counts that will land on each. You see what the wizard will *do* to your setup before clicking Pull.
-6. **Pulls the models** sequentially via Ollama's native API, with per-model progress bars and cancel. Already-installed models are skipped.
-7. **Applies the routing preset.** Creates (or updates) up to two Ollama providers — *"Ollama · qwen3:14b"* and *"Ollama · qwen3:8b (fast)"* on the 8 GB tier, for example — sets your default LLM and embedding provider, and pins each feature to the right model per the recipe documented in *Recommended feature routing by card* below. The wizard tags each provider with its tier so a future re-detection can spot a mismatch.
-
-**Detect-vs-saved mismatch nudge.** If you re-open the wizard and your auto-detected card now matches a different tier than the one your current setup was applied for (typically because you upgraded a GPU), a one-line hint appears in the Hardware section with a "Switch to <new tier>" link. Click it to jump to the new tier in the dropdown; re-run the wizard to overwrite the existing providers and routing for the new hardware.
-
-**What you'll get on an 8 GB card** (the canonical example):
-
-- Default LLM → `qwen3:14b` (prose quality)
-- Brainstorm, Resume briefing, Session recap, Entity sweep, Sensory research, Unstuck moves → `qwen3:8b` (snappier responses where speed matters more than depth)
-- Writer actions, Character chat → inherit the 14B default (reasoning-class work)
-- Critique, Plot-hole audit, Reverse outline, Multi-reader, Character audit, Foreshadowing, Reader knowledge, Voice drift, Beat sheet, Marketing pack, Relationship arc → cloud (if a cloud provider was picked) or default 14B (if not)
-- Embedding → `nomic-embed-text` on the same Ollama endpoint
-
-**Re-running is safe.** Pick a different tier and rerun — the wizard upserts the same provider ids, so it overwrites cleanly without leaving stale entries behind. You can also fine-tune any of them afterward under **Routing by feature** without losing the rest of the preset.
-
-**The presets are editable.** Local LLMs ship faster than this app does, so the per-tier model picks live in a **Hardware presets** card right above the providers list — accordion of every tier with inline editing for the default chat model, fast chat model (when applicable), embedding model, the list of models to download, and the estimated download size. Factory tiers can be **Reset** to their built-in defaults; you can **Add custom tier** for a setup the built-in tiers don't cover (e.g. *"My RTX 4090 setup"* with a model line you specifically prefer); custom tiers can be **Deleted**. Quick Setup reads from this card, so anything you change here is what the wizard offers next time. When a new model lands — bigger Qwen, a fresh Mistral, whatever — you point a preset at it without waiting for an app release.
-
-**When Quick setup isn't the right path.** If you've already curated your own model lineup and feature routing, or you need a model that isn't in Ollama's catalogue (TabbyAPI, llama.cpp's `llama-server`, an LM Studio model), skip the wizard and configure the provider manually — see the *Provider walkthroughs* below.
+The full story of the built-in engine — the Model catalog, downloads, adding your own models, engine switches and hardware tuning — lives in **[Models](models.md)**.
 
 ---
 
@@ -105,7 +83,7 @@ You're now wired up for every JustWrite AI feature.
 
 ### Anthropic Claude (cloud)
 
-Excellent for writing tasks — particularly critique and longer prose work — through Anthropic's OpenAI-compatible endpoint. LLM only.
+Excellent for writing tasks — particularly critique and longer prose work. JustWrite speaks Anthropic's own native API. LLM only.
 
 1. Sign up at **anthropic.com** and get an API key.
 2. **Add provider → Preset: Claude (Anthropic)**.
@@ -160,8 +138,8 @@ Runs entire LLMs on your own computer. No API key, no monthly bill, no data leav
 1. Install Ollama from **ollama.com** (pick v0.24.x — see warning above).
 2. Open a terminal and pull a model: `ollama pull llama3.1` (or `qwen2.5`, `mistral`, etc.). For embeddings: `ollama pull mxbai-embed-large`.
 3. Make sure the Ollama service is running.
-4. In JustWrite, **Add provider → Preset: OpenAI-compatible (local)**.
-5. Base URL: `http://localhost:11434/v1` (Ollama's default).
+4. In JustWrite, **Add provider → Preset: Ollama (native)**.
+5. Base URL: `http://localhost:11434` (Ollama's default — no `/v1`; JustWrite speaks Ollama's native API).
 6. API key: leave blank.
 7. Click **Fetch models** — your pulled models appear.
 8. Pick a chat model and an embedding model.
@@ -215,8 +193,8 @@ Older guidance (including earlier versions of this page) told 8 GB-card users th
 
 | Your hardware | VRAM | Primary pick | Notes |
 |---|---|---|---|
-| RTX 2060 / 3050 / 4050, RX 6600 | 6–8 GB | `qwen3:14b` (Q4_K_M) with partial CPU offload | 8B fits cleanly but underdelivers on prose. 14B (~9 GB) needs CPU offload here, runs ~6–12 tok/s — slower but the prose quality justifies it. Keep 8B around as a pin for Brainstorm only. |
-| RTX 2070 / 3060Ti / 3070 / 4060 | 8 GB | `qwen3:14b` (Q4_K_M) with partial CPU offload | Same logic. 14B at ~10–20 tok/s with offload is the honest default; pin Brainstorm and Resume briefing to 8B if you want snappy responses there. See 8 GB notes below. |
+| RTX 2060 / 3050 / 4050, RX 6600 | 6–8 GB | `qwen3:14b` (Q4_K_M) with partial CPU offload | 8B fits cleanly but underdelivers on prose. 14B (~9 GB) needs CPU offload here, runs ~6–12 tok/s — slower but the prose quality justifies it. Keep 8B around for Brainstorm's preset only. |
+| RTX 2070 / 3060Ti / 3070 / 4060 | 8 GB | `qwen3:14b` (Q4_K_M) with partial CPU offload | Same logic. 14B at ~10–20 tok/s with offload is the honest default; route Brainstorm and Resume briefing to 8B if you want snappy responses there (see *Routing heavier features* below). |
 | RTX 3060 12 GB / 4070 / 5070, RX 6700XT / 7700XT | 12 GB | `qwen3:14b` (Q4_K_M) ~9 GB full-GPU | 14B fits cleanly on GPU here — no offload, ~40–60 tok/s. The 24B at Q3 is a stretch option for tough analysis. |
 | RTX 4060Ti 16GB / 5060Ti 16GB / 4080, RX 7800XT | 16 GB | `qwen3:14b` (Q6_K) or `mistral-small3:24b` (Q4_K_M) ~14 GB | Either better quality on a 14B or a meaningfully stronger 24B at standard quant. |
 | RTX 3090 / 4090 / 7900XTX | 24 GB | `qwen3:32b` (Q5_K_M) ~22 GB, or `gpt-oss:20b` (Q6_K) | At this tier you're approaching cloud-class quality for prose work. |
@@ -239,73 +217,20 @@ Embedding models are tiny (sub-1 GB) and run alongside your chat model without m
 
 For an 8 GB GPU running an 8B chat model: the built-in `qwen3-embedding-0.6b` (or `nomic-embed-text` if you want the smallest) is a safe choice. For 12 GB+: any of them.
 
-### Recommended feature routing by card
+### Routing heavier features to a stronger model
 
-The hardware table above tells you which **model** to use. This section tells you which **features** to pin to which model so the heavier picks only run where they're needed.
+The hardware table above tells you which **model** your card can run. This section is about which **features** deserve a stronger (or cloud) model than your local default.
 
-> **Shortcut:** the **Quick setup** wizard (see *Quick setup for local LLM* above) applies the routing recipe below for your detected card in one click — providers, defaults, pins and all. The rest of this section is the reference behind what it does, useful if you want to understand or hand-tune the routing.
+All of it happens under **Routing by feature** on the AI page: every feature points at a **preset** (provider + model + settings), so "routing a feature elsewhere" means pointing its preset at the other provider and model — or tuning it its own preset in the feature's Lab and clicking **Use in production**. (Quick Setup only sets your local default model; it never routes individual features.)
 
-All of these are configured under **Routing by feature** on the AI page.
+The pattern that works, whatever your card:
 
-**Two setup steps before you start pinning** (Quick setup does both for you):
-1. Add **two** Ollama / LM Studio providers pointing at the same server but with different default chat models — e.g. *"Ollama (8B fast)"* with `qwen3:8b` and *"Ollama (14B prose)"* with `qwen3:14b`. JustWrite treats each as a separate provider you can pin features to.
-2. Add a cloud provider (Claude, DeepSeek, or Gemini) for the heavy analysis features.
+- **Keep short, structured tasks on your local default** — Brainstorm, Resume briefing, Session recap. They're quick calls where a local model is instant and free.
+- **Prose generation (Writer actions) runs on the best local model you can fit** — see the table above. On an 8 GB card that's a 14B with partial CPU offload: slower tokens, meaningfully better prose (Qwen3's own numbers put 14B ~30% above 8B on WritingBench).
+- **Give the heavy analysis features a cloud preset when quality matters** — Critique, Plot-hole audit, Reverse outline, Multi-reader panel, Character audit, Foreshadowing scan. They read long context and reward strong reasoning; on cards up to ~16 GB, cloud is meaningfully better and full-chapter runs on an offloaded local model get painfully slow. From ~24 GB up (a 32B-class local model), running them locally becomes a genuine option and cloud turns into a taste call — Claude's editorial tone for critique, say.
+- **CPU-only machines**: keep the short tasks local and route everything prose- or analysis-heavy to cloud — CPU inference is too slow to be enjoyable there.
 
-#### 8 GB card (RTX 2070 / 3060Ti / 3070 / 4060)
-
-**Default LLM** → `qwen3:14b` (partial CPU offload, ~10–20 tok/s).
-
-| Feature | Pin to | Why |
-|---|---|---|
-| Brainstorm | `qwen3:8b` | Speed matters more than depth for ideation. |
-| Resume briefing | `qwen3:8b` | Short structured output. |
-| Session recap | `qwen3:8b` | Short structured output. |
-| Writer actions | inherit (14B) | Prose generation — accept the slower speed for quality. |
-| Critique | cloud (Claude / DeepSeek) | Long context, structural reasoning. |
-| Plot-hole audit | cloud | Cross-chapter reasoning. |
-| Reverse outline | cloud | Reads the whole manuscript. |
-| Multi-reader panel | cloud | Four personas in parallel — cloud quality compounds. |
-| Character audit | cloud | Cross-chapter reasoning. |
-| Foreshadowing scan | cloud | Same. |
-
-Embeddings: `nomic-embed-text` loaded alongside the chat model (~500 MB; fits with the 14B).
-
-#### 12 GB card (RTX 3060 12GB / 4070 / 5070)
-
-**Default LLM** → `qwen3:14b` (full GPU, ~40–60 tok/s — no offload).
-
-Same pinning recipe as 8 GB above, but Writer actions run much faster locally. Critique and plot-hole audit are still meaningfully better on cloud at this tier — that's a quality call, not a hardware one.
-
-#### 16 GB card (RTX 4060Ti 16GB / 5060Ti 16GB / 4080)
-
-**Default LLM** → `qwen3:14b` Q6_K, or `mistral-small3:24b` Q4_K_M.
-
-Keep Brainstorm / Resume / Recap pinned to a smaller model for snappy responses. Critique and reverse outline can run locally on the 24B; pin to cloud only if you want top-tier reasoning quality.
-
-#### 24 GB card (RTX 3090 / 4090 / 7900XTX)
-
-**Default LLM** → `qwen3:32b` Q5_K_M, or `gpt-oss:20b` Q6_K.
-
-Almost everything runs locally at this tier. Cloud routing is optional — useful when you want a specific model's voice for critique (Claude's editorial tone, say) but no longer a quality necessity.
-
-#### 32 GB card (RTX 5090)
-
-**Default LLM** → `llama3.3:70b` Q4_K_M, or `qwen3:32b` Q6_K.
-
-Cloud routing becomes a personal preference rather than a quality requirement.
-
-#### CPU only
-
-**Default LLM** → `qwen3:8b` Q4_K_M. Pin **Writer actions, Critique, multi-reader, audits** → cloud. Local CPU inference is too slow to be enjoyable for prose generation; spending a few cents on cloud is the right call. Keep Brainstorm / Resume / Recap local — short calls the CPU can handle.
-
-### Notes for an 8 GB card
-
-If you have an RTX 2070 / 3060Ti / 3070 (8 GB):
-
-- The **default LLM** should be `qwen3:14b` at Q4_K_M with partial CPU offload. Slower than 8B (~10–20 tok/s depending on your CPU and RAM speed) but the prose quality is meaningfully better — Qwen3's own benchmark numbers put 14B ~30% above 8B on WritingBench.
-- **Pin Brainstorm, Resume briefing, and Session recap to `qwen3:8b`** for snappier responses where speed matters more than depth.
-- **Pin Critique, Plot-hole audit, Reverse outline, Multi-reader panel, Character audit, and Foreshadowing scan to a cloud provider** (Claude, DeepSeek, Gemini). Local 14B with offload technically works but the latency on full-chapter analysis becomes painful, and cloud reasoning quality is meaningfully better.
-- **Embeddings ("Ask the book"):** keep `nomic-embed-text` loaded. ~500 MB alongside the chat model, fits comfortably with the 14B.
+A worked example of exactly this setup — features, presets, and why — is in *Routing features to specific providers* below.
 
 ---
 
@@ -377,7 +302,6 @@ A **Reset ledger** button clears the log so you can start a fresh accounting per
 
 When editing a provider, you can:
 
-- **Set a Tier** (Guided / Direct / Reasoned) — affects how prompts are framed for the model. Auto-detected by model name; can be pinned manually. Most users never need to touch this.
 - **Add a custom system prompt** — overrides JustWrite's default system message for that provider. Advanced.
 - **Adjust temperature and other generation parameters** through the engine parameters block.
 
@@ -452,7 +376,7 @@ Anything in JustWrite that calls an AI — critique, brainstorm, plot-hole scan,
 
 - For cloud providers: usually an invalid API key, or a key with insufficient permissions. Verify on the provider's dashboard.
 - For local providers: the server isn't running. Start it from the terminal.
-- Check the URL doesn't have a typo. The Ollama default is `http://localhost:11434/v1` — note the `/v1` at the end; without it, JustWrite can't talk to the server.
+- Check the URL doesn't have a typo. For the **Ollama (native)** preset the default is `http://localhost:11434` — no `/v1`. For a generic **OpenAI-compatible** provider (LM Studio, llama.cpp's own server, vLLM) the URL usually needs the `/v1` suffix — LM Studio's default is `http://localhost:1234/v1`.
 
 **Local model is very slow.**
 

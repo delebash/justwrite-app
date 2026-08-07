@@ -33,11 +33,11 @@ def test_partial_patch_keeps_other_sections(tmp_path):
 
 def test_section_value_is_replaced_wholesale(tmp_path):
     c = _c(tmp_path)
-    # A section is the unit of replacement (no deep merge), so a key dropped from
-    # the new value is actually gone — e.g. clearing a model-tier override.
-    c.patch("/v1/settings", json={"ai": {"modelTiers": {"m1": "fast", "m2": "guided"}}})
-    c.patch("/v1/settings", json={"ai": {"modelTiers": {"m1": "fast"}}})
-    assert c.get("/v1/settings").json()["ai"] == {"modelTiers": {"m1": "fast"}}
+    # A section is the unit of replacement (no deep merge), so a key dropped
+    # from the new value is actually gone.
+    c.patch("/v1/settings", json={"ai": {"flags": {"m1": "fast", "m2": "slow"}}})
+    c.patch("/v1/settings", json={"ai": {"flags": {"m1": "fast"}}})
+    assert c.get("/v1/settings").json()["ai"] == {"flags": {"m1": "fast"}}
 
 
 def test_values_are_real_json_not_strings(tmp_path):

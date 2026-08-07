@@ -223,33 +223,17 @@ with high confidence. This is an active design exploration — when a task
 references quote attribution, speaker detection, dialogue tags, or the
 Speaker Lab, prototype alternatives and compare, not "fix one line."
 
-### Three-tier system
+### The tier system is GONE (2026-08-07)
 
-Replaces the older 8B/14B+ profile naming with a capability-axis tier model
-that scales from laptops to RTX 5090 + 70B reasoning models.
-
-**Tier registry** (`services/modelMeta.js`):
-
-| Tier | Prompt body | think | floor | Targets |
-|---|---|---|---|---|
-| **Guided** | `INLINE_SPEAKER_SYSTEM_GUIDED` (strict rules + 4 worked examples) | false | 0.7 | Sub-12B; safe fallback for unknown models |
-| **Direct** | `INLINE_SPEAKER_SYSTEM_DIRECT` (strict rules only) | false | 0.5 | 12B-class non-reasoning (Mistral-Small 24B, Phi-4-14B, Llama 70B) |
-| **Reasoned** | `INLINE_SPEAKER_SYSTEM_DIRECT` | true | 0.5 | 14B+ hybrid (Qwen3:14B+) + reasoning-first models |
-
-Direct and Reasoned share prompt body — only `think` differs.
-
-**Resolution order:**
-
-1. **Heuristic** — `getModelTier(modelId)` in `services/modelMeta.js`.
-   Reasoning-first families (qwen3.5\*, DeepSeek-R1, QwQ, GPT-OSS,
-   magistral, glm-z\*, \*-thinking) → reasoned. Qwen3 14B/30B/32B/72B
-   hybrids → reasoned. Mistral-small/large, phi-4, Llama 3.x 70B/405B,
-   gemma3:12B/27B → direct. Sub-12B/unknown → guided.
-2. **User pin (override)** — `ai.modelTiers[modelId]`. Set via
-   `ai.setModelTier(id, tier)`; cleared via `clearModelTier(id)`.
-   Persisted.
-3. **Resolution** — `ai.resolveTier(modelId)` returns the full tier object.
-   `ai.tierSource(modelId)` returns `"pinned"` or `"auto"` for UI badges.
+The renderer tier machinery this section used to document — the
+`services/modelMeta.js` classifier mirror, the `ai.modelTiers` per-model
+overrides, `resolveTier`/`tierSource`, and their tests — was deleted in the
+family-wide tier-debris cleanup (decision text in
+`../../../JustVioce/docs/dev/TASKS.md`). It was dead code with zero UI
+consumers: attribution moved to JustVoice long ago (its Auto routes by
+size there), and thinking/routing are preset-owned server-side (the
+per-feature engine presets — "Routing by feature"). Nothing in JW resolves
+tiers anymore.
 
 ### Ollama routing (load-bearing)
 
@@ -330,11 +314,11 @@ presets. Research playground, not on the path to production.
   for math/code/multilingual. Qwen3:8b Guided beats Qwen3.5:9b on Sample
   Ch.3 (9/9 vs 8/9).
 
-### Current daily drivers (reference points)
+### Measured reference points (historical — the tier-era attribution runs)
 
 - **Routine attribution:** Qwen3:8b Guided. ~18s, ~87% on real chapters.
-- **Pre-render audit (gold standard):** Qwen3:14B Reasoned. ~2 min, 12/12
-  with calibrated variable confidence (70–100%).
+- **Pre-render audit:** Qwen3:14B with thinking on (the era's "Reasoned"
+  config). ~2 min, 12/12 with calibrated variable confidence (70–100%).
 - **Faster audit alternative:** Mistral-Small:24b Direct. ~1:28, strictly
   better error profile than Guided.
 

@@ -1,19 +1,19 @@
-// AI store — providers (OpenAI-compatible), the default LLM + embedding routing,
-// and per-model tier overrides. Usage is recorded + priced server-side; the AI
-// menu reads it from /v1/ai-usage. (Per-feature pins died in the 2026-07-15
-// one-source rewrite — each action routes via its preset ref, server-side.)
+// AI store — providers (OpenAI-compatible) + the default LLM + embedding
+// routing. Usage is recorded + priced server-side; the AI menu reads it from
+// /v1/ai-usage. (Per-feature pins died in the 2026-07-15 one-source rewrite —
+// each action routes via its preset ref, server-side. The per-model tier
+// overrides + the modelMeta.js classifier mirror died with the tier system,
+// 2026-08-07 — dead code with zero UI consumers, verified.)
 
 import { defineStore } from "pinia";
-import { getModelTier, TIERS } from "../services/modelMeta.js";
 import { readSetting, writeSetting } from "../services/settings.js";
 import * as providerBackend from "../services/providerBackend.js";
 import * as routingBackend from "../services/routingBackend.js";
 
-// The `ai` settings section holds only the non-routing AI prefs (per-model tier
-// overrides + the RAG auto-rebuild toggle). The default provider/embedding
-// lives in the routing tables (/v1/ai/routing via routingBackend); providers
-// live in /v1/llm-providers. None of those round-trip through the settings
-// document.
+// The `ai` settings section holds only the non-routing AI prefs (the RAG
+// auto-rebuild toggle). The default provider/embedding lives in the routing
+// tables (/v1/ai/routing via routingBackend); providers live in
+// /v1/llm-providers. None of those round-trip through the settings document.
 function loadPrefs() {
   const v = readSetting("ai");
   return v && typeof v === "object" ? v : null;
@@ -39,10 +39,11 @@ function saveRouting(state) {
 }
 
 // Persist the non-routing AI prefs to the `ai` settings section (its only
-// remaining contents). Providers + routing are server-authoritative elsewhere.
+// remaining contents — a stored modelTiers key from the retired tier system
+// simply stops being written and drops off on the next save). Providers +
+// routing are server-authoritative elsewhere.
 function savePrefs(state) {
   writeSetting("ai", {
-    modelTiers: state.modelTiers,
     autoRebuildRagIndex: state.autoRebuildRagIndex,
   });
 }
@@ -66,12 +67,6 @@ export const useAiStore = defineStore("ai", {
       // empty falls back to the provider's own embeddingModel.
       defaultEmbeddingId: routing?.defaultEmbeddingId || "local-llamacpp",
       defaultEmbeddingModel: routing?.defaultEmbeddingModel || "",
-      // Per-model tier overrides (pinned by the user in Settings or the
-      // Speaker Lab). Keyed by bare model id, NOT by provider+model — same
-      // model on different Ollama instances should share the same tier
-      // judgement. Empty by default; the heuristic in modelMeta.js
-      // provides the auto-detected tier when nothing is pinned.
-      modelTiers: prefs?.modelTiers ?? {},
       // When true, services/rag/autoIndex.js silently embeds new/changed
       // scenes a minute after the last edit. Default OFF — auto-firing
       // burns embed tokens on every save against a cloud provider, which
@@ -122,19 +117,6 @@ export const useAiStore = defineStore("ai", {
     providerForFeature: (s) => (_featureKey) => {
       return s.providers.find((p) => p.id === s.defaultLlmId) || null;
     },
-
-    // Resolve a model id to its tier — user override wins, else the
-    // name-pattern heuristic. Returns the tier object (not just the id)
-    // so callers get prompt-key + think + floor in one read.
-    resolveTier: (s) => (modelId) => {
-      const tierId = s.modelTiers[modelId] || getModelTier(modelId);
-      return TIERS[tierId] || TIERS.guided;
-    },
-
-    // Whether the resolved tier came from a user pin or the heuristic —
-    // drives the "(auto)" vs "(pinned)" badge in the Settings model picker.
-    tierSource: (s) => (modelId) => (s.modelTiers[modelId] ? "pinned" : "auto"),
-
   },
 
   actions: {
@@ -189,20 +171,5 @@ export const useAiStore = defineStore("ai", {
       this.autoRebuildRagIndex = !!on;
       savePrefs(this.$state);
     },
-    // Pin a tier override for a specific model. Pass null/undefined to
-    // clear and fall back to the auto-detected tier from modelMeta.
-    setModelTier(modelId, tierId) {
-      if (!modelId) return;
-      const next = { ...this.modelTiers };
-      if (tierId && TIERS[tierId]) next[modelId] = tierId;
-      else delete next[modelId];
-      this.modelTiers = next;
-      savePrefs(this.$state);
-    },
-    clearModelTier(modelId) {
-      this.setModelTier(modelId, null);
-    },
-
-
   },
 });

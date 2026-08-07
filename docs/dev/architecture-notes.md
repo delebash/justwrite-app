@@ -215,7 +215,7 @@ cd ../just-llm-runner && ../justwrite-app/.venv/Scripts/python.exe -m pytest -q
 
 Harnesses in the repo:
 
-- **vitest** (`vitest.config.js`, node environment) — pure-JS service and composable tests such as the embedApi ensure-cache and modelMeta suites. Complements, never replaces, the headless smoke.
+- **vitest** (`vitest.config.js`, node environment) — pure-JS service and composable tests such as the embedApi ensure-cache suite. Complements, never replaces, the headless smoke.
 - **Playwright headless renderer smoke** (`tests/smoke/headless-smoke.js`, plus `tests/smoke/book-smoke.js`) — THE renderer gate. See `CLAUDE.md` for how to run it and the `findChrome()` rule.
 - **`e2e/` WebDriver harness** (`tauri-driver` + `msedgedriver` driving the built desktop binary) — `npm test` runs the smoke suite, `npm run screenshots` the marketing shots. Both need a compiled `.exe` plus Edge/WebView2, so this is the packaged-desktop check, not a quick dev gate.
 - **Python `server/`** — pytest plus ruff (server-mode migration: `docs/plans/archive/2026-06-18-jw-server-migration.md`).
