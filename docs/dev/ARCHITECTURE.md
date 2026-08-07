@@ -161,13 +161,15 @@ Phases were locked up front; built and shipped in order.
 
 ## AI task panel
 
-A global `useAiTasksStore` (`stores/aiTasks.js`) tracks in-flight AI
-chat-stream calls so they survive the component that started them. The
-header chip (`AiStatusButton.vue` in `TitleBar`) shows running count +
-pulsing dot. Clicking opens `AiStatusPanel.vue` (right-side slide-in)
-listing each running task with full diagnostics — elapsed, first-token
-latency, tokens, tokens/s, last-token freshness, expandable preview, cancel
-— plus a 30-entry history of completed/cancelled/errored calls.
+The global task queue is the KIT's (`@delebash/llm-ui`: `stores/aiTasks.js`,
+`AiStatusButton`, `AiStatusPanel`, `AiTaskStrip` — this section described them as
+app files long after C3 moved them; a 2026-08-07 audit found four stale claims
+here, all fixed below). The header chip shows running count + pulsing dot;
+clicking opens the panel: Running (full diagnostics — elapsed, first-token
+latency, tokens, tok/s, freshness, expandable preview, cancel), Recent
+(just-finished rows lingering per `FAMILY_TASK_LINGER` — completed 5 s ·
+cancelled 3 s · failed until dismissed, error text + Retry on the row), then a
+50-entry history.
 
 **Why this exists:**
 
@@ -181,17 +183,21 @@ Audio Studio's smart-assign + re-analyze were the worst offenders — no progres
 no cancel, and a stuck-on-"Analyzing…" bug from local refs not resetting.
 
 **How any AI feature plugs in:** pass `task: { label, meta }` (or
-`task: true`) to `runAiStream`. The wrapper registers the task, threads its
-`AbortSignal` automatically, and finishes/fails it at the end. Caller
-`signals` and `onDelta` still work — they're chained, not replaced.
+`task: true`) to the kit's `runAiFeature` / `runAiFeatureStream` (the name
+`runAiStream` this paragraph used to cite no longer exists). The wrapper
+registers the task, threads its `AbortSignal` automatically, and
+finishes/fails it at the end. Caller `signals` and `onDelta` still work —
+they're chained, not replaced.
 
 **Per-call loading state** should derive from
 `aiTasks.runningTasks.find(t => t.feature === 'X' && t.meta?.kind === scope)`
 rather than local refs — that's what fixes the stuck-button bug and lets
 state survive remounts.
 
-Inline progress strip (a slim version of the panel rows) lives in
-`StudioTaskStrip.vue` — copy that pattern for other views.
+Inline progress strip: the kit's `AiTaskStrip`, mounted per surface — never
+copied. (`StudioTaskStrip.vue`, which this line used to point at, no longer
+exists; "copy that pattern" was the exact anti-pattern the kit-first rule
+exists to stop.)
 
 **Discriminator convention for task lookups.** Concurrent calls of the same
 feature (e.g. critique notes + structure, three `VariationsModal` columns)
@@ -202,12 +208,12 @@ each surface finds its own task.
 tokens/elapsed into a local `lastRun` ref on completion — tasks leave
 `runningTasks` at finish but the diagnostic footer still needs the numbers.
 
-**Stalled detection rules** (computed live off `tasks.now` ticking every
-500ms):
-
-- `< 3s` since last token → "live" (green)
-- `3–10s` → "stalling" (yellow, pulsing)
-- `> 10s` → "stuck" (red, pulsing) — strong signal the user should cancel
+**Stalled detection** (computed live off `tasks.now` ticking every 500 ms):
+the shared `streamFreshness.js` classifier, RATE-RELATIVE since 2026-07-17 —
+it calibrates to the stream's own mean inter-token gap (generous absolute
+floors, then K× the measured pace), because the absolute 3 s/10 s thresholds
+this section used to list mislabelled a healthy slow local model as
+"stalling" for its entire run.
 
 **Status (2026-06-05):** all 21 AI surfaces go through the global store +
 `AiTaskStrip`. The older `useAiProgress` + `AiProgressBar` are DELETED.
