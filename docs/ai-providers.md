@@ -353,16 +353,18 @@ Anything in JustWrite that calls an AI — critique, brainstorm, plot-hole scan,
 - **First-token latency** — how long the model took to respond at all. Useful for local models that sometimes need to load before the first token; a 30-second first-token delay on a small model usually means it's still warming up.
 - **Tokens** — exact count once the call completes, approximate during streaming.
 - **Tokens per second** — how fast the model is producing output.
-- **A freshness indicator** — the single best signal for *"is this stuck, or still working?"* It walks through three states based on when the last token arrived:
-  - **Live** (green) — last token in the past three seconds.
-  - **Stalling** (gold, blinking) — no tokens in 3–10 seconds.
-  - **Stuck** (red, blinking) — no tokens in 10+ seconds. Almost always means cancel and try again.
+- **A freshness indicator** — the single best signal for *"is this stuck, or still working?"* It calibrates to the model's **own measured pace** rather than a fixed clock, so a slow local model's healthy multi-second gaps don't read as trouble:
+  - **Live** (green) — tokens arriving at this model's usual rhythm.
+  - **Stalling** (gold, blinking) — the current silence is running well past this model's usual gap.
+  - **Stuck** (red, blinking) — far past it. Almost always means cancel and try again.
 - **A preview toggle** — expand to see the assistant's streaming text in real time as it's produced.
 - **Cancel** — abort the call immediately. Cleaner than closing a modal mid-stream.
 
-**Tasks survive navigation.** This is the headline. Start a critique on Chapter 7, navigate over to Worldbuilding to check a fact, hop into the Plot Board — the call keeps running. When it finishes, the result lands wherever it was supposed to (the critique on the chapter, the entity sweep proposals, etc.) and a toast tells you it's done with a **View** action that opens the panel to the just-finished entry. Closing a modal that was waiting for an AI call no longer cancels the call — the call decouples from the modal's lifecycle.
+**Tasks survive navigation.** This is the headline. Start a critique on Chapter 7, navigate over to Worldbuilding to check a fact, hop into the Plot Board — the call keeps running. When it finishes, the result lands wherever it was supposed to (the critique on the chapter, the entity sweep proposals, etc.). Closing a modal that was waiting for an AI call no longer cancels the call — the call decouples from the modal's lifecycle.
 
-**Recent history.** The bottom of the panel lists the last 30 completed (or cancelled, or failed) tasks with duration, tokens used, and outcome. Useful for spot-checking which model produced which result, or for noticing that your local Ollama keeps timing out on the same feature.
+**Finished tasks stick around to be read.** A task that ends doesn't vanish — it moves to the panel's **Recent** section and stays visible for a moment: a completed task for about five seconds, a cancelled one for about three. A **failed task stays until you dismiss it** with its ✕ — the error text sits right on the row, so a failure can't slip past you just because you weren't looking when it happened. (The red count on the sparkle chip clears when you open the panel; the failed row itself waits for you.)
+
+**Recent history.** Below the just-finished rows, the panel lists the last 50 completed (or cancelled, or failed) tasks with duration, tokens used, and outcome. Useful for spot-checking which model produced which result, or for noticing that your local Ollama keeps timing out on the same feature.
 
 **Dismissing the panel.** Esc, the **Close** button in the panel header, clicking the chip again, or clicking anywhere outside the panel.
 

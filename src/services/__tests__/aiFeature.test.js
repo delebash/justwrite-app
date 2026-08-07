@@ -10,7 +10,7 @@
 // The kit modules are imported REAL via the source alias (subpath — the
 // whole-kit index.js pulls .vue files the node env can't parse); only the
 // toast bridge (vue-sonner) and global fetch are mocked.
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 
 vi.mock("@delebash/llm-ui/common/services/toastBridge.js", () => ({
@@ -56,6 +56,15 @@ function jsonResponse(obj, { status = 200 } = {}) {
 beforeEach(() => {
   setActivePinia(createPinia());
   vi.clearAllMocks();
+});
+
+// FAMILY_TASK_LINGER (2026-08-07): a settled task now LINGERS before archiving —
+// completed 5 s, failed until dismissed. These tests run REAL timers, so without
+// this teardown every task a test settles leaves a pending 5 s archive timeout (or
+// a forever-lingering failure) firing into a store the next test already replaced.
+afterEach(() => {
+  const tasks = useAiTasksStore();
+  for (const t of [...tasks.visibleTasks]) tasks.dismiss(t.id);
 });
 
 describe("runAiFeatureStream — usage semantics (null-until-done)", () => {
@@ -109,8 +118,10 @@ describe("runAiFeatureStream — onDelta + task registry", () => {
     const tasks = useAiTasksStore();
     await runAiFeatureStream({ action: "critique", task: { label: "Critique" } });
     expect(tasks.runningCount).toBe(0);
-    expect(tasks.history).toHaveLength(1);
-    expect(tasks.history[0]).toMatchObject({ label: "Critique", status: "done", tokensOut: 7 });
+    // FAMILY_TASK_LINGER: the settled task lingers (completed: 5 s) before archiving,
+    // so it is read HERE, not in history. The QC-30 intent below is unchanged.
+    expect(tasks.visibleTasks).toHaveLength(1);
+    expect(tasks.visibleTasks[0]).toMatchObject({ label: "Critique", status: "done", tokensOut: 7 });
     // The strip + the panel are THE outcome surfaces; completions never toast.
     expect(pushToast).not.toHaveBeenCalled();
   });
@@ -121,7 +132,9 @@ describe("runAiFeatureStream — onDelta + task registry", () => {
     await expect(runAiFeatureStream({ action: "chat", task: true }))
       .rejects.toThrow(/Couldn't reach the LLM/);
     expect(tasks.runningCount).toBe(0);
-    expect(tasks.history[0].status).toBe("error");
+    // Failed stays visible until dismissed (FAMILY_TASK_LINGER.failed = null) —
+    // the durable-error row itself, on top of the badge asserted below.
+    expect(tasks.visibleTasks[0].status).toBe("error");
     expect(pushToast).not.toHaveBeenCalled();
     // Failure signals DURABLY: the titlebar chip badge holds until the panel
     // is opened (viewing acknowledges).
@@ -153,7 +166,7 @@ describe("runAiFeatureStream — onDelta + task registry", () => {
     tasks.cancel(handle.id);
     expect(aborted).toBe(true);
     expect(tasks.runningCount).toBe(0);
-    expect(tasks.history[0].status).toBe("cancelled");
+    expect(tasks.visibleTasks[0].status).toBe("cancelled"); // lingers 3 s before history
   });
 });
 

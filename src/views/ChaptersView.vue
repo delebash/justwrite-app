@@ -470,9 +470,12 @@ const aiTasks = useAiTasksStore();
 const noticeSince = Date.now();
 const dismissedNoticeId = ref(null);
 const aiNotice = computed(() => {
-  const h = (aiTasks.history || []).find(
-    (x) => x.feature === "writerAI" && x.status === "done" && x.finishedAt >= noticeSince,
-  );
+  // Lingering ∪ history: under FAMILY_TASK_LINGER (2026-08-07) a completed task
+  // sits in visibleTasks for 5 s BEFORE reaching history — reading history alone
+  // made this notice fire 5 s late. Ids survive archival, so a dismissal during
+  // the linger still covers the same task's history incarnation.
+  const match = (x) => x.feature === "writerAI" && x.status === "done" && x.finishedAt >= noticeSince;
+  const h = aiTasks.visibleTasks.find(match) || (aiTasks.history || []).find(match);
   return h && h.id !== dismissedNoticeId.value ? h : null;
 });
 function callClearStrikethroughs() {

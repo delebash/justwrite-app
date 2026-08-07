@@ -49,16 +49,26 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+// FAMILY_TASK_LINGER teardown — settled tasks linger on real timers here; dismiss
+// them so no archive timeout outlives its test's pinia (see aiFeature.test.js).
+afterEach(() => {
+  const tasks = useAiTasksStore();
+  for (const t of [...tasks.visibleTasks]) tasks.dismiss(t.id);
+});
+
 describe("scanAllChapters — cancel stops EVERYTHING", () => {
   it("registers ONE task for the whole sweep, not one per chapter (QC-31)", async () => {
     extractEntities.mockResolvedValue(NOTHING);
     const aiTasks = useAiTasksStore();
     await scanAllChapters({ project: projectWith(8), concurrency: 4 });
-    // Look in HISTORY, not `tasks`: a finished entry is archived and deleted
-    // (_finish → _archiveAndRemove → `delete this.tasks[id]`), so a completed sweep
-    // leaves `tasks` empty by design. Eight chapters across four workers used to mint
-    // a rival entry per call — the reason Cancel only ever reached one of them.
-    const sweepEntries = aiTasks.history.filter((t) => t.feature === "entitySweep");
+    // The QC-31 intent: ONE entry for the whole sweep, wherever it now lives.
+    // Under FAMILY_TASK_LINGER (2026-08-07) a completed task lingers in
+    // visibleTasks before archiving, so count across both surfaces — the old
+    // "history only, tasks empty by design" comment described the pre-linger
+    // contract. Eight chapters across four workers used to mint a rival entry
+    // per call — the reason Cancel only ever reached one of them.
+    const sweepEntries = [...aiTasks.visibleTasks, ...aiTasks.history]
+      .filter((t) => t.feature === "entitySweep");
     expect(sweepEntries).toHaveLength(1);
     // Every per-chapter call must opt OUT of its own entry.
     for (const call of extractEntities.mock.calls) expect(call[0].task).toBe(false);
