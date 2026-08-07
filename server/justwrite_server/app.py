@@ -13,8 +13,7 @@ import logging
 import os
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
-from fastapi.exceptions import RequestValidationError
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -39,13 +38,14 @@ from .api import (
     versions,
 )
 from .app_state import AppState, set_state
-from .auth import BearerAuthMiddleware
-from .csrf import CsrfOriginMiddleware
+from llm_runner.platform import BearerAuthMiddleware, CsrfOriginMiddleware, install_error_handlers
+
+from .auth import read_auth
 from llm_runner.platform import install_file_log, install_log_ring, make_disk_router, make_logs_router
 
 from .data_admin import get_data_router
 from .database import init_db
-from .errors import ApiError, api_exception_handler, http_exception_handler, validation_exception_handler
+
 from .paths import default_data_dir
 from .version import PRODUCT, VERSION
 
@@ -107,7 +107,11 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     # section). Gates /v1/* only. Added BEFORE CORS so CORS ends up OUTERMOST
     # (Starlette runs last-added first): CORS then answers preflights before
     # auth sees them, and wraps auth's 401/403 with CORS headers.
-    app.add_middleware(BearerAuthMiddleware)
+    app.add_middleware(
+        BearerAuthMiddleware,
+        read_auth=read_auth,
+        type_base="https://justwrite.dev/errors/",
+    )
 
     # CORS — settings-driven (the `cors` section: origins / originRegex) so an
     # exposed/headless server can lock origins down; falls back to allow-all for
@@ -133,14 +137,17 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
 
     # CSRF: reject cross-site browser POSTs to /v1 (no token — can't lock anyone
     # out). Reuses the CORS origins as the allowlist; added last → runs outermost.
-    app.add_middleware(CsrfOriginMiddleware, extra_origins=_cors.get("origins") or [])
+    app.add_middleware(
+        CsrfOriginMiddleware,
+        app_origins=("http://localhost:1420", "http://127.0.0.1:1420"),
+        extra_origins=_cors.get("origins") or [],
+        type_base="https://justwrite.dev/errors/",
+    )
 
     # RFC 7807 problem+json for ApiError + plain HTTPException — one error shape
     # across both apps' servers (the bearer-auth middleware emits it too).
-    app.add_exception_handler(ApiError, api_exception_handler)
-    app.add_exception_handler(HTTPException, http_exception_handler)
-    # 422 body-validation failures — logged + problem+json (was FastAPI's silent default).
-    app.add_exception_handler(RequestValidationError, validation_exception_handler)
+    install_error_handlers(app, type_base="https://justwrite.dev/errors/")
+
 
     app.include_router(health.router)
     app.include_router(server_auth.router)  # the auth door + lockout escape (family shape)
