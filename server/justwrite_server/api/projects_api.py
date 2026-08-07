@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 
 from .. import book_io
 from ..database import get_db
-from ..models import Project
+from ..database.models import Project
 
 router = APIRouter(tags=["projects"], prefix="/v1/projects")
 
@@ -47,8 +47,8 @@ async def create_demo(db: Session = Depends(get_db)) -> dict:
     seeded at boot; the renderer's "Try tutorial project" button creates it HERE
     on demand. Fixed id: never duplicated, and re-creatable after the user
     deletes it. Returns the metadata the renderer needs to register + open it."""
-    from ..demo_seed import DEMO_PROJECT_ID
-    from ..seed import create_demo_project
+    from ..database.demo_seed import DEMO_PROJECT_ID
+    from ..database.seed import create_demo_project
 
     created = create_demo_project(db)
     if created:

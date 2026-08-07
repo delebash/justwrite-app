@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Setting
+from ..database.models import Setting
 
 router = APIRouter(tags=["settings"], prefix="/v1/settings")
 

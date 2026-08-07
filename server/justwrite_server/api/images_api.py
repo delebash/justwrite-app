@@ -19,7 +19,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import ImageBlob
+from ..database.models import ImageBlob
 
 router = APIRouter(tags=["images"], prefix="/v1/images")
 

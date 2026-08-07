@@ -27,7 +27,7 @@ from sqlalchemy.orm import Session
 
 from ..app_state import get_state
 from ..database import get_db
-from ..models import Setting
+from ..database.models import Setting
 
 router = APIRouter(tags=["autosave"], prefix="/v1/projects")
 

@@ -19,8 +19,8 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from . import book_io
-from . import database as _db
+from .. import book_io
+from . import session as _db
 from .demo_seed import DEMO_PROJECT_ID, demo_book_snapshot, demo_sample_images
 from .models import Project
 

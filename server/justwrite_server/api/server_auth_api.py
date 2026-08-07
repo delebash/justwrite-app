@@ -15,16 +15,20 @@ import json
 
 from fastapi import APIRouter, HTTPException
 
-from ..database import SessionLocal
-from ..models import Setting
+# Module-attr access, not a from-import of the name: SessionLocal is REBOUND by
+# init_db AFTER this module is imported, so a from-import froze the pre-boot None
+# here forever — GET reported no-auth and PUT 503'd unconditionally (dormant bug
+# found by the P5 tree move; test_server_auth.py pins the roundtrip).
+from ..database import session as _db
+from ..database.models import Setting
 
 router = APIRouter(tags=["system"])
 
 
 def _read() -> dict:
-    if SessionLocal is None:
+    if _db.SessionLocal is None:
         return {"tokens": [], "requireForLoopback": False}
-    db = SessionLocal()
+    db = _db.SessionLocal()
     try:
         row = db.get(Setting, "auth")
         cfg = json.loads(row.value) if row and row.value else {}
@@ -50,9 +54,9 @@ async def put_server_auth(body: dict) -> dict:
         raise HTTPException(400, "tokens must be a list of strings")
     cfg = {"tokens": [t for t in tokens if t.strip()],
            "requireForLoopback": bool(body.get("requireForLoopback"))}
-    if SessionLocal is None:
+    if _db.SessionLocal is None:
         raise HTTPException(503, "database not ready")
-    db = SessionLocal()
+    db = _db.SessionLocal()
     try:
         row = db.get(Setting, "auth")
         if row is None:

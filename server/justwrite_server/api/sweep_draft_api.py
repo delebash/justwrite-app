@@ -22,7 +22,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Project, SweepDraft
+from ..database.models import Project, SweepDraft
 
 router = APIRouter(tags=["sweep-draft"], prefix="/v1/projects")
 

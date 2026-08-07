@@ -16,7 +16,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import RagMeta, RagVector
+from ..database.models import RagMeta, RagVector
 from ..rag_search import hybrid_rank
 
 router = APIRouter(tags=["rag"], prefix="/v1/rag")

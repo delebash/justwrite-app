@@ -18,8 +18,8 @@ from fastapi.testclient import TestClient
 
 from justwrite_server import book_io, database
 from justwrite_server.app import create_app
-from justwrite_server.demo_seed import DEMO_PROJECT_ID, demo_book_snapshot, list_samples
-from justwrite_server.seed import seed_workspace
+from justwrite_server.database.demo_seed import DEMO_PROJECT_ID, demo_book_snapshot, list_samples
+from justwrite_server.database.seed import seed_workspace
 from llm_runner.llm.seed import DEFAULT_PROVIDERS, seed_default_providers
 
 

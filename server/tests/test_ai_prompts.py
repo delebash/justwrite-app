@@ -58,7 +58,7 @@ def test_edit_then_reset_round_trips(tmp_path):
 def test_edit_changes_what_run_sends(tmp_path):
     # Editing the prompt in the Lab changes what /v1/ai/run sends to the LLM —
     # proves the endpoint reads the (edited) DB row, not a code constant.
-    from justwrite_server.models import Setting
+    from justwrite_server.database.models import Setting
     import json as _json
     from llm_runner.llm import get_llm_registry
     from llm_runner.llm.base import LLMResponse

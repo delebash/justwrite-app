@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 
 from justwrite_server import database
 from justwrite_server.app import create_app
-from justwrite_server.models import ChatMessage
+from justwrite_server.database.models import ChatMessage
 
 
 def _c(tmp_path):

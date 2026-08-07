@@ -13,8 +13,8 @@ from fastapi import APIRouter
 from llm_runner.llm import LlmBase
 from llm_runner.platform import make_data_router
 
-from . import database as _db
-from .models import Base, Setting
+from .database import session as _db
+from .database.models import Base, Setting
 
 
 def _stop_runner_best_effort() -> None:
@@ -33,8 +33,8 @@ def _stop_runner_best_effort() -> None:
 def _reset() -> None:
     if _db.engine is None or _db.SessionLocal is None:
         return
-    from .api.settings import PRESERVED_FOLDER_KEYS
-    from .seed import seed_workspace
+    from .api.settings_api import PRESERVED_FOLDER_KEYS
+    from .database.seed import seed_workspace
 
     # Unload models FIRST, while the config they were spawned from still exists.
     _stop_runner_best_effort()

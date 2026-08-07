@@ -30,7 +30,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import ChatMessage, ChatSession, ChatSessionMessage
+from ..database.models import ChatMessage, ChatSession, ChatSessionMessage
 
 router = APIRouter(tags=["chat"], prefix="/v1/chat")
 

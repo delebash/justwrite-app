@@ -21,7 +21,7 @@ def read_auth() -> tuple[list[str], bool]:
     """(tokens, require_for_loopback) from the `auth` settings row. Defaults to
     no auth on any read error so a settings glitch can't lock the user out."""
     from .database import SessionLocal
-    from .models import Setting
+    from .database.models import Setting
 
     if SessionLocal is None:
         return [], False

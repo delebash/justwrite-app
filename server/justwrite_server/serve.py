@@ -37,7 +37,7 @@ def main() -> None:
     # (create_app ran init_db). Kept here — and in the workspace-reset handler —
     # rather than in create_app(), so the pytest suite's create_app(tmp_path)
     # clients still start from an empty database.
-    from .seed import seed_workspace
+    from .database.seed import seed_workspace
 
     seed_workspace()
     uvicorn.run(app, host=args.host, port=args.port)

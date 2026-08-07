@@ -24,18 +24,18 @@ from fastapi.staticfiles import StaticFiles
 from llm_runner import router as llm_runner_router
 
 from .api import (
-    autosave,
-    book_transfer,
-    chat,
-    health,
-    images,
-    projects,
-    rag,
-    server_auth,
-    sessions,
-    settings,
-    sweep_draft,
-    versions,
+    autosave_api,
+    book_transfer_api,
+    chat_api,
+    health_api,
+    images_api,
+    projects_api,
+    rag_api,
+    server_auth_api,
+    sessions_api,
+    settings_api,
+    sweep_draft_api,
+    versions_api,
 )
 from .app_state import AppState, set_state
 from llm_runner.platform import BearerAuthMiddleware, CsrfOriginMiddleware, install_error_handlers
@@ -57,7 +57,7 @@ def _read_cors() -> dict:
     if unset/unavailable. CORSMiddleware is configured once at app construction
     (changing it needs a restart — same as JustVoice)."""
     from .database import SessionLocal
-    from .models import Setting
+    from .database.models import Setting
 
     if SessionLocal is None:
         return {}
@@ -149,25 +149,25 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     install_error_handlers(app, type_base="https://justwrite.dev/errors/")
 
 
-    app.include_router(health.router)
-    app.include_router(server_auth.router)  # the auth door + lockout escape (family shape)
-    # Mounted BEFORE projects.router so the literal /autosaves + /autosave-dir
+    app.include_router(health_api.router)
+    app.include_router(server_auth_api.router)  # the auth door + lockout escape (family shape)
+    # Mounted BEFORE projects_api.router so the literal /autosaves + /autosave-dir
     # segments win over projects' catch-all /{project_id} (FastAPI matches in
     # registration order). The renderer already PUTs snapshots to the DB; this
     # owns the extra rotating on-disk JSON mirror (moved off Rust 2026-07-13).
-    app.include_router(autosave.router)
-    app.include_router(sweep_draft.router)  # /v1/projects/{id}/sweep-draft (2-segment; order-safe)
-    app.include_router(projects.router)
-    app.include_router(book_transfer.router)  # per-project zip export/import (/v1/projects/*)
-    app.include_router(sessions.router)
-    app.include_router(chat.router)
-    app.include_router(settings.router)
-    app.include_router(versions.router)
+    app.include_router(autosave_api.router)
+    app.include_router(sweep_draft_api.router)  # /v1/projects/{id}/sweep-draft (2-segment; order-safe)
+    app.include_router(projects_api.router)
+    app.include_router(book_transfer_api.router)  # per-project zip export/import (/v1/projects/*)
+    app.include_router(sessions_api.router)
+    app.include_router(chat_api.router)
+    app.include_router(settings_api.router)
+    app.include_router(versions_api.router)
     app.include_router(get_data_router())  # shared backup/restore/reset (/v1/data/*)
     app.include_router(make_logs_router("JustWrite"))  # shared /v1/logs/*
     app.include_router(make_disk_router(data_dir))  # shared /v1/disk/usage (reclaim-disk panel)
-    app.include_router(rag.router)
-    app.include_router(images.router)
+    app.include_router(rag_api.router)
+    app.include_router(images_api.router)
     app.include_router(llm_runner_router)
     # Drop in the ENTIRE shared LLM stack with ONE call. JustWrite provides only
     # its DB + its feature seed DATA (catalog / prompts);
@@ -177,7 +177,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     # about LLM lives in JustWrite (design doc §13). See llm_runner.llm.install.
     from llm_runner.llm import install_llm
 
-    from . import database as _dbmod
+    from .database import session as _dbmod
     from .feature_catalog import FEATURE_CATALOG
     from .seed_feature_prompts import DEFAULT_FEATURE_PROMPTS, FEATURE_PROMPT_HEALS
     from .seed_presets import (
@@ -266,7 +266,7 @@ def _materialize_samples(data_dir: Path) -> None:
     boot: a missing/partial source is tolerated — `demo_seed`'s read-time fallback
     still serves the bundled source directly.
     """
-    from .demo_seed import _bundled_samples_dir, _dir_has_sample
+    from .database.demo_seed import _bundled_samples_dir, _dir_has_sample
 
     dest = data_dir / "samples"
     if dest.exists():

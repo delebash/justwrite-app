@@ -31,7 +31,7 @@ import json
 import os
 from pathlib import Path
 
-from .app_state import get_state
+from ..app_state import get_state
 
 # Which bundled sample the tutorial button seeds.
 DEFAULT_SAMPLE = "the-ninth-facet"
@@ -49,12 +49,13 @@ def _dir_has_sample(d: Path) -> bool:
 def _bundled_samples_dir() -> Path:
     """The samples source SHIPPED with the app: `JUSTWRITE_SAMPLES_SRC` when set
     (the packaged build points it at the bundled resource — DEFERRED wiring), else
-    the repo-root `justwrite-app/samples/` (`parents[2]` from this file, now that
-    samples live outside the Python package)."""
+    the repo-root `justwrite-app/samples/` (`parents[3]` from this file — it sits
+    in `server/justwrite_server/database/`, and samples live outside the Python
+    package)."""
     env = os.environ.get("JUSTWRITE_SAMPLES_SRC")
     if env:
         return Path(env)
-    return Path(__file__).resolve().parents[2] / "samples"
+    return Path(__file__).resolve().parents[3] / "samples"
 
 
 def _samples_dir() -> Path:

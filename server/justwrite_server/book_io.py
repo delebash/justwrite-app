@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from .models import (
+from .database.models import (
     Architecture,
     Chapter,
     ChapterStrand,
