@@ -1,10 +1,23 @@
 <script setup>
+// SPDX-License-Identifier: MIT
+// JustWrite's title bar = the KIT's TitleBar FRAME (back/forward + title) with this
+// app's right side in the slot — the same shape docgen has used since 2026-08-04.
+//
+// The frame was lifted FROM this component on 2026-08-04 and JustWrite kept its own
+// copy, so the donor became the only app not using the shared version. Adopting it is
+// a net GAIN here, not a downgrade: the kit carries docgen's post-nav `setTimeout(0)`
+// settle, which this file lacked — without it `syncNav` read `window.history.state`
+// before the router finished stamping it, so back/forward could light wrongly for one
+// tick after a navigation. The two things this component did better went UP into the
+// kit in the same change: tooltips that say WHY a button is disabled ("no history"),
+// and `-webkit-app-region: no-drag` on the frame's buttons, without which `.titlebar`'s
+// window-drag region below would have turned them into drag handles.
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
 import { THEME_PRESETS } from "../services/appearance.js";
-import { Icon, AiStatusButton } from "@delebash/llm-ui";
+import { Icon, AiStatusButton, TitleBar } from "@delebash/llm-ui";
 
 defineProps({ title: { type: String, default: "JustWrite" } });
 
@@ -63,29 +76,10 @@ function onTbDocClick(e) {
   if (modeOpen.value && modeWrap.value && !modeWrap.value.contains(e.target)) modeOpen.value = false;
 }
 
-// Browser-style nav history. Vue Router stamps `back`/`forward` onto the
-// history state for the current entry, so we can light up the buttons
-// only when there's somewhere to go.
-const canBack = ref(false);
-const canForward = ref(false);
-function syncNav() {
-  const st = window.history.state || {};
-  canBack.value = st.back != null;
-  canForward.value = st.forward != null;
-}
-function goBack() { if (canBack.value) router.back(); }
-function goForward() { if (canForward.value) router.forward(); }
-
-let stopAfterEach;
-onMounted(() => {
-  syncNav();
-  stopAfterEach = router.afterEach(() => syncNav());
-  document.addEventListener("mousedown", onTbDocClick);
-});
-onBeforeUnmount(() => {
-  if (stopAfterEach) stopAfterEach();
-  document.removeEventListener("mousedown", onTbDocClick);
-});
+// Back/forward now belong to the kit's frame — it owns the history-state read AND the
+// afterEach settle. Nothing here duplicates them.
+onMounted(() => document.addEventListener("mousedown", onTbDocClick));
+onBeforeUnmount(() => document.removeEventListener("mousedown", onTbDocClick));
 
 function toggleChat() {
   ui.openChatPanelFor({ mode: "book", sourceKey: "titlebar" });
@@ -93,16 +87,7 @@ function toggleChat() {
 </script>
 
 <template>
-  <div class="titlebar">
-    <div class="titlebar-left">
-      <button @click="goBack" :disabled="!canBack" v-tooltip.bottom="`Back${canBack ? '' : ' (no history)'}`">
-        <Icon name="ChevLeft" :size="15" />
-      </button>
-      <button @click="goForward" :disabled="!canForward" v-tooltip.bottom="`Forward${canForward ? '' : ' (no history)'}`">
-        <Icon name="ChevRight" :size="15" />
-      </button>
-    </div>
-    <div class="titlebar-title">{{ title }}</div>
+  <TitleBar :title="title">
     <div class="titlebar-right">
       <div class="theme-switcher" ref="themeWrap">
         <button @click="toggleTheme" v-tooltip.bottom="`Theme · ${activePresetLabel}`">
@@ -168,7 +153,7 @@ function toggleChat() {
         <button @click="navigate" v-tooltip.bottom="'Search · ⌘F'"><Icon name="Search" :size="13" /></button>
       </router-link>
     </div>
-  </div>
+  </TitleBar>
 </template>
 
 <style scoped>
@@ -178,8 +163,10 @@ function toggleChat() {
   background: var(--border);
   margin: 0 2px;
 }
-.titlebar-right button:disabled,
-.titlebar-left button:disabled {
+/* Only this component's own (slot) buttons — the frame's back/forward are the kit's
+   inner elements, which scoped CSS cannot reach, so their disabled look lives in
+   styles.css against .lu-titlebar-btn. */
+.titlebar-right button:disabled {
   opacity: 0.32;
   cursor: default;
 }

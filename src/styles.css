@@ -79,35 +79,43 @@ button:focus, button:focus-visible {
   padding: 0 12px;
   background: linear-gradient(180deg, oklch(0.99 0.004 85), oklch(0.965 0.005 85));
   border-bottom: 1px solid var(--border);
-  -webkit-app-region: drag;
-  user-select: none;
+  /* The window-drag region + user-select:none moved INTO the kit's TitleBar
+     (2026-08-07) — it owns the frame, so it owns the behaviour, and docgen gained
+     the dragging it never had. What stays here is JustWrite's chrome: the grid,
+     the padding, the gradient, the border. */
 }
 html[data-theme="dark"] .titlebar {
   background: linear-gradient(180deg, oklch(0.22 0.005 250), oklch(0.185 0.005 250));
 }
-.titlebar-title {
+/* The frame is the kit's TitleBar (2026-08-07): it renders `.titlebar__title` for the
+   title and `.lu-titlebar-btn` for back/forward, so those are what we style. The old
+   `.titlebar-title` / `.titlebar-left` selectors matched markup this app no longer
+   renders. `.titlebar-right` stays — it is OUR wrapper, inside the frame's slot. */
+.titlebar__title {
   font-size: 12.5px; font-weight: 600; color: var(--ink-2);
   letter-spacing: 0.01em;
 }
 .titlebar-right { display: flex; justify-content: flex-end; gap: 8px; align-items: center; -webkit-app-region: no-drag; }
-.titlebar-left  { display: flex; justify-content: flex-start; gap: 4px; align-items: center; -webkit-app-region: no-drag; }
 .titlebar-right button,
-.titlebar-left button {
+.lu-titlebar-btn {
   appearance: none; border: 0; background: transparent;
   color: var(--ink-2); padding: 4px 8px; border-radius: 6px;
   font-size: 12px;
 }
+/* The frame's buttons are a child component's inner elements, so TitleBar.vue's scoped
+   block cannot reach them — their disabled look belongs here. */
+.lu-titlebar-btn:disabled { opacity: 0.32; cursor: default; }
 .titlebar-right button:hover,
-.titlebar-left button:not(:disabled):hover {
+.lu-titlebar-btn:not(:disabled):hover {
   background: var(--surface);
   color: var(--ink);
   box-shadow: inset 0 0 0 1px var(--border-strong);
 }
 /* Bolder titlebar icons so they read clearly on the chrome gradient. */
 .titlebar-right button svg,
-.titlebar-left  button svg { stroke-width: 2.1; }
+.lu-titlebar-btn svg { stroke-width: 2.1; }
 .titlebar-right button:hover svg,
-.titlebar-left  button:not(:disabled):hover svg { stroke-width: 2.3; }
+.lu-titlebar-btn:not(:disabled):hover svg { stroke-width: 2.3; }
 
 /* ============================================================
    App layout
