@@ -38,7 +38,7 @@ bundle = ["llm-runner @ git+https://github.com/delebash/just-llm-runner.git@main
 # `justwrite-server`, NOT `justwrite` — the Tauri desktop binary is
 # justwrite(.exe); a same-named console script makes the shell spawn itself
 # on Windows (CreateProcessW name resolution). Mirrors JustVoice's fix.
-justwrite-server = "justwrite_server.cli:app"
+justwrite-server = "justwrite_server.serve:main"
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]

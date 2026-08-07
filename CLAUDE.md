@@ -33,7 +33,7 @@ there is no renderer gate or that it cannot run in this environment — false. `
 does NOT clear a renderer or GUI change; run the smoke:
 
 ```bash
-python -m justwrite_server.cli serve --port 17495   # background
+python -m justwrite_server.serve serve --port 17495   # background
 npm run dev:vite                                     # :1420, background
 node tests/smoke/headless-smoke.js                   # drives every hash route, asserts zero JS errors
 ```

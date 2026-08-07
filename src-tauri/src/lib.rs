@@ -435,7 +435,7 @@ fn spawn_sidecar(data_root: &std::path::Path) -> std::io::Result<Option<Child>> 
             {
                 Ok(child) => child,
                 Err(_) => Command::new("python")
-                    .args(["-m", "justwrite_server.cli", "serve"])
+                    .args(["-m", "justwrite_server.serve", "serve"])
                     .env("JUSTWRITE_DATA_DIR", data_root)
                     .spawn()?,
             },

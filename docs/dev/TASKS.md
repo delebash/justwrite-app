@@ -134,11 +134,6 @@
   "loads on first use" chip after a confirmed load next app boot · the 2026-07-11
   0.6B-weights deletion was never root-caused (suspects: row Delete / re-download
   cache-clear / verify purge on an AV race).
-- **Kit boot contract residue (the adoption itself SHIPPED in the parity batch,
-  2026-08-06 — installLlmUi + LlmUiHosts + useAiTasksNav + AiSetupOffer are all
-  live; the `lint` script landed with slice 11, whose first run caught the
-  ChaptersView add-scene TDZ crash):** still grandfathered: console script named
-  `justwrite_server.cli` not `<snake>.serve`.
 - **Rust D2 — delete legacy `images_read`/`images_delete` — YOUR CALL, never made**
   (explained 2026-07-13, rec: delete; two dead fns reading pre-server disk-file
   image records). Extracted from `docs/plans/archive/2026-07-13-rust-minimization-and-choosers.md`
