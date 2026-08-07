@@ -4,7 +4,7 @@
 //
 // Usage (from any cwd — the venv is found relative to this file, not to cwd):
 //   node scripts/py.js -m pytest -q
-//   node scripts/py.js -m justwrite_server.cli serve
+//   node scripts/py.js -m justwrite_server.serve serve
 //
 // WHY this exists. `npm run test:server` and `npm run server` used to call bare
 // `python`, which resolves to whatever is first on PATH — on the user's Windows

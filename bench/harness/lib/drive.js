@@ -70,7 +70,7 @@ async function ensureBrowserStack({ app, server, autostart, repoRoot, onLog }) {
     // 'llm_runner'". It hid for a long time because the branch above only reaches
     // here when NOTHING is already answering — every bench run made while the
     // app was up skipped it, and it broke the first time the bench ran cold.
-    started.push(startProcess("server", findPython(repoRoot), ["-m", "justwrite_server.cli", "serve", "--port", new URL(server).port || "17495"], {
+    started.push(startProcess("server", findPython(repoRoot), ["-m", "justwrite_server.serve", "serve", "--port", new URL(server).port || "17495"], {
       cwd: `${repoRoot}/server`, env: { JUSTWRITE_DATA_DIR: dataRoot }, onLog,
     }));
     await waitReady(`${server}/v1/health`, "server", 120);

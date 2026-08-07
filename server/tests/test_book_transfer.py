@@ -1,4 +1,4 @@
-"""Per-project ZIP export / import (api/book_transfer.py) + the ONE shared import
+"""Per-project ZIP export / import (api/book_transfer_api.py) + the ONE shared import
 core the sample seeder rides (book_io.import_book_snapshot).
 
 The whole point of server-executes over the desktop bridge: this round-trip —

@@ -1,7 +1,7 @@
 // Resolve the data root the APP would use, so an autostarted bench server sees
 // the SAME engine + models + books as `npm run dev` does — not an empty
 // platformdirs default (the "engine is not installed" trap: a bare
-// `justwrite_server.cli serve` falls back to platformdirs.user_data_dir,
+// `justwrite_server.serve serve` falls back to platformdirs.user_data_dir,
 // paths.py:12-14, a different directory from the app's).
 //
 // This is a deliberate MIRROR of the app shell's resolution

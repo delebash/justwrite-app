@@ -134,14 +134,14 @@ Phases were locked up front; built and shipped in order.
 
 - ~~Multi-turn RAG chat~~ *Shipped since (2026-08-04 correction):* `rag/chat.js`
   carries the last 8 messages with a stated truncation policy, and chat SESSIONS
-  persist server-side (`api/chat.py`) — list/rename/delete, auto-titled.
+  persist server-side (`api/chat_api.py`) — list/rename/delete, auto-titled.
 - ~~**Auto-rebuild RAG index.**~~ *Shipped since (2026-08-04 correction):*
   `services/rag/autoIndex.js` silently re-embeds a minute after the last edit,
   gated on the `ai.autoRebuildRagIndex` setting — the "burning tokens silently"
   concern became an opt-in.
 - ~~**Hybrid keyword + semantic RAG.**~~ *Shipped since (2026-08-04 correction):*
   BM25 rides beside cosine (`rag/{chunker,vectorStore,cards,chat}.js` +
-  `server …/api/rag.py`); exact-string queries no longer depend on the embedding
+  `server …/api/rag_api.py`); exact-string queries no longer depend on the embedding
   preserving surface form.
 - ~~EPUB/ODT import strips images~~ *Corrected 2026-08-04:* `rewriteImageSrcs`
   (`services/import/index.js`) carries images into `imageStore` now. The old

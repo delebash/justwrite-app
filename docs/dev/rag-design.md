@@ -5,7 +5,7 @@ build plans (now in `../plans/archive/`). ARCHITECTURE.md names the modules; THI
 doc keeps the design decisions a `src/services/rag/` maintainer needs.
 
 - **Retrieval is hybrid and always was**: Okapi BM25 (K1=1.5, B=0.75) + cosine +
-  RRF (RRF_K=60), computed server-side in `rag_search.py`; `api/rag.py` loads every
+  RRF (RRF_K=60), computed server-side in `rag_search.py`; `api/rag_api.py` loads every
   `rag_vectors` row per query and JSON-parses it. **sqlite-vec + FTS5 is PARKED,
   not rejected** — it removes the per-query full-table load but buys no better
   ranking; revisit when chunk counts grow ~10× or profiling shows search latency

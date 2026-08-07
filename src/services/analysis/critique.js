@@ -12,7 +12,7 @@ import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 
 // ─── Text critique ──────────────────────────────────────────────────
-// The prompt lives server-side now (justwrite_server/llm/features.py, action
+// The prompt lives server-side now (seeded via justwrite_server/seed_feature_prompts.py, action
 // "critique"); we send the chapter label + text and parse the JSON result.
 
 export async function runCritique({ html, chapterTitle = "", chapterNum = null, meta = {}, signal, provider, model, task } = {}) {

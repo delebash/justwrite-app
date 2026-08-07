@@ -21,7 +21,7 @@ function loadPrefs() {
 
 // Providers come from the server's /v1/llm-providers table (read into a sync
 // cache by bootProviders() before mount). The server seeds the built-in defaults
-// and merges any new ones on every boot (server/justwrite_server/seed.py), so
+// and merges any new ones on every boot (server/justwrite_server/database/seed.py), so
 // the client just reads the list — no client-side defaults, no write-through
 // seeding. Empty only when the server is unreachable (the connection gate makes
 // that a no-boot anyway).

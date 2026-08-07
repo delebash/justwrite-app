@@ -228,14 +228,14 @@ versions — the store behind Version History; `versionDiff.js` renders the diff
 backup-restore flows) — the bridge list above predates it.
 
 **Chat sessions (storage model).** Sessions are STORAGE-ONLY — per-request LLM
-cost is unchanged; the server keeps a list per project (`api/chat.py`:
+cost is unchanged; the server keeps a list per project (`api/chat_api.py`:
 list/rename/delete). Ids are minted client-side; the title derives from the first
 question and a manual rename overrides it permanently; empty sessions are never
 persisted; a monotonic hydration token guards scope switches (book ↔ character)
 so a stale response can't hydrate the wrong session.
 
 **Sweep draft protocol (v1).** The entity sweep persists RAW per-chapter results
-server-side (`api/sweep_draft.py`) rather than the merged aggregate — resume
+server-side (`api/sweep_draft_api.py`) rather than the merged aggregate — resume
 re-merges with the same `mergeProposals`, so a merge-logic fix benefits old
 drafts. A chapter re-runs when pending, failed, or its `textHash` changed.
 

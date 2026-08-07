@@ -7,7 +7,7 @@
 // scanned. The draft is working state, NOT the book — nothing lands in the
 // story bible until the user accepts proposals — and it's cleared on accept or
 // Start-over. Server side: one JSON row per project
-// (/v1/projects/{id}/sweep-draft, api/sweep_draft.py).
+// (/v1/projects/{id}/sweep-draft, api/sweep_draft_api.py).
 //
 // Draft document shape (version 1):
 //   { version: 1,

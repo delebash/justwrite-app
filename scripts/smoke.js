@@ -52,7 +52,7 @@ let scratch = "";
  * The data root the desktop app actually uses.
  *
  * Asking the RUNNING server is the authoritative answer and the first probe:
- * /v1/health reports its own `dataDir` (api/health.py:24), so we read the truth
+ * /v1/health reports its own `dataDir` (api/health_api.py), so we read the truth
  * instead of re-deriving it. The fallbacks mirror src-tauri/src/lib.rs:298
  * `resolve_data_root` — the `dataroot.txt` pointer beside the exe, else
  * `<exe_dir>/data` — for the case where the app is closed. Deliberately NOT a
@@ -176,7 +176,7 @@ async function main() {
   scratch = snapshotDataRoot(source, python);
 
   mkdirSync(scratch, { recursive: true });
-  track("server", spawn(python, ["-m", "justwrite_server.cli", "serve", "--port", String(SERVER_PORT), "--data-dir", scratch], {
+  track("server", spawn(python, ["-m", "justwrite_server.serve", "serve", "--port", String(SERVER_PORT), "--data-dir", scratch], {
     cwd: join(ROOT, "server"),
     stdio: ["ignore", "ignore", "inherit"],
     env: { ...process.env, JUSTWRITE_DATA_DIR: scratch },

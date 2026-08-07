@@ -438,7 +438,7 @@ class RagVector(Base):
 # conversation stays in History (the destructive-New-chat defect this fixes).
 # `ChatSession` is the metadata row (one per conversation); `ChatSessionMessage`
 # holds its ordered settled turns. The legacy `ChatMessage` table below is kept
-# ONLY as the read source for the one-time lazy migration in api/chat.py — a
+# ONLY as the read source for the one-time lazy migration in api/chat_api.py — a
 # pre-sessions thread becomes one session per (mode, character) on first list.
 
 
@@ -480,7 +480,7 @@ class ChatSessionMessage(Base):
 class ChatMessage(Base):
     """LEGACY (pre-2026-07-20) — one turn of the old single thread per
     (project_id, mode, character_id), ordered by `position`. NO LONGER WRITTEN:
-    kept solely so the one-time lazy migration in api/chat.py can lift each old
+    kept solely so the one-time lazy migration in api/chat_api.py can lift each old
     thread into a ChatSession, then delete these rows. A fresh install creates it
     empty and never touches it. project_id FKs projects so a book delete cascades
     it away (as it always did)."""

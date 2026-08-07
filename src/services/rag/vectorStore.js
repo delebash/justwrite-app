@@ -4,7 +4,7 @@
 // hybrid-searched in JS. Now vectors live in the server's rag_vectors table:
 // the renderer embeds chunks via its provider and PUTs them here; retrieval is
 // a server-side hybrid (BM25 + cosine + RRF) search. See
-// server/justwrite_server/api/rag.py + rag_search.py.
+// server/justwrite_server/api/rag_api.py + rag_search.py.
 
 import { get, post, put, del } from "@delebash/llm-ui";
 
