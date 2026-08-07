@@ -290,5 +290,5 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
 .jw-bw-plate :deep(.lu-bootload__bar) { width: 100%; font-size: .9cqw; }
 .jw-bw-plate :deep(.lu-bootload__skip) { font-size: .88cqw; color: #7d6a4c;
   font-family: "Fraunces", Georgia, serif; }
-.jw-bw-skip:hover { color: #7a2532; }
+.jw-bw-plate :deep(.lu-bootload__skip:hover) { color: #7a2532; }
 </style>

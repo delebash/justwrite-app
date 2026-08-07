@@ -162,8 +162,12 @@ if (process.env.JW_SEED === "0") {
 // settled state: the shell (`.app`, a project is open) or the onboarding view
 // (`.onboarding`, no project — what the smoke's isolated empty data dir produces). If the
 // splash is up it takes the splash's OWN always-present escape ("Continue without
-// waiting" — it never traps), then keeps waiting. Returns which state it reached so the
-// log tells the truth rather than hiding a stall behind a timeout.
+// waiting" — the kit BootModelLoad's `.lu-bootload__skip`; it never traps), then keeps
+// waiting. The escape selector was `.jw-bw-skip` until the 2026-08-04 kit adoption
+// replaced JW's own button — the stale selector no-opped, the overlay stayed, and every
+// interactive probe below timed out under it (found by the 2026-08-08 backfill).
+// Returns which state it reached so the log tells the truth rather than hiding a stall
+// behind a timeout.
 async function waitForBoot(timeoutMs = 20000) {
   const deadline = Date.now() + timeoutMs;
   let last = { shell: false, onboarding: false, splash: false };
@@ -174,7 +178,7 @@ async function waitForBoot(timeoutMs = 20000) {
       splash: !!document.querySelector(".jw-bootwarm"),
     }));
     if ((last.shell || last.onboarding) && !last.splash) return last;
-    if (last.splash) await page.evaluate(() => document.querySelector(".jw-bw-skip")?.click());
+    if (last.splash) await page.evaluate(() => document.querySelector(".lu-bootload__skip")?.click());
     await sleep(200);
   }
   return { ...last, timedOut: true };
