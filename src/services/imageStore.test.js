@@ -16,7 +16,7 @@ vi.mock("@delebash/llm-ui", () => ({
 }));
 
 import { requestBlob } from "@delebash/llm-ui";
-import { readImageBytes } from "../imageStore.js";
+import { readImageBytes } from "./imageStore.js";
 
 describe("imageStore.readImageBytes — path-first requestBlob (kit client.js:65)", () => {
   beforeEach(() => vi.clearAllMocks());

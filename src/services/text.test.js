@@ -3,7 +3,7 @@
 // htmlToText needs a DOM and stays covered by the headless smoke + probes
 // (the recorded deferral in the I1 build record).
 import { describe, expect, it } from "vitest";
-import { textToHtml } from "../text.js";
+import { textToHtml } from "./text.js";
 
 describe("textToHtml — default grammar (LLM replies: blank-line paragraphs, \\n → <br>)", () => {
   it("splits paragraphs on blank lines and keeps single newlines as <br>", () => {

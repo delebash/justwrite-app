@@ -15,7 +15,7 @@ import CommandPalette from "./components/CommandPalette.vue";
 import ProjectReplaceModal from "./components/ProjectReplaceModal.vue";
 import ChatPanel from "./components/ChatPanel.vue";
 import { HelpDrawer } from "@delebash/llm-ui";
-import ShortcutCheatsheet from "./components/ShortcutCheatsheet.vue";
+import KeyboardCheatsheet from "./components/KeyboardCheatsheet.vue";
 import WhatsNewModal from "./components/WhatsNewModal.vue";
 // THE boot-splash plate (bundled asset; publicDir is false — vite.config.js:24). One
 // illustration carries the entire title page: frame, the four corners, the JW crest, the
@@ -249,7 +249,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
       @connect-provider="router.push('/ai?providers=online')" />
     <ChatPanel v-model="ui.chatPanelOpen" />
     <HelpDrawer />
-    <ShortcutCheatsheet />
+    <KeyboardCheatsheet />
     <WhatsNewModal />
   </div>
 </template>

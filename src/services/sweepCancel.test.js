@@ -27,10 +27,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 
-vi.mock("../analysis/entityExtraction.js", () => ({ extractEntities: vi.fn() }));
+vi.mock("./analysis/entityExtraction.js", () => ({ extractEntities: vi.fn() }));
 
-import { extractEntities } from "../analysis/entityExtraction.js";
-import { isLikelyNonStoryTitle, resolvePoolSize, scanAllChapters, watchdogTimeoutMs } from "../analysis/entitySweep.js";
+import { extractEntities } from "./analysis/entityExtraction.js";
+import { isLikelyNonStoryTitle, resolvePoolSize, scanAllChapters, watchdogTimeoutMs } from "./analysis/entitySweep.js";
 import { useAiTasksStore } from "@delebash/llm-ui/stores/aiTasks.js";
 import { useResolvedRoute } from "@delebash/llm-ui/composables/useResolvedRoute.js";
 

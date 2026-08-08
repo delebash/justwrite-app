@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import {
   sanitizeProfile, sanitizeVoice,
   profileFieldDefs, voiceFieldDefs, draftRows, emptyOnlyPicks, applyProfileDrafts,
-} from "../analysis/characterProfile.js";
+} from "./analysis/characterProfile.js";
 
 const MOTIVATION_KEYS = ["contradiction", "fear", "lie", "need", "stakes", "truth", "want"];
 

@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import {
   draftCounts, draftFoundTotal, emptyDraft, needsScan, pruneDraft,
   rebuildProposals, recordChapterDone, recordChapterError, textHash,
-} from "../analysis/sweepDraft.js";
+} from "./analysis/sweepDraft.js";
 
 const CH1 = { id: "c1", num: 1, title: "Chapter 1" };
 const CH2 = { id: "c2", num: 2, title: "Chapter 2" };

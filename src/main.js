@@ -24,8 +24,8 @@ import { useSessionsStore } from "./stores/sessions.js";
 import { bootProviders } from "./services/providerBackend.js";
 import { bootRouting } from "./services/routingBackend.js";
 
-import "./tokens.css";
-import "./styles.css";
+import "./styles/tokens.css";
+import "./styles/styles.css";
 import { tooltipDirective } from "@delebash/llm-ui";
 import { i18n, detectLocale, setLocale as setI18nLocale } from "./i18n/index.js";
 import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";

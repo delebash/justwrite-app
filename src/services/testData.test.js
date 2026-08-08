@@ -26,7 +26,7 @@ vi.mock("@delebash/llm-ui", () => ({
 const CH1_BODY = "<p>Mira found the torn page in her father's coat.</p>";
 const CH1_SCENE2 = "<p>The brass key turned, but the door was already unlatched.</p>";
 
-vi.mock("../../stores/project", () => ({
+vi.mock("../stores/project", () => ({
   useProjectStore: () => ({
     allChapters: [
       { id: "ch1", num: 1, title: "The Ledger", words: 40, readerKnowledge: { newReaderFacts: ["The page is torn."], newPovFacts: [] } },
@@ -47,7 +47,7 @@ vi.mock("../../stores/project", () => ({
     worldRules: "",
   }),
 }));
-vi.mock("../../stores/sessions.js", () => ({
+vi.mock("../stores/sessions.js", () => ({
   useSessionsStore: () => ({ todayChapterId: null, lastWrite: null, todayWords: 0 }),
 }));
 
@@ -65,7 +65,7 @@ beforeEach(() => {
   };
 });
 
-import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "../labTestData.js";
+import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "./labTestData.js";
 
 describe("mergeVariables (QC-35: exact-name only)", () => {
   it("fills exact-name matches and ignores extras", () => {

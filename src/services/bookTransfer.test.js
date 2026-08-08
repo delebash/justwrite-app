@@ -14,7 +14,7 @@ vi.mock("@delebash/llm-ui", () => ({
   // the default folder from GET /v1/health via the kit `get`.
   get: vi.fn(async () => ({ dataDir: "/data" })),
 }));
-vi.mock("../settings.js", () => ({
+vi.mock("./settings.js", () => ({
   readSetting: vi.fn(() => null),
   writeSetting: vi.fn(),
 }));
@@ -35,7 +35,7 @@ beforeAll(async () => {
       storage: { getRoot: vi.fn(async () => ({ root: "/data" })) },
     },
   };
-  ({ exportProject, importProject } = await import("../bookTransfer.js"));
+  ({ exportProject, importProject } = await import("./bookTransfer.js"));
 });
 afterAll(() => {
   delete global.window;

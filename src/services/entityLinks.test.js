@@ -12,13 +12,13 @@ vi.mock("@delebash/llm-ui", () => ({
   friendlyAiError: vi.fn((e) => e),
   runAiFeatureStream: vi.fn(),
 }));
-vi.mock("../../services/settings.js", () => ({
+vi.mock("../services/settings.js", () => ({
   readSetting: vi.fn(() => null),
   writeSetting: vi.fn(),
   getAllSettings: vi.fn(() => ({})),
   applySettings: vi.fn(),
 }));
-vi.mock("../../services/projectApi.js", () => ({
+vi.mock("../services/projectApi.js", () => ({
   getSnapshot: vi.fn(() => null),
   putSnapshot: vi.fn(),
   removeProject: vi.fn(),
@@ -28,20 +28,20 @@ vi.mock("../../services/projectApi.js", () => ({
   isRegistryLoaded: vi.fn(() => true),
   createDemoProject: vi.fn(async () => null),
 }));
-vi.mock("../../services/imageStore.js", () => ({
+vi.mock("../services/imageStore.js", () => ({
   removeImage: vi.fn(async () => {}),
 }));
-vi.mock("../../stores/ui.js", () => ({
+vi.mock("../stores/ui.js", () => ({
   useUiStore: () => ({ showToast: vi.fn(), select: vi.fn() }),
 }));
-vi.mock("../../stores/sessions.js", () => ({
+vi.mock("../stores/sessions.js", () => ({
   useSessionsStore: () => ({ recordChapterWords: vi.fn() }),
 }));
 
 import { runAiFeature } from "@delebash/llm-ui";
-import { extractEntities } from "../analysis/entityExtraction.js";
-import { proposeSceneLinks } from "../rag/entityMatcher.js";
-import { useProjectStore } from "../../stores/project.js";
+import { extractEntities } from "./analysis/entityExtraction.js";
+import { proposeSceneLinks } from "./rag/entityMatcher.js";
+import { useProjectStore } from "../stores/project.js";
 
 function seededStore() {
   setActivePinia(createPinia());

@@ -25,10 +25,10 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { slugifyHeading } from "@delebash/llm-ui";
 import { describe, expect, it } from "vitest";
-import HELP_TOC from "../../../docs/toc.json";
+import HELP_TOC from "../../docs/toc.json";
 
-const RENDERER = fileURLToPath(new URL("../..", import.meta.url));
-const DOCS = fileURLToPath(new URL("../../../docs", import.meta.url));
+const RENDERER = fileURLToPath(new URL("..", import.meta.url));
+const DOCS = fileURLToPath(new URL("../../docs", import.meta.url));
 
 /** slug → Set of heading ids, mirroring how helpDocs.js keys the glob. */
 function docHeadings() {

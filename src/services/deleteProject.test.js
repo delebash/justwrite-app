@@ -14,7 +14,7 @@ import { createPinia, setActivePinia } from "pinia";
 // The store's `state()` runs bootstrap() at creation — it reads the registry + the
 // active pointer SYNCHRONOUSLY (projectApi's in-memory cache, hydrated before mount in
 // the real app). Both seams must therefore be sync here, or the store won't construct.
-vi.mock("../projectApi.js", () => ({
+vi.mock("./projectApi.js", () => ({
   listRegistry: vi.fn(() => []),
   isRegistryLoaded: vi.fn(() => true),
   getSnapshot: vi.fn(() => null),
@@ -24,17 +24,17 @@ vi.mock("../projectApi.js", () => ({
   removeProject: vi.fn(async () => {}),
   createDemoProject: vi.fn(async () => {}),
 }));
-vi.mock("../settings.js", () => ({
+vi.mock("./settings.js", () => ({
   readSetting: vi.fn(() => null),      // sync — loadActiveId() does `?? null` on it
   writeSetting: vi.fn(() => {}),
   getAllSettings: vi.fn(async () => ({})),
   applySettings: vi.fn(),
 }));
-vi.mock("../autosaveApi.js", () => ({ flushAutosave: vi.fn(), scheduleAutosave: vi.fn() }));
-vi.mock("../imageStore.js", () => ({ removeImage: vi.fn(async () => {}) }));
+vi.mock("./autosaveApi.js", () => ({ flushAutosave: vi.fn(), scheduleAutosave: vi.fn() }));
+vi.mock("./imageStore.js", () => ({ removeImage: vi.fn(async () => {}) }));
 
-import { writeSetting } from "../settings.js";
-import { useProjectStore } from "../../stores/project.js";
+import { writeSetting } from "./settings.js";
+import { useProjectStore } from "../stores/project.js";
 
 function seedRegistry(store, ids) {
   store._projects = ids.map((id) => ({ id, title: `Book ${id}`, author: "" }));

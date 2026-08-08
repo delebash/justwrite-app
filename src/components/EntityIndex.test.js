@@ -20,8 +20,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createApp, h, nextTick } from "vue";
 import { createI18n } from "vue-i18n";
 
-import EntityIndex from "../EntityIndex.vue";
-import en from "../../i18n/locales/en.json";
+import EntityIndex from "./EntityIndex.vue";
+import en from "../i18n/locales/en.json";
 
 let app;
 let host;

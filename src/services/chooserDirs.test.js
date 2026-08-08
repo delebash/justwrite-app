@@ -14,7 +14,7 @@ const h = vi.hoisted(() => ({ health: null, chooserDirs: null }));
 vi.mock("@delebash/llm-ui", () => ({
   get: vi.fn((path) => h.health(path)),
 }));
-vi.mock("../settings.js", () => ({
+vi.mock("./settings.js", () => ({
   readSetting: vi.fn((key) => (key === "chooserDirs" ? h.chooserDirs : undefined)),
   writeSetting: vi.fn(),
 }));
@@ -29,21 +29,21 @@ beforeEach(() => {
 describe("chooserDirs — default folder resolution (the 'opens at home' fix)", () => {
   it("returns the remembered folder for a key without hitting /v1/health", async () => {
     h.chooserDirs = { export: "/remembered/export" };
-    const { chooserDir } = await import("../chooserDirs.js");
+    const { chooserDir } = await import("./chooserDirs.js");
     const { get } = await import("@delebash/llm-ui");
     expect(await chooserDir("export")).toBe("/remembered/export");
     expect(get).not.toHaveBeenCalled();
   });
 
   it("falls back to the server data dir (GET /v1/health) when nothing is remembered", async () => {
-    const { chooserDir } = await import("../chooserDirs.js");
+    const { chooserDir } = await import("./chooserDirs.js");
     const { get } = await import("@delebash/llm-ui");
     expect(await chooserDir("import")).toBe("/data");
     expect(get).toHaveBeenCalledWith("/v1/health");
   });
 
   it("caches the health fetch across calls (one request per session)", async () => {
-    const { serverDataDir } = await import("../chooserDirs.js");
+    const { serverDataDir } = await import("./chooserDirs.js");
     const { get } = await import("@delebash/llm-ui");
     expect(await serverDataDir()).toBe("/data");
     expect(await serverDataDir()).toBe("/data");
@@ -54,7 +54,7 @@ describe("chooserDirs — default folder resolution (the 'opens at home' fix)", 
     h.health = async () => {
       throw new Error("offline");
     };
-    const { chooserDir } = await import("../chooserDirs.js");
+    const { chooserDir } = await import("./chooserDirs.js");
     const dir = await chooserDir("backup");
     // The whole point: a real string, never undefined, so the dialog never opens at home.
     expect(typeof dir).toBe("string");
@@ -62,8 +62,8 @@ describe("chooserDirs — default folder resolution (the 'opens at home' fix)", 
   });
 
   it("rememberDir persists the folder under the chooser key", async () => {
-    const { rememberDir } = await import("../chooserDirs.js");
-    const { writeSetting } = await import("../settings.js");
+    const { rememberDir } = await import("./chooserDirs.js");
+    const { writeSetting } = await import("./settings.js");
     rememberDir("autosave", "/picked/here");
     expect(writeSetting).toHaveBeenCalledWith("chooserDirs", { autosave: "/picked/here" });
   });

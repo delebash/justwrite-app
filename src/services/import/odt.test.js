@@ -27,7 +27,7 @@
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
 
-import { parseOdt } from "../odt.js";
+import { parseOdt } from "./odt.js";
 
 const ENVELOPE_OPEN = `<?xml version="1.0" encoding="UTF-8"?>
 <office:document-content

@@ -5,13 +5,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 
-vi.mock("../../services/settings.js", () => ({
+vi.mock("../services/settings.js", () => ({
   readSetting: vi.fn(() => null),
   writeSetting: vi.fn(),
   getAllSettings: vi.fn(() => ({})),
   applySettings: vi.fn(),
 }));
-vi.mock("../../services/projectApi.js", () => ({
+vi.mock("../services/projectApi.js", () => ({
   getSnapshot: vi.fn(() => null),
   putSnapshot: vi.fn(),
   removeProject: vi.fn(),
@@ -21,7 +21,7 @@ vi.mock("../../services/projectApi.js", () => ({
   isRegistryLoaded: vi.fn(() => true),
   createDemoProject: vi.fn(async () => null),
 }));
-vi.mock("../../services/autosaveApi.js", () => ({
+vi.mock("../services/autosaveApi.js", () => ({
   postAutosave: vi.fn(async () => ({ ok: true })),
   listAutosaves: vi.fn(async () => []),
   readAutosave: vi.fn(async () => null),
@@ -30,18 +30,18 @@ vi.mock("../../services/autosaveApi.js", () => ({
   getAutosaveDir: vi.fn(async () => ({ dir: "" })),
   putAutosaveDir: vi.fn(async () => ({ dir: "" })),
 }));
-vi.mock("../../services/imageStore.js", () => ({
+vi.mock("../services/imageStore.js", () => ({
   removeImage: vi.fn(async () => {}),
 }));
-vi.mock("../ui.js", () => ({
+vi.mock("./ui.js", () => ({
   useUiStore: () => ({ showToast: vi.fn(), select: vi.fn() }),
 }));
-vi.mock("../sessions.js", () => ({
+vi.mock("./sessions.js", () => ({
   useSessionsStore: () => ({ recordChapterWords: vi.fn() }),
 }));
 
-import * as projectApi from "../../services/projectApi.js";
-import { useProjectStore } from "../project.js";
+import * as projectApi from "../services/projectApi.js";
+import { useProjectStore } from "./project.js";
 
 function freshStore() {
   setActivePinia(createPinia());

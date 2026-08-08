@@ -289,7 +289,7 @@ justwrite-app/
 │   ├── App.vue
 │   ├── router/index.js
 │   ├── i18n/                  ← vue-i18n setup + locales/ (en, es)
-│   ├── tokens.css · styles.css · fonts.css
+│   ├── styles/                ← tokens.css · styles.css (fonts.css stays at src/)
 │   ├── stores/                ← project, ui, ai, sessions (Pinia)
 │   ├── services/              ← tauri-bridge.js (window.justwrite) · serverApi.js · rag/ · export/
 │   ├── components/

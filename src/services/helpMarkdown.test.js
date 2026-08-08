@@ -1,7 +1,7 @@
 // The kit's help-markdown renderer, exercised over THIS app's real docs.
 //
 // WHY: every Help surface renders its own title in a header bar — HelpView's
-// PaneHeader, the kit's HelpDrawer, WhatsNewModal, ShortcutCheatsheet — so
+// PaneHeader, the kit's HelpDrawer, WhatsNewModal, KeyboardCheatsheet — so
 // renderHelpMarkdown() strips the doc's leading H1 to avoid showing it twice.
 // That strip was `/^#\s+.+\n+/`, and JS treats \r as a line terminator, so `.`
 // never crossed it: on a CRLF checkout (git core.autocrlf, the default on
@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 import { renderHelpMarkdown } from "@delebash/llm-ui";
 import { describe, expect, it } from "vitest";
 
-const DOCS = fileURLToPath(new URL("../../../docs", import.meta.url));
+const DOCS = fileURLToPath(new URL("../../docs", import.meta.url));
 const DOC_FILES = readdirSync(DOCS).filter((f) => f.endsWith(".md"));
 
 describe("renderHelpMarkdown", () => {

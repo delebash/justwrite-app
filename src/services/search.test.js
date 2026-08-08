@@ -16,7 +16,7 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { buildIndex, searchIndex } from "../search.js";
+import { buildIndex, searchIndex } from "./search.js";
 
 const PROJECT = {
   parts: [{
@@ -111,7 +111,7 @@ describe("searchIndex — the snippet is body-only (no header duplication)", () 
 // A source-pin: App.vue keyboard handling is a window capture listener not cheaply
 // mounted, and this is the whole invariant (the chipPopoverStacking precedent).
 const APP = readFileSync(
-  resolve(dirname(fileURLToPath(import.meta.url)), "../../App.vue"), "utf8");
+  resolve(dirname(fileURLToPath(import.meta.url)), "../App.vue"), "utf8");
 
 describe("global ⌘F yields to the editor's find-in-editor", () => {
   it("the ⌘F branch bails on focusedInRichEditor()", () => {

@@ -5,7 +5,7 @@
 // per-main full cards (2026-07-18) so a rich protagonist can't starve the cast out
 // of the pin budget — measured: one full card was 3009 of the 4800-char budget.
 import { describe, expect, it } from "vitest";
-import { pickPinnedCards } from "../rag/entityMatcher.js";
+import { pickPinnedCards } from "./rag/entityMatcher.js";
 
 // Minimal live-store stand-in (collectEntities reads plain properties).
 const project = {

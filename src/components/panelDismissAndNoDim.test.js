@@ -30,12 +30,12 @@ import { fileURLToPath } from "node:url";
 import { usePanelDismiss } from "@delebash/llm-ui";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-// …/justwrite-app/src/components/__tests__ → …/Web, then into the kit.
+// …/justwrite-app/src/components → …/Web, then into the kit.
 // Same repo-to-kit relationship vitest.config.js's alias encodes (identical to
 // modalDragAndScrim.test.js — deliberately, so a kit move breaks both at once).
-const WEB = resolve(HERE, "../../../..");
+const WEB = resolve(HERE, "../../..");
 const readKit = (rel) => readFileSync(resolve(WEB, "just-llm-runner/ui/src", rel), "utf8");
-const readJw = (rel) => readFileSync(resolve(HERE, "../..", rel), "utf8");
+const readJw = (rel) => readFileSync(resolve(HERE, "..", rel), "utf8");
 
 // The single <style> block of an SFC, comments stripped, so a rule match can anchor on a
 // preceding `}` without tripping over the file's prose.
@@ -90,7 +90,7 @@ describe("no overlay dims or blurs the page behind it (user ruling, 2026-07-19)"
   }
 
   it("styles.css no longer declares the dead blurring `.modal-overlay` rule", () => {
-    const css = readJw("styles.css").replace(/\/\*[\s\S]*?\*\//g, "");
+    const css = readJw("styles/styles.css").replace(/\/\*[\s\S]*?\*\//g, "");
     // An unfiltered grep across every file type under src/ found ZERO consumers, so
     // the whole rule was deleted rather than de-dimmed. Comments are stripped above
     // so the tombstone comment can't satisfy this.
@@ -249,14 +249,16 @@ describe("the dismissal logic lives in ONE place (R3)", () => {
     const stripComments = (s) =>
       s.replace(/<!--[\s\S]*?-->/g, "").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-    const ROOTS = [resolve(HERE, "../.."), resolve(HERE, "../../../scripts")];
+    const ROOTS = [resolve(HERE, ".."), resolve(HERE, "../../scripts")];
     const offenders = [];
     const walk = (dir) => {
       for (const e of readdirSync(dir, { withFileTypes: true })) {
-        if (e.name === "node_modules" || e.name === "__tests__") continue;
+        if (e.name === "node_modules") continue;
         const p = resolve(dir, e.name);
         if (e.isDirectory()) { walk(p); continue; }
-        if (!/\.(vue|js|mjs|ts|css)$/.test(e.name)) continue;
+        // Tests live BESIDE their files (family standard) and legitimately name
+        // the dead attributes as expectations — production + scripts only here.
+        if (!/\.(vue|js|mjs|ts|css)$/.test(e.name) || e.name.endsWith(".test.js")) continue;
         const code = stripComments(readFileSync(p, "utf8"));
         if (/data-chat-toggle|data-ai-status-toggle/.test(code)) offenders.push(p);
       }

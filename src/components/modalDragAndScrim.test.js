@@ -35,11 +35,11 @@ import { fileURLToPath } from "node:url";
 import AppModal from "@delebash/llm-ui/common/components/AppModal.vue";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-// …/justwrite-app/src/components/__tests__ → …/Web, then into the kit.
+// …/justwrite-app/src/components → …/Web, then into the kit.
 // Same repo-to-kit relationship vitest.config.js's alias encodes; if one moves, so does
 // the other. (Identical to chipPopoverStacking.test.js — deliberately, so a kit move
 // breaks both loudly rather than one silently.)
-const KIT = resolve(HERE, "../../../../just-llm-runner/ui/src");
+const KIT = resolve(HERE, "../../../just-llm-runner/ui/src");
 
 function readKit(rel) {
   const path = resolve(KIT, rel);
