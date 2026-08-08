@@ -7,7 +7,7 @@ import { saveImage, urlFor } from "../services/imageStore.js";
 import { promptDialog, confirmDialog, DataManagement, LogsPanel, SettingsShell, UpdatesPanel, renderHelpMarkdown, get, put, post, fmtBytes, refreshRunnerModels } from "@delebash/llm-ui";
 import { loadDoc } from "../services/helpDocs.js";
 import { readSetting, writeSetting } from "../services/settings.js";
-import { exportProject, importProject, saveBackupBlob, canTransferBooks } from "../services/bookTransfer.js";
+import { exportProject, importProject, saveBackupBlob, canSaveFiles, canPickBooks } from "../services/bookTransfer.js";
 import { serverDataDir, chooserDir, rememberDir } from "../services/chooserDirs.js";
 import * as autosaveApi from "../services/autosaveApi.js";
 import { PaneHeader } from "@delebash/llm-ui";
@@ -1560,8 +1560,11 @@ async function deleteCategory(c) {
         </div>
 
         <!-- Per-project export / import — a book travels as a single <title>.zip
-             (book.json + images/ inside). Desktop-only (native save/open dialog);
-             the browser shows a note. -->
+             (book.json + images/ inside). Export works everywhere (native save
+             dialog on the desktop, browser download otherwise) and is the twin
+             of the Export view's ".zip" format card — one exportProject() under
+             both. Import still needs a native file picker, so it is desktop-only
+             and the browser gets a note in its place. -->
         <div class="card">
           <div class="card-title">{{ $t('settings.backups.thisBookTitle') }}</div>
           <i18n-t keypath="settings.backups.thisBookHint" tag="p" class="t-muted" style="font-size:12.5px;margin:0 0 12px;line-height:1.55" scope="global">
@@ -1572,23 +1575,23 @@ async function deleteCategory(c) {
             <template #zip2><code>.zip</code></template>
           </i18n-t>
           <div v-if="transferErr" class="banner danger" style="margin-bottom:10px">{{ transferErr }}</div>
-          <div v-if="canTransferBooks" style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
             <UiButton intent="primary" :disabled="!!transferBusy || !project._activeId" @click="exportThisProject()">
               <template #icon><Icon name="Download" :size="13" /></template>
               {{ transferBusy === 'export' ? $t('settings.backups.exporting') : $t('settings.backups.exportButton') }}
             </UiButton>
-            <UiButton intent="secondary" :disabled="!!transferBusy" @click="importAProject()">
+            <UiButton v-if="canPickBooks" intent="secondary" :disabled="!!transferBusy" @click="importAProject()">
               <template #icon><Icon name="Folder" :size="13" /></template>
               {{ transferBusy === 'import' ? $t('settings.backups.importing') : $t('settings.backups.importButton') }}
             </UiButton>
+            <span v-else class="t-muted" style="font-size:12px">{{ $t('settings.backups.importDesktopOnly') }}</span>
           </div>
-          <p v-else class="t-muted" style="font-size:12px;margin:0">{{ $t('settings.backups.desktopOnly') }}</p>
         </div>
 
         <!-- Backup / restore / reset — the shared full-DB module (same code +
              server endpoints in every same-stack app). The autosave card above
              is JustWrite's Tauri-specific on-disk restore, kept app-local. -->
-        <DataManagement app-name="JustWrite" :save-file="canTransferBooks ? saveBackupBlob : null" />
+        <DataManagement app-name="JustWrite" :save-file="canSaveFiles ? saveBackupBlob : null" />
       </div>
 
       <!-- ── LOGS (shared panel) ───────────────────── -->

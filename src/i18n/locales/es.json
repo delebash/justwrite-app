@@ -516,7 +516,7 @@
     "emptyCategory": "No hay marcadores en esta categoría."
   },
   "export": {
-    "intro": "{export} produce un archivo terminado: {pdf} (maquetado con portada y TOC), {docx} (Word con TOC dinámico) o {epub} (e-book para Apple Books / Kobo / Kindle). Elige una tarjeta de formato para ver sus opciones; los motores se descargan en el primer uso.",
+    "intro": "{export} produce un archivo terminado: {pdf} (maquetado con portada y TOC), {docx} (Word con TOC dinámico), {epub} (e-book para Apple Books / Kobo / Kindle) o un {zip} —el libro completo, texto e imágenes— para guardarlo, llevarlo a otro ordenador o abrirlo en otra aplicación. Elige una tarjeta de formato para ver sus opciones.",
     "exportTerm": "Exportar",
     "pdfTerm": "PDF",
     "docxTerm": "DOCX",
@@ -533,14 +533,27 @@
     "continuousProse": "Prosa continua",
     "continuousProseHint": "Eliminar los títulos de las escenas y los saltos de escena {breakMark} para que cada capítulo fluya como un solo cuerpo de texto, como una novela impresa sin adornos.",
     "exportCardTitle": "Exportar",
-    "pdfDownloadNote": "La primera exportación descarga pdfmake (~1.8 MB) bajo demanda.",
-    "docxDownloadNote": "La primera exportación descarga el empaquetador docx (~700 KB) bajo demanda.",
-    "epubDownloadNote": "La primera exportación descarga JSZip (~80 KB) bajo demanda.",
     "addChapterFirst": "Añade un capítulo primero",
     "exportAsTooltip": "Exportar como {format}",
     "exportAction": "Exportar {format}",
     "noChapters": "Aún no hay capítulos",
-    "savesAs": "Se guarda como {file}"
+    "savesAs": "Se guarda como {file}",
+    "zipTerm": "Libro de JustWrite",
+    "zipCardTitle": "Libro completo",
+    "zipDesc": "Todo este libro en un solo .zip: cada parte, capítulo y escena, la biblia de la historia completa y tus imágenes. Es el archivo que debes guardar como copia, llevar a otro ordenador o abrir en JustVoice para crear un audiolibro. Puedes volver a importarlo desde Ajustes → Copias de seguridad.",
+    "stage": {
+      "loadingPdf": "Cargando el motor de PDF…",
+      "loadingDocx": "Cargando el motor de DOCX…",
+      "loadingEpub": "Cargando el empaquetador de EPUB…",
+      "composing": "Componiendo el documento…",
+      "rendering": "Generando las páginas…",
+      "packing": "Empaquetando el archivo…",
+      "done": "Listo."
+    },
+    "saveDialogTitle": "Guardar {format}",
+    "doneToast": "{format} exportado.",
+    "failed": "La exportación ha fallado.",
+    "zipJvNote": "Este es el archivo que importa JustVoice: ábrelo allí para asignar voces y grabar el audiolibro. También es la forma de llevar el libro a otro ordenador."
   },
   "versionHistory": {
     "labelPlaceholder": "Etiquetar esta versión (opcional)…",
@@ -1812,7 +1825,7 @@
       "exportButton": "Exporta este libro…",
       "importing": "Importando…",
       "importButton": "Importa un libro…",
-      "desktopOnly": "Disponible en la aplicación de escritorio."
+      "importDesktopOnly": "Importar un libro requiere la aplicación de escritorio."
     },
     "statuses": {
       "cardTitle": "Estados",

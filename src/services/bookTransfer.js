@@ -4,10 +4,16 @@
 // A project exports as a single "<title>.zip" (a "<title>/" folder holding
 // book.json + images/ inside); import reads one back as a NEW project. The
 // SERVER produces/consumes the zip bytes (GET /v1/projects/{id}/export +
-// POST /v1/projects/import); the desktop shell's native save/open dialog is
-// where the file lands / comes from. Desktop-only — a browser has no
-// filesystem to write a loose file to (the buttons hide when `canTransferBooks`
-// is false).
+// POST /v1/projects/import).
+//
+// EXPORT WORKS EVERYWHERE. The desktop shell's native "save as" is only the
+// nicer of two destinations: with it you choose the folder and we remember it;
+// without it (browser / headless) the blob goes to the browser's Downloads the
+// same way a PDF does. This is the shape the shared kit's DataManagement
+// already uses for the whole-DB backup — the per-book zip was the odd one out.
+//
+// IMPORT is still desktop-only: it needs a file picker handing us the bytes,
+// which is why the two capabilities below are separate flags and not one.
 //
 // Each chooser remembers its own last folder (persisted in the settings doc,
 // keyed per chooser); the first time, it defaults to the app's data folder.
@@ -15,34 +21,37 @@
 
 import { post, requestBlob } from "@delebash/llm-ui";
 import { chooserDir, rememberDir } from "./chooserDirs.js";
+import { saveBlob } from "./download.js";
 
 const jw = typeof window !== "undefined" ? window.justwrite : null;
-export const canTransferBooks = !!(jw?.shell?.saveFile && jw?.shell?.pickFile);
+/** Host offers a native "save as" — export picks (and remembers) a folder. */
+export const canSaveFiles = !!jw?.shell?.saveFile;
+/** Host offers a file picker — the gate on Import, which has no browser path. */
+export const canPickBooks = !!jw?.shell?.pickFile;
 
 // Filesystem-safe filename stem — the display title minus chars illegal in a
 // filename (mirrors the server's `_safe_title`); spaces + hyphens are kept, so
 // "The Ninth Facet" stays intact. Never empty.
-function safeTitle(title) {
+export function safeTitle(title) {
   const s = (title || "").replace(/[<>:"/\\|?*]/g, "").trim().replace(/\.+$/, "");
   return s || "book";
 }
 
 /**
- * Export a project to a user-chosen "<title>.zip". Returns the save result
- * ({ ok, path } | { ok:false, cancelled }).
+ * Export a project as "<title>.zip". Desktop: a user-chosen location via the
+ * native dialog. Browser: straight to Downloads.
+ * Returns { ok, path } | { ok, downloaded } | { ok:false, cancelled }.
  */
 export async function exportProject(projectId, title) {
   const blob = await requestBlob(`/v1/projects/${projectId}/export`);
-  const res = await jw.shell.saveFile({
-    blob,
-    suggestedName: `${safeTitle(title)}.zip`,
+  return saveBlob(blob, `${safeTitle(title)}.zip`, {
+    // Keeps the existing "export" folder memory; manuscripts use their own key
+    // so a submissions folder and a backup folder don't fight over one slot.
+    chooser: "export",
     title: "Export book",
     filterName: "JustWrite book",
     filterExt: "zip",
-    defaultDir: await chooserDir("export"),
   });
-  if (res?.path) rememberDir("export", res.path.replace(/[/\\][^/\\]*$/, "")); // the folder it saved to
-  return res;
 }
 
 /**
@@ -67,14 +76,10 @@ export async function importProject() {
  * the shared DataManagement's "Export backup" (Task B1). Returns the save result.
  */
 export async function saveBackupBlob(blob, suggestedName) {
-  const res = await jw.shell.saveFile({
-    blob,
-    suggestedName,
+  return saveBlob(blob, suggestedName, {
+    chooser: "backup",
     title: "Export backup",
     filterName: "Backup",
     filterExt: "zip",
-    defaultDir: await chooserDir("backup"),
   });
-  if (res?.path) rememberDir("backup", res.path.replace(/[/\\][^/\\]*$/, ""));
-  return res;
 }

@@ -7,17 +7,35 @@
 // manuscript model from `manuscript.js`.
 // ============================================================
 
+// The font the docDefinition's defaultStyle asks for; pdfmake resolves "Roboto"
+// bold to this file. Asserting it is present turns a silent 0.2→0.3-style API
+// drift into a named error instead of a hang (see below).
+const REQUIRED_FONT = "Roboto-Medium.ttf";
+
 let pdfmakePromise = null;
 async function getPdfMake() {
   if (!pdfmakePromise) {
     pdfmakePromise = (async () => {
-      const [{ default: pdfMake }, fonts] = await Promise.all([
+      const [{ default: pdfMake }, vfsMod] = await Promise.all([
         import("pdfmake/build/pdfmake"),
         import("pdfmake/build/vfs_fonts"),
       ]);
-      // pdfmake bundles its vfs in different shapes across versions.
-      const vfs = fonts.pdfMake?.vfs || fonts.default?.pdfMake?.vfs || fonts.default?.vfs;
-      if (vfs) pdfMake.vfs = vfs;
+      // pdfmake 0.3's vfs_fonts.js ends in `module.exports = vfs`, where vfs is a
+      // FLAT { "Roboto-Regular.ttf": "<base64>", … } map — so under Vite's CJS
+      // interop the map itself arrives as `.default`. (Its other branch,
+      // `_global.pdfMake.addVirtualFileSystem(vfs)`, only fires for a script-tag
+      // load where a global pdfMake already exists — never for us.)
+      //
+      // This used to probe `fonts.pdfMake?.vfs || fonts.default?.pdfMake?.vfs ||
+      // fonts.default?.vfs` and assign `pdfMake.vfs`, which were 0.2 shapes. All
+      // three miss on 0.3.11, so the VFS was NEVER attached and every PDF export
+      // died on "File 'Roboto-Medium.ttf' not found in virtual file system"
+      // (measured 2026-08-08).
+      const vfs = vfsMod.default || vfsMod;
+      if (!vfs?.[REQUIRED_FONT]) {
+        throw new Error(`pdfmake fonts missing ${REQUIRED_FONT} — the vfs_fonts export shape changed`);
+      }
+      pdfMake.addVirtualFileSystem(vfs);
       return pdfMake;
     })();
   }
@@ -149,11 +167,14 @@ export async function exportPdf({ manuscript, onProgress } = {}) {
   };
 
   onProgress?.({ stage: "rendering" });
-  const blob = await new Promise((resolve, reject) => {
-    try {
-      pdfMake.createPdf(docDefinition).getBlob((b) => resolve(b));
-    } catch (err) { reject(err); }
-  });
+  // pdfmake 0.3's getBlob() IS the promise (OutputDocumentBrowser.getBlob →
+  // `async getBlob()`). It was called with a 0.2-style callback here, which 0.3
+  // ignores: the returned promise was dropped, `resolve` was never reached, and
+  // the awaited promise never settled. That hung the whole Export view — the
+  // shared `exporting` flag stayed true, so every format's button stayed
+  // disabled until reload, which is why EPUB looked broken when PDF was the
+  // culprit. A throw inside pdfmake now rejects normally and surfaces.
+  const blob = await pdfMake.createPdf(docDefinition).getBlob();
   onProgress?.({ stage: "done" });
   return blob;
 }

@@ -250,6 +250,62 @@ try {
     }
   }
 
+  // ── Export-actions probe (#/export) — OFF by default (user's ruling,
+  // 2026-08-08: GUI verification is theirs; the automated run must stay quick).
+  // Set JW_EXPORT_PROBE=1 to arm it. Kept rather than deleted because it is the
+  // only thing here that catches the bug below, and it was verified to go red on
+  // it before being parked. Delete outright if it is still dormant later.
+  //
+  // What it catches. The route loop proves a page renders SOMETHING with zero JS
+  // errors — which is exactly what a broken Export view looks like from outside,
+  // so the loop's ✓ meant nothing here. The bug (found 2026-08-08, live since the
+  // 2026-07-12 JustVoice-handoff removal): the manuscript cards sat inside a
+  // `<template>` that had lost its `v-else` when the branch above it was deleted.
+  // Vue does NOT treat a directive-less `<template>` as a fragment — it compiles
+  // to a literal HTML <template> element, which the UA stylesheet renders
+  // `display:none`. The stats, the options and the ONLY export button were in the
+  // DOM, threw nothing, and were invisible. Measured with the bug reintroduced:
+  // `✓ #/export chars=989 errors=0` while every button reported w=0 h=0.
+  //
+  // Hence the assertion is VISIBILITY, not presence: click each format card and
+  // require `.ex-go` to have a real box. A zero-height button is the failure.
+  if (!process.env.JW_EXPORT_PROBE) {
+    console.log("· export-actions    skipped (set JW_EXPORT_PROBE=1 to arm)");
+  } else try {
+    await page.evaluate(() => { window.location.hash = "#/export"; });
+    await sleep(700);
+    mark = errors.length;
+    const cards = await page.$$(".format-picker button");
+    const seen = [];
+    for (let i = 0; i < cards.length; i++) {
+      const picker = await page.$$(".format-picker button");
+      if (!picker[i]) break;
+      const name = (await picker[i].innerText().catch(() => `format ${i}`)).trim().split("\n")[0];
+      await picker[i].click();
+      await sleep(350);
+      const box = await page.evaluate(() => {
+        const b = document.querySelector(".ex-go");
+        if (!b) return null;
+        const r = b.getBoundingClientRect();
+        return { w: Math.round(r.width), h: Math.round(r.height), disabled: !!b.disabled };
+      });
+      seen.push({ name, ok: !!box && box.h > 0 && box.w > 0 && !box.disabled, box });
+    }
+    const newErrs = errors.length - mark;
+    // 4 formats: PDF · DOCX · EPUB · the whole-book .zip (added 2026-08-08).
+    const bad = cards.length !== 4 || seen.some((s) => !s.ok) || newErrs !== 0;
+    if (bad) failed++;
+    console.log(
+      `${bad ? "✗" : "✓"} export-actions  formats=${cards.length} ` +
+      seen.map((s) => `${s.name}=${s.ok ? "clickable" : JSON.stringify(s.box)}`).join(" ") +
+      ` errors=${newErrs}`,
+    );
+    errors.slice(mark, mark + 4).forEach((e) => console.log("    " + e));
+  } catch (e) {
+    failed++;
+    console.log(`✗ export-actions  PROBE-FAIL ${String(e.message || e).slice(0, 140)}`);
+  }
+
   // ── AI-area sub-tab sweep. The route loop renders only the default tab; the AI
   // area's tabs are in-page (Providers & models · Tasks · Routing by feature · Usage ·
   // [app]), so the non-default tabs only mount behind a click. Click each + assert

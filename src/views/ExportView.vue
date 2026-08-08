@@ -1,28 +1,40 @@
 <script setup>
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { PaneHeader } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { buildManuscript, slug } from "../services/export/manuscript.js";
+// safeTitle, not slug(): the .zip keeps the display title verbatim (minus
+// characters illegal in a filename), so "Saves as …" must show what really lands.
+import { exportProject, safeTitle } from "../services/bookTransfer.js";
+import { saveBlob } from "../services/download.js";
 import { UiButton } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
-import { UiInput } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const ui = useUiStore();
+const { t } = useI18n({ useScope: "global" });
 
 const fmt = ref("pdf");
 const stripSceneStructure = ref(false);
 
-// Audio / audiobook lives in the separate JustVoice app — JustWrite is
-// writing-only. To hand a book to JustVoice, export it (Settings → Backups →
-// "Export this book") and open the .zip there; there is no live server handoff
-// from this view anymore.
+// Four formats, two kinds. PDF / DOCX / EPUB are FINISHED READING FILES,
+// composed here in the renderer from the manuscript model. The .zip is the
+// WHOLE BOOK — text, structure and images, the server's own snapshot format —
+// for moving a book between computers, keeping a copy, or handing it to another
+// app. JustVoice reads that same .zip (audio lives there, not here), but it is
+// not a JustVoice-specific export and is not named after it.
+//
+// The .zip card is the twin of Settings → Backups → "This book"; both call the
+// one `exportProject()`. It lives here too because this is where a writer looks
+// for "get my book out".
 const FORMATS = [
   { id: "pdf",  name: "PDF",            sub: "Print-ready manuscript with TOC.",       icon: "Export",     ext: "pdf",  mime: "application/pdf" },
   { id: "docx", name: "DOCX",           sub: "Word-compatible.",                       icon: "Book",       ext: "docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
   { id: "epub", name: "EPUB",           sub: "Reflowable e-book.",                     icon: "Book",       ext: "epub", mime: "application/epub+zip" },
+  { id: "zip",  name: "JustWrite book", sub: "The whole book, to move or share.",      icon: "Cube",       ext: "zip",  mime: "application/zip" },
 ];
 
 // ── Shared state ─────────────────────────────────────────────────────
@@ -44,25 +56,26 @@ function go(fmtId) {
   exportError.value = null;
   exportStage.value = "";
 }
-function triggerDownload(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 30_000);
-}
 function resetProgress() {
   exporting.value = false;
   exportStage.value = "";
 }
-const STAGE_LABEL = {
-  "loading-pdfmake": "Loading PDF engine…",
-  "loading-docx":    "Loading DOCX engine…",
-  "loading-jszip":   "Loading EPUB packager…",
-  "composing":       "Composing document…",
-  "packing":         "Packaging archive…",
-  "done":            "Done.",
+// Stage → i18n key. These were hardcoded English until 2026-08-08 and so were
+// invisible to `i18n:report` (not $t() calls, nothing to find). "rendering" had
+// no entry at all, so a PDF export displayed the raw word "rendering".
+const STAGE_KEY = {
+  "loading-pdfmake": "export.stage.loadingPdf",
+  "loading-docx":    "export.stage.loadingDocx",
+  "loading-jszip":   "export.stage.loadingEpub",
+  "composing":       "export.stage.composing",
+  "rendering":       "export.stage.rendering",
+  "packing":         "export.stage.packing",
+  "done":            "export.stage.done",
 };
-function stageLabel() { return STAGE_LABEL[exportStage.value] || exportStage.value; }
+function stageLabel() {
+  const key = STAGE_KEY[exportStage.value];
+  return key ? t(key) : exportStage.value;
+}
 
 // ── PDF / DOCX / EPUB ────────────────────────────────────────────────
 async function exportManuscript(fmtId) {
@@ -88,9 +101,38 @@ async function exportManuscript(fmtId) {
       const { exportEpub } = await import("../services/export/epub.js");
       blob = await exportEpub({ manuscript, onProgress });
     }
-    const ext = FORMATS.find((f) => f.id === fmtId)?.ext || fmtId;
-    triggerDownload(blob, `${slug(project.project.title)}.${ext}`);
-    ui.showToast({ message: `Exported ${fmtId.toUpperCase()}.` });
+    const f = FORMATS.find((x) => x.id === fmtId);
+    // Same destination rule as the .zip: native "save as" where the host has one
+    // (own folder memory, separate from the book zip's), else Downloads.
+    const res = await saveBlob(blob, `${slug(project.project.title)}.${f?.ext || fmtId}`, {
+      chooser: "manuscript",
+      title: t("export.saveDialogTitle", { format: f?.name || fmtId }),
+      filterName: f?.name || fmtId,
+      filterExt: f?.ext || fmtId,
+    });
+    if (res?.cancelled) return;
+    if (res && res.ok === false) throw new Error(res.error || t("export.failed"));
+    ui.showToast({ message: t("export.doneToast", { format: f?.name || fmtId }) });
+  } catch (err) {
+    exportError.value = err.message || String(err);
+  } finally {
+    resetProgress();
+  }
+}
+
+// ── Whole book (.zip) ────────────────────────────────────────────────
+// Server-composed, so there is no engine to lazy-load and no manuscript
+// options — one request, then the desktop save dialog or a browser download.
+// Same call as Settings → Backups, so the two surfaces cannot drift.
+async function exportBookZip() {
+  exportError.value = null;
+  exporting.value = true;
+  exportStage.value = "packing";
+  try {
+    const res = await exportProject(project._activeId, project.project.title);
+    if (res?.cancelled) return;
+    if (res && res.ok === false) throw new Error(res.error || t("export.failed"));
+    ui.showToast({ message: t("settings.backups.bookExported") });
   } catch (err) {
     exportError.value = err.message || String(err);
   } finally {
@@ -112,6 +154,7 @@ async function exportManuscript(fmtId) {
         <template #pdf><strong>{{ $t("export.pdfTerm") }}</strong></template>
         <template #docx><strong>{{ $t("export.docxTerm") }}</strong></template>
         <template #epub><strong>{{ $t("export.epubTerm") }}</strong></template>
+        <template #zip><strong>{{ $t("export.zipTerm") }}</strong></template>
       </i18n-t>
 
       <!-- Format picker -->
@@ -143,8 +186,49 @@ async function exportManuscript(fmtId) {
         <Icon name="Alert" :size="14" /> {{ exportError }}
       </div>
 
+      <!-- Whole book (.zip) ──────────────────────────────────────────── -->
+      <template v-if="fmt === 'zip'">
+        <div class="card">
+          <div class="card-title">{{ $t("export.zipCardTitle") }}</div>
+          <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">{{ $t("export.zipDesc") }}</p>
+          <div class="manuscript-stats" style="display:grid;gap:14px;padding:14px;background:var(--surface-2);border-radius:8px;font-size:13px">
+            <div>
+              <div class="t-muted" style="font-size:11px">{{ $t("export.statParts") }}</div>
+              <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ manuscriptStats.parts }}</b>
+            </div>
+            <div>
+              <div class="t-muted" style="font-size:11px">{{ $t("export.statChapters") }}</div>
+              <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ manuscriptStats.chapters }}</b>
+            </div>
+            <div>
+              <div class="t-muted" style="font-size:11px">{{ $t("export.statWords") }}</div>
+              <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ manuscriptStats.words.toLocaleString() }}</b>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">{{ $t("export.exportCardTitle") }}</div>
+          <!-- The JustVoice fact belongs where the decision is made. It was the
+               fourth clause of a paragraph above, which is where it got missed. -->
+          <div style="font-size:12.5px;color:var(--ink-2);margin-bottom:14px;line-height:1.55">{{ $t("export.zipJvNote") }}</div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <UiButton class="ex-go" intent="primary" :disabled="exporting || !project._activeId"
+              v-tooltip.bottom="$t('export.exportAsTooltip', { format: $t('export.zipTerm') })"
+              @click="exportBookZip()">
+              <Icon name="Download" :size="13" /> {{ $t("export.exportAction", { format: $t("export.zipTerm") }) }}
+            </UiButton>
+            <span class="t-muted" style="font-size:11.5px">
+              <i18n-t keypath="export.savesAs" tag="span" scope="global">
+                <template #file><code>{{ safeTitle(project.project.title) }}.zip</code></template>
+              </i18n-t>
+            </span>
+          </div>
+        </div>
+      </template>
+
       <!-- PDF / DOCX / EPUB ─────────────────────────────────────────── -->
-      <template>
+      <template v-else>
         <div class="card">
           <div class="card-title">{{ $t("export.manuscriptCardTitle") }}</div>
           <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
@@ -179,13 +263,12 @@ async function exportManuscript(fmtId) {
 
         <div class="card">
           <div class="card-title">{{ $t("export.exportCardTitle") }}</div>
-          <div style="font-size:12.5px;color:var(--ink-2);margin-bottom:14px;line-height:1.55">
-            <template v-if="fmt === 'pdf'">{{ $t("export.pdfDownloadNote") }}</template>
-            <template v-else-if="fmt === 'docx'">{{ $t("export.docxDownloadNote") }}</template>
-            <template v-else>{{ $t("export.epubDownloadNote") }}</template>
-          </div>
+          <!-- No "downloads the engine (~1.8 MB)" note here any more (user's call,
+               2026-08-08): it is false on desktop and headless-localhost, where the
+               engine is a local file, and the progress bar already names the load
+               while it is actually happening. -->
           <div style="display:flex;gap:10px;align-items:center">
-            <UiButton intent="primary" :disabled="exporting || manuscriptStats.chapters === 0"
+            <UiButton class="ex-go" intent="primary" :disabled="exporting || manuscriptStats.chapters === 0"
               v-tooltip.bottom="manuscriptStats.chapters === 0 ? $t('export.addChapterFirst') : $t('export.exportAsTooltip', { format: FORMATS.find(f => f.id === fmt)?.name })"
               @click="exportManuscript(fmt)">
               <Icon name="Download" :size="13" /> {{ $t("export.exportAction", { format: FORMATS.find(f => f.id === fmt)?.name }) }}
