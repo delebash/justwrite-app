@@ -40,13 +40,15 @@ A single book travels as a **`.zip` named after it** — e.g. `The Ninth Facet.z
 
 ### Export this book
 
-In **Settings → Backups → This book**, click **Export this book…**. A native Save dialog opens — defaulting to your data folder, and remembering wherever you last saved — so you choose where the `.zip` goes.
+In **Settings → Backups → This book**, click **Export this book…**. On the desktop app a native Save dialog opens — defaulting to your data folder, and remembering wherever you last saved — so you choose where the `.zip` goes. In a browser it downloads to your Downloads folder, the same as a PDF.
+
+The **Export** view's **JustWrite book** format card does exactly this, and is the same button in the place you'd look for it while finishing a draft. Either door, one file.
 
 ### Import a book
 
 Click **Import a book…** and pick a `.zip`. It comes in as a **new** book — your current books are untouched — so you can import the same file many times, and each becomes its own project. (This is exactly how the bundled sample works: it's shipped as one of these folders.)
 
-Export/import is a **desktop** feature — it needs the native file dialogs — so the browser-only build shows a note instead of the buttons.
+**Import** is a **desktop** feature — it needs a native file picker to hand JustWrite the bytes — so the browser-only build shows a note in place of that one button. Export works everywhere.
 
 ### When to use it
 

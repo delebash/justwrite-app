@@ -7,6 +7,8 @@ tune models yourself.
 
 ## Quick Setup — one good model that fits
 
+> *"I want to run AI locally, but every guide tells me to pick a model, figure out the right quantization, install it, then configure four different things in Settings. Just tell me what to do."*
+
 A fresh install (and a factory reset — they are the same state) ships the catalog **full**
 but every choice **empty**: no chat model, no embedding. The "Your setup" strip shows both
 slots as **Not set**, and anything that needs a model before setup answers with "run Quick

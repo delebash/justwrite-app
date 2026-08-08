@@ -53,15 +53,14 @@ The connection test shows green (Online), yellow (Checking), or red (Offline). O
 
 ---
 
-## Quick setup for local AI
-
-> *"I want to run AI locally, but every guide tells me to pick a model, figure out the right quantization, install it, then configure four different things in Settings. Just tell me what to do."*
-
-The **Quick Setup** wizard (on the **AI** page, Providers & models tab) does the picking and configuring for you — with the **built-in local engine**, not an external server. It checks your graphics card and memory, offers the best model from the **Model catalog** that actually fits your machine, and one click then installs the bundled llama.cpp engine if it's missing, downloads the model, loads it, and makes it your **default** — the model every AI feature runs on until you route a feature elsewhere under **Routing by feature**. Re-running it later (new GPU, new model) is safe: it changes the default; a preset you pointed somewhere yourself is never touched.
-
-There is nothing to install first — no Ollama, no LM Studio, no terminal. Both remain fully supported as *providers* (see the walkthroughs below) if you prefer running your own server; the wizard simply doesn't need them, and it never touches external providers.
-
-The full story of the built-in engine — the Model catalog, downloads, adding your own models, engine switches and hardware tuning — lives in **[Models](models.md)**.
+**Want local AI with zero decisions?** The **Quick Setup** wizard (AI page →
+Providers & models, the band on the Local tab) checks your machine, picks the
+best model that actually runs fast on it, installs the bundled llama.cpp engine,
+and makes it your default — nothing to install first, no Ollama, no LM Studio,
+no terminal (both remain fully supported as *providers* below if you prefer
+running your own server). The whole story — what it picks and why, the confirm
+step, parallel downloads, re-running it safely — is one section:
+**[Models → Quick Setup](models.md#quick-setup--one-good-model-that-fits)**.
 
 ---
 
@@ -372,37 +371,9 @@ Anything in JustWrite that calls an AI — critique, brainstorm, plot-hole scan,
 
 ---
 
-## Troubleshooting
-
-**Test returns Offline.**
-
-- For cloud providers: usually an invalid API key, or a key with insufficient permissions. Verify on the provider's dashboard.
-- For local providers: the server isn't running. Start it from the terminal.
-- Check the URL doesn't have a typo. For the **Ollama (native)** preset the default is `http://localhost:11434` — no `/v1`. For a generic **OpenAI-compatible** provider (LM Studio, llama.cpp's own server, vLLM) the URL usually needs the `/v1` suffix — LM Studio's default is `http://localhost:1234/v1`.
-
-**Local model is very slow.**
-
-- Most likely you don't have enough RAM. A 7B model wants ~8 GB free; a 13B model wants ~16 GB. Try a smaller model.
-- A GPU helps enormously. CPU-only inference is feasible but slow.
-
-**The model doesn't return useful results.**
-
-- Small local models (under 7B parameters) may not be good enough for critique or entity sweep. Try a larger model.
-- Some quantizations are noticeably worse than others. Try a higher-quality quant (Q5_K_M or Q6_K rather than Q4_K_S).
-- For writing tasks, larger context windows help. Check that your model has at least 8K context.
-
-**OpenAI is charging me unexpectedly.**
-
-- Check **Settings → AI Usage** for the breakdown by feature.
-- The biggest spenders are usually: critique on long chapters, and "Ask the book" if auto-rebuild RAG is on.
-- Pin expensive features to cheaper models or local ones.
-
-**An AI call seems hung — should I wait or give up?**
-
-- Open the **AI task panel** from the sparkle chip in the title bar (see *Watching AI calls* above).
-- A **live** (green) freshness dot means tokens are still arriving; trust the wait, especially for big analysis features.
-- A **stalling** (gold) dot means no tokens in a few seconds; usually still recoverable.
-- A **stuck** (red) dot means nothing has arrived in 10+ seconds. Hit Cancel and try a different model.
+Something not working? Provider tests, slow models, surprise bills, hung calls —
+the answers live on **[Troubleshooting](troubleshooting.md)** (moved there
+2026-08-08 so the family has one troubleshooting page per app).
 
 ---
 

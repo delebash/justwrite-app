@@ -31,13 +31,15 @@
     "section": "Setup and configuration",
     "items": [
       { "slug": "ai-providers",      "title": "AI providers",      "hint": "OpenAI, Claude, Ollama, LM Studio" },
+      { "slug": "ai-features",       "title": "The AI features",   "hint": "Every AI feature, and where each one lives" },
       { "slug": "models",            "title": "Models",            "hint": "Quick Setup, downloading + tuning local models" },
       { "slug": "presets",           "title": "Presets",           "hint": "Named engine configurations a feature runs on" },
       { "slug": "appearance",        "title": "Appearance",        "hint": "Theme, fonts, accents, layout" },
       { "slug": "backups-and-data",  "title": "Backups and data",  "hint": "Autosave, snapshots, restoring" },
       { "slug": "storage",           "title": "Storage & engine",  "hint": "Where data lives, moving it, installing the local AI engine" },
       { "slug": "headless-access",   "title": "Headless access",   "hint": "Run the server on its own and use JustWrite in a browser" },
-      { "slug": "keyboard-shortcuts", "title": "Keyboard shortcuts", "hint": "Full reference" }
+      { "slug": "keyboard-shortcuts", "title": "Keyboard shortcuts", "hint": "Full reference" },
+      { "slug": "troubleshooting",   "title": "Troubleshooting",   "hint": "Provider tests, slow models, hung calls, data recovery" }
     ]
   },
   {
