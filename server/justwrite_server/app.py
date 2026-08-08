@@ -29,6 +29,7 @@ from .api import (
     chat_api,
     health_api,
     images_api,
+    prefs_api,
     projects_api,
     rag_api,
     server_auth_api,
@@ -162,6 +163,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     app.include_router(sessions_api.router)
     app.include_router(chat_api.router)
     app.include_router(settings_api.router)
+    app.include_router(prefs_api.router)  # the family /v1/prefs door over the same document (P9)
     app.include_router(versions_api.router)
     app.include_router(get_data_router())  # shared backup/restore/reset (/v1/data/*)
     app.include_router(make_logs_router("JustWrite"))  # shared /v1/logs/*
