@@ -84,7 +84,12 @@ async function findDataRoot() {
 
 /** Snapshot <source>/justwrite.db into a fresh scratch root via sqlite3's backup
  *  API (safe against a live, mid-write source — a plain copy is not). Returns
- *  the scratch root; an empty one if there was nothing to snapshot. */
+ *  the scratch root; an empty one if there was nothing to snapshot.
+ *
+ *  The snapshot then switches warm_default_on_startup OFF in the scratch copy: a
+ *  configured source DB carries a default model + warm-on-boot, so the scratch
+ *  server otherwise spends every gate run downloading a ~500 MB llama.cpp build
+ *  into %TEMP% (measured 2026-08-08) for a sweep that never generates a token. */
 function snapshotDataRoot(source, python) {
   const dir = mkdtempSync(join(tmpdir(), "jw-smoke-"));
   const src = source ? join(source, "justwrite.db") : "";
@@ -94,7 +99,10 @@ function snapshotDataRoot(source, python) {
   }
   const r = spawnSync(python, [
     "-c",
-    "import sqlite3,sys\ns=sqlite3.connect(sys.argv[1]);d=sqlite3.connect(sys.argv[2])\ns.backup(d)\nd.close();s.close()",
+    "import sqlite3,sys\ns=sqlite3.connect(sys.argv[1]);d=sqlite3.connect(sys.argv[2])\ns.backup(d)\n" +
+    "try: d.execute(\"update runner_setting set value='0' where key='warm_default_on_startup'\"); d.commit()\n" +
+    "except sqlite3.Error: pass\n" +
+    "d.close();s.close()",
     src, join(dir, "justwrite.db"),
   ], { encoding: "utf8" });
   if (r.status !== 0) {
@@ -179,7 +187,13 @@ async function main() {
   track("server", spawn(python, ["-m", "justwrite_server.serve", "serve", "--port", String(SERVER_PORT), "--data-dir", scratch], {
     cwd: join(ROOT, "server"),
     stdio: ["ignore", "ignore", "inherit"],
-    env: { ...process.env, JUSTWRITE_DATA_DIR: scratch },
+    // JUST_AI_HOME confines the scratch server's family registrations to the scratch
+    // itself. Without it, this boot writes "JustWrite Server → <scratch>/ai-cache"
+    // into the MACHINE-WIDE %LOCALAPPDATA%/just-ai registry, and a scratch that
+    // outlives cleanup becomes a Quick Setup cache offer (the 2026-08-08 ghost —
+    // one proceed click repointed the real install's cache at %TEMP%). The kit now
+    // also refuses temp-dir roots, but this harness should not rely on that net.
+    env: { ...process.env, JUSTWRITE_DATA_DIR: scratch, JUST_AI_HOME: scratch },
   }));
   track("vite", spawn(process.execPath, [viteBin(), "--port", String(VITE_PORT), "--strictPort"], {
     cwd: ROOT,
