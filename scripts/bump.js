@@ -35,7 +35,7 @@ async function bumpJson(path, key) {
   const old = obj[key];
   obj[key] = version;
   // Preserve indent (2 spaces) and trailing newline.
-  await writeFile(path, JSON.stringify(obj, null, 2) + "\n");
+  await writeFile(path, `${JSON.stringify(obj, null, 2)}\n`);
   return old;
 }
 

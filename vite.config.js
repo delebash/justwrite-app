@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import { resolve } from "path";
-import { readFileSync } from "fs";
+import { resolve } from "node:path";
+import { readFileSync } from "node:fs";
 
 // Inject the package.json version into the renderer so the
 // "What's new" modal can pin its dismissal to the current build.
@@ -69,11 +69,14 @@ export default defineConfig({
     outDir: resolve(__dirname, "dist"),
     emptyOutDir: true,
     // Tauri's bundled webview is a current Chromium / WKWebView on each
-    // OS; the per-platform targets here keep esbuild from down-leveling.
+    // OS; the per-platform targets here keep the bundler from down-leveling.
     // The macOS floor (safari17) matches the WKWebView version Tauri 2
-    // ships against.
+    // ships against. minify is a BOOLEAN on purpose (P10): the string
+    // "esbuild" is a deprecated path on vite 8's rolldown build that only
+    // worked here while esbuild rode in transitively — true = each vite's
+    // own default minifier, same meaning family-wide.
     target: process.env.TAURI_ENV_PLATFORM === "windows" ? "chrome105" : "safari17",
-    minify: !process.env.TAURI_ENV_DEBUG ? "esbuild" : false,
+    minify: !process.env.TAURI_ENV_DEBUG,
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
   },
 });

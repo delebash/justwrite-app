@@ -1,0 +1,6 @@
+# One family answer for line endings (target-tree P10): text normalizes to LF
+# in the repo, Windows-only runners keep CRLF, binaries are auto-detected.
+* text=auto
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.sh text eol=lf

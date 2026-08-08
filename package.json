@@ -30,7 +30,7 @@
     "bench:gpu": "npm run bench -- --config bench/harness/configs/gpu.json --autostart",
     "bench:cpu": "npm run bench -- --config bench/harness/configs/cpu.json --autostart",
     "dup": "jscpd",
-    "lint": "biome check src"
+    "lint": "biome check ."
   },
   "dependencies": {
     "@floating-ui/dom": "^1.7.6",
@@ -88,7 +88,7 @@
     "vue-sonner": "^2.0.9"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.0",
+    "@biomejs/biome": "2.5.6",
     "@intlify/eslint-plugin-vue-i18n": "^4.5.1",
     "@tauri-apps/cli": "^2.11.3",
     "@vitejs/plugin-vue": "^6.0.7",

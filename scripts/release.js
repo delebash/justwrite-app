@@ -34,7 +34,7 @@ function tryRun(cmd) {
 }
 
 function fail(msg) {
-  console.error("Release aborted: " + msg);
+  console.error(`Release aborted: ${msg}`);
   process.exit(1);
 }
 
@@ -95,7 +95,7 @@ console.log(`Platforms: ${platform}`);
 console.log("");
 console.log("This will:");
 console.log(`  - Build ${ARTIFACTS[platform]}`);
-console.log("  - Create / update GitHub Release '" + tag + "' with the binaries attached");
+console.log(`  - Create / update GitHub Release '${tag}' with the binaries attached`);
 console.log("  - Pack docs/ into docs.tar.gz and attach to the release");
 console.log("  - Fire a repository_dispatch to justwrite-website so it rebuilds with the new docs");
 console.log("");
