@@ -224,6 +224,15 @@ embedding model carries an **Embedding** badge. From here you can:
   context fills. Cloud providers ignore the layered value; their thinking comes from
   the preset's level, translated per provider on the provider's **Reasoning levels**
   editor (a popup on the provider's form).
+- **When a model can't do what the preset asks, you see the provider's own error —
+  nothing is filtered on the way out.** The request goes to the provider exactly as
+  the preset configured it. If the model can't take it — a model with no reasoning
+  support asked to think, a fixed-reasoning model asked for a different level — the
+  provider refuses, and the error you see is that provider's own message with one
+  sentence added at the end naming the fix: turn Thinking off on this feature's
+  preset, or point the preset at a model that can think. There is no hidden
+  downgrade and no silent retry, so a preset that works is one you've actually seen
+  work — test it in the Lab before relying on it.
 - Until you apply a config, a model **launches with the engine's automatic memory fitting**
   (it places the model across GPU/CPU for your card at the app-chosen context size); an
   applied config replaces that with your measured values.
