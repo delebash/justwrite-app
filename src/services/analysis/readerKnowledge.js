@@ -20,7 +20,7 @@
 // sequential LLM calls. Caller renders per-chapter progress and can
 // cancel mid-sweep (partial results stay).
 
-import { useAiTasksStore } from "@delebash/llm-ui";
+import { withAiTask } from "@delebash/llm-ui";
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 
@@ -180,6 +180,10 @@ export async function analyseChapterKnowledge({
     raw: result.content,
     model: result.model,
     providerId: result.providerId,
+    // The sweep aggregates these into its ONE task entry's usage — a batch
+    // owner must not finish bare (AI-call convention 2026-08-08).
+    promptTokens: result.promptTokens || 0,
+    completionTokens: result.completionTokens || 0,
     generatedAt: Date.now(),
   };
 }
@@ -228,20 +232,20 @@ export async function scanReaderKnowledge({
     return true;
   });
 
-  // QC-31: the whole sweep is ONE user action → ONE task entry. The handle's
+  // QC-31: the whole sweep is ONE user action → ONE task entry, and the kit
+  // runner owns its lifecycle (AI-call convention 2026-08-08). The handle's
   // signal threads through every per-chapter call, so the strip/panel Cancel
   // aborts the entire loop; per-chapter progress renders as n/m on the entry.
-  const aiTasks = useAiTasksStore();
-  const handle = aiTasks.start({
+  return withAiTask({
     feature: "readerKnowledge",
     label: "Reader knowledge",
     meta: { kind: "readerKnowledge" },
-  });
+    signal,
+  }, (handle) => runSweep(handle, { project, allChapters, provider, model, onProgress }));
+}
+
+async function runSweep(handle, { project, allChapters, provider, model, onProgress }) {
   handle.setProgress(0, allChapters.length);
-  if (signal) {
-    if (signal.aborted) handle.cancel();
-    else signal.addEventListener?.("abort", () => handle.cancel(), { once: true });
-  }
   const runSignal = handle.signal;
 
   const accumulatedReader = [];
@@ -250,6 +254,8 @@ export async function scanReaderKnowledge({
   const skipped = [];
   let completed = 0;
   let scanned = 0;
+  let promptTokens = 0;
+  let completionTokens = 0;
 
   for (const ch of allChapters) {
     if (runSignal.aborted) break;
@@ -274,6 +280,8 @@ export async function scanReaderKnowledge({
         task: false,
       });
 
+      promptTokens += r.promptTokens || 0;
+      completionTokens += r.completionTokens || 0;
       if (r.empty) {
         skipped.push({ id: ch.id, num: ch.num, title: ch.title, reason: "empty" });
         completed += 1;
@@ -339,15 +347,17 @@ export async function scanReaderKnowledge({
     handle.setProgress(completed, allChapters.length);
   }
 
-  // A cancel already archived the entry (finish becomes a no-op there).
-  handle.finish({});
-
+  // The runner finishes the entry with the sweep's aggregated usage (a cancel
+  // already archived it — first-outcome-wins makes that finish a no-op).
   return {
-    perChapter,
-    accumulatedReader,
-    accumulatedPov,
-    scanned,
-    skipped,
-    totalChapters: allChapters.length,
+    result: {
+      perChapter,
+      accumulatedReader,
+      accumulatedPov,
+      scanned,
+      skipped,
+      totalChapters: allChapters.length,
+    },
+    usage: { promptTokens, completionTokens },
   };
 }

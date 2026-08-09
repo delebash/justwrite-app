@@ -19,7 +19,7 @@
 // downside is a few wasted output tokens per duplicate. Worth it for the
 // 3-4× wall-clock speed-up on a long book.
 
-import { useAiTasksStore, useResolvedRoute } from "@delebash/llm-ui";
+import { useResolvedRoute, withAiTask } from "@delebash/llm-ui";
 import { LOCAL_RUNNER_ID } from "@delebash/llm-ui/services/modelApply.js";
 
 import { normalizeName as normName } from "../text.js";
@@ -200,17 +200,15 @@ export async function scanAllChapters({
   // "entitySweep" entries, the modal's Cancel reached only the FIRST, and the pool
   // marched on — every later chapter failing "Request cancelled" as a red ERROR row
   // while the user watched. The user, 2026-07-17: "cancel should cancel everything".
-  const aiTasks = useAiTasksStore();
-  const handle = aiTasks.start({
+  // The kit runner owns the entry's lifecycle (AI-call convention 2026-08-08);
+  // this callback IS the sweep, and it reports n/m through the handle.
+  return withAiTask({
     feature: "entitySweep",
     label: "Entity sweep",
     meta: { kind: "sweep" },
-  });
+    signal,
+  }, async (handle) => {
   handle.setProgress(0, all.length);
-  if (signal) {
-    if (signal.aborted) handle.cancel();
-    else signal.addEventListener?.("abort", () => handle.cancel(), { once: true });
-  }
   const runSignal = handle.signal;
 
   const proposals = { characters: [], locations: [], objects: [] };
@@ -345,13 +343,9 @@ export async function scanAllChapters({
   }
 
   const poolSize = Math.max(1, Math.min(await resolvePoolSize({ concurrency, provider }), all.length));
-  try {
-    await Promise.all(Array.from({ length: poolSize }, () => worker()));
-  } finally {
-    // Always terminate the entry — a cancelled sweep must not leave a task
-    // "streaming" forever in the strip/panel (cancel() already archived it).
-    if (!runSignal.aborted) handle.finish({});
-  }
+  // The runner terminates the entry when this callback returns — a cancelled
+  // sweep's finish is a no-op (cancel() already archived it).
+  await Promise.all(Array.from({ length: poolSize }, () => worker()));
 
   // CANCELLED IS A RETURN VALUE, NOT AN EXCEPTION (2026-07-17). The workers exit by
   // RETURNING when the signal fires, so Promise.all resolves normally — which is why
@@ -362,6 +356,7 @@ export async function scanAllChapters({
     ...proposals, scanned, skipped, totalChapters: all.length,
     cancelled: runSignal.aborted,
   };
+  });
 }
 
 // Exported since A (2026-07-18): the draft store hashes EXACTLY the text the

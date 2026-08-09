@@ -9,7 +9,9 @@
 import { ref, computed, onMounted } from "vue";
 import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, Icon, AppModal, UiButton } from "@delebash/llm-ui";
+// useAiTasksStore stays for the READ (myTask feeds the inline AiTaskStrip);
+// the lifecycle rides withAiTask per the AI-call convention (2026-08-08).
+import { useAiTasksStore, withAiTask, AiTaskStrip, Icon, AppModal, UiButton } from "@delebash/llm-ui";
 import { buildOrUpdateIndex, rebuildIndex, indexStatus, clearIndex } from "../services/rag/indexer.js";
 import StatusRow from "./StatusRow.vue";
 
@@ -77,56 +79,55 @@ async function run() {
     error.value = `Provider "${provider.name || provider.id}" has no embedding model set. Set one in AI → Default embedding (or on the provider).`;
     return;
   }
-  taskHandle = aiTasks.start({
-    feature: "ragIndex",
-    label: props.mode === "rebuild" ? "Rebuild manuscript index" : "Build manuscript index",
-    meta: { mode: props.mode },
-  });
   try {
-    const fn = props.mode === "rebuild" ? rebuildIndex : buildOrUpdateIndex;
-    const r = await fn({
-      signal: taskHandle.signal,
-      // Embedding doesn't stream tokens, but each scene completion is a
-      // useful "still alive" tick — bump the task's lastDeltaAt via
-      // onDelta with an empty string so the panel's freshness indicator
-      // stays "live" while we work through the queue.
-      onDelta: taskHandle.onDelta,
-      onProgress: ({ phase: p, chunk, action }) => {
-        phase.value = p;
-        if (p === "embedding" && chunk) {
-          // First time we see this chunk: append a row.
-          const existing = rows.value.find((r) => r.id === chunk.id);
-          if (!existing) {
-            rows.value.push({ ...rowForChunk(chunk), status: "working" });
-          } else {
-            existing.status = "working";
+    // The kit runner owns the lifecycle (AI-call convention 2026-08-08);
+    // the callback keeps the row bookkeeping and the freshness ticks.
+    await withAiTask({
+      feature: "ragIndex",
+      label: props.mode === "rebuild" ? "Rebuild manuscript index" : "Build manuscript index",
+      meta: { mode: props.mode },
+    }, async (handle) => {
+      taskHandle = handle;
+      const fn = props.mode === "rebuild" ? rebuildIndex : buildOrUpdateIndex;
+      const r = await fn({
+        signal: handle.signal,
+        // Embedding doesn't stream tokens, but each scene completion is a
+        // useful "still alive" tick — bump the task's lastDeltaAt via
+        // onDelta with an empty string so the panel's freshness indicator
+        // stays "live" while we work through the queue.
+        onDelta: handle.onDelta,
+        onProgress: ({ phase: p, chunk, action }) => {
+          phase.value = p;
+          if (p === "embedding" && chunk) {
+            // First time we see this chunk: append a row.
+            const existing = rows.value.find((r) => r.id === chunk.id);
+            if (!existing) {
+              rows.value.push({ ...rowForChunk(chunk), status: "working" });
+            } else {
+              existing.status = "working";
+            }
+            // Mark earlier "working" rows as done so the spinner moves with focus.
+            for (const r of rows.value) {
+              if (r.id !== chunk.id && r.status === "working") r.status = "done";
+            }
+            // Tick the task's freshness signal so the panel doesn't show
+            // "stalled" while a long embedding queue is processing.
+            handle.onDelta("", null);
+          } else if (action === "removed" && chunk) {
+            rows.value.push({ id: chunk.id, label: `(stale) ${chunk.id}`, status: "removed" });
           }
-          // Mark earlier "working" rows as done so the spinner moves with focus.
-          for (const r of rows.value) {
-            if (r.id !== chunk.id && r.status === "working") r.status = "done";
-          }
-          // Tick the task's freshness signal so the panel doesn't show
-          // "stalled" while a long embedding queue is processing.
-          taskHandle.onDelta("", null);
-        } else if (action === "removed" && chunk) {
-          rows.value.push({ id: chunk.id, label: `(stale) ${chunk.id}`, status: "removed" });
-        }
-      },
+        },
+      });
+      // Close out the last working row.
+      for (const r of rows.value) if (r.status === "working") r.status = "done";
+      phase.value = "done";
+      result.value = r || { added: 0, updated: 0, removed: 0 };
     });
-    // Close out the last working row.
-    for (const r of rows.value) if (r.status === "working") r.status = "done";
-    phase.value = "done";
-    result.value = r || { added: 0, updated: 0, removed: 0 };
-    taskHandle.finish({});
     taskHandle = null;
     emit("built", result.value);
   } catch (e) {
-    if (isAbort(e)) {
-      // Cancel path is already recorded by the store via cancel().
-    } else {
-      error.value = e?.message || String(e);
-      taskHandle?.fail(e);
-    }
+    if (!isAbort(e)) error.value = e?.message || String(e);
+    // The runner recorded the outcome (cancel on abort, fail otherwise).
     taskHandle = null;
   }
 }

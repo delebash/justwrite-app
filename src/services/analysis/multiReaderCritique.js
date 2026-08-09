@@ -16,7 +16,7 @@
 //     generatedAt, model
 //   }
 
-import { useAiTasksStore } from "@delebash/llm-ui";
+import { withAiTask } from "@delebash/llm-ui";
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 
@@ -117,19 +117,16 @@ export async function runMultiReaderPanel({
 } = {}) {
   // QC-31: the four-persona panel is ONE user action → ONE task entry with
   // n/4 progress; the entry's Cancel (strip/panel) aborts all four personas
-  // through the shared signal.
-  const aiTasks = useAiTasksStore();
-  const handle = aiTasks.start({
+  // through the shared signal. The kit runner owns the entry's lifecycle
+  // (AI-call convention 2026-08-08).
+  return withAiTask({
     feature: "multiReader",
     label: "Multi-reader critique",
     meta: { ...meta, kind: "multiReader" },
-  });
-  handle.setProgress(0, PERSONAS.length);
-  if (signal) {
-    if (signal.aborted) handle.cancel();
-    else signal.addEventListener?.("abort", () => handle.cancel(), { once: true });
-  }
+    signal,
+  }, async (handle) => {
   let settled = 0;
+  handle.setProgress(0, PERSONAS.length);
 
   const tasks = PERSONAS.map(async (persona) => {
     onPersonaPhase?.(persona.key, "start");
@@ -160,12 +157,12 @@ export async function runMultiReaderPanel({
   });
 
   const panel = await Promise.all(tasks);
-  // A cancel already archived the entry (finish becomes a no-op there).
-  handle.finish({});
-
+  // The runner terminates the entry (a cancel already archived it —
+  // first-outcome-wins makes that finish a no-op).
   return {
     panel,
     totalPersonas: PERSONAS.length,
     generatedAt: Date.now(),
   };
+  });
 }

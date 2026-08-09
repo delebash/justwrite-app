@@ -17,7 +17,7 @@
 // label overlaps with a proposal) are filtered out so the sweep doesn't
 // surface threads the writer has already noted.
 
-import { useAiTasksStore } from "@delebash/llm-ui";
+import { withAiTask } from "@delebash/llm-ui";
 
 import { normalizeName as norm, textMentionsTerm } from "../text.js";
 import { extractThreads } from "./threadExtraction.js";
@@ -91,17 +91,14 @@ export async function scanForDanglingThreads({
   // per-chapter call rides `runSignal` with task:false). Fixed 2026-07-17 alongside the
   // entity sweep: this pool had the identical defect — no owner, a rival task per
   // chapter, and a Cancel that reached only the first of them.
-  const aiTasks = useAiTasksStore();
-  const handle = aiTasks.start({
+  // The kit runner owns the entry's lifecycle (AI-call convention 2026-08-08).
+  return withAiTask({
     feature: "foreshadowing",
     label: "Foreshadowing scan",
     meta: { kind: "foreshadowing" },
-  });
+    signal,
+  }, async (handle) => {
   handle.setProgress(0, allChapters.length);
-  if (signal) {
-    if (signal.aborted) handle.cancel();
-    else signal.addEventListener?.("abort", () => handle.cancel(), { once: true });
-  }
   const runSignal = handle.signal;
 
   // Per-chapter plain-text bodies, computed once. Used both as input to
@@ -190,11 +187,9 @@ export async function scanForDanglingThreads({
     }
   }
   const poolSize = Math.max(1, Math.min(concurrency | 0 || DEFAULT_CONCURRENCY, allChapters.length));
-  try {
-    await Promise.all(Array.from({ length: poolSize }, () => worker()));
-  } finally {
-    if (!runSignal.aborted) handle.finish({});
-  }
+  // The runner terminates the entry when this callback returns (a cancelled
+  // scan's finish is a no-op — cancel() already archived it).
+  await Promise.all(Array.from({ length: poolSize }, () => worker()));
   // A cancel stops here: the cross-reference pass below is pure JS over whatever was
   // gathered, and running it on a half-scanned book would present partial evidence as
   // a complete "dangling threads" verdict — the one result where absence IS the finding.
@@ -261,4 +256,5 @@ export async function scanForDanglingThreads({
     totalChapters: allChapters.length,
     scanned: allChapters.length - skipped.length,
   };
+  });
 }
