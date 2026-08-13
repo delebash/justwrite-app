@@ -43,23 +43,33 @@ const CLASSES = [
 // margins are — 8500/6144 = 1.383 and 8192/6144 = 1.333 are both inside fit's 1.5x
 // slack; 46000 and 49152 both live only in the open-ended vram24 band; 20000/16384 =
 // 1.22 and 20480/16384 = 1.25 are both inside 1.5x and both fail vram12 either way.
+// 2026-08-13 (fit-redesign Phase 2, the user's blessing "your rec"): the floor
+// VALUES below are the COMPUTED physics floors (facts → computed_row_numbers —
+// floors stopped being stored/curated; kit 703dcba), replacing the 2026-07-27
+// hand-snapped literals. The expected SETS were re-validated against the user's
+// 2026-07-26 table through the real rule: SEVEN of eight models byte-identical
+// (qwen3.6-27b: computed 20,516 vs hand 20,480 — 36 MB apart). The ONE change,
+// RULED by the user 2026-08-13: glm-4.5-air leaves its three ram64 classes —
+// the curated 65,536 RAM floor was fitted-to-class; honest physics is 71,817
+// (67.7 GB file + 4 GB headroom), which no 64 GB box holds in RAM. GLM stays in
+// the catalog with a per-box badge and stays runnable (§8.23 — verdicts inform,
+// never gate); it just stops being RECOMMENDED for machines that would crawl.
 const FLEET = [
-  ["gemma-4-12b-qat", 8192, 12288, "ALL"],
-  ["gemma-4-e4b-qat", 6144, 8192, "ALL"],
-  ["gemma-4-26b-a4b-qat", 4096, 24576,
+  ["gemma-4-12b-qat", 8636, 10812, "ALL"],
+  ["gemma-4-e4b-qat", 5886, 8312, "ALL"],
+  ["gemma-4-26b-a4b-qat", 2681, 18345,
     ["dgpu-vram8|ram32", "dgpu-vram12|ram32", "dgpu-vram12|ram64", "dgpu-vram16|ram32",
      "dgpu-vram16|ram64", "dgpu-vram24|ram32", "dgpu-vram24|ram64", "igpu-mem32"]],
-  ["gryphe-styletune-v2", 4096, 24576, "SAME_AS_26B"],
-  ["gemma-4-26b-a4b-uncensored-ez", 4096, 24576, "SAME_AS_26B"],
+  ["gryphe-styletune-v2", 2862, 21307, "SAME_AS_26B"],
+  ["gemma-4-26b-a4b-uncensored-ez", 2686, 18426, "SAME_AS_26B"],
   // 31B: REMOVED from the seed 2026-07-26 (the user's catalog trim) but kept here as a
-  // rule fixture — it is the 20 GB-VRAM shape qwen3.6-27b shares, and dropping it would
-  // lose the SAME_AS_31B anchor. Floors snapped with the rest for consistency.
+  // rule fixture — the 20 GB-VRAM shape qwen3.6-27b shares; its floors stay the
+  // hand values (no file on any box to compute facts from — a fixture, not a row).
   ["gemma-4-31b-qat", 20480, 24576,
     ["dgpu-vram16|ram32", "dgpu-vram16|ram64", "dgpu-vram24|ram32", "dgpu-vram24|ram64", "igpu-mem32"]],
-  ["qwen3.6-27b", 20480, 24576, "SAME_AS_31B"],
-  ["glm-4.5-air", 12288, 65536,
-    ["dgpu-vram12|ram64", "dgpu-vram16|ram64", "dgpu-vram24|ram64"]],
-  ["llama-3.3-70b-q4_k_m", 49152, 49152, ["dgpu-vram24|ram64"]],
+  ["qwen3.6-27b", 20516, 22005, "SAME_AS_31B"],
+  ["glm-4.5-air", 7155, 71817, []],
+  ["llama-3.3-70b-q4_k_m", 45379, 46616, ["dgpu-vram24|ram64"]],
 ];
 const expectedFor = (spec) => {
   if (spec === "ALL") return CLASSES.map((c) => c.classKey).sort();
