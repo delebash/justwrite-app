@@ -414,7 +414,9 @@ one empty and that side embeds raw. If you edit a template after building an ind
 > and **Uninstall** once installed (uninstalling deletes only the engine binaries — your
 > downloaded models are kept; the Local engine panel carries the same Uninstall button
 > right beside its "Installed · build · gpu" line), and **Details** expands the rest: the
-> spawn log, the loaded-models list with its VRAM budget, and — right there with the
+> spawn log, the loaded-models list with its live memory budget (labeled **VRAM** on a
+> machine with a graphics card; on an iGPU or Apple machine the label reads **Memory**
+> and the numbers are the one shared pool the models actually load into), and — right there with the
 > **Models kept loaded at once** knob — the engine's memory and speed settings, all on
 > one Save: the **VRAM safety margin**; the **default context cap** (the most context a
 > model gets automatically when nothing was tuned for it; a tuned model's own context
