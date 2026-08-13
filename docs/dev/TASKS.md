@@ -255,14 +255,30 @@ the SDK-pivot re-open trigger) → `../just-llm-runner/docs/dev/TASKS.md`; JV-ow
 
 ## Fit redesign (family, runner-owned) — JW impact
 
-Tracked in `../just-llm-runner/docs/dev/TASKS.md`; full plan
-`../just-llm-runner/docs/plans/2026-08-09-fit-redesign.md` (consensus reached
-2026-08-13 — amendments §13; ALL rulings decided same day, §8.17–22). JW-side work
-when its phases land: seed regeneration in `seed_presets.py` — DECIDED §8.19
-(facts-not-floors: seeds carry header facts incl. the three KV scalars, curated CHAT
-floors die, EMBED floors stay curated — §13.11); `classMembership.test.js`
-re-validation WITH the user (its
-charter; membership stays canonical discrete-shaped per §13.11); badge/speed-band
-user docs; test_seed asserts. 2026-08-13: `docs/dev/measured-performance.md` gained
-the derived bandwidth constants + the 0.41-vs-0.446 physics cross-check (feeds the
-plan's §7.5 pinned test). Per-phase go-gate.
+Tracked in `../just-llm-runner/docs/dev/TASKS.md` (THE resume surface — its fit
+item carries the full phase-by-phase state); full plan
+`../just-llm-runner/docs/plans/2026-08-09-fit-redesign.md` (consensus 2026-08-13,
+amendments §13, ALL rulings §8.17–23a). JW-SIDE STATE after Phases 0–3 (all BUILT
+2026-08-13, gates green incl. the user's own JW smoke run):
+- DONE — seed regeneration (§8.19 facts-not-floors: `seed_presets.py` carries the
+  nine header facts incl. the three KV scalars, curated CHAT floors deleted, the
+  three EMBED floors kept; refreshed LIVE from HF via the kit's
+  `scripts/refresh-seed-facts.py`).
+- DONE — `classMembership.test.js` re-validated WITH the user (7/8 byte-identical
+  to the 2026-07-26 table; GLM's ram64 loss RULED §8.23a; FLEET literals are the
+  computed floors now).
+- DONE — badge + speed-band + veto-removal + knob-location user docs
+  (`docs/models.md`, same-change as the features; bottom band displays
+  "very slow" — user ruling 2026-08-13, display-only via SPEED_BAND_LABEL).
+- DONE — the §7.3 selectable-pin (`src/components/slotOptions.test.js`, vitest
+  over the kit's pure `buildSlotOptions`).
+- `docs/dev/measured-performance.md` carries the derived bandwidth constants +
+  the 0.41-vs-0.446 physics cross-check; the kit now SEEDS those constants as
+  data (runner_setting `bw_eff_device` 0.6 / `bw_eff_host` 0.15 + the
+  `hardware_classes` bw columns) — the doc is the evidence, the seed is the law.
+- STILL AHEAD (kit phases, each on its own go; JW mostly rides): Phase 6/7 add
+  the §13.9 pinned test (`test_expert_layer_marginal_matches_measured`, physics
+  vs the measured 0.41 GB/layer, ~15% tolerance, sourced to
+  measured-performance.md) + §7.6's docs pass. The user-side remainders live in
+  the kit tracker: laptops glance · data reset · the deliberate checkpoint
+  before Phases 4–6.

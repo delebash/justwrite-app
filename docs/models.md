@@ -33,8 +33,9 @@ the first row in that Local list, and its control panel opens when you click **E
    embedding runs on the **CPU**, leaving your graphics card free for the chat model, so the
    default is the **most capable embedding your system memory supports** — a higher-quality
    embedding on a well-equipped machine, and a smaller, faster one on a machine with less
-   RAM, so every machine gets a working default. The dropdown still lists every embedding
-   that runs on your box — picking a different one is a deliberate choice.
+   RAM, so every machine gets a working default. The dropdown lists **every** embedding
+   in the catalog — one the estimate says won't run here is still listed, labeled with
+   its fit, and picking it is a deliberate choice (the estimate informs, never blocks).
 4. It **downloads everything at the same time** — the general model and the search
    (embedding) model run in **parallel, each with its own progress bar** showing the size,
    speed and time remaining, in plain language ("Downloading the model", "Loading it into

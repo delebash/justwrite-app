@@ -148,3 +148,15 @@ Appendix B. These seed the fit redesign's speed bands (§5.5 there).
   to the model's 30 layers — identical placement — yet measured 5.32/7.95/8.15 tok/s
   (1.53× spread, thermal-shaped). Sweep verdicts (ncmoe 0 wins on iGPU) survive the
   noise; absolute tok/s from that sweep must not calibrate anything.
+
+**SEEDED AS DATA since Phase 3 (2026-08-13)** — this section is the evidence, the
+kit seed is the law: the two factors ship as `runner_setting` rows `bw_eff_device`
+0.6 / `bw_eff_host` 0.15 (host at the LOW end of the 0.10–0.22 window — err-slow);
+class-typical raw bandwidths ship as `hardware_classes.vram_bw_gbps`/`ram_bw_gbps`
+(seed values + citations in the kit's `llm_runner/llm/seed.py`, editable in the PC
+class editor). Measurement-derived bandwidth (`runner/bandwidth.py` source 1)
+bypasses the factors entirely; nvidia-smi register arithmetic reproduces the 448
+spec exactly. The RAM copy probe self-records per box as measurement row
+`__machine_ram_bw__` (2 × bytes/elapsed, best-of-3) — its live calibration
+against the model-derived path on the three machines is the OPEN item verified at
+the pre-Phase-4 checkpoint (list in the kit tracker's fit item).
