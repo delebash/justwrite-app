@@ -256,10 +256,12 @@ the SDK-pivot re-open trigger) → `../just-llm-runner/docs/dev/TASKS.md`; JV-ow
 ## Fit redesign (family, runner-owned) — JW impact
 
 Tracked in `../just-llm-runner/docs/dev/TASKS.md` (THE resume surface — its fit
-item carries the full phase-by-phase state); full plan
+item now opens with a STATUS-NOW block; read that first); full plan
 `../just-llm-runner/docs/plans/2026-08-09-fit-redesign.md` (consensus 2026-08-13,
-amendments §13, ALL rulings §8.17–23a). JW-SIDE STATE after Phases 0–3 (all BUILT
-2026-08-13, gates green incl. the user's own JW smoke run):
+amendments §13, ALL rulings §8.17–23a). JW-SIDE STATE after Phases 0–5 (all BUILT
+2026-08-13, every gate green incl. the user's own JW smoke run; Phases 4–5 touched
+JW only through the shared kit + two models.md passes — the arch-aware budget
+line's "Memory" wording, and the remembered-footprints / Clear-history story):
 - DONE — seed regeneration (§8.19 facts-not-floors: `seed_presets.py` carries the
   nine header facts incl. the three KV scalars, curated CHAT floors deleted, the
   three EMBED floors kept; refreshed LIVE from HF via the kit's
