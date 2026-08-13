@@ -341,7 +341,12 @@ embedding model carries an **Embedding** badge. From here you can:
   draft that only works on other hardware), the form leaves speculative decoding **off** and
   says so, rather than setting up a draft that would fail to load.
   This is how you run a model outside the built-in list.
-- **Edit** a model's details. The **description** belongs to the file: **Load model info
+- **Edit** a model's details. The memory numbers are **not yours to figure out anymore**:
+  the app computes what a model needs from the model file itself (read the link once and
+  every "Needs … GB" you see is derived from the file's own layer and expert structure —
+  it updates automatically whenever the app's math improves). Only **embedding models**
+  keep hand-set floors, because theirs steer the setup wizard rather than describe the
+  file. The **description** belongs to the file: **Load model info
   from HF** regenerates it from what the model actually is (parameters, context, MTP, quant,
   size) — and your own **Notes** field sits beside it for anything personal (measured
   speeds, taste, use policy); notes are never touched by reads, downloads, or resets, and
