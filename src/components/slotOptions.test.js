@@ -33,7 +33,9 @@ describe("buildSlotOptions — the veto is OUT (§8.23)", () => {
     expect(ids).not.toContain("embed"); // kind-filtered, not fit-filtered
     const giant = opts.find((o) => o.value === "giant");
     expect(giant.label).toContain("Won't fit"); // the badge rides the label
-    expect(giant.label).toContain("~painful"); // predicted band, "~"-marked
+    // Predicted band, "~"-marked; the wire's "painful" DISPLAYS as "very slow"
+    // (user 2026-08-13 — SPEED_BAND_LABEL maps it, the FIT_LABEL precedent).
+    expect(giant.label).toContain("~very slow");
   });
 
   it("tags the recommendation and keeps quality order", () => {

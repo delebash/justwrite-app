@@ -172,7 +172,7 @@ badge (*Fits* / *Tight* / *CPU* / *Won't fit*), whether it's **Downloaded** or *
 downloaded**, and a short description (the parameter count lives in the name and
 description). The Fit badge also answers the *second* question — **how fast would it
 run here** — with a **speed band** right on the chip: *Fits · ~fast*, *Fits · ~fine*,
-*Tight · ~slow*, down to *~painful*. The bands are computed from the model file's own
+*Tight · ~slow*, down to *~very slow*. The bands are computed from the model file's own
 physics (how many bytes each generated word actually touches) against your machine's
 memory speed, deliberately erring on the slow side; **~fine** means comfortable reading
 speed. The **~** marks an estimate — once you've actually run the model on this PC, the
@@ -420,7 +420,7 @@ one empty and that side embeds raw. If you edit a template after building an ind
 > setting always wins, and 0 removes the cap); the **RAM headroom** (system RAM held
 > back when computing a model's RAM requirement — room for the OS and your other
 > programs); and the **speed-band lines** — the tokens-per-second levels where the
-> catalog's *fast* / *fine* / *slow* / *painful* labels switch over (~8 tok/s is
+> catalog's *fast* / *fine* / *slow* / *very slow* labels switch over (~8 tok/s is
 > reading speed; tune them if your idea of "fine" differs). The **download settings**
 > sit in the same group, and the engine-binaries editor below keeps just the download
 > URLs and the pinned build. Downloads are **segmented** by
