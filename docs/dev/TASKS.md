@@ -278,9 +278,13 @@ line's "Memory" wording, and the remembered-footprints / Clear-history story):
   the 0.41-vs-0.446 physics cross-check; the kit now SEEDS those constants as
   data (runner_setting `bw_eff_device` 0.6 / `bw_eff_host` 0.15 + the
   `hardware_classes` bw columns) — the doc is the evidence, the seed is the law.
-- STILL AHEAD (kit phases, each on its own go; JW mostly rides): Phase 6/7 add
-  the §13.9 pinned test (`test_expert_layer_marginal_matches_measured`, physics
-  vs the measured 0.41 GB/layer, ~15% tolerance, sourced to
-  measured-performance.md) + §7.6's docs pass. The user-side remainders live in
-  the kit tracker: laptops glance · data reset · the deliberate checkpoint
-  before Phases 4–6.
+- DONE (kit Phase 6, 2026-08-13) — the §13.9 pinned test landed in the kit
+  (`test_expert_layer_marginal_matches_measured`: physics 0.446 vs this doc's
+  measured 0.41 GB/layer, 9% off inside the ~15% band, sourced to
+  measured-performance.md), alongside the joint MoE solve — JW rides: the
+  Tune dialog's "Computed for this PC" rows now show the measured-tune-shaped
+  split (ngl=all + just-enough ncmoe) instead of the old inverse's ngl 8-9.
+- STILL AHEAD (kit Phase 7, its own go; JW mostly rides): §7.6's docs pass +
+  the uncurated-path acceptance test + recommendation-precedence ranking. The
+  user-side remainders live in the kit tracker: the app restart + flagship
+  ~fine re-check · the Tune & measure flip test · the laptops walk.
