@@ -149,10 +149,15 @@ different one and it's assigned and the loaded model swaps, no other step — pl
 live state (**● loaded** · **○ loads on first use** · downloading · not downloaded) with its
 own **Load now** / **Unload** buttons; loading is always automatic on first use, so Load now
 just skips the first wait. Every download progress bar — model downloads and the engine
-install alike — shows the live **speed and time remaining** next to the byte counts. The list in each dropdown is the models that fit your machine,
-best-ranked first, with the one **we recommend for this PC tagged** — an empty card names
-that recommendation in its hint (the embedding recommendation is the same pick Quick Setup
-makes). Quick Setup fills both slots automatically.
+install alike — shows the live **speed and time remaining** next to the byte counts. Each
+dropdown lists **every model of its kind**, best-ranked first, with the one **we recommend
+for this PC tagged** — nothing is hidden for not fitting. Instead of hiding, each chat
+option carries its **fit and expected speed right on the label** (*Fits · ~fast*, *Won't
+fit*), and picking a model the estimate rejects shows an honest warning under the dropdown:
+you can still load it — the engine tries, and backs off if the load fails. The estimate
+informs your choice; it never blocks it. An empty card names the recommendation in its
+hint (the embedding recommendation is the same pick Quick Setup makes). Quick Setup fills
+both slots automatically.
 
 The list itself is split into **Chat & writing models** and **Embedding models** — each
 section shows the models that **fit your machine**, and everything that doesn't fit sinks
@@ -165,7 +170,19 @@ this box. Each row shows the model's **type** (*Dense* or *MoE*, plus **MTP** fo
 with multi-token prediction and **Embed** for embedding models), license, live **Fit**
 badge (*Fits* / *Tight* / *CPU* / *Won't fit*), whether it's **Downloaded** or **Not
 downloaded**, and a short description (the parameter count lives in the name and
-description). Under the name, beside the download size, each chat row **states the hardware
+description). The Fit badge also answers the *second* question — **how fast would it
+run here** — with a **speed band** right on the chip: *Fits · ~fast*, *Fits · ~fine*,
+*Tight · ~slow*, down to *~painful*. The bands are computed from the model file's own
+physics (how many bytes each generated word actually touches) against your machine's
+memory speed, deliberately erring on the slow side; **~fine** means comfortable reading
+speed. The **~** marks an estimate — once you've actually run the model on this PC, the
+row shows the **real measured tokens/second** instead and the ~ disappears (a measurement
+always outranks an estimate; the numbers come from Tune & measure and Optimize runs).
+A model whose file or your machine's speed the app doesn't know yet simply shows the
+plain fit chip — it never guesses. The chip's hover spells it out: the estimated or
+measured speed, and on an MTP model, that speculative decoding may make it faster than
+the estimate. Where the band thresholds live — and how to adjust them — is in the engine
+settings note below. Under the name, beside the download size, each chat row **states the hardware
 it needs** — *"5.6 GB · needs ~11 GB VRAM + 14 GB RAM"* — so the list answers "what would
 this run on?" without hovering anything. Those are the model's minimum figures, printed as
 real numbers rather than a class name (a class rounds *down*, which would understate a
@@ -395,12 +412,18 @@ one empty and that side embeds raw. If you edit a template after building an ind
 > when it's absent (the Local engine panel shows its own Install button then too), **Update**
 > and **Uninstall** once installed (uninstalling deletes only the engine binaries — your
 > downloaded models are kept; the Local engine panel carries the same Uninstall button
-> right beside its "Installed · build · gpu" line), and **Details** expands the rest (the
-> spawn log, the loaded-models list with its VRAM budget, the two keep-loaded knobs, the
-> **download settings**, and the engine-binaries editor with its engine settings — the
-> **VRAM safety margin** and the **default context cap**, the most context a model gets
-> automatically when nothing was tuned for it; a tuned model's own context setting always
-> wins, and 0 removes the cap). Downloads are **segmented** by
+> right beside its "Installed · build · gpu" line), and **Details** expands the rest: the
+> spawn log, the loaded-models list with its VRAM budget, and — right there with the
+> **Models kept loaded at once** knob — the engine's memory and speed settings, all on
+> one Save: the **VRAM safety margin**; the **default context cap** (the most context a
+> model gets automatically when nothing was tuned for it; a tuned model's own context
+> setting always wins, and 0 removes the cap); the **RAM headroom** (system RAM held
+> back when computing a model's RAM requirement — room for the OS and your other
+> programs); and the **speed-band lines** — the tokens-per-second levels where the
+> catalog's *fast* / *fine* / *slow* / *painful* labels switch over (~8 tok/s is
+> reading speed; tune them if your idea of "fine" differs). The **download settings**
+> sit in the same group, and the engine-binaries editor below keeps just the download
+> URLs and the pinned build. Downloads are **segmented** by
 > default: one file is fetched as several parallel connections, so one slow server path
 > can't cap the whole download — the settings let you turn it off, change how many
 > connections run, the size floor below which files stay single-stream, and the retries
@@ -413,7 +436,10 @@ one empty and that side embeds raw. If you edit a template after building an ind
 > a server that hasn't loaded anything yet (models load on first use by design).
 >
 > Under the catalog, two buttons open the other editable libraries as dialogs:
-> **PC class configs…** (the shared per-PC-class launch configs) and **Global launch
+> **PC class configs…** (the shared per-PC-class launch configs — a class can also carry
+> optional **typical memory-bandwidth** numbers in GB/s, the *last-resort* input to the
+> speed bands above; your machine's own reported or measured speed always outranks them)
+> and **Global launch
 > defaults…** — the always-on switch bundles (all models · MoE · dense · speculative decode)
 > that sit underneath every tune, visible and editable with a Reset. Both libraries carry
 > the same standing note: **models with an applied config keep their saved values** — a
