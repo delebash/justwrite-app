@@ -323,7 +323,12 @@ embedding model carries an **Embedding** badge. From here you can:
   **available quants as a dropdown** (each with its download size and a **QAT** /
   **IQ** label where it applies), pre-picks one that fits your machine (change it, or pick
   *Custom…* to type your own), and fills the model's details from the file — all before
-  downloading. If the repo ships a **separate MTP draft model** (some models, like Gemma,
+  downloading. When nothing fits your card outright, the pre-pick prefers the **smallest
+  quant that isn't too compressed** over the absolute smallest — a 1-bit file is rarely
+  what anyone wants. And because the quant decides *which file* the row describes,
+  **picking a different quant re-reads the model info automatically** — name, size,
+  and details always match the file you actually selected (a name or description you
+  typed yourself is left alone). If the repo ships a **separate MTP draft model** (some models, like Gemma,
   keep speculative decoding in its own small file), the form detects it and pre-selects the
   **smallest draft that isn't too compressed** — a draft only makes generation *faster*, it
   can never change what the model writes (the main model checks every word the draft
@@ -385,7 +390,10 @@ one empty and that side embeds raw. If you edit a template after building an ind
 > downloaded models are kept; the Local engine panel carries the same Uninstall button
 > right beside its "Installed · build · gpu" line), and **Details** expands the rest (the
 > spawn log, the loaded-models list with its VRAM budget, the two keep-loaded knobs, the
-> **download settings**, and the engine-binaries editor). Downloads are **segmented** by
+> **download settings**, and the engine-binaries editor with its engine settings — the
+> **VRAM safety margin** and the **default context cap**, the most context a model gets
+> automatically when nothing was tuned for it; a tuned model's own context setting always
+> wins, and 0 removes the cap). Downloads are **segmented** by
 > default: one file is fetched as several parallel connections, so one slow server path
 > can't cap the whole download — the settings let you turn it off, change how many
 > connections run, the size floor below which files stay single-stream, and the retries

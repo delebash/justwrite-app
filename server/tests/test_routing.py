@@ -42,7 +42,8 @@ def test_put_persists_default_and_drives_dispatch(tmp_path):
     assert got["default"]["embeddingId"] == "openai"
     assert got["default"]["embeddingModel"] == "text-embedding-3-small"
 
-    # build_llm_config never populates feature_pins now (the preset owns routing —
-    # the pin tier is JustVoice-only, 2026-07-15).
+    # The feature-pin layer RETIRED entirely (kit 1952c6a — presets own routing);
+    # LLMConfig no longer carries the attribute at all. Pin the absence so a
+    # resurrection has to come back through a deliberate change, not a leftover.
     cfg = build_llm_config()
-    assert cfg.feature_pins == []
+    assert not hasattr(cfg, "feature_pins")
