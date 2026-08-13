@@ -156,7 +156,9 @@ for this PC tagged** — nothing is hidden for not fitting. Instead of hiding, e
 option carries its **fit and expected speed right on the label** (*Fits · ~fast*, *Won't
 fit*), and picking a model the estimate rejects shows an honest warning under the dropdown:
 you can still load it — the engine tries, and backs off if the load fails. The estimate
-informs your choice; it never blocks it. An empty card names the recommendation in its
+informs your choice; it never blocks it — and that holds for the recommendation too: a
+model you have actually run or tuned **on this PC** stays recommendable even when the
+estimate would reject it, because your machine's own history outranks an estimate. An empty card names the recommendation in its
 hint (the embedding recommendation is the same pick Quick Setup makes). Quick Setup fills
 both slots automatically.
 
