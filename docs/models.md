@@ -334,8 +334,12 @@ embedding model carries an **Embedding** badge. From here you can:
   good**: the
   **Measurement history** drawer in the same dialog lists each **Load & measure** run and
   each auto-tune trial — when, with which settings, and how fast — and survives closing the
-  dialog and restarting the app; **Clear history** empties it (applied configs and PC class
-  configs are never touched by a clear).
+  dialog and restarting the app. Behind the same ledger the app also quietly remembers each
+  model's **real memory footprint** from every confirmed load (that's what sharpens the
+  memory estimates over time — a remembered footprint for the exact same settings beats
+  any calculation); those rows don't clutter the speed drawer. **Clear history** empties
+  all of it — speeds *and* remembered footprints, which simply re-learn on the next load
+  (applied configs and PC class configs are never touched by a clear).
 - **Add model** — point at any Hugging Face GGUF repo and click **Load model info from HF**
   (right under the repo field, above the quant picker): the form lists the repo's
   **available quants as a dropdown** (each with its download size and a **QAT** /
