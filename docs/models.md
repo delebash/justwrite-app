@@ -323,9 +323,11 @@ embedding model carries an **Embedding** badge. From here you can:
   **available quants as a dropdown** (each with its download size and a **QAT** /
   **IQ** label where it applies), pre-picks one that fits your machine (change it, or pick
   *Custom…* to type your own), and fills the model's details from the file — all before
-  downloading. When nothing fits your card outright, the pre-pick prefers the **smallest
-  quant that isn't too compressed** over the absolute smallest — a 1-bit file is rarely
-  what anyone wants. And because the quant decides *which file* the row describes,
+  downloading. The pre-pick never defaults to a
+  **1-2-bit file** (however small) — it wants a full-quality quant: the mainstream
+  K-family first (on this engine the unsloth-style **_XL** dynamic quants win over
+  their _M siblings at near-identical size), and the size-optimized **IQ4** family
+  only when that's all the repo ships. Every quant stays selectable. And because the quant decides *which file* the row describes,
   **picking a different quant re-reads the model info automatically** — name, size,
   and details always match the file you actually selected (a name or description you
   typed yourself is left alone). If the repo ships a **separate MTP draft model** (some models, like Gemma,
