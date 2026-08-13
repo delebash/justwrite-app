@@ -157,6 +157,15 @@ class-typical raw bandwidths ship as `hardware_classes.vram_bw_gbps`/`ram_bw_gbp
 class editor). Measurement-derived bandwidth (`runner/bandwidth.py` source 1)
 bypasses the factors entirely; nvidia-smi register arithmetic reproduces the 448
 spec exactly. The RAM copy probe self-records per box as measurement row
-`__machine_ram_bw__` (2 × bytes/elapsed, best-of-3) — its live calibration
-against the model-derived path on the three machines is the OPEN item verified at
-the pre-Phase-4 checkpoint (list in the kit tracker's fit item).
+`__machine_ram_bw__` (2 × traffic convention). **Its calibration CLOSED on the
+desktop 2026-08-13** (the checkpoint walk caught the flagship banded ~slow):
+the probe reads **19.01 GB/s** there — single-stream memcpy, which this doc's
+derived 6.9–10.6 GB/s effective window prices at the probe's OWN factor
+`bw_eff_host_probe` **0.40** (19.01 × 0.40 = 7.6; the generic 0.15 gave 2.85, a
+band lie — probes and spec sheets need different discounts). Same day the probe
+went **topology-aware** (single + threaded passes, best wins): measured on this
+desktop, threads add nothing (18.9 single vs ~14 threaded — dual-channel DDR4 is
+controller-bound), but wide memory systems are single-core-bound and now read
+their true ceiling — so 0.40 is the streaming→scattered-gather access-pattern
+discount, portable across machines. Laptop probe rows get sanity-checked when
+those boxes are walked.
