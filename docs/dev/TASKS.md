@@ -252,3 +252,17 @@ JV as of 2026-08-04; the convergence scope itself stands.)*
 the `--fit`/MTP upstream WATCH · the Harrier/KaLM model watchlist · the LICENCE flag ·
 the SDK-pivot re-open trigger) → `../just-llm-runner/docs/dev/TASKS.md`; JV-owned
 (F3 · I6) → `../JustVioce/docs/dev/TASKS.md`.)*
+
+## Fit redesign (family, runner-owned) — JW impact
+
+Tracked in `../just-llm-runner/docs/dev/TASKS.md`; full plan
+`../just-llm-runner/docs/plans/2026-08-09-fit-redesign.md` (consensus reached
+2026-08-13 — amendments §13; ALL rulings decided same day, §8.17–22). JW-side work
+when its phases land: seed regeneration in `seed_presets.py` — DECIDED §8.19
+(facts-not-floors: seeds carry header facts incl. the three KV scalars, curated CHAT
+floors die, EMBED floors stay curated — §13.11); `classMembership.test.js`
+re-validation WITH the user (its
+charter; membership stays canonical discrete-shaped per §13.11); badge/speed-band
+user docs; test_seed asserts. 2026-08-13: `docs/dev/measured-performance.md` gained
+the derived bandwidth constants + the 0.41-vs-0.446 physics cross-check (feeds the
+plan's §7.5 pinned test). Per-phase go-gate.

@@ -122,3 +122,29 @@ fails to create a context when loading a `gemma4_mtp` draft — cure `--fit off`
   fill distorts 2.6-14% but never loses content.
 - `/health`-before-seed: buys 36 ms of a ~975 ms warm pre-listen window — dropped
   (the 2026-07-25 record's one measured line; there is no snippet).
+
+## Memory-bandwidth constants (2026-08-13 — derived from the rows above for the fit redesign)
+
+Derived read-only from THIS doc's recorded measurements + the real GGUF headers; full
+reproduction in `../../../just-llm-runner/docs/plans/2026-08-09-fit-redesign.md`
+Appendix B. These seed the fit redesign's speed bands (§5.5 there).
+
+- **Device-compute (VRAM) factor ≈ 0.59 of spec** — 12B dense (6.716 GB file) ×
+  39.1 tok/s = 262.6 GB/s vs the 2070S's 448. Clean row: llama-bench b10107, no
+  drafter, default ctx (llama-bench has no `-c` — class-row ctx never applies to it).
+- **Host-CPU (RAM) factor ≈ 0.10–0.22 of spec** — three derivations converge: the
+  26B app leg 28.6 tok/s corrected for MTP (the multiplier is the mean accepted RUN
+  1.94–2.83 → ~2.9–3.8 tokens/pass, NOT the 0.6687 token-level acceptance); the
+  ncmoe-30 sweep row (22.3 tg, all experts in RAM); the bare llama-bench 11.47. Spec
+  51.2 (DDR4-3200 dual). The two pools are different physical processes — never share
+  one efficiency constant.
+- **Per-pass bytes (26B flagship)**: 0.871 GB non-expert + 0.836 GB active experts
+  (8/128, expert_byte_share 0.9389) = 1.707 GB, plus KV read at live ctx (545 MB @16k,
+  881 MB @32k, iSWA).
+- **The physics cross-check**: this doc's "≈0.41 GB VRAM per expert layer moved"
+  vs computed 14.25 GB × 0.9389 ÷ 30 = 0.446 GB/layer — within 9%. The redesign's
+  central MoE term was validated by this doc's own sweep before the redesign existed.
+- **Calibration-grade warning**: the Core Ultra 7 ncmoe sweep rows 32/40/48 all clamp
+  to the model's 30 layers — identical placement — yet measured 5.32/7.95/8.15 tok/s
+  (1.53× spread, thermal-shaped). Sweep verdicts (ncmoe 0 wins on iGPU) survive the
+  noise; absolute tok/s from that sweep must not calibrate anything.
