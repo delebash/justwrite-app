@@ -258,10 +258,12 @@ the SDK-pivot re-open trigger) → `../just-llm-runner/docs/dev/TASKS.md`; JV-ow
 Tracked in `../just-llm-runner/docs/dev/TASKS.md` (THE resume surface — its fit
 item now opens with a STATUS-NOW block; read that first); full plan
 `../just-llm-runner/docs/plans/2026-08-09-fit-redesign.md` (consensus 2026-08-13,
-amendments §13, ALL rulings §8.17–23a). JW-SIDE STATE after Phases 0–5 (all BUILT
-2026-08-13, every gate green incl. the user's own JW smoke run; Phases 4–5 touched
-JW only through the shared kit + two models.md passes — the arch-aware budget
-line's "Memory" wording, and the remembered-footprints / Clear-history story):
+amendments §13, ALL rulings §8.17–23a). JW-SIDE STATE — the redesign's BUILD
+PHASES ARE COMPLETE (0–7, all BUILT + GATED + PUSHED 2026-08-13; the standing
+fit-architecture story is the kit's `docs/dev/serving-design.md` fit section).
+Phases 4–7 touched JW only through the shared kit + three models.md passes —
+the arch-aware budget line's "Memory" wording, the remembered-footprints /
+Clear-history story, and the evidence-ranking line:
 - DONE — seed regeneration (§8.19 facts-not-floors: `seed_presets.py` carries the
   nine header facts incl. the three KV scalars, curated CHAT floors deleted, the
   three EMBED floors kept; refreshed LIVE from HF via the kit's
@@ -284,7 +286,23 @@ line's "Memory" wording, and the remembered-footprints / Clear-history story):
   measured-performance.md), alongside the joint MoE solve — JW rides: the
   Tune dialog's "Computed for this PC" rows now show the measured-tune-shaped
   split (ngl=all + just-enough ncmoe) instead of the old inverse's ngl 8-9.
-- STILL AHEAD (kit Phase 7, its own go; JW mostly rides): §7.6's docs pass +
-  the uncurated-path acceptance test + recommendation-precedence ranking. The
-  user-side remainders live in the kit tracker: the app restart + flagship
-  ~fine re-check · the Tune & measure flip test · the laptops walk.
+- DONE (kit Phase 7, 2026-08-13 — the last build phase) and JW rides all
+  three halves: the §7.4 evidence ranking (the wire's new `ranHere` bit — a
+  model measured/tuned/loaded on THIS machine stays recommendable even when
+  the estimate would reject it; models.md carries the user-facing line, the
+  kit truth-table pins the rule) · the §7.3 uncurated-path gate + the
+  no-badge-still-launchable pin (kit tests — they protect the hand-add-by-
+  link flow JW users drive) · the §7.6 docs pass (the one-authority story
+  STANDS in the kit's serving-design.md; JW's architecture-notes was
+  verified to carry NO fit section to rewrite — the 2026-08-04 docs
+  campaign's distillation predates the plan's target, recorded rather than
+  invented; measured-performance.md's constants + calibration notes stand
+  from Phase 3).
+- USER-SIDE STATE (2026-08-13): the desktop checkpoint is CLOSED (the user
+  confirmed the flagship reads ~fine and the Tune & measure flip works).
+  REMAINING, at the user's pace: the two-laptop glance — on each, (a) the
+  E4B row reads Fits with a band (16 GB Iris Xe box), (b) the engine
+  panel's budget line reads "Memory" (one-pool boxes — the Phase 4 wire,
+  never yet seen live on real one-pool hardware), (c) the box's
+  `__machine_ram_bw__` probe row holds a plausible GB/s (LPDDR5 → higher
+  than the desktop's 19.01). Then the JV VRAM wiring on its own go.
