@@ -483,6 +483,8 @@ one empty and that side embeds raw. If you edit a template after building an ind
 > character name + profile from a real character. All the fill controls sit together on
 > one row above the boxes. A picker only appears when that material can actually fill one
 > of the open feature's boxes — a prose feature offers chapters, not character profiles.
+> Each picker shows what you last inserted, so you can see which chapter or character is
+> in the box; pick its top row to clear the label.
 
 > **Watching a Lab run.** Running a test shows the same AI progress strip used everywhere
 > else in the app — elapsed time, first-token latency, tokens/sec, and a Cancel button —
