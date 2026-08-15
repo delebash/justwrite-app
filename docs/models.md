@@ -205,19 +205,22 @@ embedding model carries an **Embedding** badge. From here you can:
   separate file; the model self-drafts from its own head. Either way the app turns
   speculative decoding on automatically; whether it's actually *accepting* drafts (the win)
   is measurable — the bench reports the acceptance rate.
-- **Load as default** — makes a downloaded model the one **every preset** uses (the same effect
+- **Set as default** — makes a downloaded model the one **every preset** uses (the same effect
   as Quick Setup; any preset you've re-pointed yourself under **Routing by feature** keeps
-  its own model) **and loads it into memory right away**, so your first write doesn't pay
-  the load wait.
-- **Unload** — appears on a loaded model; frees its memory (VRAM) without picking anything
-  else. The model loads again on **Load as default** or the next time a feature needs it.
-- On an **embedding** row, **Load as default** works the same way — it makes that model the
-  one used for search and grounded chat **and loads it right away, alongside your chat
-  model** (the two run together); a loaded embedding gets the same **Unload**. You don't
-  have to pre-load it, though: the embedding model **loads itself on first use** — the next
-  search or Ask-the-book question downloads (if needed) and loads it, with a "Preparing the
-  embedding model" entry in the AI task panel while it happens. Switching to a different
-  embedding model works the same way: the next search loads the new one.
+  its own model). It does **not** load the model: choosing a default says what *should* be
+  used, and the model loads by itself the first time a feature actually needs it. Picking a
+  default therefore costs nothing and never spends a multi-gigabyte load you didn't ask for.
+- **Load into memory** (row **⋯** menu) — warms a downloaded model now, so your first write
+  doesn't pay the load wait. Separate from the default: you can warm a model without making
+  it the default, or set a default and let it load on demand.
+- **Unload from memory** — appears on a loaded model; frees its memory (VRAM) without picking
+  anything else. It loads again on **Load into memory** or the next time a feature needs it.
+- On an **embedding** row the same three verbs apply — **Set as default** points search and
+  grounded chat at that model, and it loads itself on first use: the next search or
+  Ask-the-book question downloads (if needed) and loads it **alongside your chat model** (the
+  two run together), with a "Preparing the embedding model" entry in the AI task panel while
+  it happens. Switching to a different embedding model works the same way: the next search
+  loads the new one. **Load into memory** warms it ahead of time if you'd rather not wait.
 - Every model from Hugging Face carries a **Model card ↗** link (on its row and in its Edit
   dialog) that opens the full details — files, license, the maker's notes — in your browser.
 - **Engine switches belong to the model, not to presets** — that's the one rule of the
