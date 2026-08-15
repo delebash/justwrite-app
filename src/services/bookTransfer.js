@@ -22,12 +22,16 @@
 import { post, requestBlob } from "@delebash/llm-ui";
 import { chooserDir, rememberDir } from "./chooserDirs.js";
 import { saveBlob } from "./download.js";
+import { hasShell, pickFile } from "./native.js";
 
-const jw = typeof window !== "undefined" ? window.justwrite : null;
+// Both gates are the same question — "is a desktop shell there?" — and the kit
+// owns the one test (2026-08-14). They were two probes of the old
+// `window.justwrite` global, evaluated at module load, which is why this file
+// needed two test files to cover its two capability states.
 /** Host offers a native "save as" — export picks (and remembers) a folder. */
-export const canSaveFiles = !!jw?.shell?.saveFile;
+export const canSaveFiles = hasShell();
 /** Host offers a file picker — the gate on Import, which has no browser path. */
-export const canPickBooks = !!jw?.shell?.pickFile;
+export const canPickBooks = hasShell();
 
 // Filesystem-safe filename stem — the display title minus chars illegal in a
 // filename (mirrors the server's `_safe_title`); spaces + hyphens are kept, so
@@ -59,13 +63,13 @@ export async function exportProject(projectId, title) {
  * { id, title } (the server minted the id), or null if the user cancelled.
  */
 export async function importProject() {
-  const picked = await jw.shell.pickFile({
+  const picked = await pickFile({
     title: "Import book",
     filterName: "JustWrite book",
     filterExt: "zip",
     defaultDir: await chooserDir("import"),
   });
-  if (!picked || picked.cancelled || !picked.dataBase64) return null;
+  if (!picked?.dataBase64) return null;
   if (picked.dir) rememberDir("import", picked.dir);
   return post("/v1/projects/import", { zipBase64: picked.dataBase64 });
 }

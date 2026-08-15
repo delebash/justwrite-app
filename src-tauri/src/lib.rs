@@ -77,8 +77,11 @@ fn storage_get_root(app: AppHandle) -> StorageRoot {
 // async so the (possibly multi-GB) copy runs off the main/UI thread, matching the
 // other heavy-IO commands.
 #[tauri::command]
-async fn storage_relocate(app: AppHandle, new_path: String) -> Result<(), String> {
-    let new_root = PathBuf::from(new_path.trim());
+async fn storage_relocate(app: AppHandle, new_root: String) -> Result<(), String> {
+    // `new_root`, not `new_path` (2026-08-14): the same command in JustVoice and
+    // i18n-docgen named this parameter `new_root`, so the family's one relocate
+    // call had two spellings on the wire.
+    let new_root = PathBuf::from(new_root.trim());
     if new_root.as_os_str().is_empty() {
         return Err("empty path".into());
     }
@@ -132,20 +135,12 @@ fn relocate_data(
     Ok(())
 }
 
-// ─── External opener ─────────────────────────────────────────────────
-// `window.open` does nothing useful inside a Tauri webview — the OS
-// default handler is the right surface for "Open on the web" / future
-// "Reveal in folder" affordances. Validates http(s) to avoid handing
-// arbitrary URI schemes to the OS.
-
-#[tauri::command]
-async fn open_external(target: String) -> Result<bool, String> {
-    if !target.starts_with("http://") && !target.starts_with("https://") {
-        return Err("open_external only handles http(s) URLs".into());
-    }
-    open::that(&target).map_err(|e| e.to_string())?;
-    Ok(true)
-}
+// ─── External opener — REMOVED 2026-08-14 ────────────────────────────
+// `open_external` (and the `open` crate behind it) was this app's own
+// implementation of a job the other two already did two other ways. The
+// renderer now calls `@tauri-apps/plugin-opener` directly, like JustVoice
+// and i18n-docgen: one plugin, one call, three apps. The tray's log opener
+// below went the same way.
 
 // ─── Generic binary save (Save-As) ───────────────────────────────────
 // WebView2 ignores `<a download>` on blob: URLs, so any "Save as WAV /
@@ -678,7 +673,7 @@ fn handle_tray_menu_event(app: &AppHandle, event_id: &str) {
             let root = resolve_data_root(app);
             let live = root.join("logs").join("justwrite.log");
             let target = if live.exists() { live } else { root.join("logs") };
-            let _ = open::that(target);
+            let _ = tauri_plugin_opener::open_path(&target, None::<String>);
         }
         "about" => {
             let _ = window.show();
@@ -710,9 +705,17 @@ static CLOSING: AtomicBool = AtomicBool::new(false);
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // THE plugin baseline, identical in all three apps (2026-08-15): opener,
+        // dialog, window-state — every one of them actually used. `http` and `fs`
+        // were removed the same day: each appeared ONLY in its own init() call.
+        // `http` went with the cross-origin fetch override, which a test in the
+        // real webview showed was buying nothing.
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_fs::init())
-        .plugin(tauri_plugin_http::init())
+        // THE family opener (2026-08-14): one plugin for "open a URL" and "open a
+        // folder", in all three apps. It replaced this app's own `open_external`
+        // command and the `open` crate behind it — the same job JustVoice did with
+        // tauri-plugin-shell and i18n-docgen already did with this plugin.
+        .plugin(tauri_plugin_opener::init())
         // Remember the window size + position across launches — the plugin saves
         // on close and restores on start automatically (no JS/capability needed).
         .plugin(tauri_plugin_window_state::Builder::default().build())
@@ -772,7 +775,6 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            open_external,
             shell_save_file,
             pick_directory,
             pick_file,

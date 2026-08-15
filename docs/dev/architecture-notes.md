@@ -13,36 +13,55 @@ per-task history lives in `docs/plans/*`.
 The Rust crate is built by the Tauri CLI; Vite never sees it. The renderer dev server is fixed at
 `http://localhost:1420` and `tauri.conf.json` references that URL — keep them in lock-step.
 
-## IPC bridge (Tauri ↔ renderer)
+## Calling the shell (Tauri ↔ renderer)
 
-`src/services/tauri-bridge.js` is a side-effect import in `main.js`. It detects
-`window.__TAURI_INTERNALS__` and populates `window.justwrite`:
+`src/services/native.js` holds every call into JustWrite's own Tauri shell, as ordinary module
+exports: `pickDirectory`, `pickFile`, `saveFile`, `storageGetRoot`, `storageRelocate`,
+`setKeepRunning`, `setTrayLabels`, plus `hasShell()`. Each is a thin `invoke()` of a
+`#[tauri::command]` in `src-tauri/src/lib.rs`. Every native dialog is a Rust command rather than the
+JS dialog plugin — the family shape, so a dialog cannot appear at two different layers across the
+three apps.
 
-```
-window.justwrite.shell   = { pickDirectory, openExternal, saveFile }
-window.justwrite.storage = { getRoot, relocate }   // the portable data root (Rust storage_*)
-```
+**It replaced `tauri-bridge.js` on 2026-08-14.** That file installed a `window.justwrite` GLOBAL and
+normalised errors into an Electron-shaped `{ ok, error, cancelled }`, because this renderer was once
+an Electron app talking to preload handlers. JustVoice and i18n-docgen were born Tauri and have no
+such global; they call `invoke` from the code that needs it, and so does this app now. **Commands
+throw** — callers use `try`/`catch`, and a cancelled dialog resolves `null`.
 
-These mirror Rust commands in `src-tauri/src/lib.rs` one-for-one (`pick_directory`, `open_external`,
-`shell_save_file`, `storage_get_root`, `storage_relocate`). The legacy file-based
-`window.justwrite.project` save/open and the `project_save`/`project_open` Rust commands were
-removed 2026-07-13 — per-project backup and transfer live in Settings → Backups via
+Two things the old file also did:
+
+- **"Is a desktop shell there?"** — `hasShell()` re-exports the kit's `isTauriShell()`, ONE
+  implementation for the family. Never test `window.justwrite` or `window.__TAURI__` (the latter
+  only exists when an app sets `withGlobalTauri`, and none of the three do).
+- **The cross-origin fetch route** — now `src/services/tauriFetch.js`, called once in `main.js`. It
+  patches `window.fetch` inside the webview so cross-origin http(s) calls are performed by Rust's
+  reqwest, where neither CORS nor COEP applies. **On probation:** no renderer in any of the three
+  apps calls an LLM provider (those are server-side), the COEP header it was written for no longer
+  exists, and JustVoice and i18n-docgen make the same webview→own-server hop with plain fetch. It
+  stays app-local precisely because one app uses it — that makes it app code, not shared code. The
+  file names the one-step check that would retire it.
+
+Opening a URL or a folder is neither of the above: it is `@tauri-apps/plugin-opener` (`openUrl`,
+`openPath`), handed to the kit in the same one-line `external: { open: openUrl, openPath }` all three
+apps pass. `open_external` and its `open` crate were deleted with the bridge.
+
+The legacy file-based `window.justwrite.project` save/open and the `project_save`/`project_open` Rust
+commands were removed 2026-07-13 — per-project backup and transfer live in Settings → Backups via
 `services/bookTransfer.js`, and persistence is server-owned.
 
 The **data root** is a portable, user-settable folder holding ALL app data (projects DB, images, AI
 engine, models, logs); `storage_relocate` moves it and respawns the server (see
 `docs/plans/archive/2026-07-02-portable-data-root-and-engine-install.md`).
 
-When `window.justwrite` is undefined (plain `vite dev` in a browser), project data still persists to
-the server via `projectApi`, and images upload via `imageStore` (inline data-URL fallback only when
-the server is unreachable). **This is why renderer code must never call `invoke()` directly** — go
-through `window.justwrite` so the browser-only path keeps working.
+Outside the shell (plain `vite dev` in a browser), project data still persists to the server via
+`projectApi`, and images upload via `imageStore` (inline data-URL fallback only when the server is
+unreachable). Gate desktop-only affordances on `hasShell()` so the browser path keeps working.
 
 Adding a new Tauri command:
 
 1. Add the `#[tauri::command]` function in `src-tauri/src/lib.rs` and register it in `invoke_handler![]`.
-2. Add a matching method to `window.justwrite.*` in `tauri-bridge.js`.
-3. If it needs a new plugin permission, update `src-tauri/capabilities/default.json` (currently grants `core:default`, `dialog:default`, `fs:default`).
+2. Add a matching thin wrapper to `src/services/native.js` — one place names each command string.
+3. If it needs a new plugin permission, update `src-tauri/capabilities/default.json` (currently grants `core:default`, `dialog:default`, `fs:default`, `opener:default` + `opener:allow-open-path`, and a scoped `http:default`).
 
 The fs plugin scope allows `$APPDATA/images/*` and `$APPDATA/projects/*`. Saving project files
 elsewhere requires widening the scope in `tauri.conf.json`.

@@ -1,13 +1,10 @@
 // JustWrite — renderer entry point.
-// Loads the Tauri ↔︎ window.justwrite bridge before mounting Vue so the
-// stores find the IPC adapter the moment they spin up.
 
 // The bundled type system, FIRST so it lands earliest in the emitted stylesheet — every
 // font the Appearance picker offers, self-hosted. This replaced the render-blocking
 // fonts.googleapis.com <link> in index.html (2026-07-24): a local-first app must not wait
 // on a network round trip to paint its first frame. Full reasoning: fonts.css's own header.
 import "./fonts.css";
-import "./services/tauri-bridge.js";
 // Apply the default appearance synchronously so we don't render with the wrong
 // colour scheme during the boot tick below. The real persisted appearance is
 // reapplied once bootSettings() resolves.
@@ -37,27 +34,49 @@ import { startWarmOnBoot } from "@delebash/llm-ui";
 // separate configure* calls here, the exact per-step wiring the installer
 // exists to make un-forgettable), wires the external opener, and registers
 // <LlmUiHosts /> (Toast + AppDialog, mounted once in App.vue).
-import { installLlmUi, checkServer, configureFamilyLabels, configureHelp, configureTestData, closeHelp, openExternal, setUiLocale, ConnectionError } from "@delebash/llm-ui";
+import { installLlmUi, checkServer, configureFamilyLabels, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, serverUrl, setUiLocale, ConnectionError } from "@delebash/llm-ui";
+import { openPath, openUrl } from "@tauri-apps/plugin-opener";
+import { saveFile } from "./services/native.js";
 import { buildFamilyLabels } from "./i18n/familyLabelsFeed.js";
-import { SERVER_BASE, resolveBase } from "./services/serverApi.js";
 import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "./services/helpDocs.js";
 import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "./services/labTestData.js";
+
+// The cross-origin fetch override was DELETED 2026-08-15, after a test rather
+// than an argument: driven inside the real webview (origin http://tauri.localhost)
+// against a live sidecar, an unpatched XMLHttpRequest AND a same-origin iframe's
+// unpatched fetch both reached http://127.0.0.1:17495/v1/health — 200, real body.
+// Plain browser networking gets there, so routing every call through Rust bought
+// nothing. It came from the Electron-era bridge; JustVoice and i18n-docgen never
+// had it. The `http` plugin went with it in both apps.
 
 const app = createApp(App);
 const pinia = createPinia();
 app.use(pinia);
 
 installLlmUi(app, {
-  // JW's own resolver (services/serverApi.js) — one base feeds both transports.
-  resolveBase,
-  // External links — the Tauri webview swallows target=_blank/window.open, so
-  // route through the shell bridge; the browser dev path (no window.justwrite)
-  // keeps window.open.
-  external: (url) => {
-    if (window.justwrite?.shell?.openExternal) window.justwrite.shell.openExternal(url);
-    else window.open(url, "_blank", "noopener,noreferrer");
-  },
+  // The KIT resolves the base now (2026-08-15) — services/serverApi.js is
+  // deleted. It was one of three shapes for one job: JustWrite had this file,
+  // JustVoice had src/config.js, docgen had nothing and let the installer do it.
+  // docgen was right.
+  devPorts: ["1420"],
+  fallbackBase: import.meta.env?.VITE_SERVER_URL || "http://127.0.0.1:17495",
+  // The openers, straight from the plugin — the SAME line in all three apps
+  // (2026-08-14; it was this app's own `open_external` Rust command behind
+  // window.justwrite). The kit decides when they can be used (browser vs
+  // webview); no app repeats that reasoning. `openPath` is what the model
+  // catalog's "Open folder" rides.
+  external: { open: openUrl, openPath },
   // No catalogCopy / quickSetupCopy: the kit defaults ARE JustWrite's words.
+});
+
+// The native "save as", wired ONCE (2026-08-15) — every export in the app and in
+// the kit's shared panels now goes through the same door, instead of each
+// surface remembering to pass a prop. `shell_save_file` is a Rust command
+// because the bytes ride the raw IPC body; the folder MEMORY stays in
+// services/download.js, which is the part that is actually JustWrite's.
+configureFileSave({
+  save: (blob, { filename, title, filterName, filterExt, defaultDir }) =>
+    saveFile({ blob, suggestedName: filename, title, filterName, filterExt, defaultDir }),
 });
 
 // The AI Lab's test-input affordances (§7.3 + QC-35): JW's book material
@@ -90,7 +109,9 @@ configureHelp({
   if (!(await checkServer())) {
     createApp(ConnectionError, {
       appName: "JustWrite",
-      serverUrl: SERVER_BASE,
+      // The kit's transport is already configured by installLlmUi above, so this
+      // is the SAME base the app talks to — no second resolver to disagree with.
+      serverUrl: serverUrl(""),
       need: "load and save your work",
       devHint: "Dev: start it with `npm run server` in the project root, then retry.",
     }).mount("#app");

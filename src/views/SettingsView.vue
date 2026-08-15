@@ -4,11 +4,15 @@ import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor } from "../services/imageStore.js";
-import { promptDialog, confirmDialog, DataManagement, LogsPanel, SettingsShell, UpdatesPanel, renderHelpMarkdown, get, put, post, fmtBytes, refreshRunnerModels } from "@delebash/llm-ui";
+import { promptDialog, confirmDialog, DataManagement, LogsPanel, SettingsShell, UpdatesPanel, renderHelpMarkdown, get, put, post, fmtBytes, refreshRunnerModels, serverUrl } from "@delebash/llm-ui";
 import { loadDoc } from "../services/helpDocs.js";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { exportProject, importProject, saveBackupBlob, canSaveFiles, canPickBooks } from "../services/bookTransfer.js";
 import { serverDataDir, chooserDir, rememberDir } from "../services/chooserDirs.js";
+import {
+  hasShell, pickDirectory, storageGetRoot, storageRelocate,
+  setKeepRunning as nativeSetKeepRunning,
+} from "../services/native.js";
 import * as autosaveApi from "../services/autosaveApi.js";
 import { PaneHeader } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
@@ -21,7 +25,6 @@ import { UiButton } from "@delebash/llm-ui";
 import { UiToggle } from "@delebash/llm-ui";
 import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
-import { SERVER_BASE } from "../services/serverApi.js";
 import {
   ACCENT_PRESETS, GOLD_PRESETS, FUNCTIONAL_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
   THEME_PRESETS, UI_FONTS, DISPLAY_FONTS, INK_PALETTES, UI_SCALES,
@@ -76,16 +79,17 @@ watch(() => props.section, (s) => { if (s) active.value = normalizeSection(s); }
 // tokens (the `auth` settings section the middleware reads) gate /v1/* when
 // the server runs exposed; off by default.
 const headlessUrl = computed(
-  () => SERVER_BASE || (typeof window !== "undefined" ? window.location.origin : ""),
+  // The kit resolves the base (2026-08-15) — services/serverApi.js is gone.
+  () => serverUrl("") || (typeof window !== "undefined" ? window.location.origin : ""),
 );
 const authTokens = ref([]);
 
 // The keep-running toggle writes the shell flag immediately AND persists in the
 // ui store (App.vue re-applies it every boot — the Rust flag resets per launch).
-// Through the bridge, never a direct invoke (this repo's invariant).
+// Through services/native.js, which owns the command name.
 async function setKeepRunning(v) {
   ui.setKeepServerRunning(!!v);
-  await window.justwrite?.server?.setKeepRunning?.(!!v);
+  await nativeSetKeepRunning(!!v);
 }
 
 // Updates / changelog — version + the rendered whats-new.md (single-sourced with
@@ -115,8 +119,7 @@ const relocating = ref(false);
 const storageErr = ref("");
 
 async function loadStorageRoot() {
-  const r = await window.justwrite?.storage?.getRoot?.();
-  storageRoot.value = r && !r.error ? r : null;
+  storageRoot.value = await storageGetRoot();
 }
 
 // ── Disk usage: the on-disk footprint + the two reclaim actions. Sizes come from
@@ -189,7 +192,7 @@ async function clearSpawnLogs() {
 watch(active, (a) => { if (a === "storage") { loadStorageRoot(); loadDiskUsage(); } }, { immediate: true });
 
 async function changeFolder() {
-  const picked = await window.justwrite?.shell?.pickDirectory?.({ title: t("settings.storage.chooseFolderTitle") });
+  const picked = await pickDirectory({ title: t("settings.storage.chooseFolderTitle") });
   if (!picked) return;
   const yes = await confirmDialog({
     title: t("settings.storage.moveDataTitle"),
@@ -199,11 +202,13 @@ async function changeFolder() {
   if (!yes) return;
   relocating.value = true;
   storageErr.value = "";
-  const res = await window.justwrite.storage.relocate(picked);
-  if (res?.ok) {
+  // try/catch, not `{ ok, error }` — the Electron-shaped return died with the
+  // bridge (2026-08-14); this is now the same shape JustVoice's Settings uses.
+  try {
+    await storageRelocate(picked);
     window.location.reload();
-  } else {
-    storageErr.value = res?.error || t("settings.storage.moveFailed");
+  } catch (e) {
+    storageErr.value = String(e || "") || t("settings.storage.moveFailed");
     relocating.value = false;
   }
 }
@@ -429,7 +434,7 @@ const lastAutosaveAt = ref(readSetting("lastAutosaveAt") || null);
 const autosaveDir = ref(null);
 const autosaveDirBusy = ref(false);
 // The autosave-folder picker is desktop-only (needs the native folder dialog).
-const canPickAutosaveFolder = !!(typeof window !== "undefined" && window.justwrite?.shell?.pickDirectory);
+const canPickAutosaveFolder = hasShell();
 
 // Resolve the autosave folder path so users can see where their work
 // is being mirrored to disk (served by the Python server; works in browser-dev too).
@@ -452,7 +457,7 @@ async function changeAutosaveFolder() {
   backupError.value = null;
   try {
     const defaultPath = autosaveDir.value || (await chooserDir("autosave"));
-    const picked = await window.justwrite.shell.pickDirectory({
+    const picked = await pickDirectory({
       title: t("settings.backups.chooseAutosaveFolderTitle"),
       defaultPath,
     });
@@ -596,11 +601,13 @@ const lastAutosaveLabel = computed(() => {
 
 
 // ── About ──────────────────────────────────────────────────────────
-const platformLabel = computed(() => {
-  const jw = window.justwrite;
-  if (jw?.platform === "tauri") return t("settings.about.runtimeTauri", { version: jw.version || "2" });
-  return t("settings.about.runtimeBrowser");
-});
+const platformLabel = computed(() =>
+  // The old `window.justwrite.platform`/`.version` pair was the shim announcing
+  // itself; the kit's one shell test answers the same question (2026-08-14).
+  hasShell()
+    ? t("settings.about.runtimeTauri", { version: "2" })
+    : t("settings.about.runtimeBrowser"),
+);
 
 const stats = computed(() => {
   const chapters = Object.keys(project.chapterBody || {}).length;
@@ -1591,7 +1598,10 @@ async function deleteCategory(c) {
         <!-- Backup / restore / reset — the shared full-DB module (same code +
              server endpoints in every same-stack app). The autosave card above
              is JustWrite's Tauri-specific on-disk restore, kept app-local. -->
-        <DataManagement app-name="JustWrite" :save-file="canSaveFiles ? saveBackupBlob : null" />
+        <!-- No `save-file` prop since 2026-08-15: the native saver is wired once
+             in main.js (configureFileSave), so this panel behaves the same here,
+             in JustVoice and in docgen. -->
+        <DataManagement app-name="JustWrite" />
       </div>
 
       <!-- ── LOGS (shared panel) ───────────────────── -->

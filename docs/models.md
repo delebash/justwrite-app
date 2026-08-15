@@ -210,19 +210,25 @@ embedding model carries an **Embedding** badge. From here you can:
   its own model). It does **not** load the model: choosing a default says what *should* be
   used, and the model loads by itself the first time a feature actually needs it. Picking a
   default therefore costs nothing and never spends a multi-gigabyte load you didn't ask for.
-- **Load into memory** (row **⋯** menu) — warms a downloaded model now, so your first write
-  doesn't pay the load wait. Separate from the default: you can warm a model without making
-  it the default, or set a default and let it load on demand.
-- **Unload from memory** — appears on a loaded model; frees its memory (VRAM) without picking
-  anything else. It loads again on **Load into memory** or the next time a feature needs it.
+- **Load model** (row button, left of **Set as default**) — warms a downloaded model now, so
+  your first write doesn't pay the load wait. Separate from the default: you can warm a model
+  without making it the default, or set a default and let it load on demand.
+- **Unload model** — replaces **Load model** on a loaded model; frees its memory (VRAM) without
+  picking anything else. It loads again on **Load model** or the next time a feature needs it.
 - On an **embedding** row the same three verbs apply — **Set as default** points search and
   grounded chat at that model, and it loads itself on first use: the next search or
   Ask-the-book question downloads (if needed) and loads it **alongside your chat model** (the
   two run together), with a "Preparing the embedding model" entry in the AI task panel while
   it happens. Switching to a different embedding model works the same way: the next search
-  loads the new one. **Load into memory** warms it ahead of time if you'd rather not wait.
-- Every model from Hugging Face carries a **Model card ↗** link (on its row and in its Edit
-  dialog) that opens the full details — files, license, the maker's notes — in your browser.
+  loads the new one. **Load model** warms it ahead of time if you'd rather not wait.
+- The row's **⋯** menu holds the less-common verbs: **Tune & measure**, **Re-download**,
+  **Open folder** (the model's own folder on disk, in your file explorer — desktop app only),
+  **View on Hugging Face** (the upstream repository page — files, license, the maker's notes),
+  **Delete downloaded model** (frees the disk, keeps the catalog row) and **Delete from
+  catalog**. These are the same words, in the same order, as the **⋯** menu on a speech-model
+  row in JustVoice — one interaction grammar across the family. The **Model card ↗** link on
+  the row itself is gone: it was the same act as **View on Hugging Face** under a second name.
+  The Edit dialog keeps its own card link, beside the repo field it verifies.
 - **Engine switches belong to the model, not to presets** — that's the one rule of the
   whole tuning system. A loaded model is one engine process with one set of launch
   switches, shared by **every preset that uses it**; what a *preset* owns is how the model is

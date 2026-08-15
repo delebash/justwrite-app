@@ -6,6 +6,7 @@ import { useUiStore } from "./stores/ui.js";
 import { useProjectStore } from "./stores/project.js";
 import { applyAppearance } from "./services/appearance.js";
 import { applyEditorSettings } from "./services/editorSettings.js";
+import { setKeepRunning, setTrayLabels } from "./services/native.js";
 import { BootModelLoad, warmModelId } from "@delebash/llm-ui";
 import TitleBar from "./components/TitleBar.vue";
 import Sidebar from "./components/Sidebar.vue";
@@ -142,10 +143,11 @@ onMounted(() => {
   // Ctrl+P opening the OS print dialog before our palette can intercept).
   window.addEventListener("keydown", onKey, { capture: true });
   // Re-apply the persisted keep-running flag to the shell every boot (the Rust
-  // side resets per launch; the family headless ruling 2026-08-04). Through the
-  // bridge, never a direct invoke (this repo's invariant, restored 2026-08-05).
+  // side resets per launch; the family headless ruling 2026-08-04). Through
+  // services/native.js — the module that replaced the window.justwrite global
+  // on 2026-08-14, and still the one place this command is named.
   if (ui.keepServerRunning) {
-    window.justwrite?.server?.setKeepRunning?.(true);
+    setKeepRunning(true);
   }
   // The tray's renderer half (the full-donor ruling 2026-08-04): settings/about
   // navigate, Copy URL writes the clipboard + says so — the donor's versions
@@ -169,10 +171,10 @@ onMounted(() => {
     }).catch(() => {});
   }
   // The tray menu's words follow the UI language (parity batch 2026-08-05 —
-  // the menu was hardcoded English inside an es-localized app). Fed through
-  // the bridge at boot + on every locale switch; a no-op in plain `vite dev`.
+  // the menu was hardcoded English inside an es-localized app). Fed at boot +
+  // on every locale switch; a no-op in plain `vite dev`.
   watch(i18n.global.locale, () => {
-    window.justwrite?.tray?.setLabels?.({
+    setTrayLabels({
       show: t("tray.show"),
       hide: t("tray.hide"),
       serverStart: t("tray.serverStart"),

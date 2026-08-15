@@ -18,15 +18,14 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = ["tray-icon"] }
 tauri-plugin-dialog = "2"
-tauri-plugin-fs = "2"
-tauri-plugin-http = "2"
 tauri-plugin-window-state = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 base64 = "0.22"
-# Opens a URL/path with the OS default handler. Used by `open_external`
-# below (Help → "Open on the web", any future "reveal in folder" call).
-open = "5"
+# The family opener — "open a URL" AND "open a folder", one plugin, all three
+# apps (2026-08-14). Replaced the bare `open` crate + this app's own
+# `open_external` command.
+tauri-plugin-opener = "2"
 
 # Smaller, faster release builds. JustWrite is interactive so we trade
 # longer link times for a smaller installer and tighter LTO.

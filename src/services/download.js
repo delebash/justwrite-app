@@ -13,49 +13,36 @@
 // while testing, not a design.
 // ============================================================
 
+import { downloadBlob as kitDownloadBlob, saveBlob as kitSaveBlob } from "@delebash/llm-ui";
 import { chooserDir, rememberDir } from "./chooserDirs.js";
 
 /** Download `blob` as `filename`. Returns nothing; the browser owns the rest. */
-export function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  // Revoked on a timer, not immediately: Safari and Firefox have both been seen
-  // to abort a download whose object URL is released in the same tick as click().
-  setTimeout(() => URL.revokeObjectURL(url), 30_000);
-}
+export const downloadBlob = kitDownloadBlob;
 
 /**
  * Save `blob` as `filename`, asking the user where when the host can.
  *
- * `chooser` names the folder memory (chooserDirs keys them separately, so the
- * book zip and a manuscript can remember different places). The dialog strings
- * come from the caller because only a view has i18n.
- *
- * Reads `window.justwrite` per call rather than at module load: capability can
- * differ between the desktop shell and a browser tab, and callers are tested in
- * both.
+ * The DELIVERY is the kit's one door (`common/services/fileSave.js`, 2026-08-15)
+ * — native dialog where a saver is wired, Downloads otherwise. What stays here
+ * is the part that is genuinely JustWrite's: **which folder to open at, and
+ * remembering where the user put it.** `chooser` names that memory, so the book
+ * zip and a manuscript can remember different places. Dialog strings come from
+ * the caller because only a view has i18n.
  *
  * Returns { ok, path } | { ok, downloaded } | { ok:false, cancelled } | { ok:false, error }.
  */
 export async function saveBlob(blob, filename, { chooser = "export", title, filterName, filterExt } = {}) {
-  const shell = typeof window !== "undefined" ? window.justwrite?.shell : null;
-  if (!shell?.saveFile) {
-    downloadBlob(blob, filename);
-    return { ok: true, downloaded: true };
+  let res;
+  try {
+    res = await kitSaveBlob(blob, filename, {
+      title,
+      filterName,
+      filterExt,
+      defaultDir: await chooserDir(chooser),
+    });
+  } catch (e) {
+    return { ok: false, error: String(e || "Save failed.") };
   }
-  const res = await shell.saveFile({
-    blob,
-    suggestedName: filename,
-    title,
-    filterName,
-    filterExt,
-    defaultDir: await chooserDir(chooser),
-  });
-  if (res?.path) rememberDir(chooser, res.path.replace(/[/\\][^/\\]*$/, "")); // the folder it saved to
+  if (res.path) rememberDir(chooser, res.path.replace(/[/\\][^/\\]*$/, "")); // the folder it saved to
   return res;
 }

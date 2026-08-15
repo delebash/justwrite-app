@@ -12,9 +12,8 @@
 // non-empty), so we always hand back a real path.
 
 import { get } from "@delebash/llm-ui";
+import { storageGetRoot } from "./native.js";
 import { readSetting, writeSetting } from "./settings.js";
-
-const jw = typeof window !== "undefined" ? window.justwrite : null;
 
 // The server's data folder, fetched once from /v1/health and cached for the
 // session. Only a real, non-empty value is cached; a failed/offline fetch returns
@@ -54,8 +53,8 @@ export async function chooserDir(key) {
   if (dirs[key]) return dirs[key];
   const data = await serverDataDir();
   if (data) return data;
-  const root = await jw?.storage?.getRoot?.();
-  if (root && !root.error && root.root) return root.root;
+  const root = await storageGetRoot();
+  if (root?.root) return root.root;
   return "."; // last resort: a non-empty path (the app CWD) — never undefined.
 }
 

@@ -13,6 +13,10 @@ const h = vi.hoisted(() => ({ health: null, chooserDirs: null }));
 
 vi.mock("@delebash/llm-ui", () => ({
   get: vi.fn((path) => h.health(path)),
+  // chooserDirs' last fallback is the shell's storage root (services/native.js),
+  // and native.js asks the kit whether a shell is there at all. No shell in a
+  // test run — so the fallback chain reaches its final non-empty ".".
+  isTauriShell: () => false,
 }));
 vi.mock("./settings.js", () => ({
   readSetting: vi.fn((key) => (key === "chooserDirs" ? h.chooserDirs : undefined)),
