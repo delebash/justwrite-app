@@ -32,3 +32,8 @@ just-ai-help/*.probe.json
 just-ai-help/.jah-cache.json
 just-ai-help/.jah-probe-cache.json
 just-ai-help/.jah.db
+
+# App data (the family portable default: a data/ folder beside the app —
+# llm_runner.platform.data_paths). Never committed.
+data/
+server/data/

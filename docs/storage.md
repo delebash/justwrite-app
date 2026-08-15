@@ -10,6 +10,13 @@ Files*), it falls back to your user data folder instead.
 
 You can see the current location under **Settings → Storage**.
 
+Running the server yourself (see [Headless access](headless-access.md)) follows
+the same rule — the `data` folder beside the app — and takes the same two
+overrides the desktop app respects: the `JUSTWRITE_DATA_DIR` environment
+variable, or `--data-dir <path>` on the command line. JustVoice behaves
+identically with its own `JUSTVOICE_DATA_DIR`, so the two apps never surprise
+you differently.
+
 ## Moving your data to another folder
 
 In **Settings → Storage**, click **Change folder…**, pick a new location, and

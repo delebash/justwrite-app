@@ -302,9 +302,18 @@ fn resolve_data_root(app: &AppHandle) -> PathBuf {
     for p in pointer_candidates(app) {
         if let Ok(s) = fs::read_to_string(&p) {
             let root = PathBuf::from(s.trim());
-            if !root.as_os_str().is_empty() {
-                return root;
+            if root.as_os_str().is_empty() {
+                continue;
             }
+            // A pointer holding exactly the COMPUTED default is residue of
+            // the removed first-run lock (see setup()), not a user choice —
+            // drop it so the default stays live. An actual Change-folder
+            // selection never equals the default and keeps winning.
+            if root == default_data_root(app) {
+                let _ = fs::remove_file(&p);
+                continue;
+            }
+            return root;
         }
     }
     default_data_root(app)
@@ -711,13 +720,15 @@ pub fn run() {
             // Resolve the (portable, user-settable) data root with Tauri's OWN
             // path resolver — that needs the AppHandle, so it runs here rather
             // than a pre-builder body — then bring the server up UNDER that root
-            // before the webview's connection gate probes it. Lock the choice
-            // into the pointer on first run so later resolves are cheap reads.
+            // before the webview's connection gate probes it. NO first-run
+            // pointer lock (family ruling 2026-08-14, kept in lock-step with
+            // JustVoice): the default is COMPUTED every boot, so a later
+            // default change actually takes effect. dataroot.txt records ONLY
+            // an explicit Change-folder choice (storage_relocate writes it) —
+            // in JustVoice the first-run lock had silently pinned installs to
+            // an obsolete default and vetoed the portable one for good.
             let handle = app.handle().clone();
             let root = resolve_data_root(&handle);
-            if pointer_candidates(&handle).iter().all(|p| !p.exists()) {
-                let _ = write_data_root_pointer(&handle, &root);
-            }
             let sidecar = match spawn_sidecar(&root) {
                 Ok(child) => SidecarState::new(child),
                 Err(e) => {

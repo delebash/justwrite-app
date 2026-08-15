@@ -220,6 +220,20 @@ JV as of 2026-08-04; the convergence scope itself stands.)*
 
 ## Standing rulings (constraints, not tasks — they gate future work)
 
+- **The data location is the USER's, and the shape is the FAMILY's** (ruling 2026-08-14,
+  verbatim): *"absolutely no data for any of these apps should be stored anywhere but where
+  the user has set the storage directory, which by default will be the install directory for
+  the app"* + *"appdata is not banned, what is banned is anything that the user has not
+  decided"* + *"all that can be the same should be, this includes how data is stored"*.
+  ONE implementation for every app — `llm_runner.platform.data_paths.resolve_data_dir`;
+  `paths.py` is a three-line caller and may never re-implement the ladder (env var → `data/`
+  in the install dir → OS app-data ONLY when that is unwritable). JW's own
+  `platformdirs.user_data_dir` default was creating `AppData/Local/JustWrite/JustWrite` on
+  every headless boot; it is gone. The shell resolves the identical ladder in Rust and must
+  NEVER write the computed default into `dataroot.txt` on first run — that lock pinned
+  JustVoice to an obsolete default and vetoed the new one silently (JV `6b8b091` context;
+  full record in `../JustVioce/docs/dev/TASKS.md`). Contract text: kit
+  `docs/app-structure.md` §5 + §6.
 - **Server reuse is VETOED** ("i am affraid of a server running when it shouldnt"); the
   kill+respawn cost (`lib.rs:377-391`) was measured and no cheaper boot lever exists.
 - **Commit-gate hooks are REJECTED** — the remedy for unauthorized change is asking before
