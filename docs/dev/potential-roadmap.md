@@ -254,7 +254,7 @@ Investigated `sherpa-onnx` (k2-fsa, Apache 2.0, Rust crate `sherpa-onnx = "1.13.
 
 ### When to revisit
 
-If any of these features come up in a future session, **don't pull in a separate dependency** (whisper.cpp, separate VAD crate, separate punctuation library, etc.). Reach for sherpa-onnx — the bundle cost is paid once, and the API surface is consistent across all the capabilities. Integration shape mirrors the existing Edge TTS pattern: Tauri commands in `lib.rs` (`audio_asr_*`, `audio_vad_*`, etc.), bridge under `window.justwrite.audio.*`, JS service per feature.
+If any of these features come up in a future session, **don't pull in a separate dependency** (whisper.cpp, separate VAD crate, separate punctuation library, etc.). Reach for sherpa-onnx — the bundle cost is paid once, and the API surface is consistent across all the capabilities. Integration shape: Tauri commands in `lib.rs` (`audio_asr_*`, `audio_vad_*`, etc.), each with a thin export in `src/services/native.js`, JS service per feature. (Updated 2026-08-15 — this used to say "bridge under `window.justwrite.audio.*`". That global was an Electron-era shim and is deleted; `check-family.mjs` now fails any renderer that installs a `window.<app>` global, so following the old wording would break the build.)
 
 If none of these features come up, sherpa-onnx stays unadopted — no cost.
 

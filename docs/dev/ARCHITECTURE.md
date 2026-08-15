@@ -40,9 +40,12 @@ The pieces that implement it, so a reader can verify rather than trust this page
   the Vite build and `app.mount("/", StaticFiles(..., html=True))` serves it. The
   static mount is LAST so API routes always win. `JUSTWRITE_UI_DIR` overrides the
   search; without a `dist/` the server logs a warning and the API still runs.
-  The renderer reaches it because `services/serverApi.js` is origin-aware — it
-  targets `window.location.origin`, so the same bundle works under Tauri and
-  under the server's own origin unchanged.
+  The renderer reaches it because the base URL is origin-aware — it targets
+  `window.location.origin`, so the same bundle works under Tauri and under the
+  server's own origin unchanged. That resolution is the KIT's since 2026-08-15
+  (`installLlmUi({ devPorts, fallbackBase })`); the app-local
+  `services/serverApi.js` is deleted, because three apps had three shapes for one
+  job and docgen's — let the installer do it — was the right one.
 - **`cli.py`** — `serve --host/--port/--data-dir`, defaulting to
   `127.0.0.1:17495`, with `JUSTWRITE_HOST` / `JUSTWRITE_PORT` /
   `JUSTWRITE_DATA_DIR` env overrides. A configurable bind is the tell: a
