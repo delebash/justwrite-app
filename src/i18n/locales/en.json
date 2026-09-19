@@ -124,7 +124,12 @@
       "configuredBand": "Local AI is set up — {model} is the default",
       "rerunButton": "Re-run Quick Setup",
       "alreadyTitle": "Already set up",
-      "changeModelButton": "Change model"
+      "changeModelButton": "Change model",
+      "checkTitle": "Check this PC's real AI speed?",
+      "checkRunButton": "Run the 1-minute check",
+      "checkSkipButton": "Skip — use estimates",
+      "checkRetryButton": "Try again",
+      "checkContinueButton": "Continue"
     }
   },
   "tray": {

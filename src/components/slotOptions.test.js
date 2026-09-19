@@ -50,6 +50,15 @@ describe("buildSlotOptions — the veto is OUT (§8.23)", () => {
     expect(speedBandLabel(MODELS[3])).toBe("");
   });
 
+  it("a prediction in the dead zone shows its number, not a coin-flip word", () => {
+    // The server ships band "" + predTokS when the prediction sits within
+    // band_deadzone_frac of a threshold (speed-truth plan 2026-09-19 §5) —
+    // the flagship on the author's box: 7.9 against a fine-line of 8.0.
+    expect(speedBandLabel({ speedBand: "", predTokS: 7.9, measuredTokS: null })).toBe("~7.9 tok/s");
+    // No prediction = unknown → still nothing (never a guess).
+    expect(speedBandLabel({ speedBand: "", predTokS: null, measuredTokS: null })).toBe("");
+  });
+
   it("embed slots list embeds without the chat fit annotation", () => {
     const opts = buildSlotOptions(MODELS, { kind: true, recommendedId: "", ...acc });
     expect(opts.map((o) => o.value)).toEqual(["embed"]);

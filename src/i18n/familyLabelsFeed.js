@@ -75,6 +75,11 @@ export function buildFamilyLabels() {
       rerunButton: t("family.quickSetup.rerunButton"),
       alreadyTitle: t("family.quickSetup.alreadyTitle"),
       changeModelButton: t("family.quickSetup.changeModelButton"),
+      checkTitle: t("family.quickSetup.checkTitle"),
+      checkRunButton: t("family.quickSetup.checkRunButton"),
+      checkSkipButton: t("family.quickSetup.checkSkipButton"),
+      checkRetryButton: t("family.quickSetup.checkRetryButton"),
+      checkContinueButton: t("family.quickSetup.checkContinueButton"),
     },
   };
 }

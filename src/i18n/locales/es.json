@@ -124,7 +124,12 @@
       "configuredBand": "La IA local está configurada — {model} es el modelo predeterminado",
       "rerunButton": "Volver a ejecutar la configuración rápida",
       "alreadyTitle": "Ya está configurado",
-      "changeModelButton": "Cambiar modelo"
+      "changeModelButton": "Cambiar modelo",
+      "checkTitle": "¿Comprobar la velocidad real de IA de este equipo?",
+      "checkRunButton": "Ejecutar la comprobación de 1 minuto",
+      "checkSkipButton": "Omitir — usar estimaciones",
+      "checkRetryButton": "Intentar de nuevo",
+      "checkContinueButton": "Continuar"
     }
   },
   "tray": {

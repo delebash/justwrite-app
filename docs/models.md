@@ -18,25 +18,45 @@ provider only**) and does the whole first-time setup — the **Built-in provider
 the first row in that Local list, and its control panel opens when you click **Edit** on it:
 
 1. It detects your hardware (GPU, VRAM, RAM).
-2. It picks the **most capable model that still runs fast on your box** — not just the
+2. **On hardware it has no preset for, it offers a one-minute speed check first.** A known
+   PC class (the *Tuned by PC class config* badge) already has measured settings, so there
+   is nothing to check. On anything else the recommendation would come from estimates, and
+   the estimate's weakest input is how fast your machine streams model data out of system
+   RAM. The check downloads one small test model (about 800 MB, once — it is served from the
+   app's own release page, not a third-party site, and verified against its checksum), runs
+   it twice through the same engine the app uses — once entirely on the graphics card, once
+   with its experts in system memory — and records the difference as this PC's real
+   streaming speed. Every speed estimate in the catalog uses that number from then on. It
+   takes well under a minute after the download. **It is always optional:** *Skip — use
+   estimates* goes straight on with hardware-spec estimates, exactly as before. You won't be
+   asked again once this PC is measured, until the engine is updated (a new engine build
+   measures differently, so it asks again). The test model's download address and
+   checksum are editable under **Engine binaries → Speed-check model**, like the engine's own
+   download URLs.
+3. It picks the **most capable model that still runs fast on your box** — not just the
    biggest that fits. A model streams fast enough when it's a **dense** model that fits
    entirely in VRAM, or a **mixture-of-experts (MoE)** model whose experts can offload to
    system RAM (only a fraction runs per word, so the offload stays quick). Among those,
    Quick Setup takes the highest-quality one (the catalog's quality order). It deliberately
    **skips a dense model that only fits by spilling onto the CPU** — that spill makes every
    word slow — unless nothing faster runs, in which case it falls back to the best model that
-   runs at all. You can change the pick before applying. If your machine is already set
+   runs at all. On a PC without a preset it also skips a model whose measured — or
+   estimated — speed is well below comfortable reading speed: by default anything under
+   **6.4 tokens per second** (20 % under the *fine* line of 8). The 20 % margin is
+   deliberate: a model estimated at 7.9 must not lose to a far weaker one over a rounding
+   difference. A model with no estimate at all is never skipped for being unknown. You can
+   change the pick before applying. If your machine is already set
    up (mixed per-preset models, or saved machine tunes), the confirm step lists **exactly
    which presets Apply will change** — and which of your own choices it keeps — before
    anything is written; your saved machine tunes are never touched.
-3. It sets the **embedding model** — used for semantic search and grounded chat. The
+4. It sets the **embedding model** — used for semantic search and grounded chat. The
    embedding runs on the **CPU**, leaving your graphics card free for the chat model, so the
    default is the **most capable embedding your system memory supports** — a higher-quality
    embedding on a well-equipped machine, and a smaller, faster one on a machine with less
    RAM, so every machine gets a working default. The dropdown lists **every** embedding
    in the catalog — one the estimate says won't run here is still listed, labeled with
    its fit, and picking it is a deliberate choice (the estimate informs, never blocks).
-4. It **downloads everything at the same time** — the general model and the search
+5. It **downloads everything at the same time** — the general model and the search
    (embedding) model run in **parallel, each with its own progress bar** showing the size,
    speed and time remaining, in plain language ("Downloading the model", "Loading it into
    your graphics card"). Each bar has its own **Cancel** and **Retry**: cancelling one keeps
@@ -56,6 +76,14 @@ the first row in that Local list, and its control panel opens when you click **E
    use one bar, so downloading anything (engine, model, or embedding) always cancels and retries
    the same way. If you cancel the engine, the model bar says so and continues once you retry the
    engine.
+6. It **measures the model it just loaded.** Right after the general model is live and the
+   wizard shows its done step, Quick Setup spends about fifteen seconds in the background
+   timing one short answer from it. That turns the catalog chip from an estimate (*~fine*)
+   into a real number from your machine (*Measured on this PC: 26 tok/s*), and the
+   measurement includes the speed-up from speculative decoding on models that have it — the
+   speed you actually get, which the estimate deliberately leaves out. Nothing waits on it:
+   setup is already done, and if the measurement fails for any reason the chip simply keeps
+   its estimate. The result appears in the model's measurement history with the others.
 
 Quick Setup is **local-only**: it configures the **bundled runner** — the local engine that
 downloads and runs models on your machine — and nothing else. If you'd rather run models
@@ -169,7 +197,9 @@ to one group at the very bottom, below the embeddings. A
 one — the benchmark order comes from published *general-purpose* tests, so it is not
 writing-specific and doesn't know your hardware; the honest per-machine answer is the
 **Recommended for this PC** badge, which marks the exact model Quick Setup would pick for
-this box. Each row shows the model's **type** (*Dense* or *MoE*, plus **MTP** for models
+this box — so on a machine without a graphics card that can hold a chat model, no row
+carries it, because Quick Setup doesn't recommend running chat on the processor alone
+(every model is still listed and runnable by choice). Each row shows the model's **type** (*Dense* or *MoE*, plus **MTP** for models
 with multi-token prediction and **Embed** for embedding models), license, live **Fit**
 badge (*Fits* / *Tight* / *CPU* / *Won't fit*), whether it's **Downloaded** or **Not
 downloaded**, and a short description (the parameter count lives in the name and
@@ -180,9 +210,14 @@ physics (how many bytes each generated word actually touches) against your machi
 memory speed, deliberately erring on the slow side; **~fine** means comfortable reading
 speed. The **~** marks an estimate — once you've actually run the model on this PC, the
 row shows the **real measured tokens/second** instead and the ~ disappears (a measurement
-always outranks an estimate; the numbers come from Tune & measure and Optimize runs).
-A model whose file or your machine's speed the app doesn't know yet simply shows the
-plain fit chip — it never guesses. The chip's hover spells it out: the estimated or
+always outranks an estimate; the numbers come from Quick Setup's own first measurement,
+Tune & measure, and Optimize runs). When an estimate lands **right on a band line** — by
+default within 10 % of one — the chip shows the number itself instead of a word:
+*Fits · ~7.9 tok/s*, not *~slow*. A word there would be a coin flip: the next reading of
+your machine's memory speed could land it on the other side of the line, and the model
+did not change. A **measured** speed always keeps its word, because a real run near a line
+is honestly that speed. A model whose file or your machine's speed the app doesn't know yet
+simply shows the plain fit chip — it never guesses. The chip's hover spells it out: the estimated or
 measured speed, and on an MTP model, that speculative decoding may make it faster than
 the estimate. Where the band thresholds live — and how to adjust them — is in the engine
 settings note below. Under the name, beside the download size, each chat row **states the hardware
@@ -439,7 +474,12 @@ one empty and that side embeds raw. If you edit a template after building an ind
 > back when computing a model's RAM requirement — room for the OS and your other
 > programs); and the **speed-band lines** — the tokens-per-second levels where the
 > catalog's *fast* / *fine* / *slow* / *very slow* labels switch over (~8 tok/s is
-> reading speed; tune them if your idea of "fine" differs). The **download settings**
+> reading speed; tune them if your idea of "fine" differs), plus **Show the number
+> within (%)** — how close an *estimate* may sit to one of those lines before the chip
+> shows the estimated tokens-per-second instead of a label (10 % by default; 0 turns it
+> off; measured speeds always keep their label), and **Recommend down to (% under Fine)** —
+> how far under the *fine* line Quick Setup still recommends a model on a PC with no
+> preset (20 % by default; 0 = the *fine* line itself). The **download settings**
 > sit in the same group, and the engine-binaries editor below keeps just the download
 > URLs and the pinned build. Downloads are **segmented** by
 > default: one file is fetched as several parallel connections, so one slow server path
