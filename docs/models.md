@@ -464,6 +464,18 @@ one empty and that side embeds raw. If you edit a template after building an ind
 > and **Uninstall** once installed (uninstalling deletes only the engine binaries — your
 > downloaded models are kept; the Local engine panel carries the same Uninstall button
 > right beside its "Installed · build · gpu" line), and **Details** expands the rest: the
+>
+> **About Update.** It appears when llama.cpp publishes a newer **stable** release, and
+> installs the engine build that release names. Before the new engine replaces the one you
+> have, the app checks two things: that it starts at all, and that it accepts the settings
+> the app launches models with. If it fails either, your current engine is kept and the
+> message says which setting it refused — nothing is removed. If the newer release has no
+> download for your kind of graphics card, the app tells you and changes nothing. Only once
+> the new engine is installed and working is the old build's folder deleted. A newer engine
+> is not automatically a faster one — engines vary by model, and yours is the one you have
+> measured — so Update is always your click, never automatic.
+>
+> Details expands the rest: the
 > spawn log, the loaded-models list with its live memory budget (labeled **VRAM** on a
 > machine with a graphics card; on an iGPU or Apple machine the label reads **Memory**
 > and the numbers are the one shared pool the models actually load into), and — right there with the
