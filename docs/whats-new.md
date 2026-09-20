@@ -4,6 +4,32 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## v1.4.0 — 2026-09
+
+**The engine's Update button works again — and updating is now safe.** It had quietly
+stopped appearing in August, when llama.cpp changed the way it labels releases: the app
+compared the new label against its own version numbering, concluded you were already up to
+date, and said nothing. It now follows llama.cpp's stable releases. More importantly, an
+update can no longer leave you unable to load models. Before a new engine replaces the one
+you have, the app checks two things — that it starts, and that it accepts the settings the
+app launches models with. If it fails either, your current engine is kept and the message
+names what it refused; your old engine is removed only once the new one is working. If the
+newer release has no download for your kind of graphics card, the app tells you and changes
+nothing at all. Updates work again on **AMD** cards, whose download files had been renamed
+upstream. See [Models](models.md) for the details.
+
+**A newer engine is not automatically a faster one**, so Update stays your deliberate click.
+That is not a hypothetical caution: the engine version this release bundles is deliberately
+*not* the newest one published. An upstream change in September made multi-token prediction
+both slower and no longer exact on large mixture-of-experts models — about 20 % slower on a
+26B — so the bundled version is the last one before it. New installs get that measured
+version; an existing install keeps whatever engine it already has until you update.
+
+**Entity sweep really uses its shape now.** Actions that carry a JSON schema were sending it
+to the local engine in a form the engine silently ignores, so the answer was only required to
+be valid JSON rather than to match the expected fields. The schema now reaches the engine and
+is enforced.
+
 ## v1.3.0 — 2026-07
 
 **Move a book between computers — or share it.** New **Export this book** / **Import a book** buttons in Settings → Backups save a book as a single `.zip` (named after it) and read one back as a **new** project — the whole thing, images and all. Import the same file as many times as you like; each becomes its own book. And every save now lets you **choose where it goes** — defaulting to your data folder and remembering where you last saved — for the per-book export, the whole-workspace backup, and the data-folder location alike.
