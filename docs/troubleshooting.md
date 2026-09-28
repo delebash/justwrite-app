@@ -42,6 +42,17 @@ most questions land), then pointers for everything else.
   model that can think. Nothing is filtered or silently retried — see
   [Models](models.md) for how the Thinking control resolves.
 
+**"The answer was cut off."**
+
+- The model ran out of room before it finished, so the run is marked failed rather
+  than handing you half an answer. A half answer is worst for the analysis tools:
+  thread extraction would have read it as "nothing found".
+- Two causes. The feature's preset has a **Max tok** cap and the answer hit it:
+  raise the number or clear the box (0 = no limit). Or the chapter sent was too
+  long for the model's context: try a model with a larger context, or run the
+  feature on a shorter chapter. Thinking counts against both, because the hidden
+  reasoning is part of the answer.
+
 ## Everything else
 
 - **Data, snapshots, restoring** — [Backups and data](backups-and-data.md)

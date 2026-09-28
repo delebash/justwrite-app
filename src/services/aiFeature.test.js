@@ -301,3 +301,41 @@ describe("prefill — prompt-eval progress (§7.4 B6-2)", () => {
     expect(deltas).toEqual(["x"]);
   });
 });
+
+// A reply cut off at the model's limit (2026-09-28): llama.cpp sends NO error when
+// the context fills mid-answer, only finish_reason "length" — now on the done frame
+// as finishReason. The kit fails the task instead of handing back a partial answer
+// (a JSON caller's parseJsonLoose(...) || {} read it as "nothing found").
+describe("a cut-off answer fails the task", () => {
+  it("runAiFeature throws the cut-off message with the partial text, and the task fails", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () =>
+      streamResponse([{ delta: '{"setups": [{"snip' }, { done: true, finishReason: "length" }, "[DONE]"])));
+    const err = await runAiFeature({ action: "foreshadowing", task: { label: "Thread extraction" } })
+      .catch((e) => e);
+    expect(err.cutOff).toBe(true);
+    expect(err.message).toMatch(/^The answer was cut off/);
+    expect(err.content).toBe('{"setups": [{"snip');
+    const tasks = useAiTasksStore();
+    expect(tasks.visibleTasks.some((t) => t.status === "error")).toBe(true);
+  });
+
+  it("the /run fallback carries finishReason too", async () => {
+    const fetchMock = vi.fn()
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockResolvedValueOnce(jsonResponse({ content: "[", model: "m", finishReason: "length" }));
+    vi.stubGlobal("fetch", fetchMock);
+    const err = await runAiFeature({ action: "foreshadowing" }).catch((e) => e);
+    expect(err.cutOff).toBe(true);
+  });
+
+  it("runAiFeatureStream fails the same way; a finished reply is untouched", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () =>
+      streamResponse([{ delta: "Once upon" }, { done: true, finishReason: "length" }, "[DONE]"])));
+    const err = await runAiFeatureStream({ action: "chat" }).catch((e) => e);
+    expect(err.cutOff).toBe(true);
+    vi.stubGlobal("fetch", vi.fn(async () =>
+      streamResponse([{ delta: "The end." }, { done: true, finishReason: "stop" }, "[DONE]"])));
+    const out = await runAiFeatureStream({ action: "chat" });
+    expect(out.content).toBe("The end.");
+  });
+});
