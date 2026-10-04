@@ -465,8 +465,11 @@ one empty and that side embeds raw. If you edit a template after building an ind
 > downloaded models are kept; the Local engine panel carries the same Uninstall button
 > right beside its "Installed · build · gpu" line), and **Details** expands the rest: the
 >
-> **About Update.** It appears when llama.cpp publishes a newer **stable** release, and
-> installs the engine build that release names. Before the new engine replaces the one you
+> **About Update.** It appears when there is a newer engine than yours, and it offers one of
+> two builds, whichever is newer: the build this version of the app is **tested with**, or
+> the build named by llama.cpp's newest **official release**. Hover the button to see which
+> one it is offering. llama.cpp's official releases can lag behind the tested build, and
+> without the first kind an older install could never reach it. Before the new engine replaces the one you
 > have, the app checks two things: that it starts at all, and that it accepts the settings
 > the app launches models with. If it fails either, your current engine is kept and the
 > message says which setting it refused — nothing is removed. If the newer release has no
