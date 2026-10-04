@@ -7,7 +7,9 @@ lives in `../plans/archive/`).
 1. **`../../CLAUDE.md`** — the working rules, the thin-client/server split, the
    "Don't" list, and the Where-to-look table. Read it before touching renderer code.
 2. **`TASKS.md`** — the live open-work tracker (close = delete; a line is a claim,
-   not evidence). **`IDEAS.md`** — the unscheduled backlog.
+   not evidence). **`IDEAS.md`** — the unscheduled backlog. **`RESEARCH.md`** — what
+   is already known, by subject, with the proof; read its section before researching
+   anything (the family rule, 2026-10-04).
 3. **`ARCHITECTURE.md`** — why there is a Python server (headless is a product
    requirement), the storage policy (drop-and-reseed, no migrations), what shipped,
    release/e2e wiring.

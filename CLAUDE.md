@@ -93,6 +93,8 @@ match each file's existing style and never bulk-reformat unrelated code. Scope i
 
 ## Where to look
 
+**Before researching anything — reading code to answer a question, measuring, briefing an agent — read the subject's section of `docs/dev/RESEARCH.md`** (what is already known, with the proof; the shared stack's facts are in `../just-llm-runner/docs/dev/RESEARCH.md`; the family rule, 2026-10-04). Research isn't done until its facts land there.
+
 | For | Read |
 |---|---|
 | Open work across all repos | `docs/dev/TASKS.md` (live tracker) · `docs/dev/IDEAS.md` (backlog) |
