@@ -347,10 +347,10 @@ Anything in JustWrite that calls an AI — critique, brainstorm, plot-hole scan,
 **What the panel shows you, per task:**
 
 - The task's name (e.g. *"Chapter critique notes · Ch. 7"*) and feature.
-- **Status phase** — *Connecting* before the first token arrives, *Streaming* once the model starts producing output.
+- **Status phase** — *Connecting* before the first token arrives, *Thinking* while a thinking model reasons before its answer (on the built-in and OpenAI-compatible providers, since 2026-10-06), *Streaming* once the answer comes.
 - **Elapsed time** — live, in seconds.
 - **First-token latency** — how long the model took to respond at all. Useful for local models that sometimes need to load before the first token; a 30-second first-token delay on a small model usually means it's still warming up.
-- **Tokens** — exact count once the call completes, approximate during streaming.
+- **Tokens** — exact count once the call completes, approximate during streaming. A thinking model's reasoning counts too — the model's own count includes it.
 - **Tokens per second** — how fast the model is producing output.
 - **A freshness indicator** — the single best signal for *"is this stuck, or still working?"* It calibrates to the model's **own measured pace** rather than a fixed clock, so a slow local model's healthy multi-second gaps don't read as trouble:
   - **Live** (green) — tokens arriving at this model's usual rhythm.
