@@ -75,7 +75,8 @@ the first row in that Local list, and its control panel opens when you click **E
    download control everywhere — Quick Setup, the model catalog, and the Local engine panel all
    use one bar, so downloading anything (engine, model, or embedding) always cancels and retries
    the same way. If you cancel the engine, the model bar says so and continues once you retry the
-   engine.
+   engine. Cancel every download and the step says **Setup stopped — nothing downloaded**, with
+   **Back** (to your choices — Apply there starts again) and **Close**.
 6. It **measures the model it just loaded.** Right after the general model is live and the
    wizard shows its done step, Quick Setup spends about fifteen seconds in the background
    timing one short answer from it. That turns the catalog chip from an estimate (*~fine*)
