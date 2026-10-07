@@ -17,6 +17,17 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
+## The family moves to Electron and a Node server — the plan is written, waiting for approval [2026-10-07]
+STATE:  DECIDED 2026-10-05 and 2026-10-07 — every ruling, as shown and approved, is in
+        JustVoice's TASKS, "The family moves to Electron and a Node server; Tauri and Python go"
+        (the decision lives with the plan). This item is a pointer only.
+WHY:    JustWrite moves fourth, after the kit and docgen; the phone app gets its own plan after.
+BUILT:  the plan, with the step-0 spikes: `../JustVioce/docs/plans/2026-10-07-electron-node-plan.md` — §6 is JustWrite's step. JustWrite's dev
+        root holds the family's shared model cache, and saved paths in all three apps point
+        into it (plan §9 B8, §10 Q9).
+OPEN:   the plan's approval (plan §10).
+GO:     needed: the plan's approval.
+
 ## THE FAMILY PARITY BATCH — approved 2026-08-05, THE next build
 - **The master plan (read WHOLE before coding any slice):**
   `../justwrite-app/docs/plans/2026-08-05-family-parity-batch.md` — all
