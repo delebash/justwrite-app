@@ -114,27 +114,29 @@ JustWrite is open source. The repository lives at **[github.com/delebash/justwri
 If you want to run from source instead of using a packaged installer:
 
 ```bash
+git clone https://github.com/delebash/just-llm-runner.git
+(cd just-llm-runner/server && npm install)
 git clone https://github.com/delebash/justwrite-app.git
 cd justwrite-app
 npm install
 npm run dev
 ```
 
-You will need:
+You will need **[Node.js](https://nodejs.org/) 24 or newer** — nothing else. JustWrite is plain
+JavaScript: a desktop window (Electron), the Vue 3 interface, and a small local server that keeps
+your books. The shared AI kit (`just-llm-runner`) sits beside the app's folder, as above.
 
-- **[Node.js](https://nodejs.org/)** — for the renderer build (Vite + Vue 3).
-- **[Rust](https://www.rust-lang.org/tools/install)** — for the Tauri backend.
-
-The first `npm run dev` compiles the Rust crate and is slow; every subsequent launch is fast.
+Running from source keeps its data in the `data` folder inside the checkout.
 
 | Command | What it does |
 |---|---|
 | `npm install` | JS dependencies (first run only) |
-| `npm run dev` | Tauri dev — Vite HMR + a native window |
-| `npm run build` | Packaged app for the current OS |
-| `npm run dev:vite` | Renderer only, in a plain browser tab (no Tauri APIs — project data still uses the server; images fall back to data-URLs) |
-| `npm run build:vite` | Renderer build only (Tauri invokes this via `beforeBuildCommand`) |
-| `npm run bump <version>` | Update the version number in `package.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json` |
+| `npm run dev` | The desktop app, with the interface reloading as you edit |
+| `npm run build` | The installer for the current OS, in the `release` folder |
+| `npm run dev:vite` | The interface only, in a plain browser tab (no desktop window — start the server with `npm run server`) |
+| `npm run server` | The server alone, with no window (see [Headless access](headless-access.md)) |
+| `npm run build:vite` | The interface build only (`npm run build` runs it first) |
+| `npm run bump <version>` | Update the version number in `package.json` |
 | `npm run release` | Trigger the GitHub Actions cross-platform release build (manual only) |
 | `npm run release:windows` | Same, but build Windows only — useful for iteration before going full release |
 | `npm run release:macos` | Same, macOS only |
@@ -149,7 +151,7 @@ The release pipeline is **manual on purpose** — no build runs on push, PR, or 
 The typical flow:
 
 ```bash
-npm run bump 0.2.0                                  # updates the 3 version files (no commit)
+npm run bump 0.2.0                                  # updates package.json's version (no commit)
 git commit -am "release: v0.2.0"
 git tag v0.2.0
 git push && git push --tags
@@ -168,7 +170,7 @@ The GitHub Release picks up whichever binaries land first; re-running with a dif
 
 The workflow runs three jobs:
 
-1. **`build`** — matrix build via [`tauri-apps/tauri-action`](https://github.com/tauri-apps/tauri-action) on macOS (universal `.dmg`), Windows (`.exe` + `.msi`), and Linux (`.AppImage` + `.deb` + `.rpm`). The matrix is computed dynamically from the `platforms` workflow input (`all` / `windows` / `macos` / `linux`). Creates the GitHub Release and uploads the binaries.
+1. **`build`** — matrix build with [electron-builder](https://www.electron.build/) on macOS (universal `.dmg`), Windows (`.exe` installer), and Linux (`.AppImage` + `.deb`). Each runner checks out the shared kit beside the app. The matrix is computed dynamically from the `platforms` workflow input (`all` / `windows` / `macos` / `linux`). Creates the GitHub Release and uploads the installers.
 2. **`attach-docs`** — packs the `docs/` folder into `docs.tar.gz` and attaches it to the release. The marketing site treats this as the source of truth for the docs at this version.
 3. **`notify-website`** — fires a `repository_dispatch` to [`justwrite-website`](https://github.com/delebash/justwrite-website), which rebuilds and redeploys with the new docs.
 

@@ -85,10 +85,10 @@ if (!remoteTag) {
 
 // 4. Confirm ---------------------------------------------------------
 const ARTIFACTS = {
-  all:     ".dmg (macOS universal), .exe + .msi (Windows), .AppImage + .deb + .rpm (Linux)",
-  windows: ".exe + .msi (Windows only)",
+  all:     ".dmg (macOS universal), .exe (Windows), .AppImage + .deb (Linux)",
+  windows: ".exe (Windows only)",
   macos:   ".dmg (macOS universal only)",
-  linux:   ".AppImage + .deb + .rpm (Linux only)",
+  linux:   ".AppImage + .deb (Linux only)",
 };
 console.log(`Tag ${tag} found on origin. Ready to trigger the release workflow.`);
 console.log(`Platforms: ${platform}`);

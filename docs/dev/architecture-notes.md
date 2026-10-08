@@ -7,64 +7,51 @@ per-task history lives in `docs/plans/*`.
 ## Layout
 
 - The REPO ROOT is the Vite root (`index.html` at top level; the Vue 3 + Pinia renderer lives in `src/`). This line once pointed at a `src/renderer/` nesting that no longer exists.
-- `src-tauri/` — Rust crate. `main.rs` calls `justwrite_lib::run()`; all `#[tauri::command]`s live in `lib.rs`.
-- `dist/` — Vite output, consumed by Tauri as `frontendDist`.
+- `electron/main.js` — the desktop app: the kit's shared Electron main module (`runDesktopApp` from `@delebash/llm-runner/shell`) with this app's settings (id `justwrite`, port 17495, the 400 ms close hold). No logic lives there. It replaced `src-tauri/` on 2026-10-08.
+- `server/src/` — the server (Node, Fastify, SQLite through the kit's SQL helper); `serve.js` is the entry. It replaced the Python `server/justwrite_server/` the same day — a port with the same routes and database, checked by a route diff against the Python server.
+- `dist/` — Vite output: the window loads it from `app://justwrite`, the headless server serves it at `/`.
 
-The Rust crate is built by the Tauri CLI; Vite never sees it. The renderer dev server is fixed at
-`http://localhost:1420` and `tauri.conf.json` references that URL — keep them in lock-step.
+The renderer dev server is fixed at `http://localhost:1420`; `scripts/dev.mjs` (which points the
+window at it) and `src/main.js` (`devPorts`) reference that URL — keep them in lock-step.
 
-## Calling the shell (Tauri ↔ renderer)
+## Calling the shell (Electron ↔ renderer)
 
-`src/services/native.js` holds every call into JustWrite's own Tauri shell, as ordinary module
-exports: `pickDirectory`, `pickFile`, `saveFile`, `storageGetRoot`, `storageRelocate`,
-`setKeepRunning`, `setTrayLabels`, plus `hasShell()`. Each is a thin `invoke()` of a
-`#[tauri::command]` in `src-tauri/src/lib.rs`. Every native dialog is a Rust command rather than the
-JS dialog plugin — the family shape, so a dialog cannot appear at two different layers across the
-three apps.
+`src/services/native.js` holds every call into the desktop shell, as ordinary module exports:
+`pickDirectory`, `pickFile`, `saveFile`, `storageGetRoot`, `storageRelocate`, `setKeepRunning`,
+`setTrayLabels`, the openers `openUrl` / `openPath` (handed to the kit in the same one-line
+`external: { open: openUrl, openPath }` all three apps pass), `onShellEvent` (the tray's pushes),
+`shellVersion` (About's runtime line) and `hasShell()`. Each calls the kit's preload object
+`window.appShell` (`invoke(command, args)`), which only this file reads; the handlers live in the
+kit's `server/src/shell/main.js`. Every native dialog is a shell command rather than a renderer
+API — the family shape, so a dialog cannot appear at two different layers across the three apps.
+**Commands throw** — callers use `try`/`catch`, and a cancelled dialog resolves `null`.
 
-**It replaced `tauri-bridge.js` on 2026-08-14.** That file installed a `window.justwrite` GLOBAL and
-normalised errors into an Electron-shaped `{ ok, error, cancelled }`, because this renderer was once
-an Electron app talking to preload handlers. JustVoice and i18n-docgen were born Tauri and have no
-such global; they call `invoke` from the code that needs it, and so does this app now. **Commands
-throw** — callers use `try`/`catch`, and a cancelled dialog resolves `null`.
+- **"Is a desktop shell there?"** — `hasShell()` asks the kit's `isDesktopShell()`, ONE
+  implementation for the family, and checks `window.appShell`. Never test for a `window.<app>`
+  global (`check-family.mjs` fails any renderer that installs one).
+- The renderer talks to its own server with plain `fetch` (the kit's origin-aware transport); the
+  server's CORS and CSRF guard allow the window's origin `app://justwrite`.
 
-Two things the old file also did:
-
-- **"Is a desktop shell there?"** — `hasShell()` re-exports the kit's `isTauriShell()`, ONE
-  implementation for the family. Never test `window.justwrite` or `window.__TAURI__` (the latter
-  only exists when an app sets `withGlobalTauri`, and none of the three do).
-- **The cross-origin fetch route** — now `src/services/tauriFetch.js`, called once in `main.js`. It
-  patches `window.fetch` inside the webview so cross-origin http(s) calls are performed by Rust's
-  reqwest, where neither CORS nor COEP applies. **On probation:** no renderer in any of the three
-  apps calls an LLM provider (those are server-side), the COEP header it was written for no longer
-  exists, and JustVoice and i18n-docgen make the same webview→own-server hop with plain fetch. It
-  stays app-local precisely because one app uses it — that makes it app code, not shared code. The
-  file names the one-step check that would retire it.
-
-Opening a URL or a folder is neither of the above: it is `@tauri-apps/plugin-opener` (`openUrl`,
-`openPath`), handed to the kit in the same one-line `external: { open: openUrl, openPath }` all three
-apps pass. `open_external` and its `open` crate were deleted with the bridge.
-
-The legacy file-based `window.justwrite.project` save/open and the `project_save`/`project_open` Rust
-commands were removed 2026-07-13 — per-project backup and transfer live in Settings → Backups via
-`services/bookTransfer.js`, and persistence is server-owned.
+History: `native.js` replaced `tauri-bridge.js` (a `window.justwrite` global) on 2026-08-14, and
+moved from Tauri's `invoke` to the Electron bridge on 2026-10-08. The legacy file-based
+`window.justwrite.project` save/open was removed 2026-07-13 — per-project backup and transfer live in
+Settings → Backups via `services/bookTransfer.js`, and persistence is server-owned.
 
 The **data root** is a portable, user-settable folder holding ALL app data (projects DB, images, AI
-engine, models, logs); `storage_relocate` moves it and respawns the server (see
-`docs/plans/archive/2026-07-02-portable-data-root-and-engine-install.md`).
+engine, models, logs); `storageRelocate` moves it and restarts the app (Chromium's own files live
+under it too). The shell and the server resolve it through the kit's one ladder
+(`platform/data_paths.js`); in a checkout it is `<repo>/data`.
 
 Outside the shell (plain `vite dev` in a browser), project data still persists to the server via
 `projectApi`, and images upload via `imageStore` (inline data-URL fallback only when the server is
 unreachable). Gate desktop-only affordances on `hasShell()` so the browser path keeps working.
 
-Adding a new Tauri command:
+Adding a new shell command: add it to the kit (`COMMANDS` and its handler in
+`server/src/shell/main.js`, and the list in `preload.cjs`), then one thin export in
+`src/services/native.js` — one place names each command string.
 
-1. Add the `#[tauri::command]` function in `src-tauri/src/lib.rs` and register it in `invoke_handler![]`.
-2. Add a matching thin wrapper to `src/services/native.js` — one place names each command string.
-3. If it needs a new plugin permission, update `src-tauri/capabilities/default.json` (currently grants `core:default`, `dialog:default`, `fs:default`, `opener:default` + `opener:allow-open-path`, and a scoped `http:default`).
-
-The fs plugin scope allows `$APPDATA/images/*` and `$APPDATA/projects/*`. Saving project files
-elsewhere requires widening the scope in `tauri.conf.json`.
+The window's Content-Security-Policy is the kit's default plus `https:` images (`cspAdd` in
+`electron/main.js`: a manuscript can hold an image pasted from the web).
 
 ## Stores
 
@@ -110,7 +97,7 @@ quiescent window) or the undo buffer fills instantly.
 `_past` and `_future` are wrapped in `markRaw()` so Vue does not make snapshots reactive.
 
 Durable rollback does NOT come from history — it comes from the server-owned disk autosave
-(2026-07-13, moved off Rust: the Python server writes a rotating `<data-root>/projects/<id>.autosave.json`,
+(2026-07-13, moved off Rust: the server writes a rotating `<data-root>/projects/<id>.autosave.json`,
 or the `autosaveDir` setting, via `POST /v1/projects/{id}/autosave`; the renderer flushes on a 10 s
 debounce plus `keepalive` on close, and it runs in browser-dev too) plus manual Export backup.
 
@@ -124,7 +111,7 @@ identical. Otherwise a ⌘Z revert under an open editor re-records and clears th
 
 **The legacy gateway is GONE.** This was once documented as current and misled an audit
 (corrected 2026-07-06). ALL LLM traffic goes through the shared `just-llm-runner` dispatch mounted
-by `install_llm` on the Python `server/`:
+by `installLlm` on the server (`server/src/app.js`):
 
 - feature runs and streaming via `/v1/ai/run` and `/v1/ai/stream`, called through the kit's `runAiFeature` / `runAiFeatureStream` (`@delebash/llm-ui`; JW's old local `services/aiFeature.js` and `aiErrors.js` moved into the kit 2026-07-06, Decision 22), consumed by `services/writerAI.js`, `services/analysis/*` and `services/rag/*`;
 - embeddings via `/v1/ai/embeddings` through the kit's `embedTexts` / `ensureEmbeddingReady` (JW's `services/embedApi.js` moved into the kit at C5, 2026-07-06; `services/rag/*` import from `@delebash/llm-ui`);
@@ -206,7 +193,7 @@ ever hardcoded back into it.
 
 Translation tooling for the locale files lives OUTSIDE this repo. The Node tool
 (`just-ai-help`) was retired 2026-08-04 — GitHub repo archived, the local
-`just-ai-help/` project folder deleted (`9886174`) — and its Python successor is
+`just-ai-help/` project folder deleted (`9886174`) — and its successor (Python until 2026-10-08, JavaScript since) is
 **`../just_ai_i18n_docgen`** (same one-resolver design: committed per-project
 `config.json` / `<lang>.accepted.json` / `<lang>.notes.json`, machine state
 gitignored). The principle stands: `locales/` holds only locale files (app assets
@@ -215,46 +202,34 @@ folder leaves the app building and running in every language it has.
 
 ## Test harness detail
 
-Measured 2026-07-15. The five gates total roughly 2.6 minutes — vitest 3 s, `build:vite` 2 s, server
-pytest 46 s, runner pytest 45 s, headless smoke 61 s (3 s boot plus 58 s driving 25 routes). Cargo
-check and Biome/ruff are not in that figure. Tests were never the bottleneck; don't skip them.
-
-The server suite went from 147 s to 46 s by running on all cores with nothing skipped. **The full
-reasoning, the statement census, the safety argument and the rejected alternative live in ONE
-place** — the `[tool.pytest.ini_options]` comment in `server/pyproject.toml`. Read it there before
-optimising or "fixing" the parallelism; a duplicated count elsewhere is how a wrong one propagated
-once already. Debug serially with `pytest -n 0`.
-
-The shared **runner** has no venv of its own — `llm_runner` is editable-installed into THIS
-project's venv, so its suite runs on the same interpreter, from the runner repo:
-
-```bash
-cd ../just-llm-runner && ../justwrite-app/.venv/Scripts/python.exe -m pytest -q
-```
+The gates (2026-10-08, after the move to Node): renderer vitest, `build:vite`, the server's vitest
+(`npm run test:server`, about 10 s on Electron's Node), the kit's own suite
+(`cd ../just-llm-runner/server && npm test`), the headless smoke (`npm run smoke`) and the e2e over
+the desktop app (`npm test`). Tests were never the bottleneck; don't skip them.
 
 Harnesses in the repo:
 
 - **vitest** (`vitest.config.js`, node environment) — pure-JS service and composable tests such as the embedApi ensure-cache suite. Complements, never replaces, the headless smoke.
-- **Playwright headless renderer smoke** (`tests/smoke/headless-smoke.js`, plus `tests/smoke/book-smoke.js`) — THE renderer gate. See `CLAUDE.md` for how to run it and the `findChrome()` rule.
-- **`e2e/` WebDriver harness** (`tauri-driver` + `msedgedriver` driving the built desktop binary) — `npm test` runs the smoke suite, `npm run screenshots` the marketing shots. Both need a compiled `.exe` plus Edge/WebView2, so this is the packaged-desktop check, not a quick dev gate.
-- **Python `server/`** — pytest plus ruff (server-mode migration: `docs/plans/archive/2026-06-18-jw-server-migration.md`).
+- **Playwright headless renderer smoke** (`tests/smoke/headless-smoke.js`, plus `tests/smoke/book-smoke.js`) — THE renderer gate; `npm run smoke` boots it on a snapshot of your data. See `CLAUDE.md` for the `findChrome()` rule.
+- **`e2e/` desktop harness** (Playwright's Electron driver launching the app on the built UI and your real data) — `npm test` runs the smoke suite, `npm run screenshots` the marketing shots.
+- **The server** — `server/tests/*.test.js` (vitest; the port of the Python suite, plus the seed-data comparison) and Biome.
 
 ## Additions from the 2026-08-04 code-first audit
 
 **Stores list correction:** `src/stores/` also holds `versions.js` (named chapter
 versions — the store behind Version History; `versionDiff.js` renders the diffs).
-**IPC bridge correction:** `lib.rs` also exposes `pick_file` (used by import and
-backup-restore flows) — the bridge list above predates it.
+**Shell calls:** `pickFile` is used by the import and backup-restore flows (the list
+above is current as of 2026-10-08).
 
 **Chat sessions (storage model).** Sessions are STORAGE-ONLY — per-request LLM
-cost is unchanged; the server keeps a list per project (`api/chat_api.py`:
+cost is unchanged; the server keeps a list per project (`api/chat_api.js`:
 list/rename/delete). Ids are minted client-side; the title derives from the first
 question and a manual rename overrides it permanently; empty sessions are never
 persisted; a monotonic hydration token guards scope switches (book ↔ character)
 so a stale response can't hydrate the wrong session.
 
 **Sweep draft protocol (v1).** The entity sweep persists RAW per-chapter results
-server-side (`api/sweep_draft_api.py`) rather than the merged aggregate — resume
+server-side (`api/sweep_draft_api.js`) rather than the merged aggregate — resume
 re-merges with the same `mergeProposals`, so a merge-logic fix benefits old
 drafts. A chapter re-runs when pending, failed, or its `textHash` changed.
 
@@ -263,11 +238,11 @@ extensions — `fontSize`, `indent`, `pageBreak`, `sceneBoundary` — plus the
 `comment` mark; `editorToolbars.js` defines three toolbar profiles (FULL / DOC /
 SLIM). The editor-echo law above governs all of them.
 
-**Sidecar lifecycle.** `lib.rs` spawns the Python server every launch: detect a
-holder on the port → `kill_listeners_on_port` (two `#[cfg]` variants) → spawn →
-wait for `/health`. Server reuse across launches is VETOED by the user (recorded
-in TASKS' standing rulings); the respawn cost is measured in
-`measured-performance.md`.
+**Server lifecycle.** The kit's shell starts the server every launch in an Electron
+`utilityProcess`: a stale listener on the port is evicted first, the server says
+`ready` over the parent port, and closing sends `stop` (8 s, then a kill) after the
+400 ms close hold. Server reuse across launches is VETOED by the user (recorded in
+TASKS' standing rulings).
 
 **Analysis service map.** `src/services/analysis/` holds 19 modules; the catalog
 features they back: styleMetrics (style table), critique + critiqueStructure,

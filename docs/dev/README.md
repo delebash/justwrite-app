@@ -10,7 +10,7 @@ lives in `../plans/archive/`).
    not evidence). **`IDEAS.md`** — the unscheduled backlog. **`RESEARCH.md`** — what
    is already known, by subject, with the proof; read its section before researching
    anything (the family rule, 2026-10-04).
-3. **`ARCHITECTURE.md`** — why there is a Python server (headless is a product
+3. **`ARCHITECTURE.md`** — why there is a server (headless is a product
    requirement), the storage policy (drop-and-reseed, no migrations), what shipped,
    release/e2e wiring.
 4. **`architecture-notes.md`** — the invariants in detail: IPC bridge, the

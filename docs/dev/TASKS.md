@@ -17,17 +17,28 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
-## The family moves to Electron and a Node server — the plan is approved, step 1 underway [2026-10-07]
-STATE:  DECIDED 2026-10-05 and 2026-10-07 — every ruling, as shown and approved, is in
+## The family moves to Electron and a Node server — JustWrite's step is BUILT, waiting on your use [2026-10-08]
+STATE:  DECIDED 2026-10-05, 2026-10-07 and 2026-10-08 — every ruling, as shown and approved, is in
         JustVoice's TASKS, "The family moves to Electron and a Node server; Tauri and Python go"
-        (the decision lives with the plan). This item is a pointer only.
-WHY:    JustWrite moves fourth, after the kit and docgen; the phone app gets its own plan after.
-BUILT:  the plan, with the step-0 spikes: `../JustVioce/docs/plans/2026-10-07-electron-node-plan.md` — §6 is JustWrite's step. JustWrite's dev
-        root holds the family's shared model cache, and saved paths in all three apps point
-        into it (plan §9 B8, §10 Q9).
-OPEN:   the plan was approved 2026-10-07 ("your rec on all go"). Step 1 — the audio math into
-        audio.cpp — is underway; this repo's step needs its own go (plan §10 Q1).
-GO:     this repo's step: needed.
+        (the decision lives with the plan, §6 is this repo's step). This item is a pointer only.
+BUILT:  2026-10-08, under the user's go "do it all … finsih the conversion your rec on all go!":
+        the server in JavaScript (`server/src/`, mounting the kit's `@delebash/llm-runner`), the
+        shell (`electron/main.js` on the kit's `runDesktopApp`, the 400 ms close hold), `native.js`
+        on the `window.appShell` bridge (About now names Electron's version), the e2e on
+        Playwright's Electron driver, `npm run smoke` and the bench on the Node server, the
+        electron-builder installer (`npm run build` → `release/`) and the release workflow, the
+        docs. The dev data root moved from `src-tauri/target/debug/data` to `<repo>/data` with
+        every saved path into it rewritten (9 database cells across the three apps, 18 files, the
+        cache registry); the 2026-08-15 headless root is kept aside as `data-old-2026-08-15/`.
+        Python (`server/justwrite_server/`) and Tauri (`src-tauri/`) are deleted.
+CHECKED: server tests 146/146 · the route diff against the Python server (92 reads: 78
+        identical, 14 volatile; 37/37 writes; 4,809 database cells, 0 different) and the seed
+        comparison (17,741 cells, 0 different) · the headless smoke (every route, zero JS errors)
+        · e2e 7/7 on your real data · the installer installs, starts (window, server, CSP), serves
+        headless with the bundled tutorial book; an update and an uninstall keep `data\`.
+OPEN:   your use of the moved app — `npm run dev`, or the installer from `npm run build`. The
+        release workflow is rewritten for electron-builder but not run (it needs a tag).
+GO:     none needed to use it; anything you find gets its own item.
 
 ## THE FAMILY PARITY BATCH — approved 2026-08-05, THE next build
 - **The master plan (read WHOLE before coding any slice):**
@@ -190,9 +201,9 @@ JV as of 2026-08-04; the convergence scope itself stands.)*
   your "i cant believe we did not do that in the first place") · the characterChat
   bible-leg variant · Bonsai's CPU leg under the corrected id
   `ternary-bonsai-27b-q2-g64` (loads in 13 s; 0/10 chats completed last try).
-- **drive.js `findPython`/autostart has still never fired** — the 13:46 bench
-  attached to your live server; closes on any `--autostart` bench with the app
-  closed. Plus two glances: PricingEditor + LuRunnerBinaries have never been
+- **drive.js autostart has still never fired** — the 13:46 bench attached to
+  your live server; closes on any `--autostart` bench with the app closed (since
+  2026-10-08 it starts the Node server on Electron's Node). Plus two glances: PricingEditor + LuRunnerBinaries have never been
   RENDERED by eyes (code-verified only) · StyleTune's drafter re-scope — the 8 GB
   class tune sets `spec_type: none` BY DESIGN, so a drafter load needs a deliberate
   override or a bigger box (and its drafter measured no gain anyway:
@@ -271,8 +282,6 @@ JV as of 2026-08-04; the convergence scope itself stands.)*
   copy can go).
 - **`uma` → `mem_arch`** — a design call parked until a unified-memory NVIDIA box actually
   exists; the "Use for this PC" override covers such a user today.
-- **The bench-autostart venv re-exec oddity** — a `F:\Python312` child owned the llama-servers
-  on 2026-07-26; ran green, cause unverified; sits on the "which Python runs" trap.
 
 *(Moved 2026-08-04 by the placement rule — runner-owned parked items (D5 · D6 · I3 ·
 the `--fit`/MTP upstream WATCH · the Harrier/KaLM model watchlist · the LICENCE flag ·

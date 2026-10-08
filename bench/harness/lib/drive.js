@@ -12,7 +12,7 @@
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { resolveAppDataRoot } from "./dataRoot.js";
-import { findChrome, findPython, isUp, sleep, waitReady } from "../../../tests/lib/smoke-common.js";
+import { findChrome, isUp, sleep, waitReady } from "../../../tests/lib/smoke-common.js";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
@@ -61,17 +61,15 @@ async function ensureBrowserStack({ app, server, autostart, repoRoot, onLog }) {
   if (!(await isUp(`${server}/v1/health`))) {
     if (!autostart) throw new Error(`no JustWrite server at ${server} — start your app (npm run dev), or pass --autostart`);
     // The autostarted server must see the APP's data root (engine + models +
-    // books), not the bare-CLI platformdirs default — that mismatch is the
-    // "engine is not installed" trap. resolveAppDataRoot mirrors the shell.
+    // books) — resolveAppDataRoot is the kit's one ladder, the shell's own; it is
+    // passed explicitly so the error below can name it.
     dataRoot = resolveAppDataRoot(repoRoot);
     onLog?.(`starting server (nothing answering at ${server}) — data root: ${dataRoot}`);
-    // findPython, not bare "python": PATH's first interpreter is a stock install
-    // with none of this project's deps, so this line died with "No module named
-    // 'llm_runner'". It hid for a long time because the branch above only reaches
-    // here when NOTHING is already answering — every bench run made while the
-    // app was up skipped it, and it broke the first time the bench ran cold.
-    started.push(startProcess("server", findPython(repoRoot), ["-m", "justwrite_server.serve", "serve", "--port", new URL(server).port || "17495"], {
-      cwd: `${repoRoot}/server`, env: { JUSTWRITE_DATA_DIR: dataRoot }, onLog,
+    // The server on Electron's own Node (scripts/node24.mjs) — the runtime it ships on,
+    // and the one its native modules are built for. Quoted: startProcess runs through
+    // a shell on Windows, and node's path can hold spaces.
+    started.push(startProcess("server", `"${process.execPath}"`, ["scripts/node24.mjs", "server/src/serve.js", "serve", "--port", new URL(server).port || "17495"], {
+      cwd: repoRoot, env: { JUSTWRITE_DATA_DIR: dataRoot }, onLog,
     }));
     await waitReady(`${server}/v1/health`, "server", 120);
   } else {

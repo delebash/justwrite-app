@@ -23,40 +23,42 @@ is for contributors.
 
 ---
 
-## Headless operation — why there is a Python server
+## Headless operation — why there is a server
 
-**JustWrite must run headless: `justwrite-server serve` plus a browser gives the
-whole app with no Tauri shell.** This is a product requirement, not a dev
-convenience, and it is the reason JustWrite has a Python backend at all.
+**JustWrite must run headless: `justwrite-server serve` (from source, `npm run
+server`) plus a browser gives the whole app with no desktop shell.** This is a
+product requirement, not a dev convenience, and it is the reason JustWrite has a
+backend at all.
 
-Headless means there is no webview to hold state, so every durable operation —
+Headless means there is no window to hold state, so every durable operation —
 the book, projects, RAG, settings, AI — has to be served by a long-lived process
-that runs with no renderer present. That process is the FastAPI + SQLite server
-in `server/justwrite_server/`.
+that runs with no renderer present. That process is the Node (Fastify) + SQLite
+server in `server/src/` (it was a Python/FastAPI server until the family's move
+to Electron and Node, 2026-10-08 — a port with the same routes and database).
 
 The pieces that implement it, so a reader can verify rather than trust this page:
 
-- **`app.py`** — after every `/v1/*` router is mounted, `_locate_ui_dir()` finds
-  the Vite build and `app.mount("/", StaticFiles(..., html=True))` serves it. The
-  static mount is LAST so API routes always win. `JUSTWRITE_UI_DIR` overrides the
+- **`app.js`** — after every `/v1/*` router is registered, the UI locator finds
+  the Vite build and `@fastify/static` serves it. The static mount is LAST so API
+  routes always win. `JUSTWRITE_UI_DIR` overrides the
   search; without a `dist/` the server logs a warning and the API still runs.
   The renderer reaches it because the base URL is origin-aware — it targets
-  `window.location.origin`, so the same bundle works under Tauri and under the
+  `window.location.origin`, so the same bundle works in the desktop window and under the
   server's own origin unchanged. That resolution is the KIT's since 2026-08-15
   (`installLlmUi({ devPorts, fallbackBase })`); the app-local
   `services/serverApi.js` is deleted, because three apps had three shapes for one
   job and docgen's — let the installer do it — was the right one.
-- **`cli.py`** — `serve --host/--port/--data-dir`, defaulting to
+- **`serve.js`** — `serve --host/--port/--data-dir`, defaulting to
   `127.0.0.1:17495`, with `JUSTWRITE_HOST` / `JUSTWRITE_PORT` /
   `JUSTWRITE_DATA_DIR` env overrides. A configurable bind is the tell: a
-  loopback-only sidecar would hardcode it.
-- **`auth.py`** — bearer-token middleware for running exposed. Off when no
+  loopback-only helper would hardcode it.
+- **`auth.js`** (the kit's `BearerAuthMiddleware`) — bearer-token middleware for running exposed. Off when no
   tokens are set; loopback bypasses unless `requireForLoopback`. Gates `/v1`
   only, so the UI and its assets always load and a browser can reach the app.
   Surfaced in **Settings → Server** (`SettingsView.vue`; the section was keyed
   "general" until the 2026-08-06 parity batch), documented for users
   in [`docs/headless-access.md`](../headless-access.md).
-- **`csrf.py`** — same-origin mutations are allowed precisely because the
+- **The CSRF guard** (the kit's `CsrfOriginMiddleware`) — same-origin mutations are allowed precisely because the
   self-hosted UI is a first-class mode. This was a real 403 found on 2026-07-15
   driving the server-hosted UI; the smoke missed it by running against the dev
   origin.
@@ -72,16 +74,16 @@ this ruling is history: `docs/plans/archive/2026-06-18-unified-storage-no-idb.md
 
 ### What this rules out
 
-- **The Tauri SQL plugin cannot replace the server.** It lives inside the Tauri
-  app — no app, no database — so it cannot serve a headless client by
-  construction. It is recorded as a "no backend process" option in
+- **A database inside the desktop shell cannot replace the server.** It would live
+  inside the app — no app, no database — so it cannot serve a headless client by
+  construction. It was recorded as a "no backend process" option (the Tauri SQL
+  plugin) in
   `docs/plans/archive/2026-06-18-cross-app-runner-and-jw-backend-decision.md`; headless
   is what closed that door.
-- **`llm_runner` staying Python is downstream of this.** JustWrite has a
-  long-lived Python process because of headless, and JustVoice has one for its
-  DSP stack (scipy / pyloudnorm / python-stretch). The shared runner mounts
-  in-process in both, so its language costs neither app an extra process. Any
-  "port the runner to Rust" proposal has to start by re-deciding headless.
+- **The shared runner mounts in-process.** The kit (`@delebash/llm-runner`) runs
+  inside this server, so the AI stack costs no extra process. The 2026-10-08 move
+  re-decided the language (JavaScript for the whole family) but not headless — the
+  server stayed, in Node.
 
 The 2026-06-18 decision doc reached this outcome but recorded the trigger as
 Android-readiness, with Android still a "maybe". Headless is the actual and much
@@ -375,14 +377,14 @@ The app has a manual release pipeline. **Never** triggers on push, PR, or
 tag — only via `npm run release` (which calls
 `gh workflow run release.yml`). This is intentional.
 
-**Why manual:** cross-platform Tauri build is expensive (~9 min cold, three
-runners in parallel), so kicking it manually keeps cost and noise minimal.
+**Why manual:** a cross-platform build is expensive (three runners in parallel),
+so kicking it manually keeps cost and noise minimal.
 Docs sync to the marketing site is the only "automatic" step, and it only
 fires after a release completes.
 
 ### Walkthrough
 
-1. `npm run bump <ver>` — bumps `package.json` and `src-tauri/tauri.conf.json`.
+1. `npm run bump <ver>` — bumps `package.json` (the one place the version lives).
 2. Manual commit + tag + push.
 3. `npm run release` — dispatches the workflow against the tag.
    - Optional `--platform <windows|macos|linux>` (or `npm run
@@ -412,7 +414,7 @@ repository\_dispatch to `delebash/justwrite-website` so its CI rebuilds).
   cost of certs not yet justified)
 - Auto-update — *still true as of 2026-08-04, with a nuance: Settings mounts the
   kit `UpdatesPanel`, which is DISPLAY-ONLY (current version + release notes from
-  whats-new.md); there is no check/download/install machinery in Rust or JS.*
+  whats-new.md); there is no check/download/install machinery.*
 - Per-push CI checks — *stale as written (2026-08-04 correction): the repo now has
   `.github/workflows/release.yml`, biome (`biome.json`), and a 55-file vitest suite
   (`npm run test:unit`); what remains true is that none of it is per-push CI — the
@@ -431,38 +433,36 @@ min. v0.1.1 was the first end-to-end smoke that validated this flow.
 
 ## E2E harness
 
-JustWrite has a working WebDriver-driven test and screenshot harness at
-`e2e/`.
+JustWrite has a working test and screenshot harness at `e2e/` over the REAL
+desktop app.
 
-**Stack:** `tauri-driver` (cargo-installed, `cargo install --locked
-tauri-driver`) + a bundled `msedgedriver.exe` matched to the **WebView2
-runtime** version — NOT Edge's (`e2e/scripts/fetch-driver.js`; the two
-diverge and the mismatch bites). Talks raw W3C WebDriver HTTP from Node —
-**no WebdriverIO** (the wdio deps were dropped in `f345de6`; v9 failed with
-`UND_ERR_INVALID_ARG` on session create, v8 hung at session handshake).
-Wrapper is `e2e/lib/driver.js` (~150 lines); tests via Node's built-in
-`node --test`.
+**Stack:** Playwright's Electron driver (`playwright-core`, `_electron.launch`)
+launching the app from this checkout on the built UI (`app://`) and its own
+server on the dev data folder — since the 2026-10-08 move; it replaced
+`tauri-driver` + `msedgedriver` against the release binary. The wrapper
+`e2e/lib/driver.js` keeps the old Driver API (`exec(script, args)` runs a
+WebDriver-style script body over the debugger protocol, so the app's real CSP
+stays on); tests via Node's built-in `node --test`.
 
 **Why this matters:** earlier attempts to capture views by driving the
 renderer in browser-mode (`npm run dev:vite` + Playwright + IDB injection)
 succeeded for Home / Analysis / Plot board but failed silently for Audio Studio /
 Settings / Worldbuilding / Timeline — lazy-loaded views error at mount when
-run in vanilla browser. The Tauri harness gets all of them.
+run in vanilla browser. The desktop harness gets all of them.
 
 ### How to use it
 
-- `cd e2e && npm run capture` — drives the production binary at
-  `src-tauri/target/release/justwrite.exe` through routes listed in
+- `cd e2e && npm run capture` — drives the desktop app through routes listed in
   `capture-direct.js:TARGETS` and saves PNGs to
   `../../justwrite-website/public/screenshots/`. Add routes by appending to
   the array.
-- `cd e2e && npm test` — runs `tests/*.test.js` against the same binary.
-  7 passing smoke tests, 1 skipped (theme switcher — needs `data-testid` on
-  the reka-ui appearance cards before it can drive that widget).
-- The production binary is whatever was last built. If source has drifted,
-  run `npm run build` from the app root first.
-- Don't run with your own JustWrite open during a capture/test — both share
-  AppData and IDB; autosave will race.
+- `cd e2e && npm test` — runs `tests/*.test.js` against the same app, on your
+  real data (7 tests, all passing on 2026-10-08). The theme test's clicks are
+  undone: the suite writes your `ui` settings section back when it ends.
+- The harness drives whatever `dist/` was last built. If source has drifted,
+  run `npm run build:vite` from the app root first.
+- Don't run with your own JustWrite open — both would start a server on :17495
+  over the same data folder.
 
 This is THE pipeline for getting visuals into the marketing site — never
 invent mockups.

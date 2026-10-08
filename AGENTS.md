@@ -344,9 +344,8 @@ Speaker Lab (`/speaker-lab` and `/debug/speaker-lab`) follows the same shape.
 
 These aren't enforced — they're the project's working agreements.
 
-- **No test runner is configured.** Don't invent `npm test`. A clean `npm run
-  build` + a clean `cd src-tauri && cargo check` is the bar before claiming
-  code works.
+- **The gates are `npm run test:fast` and `npm run smoke`** (CLAUDE.md, Commands) —
+  run them before claiming code works.
 - **No formatter or linter.** Match the file's existing style; don't reformat
   unrelated code in your diff.
 - **Commits are atomic and self-explanatory.** Code + relevant doc update +

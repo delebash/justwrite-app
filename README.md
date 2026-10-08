@@ -2,7 +2,7 @@
 
 A desktop writing app for novels that connects to any **OpenAI-compatible** AI provider — Ollama, LM Studio, OpenAI, or anything else that speaks the standard.
 
-Built with **Tauri 2 + Vite + Vue 3 + Pinia** (JavaScript renderer, Rust backend).
+Built with **Electron + Vite + Vue 3 + Pinia**, and a local **Node (Fastify) server** that holds all the data — plain JavaScript end to end (since 2026-10-08; it was Tauri + Rust + Python before).
 
 User docs live in `docs/`. The marketing site at <https://delebash.github.io/justwrite-website/> mirrors them for each release.
 
@@ -11,14 +11,12 @@ User docs live in `docs/`. The marketing site at <https://delebash.github.io/jus
 ## Quick start
 
 ```bash
-npm install            # JS deps
-npm run dev            # Vite HMR + a native Tauri window
-npm run build          # Packaged app for the current OS
+npm install            # JS deps (the kit checkout ../just-llm-runner sits beside this repo)
+npm run dev            # Vite HMR + the desktop window (Electron), its server on the dev data folder data/
+npm run build          # The installer for the current OS, in release/
 ```
 
 A fresh install opens on the welcome screen; **Try tutorial project** loads *The Ninth Facet*, a complete sample book, so you can click through every screen immediately.
-
-> **First run is slow.** Tauri compiles the Rust crate the first time. Subsequent dev launches are fast.
 
 ---
 
@@ -121,7 +119,7 @@ Seven rooms, one house — organised by what part of the work you're in.
 - **Local first.** Your manuscript is a file on your computer. No account, no upload, no server lock-in.
 - **Soft delete + Trash.** Every deletion is undoable; Trash holds items indefinitely until you empty it.
 - **Project-wide undo / redo.** 100 steps in-memory, last 10 persisted. ⌘Z / ⌘⇧Z.
-- **Autosave.** Every change persists through the app's local Python server within seconds — the renderer holds no data of its own.
+- **Autosave.** Every change persists through the app's local server within seconds — the renderer holds no data of its own.
 - **Backups.** Export the whole project as a single JSON snapshot at any time; restore from one with a click.
 - **i18n-ready.** All UI strings flow through vue-i18n; locale-aware number formatting.
 
@@ -133,20 +131,18 @@ Seven rooms, one house — organised by what part of the work you're in.
 
 | Tool | Purpose | Install |
 |---|---|---|
-| **Node 24+** | Renderer build + scripts | <https://nodejs.org/> |
-| **Python 3.11+** | The app's local data server (`server/` — spawned by the shell; all persistence lives there) | one-time: `cd server && python -m venv .venv && .venv/Scripts/pip install -e .[dev]` |
-| **Rust (stable)** | Tauri backend compilation | <https://www.rust-lang.org/tools/install> |
-| **Tauri CLI** | Drives `tauri dev` / `tauri build` | Pulled in as a `devDependency`; `npx tauri` works out of the box. Optional global: `cargo install tauri-cli --version "^2.0"`. |
+| **Node 24+** | The renderer build, the scripts, npm | <https://nodejs.org/> |
+| **The kit** | `../just-llm-runner` beside this repo — the shared server package (`file:../just-llm-runner/server`) and Vue kit (the vite alias) | `git clone https://github.com/delebash/just-llm-runner ../just-llm-runner` then `cd ../just-llm-runner/server && npm install` |
 | **gh CLI** | Triggering the release workflow only | <https://cli.github.com/> + `gh auth login` |
-| **Platform deps** | Tauri runtime libs | Linux: `libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf`. macOS: Xcode CLT. Windows: WebView2 runtime (preinstalled on Win11). |
+
+Electron comes in through `npm install` (a devDependency); the server runs on Electron's own Node
+(`scripts/node24.mjs`), so nothing else is needed — no Python, no Rust.
 
 ### One-time
 
 ```bash
 npm install            # also: cd e2e && npm install (if you'll run screenshots/smoke tests)
 ```
-
-The e2e harness has its own `package.json` and its `postinstall` fetches the `msedgedriver.exe` matching your **WebView2 runtime** version — not Edge's; the two diverge (`e2e/scripts/fetch-driver.js`). Windows only.
 
 ---
 
@@ -156,19 +152,18 @@ Run from the repo root unless noted.
 
 | Script | What it does |
 |---|---|
-| `npm run dev` | Tauri dev — launches the Rust crate **and** a Vite dev server, opens the native window. First run is slow (compiles Rust); subsequent runs cache. |
-| `npm run build` | Packaged app for the current OS. Outputs to `src-tauri/target/release/bundle/`. |
-| `npm run dev:vite` | Renderer only, in a plain browser tab at `http://localhost:1420` — no Tauri APIs; data still flows through the Python server (start it yourself: `npm run server`). |
-| `npm run server` | The Python server on :17495 (venv-resolved via `scripts/py.js`). |
-| `npm run build:vite` | Renderer build only. Tauri invokes this via `beforeBuildCommand`. |
+| `npm run dev` | The desktop app — a Vite dev server on :1420 with hot reload, and the Electron window pointed at it; the window's server runs on the dev data folder `data/`. |
+| `npm run build` | The installer for the current OS (electron-builder). Outputs to `release/` — on Windows `JustWrite Setup <version>.exe`, with `release/win-unpacked/` beside it. |
+| `npm run dev:vite` | Renderer only, in a plain browser tab at `http://localhost:1420` — no desktop shell; data still flows through the server (start it yourself: `npm run server`). |
+| `npm run server` | The server alone (headless) on :17495, on the dev data folder `data/` (`--port`, `--host`, `--data-dir` after `--`). |
+| `npm run build:vite` | Renderer build only (`dist/` — what the window loads and the headless server serves). `npm run build` runs it first. |
 | `npm run preview:vite` | Serves the built renderer over Vite preview — handy for sanity-checking the bundle. |
-| `npm run tauri <cmd>` | Pass-through to the Tauri CLI (`npm run tauri icon source.png`, etc.). |
-| `npm run bump <version>` | Updates `package.json`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json` to the same version. **Does not commit or tag** — you do. See [Release process](#release-process). |
+| `npm run bump <version>` | Updates the version in `package.json` (the one place it lives). **Does not commit or tag** — you do. See [Release process](#release-process). |
 | `npm run release [version]` | Triggers the GitHub Actions release build via `gh workflow run`. Requires the tag to already exist on origin. Interactive `[y/N]` confirm. |
 | `npm run release:windows` · `:macos` · `:linux` | Same as `release` but builds a single platform. |
-| `npm run screenshots` | Runs the e2e screenshot capture (same as `cd e2e && npm run capture`). Drives the prod binary, writes PNGs to `../justwrite-website/public/screenshots/`. Requires `npm run build` first. |
-| `npm test` | Runs the e2e smoke suite (delegates to `npm test --prefix e2e`). Drives the prod binary through every major route and asserts each surface renders. Requires `npm run build` first. |
-| `npm run test:unit` · `test:server` · `test:fast` | vitest (567 tests) · server pytest · the quick gate chaining both plus `build:vite`. |
+| `npm run screenshots` | Runs the e2e screenshot capture (same as `cd e2e && npm run capture`). Drives the desktop app on the built UI, writes PNGs to `../justwrite-website/public/screenshots/`. Requires `npm run build:vite` first. |
+| `npm test` | Runs the e2e smoke suite (delegates to `npm test --prefix e2e`). Drives the desktop app (the built UI, your real data) through the major routes and asserts each surface renders. Requires `npm run build:vite` first. |
+| `npm run test:unit` · `test:server` · `test:fast` | vitest over the renderer · vitest over the server (`server/tests/`, on Electron's Node) · the quick gate chaining both plus `build:vite`. |
 | `npm run i18n:lint` · `i18n:report` · `i18n:pseudo` | i18n-only eslint rules · locale coverage report (MISSING must stay zero) · pseudo-locale build. |
 | `npm run bench` (`:gpu`, `:cpu`) · `npm run smoke` · `npm run dup` | LLM bench harness · scripted smoke · jscpd duplicate scan. |
 
@@ -178,14 +173,13 @@ Run from the repo root unless noted.
 
 ## E2E harness (smoke tests + screenshots)
 
-Lives in `e2e/`. WebDriver-driven automation against the real Tauri build via [`tauri-driver`](https://github.com/tauri-apps/tauri/tree/dev/tooling/webdriver) + `msedgedriver` (Windows / WebView2) — see [`e2e/README.md`](e2e/README.md) for the full story.
+Lives in `e2e/`. Automation over the real desktop app — Electron, the built UI from `app://` — through Playwright's Electron driver (`playwright-core`) — see [`e2e/README.md`](e2e/README.md) for the full story.
 
 ### Prereqs (one-time)
 
 ```bash
-cargo install --locked tauri-driver
-cd e2e && npm install        # postinstall fetches msedgedriver for your WebView2 runtime version
-npm run fetch-driver         # rerun manually after a WebView2 runtime update
+cd e2e && npm install        # playwright-core; no browser download, no driver binary
+npm run build:vite           # from the repo root — the harness drives the BUILT UI
 ```
 
 ### Smoke tests
@@ -194,7 +188,7 @@ npm run fetch-driver         # rerun manually after a WebView2 runtime update
 cd e2e && npm test
 ```
 
-Spins up the prod binary, runs `tests/*.test.js`, asserts the major routes render. Used as the green-light gate before a release.
+Launches the desktop app on your real data, runs `tests/*.test.js`, asserts the major routes render. Used as the green-light gate before a release. The theme test's clicks are undone: the suite puts your `ui` settings back when it ends.
 
 ### Screenshots
 
@@ -204,7 +198,7 @@ npm run screenshots          # from repo root
 cd e2e && npm run capture
 ```
 
-Drives `src-tauri/target/release/justwrite.exe` through a fixed list of routes (`TARGETS` in `e2e/capture-direct.js`) and writes PNGs straight into the marketing site's `public/screenshots/` folder. Rebuild first with `npm run build` if the renderer has drifted.
+Drives the desktop app through a fixed list of routes (`TARGETS` in `e2e/capture-direct.js`) and writes PNGs straight into the marketing site's `public/screenshots/` folder. Rebuild the UI first with `npm run build:vite` if the renderer has drifted.
 
 #### Re-capture with a different theme
 
@@ -218,13 +212,12 @@ JW_THEME="Calm Modern"  npm run screenshots
 JW_THEME="Editorial"    npm run screenshots
 ```
 
-The theme name has to match the preset's visible `<b>` label exactly. The change persists into IDB, so subsequent app launches keep that look until you switch again.
+The theme name has to match the preset's visible `<b>` label exactly. The change persists (it is your real settings), so subsequent app launches keep that look until you switch again.
 
 #### Capture gotchas
 
-- **The release binary is whatever was last built.** Run `npm run build` before capturing if you've changed renderer code.
-- **Don't have JustWrite open** while capturing — both instances share AppData and IndexedDB; concurrent autosaves race.
-- **Orphan `tauri-driver.exe`** after a force-kill needs `taskkill /F /IM tauri-driver.exe` (Windows) before re-running.
+- **The harness drives whatever `dist/` was last built.** Run `npm run build:vite` before capturing if you've changed renderer code.
+- **Don't have JustWrite open** while capturing — both would run a server on :17495 over the same data folder.
 
 ---
 
@@ -233,11 +226,11 @@ The theme name has to match the preset's visible `<b>` label exactly. The change
 Manual release, triggered by `gh workflow run`. Pushes and tags do **not** build by themselves.
 
 ```bash
-# 1. Bump version across the three manifests
+# 1. Bump the version (package.json)
 npm run bump 1.2.0
 
 # 2. Commit, tag, push (the bump script does NOT do this)
-git add package.json src-tauri/Cargo.toml src-tauri/tauri.conf.json
+git add package.json
 git commit -m "release: v1.2.0"
 git tag v1.2.0
 git push && git push --tags
@@ -249,7 +242,7 @@ npm run release:windows      # or one
 
 What the workflow does (see `.github/workflows/release.yml`):
 
-1. Builds .dmg (macOS universal), .exe + .msi (Windows), .AppImage + .deb + .rpm (Linux) on per-platform runners.
+1. Builds .dmg (macOS universal), .exe (Windows, NSIS), .AppImage + .deb (Linux) with electron-builder on per-platform runners — each checks out the kit (`delebash/just-llm-runner`) beside the app.
 2. Creates / updates GitHub Release `v<version>` with the binaries attached.
 3. Packs `docs/` into `docs.tar.gz` and attaches it to the release.
 4. Fires a `repository_dispatch` at the marketing-site repo so it rebuilds with the new docs.
@@ -274,55 +267,47 @@ justwrite-app/
 ├── vite.config.js             ← vite root is the REPO root; aliases @delebash/llm-ui → ../just-llm-runner/ui/src
 ├── index.html
 ├── scripts/
-│   ├── py.js                  ← venv-resolving python launcher for server scripts
-│   ├── bump.js                ← version bumper (3 manifests)
+│   ├── dev.mjs                ← `npm run dev`: Vite, then the Electron window pointed at it
+│   ├── node24.mjs             ← runs a script on Electron's own Node (the server's runtime)
+│   ├── bump.js                ← version bumper (package.json)
 │   └── release.js             ← wraps gh workflow run
+├── electron/main.js           ← the desktop app: the kit's runDesktopApp with this app's settings
+├── build/                     ← installer icons, tray icon, the headless launcher (launcher/)
 ├── e2e/                       ← screenshot capture + smoke tests (own package.json)
 │   ├── capture-direct.js
 │   ├── lib/driver.js
 │   └── tests/smoke.test.js
-├── server/                    ← the Python data server (FastAPI, :17495) — ALL persistence
-│   ├── justwrite_server/
-│   └── tests/                 ← pytest suite
+├── server/                    ← the data server (Node, Fastify, :17495) — ALL persistence
+│   ├── src/                   ← serve.js (the entry) · app.js · api/ · database/
+│   └── tests/                 ← vitest suite
 ├── src/                       ← the Vue renderer (no src/renderer nesting)
-│   ├── main.js                ← Vue entry; imports the Tauri bridge; boots stores off the server
+│   ├── main.js                ← Vue entry; wires the kit's UI; boots stores off the server
 │   ├── App.vue
 │   ├── router/index.js
 │   ├── i18n/                  ← vue-i18n setup + locales/ (en, es)
 │   ├── styles/                ← tokens.css · styles.css (fonts.css stays at src/)
 │   ├── stores/                ← project, ui, ai, sessions (Pinia)
-│   ├── services/              ← tauri-bridge.js (window.justwrite) · serverApi.js · rag/ · export/
+│   ├── services/              ← native.js (the desktop shell's calls) · rag/ · export/ · …
 │   ├── components/
 │   └── views/
-└── src-tauri/
-    ├── Cargo.toml
-    ├── tauri.conf.json
-    ├── build.rs
-    ├── capabilities/default.json      ← plugin permissions
-    └── src/
-        ├── main.rs                    ← `fn main()` -> justwrite_lib::run()
-        └── lib.rs                     ← #[tauri::command]s + Builder; spawns/kills the server
+└── data/                      ← the dev data folder (gitignored): the database, models, logs
 ```
 
 ---
 
-## How the IPC bridge works
+## How the desktop shell is reached
 
-The renderer never calls `invoke()` directly. `src/services/tauri-bridge.js` is a side-effect import in `main.js`. When running inside Tauri it populates `window.justwrite`:
+The renderer reaches the desktop shell through ONE file, `src/services/native.js`: ordinary
+exports (`pickDirectory`, `pickFile`, `saveFile`, `storageGetRoot`, `storageRelocate`,
+`setKeepRunning`, `setTrayLabels`, the openers, `onShellEvent` for the tray), each calling the
+kit's preload object `window.appShell`. The shell itself is the kit's shared Electron main
+module (`@delebash/llm-runner/shell`); `electron/main.js` only names this app's settings. Outside
+the desktop app (a browser tab on `npm run dev:vite`, or the headless server's UI) every call
+answers the browser's way — null or a no-op — and the renderer falls back to downloads and
+file inputs.
 
-```js
-window.justwrite = {
-  project: { save, open },
-};
-```
-
-The Rust commands live in `src-tauri/src/lib.rs` and mirror the JS contract one-for-one (`project_save`, `project_open`, …). Outside Tauri (e.g. plain `npm run dev:vite` in a browser tab), `window.justwrite` stays undefined and the renderer falls back to its server / data-URL paths.
-
-When adding a new Tauri command:
-
-1. Add the `#[tauri::command]` fn in `src-tauri/src/lib.rs` and register it in `invoke_handler![]`.
-2. Add a matching method on `window.justwrite.*` in `tauri-bridge.js`.
-3. If it needs a new plugin permission, edit `src-tauri/capabilities/default.json` (currently grants `core:default`, `dialog:default`, `fs:default`).
+A new shell command is added to the kit (its `COMMANDS` list in `server/src/shell/main.js` and
+`preload.cjs`), then exported once from `native.js`.
 
 ---
 

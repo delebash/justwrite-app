@@ -1,8 +1,11 @@
 # JustWrite
 
-A novel-writing app: **Tauri 2 + Vue 3 renderer + Python (FastAPI + SQLite) server.** Persistence is
-server-owned SQLite — the renderer holds no durable data. The whole AI/LLM stack is shared with the
-sibling app JustVoice: `just-llm-runner` (Python) + `@delebash/llm-ui` (Vue).
+A novel-writing app: **Electron + Vue 3 renderer + a Node (Fastify + SQLite) server** — plain
+JavaScript since 2026-10-08 (the family's move off Tauri and Python; the plan is JustVoice's
+`docs/plans/2026-10-07-electron-node-plan.md`). Persistence is server-owned SQLite — the renderer
+holds no durable data. The whole AI/LLM stack is shared with the sibling apps: `just-llm-runner`
+(its JavaScript package `server/`, `@delebash/llm-runner`, beside this repo) + `@delebash/llm-ui`
+(Vue).
 
 **Writing only.** All audio — Studio, TTS, audiobook export, speaker analysis, voice casting — lives
 in JustVoice, which JustWrite drives over an HTTP contract (JW hands JV the prose; JV does its own
@@ -11,31 +14,36 @@ casting and narration). Do not reintroduce any of it here.
 ## Commands
 
 ```bash
-npm install            # JS deps (first run only)
-npm run dev            # Tauri dev — Vite + native window. First run compiles the Rust crate (slow).
-npm run build          # Packaged app for the current OS
-npm run dev:vite       # Renderer only, in a browser tab (no Tauri APIs; data still via the server)
+npm install            # JS deps (first run only); the kit checkout ../just-llm-runner sits beside this repo
+npm run dev            # the desktop app: Vite (:1420) + the Electron window; its server on data/
+npm run build          # the installer for the current OS (electron-builder → release/)
+npm run dev:vite       # Renderer only, in a browser tab (no desktop shell; data still via the server)
+npm run server         # the server alone (headless) on :17495, on data/
 npm run build:vite     # Renderer build only — a COMPILE check, not a substitute for the smoke
 
-npm run test:fast      # quick gate (~53s): vitest + build:vite + server pytest
-npm run test:unit      # vitest only (567 tests as of 2026-08-04, ~9s)
-npm run test:server    # server pytest only (~38s, parallel)
+npm run test:fast      # quick gate: renderer vitest + build:vite + server vitest
+npm run test:unit      # renderer vitest only
+npm run test:server    # server vitest only (server/tests/, on Electron's Node)
 npm run i18n:report    # locale coverage — MISSING must always be zero
 ```
 
-**Never put bare `python` in a script.** Every npm script that needs an interpreter goes through
-`scripts/py.js`, which prefers this project's venv and falls back to PATH. Bare `python` resolves to
-a stock `F:\Python312` with none of this project's dependencies, which is what made
-`npm run test:server` die with `unrecognized arguments: -n` and took `test:fast` down with it.
+**Server code runs on Electron's own Node.** Every npm script that runs the server or its tests
+goes through `scripts/node24.mjs` (Electron as Node: the runtime the server ships on), never a bare
+`node` from PATH, which may be another version.
+
+**The dev data folder is `data/` in the checkout** — the desktop app, `npm run server` and the
+bench all resolve it through the kit's one ladder (JUSTWRITE_DATA_DIR, else the Change-folder
+pointer, else `data/` beside the app). It moved there from `src-tauri/target/debug/data` on
+2026-10-08, with every saved path into it rewritten; the 2026-08-15 headless root it replaced is
+kept aside as `data-old-2026-08-15/`.
 
 **The headless smoke IS the renderer gate, and it runs here.** A recurring wrong claim is that
 there is no renderer gate or that it cannot run in this environment — false. `npm run test:fast`
 does NOT clear a renderer or GUI change; run the smoke:
 
 ```bash
-python -m justwrite_server.serve serve --port 17495   # background
-npm run dev:vite                                     # :1420, background
-node tests/smoke/headless-smoke.js                   # drives every hash route, asserts zero JS errors
+npm run smoke     # snapshots your data, starts a scratch server (:17496) + vite (:1420),
+                  # drives every hash route, asserts zero JS errors
 ```
 
 Any new Playwright script must reuse `findChrome()` from `tests/lib/smoke-common.js` (it handles
@@ -45,8 +53,8 @@ Windows, macOS and Linux layouts) or set `JW_CHROME`. Never hardcode a browser p
 
 ## Invariants that bite
 
-- **JW must run headless** — `justwrite-server serve` + a browser is the whole app, no Tauri shell (`app.py` mounts `dist/` after the routers). So the Python server is REQUIRED, the book cannot move to the Tauri SQL plugin, and `llm_runner` staying Python is downstream of it. Rationale in `docs/dev/ARCHITECTURE.md`.
-- **Don't call `invoke()` from views or stores** — go through `window.justwrite` (`services/tauri-bridge.js`), or the browser-only dev path breaks.
+- **JW must run headless** — `npm run server` (installed: `justwrite-server serve`) + a browser is the whole app, no desktop shell (`server/src/app.js` mounts `dist/` after the routers). So the server is REQUIRED and owns all persistence. Rationale in `docs/dev/ARCHITECTURE.md`.
+- **The desktop shell is reached only through `src/services/native.js`** (it alone reads `window.appShell`, the kit's preload) — never from views or stores, or the browser-only path breaks.
 - **A new mutating store action must be added to `ACTION_DOMAINS`** — an unmapped action warns and records nothing, so undo silently skips it. Keystroke-grain mutators also go in `COALESCED_ACTIONS` or the undo buffer fills instantly.
 - **`project` is one monolithic Pinia store on purpose** — it owns snapshot-based undo/redo across all entities. That is JustWrite's sanctioned exception to per-domain stores.
 - **Import `Ui*` primitives from `@delebash/llm-ui`.** There is no local `components/ui/` directory and no `Jw*` components; never re-fork one locally. A capability gap gets promoted into the kit. The single `intent` prop encodes role AND style — never add `severity` / `outlined` / `text`.
@@ -54,7 +62,7 @@ Windows, macOS and Linux layouts) or set `JW_CHROME`. Never hardcode a browser p
 - **NOTHING hardcoded** — every value, threshold, name, mapping, flag and preset lives in the DB, seeded and user-editable. Code is only the engine.
 - **No JSON blobs in SQL** — relational data gets real columns and rows. JSON only for genuinely freeform data, with a cited reason.
 - The **`@renderer` alias** is `src/`. Prefer relative imports within a directory, `@renderer/...` across the tree.
-- The renderer dev server is fixed at `http://localhost:1420` and `tauri.conf.json` references that URL — keep them in lock-step.
+- The renderer dev server is fixed at `http://localhost:1420`; `scripts/dev.mjs` and `src/main.js` (`devPorts`) reference that URL — keep them in lock-step.
 
 ## Product and design rules
 
@@ -87,8 +95,9 @@ bundled into the app's Help by the glob and packed into the public `docs.tar.gz`
 ## Tooling
 
 **Biome** (`biome.json`) is the linter — `"formatter": { "enabled": false }`, so it does not format;
-match each file's existing style and never bulk-reformat unrelated code. Scope is
-`src/**/*.{js,vue}`. The Python server uses **ruff**. i18n linting is a separate
+match each file's existing style and never bulk-reformat unrelated code. The config is the
+family's one `biome.json` (byte-identical in every app): `src/`, `scripts/`, `electron/`, `server/src/`
+and `server/tests/`. i18n linting is a separate
 `eslint.i18n.config.js` carrying i18n rules only.
 
 ## Where to look

@@ -1,45 +1,31 @@
 # JustWrite — E2E test & screenshot harness
 
-WebDriver-driven automation for the real Tauri build. Drives WebView2
-on Windows via [tauri-driver](https://github.com/tauri-apps/tauri/tree/dev/tooling/webdriver)
-+ msedgedriver, talking direct WebDriver HTTP from Node — no
-WebdriverIO. The webdriver wrapper lives in `lib/driver.mjs`.
+Automation over the REAL desktop app — Electron, the built UI from `app://justwrite`, its own
+server on the dev data folder `<repo>/data` (your real data) — through Playwright's Electron
+driver (`playwright-core`; since the family's move off Tauri, 2026-10-08). The wrapper lives in
+`lib/driver.js`; it keeps the old harness's `Driver` API, so the tests read as before:
+`exec(script, args)` runs a WebDriver-style script body in the page (over the debugger protocol,
+so the app's real Content-Security-Policy stays on), and every DOM helper rides it.
 
 ## Prereqs
 
 ```bash
-# Rust + cargo already required for the app.
-cargo install --locked tauri-driver
-
-npm install         # installs Node deps + fetches msedgedriver via postinstall
+npm install                          # here (playwright-core) and at the app root (electron)
+npm run build:vite                   # from the app root — the harness drives the BUILT UI
 ```
 
-`npm install` triggers `scripts/fetch-driver.mjs`, which detects your
-local Microsoft Edge version (Windows registry → `BLBeacon`) and
-downloads the matching `msedgedriver.exe` from
-<https://msedgedriver.microsoft.com/> into `drivers/`. The binary is
-gitignored — Edge auto-updates roughly monthly and a committed driver
-would go stale.
-
-Refresh manually after a major Edge update:
-
-```bash
-npm run fetch-driver   # --force re-downloads even if a driver is present
-```
+No browser download and no driver binary: Playwright attaches to the Electron the app ships.
 
 ## Scripts
 
 ### `npm run capture`
 
-Drives the production Tauri binary at `../src-tauri/target/release/justwrite.exe`
-through a fixed list of routes and saves PNGs straight into the
-website's `public/screenshots/` folder. Used to refresh the marketing
-shots. Edit `capture-direct.mjs` to change the route list or output
-path.
+Drives the desktop app through a fixed list of routes and saves PNGs straight into the
+website's `public/screenshots/` folder. Used to refresh the marketing shots. Edit
+`capture-direct.js` to change the route list or output path.
 
-Before the route loop runs, the script clicks the named theme preset
-in Settings → Appearance so every shot reflects that look. Default is
-**Fine Press**; override with the `JW_THEME` env var:
+Before the route loop runs, the script clicks the named theme preset in Settings → Appearance so
+every shot reflects that look. Default is **Fine Press**; override with the `JW_THEME` env var:
 
 ```bash
 JW_THEME="Fine Press"   npm run capture   # default
@@ -49,15 +35,13 @@ JW_THEME="Calm Modern"  npm run capture
 JW_THEME="Editorial"    npm run capture
 ```
 
-The value has to match the preset's visible `<b>` label exactly. The
-choice persists into IDB, so subsequent app launches keep the same
-theme until you switch again.
+The value has to match the preset's visible `<b>` label exactly. The choice persists in your
+settings, so later app launches keep the same theme until you switch again.
 
 ### `npm test`
 
-Runs the smoke suite (`tests/*.test.mjs`) via Node's built-in test
-runner. Launches the real Tauri build once, shares the session across
-tests for speed. Currently:
+Runs the smoke suite (`tests/*.test.js`) via Node's built-in test runner. Launches the app once
+and shares it across the tests. Currently:
 
 | Test | What it asserts |
 | --- | --- |
@@ -65,39 +49,32 @@ tests for speed. Currently:
 | sidebar mounts | a Manuscript section header is in the DOM |
 | project hydrates | `#/chapters` renders without error |
 | analysis route | KPIs render |
-| studio route | Cast/voice content visible |
-| settings → AI | configured providers visible |
-| theme switcher | Fine Press preset click flips `--accent-h` from default → `14` |
+| AI Settings | `#/ai` lists configured providers |
+| theme switcher | Fine Press → Studio → Fine Press moves `--accent-hue` 14 → 200 → 14 |
 | undo/redo binding | keydown handlers respond |
+
+The theme test is the suite's one write: your `ui` settings section is read before the suite
+and written back after it, so your own theme survives a run.
 
 ## How it works
 
-1. `lib/driver.mjs` spawns `tauri-driver` on `127.0.0.1:4444`, pointing
-   it at `drivers/msedgedriver.exe` (the W3C-compliant Edge WebDriver
-   that drives the WebView2 control inside our Tauri window).
-2. A WebDriver session is created with `tauri:options.application`
-   pointing at the built `.exe`. tauri-driver launches that binary,
-   msedgedriver attaches to its WebView2 instance, and we get a normal
-   WebDriver session for the renderer process.
-3. The `Driver` class wraps the protocol with thin helpers:
-   `navigate`, `exec`, `waitUntil`, `screenshot`, `attr`, `click`,
-   `textOf`, `exists`, etc. Tests use those directly.
-
-## Why not WebdriverIO?
-
-We tried — both v9 (undici-level `UND_ERR_INVALID_ARG` on session
-create) and v8 (hangs during session handshake, no diagnostic output).
-Direct HTTP is ~120 lines, deterministic, and proven to work.
+1. `lib/driver.js` launches `electron .` from the app root with Playwright's `_electron`, which
+   loads the built UI from `app://justwrite`; the app's shell starts its server on :17495 over
+   `<repo>/data`. `JUSTWRITE_DEV_NO_SERVER=1` keeps the shell from starting one (then the suite
+   talks to whatever you started on :17495).
+2. `exec(script, args)` evaluates a function expression in the page; `navigate`, `textOf`,
+   `exists`, `click`, `waitUntil`… ride it. `maximize` and `screenshot` go through Electron and
+   Playwright directly.
 
 ## Adding a test
 
-Drop a new `tests/*.test.mjs` file. Use the shared `Driver` instance
-pattern from `smoke.test.mjs`:
+Drop a new `tests/*.test.js` file. Use the shared `Driver` instance pattern from
+`smoke.test.js`:
 
 ```js
 import { test, before, after } from "node:test";
 import { strict as assert } from "node:assert";
-import { Driver } from "../lib/driver.mjs";
+import { Driver } from "../lib/driver.js";
 
 const d = new Driver();
 before(async () => { await d.launch(); });
@@ -109,18 +86,18 @@ test("my feature", async () => {
 });
 ```
 
+A test that changes your data must put it back — the suite runs on your real data folder.
+
 ## Adding a screenshot
 
-Append to the `TARGETS` array in `capture-direct.mjs`. Each entry is
-`{ name, hash, wait }`. The PNG lands at
-`../../justwrite-website/public/screenshots/<name>.png`.
+Append to the `TARGETS` array in `capture-direct.js`. Each entry is `{ name, hash, wait }`. The PNG
+lands at `../../justwrite-website/public/screenshots/<name>.png`.
 
 ## Gotchas
 
-- The release binary is whatever was last built. Run `npm run build`
-  in the app root if your source has drifted.
-- Don't run with your own JustWrite open. Both instances share AppData
-  and IDB; concurrent writes from autosave race.
-- `tauri-driver` is brittle if the port is already bound. The harness
-  spawns it and kills it on exit; orphaned processes (after a kill -9)
-  need a manual `taskkill /F /IM tauri-driver.exe`.
+- The harness drives whatever `dist/` was last built. Run `npm run build:vite` in the app root
+  if your source has drifted.
+- Don't run with your own JustWrite open — both would start a server on :17495 over the same
+  data folder (the shell evicts the other listener).
+- On boot the app may start loading your default AI model (warm-on-startup); closing the app
+  stops it and its llama-server.

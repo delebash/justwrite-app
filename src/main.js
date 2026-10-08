@@ -35,8 +35,7 @@ import { startWarmOnBoot } from "@delebash/llm-ui";
 // exists to make un-forgettable), wires the external opener, and registers
 // <LlmUiHosts /> (Toast + AppDialog, mounted once in App.vue).
 import { installLlmUi, checkServer, configureFamilyLabels, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, serverUrl, setUiLocale, ConnectionError } from "@delebash/llm-ui";
-import { openPath, openUrl } from "@tauri-apps/plugin-opener";
-import { saveFile } from "./services/native.js";
+import { openPath, openUrl, saveFile } from "./services/native.js";
 import { buildFamilyLabels } from "./i18n/familyLabelsFeed.js";
 import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "./services/helpDocs.js";
 import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "./services/labTestData.js";
@@ -60,10 +59,9 @@ installLlmUi(app, {
   // docgen was right.
   devPorts: ["1420"],
   fallbackBase: import.meta.env?.VITE_SERVER_URL || "http://127.0.0.1:17495",
-  // The openers, straight from the plugin — the SAME line in all three apps
-  // (2026-08-14; it was this app's own `open_external` Rust command behind
-  // window.justwrite). The kit decides when they can be used (browser vs
-  // webview); no app repeats that reasoning. `openPath` is what the model
+  // The openers, through services/native.js (the shell's one bridge) — the SAME
+  // line in all three apps. The kit decides when they can be used (browser vs
+  // desktop window); no app repeats that reasoning. `openPath` is what the model
   // catalog's "Open folder" rides.
   external: { open: openUrl, openPath },
   // No catalogCopy / quickSetupCopy: the kit defaults ARE JustWrite's words.
@@ -71,9 +69,9 @@ installLlmUi(app, {
 
 // The native "save as", wired ONCE (2026-08-15) — every export in the app and in
 // the kit's shared panels now goes through the same door, instead of each
-// surface remembering to pass a prop. `shell_save_file` is a Rust command
-// because the bytes ride the raw IPC body; the folder MEMORY stays in
-// services/download.js, which is the part that is actually JustWrite's.
+// surface remembering to pass a prop. The dialog and the write are the shell's
+// `saveFile`; the folder MEMORY stays in services/download.js, which is the part
+// that is actually JustWrite's.
 configureFileSave({
   save: (blob, { filename, title, filterName, filterExt, defaultDir }) =>
     saveFile({ blob, suggestedName: filename, title, filterName, filterExt, defaultDir }),
@@ -88,7 +86,7 @@ configureTestData({ sources: LAB_TEST_SOURCES, actions: LAB_TEST_ACTIONS });
 // Shared in-app Help (kit HelpDrawer + HelpTrigger). JustWrite supplies the
 // content adapter over its docs/*.md corpus plus both handoffs: "Open full
 // docs" → the in-app /help reader, "Open on the web" → the public docs site
-// (OS browser via the Tauri shell, window.open in the browser dev path).
+// (OS browser via the desktop shell, window.open in the browser dev path).
 configureHelp({
   loadDoc,
   hasDoc,
@@ -103,7 +101,7 @@ configureHelp({
 // engines that don't support top-level await (esbuild's safari13).
 (async () => {
   // Thin-client guard: the renderer has no data of its own — it all lives in the
-  // Python server. If the server is unreachable, mount a connection-error screen
+  // server. If the server is unreachable, mount a connection-error screen
   // instead of booting the app (which would render seed/default data and then
   // silently fail to persist). No defaults are loaded without a live backend.
   if (!(await checkServer())) {

@@ -34,9 +34,9 @@ jobs:
         env:
           PLATFORMS: ${{ inputs.platforms }}
         run: |
-          WIN='{"platform":"windows-latest","args":"","rust-targets":""}'
-          MAC='{"platform":"macos-latest","args":"--target universal-apple-darwin","rust-targets":"aarch64-apple-darwin x86_64-apple-darwin"}'
-          LIN='{"platform":"ubuntu-22.04","args":"","rust-targets":""}'
+          WIN='{"platform":"windows-latest","args":"--win"}'
+          MAC='{"platform":"macos-latest","args":"--mac --universal"}'
+          LIN='{"platform":"ubuntu-22.04","args":"--linux"}'
           case "$PLATFORMS" in
             windows) MATRIX="{\"include\":[$WIN]}" ;;
             macos)   MATRIX="{\"include\":[$MAC]}" ;;
@@ -53,54 +53,55 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
+      # The app needs the family kit beside it (package.json: file:../just-llm-runner/server;
+      # vite.config.js: ../just-llm-runner/ui), so both are checked out side by side.
       - name: Checkout (at tag)
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
+          path: justwrite-app
+
+      - name: Checkout the kit
+        uses: actions/checkout@v4
+        with:
+          repository: delebash/just-llm-runner
+          path: just-llm-runner
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: |
+            justwrite-app/package-lock.json
+            just-llm-runner/server/package-lock.json
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.rust-targets }}
-
-      # Note: no explicit actions/cache step for ~/.cargo + target/.
-      # tauri-action already handles cargo caching internally, and the
-      # generic cache action's post-step regularly hangs on Windows
-      # uploading the multi-GB target/ directory — burning hours of
-      # runner time for a marginal speedup on subsequent builds.
-
-      - name: Install Linux deps
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf
-
-      - name: Install JS deps
+      # better-sqlite3 and koffi ship per-platform N-API prebuilds, so nothing native is
+      # compiled here; electron-builder packages the Electron the app pins.
+      - name: Install the kit's server deps
+        working-directory: just-llm-runner/server
         run: npm ci
 
-      - name: Build and publish to release
-        uses: tauri-apps/tauri-action@v0
+      - name: Install JS deps
+        working-directory: justwrite-app
+        run: npm ci
+
+      - name: Build the installers
+        working-directory: justwrite-app
+        run: npx vite build && npx electron-builder ${{ matrix.args }} --publish never
+
+      - name: Publish to the release
+        working-directory: justwrite-app
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: ${{ inputs.tag }}
-          releaseName: 'JustWrite ${{ inputs.tag }}'
-          releaseBody: |
-            JustWrite ${{ inputs.tag }}.
-            See `docs.tar.gz` for the bundled user documentation that the marketing site mirrors for this release.
-          releaseDraft: false
-          prerelease: false
-          args: ${{ matrix.args }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "JustWrite $TAG" \
+            --notes "JustWrite $TAG. See \`docs.tar.gz\` for the bundled user documentation that the marketing site mirrors for this release." \
+            || gh release view "$TAG" >/dev/null  # another platform's job created it first
+          shopt -s nullglob
+          gh release upload "$TAG" release/*.exe release/*.dmg release/*.AppImage release/*.deb --clobber
 
   attach-docs:
     needs: build

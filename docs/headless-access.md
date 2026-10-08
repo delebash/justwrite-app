@@ -28,14 +28,22 @@ from the machine it's running on. To reach it from another device, see
 
 ## Running the server yourself
 
-You don't have to open the desktop app at all. The server program lives next to
-JustWrite in the install folder and is called **`justwrite-server`**. Run:
+You don't have to open the desktop app at all. On Windows the installer puts a
+command called **`justwrite-server`** beside JustWrite in the install folder. From that
+folder, run:
 
 ```
 justwrite-server serve
 ```
 
-It starts on `127.0.0.1:17495` and prints the address to open.
+It starts on `127.0.0.1:17495` and prints the address to open. It is the same server the
+desktop app runs, on the same data folder — only without the window.
+
+On macOS and Linux there is no separate command yet: run the app's own program with the
+environment variable `ELECTRON_RUN_AS_NODE=1`, followed by the path to
+`resources/app.asar/server/src/serve.js` inside the installed app (`Contents/Resources/…` in
+the macOS app bundle) and the same options. From a
+copy of the source code, `npm run server` does it for you (options go after `--`).
 
 Three options let you change that:
 

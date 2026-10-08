@@ -1,13 +1,14 @@
 // Client for the server-owned disk autosave (/v1/projects/*/autosave). The
 // renderer already PUTs each snapshot to the DB (services/projectApi.js); this
-// mirrors the same snapshot to a rotating on-disk JSON file the PYTHON SERVER
+// mirrors the same snapshot to a rotating on-disk JSON file the SERVER
 // owns (moved off the Tauri Rust side 2026-07-13, so it also works in
 // browser-dev). Thin wrappers over the shared kit serverApi transport.
 //
 // The close/unload flush passes { keepalive: true } straight through serverApi's
 // opts -> fetch, matching projectApi's book PUT, so the browser can finish the
-// request after the document starts unloading (best-effort; the Tauri shell adds
-// a brief drain grace before it kills the sidecar — see lib.rs CloseRequested).
+// request after the document starts unloading (best-effort; the desktop shell
+// holds the window 400 ms on close before it stops the server — electron/main.js
+// `closeHoldMs`).
 
 import { get, post, put, del } from "@delebash/llm-ui";
 

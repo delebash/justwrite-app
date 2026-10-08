@@ -10,7 +10,7 @@
 // `window.__jwProject` seam (main.js) used by book-smoke.
 //
 // Runs register in the shared AI task store exactly like user-initiated runs, so
-// in headed / real-Tauri mode the run is visible in the task strip.
+// in the desktop app the run is visible in the task strip.
 //
 // Everything returned here crosses a CDP boundary (page.evaluate) → it must be
 // JSON-serializable. No stores, no DOM nodes, no functions in the payload.

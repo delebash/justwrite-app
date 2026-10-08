@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "E2E tests and screenshot capture for JustWrite via tauri-driver + msedgedriver (raw W3C WebDriver from Node)",
+  "description": "E2E tests and screenshot capture over the REAL desktop app (Electron) via Playwright's Electron driver",
   "scripts": {
-    "postinstall": "node scripts/fetch-driver.js",
-    "fetch-driver": "node scripts/fetch-driver.js --force",
     "test": "node --test --test-reporter=spec tests/*.test.js",
     "capture": "node capture-direct.js"
+  },
+  "dependencies": {
+    "playwright-core": "^1.63.0"
   }
 }

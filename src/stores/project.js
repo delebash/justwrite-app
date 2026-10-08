@@ -1,8 +1,8 @@
 // Project store — entities + chapter bodies + full CRUD.
 // Snapshots persist to the server (SQLite via /v1/projects) through
 // services/projectApi.js; the active project id lives in the settings
-// document. Undo/redo is in-memory only; durable rollback is the Tauri
-// disk autosave ($APPDATA/projects). No client-side IndexedDB store.
+// document. Undo/redo is in-memory only; durable rollback is the server's
+// rotating disk autosave (services/autosaveApi.js). No client-side IndexedDB store.
 // Removals are SOFT — they push to `trash` keyed by kind; recovery is
 // ⌘Z (tracked history actions) + TrashView restore. No delete toast
 // (the QC-37 toast law — the row visibly leaves).
@@ -491,8 +491,8 @@ const DEFAULT_STATUSES = [
 
 // ── Blank-project scaffolding ───────────────────────────────────────────
 // The sample content (the bundled "The Ninth Facet" book) now lives server-side
-// and is seeded into the database on first run (server/justwrite_server/
-// demo_seed.py — the 2026-06-20 convergence, item #7). What remains here is the
+// and is seeded into the database on demand (server/src/database/demo_seed.js —
+// the 2026-06-20 convergence, item #7). What remains here is the
 // genuinely STRUCTURAL shape of an EMPTY project: meta defaults, the three
 // architecture docs as empty skeletons, and the generic worldbuilding
 // categories — the scaffolding createProject() and the boot fallback need when

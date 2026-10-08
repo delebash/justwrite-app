@@ -1,96 +1,62 @@
-// Thin async wrapper over the W3C WebDriver HTTP protocol exposed by
-// tauri-driver. Avoids WebdriverIO's quirks (UND_ERR_INVALID_ARG on
-// session creation in v9, ESM friction in v8). Spawns tauri-driver on
-// the configured port, exposes a Driver instance, cleans up on close.
+// The e2e driver: the REAL desktop app (Electron) launched and driven through Playwright's
+// Electron driver (the family's move to Electron, 2026-10-08 — it replaced tauri-driver +
+// msedgedriver against the release binary). The test files are unchanged: this class keeps
+// the old Driver's API — `exec(script, args)` runs a WebDriver-style script body
+// (`arguments[0]`, `return`) in the page, and every DOM helper rides it.
+//
+// How a script runs: as a function expression evaluated over the debugger protocol, which
+// the page's Content-Security-Policy (no eval) does not apply to — the app's real CSP stays
+// on during the tests.
+//
+// What it launches: the app from this checkout (`electron .`), loading the BUILT UI from
+// app:// (`npm run build:vite` first), with its own server on the dev data folder
+// `<repo>/data` — the user's real data. JUSTWRITE_DEV_NO_SERVER=1 keeps the shell from
+// starting a server (the suite then talks to one you started on :17495).
 
-import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { _electron } from "playwright-core";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const APP_BIN  = path.resolve(__dirname, "../../src-tauri/target/release/justwrite.exe");
-const EDGE_DRV = path.resolve(__dirname, "../drivers/msedgedriver.exe");
-
-const BASE = "http://127.0.0.1:4444";
-
-async function http(method, urlPath, body) {
-  const res = await fetch(BASE + urlPath, {
-    method,
-    headers: { "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const text = await res.text();
-  let json;
-  try { json = JSON.parse(text); } catch { json = { raw: text }; }
-  if (!res.ok) {
-    const err = new Error(`${method} ${urlPath} → ${res.status}: ${text.slice(0, 400)}`);
-    err.status = res.status;
-    err.body = json;
-    throw err;
-  }
-  return json.value;
-}
-
-async function waitForPort(timeoutMs = 15_000) {
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    try {
-      const r = await fetch(BASE + "/status");
-      if (r.ok) return;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 250));
-  }
-  throw new Error("tauri-driver didn't come up on :4444");
-}
+const APP_ROOT = path.resolve(__dirname, "../..");
 
 export class Driver {
   constructor() {
-    this.driverProc = null;
-    this.sessionId = null;
+    this.app = null;
+    this.page = null;
   }
 
   async launch() {
-    this.driverProc = spawn(
-      "tauri-driver",
-      ["--native-driver", EDGE_DRV, "--port", "4444"],
-      { stdio: ["ignore", "inherit", "inherit"], shell: true },
-    );
-    process.once("exit", () => this.killDriver());
-    process.once("SIGINT", () => { this.killDriver(); process.exit(130); });
-
-    await waitForPort();
-    const v = await http("POST", "/session", {
-      capabilities: {
-        alwaysMatch: {
-          "tauri:options": { application: APP_BIN },
-        },
-      },
-    });
-    this.sessionId = v.sessionId;
-    // Give the app a moment to mount Vue + hydrate stores from IDB.
+    const env = { ...process.env };
+    delete env.ELECTRON_RUN_AS_NODE;
+    delete env.DEV_URL; // the built UI, from app://
+    this.app = await _electron.launch({ args: [APP_ROOT], cwd: APP_ROOT, env });
+    this.page = await this.app.firstWindow();
+    await this.page.waitForLoadState("domcontentloaded");
+    // Give the app a moment to mount Vue + hydrate stores (the old driver's wait).
     await this.sleep(3_500);
     return this;
   }
 
-  killDriver() {
-    if (this.driverProc && !this.driverProc.killed) {
-      try { this.driverProc.kill(); } catch {}
-    }
-  }
-
   async close() {
-    if (this.sessionId) {
-      try { await http("DELETE", `/session/${this.sessionId}`); } catch {}
-      this.sessionId = null;
+    if (this.app) {
+      try {
+        await this.app.close();
+      } catch {
+        /* already gone */
+      }
+      this.app = null;
+      this.page = null;
     }
-    this.killDriver();
   }
 
   // ── primitives ──────────────────────────────────────────
-  sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+  sleep(ms) {
+    return new Promise((r) => setTimeout(r, ms));
+  }
 
   exec(script, args = []) {
-    return http("POST", `/session/${this.sessionId}/execute/sync`, { script, args });
+    return this.page.evaluate(`(function(){ ${script} \n}).apply(null, ${JSON.stringify(args)})`);
   }
 
   async navigate(hash) {
@@ -98,49 +64,37 @@ export class Driver {
   }
 
   async reload() {
-    await http("POST", `/session/${this.sessionId}/refresh`, {});
+    await this.page.reload();
     await this.sleep(2_000);
   }
 
   async screenshot(file) {
-    const fs = await import("node:fs");
-    const v = await http("GET", `/session/${this.sessionId}/screenshot`);
-    fs.writeFileSync(file, Buffer.from(v, "base64"));
+    await this.page.screenshot({ path: file });
   }
 
   async maximize() {
-    try { await http("POST", `/session/${this.sessionId}/window/maximize`, {}); } catch {}
+    await this.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.maximize());
   }
 
   async title() {
-    return http("GET", `/session/${this.sessionId}/title`);
+    return this.page.title();
   }
 
   async url() {
-    return http("GET", `/session/${this.sessionId}/url`);
+    return this.page.url();
   }
 
-  // ── DOM helpers driven via execute so we sidestep CSS-selector
-  //   gotchas around element handles in the WebView. ─────────
+  // ── DOM helpers driven via exec ──────────────────────────
   async textOf(css) {
-    return this.exec(
-      "const el = document.querySelector(arguments[0]); return el ? el.textContent.trim() : null;",
-      [css],
-    );
+    return this.exec("const el = document.querySelector(arguments[0]); return el ? el.textContent.trim() : null;", [css]);
   }
 
   async exists(css) {
-    return this.exec(
-      "return !!document.querySelector(arguments[0]);",
-      [css],
-    );
+    return this.exec("return !!document.querySelector(arguments[0]);", [css]);
   }
 
   async count(css) {
-    return this.exec(
-      "return document.querySelectorAll(arguments[0]).length;",
-      [css],
-    );
+    return this.exec("return document.querySelectorAll(arguments[0]).length;", [css]);
   }
 
   async click(css) {
@@ -151,23 +105,19 @@ export class Driver {
   }
 
   async attr(css, name) {
-    return this.exec(
-      "const el = document.querySelector(arguments[0]); return el ? el.getAttribute(arguments[1]) : null;",
-      [css, name],
-    );
+    return this.exec("const el = document.querySelector(arguments[0]); return el ? el.getAttribute(arguments[1]) : null;", [
+      css,
+      name,
+    ]);
   }
 
   async htmlAttr(name) {
-    return this.exec(
-      "return document.documentElement.getAttribute(arguments[0]);",
-      [name],
-    );
+    return this.exec("return document.documentElement.getAttribute(arguments[0]);", [name]);
   }
 
   /**
-   * Poll until predicate returns truthy. predicate is a string of JS
-   * executed in the app; should return a value. Resolves with that
-   * value, or rejects on timeout.
+   * Poll until predicate returns truthy. predicate is a string of JS executed in the app;
+   * should return a value. Resolves with that value, or rejects on timeout.
    */
   async waitUntil(predicate, { timeout = 10_000, interval = 200 } = {}) {
     const start = Date.now();
@@ -180,11 +130,13 @@ export class Driver {
   }
 }
 
-/**
- * One-shot helper: launch, run callback, always close.
- */
+/** One-shot helper: launch, run callback, always close. */
 export async function withDriver(fn) {
   const d = new Driver();
   await d.launch();
-  try { return await fn(d); } finally { await d.close(); }
+  try {
+    return await fn(d);
+  } finally {
+    await d.close();
+  }
 }

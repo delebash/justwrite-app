@@ -25,7 +25,47 @@ all go". The kit's register carries the rule in full; in short:
   · agent), then where the proof is. A fact that turns out wrong is rewritten, ending "(was: …
   until <date>)".
 
-No subject has been distilled here yet.
+Subjects: [JustWrite on Electron and Node](#justwrite-on-electron-and-node) ·
+[Records not yet distilled](#records-not-yet-distilled)
+
+---
+
+## JustWrite on Electron and Node
+
+The family's move, step 4 (2026-10-08). The plan is JustVoice's
+`docs/plans/2026-10-07-electron-node-plan.md` §6; the decisions are in JustVoice's TASKS.
+
+- **The dev data root is `<repo>/data`.** It moved from `src-tauri/target/debug/data` on
+  2026-10-08; saved absolute paths into it were rewritten by a one-off script with the apps
+  closed: 9 database cells (JustWrite's chooser folders — `settings` row `chooserDirs` — and 2 measurement paths,
+  JustVoice's cache folder and 3 measurement paths, docgen's cache folder and 1 measurement path),
+  18 text files (3 `models.ini`, 15 autosave snapshots) and the family cache registry. Backups:
+  `<db>.bak-2026-10-08-before-path-rewrite` beside each database. The 2026-08-15 headless root that
+  sat at `<repo>/data` is kept as `data-old-2026-08-15/`. (*measured 2026-10-08*, a re-run of the
+  survey found the old path only in the backups.)
+- **The server port matches Python** on JustWrite's real data: route diff 92 reads (78
+  identical, 14 volatile), 37/37 writes, 4,809 database cells, 0 different; the seed comparison
+  17,741 cells, 0 different. (*measured 2026-10-08*, the kit's
+  `server/scripts/route-diff/route-diff.mjs --app --target justwrite`, and
+  `server/scripts/compare-seed.mjs`.)
+- **Where the JS answers differ from Python on purpose:** 422 errors now come in field order
+  (the kit's fix — Python's order too); the desktop window's origin `app://justwrite` stays
+  allowed when the user sets their own CORS origins (Python allowed only the list); a request
+  body's `1.0` is stored as `1`; JSON answers say `application/json; charset=utf-8`. (*code*, the
+  port's report, 2026-10-08.)
+- **The window's CSP is the kit's default plus `https:` images** (`electron/main.js` `cspAdd`):
+  the Tauri window had none, and a manuscript can hold an image pasted from the web. pdfmake's
+  `Function("return this")` sits behind a `globalThis` check that always wins, so the default's
+  no-eval holds. (*code*, the built chunk read 2026-10-08.)
+- **The installer is 134 MB** (it was 170 MB while the renderer's libraries — tiptap, pdfmake,
+  docx… — were `dependencies`: electron-builder packages every dependency, and Vite had already
+  bundled them; they are devDependencies now). It installs, starts, serves headless through
+  `justwrite-server.cmd` with the bundled tutorial book, and an update and an uninstall keep
+  `data\`. (*measured 2026-10-08*, a silent install into a scratch folder.)
+- **The e2e runs on the user's real data** (Electron from the checkout, `<repo>/data`), 7/7. Its
+  one write — the theme test — is undone by writing the `ui` settings section back at the end;
+  two tests were stale against the app (AI settings moved to `#/ai`; `--accent-h` became
+  `--accent-hue`). (*measured 2026-10-08*.)
 
 ---
 

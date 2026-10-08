@@ -1,19 +1,16 @@
-// Direct WebDriver HTTP driver — talks to tauri-driver (port 4444)
-// without going through WebdriverIO. tauri-driver must already be
-// running, and the path to msedgedriver.exe must be passed to it.
+// The marketing screenshots: the REAL desktop app (Electron, the built UI, the dev data
+// folder — your real data), driven through e2e/lib/driver.js (Playwright's Electron driver;
+// it replaced tauri-driver + msedgedriver on 2026-10-08), saving PNGs straight into the
+// website's public/screenshots/ folder.
 //
-// Run with: node capture-direct.js
-//
-// tauri-driver is spawned at the top of this script; killed on exit.
+// Run with: node capture-direct.js   (from e2e/; `npm run build:vite` at the app root first)
 
-import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { Driver } from "./lib/driver.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const APP_BIN  = path.resolve(__dirname, "../src-tauri/target/release/justwrite.exe");
-const EDGE_DRV = path.resolve(__dirname, "./drivers/msedgedriver.exe");
 const OUT_DIR  = path.resolve(__dirname, "../../justwrite-website/public/screenshots");
 
 // Each target may set `scroll` (CSS pixels) — applied to the inner
@@ -58,128 +55,57 @@ const TARGETS = [
   { name: "export",             hash: "#/export",              wait: 2500 },
 ];
 
-const BASE = "http://127.0.0.1:4444";
-
-async function http(method, urlPath, body) {
-  const res = await fetch(BASE + urlPath, {
-    method,
-    headers: { "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const text = await res.text();
-  let json;
-  try { json = JSON.parse(text); } catch { json = { raw: text }; }
-  if (!res.ok) throw new Error(`${method} ${urlPath} → ${res.status}: ${text.slice(0, 300)}`);
-  return json.value;
-}
-
-async function waitForDriver() {
-  for (let i = 0; i < 30; i++) {
-    try {
-      const r = await fetch(BASE + "/status");
-      if (r.ok) return;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 500));
-  }
-  throw new Error("tauri-driver didn't come up on :4444");
-}
-
-async function newSession() {
-  const v = await http("POST", "/session", {
-    capabilities: {
-      alwaysMatch: {
-        "tauri:options": { application: APP_BIN },
-      },
-    },
-  });
-  return v.sessionId;
-}
-
-async function endSession(sid) {
-  try { await http("DELETE", `/session/${sid}`); } catch {}
-}
-
-async function maximize(sid) {
-  try { await http("POST", `/session/${sid}/window/maximize`, {}); } catch {}
-}
-
-async function execute(sid, script, args = []) {
-  return http("POST", `/session/${sid}/execute/sync`, { script, args });
-}
-
-async function screenshot(sid, file) {
-  const v = await http("GET", `/session/${sid}/screenshot`);
-  fs.writeFileSync(file, Buffer.from(v, "base64"));
-}
-
 async function main() {
   if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  console.log("→ spawning tauri-driver");
-  const driver = spawn(
-    "tauri-driver",
-    ["--native-driver", EDGE_DRV, "--port", "4444"],
-    { stdio: ["ignore", "inherit", "inherit"], shell: true },
-  );
-
-  process.on("exit", () => { if (driver && !driver.killed) driver.kill(); });
-  process.on("SIGINT", () => { driver?.kill(); process.exit(130); });
-
-  await waitForDriver();
-  console.log("→ tauri-driver listening on 4444");
-
-  console.log("→ creating session (this launches the app)");
-  const sid = await newSession();
-  console.log(`   session ${sid}`);
-
-  await maximize(sid);
-  // Let the app boot fully — Pinia stores hydrate from IDB on mount.
-  await new Promise((r) => setTimeout(r, 4000));
-
-  // Switch the active theme preset BEFORE running the capture loop, so
-  // every shot reflects that look. Navigates to Settings → Appearance
-  // and clicks the named preset tile, then jumps to a neutral route so
-  // the first real target doesn't have to undo the settings page.
-  const THEME = process.env.JW_THEME || "Fine Press";
-  console.log(`→ setting theme preset: ${THEME}`);
-  await execute(sid, "window.location.hash = arguments[0];", ["#/settings/appearance"]);
-  await new Promise((r) => setTimeout(r, 1500));
-  const clicked = await execute(
-    sid,
-    `const tile = [...document.querySelectorAll('.preset-tile')]
-       .find((el) => el.querySelector('b') && el.querySelector('b').textContent.trim() === arguments[0]);
-     if (!tile) return false;
-     tile.click();
-     return true;`,
-    [THEME],
-  );
-  if (!clicked) throw new Error(`Theme preset "${THEME}" tile not found.`);
-  // Give applyAppearance() time to push CSS custom properties + swap fonts.
-  await new Promise((r) => setTimeout(r, 1200));
-  await execute(sid, "window.location.hash = '#/';", []);
-  await new Promise((r) => setTimeout(r, 800));
+  console.log("→ launching the app");
+  const d = new Driver();
+  await d.launch();
+  await d.maximize();
+  // Let the app boot fully — the stores hydrate from the server on mount.
+  await d.sleep(4000);
 
   try {
+    // Switch the active theme preset BEFORE running the capture loop, so
+    // every shot reflects that look. Navigates to Settings → Appearance
+    // and clicks the named preset tile, then jumps to a neutral route so
+    // the first real target doesn't have to undo the settings page.
+    const THEME = process.env.JW_THEME || "Fine Press";
+    console.log(`→ setting theme preset: ${THEME}`);
+    await d.navigate("#/settings/appearance");
+    await d.sleep(1500);
+    const clicked = await d.exec(
+      `const tile = [...document.querySelectorAll('.preset-tile')]
+         .find((el) => el.querySelector('b') && el.querySelector('b').textContent.trim() === arguments[0]);
+       if (!tile) return false;
+       tile.click();
+       return true;`,
+      [THEME],
+    );
+    if (!clicked) throw new Error(`Theme preset "${THEME}" tile not found.`);
+    // Give applyAppearance() time to push CSS custom properties + swap fonts.
+    await d.sleep(1200);
+    await d.navigate("#/");
+    await d.sleep(800);
+
     for (const t of TARGETS) {
       console.log(`→ ${t.name} (${t.hash})`);
-      await execute(sid, "window.location.hash = arguments[0];", [t.hash]);
-      await new Promise((r) => setTimeout(r, t.wait));
+      await d.navigate(t.hash);
+      await d.sleep(t.wait);
       if (t.scroll) {
-        await execute(
-          sid,
+        await d.exec(
           "const el = document.querySelector('.scrollarea'); if (el) el.scrollTop = arguments[0]; else window.scrollTo(0, arguments[0]);",
           [t.scroll],
         );
-        await new Promise((r) => setTimeout(r, 400));
+        await d.sleep(400);
       }
       const file = path.join(OUT_DIR, `${t.name}.png`);
-      await screenshot(sid, file);
+      await d.screenshot(file);
       console.log(`   saved ${path.basename(file)}`);
     }
   } finally {
-    console.log("→ ending session");
-    await endSession(sid);
-    driver.kill();
+    console.log("→ closing the app");
+    await d.close();
   }
   console.log("done.");
 }

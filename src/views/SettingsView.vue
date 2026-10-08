@@ -10,7 +10,7 @@ import { readSetting, writeSetting } from "../services/settings.js";
 import { exportProject, importProject, saveBackupBlob, canSaveFiles, canPickBooks } from "../services/bookTransfer.js";
 import { serverDataDir, chooserDir, rememberDir } from "../services/chooserDirs.js";
 import {
-  hasShell, pickDirectory, storageGetRoot, storageRelocate,
+  hasShell, pickDirectory, shellVersion, storageGetRoot, storageRelocate,
   setKeepRunning as nativeSetKeepRunning,
 } from "../services/native.js";
 import * as autosaveApi from "../services/autosaveApi.js";
@@ -85,7 +85,7 @@ const headlessUrl = computed(
 const authTokens = ref([]);
 
 // The keep-running toggle writes the shell flag immediately AND persists in the
-// ui store (App.vue re-applies it every boot — the Rust flag resets per launch).
+// ui store (App.vue re-applies it every boot — the shell's flag resets per launch).
 // Through services/native.js, which owns the command name.
 async function setKeepRunning(v) {
   ui.setKeepServerRunning(!!v);
@@ -112,7 +112,7 @@ const dataDir = ref("");
 })();
 
 // ── Storage: the portable data root — ONE folder for all app data (projects,
-// images, the AI engine + models, logs). Desktop-only (Tauri shell); in a plain
+// images, the AI engine + models, logs). Desktop-only (the desktop shell); in a plain
 // browser the root is read-only (the dataDir above).
 const storageRoot = ref(null); // { root, default, portable } from the shell
 const relocating = ref(false);
@@ -437,7 +437,7 @@ const autosaveDirBusy = ref(false);
 const canPickAutosaveFolder = hasShell();
 
 // Resolve the autosave folder path so users can see where their work
-// is being mirrored to disk (served by the Python server; works in browser-dev too).
+// is being mirrored to disk (served by the server; works in browser-dev too).
 async function refreshAutosaveDir() {
   try {
     const res = await autosaveApi.getAutosaveDir();
@@ -602,10 +602,10 @@ const lastAutosaveLabel = computed(() => {
 
 // ── About ──────────────────────────────────────────────────────────
 const platformLabel = computed(() =>
-  // The old `window.justwrite.platform`/`.version` pair was the shim announcing
-  // itself; the kit's one shell test answers the same question (2026-08-14).
+  // The kit's one shell test answers "desktop or browser"; the shell names its
+  // own version (services/native.js).
   hasShell()
-    ? t("settings.about.runtimeTauri", { version: "2" })
+    ? t("settings.about.runtimeDesktop", { version: shellVersion() })
     : t("settings.about.runtimeBrowser"),
 );
 
@@ -1597,7 +1597,7 @@ async function deleteCategory(c) {
 
         <!-- Backup / restore / reset — the shared full-DB module (same code +
              server endpoints in every same-stack app). The autosave card above
-             is JustWrite's Tauri-specific on-disk restore, kept app-local. -->
+             is JustWrite's own on-disk restore, kept app-local. -->
         <!-- No `save-file` prop since 2026-08-15: the native saver is wired once
              in main.js (configureFileSave), so this panel behaves the same here,
              in JustVoice and in docgen. -->

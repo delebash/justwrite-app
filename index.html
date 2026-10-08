@@ -4,9 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!--
-      Content Security Policy is delivered as response headers by Tauri's
-      webview (configured in src-tauri/tauri.conf.json). A meta-tag CSP
-      here would override those headers and break the IPC bridge.
+      The desktop app's Content Security Policy is a response header from the shell's
+      app:// handler (the kit's server/src/shell/main.js); no meta-tag CSP here — it
+      would also bind Vite's dev server and the headless UI.
     -->
     <title>JustWrite</title>
     <!-- No font preconnects: the fonts are bundled (src/fonts.css). These two used to warm

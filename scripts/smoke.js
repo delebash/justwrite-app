@@ -17,10 +17,10 @@
 //     never write those into the live workspace;
 //   · the app is usually RUNNING while this is run, and two processes on one
 //     SQLite file is not a thing to do casually.
-// sqlite3's backup API is used rather than a file copy precisely because the
-// source may be open and mid-write.
+// SQLite's backup API (scripts/snapshot-db.mjs) is used rather than a file copy
+// precisely because the source may be open and mid-write.
 //
-// Ports: vite MUST be 1420. services/serverApi.js:17 declares devPorts:["1420"],
+// Ports: vite MUST be 1420. src/main.js declares devPorts:["1420"],
 // and the shared resolver (kit serverApi.js:35-44) returns the PAGE ORIGIN for
 // any other port — so on :1421 the renderer would send its API calls to the vite
 // server. The JW server, by contrast, is addressed explicitly via
@@ -36,7 +36,8 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { findPython, isUp, sleep, waitReady } from "../tests/lib/smoke-common.js";
+import { resolveAppDataRoot } from "../bench/harness/lib/dataRoot.js";
+import { isUp, sleep, waitReady } from "../tests/lib/smoke-common.js";
 
 const require = createRequire(import.meta.url);
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -52,12 +53,10 @@ let scratch = "";
  * The data root the desktop app actually uses.
  *
  * Asking the RUNNING server is the authoritative answer and the first probe:
- * /v1/health reports its own `dataDir` (api/health_api.py), so we read the truth
- * instead of re-deriving it. The fallbacks mirror src-tauri/src/lib.rs:298
- * `resolve_data_root` — the `dataroot.txt` pointer beside the exe, else
- * `<exe_dir>/data` — for the case where the app is closed. Deliberately NOT a
- * full port of that function: it is a fallback for a dev box, and the health
- * probe covers the case that matters.
+ * /v1/health reports its own `dataDir` (server/src/api/health_api.js), so we read the
+ * truth instead of re-deriving it. With the app closed, the fallback is the kit's one
+ * ladder — the same one the desktop shell and the server use (`<repo>/data` in a
+ * checkout, unless JUSTWRITE_DATA_DIR or a Change-folder pointer says otherwise).
  */
 async function findDataRoot() {
   if (process.env.JW_DATA_ROOT) return process.env.JW_DATA_ROOT;
@@ -70,19 +69,11 @@ async function findDataRoot() {
       }
     } catch { /* not running — try the next probe */ }
   }
-  for (const profile of ["debug", "release"]) {
-    const exeDir = join(ROOT, "src-tauri", "target", profile);
-    const pointer = join(exeDir, "dataroot.txt");
-    if (existsSync(pointer)) {
-      const p = require("node:fs").readFileSync(pointer, "utf8").trim();
-      if (p && existsSync(p)) return p;
-    }
-    if (existsSync(join(exeDir, "data", "justwrite.db"))) return join(exeDir, "data");
-  }
-  return "";
+  const root = resolveAppDataRoot(ROOT);
+  return existsSync(join(root, "justwrite.db")) ? root : "";
 }
 
-/** Snapshot <source>/justwrite.db into a fresh scratch root via sqlite3's backup
+/** Snapshot <source>/justwrite.db into a fresh scratch root via SQLite's backup
  *  API (safe against a live, mid-write source — a plain copy is not). Returns
  *  the scratch root; an empty one if there was nothing to snapshot.
  *
@@ -90,20 +81,15 @@ async function findDataRoot() {
  *  configured source DB carries a default model + warm-on-boot, so the scratch
  *  server otherwise spends every gate run downloading a ~500 MB llama.cpp build
  *  into %TEMP% (measured 2026-08-08) for a sweep that never generates a token. */
-function snapshotDataRoot(source, python) {
+function snapshotDataRoot(source) {
   const dir = mkdtempSync(join(tmpdir(), "jw-smoke-"));
   const src = source ? join(source, "justwrite.db") : "";
   if (!src || !existsSync(src)) {
     console.log(`· data              EMPTY scratch dir (no DB at ${src || "<no root found>"}) — the sweep will be less realistic`);
     return dir;
   }
-  const r = spawnSync(python, [
-    "-c",
-    "import sqlite3,sys\ns=sqlite3.connect(sys.argv[1]);d=sqlite3.connect(sys.argv[2])\ns.backup(d)\n" +
-    "try: d.execute(\"update runner_setting set value='0' where key='warm_default_on_startup'\"); d.commit()\n" +
-    "except sqlite3.Error: pass\n" +
-    "d.close();s.close()",
-    src, join(dir, "justwrite.db"),
+  const r = spawnSync(process.execPath, [
+    join(ROOT, "scripts", "node24.mjs"), join(ROOT, "scripts", "snapshot-db.mjs"), src, join(dir, "justwrite.db"),
   ], { encoding: "utf8" });
   if (r.status !== 0) {
     console.log(`· data              snapshot FAILED (${(r.stderr || "").trim().slice(0, 160)}) — continuing on an empty dir`);
@@ -137,7 +123,7 @@ function track(label, child) {
 }
 
 /** Kill a child AND its grandchildren. `child.kill()` on Windows signals only
- *  the direct process, which strands the uvicorn/esbuild workers holding the
+ *  the direct process, which strands the server/esbuild children holding the
  *  ports — the next run then dies on "port already in use". */
 function killTree(child) {
   if (!child || child.exitCode !== null) return;
@@ -172,20 +158,20 @@ async function main() {
   if (await vitePortBusy()) {
     console.log(
       `✗ port ${VITE_PORT} is already serving — that is your running app.\n` +
-      "  The renderer MUST be on 1420 (services/serverApi.js:17 devPorts), so this\n" +
+      "  The renderer MUST be on 1420 (src/main.js devPorts), so this\n" +
       "  script cannot share the box with `npm run dev`. Close the app and re-run,\n" +
       "  or drive tests/smoke/headless-smoke.js yourself against your own boot.",
     );
     process.exit(2);
   }
 
-  const python = findPython(ROOT);
   const source = await findDataRoot();
-  scratch = snapshotDataRoot(source, python);
+  scratch = snapshotDataRoot(source);
 
   mkdirSync(scratch, { recursive: true });
-  track("server", spawn(python, ["-m", "justwrite_server.serve", "serve", "--port", String(SERVER_PORT), "--data-dir", scratch], {
-    cwd: join(ROOT, "server"),
+  // The server on Electron's own Node (scripts/node24.mjs) — the runtime it ships on.
+  track("server", spawn(process.execPath, [join(ROOT, "scripts", "node24.mjs"), join(ROOT, "server", "src", "serve.js"), "serve", "--port", String(SERVER_PORT), "--data-dir", scratch], {
+    cwd: ROOT,
     stdio: ["ignore", "ignore", "inherit"],
     // JUST_AI_HOME confines the scratch server's family registrations to the scratch
     // itself. Without it, this boot writes "JustWrite Server → <scratch>/ai-cache"

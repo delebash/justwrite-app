@@ -37,8 +37,9 @@ function onContentClick(e) {
     router.push(href);
     return;
   }
-  // External doc links carry target=_blank, which the Tauri webview swallows —
-  // route through the shared opener (configured to the shell bridge in main.js).
+  // External doc links carry target=_blank — route them through the shared opener
+  // (the shell's openExternal in the desktop app, configured in main.js; a new tab in
+  // a browser).
   if (/^https?:/i.test(href)) {
     e.preventDefault();
     openExternal(href);

@@ -1,7 +1,7 @@
 // chooserDirs — the shared "where does this native dialog open?" resolver, and the
 // hardening for the "chooser opens at the OS home dir" bug: chooserDir must NEVER
-// return undefined/empty (an undefined default_path makes the Rust dialog skip
-// set_directory and open at home). serverDataDir caches GET /v1/health once.
+// return undefined/empty (an empty default path makes the shell's dialog open at
+// home). serverDataDir caches GET /v1/health once.
 //
 // The module captures window + caches the data dir at import time, so each case
 // resets the module registry and re-imports after configuring the mocks.
@@ -13,10 +13,11 @@ const h = vi.hoisted(() => ({ health: null, chooserDirs: null }));
 
 vi.mock("@delebash/llm-ui", () => ({
   get: vi.fn((path) => h.health(path)),
-  // chooserDirs' last fallback is the shell's storage root (services/native.js),
-  // and native.js asks the kit whether a shell is there at all. No shell in a
-  // test run — so the fallback chain reaches its final non-empty ".".
-  isTauriShell: () => false,
+}));
+// chooserDirs' last fallback is the shell's storage root (services/native.js). No
+// shell in a test run — so the fallback chain reaches its final non-empty ".".
+vi.mock("./native.js", () => ({
+  storageGetRoot: vi.fn(async () => null),
 }));
 vi.mock("./settings.js", () => ({
   readSetting: vi.fn((key) => (key === "chooserDirs" ? h.chooserDirs : undefined)),

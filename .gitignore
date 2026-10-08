@@ -34,6 +34,11 @@ just-ai-help/.jah-probe-cache.json
 just-ai-help/.jah.db
 
 # App data (the family portable default: a data/ folder beside the app —
-# llm_runner.platform.data_paths). Never committed.
+# the kit's platform/data_paths.js). Never committed.
 data/
 server/data/
+# The 2026-08-15 headless root, put aside when the dev root moved here (2026-10-08).
+data-old-*/
+
+# electron-builder output (the installer and the unpacked app)
+release/

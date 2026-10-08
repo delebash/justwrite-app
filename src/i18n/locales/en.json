@@ -1917,7 +1917,7 @@
       "shortcutsCardTitle": "Keyboard shortcuts",
       "tagline": "A local-first writing studio for novels — chapters, cast, and world, all stored on your machine.",
       "runtimeLabel": "Runtime",
-      "runtimeTauri": "Tauri ({version})",
+      "runtimeDesktop": "Electron ({version})",
       "runtimeBrowser": "Browser",
       "rendererLabel": "Renderer",
       "rendererValue": "Vue 3 + Pinia",

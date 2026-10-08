@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Version bumper for JustWrite. Updates the three files that have to
-// agree on a version number — package.json, src-tauri/Cargo.toml,
-// src-tauri/tauri.conf.json — and stops. Does NOT commit or tag; the
-// user owns git operations.
+// Version bumper for JustWrite. Since the Electron move (2026-10-08) the
+// version lives in ONE file — package.json (electron-builder and the
+// renderer's "What's new" both read it) — and this updates it and stops.
+// Does NOT commit or tag; the user owns git operations.
 //
 // Usage:
 //   npm run bump 0.2.0
@@ -14,8 +14,6 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FILES = {
   packageJson: resolve(ROOT, "package.json"),
-  cargoToml:   resolve(ROOT, "src-tauri/Cargo.toml"),
-  tauriConf:   resolve(ROOT, "src-tauri/tauri.conf.json"),
 };
 
 const version = process.argv[2];
@@ -39,28 +37,14 @@ async function bumpJson(path, key) {
   return old;
 }
 
-async function bumpCargo(path) {
-  const raw = await readFile(path, "utf8");
-  const m = raw.match(/^version\s*=\s*"([^"]+)"/m);
-  if (!m) throw new Error(`No version line found in ${path}`);
-  const old = m[1];
-  const next = raw.replace(/^version\s*=\s*"[^"]+"/m, `version = "${version}"`);
-  await writeFile(path, next);
-  return old;
-}
-
 try {
-  const pkgOld   = await bumpJson(FILES.packageJson, "version");
-  const tauriOld = await bumpJson(FILES.tauriConf,   "version");
-  const cargoOld = await bumpCargo(FILES.cargoToml);
+  const pkgOld = await bumpJson(FILES.packageJson, "version");
 
   console.log(`Bumped:`);
-  console.log(`  package.json        ${pkgOld}   → ${version}`);
-  console.log(`  src-tauri/Cargo.toml ${cargoOld}  → ${version}`);
-  console.log(`  src-tauri/tauri.conf.json ${tauriOld}   → ${version}`);
+  console.log(`  package.json ${pkgOld} → ${version}`);
   console.log("");
   console.log("Next steps (your call):");
-  console.log(`  git add package.json src-tauri/Cargo.toml src-tauri/tauri.conf.json`);
+  console.log(`  git add package.json`);
   console.log(`  git commit -m "release: v${version}"`);
   console.log(`  git tag v${version}`);
   console.log(`  git push && git push --tags`);

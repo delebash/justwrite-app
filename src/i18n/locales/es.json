@@ -1917,7 +1917,7 @@
       "shortcutsCardTitle": "Atajos de teclado",
       "tagline": "Un estudio de escritura local para novelas: capítulos, elenco y mundo, todo almacenado en tu máquina.",
       "runtimeLabel": "Runtime",
-      "runtimeTauri": "Tauri ({version})",
+      "runtimeDesktop": "Electron ({version})",
       "runtimeBrowser": "Navegador",
       "rendererLabel": "Renderizador",
       "rendererValue": "Vue 3 + Pinia",

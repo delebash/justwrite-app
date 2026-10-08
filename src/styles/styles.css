@@ -44,7 +44,7 @@ input, textarea, select { font: inherit; color: inherit; }
    textarea / select / button in the app has its own :focus styling (the
    warm accent-soft glow via .input:focus, .btn:focus, etc.), so the
    user-agent's blue accessibility ring is redundant and visually clashes
-   with the editorial palette. Tauri's WebView2 doesn't show this ring
+   with the editorial palette. The old Tauri webview (WebView2) didn't show this ring
    the same way Chrome does, which is why this only became visible when
    testing in a browser tab. */
 input:focus, input:focus-visible,

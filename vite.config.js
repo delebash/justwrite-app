@@ -7,17 +7,19 @@ import { readFileSync } from "node:fs";
 // "What's new" modal can pin its dismissal to the current build.
 const pkg = JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf8"));
 
-// Tauri pre-2.x compatible config. The Rust backend lives in `src-tauri/`
-// and is built by the `tauri` CLI; vite only handles the renderer.
+// Vite builds the renderer only. The desktop app is Electron (the family's move,
+// 2026-10-08): `electron/main.js` runs the kit's shell, and the server is
+// `server/src/serve.js`.
 //
 // Layout:
 //   index.html                     ← vite root
 //   src/main.js                    ← Vue entry
-//   dist/                          ← vite build output, fed to Tauri's `frontendDist`
-//   src-tauri/                     ← Rust crate
+//   dist/                          ← vite build output — the window loads it from app://,
+//                                    the headless server serves it at /
+//   electron/                      ← the desktop app (the kit's runDesktopApp)
 //
-// The dev URL (http://localhost:1420) is referenced from
-// `src-tauri/tauri.conf.json` (`devUrl`). Keep these in lock-step.
+// The dev URL (http://localhost:1420) is what `npm run dev` points the window at
+// (scripts/dev.mjs). Keep these in lock-step.
 
 export default defineConfig({
   publicDir: false,
@@ -43,11 +45,10 @@ export default defineConfig({
   server: {
     port: 1420,
     strictPort: true,
-    host: process.env.TAURI_DEV_HOST || false,
-    // Same shape create-tauri-app ships, extended for what THIS repo keeps beside the
-    // frontend: a Python venv (13k files) and e2e fixtures (13k) as well as the Rust target
-    // dir. The vite root is the repo, so all of it is in the watcher's path otherwise.
-    watch: { ignored: ["**/src-tauri/**", "**/.venv/**", "**/e2e/**", "**/dist/**"] },
+    // The trees beside the frontend: the server, the dev data folder, e2e fixtures (13k
+    // files), dist. The vite root is the repo, so all of it is in the watcher's path
+    // otherwise.
+    watch: { ignored: ["**/server/**", "**/data/**", "**/.venv/**", "**/e2e/**", "**/dist/**", "**/release/**"] },
     fs: {
       // The dev server refuses to read outside its root. The repo root now covers docs/
       // (the in-app Help viewer globs docs/*.md), node_modules/ (bundled CSS references
@@ -61,22 +62,19 @@ export default defineConfig({
       ],
     },
   },
-  envPrefix: ["VITE_", "TAURI_"],
+  envPrefix: ["VITE_"],
   define: {
     "import.meta.env.VITE_APP_VERSION": JSON.stringify(pkg.version),
   },
   build: {
     outDir: resolve(__dirname, "dist"),
     emptyOutDir: true,
-    // Tauri's bundled webview is a current Chromium / WKWebView on each
-    // OS; the per-platform targets here keep the bundler from down-leveling.
-    // The macOS floor (safari17) matches the WKWebView version Tauri 2
-    // ships against. minify is a BOOLEAN on purpose (P10): the string
-    // "esbuild" is a deprecated path on vite 8's rolldown build that only
-    // worked here while esbuild rode in transitively — true = each vite's
-    // own default minifier, same meaning family-wide.
-    target: process.env.TAURI_ENV_PLATFORM === "windows" ? "chrome105" : "safari17",
-    minify: !process.env.TAURI_ENV_DEBUG,
-    sourcemap: !!process.env.TAURI_ENV_DEBUG,
+    // The desktop window is Electron's own Chromium (152 in Electron 44) on every OS, so
+    // one modern target keeps the bundler from down-leveling; the headless UI is opened in
+    // a current browser. minify is a BOOLEAN on purpose (P10): the string "esbuild" is a
+    // deprecated path on vite 8's rolldown build — true = each vite's own default
+    // minifier, same meaning family-wide.
+    target: "chrome140",
+    minify: true,
   },
 });

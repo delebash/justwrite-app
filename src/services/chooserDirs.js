@@ -6,10 +6,9 @@
 //
 // The default the FIRST time a chooser opens is the server's data folder (GET
 // /v1/health -> dataDir), cached once per session. `chooserDir` is HARDENED to
-// never return undefined/empty: passing an undefined default_path to the Rust
-// dialog makes the OS open the dialog at the user's HOME dir (the "chooser opens
-// at home" bug — lib.rs pick_directory only calls set_directory when the path is
-// non-empty), so we always hand back a real path.
+// never return undefined/empty: an empty default path makes the shell's dialog
+// open at the OS's own choice — the user's HOME dir (the "chooser opens at home"
+// bug) — so we always hand back a real path.
 
 import { get } from "@delebash/llm-ui";
 import { storageGetRoot } from "./native.js";
@@ -43,7 +42,7 @@ export async function serverDataDir() {
 
 /**
  * The default folder for a named chooser: the folder it last landed in (remembered
- * per key in the settings doc), else the server data folder, else the Tauri storage
+ * per key in the settings doc), else the server data folder, else the shell's storage
  * root — and GUARANTEED non-empty so the native dialog never falls back to the OS
  * home directory (an undefined default_path is exactly that bug). `key` is one of
  * "export" | "import" | "backup" | "autosave".
