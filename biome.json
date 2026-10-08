@@ -3,11 +3,12 @@
 	"files": {
 		"includes": [
 			"src/**/*.{js,vue}",
-			"scripts/**/*.{js,mjs}",
+			"scripts/**/*.js",
 			"vite.config.js",
-			"electron/**/*.{js,cjs}",
+			"electron/**/*.js",
 			"server/src/**/*.js",
-			"server/tests/**/*.js"
+			"server/tests/**/*.js",
+			"server/scripts/**/*.js"
 		]
 	},
 	"linter": {

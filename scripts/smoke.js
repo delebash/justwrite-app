@@ -17,7 +17,7 @@
 //     never write those into the live workspace;
 //   · the app is usually RUNNING while this is run, and two processes on one
 //     SQLite file is not a thing to do casually.
-// SQLite's backup API (scripts/snapshot-db.mjs) is used rather than a file copy
+// SQLite's backup API (scripts/snapshot-db.js) is used rather than a file copy
 // precisely because the source may be open and mid-write.
 //
 // Ports: vite MUST be 1420. src/main.js declares devPorts:["1420"],
@@ -89,7 +89,7 @@ function snapshotDataRoot(source) {
     return dir;
   }
   const r = spawnSync(process.execPath, [
-    join(ROOT, "scripts", "node24.mjs"), join(ROOT, "scripts", "snapshot-db.mjs"), src, join(dir, "justwrite.db"),
+    join(ROOT, "scripts", "node24.js"), join(ROOT, "scripts", "snapshot-db.js"), src, join(dir, "justwrite.db"),
   ], { encoding: "utf8" });
   if (r.status !== 0) {
     console.log(`· data              snapshot FAILED (${(r.stderr || "").trim().slice(0, 160)}) — continuing on an empty dir`);
@@ -169,8 +169,8 @@ async function main() {
   scratch = snapshotDataRoot(source);
 
   mkdirSync(scratch, { recursive: true });
-  // The server on Electron's own Node (scripts/node24.mjs) — the runtime it ships on.
-  track("server", spawn(process.execPath, [join(ROOT, "scripts", "node24.mjs"), join(ROOT, "server", "src", "serve.js"), "serve", "--port", String(SERVER_PORT), "--data-dir", scratch], {
+  // The server on Electron's own Node (scripts/node24.js) — the runtime it ships on.
+  track("server", spawn(process.execPath, [join(ROOT, "scripts", "node24.js"), join(ROOT, "server", "src", "serve.js"), "serve", "--port", String(SERVER_PORT), "--data-dir", scratch], {
     cwd: ROOT,
     stdio: ["ignore", "ignore", "inherit"],
     // JUST_AI_HOME confines the scratch server's family registrations to the scratch

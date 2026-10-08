@@ -28,7 +28,7 @@ npm run i18n:report    # locale coverage — MISSING must always be zero
 ```
 
 **Server code runs on Electron's own Node.** Every npm script that runs the server or its tests
-goes through `scripts/node24.mjs` (Electron as Node: the runtime the server ships on), never a bare
+goes through `scripts/node24.js` (Electron as Node: the runtime the server ships on), never a bare
 `node` from PATH, which may be another version.
 
 **The dev data folder is `data/` in the checkout** — the desktop app, `npm run server` and the
@@ -62,7 +62,7 @@ Windows, macOS and Linux layouts) or set `JW_CHROME`. Never hardcode a browser p
 - **NOTHING hardcoded** — every value, threshold, name, mapping, flag and preset lives in the DB, seeded and user-editable. Code is only the engine.
 - **No JSON blobs in SQL** — relational data gets real columns and rows. JSON only for genuinely freeform data, with a cited reason.
 - The **`@renderer` alias** is `src/`. Prefer relative imports within a directory, `@renderer/...` across the tree.
-- The renderer dev server is fixed at `http://localhost:1420`; `scripts/dev.mjs` and `src/main.js` (`devPorts`) reference that URL — keep them in lock-step.
+- The renderer dev server is fixed at `http://localhost:1420`; `scripts/dev.js` and `src/main.js` (`devPorts`) reference that URL — keep them in lock-step.
 
 ## Product and design rules
 

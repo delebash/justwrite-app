@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Runs a Node script on Electron's own Node (24 — the runtime the server ships on), not
-// whatever `node` is first on PATH. `node scripts/node24.mjs <script> [args…]`.
+// whatever `node` is first on PATH. `node scripts/node24.js <script> [args…]`.
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 

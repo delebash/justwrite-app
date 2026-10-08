@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 // Snapshot a live SQLite database with SQLite's backup API (safe against a source that is
 // open and mid-write — a plain file copy is not), then switch warm-on-boot OFF in the copy.
-// Used by scripts/smoke.js; runs on Electron's Node (scripts/node24.mjs), the runtime
+// Used by scripts/smoke.js; runs on Electron's Node (scripts/node24.js), the runtime
 // better-sqlite3 is built for:
 //
-//   node scripts/node24.mjs scripts/snapshot-db.mjs <source.db> <dest.db>
+//   node scripts/node24.js scripts/snapshot-db.js <source.db> <dest.db>
 
 import Database from "better-sqlite3";
 
 const [src, dest] = process.argv.slice(2);
 if (!src || !dest) {
-  console.error("usage: snapshot-db.mjs <source.db> <dest.db>");
+  console.error("usage: snapshot-db.js <source.db> <dest.db>");
   process.exit(2);
 }
 const source = new Database(src, { readonly: true, fileMustExist: true });

@@ -16,7 +16,7 @@ all go". The kit's register carries the rule in full; in short:
   carries that section and the line *"don't re-derive these; re-check one only if the code it
   cites changed after its date"*.
 - **After research:** its facts land here in the same change. A research doc with no entry here
-  is not done. The family guard (`../just-llm-runner/scripts/check-family.mjs`, check 15) fails
+  is not done. The family guard (`../just-llm-runner/scripts/check-family.js`, check 15) fails
   any `docs/plans/YYYY-MM-DD-*.md` dated 2026-10-04 or later that this page does not link, and
   any link here that points nowhere.
 - **Filled as each subject comes up.** Until then a subject's records are indexed below, so
@@ -46,7 +46,7 @@ The family's move, step 4 (2026-10-08). The plan is JustVoice's
 - **The server port matches Python** on JustWrite's real data: route diff 92 reads (78
   identical, 14 volatile), 37/37 writes, 4,809 database cells, 0 different; the seed comparison
   17,741 cells, 0 different. (*measured 2026-10-08*, the kit's
-  `server/scripts/route-diff/route-diff.mjs --app --target justwrite`, and
+  `server/scripts/route-diff/route-diff.js --app --target justwrite`, and
   `server/scripts/compare-seed.mjs` — deleted with the Python tools and the seed-data snapshot
   test, 2026-10-08: the family keeps no Python, and the parity they proved is recorded here.)
 - **Where the JS answers differ from Python on purpose:** 422 errors now come in field order

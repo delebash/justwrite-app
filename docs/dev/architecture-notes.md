@@ -11,7 +11,7 @@ per-task history lives in `docs/plans/*`.
 - `server/src/` — the server (Node, Fastify, SQLite through the kit's SQL helper); `serve.js` is the entry. It replaced the Python `server/justwrite_server/` the same day — a port with the same routes and database, checked by a route diff against the Python server.
 - `dist/` — Vite output: the window loads it from `app://justwrite`, the headless server serves it at `/`.
 
-The renderer dev server is fixed at `http://localhost:1420`; `scripts/dev.mjs` (which points the
+The renderer dev server is fixed at `http://localhost:1420`; `scripts/dev.js` (which points the
 window at it) and `src/main.js` (`devPorts`) reference that URL — keep them in lock-step.
 
 ## Calling the shell (Electron ↔ renderer)
@@ -28,7 +28,7 @@ API — the family shape, so a dialog cannot appear at two different layers acro
 
 - **"Is a desktop shell there?"** — `hasShell()` asks the kit's `isDesktopShell()`, ONE
   implementation for the family, and checks `window.appShell`. Never test for a `window.<app>`
-  global (`check-family.mjs` fails any renderer that installs one).
+  global (`check-family.js` fails any renderer that installs one).
 - The renderer talks to its own server with plain `fetch` (the kit's origin-aware transport); the
   server's CORS and CSRF guard allow the window's origin `app://justwrite`.
 
@@ -47,7 +47,7 @@ Outside the shell (plain `vite dev` in a browser), project data still persists t
 unreachable). Gate desktop-only affordances on `hasShell()` so the browser path keeps working.
 
 Adding a new shell command: add it to the kit (`COMMANDS` and its handler in
-`server/src/shell/main.js`, and the list in `preload.cjs`), then one thin export in
+`server/src/shell/main.js`, and the list in `preload.js`), then one thin export in
 `src/services/native.js` — one place names each command string.
 
 The window's Content-Security-Policy is the kit's default plus `https:` images (`cspAdd` in

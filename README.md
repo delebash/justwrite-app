@@ -136,7 +136,7 @@ Seven rooms, one house — organised by what part of the work you're in.
 | **gh CLI** | Triggering the release workflow only | <https://cli.github.com/> + `gh auth login` |
 
 Electron comes in through `npm install` (a devDependency); the server runs on Electron's own Node
-(`scripts/node24.mjs`), so nothing else is needed — no Python, no Rust.
+(`scripts/node24.js`), so nothing else is needed — no Python, no Rust.
 
 ### One-time
 
@@ -267,8 +267,8 @@ justwrite-app/
 ├── vite.config.js             ← vite root is the REPO root; aliases @delebash/llm-ui → ../just-llm-runner/ui/src
 ├── index.html
 ├── scripts/
-│   ├── dev.mjs                ← `npm run dev`: Vite, then the Electron window pointed at it
-│   ├── node24.mjs             ← runs a script on Electron's own Node (the server's runtime)
+│   ├── dev.js                ← `npm run dev`: Vite, then the Electron window pointed at it
+│   ├── node24.js             ← runs a script on Electron's own Node (the server's runtime)
 │   ├── bump.js                ← version bumper (package.json)
 │   └── release.js             ← wraps gh workflow run
 ├── electron/main.js           ← the desktop app: the kit's runDesktopApp with this app's settings
@@ -307,7 +307,7 @@ answers the browser's way — null or a no-op — and the renderer falls back to
 file inputs.
 
 A new shell command is added to the kit (its `COMMANDS` list in `server/src/shell/main.js` and
-`preload.cjs`), then exported once from `native.js`.
+`preload.js`), then exported once from `native.js`.
 
 ---
 

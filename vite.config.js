@@ -19,7 +19,7 @@ const pkg = JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf8"))
 //   electron/                      ← the desktop app (the kit's runDesktopApp)
 //
 // The dev URL (http://localhost:1420) is what `npm run dev` points the window at
-// (scripts/dev.mjs). Keep these in lock-step.
+// (scripts/dev.js). Keep these in lock-step.
 
 export default defineConfig({
   publicDir: false,

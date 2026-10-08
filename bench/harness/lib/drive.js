@@ -65,10 +65,10 @@ async function ensureBrowserStack({ app, server, autostart, repoRoot, onLog }) {
     // passed explicitly so the error below can name it.
     dataRoot = resolveAppDataRoot(repoRoot);
     onLog?.(`starting server (nothing answering at ${server}) — data root: ${dataRoot}`);
-    // The server on Electron's own Node (scripts/node24.mjs) — the runtime it ships on,
+    // The server on Electron's own Node (scripts/node24.js) — the runtime it ships on,
     // and the one its native modules are built for. Quoted: startProcess runs through
     // a shell on Windows, and node's path can hold spaces.
-    started.push(startProcess("server", `"${process.execPath}"`, ["scripts/node24.mjs", "server/src/serve.js", "serve", "--port", new URL(server).port || "17495"], {
+    started.push(startProcess("server", `"${process.execPath}"`, ["scripts/node24.js", "server/src/serve.js", "serve", "--port", new URL(server).port || "17495"], {
       cwd: repoRoot, env: { JUSTWRITE_DATA_DIR: dataRoot }, onLog,
     }));
     await waitReady(`${server}/v1/health`, "server", 120);

@@ -3,7 +3,7 @@
 // (`bench/harness/`).
 //
 // This file is JustWrite's DOOR to the family implementation in
-// `../just-llm-runner/scripts/lib/exec-resolve.mjs` (target-tree P7): it binds
+// `../just-llm-runner/scripts/lib/exec-resolve.js` (target-tree P7): it binds
 // JW's env override (JW_CHROME) and re-exports the helpers. Import from HERE;
 // never re-fork.
 //
@@ -19,7 +19,7 @@ import {
   isUp,
   sleep,
   waitReady,
-} from "../../../just-llm-runner/scripts/lib/exec-resolve.mjs";
+} from "../../../just-llm-runner/scripts/lib/exec-resolve.js";
 
 /** Path to a usable Chromium executable, or `undefined` (a SUCCESS value —
  *  Playwright then resolves from its own registry). `JW_CHROME` overrides. */

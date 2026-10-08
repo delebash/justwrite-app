@@ -9,8 +9,8 @@
     "dev:vite": "vite",
     "build:vite": "vite build",
     "preview:vite": "vite preview",
-    "dev": "node scripts/dev.mjs",
-    "server": "node scripts/node24.mjs server/src/serve.js serve",
+    "dev": "node scripts/dev.js",
+    "server": "node scripts/node24.js server/src/serve.js serve",
     "build": "vite build && electron-builder",
     "bump": "node scripts/bump.js",
     "release": "node scripts/release.js",
@@ -21,7 +21,7 @@
     "test": "npm test --prefix e2e",
     "smoke": "node scripts/smoke.js",
     "test:unit": "vitest run",
-    "test:server": "node scripts/node24.mjs node_modules/vitest/vitest.mjs run --config server/vitest.config.js",
+    "test:server": "node scripts/node24.js node_modules/vitest/vitest.mjs run --config server/vitest.config.js",
     "test:fast": "npm run test:unit && npm run build:vite && npm run test:server",
     "i18n:lint": "eslint -c eslint.i18n.config.js \"src/**/*.vue\"",
     "i18n:report": "vue-i18n-extract report --vueFiles \"src/**/*.?(js|vue)\" --languageFiles \"src/i18n/locales/*.json\"",
@@ -147,6 +147,15 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "include": "node_modules/@delebash/llm-runner/src/shell/installer.nsh"
+    },
+    "electronFuses": {
+      "runAsNode": true,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true,
+      "grantFileProtocolExtraPrivileges": false
     },
     "mac": {
       "icon": "build/icon.icns",

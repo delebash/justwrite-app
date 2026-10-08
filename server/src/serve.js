@@ -2,7 +2,7 @@
 // `justwrite-server` — run the server standalone, and as the desktop app's server process
 // (the port of justwrite_server/serve.py).
 //
-//   node scripts/node24.mjs server/src/serve.js serve [--host H] [--port P] [--data-dir D]
+//   node scripts/node24.js server/src/serve.js serve [--host H] [--port P] [--data-dir D]
 //
 // The family entry shape: `serve` is the canonical form and the bare form works too.
 // Defaults as Python's: host 127.0.0.1 (JUSTWRITE_HOST), port 17495 (JUSTWRITE_PORT), the data
