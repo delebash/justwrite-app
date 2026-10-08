@@ -38,7 +38,7 @@ const procs = await import("@delebash/llm-runner/platform").then((m) => m.procs)
 const { createApp } = await import("../src/app.js");
 const { seedWorkspace } = await import("../src/database/seed.js");
 const { state } = await import("../src/database/session.js");
-const { ZipView } = await import("../src/api/book_transfer_api.js");
+const { ZipReader } = await import("@delebash/llm-runner/platform/zip");
 
 async function python(...args) {
   const r = await procs.run([PY, join(HERE, "compare-seed.py"), ...args], {
@@ -247,7 +247,7 @@ function answer(r) {
   const ctype = r.headers["content-type"] || "";
   const out = { status: r.statusCode };
   if (ctype.startsWith("application/zip")) {
-    const zf = new ZipView(r.rawPayload);
+    const zf = ZipReader.fromBuffer(r.rawPayload);
     out.zip = zf.entries.map((e) => [e.name, sha(zf.read(e))]);
     out.disposition = r.headers["content-disposition"];
   } else if (ctype.includes("json")) out.json = r.json();

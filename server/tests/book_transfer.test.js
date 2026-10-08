@@ -4,13 +4,13 @@
 // point of server-executes over the desktop bridge: this round-trip — including the image
 // bytes and the cover image — is verifiable here, no shell.
 //
-// Python read the zips with `zipfile`; here with the module's own reader (ZipView). +2 tests
+// Python read the zips with `zipfile`; here with the kit's (platform/zip, ZipReader). +2 tests
 // beyond Python: a multi-MB import (the book import posts a base64 zip as JSON — Fastify's
 // default 1 MiB body limit would refuse it; the kit's server lifts it), and a title outside
 // latin-1 (Python's export fails it — copied, see book_transfer_api.js).
 import { randomBytes } from "node:crypto";
 import { expect, test } from "vitest";
-import { ZipBuilder, ZipView } from "../src/api/book_transfer_api.js";
+import { ZipReader, ZipWriter } from "@delebash/llm-runner/platform/zip";
 import { client, tmpPath, useHermeticKit } from "./helpers.js";
 
 useHermeticKit();
@@ -44,7 +44,7 @@ test("export_import_round_trip_with_images", async () => {
   expect(r.statusCode).toBe(200);
   expect(r.headers["content-type"]).toBe("application/zip");
   expect(r.headers["content-disposition"] || "").toContain('filename="My Book.zip"');
-  const names = new ZipView(r.rawPayload).names();
+  const names = ZipReader.fromBuffer(r.rawPayload).names();
   expect(names).toContain("My Book/book.json");
   expect(names.filter((n) => n.startsWith("My Book/images/")).length).toBe(2); // entity + cover
 
@@ -76,7 +76,7 @@ test("image_less_book_round_trips", async () => {
   expect((await c.put("/v1/projects/p/book", { json: snap })).statusCode).toBe(204);
   const r = await c.get("/v1/projects/p/export");
   expect(r.statusCode).toBe(200);
-  const names = new ZipView(r.rawPayload).names();
+  const names = ZipReader.fromBuffer(r.rawPayload).names();
   expect(names).toContain("Plain/book.json");
   expect(names.some((n) => n.startsWith("Plain/images/"))).toBe(false);
   const meta = (await c.post("/v1/projects/import", { json: { zipBase64: r.rawPayload.toString("base64") } })).json();
@@ -93,9 +93,9 @@ test("import_rejects_bad_input", async () => {
   const c = await client(tmpPath());
   expect((await c.post("/v1/projects/import", { json: { zipBase64: "!!!" } })).statusCode).toBe(400);
   expect((await c.post("/v1/projects/import", { json: { zipBase64: Buffer.from("not a zip").toString("base64") } })).statusCode).toBe(400);
-  const zip = new ZipBuilder();
+  const zip = new ZipWriter();
   zip.writestr("random.txt", "x");
-  expect((await c.post("/v1/projects/import", { json: { zipBase64: zip.finish().toString("base64") } })).statusCode).toBe(400);
+  expect((await c.post("/v1/projects/import", { json: { zipBase64: zip.toBuffer().toString("base64") } })).statusCode).toBe(400);
 });
 
 test("multi_mb_import_is_accepted", async () => {
