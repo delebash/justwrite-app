@@ -4,6 +4,15 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## 2026-10-08
+
+**Export this book works for any title.** A book titled outside Western European letters —
+in Japanese, say — failed to export with a server error. It now exports; the downloaded
+`.zip` and the folder inside it carry the book's real title. See
+[Backups and data](backups-and-data.md#export-this-book).
+
+---
+
 ## v1.4.0 — 2026-09
 
 **The engine's Update button works again — and updating is now safe.** It had quietly

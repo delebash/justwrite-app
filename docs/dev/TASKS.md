@@ -121,13 +121,6 @@ GO:     none needed to use it; anything you find gets its own item.
 
 ## Open — awaiting a go
 
-- **FINDING (2026-10-08, the move's port): exporting a book whose title isn't latin-1 fails
-  with a 500.** "Export this book…" for a title in, say, Japanese: the download header
-  `Content-Disposition: attachment; filename="<title>.zip"` can't carry the characters
-  (`server/src/api/book_transfer_api.js:375`, `latin1Header`). The Python server failed the same
-  way; the port copied it on purpose so the route diff stayed exact. Fix: add
-  `filename*=UTF-8''<percent-encoded name>` beside the latin-1 fallback. Needs your go.
-
 - **QC queue posture (standing)** — the live findings you drop while QC-ing on your
   box; discussion-first, each needs its own go. (B5-4 CLOSED by the docs campaign —
   the big-batch build record shows the accent nav row SHIPPED, probe-measured; the

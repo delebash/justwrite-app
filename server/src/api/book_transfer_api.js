@@ -19,6 +19,7 @@ import { randomUUID } from "node:crypto";
 import { HttpError } from "@delebash/llm-runner/platform/errors";
 import { T } from "@delebash/llm-runner/platform/models";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
+import { attachment } from "@delebash/llm-runner/platform/server";
 import { rstrip, strip, ValueError } from "@delebash/llm-runner/platform/py";
 import { BadZipFile, ZipReader, ZipWriter } from "@delebash/llm-runner/platform/zip";
 import * as bookIo from "../book_io.js";
@@ -95,23 +96,6 @@ function findBookJson(names) {
   return best;
 }
 
-/** Starlette writes header values as latin-1: a title outside it failed the export with
- * Python's UnicodeEncodeError (a 500 through the app's envelope). Copied on purpose — a
- * FINDING, not a feature: a book titled in Japanese can't be exported (the fix, in both:
- * an RFC 5987 `filename*=UTF-8''…` alongside an ASCII fallback). */
-function latin1Header(value) {
-  const cps = [...value];
-  const bad = cps.findIndex((c) => c.codePointAt(0) > 0xff);
-  if (bad < 0) return value;
-  let end = bad;
-  while (end + 1 < cps.length && cps[end + 1].codePointAt(0) > 0xff) end++;
-  const where =
-    end === bad
-      ? `character '\\u${cps[bad].codePointAt(0).toString(16).padStart(4, "0")}' in position ${bad}`
-      : `characters in position ${bad}-${end}`;
-  throw new Error(`'latin-1' codec can't encode ${where}: ordinal not in range(256)`);
-}
-
 // base64 of the .zip bytes — the same upload style as /v1/images (no multipart).
 export const BookZipUpload = T.Object({ zipBase64: T.String() });
 
@@ -127,8 +111,9 @@ export async function router(app) {
     zip.writestr(`${folder}/book.json`, pyJson(snap, { ensureAscii: false, indent: 2 }));
     for (const [fname, raw] of files) zip.writestr(`${folder}/images/${fname}`, raw);
     const body = zip.toBuffer();
-    const disposition = latin1Header(`attachment; filename="${folder}.zip"`);
-    return reply.header("content-disposition", disposition).type("application/zip").send(body);
+    // The kit's `attachment`: a title outside ASCII (Japanese, say) travels as RFC 5987's
+    // filename*= — Python's export failed such a title with a 500 (fixed 2026-10-08).
+    return reply.header("content-disposition", attachment(`${folder}.zip`)).type("application/zip").send(body);
   });
 
   app.post("/v1/projects/import", { schema: { body: BookZipUpload } }, async (req) => {

@@ -7,7 +7,7 @@
 // Python read the zips with `zipfile`; here with the kit's (platform/zip, ZipReader). +2 tests
 // beyond Python: a multi-MB import (the book import posts a base64 zip as JSON — Fastify's
 // default 1 MiB body limit would refuse it; the kit's server lifts it), and a title outside
-// latin-1 (Python's export fails it — copied, see book_transfer_api.js).
+// latin-1 (Python's export failed it with a 500; fixed 2026-10-08).
 import { randomBytes } from "node:crypto";
 import { expect, test } from "vitest";
 import { ZipReader, ZipWriter } from "@delebash/llm-runner/platform/zip";
@@ -116,15 +116,16 @@ test("multi_mb_import_is_accepted", async () => {
   expect(Buffer.compare((await c.get(`/v1/images/${book.images.x[0].serverId}`)).rawPayload, big)).toBe(0);
 });
 
-test("export_title_outside_latin1_fails_as_python", async () => {
-  // Starlette writes header values as latin-1, so Python's export of a book titled in
-  // Japanese answered the 500 envelope (measured 2026-10-08). Copied on purpose — a FINDING.
+test("export_title_outside_latin1_downloads", async () => {
+  // A header carries latin-1 only: Python's export of a book titled in Japanese answered a
+  // 500 (measured 2026-10-08). The name now travels as RFC 5987's filename*= beside an ASCII
+  // fallback, and the zip's folder keeps the real title.
   const c = await client(tmpPath());
   await c.put("/v1/projects/p/book", { json: { project: { title: "日本の本" } } });
   const r = await c.get("/v1/projects/p/export");
-  expect(r.statusCode).toBe(500);
-  expect(r.json()).toEqual({
-    title: "Internal Server Error",
-    detail: "'latin-1' codec can't encode characters in position 22-25: ordinal not in range(256)",
-  });
+  expect(r.statusCode).toBe(200);
+  expect(r.headers["content-disposition"]).toBe(
+    "attachment; filename=\"____.zip\"; filename*=UTF-8''%E6%97%A5%E6%9C%AC%E3%81%AE%E6%9C%AC.zip",
+  );
+  expect(ZipReader.fromBuffer(r.rawPayload).names()).toContain("日本の本/book.json");
 });
