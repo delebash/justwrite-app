@@ -1,0 +1,13 @@
+{
+  "real@1280:light": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "real@1280:dark": [],
+  "real@390:light": [],
+  "quasar@1280:light": [],
+  "quasar@1280:dark": [],
+  "quasar@390:light": [],
+  "element@1280:light": [],
+  "element@1280:dark": [],
+  "element@390:light": []
+}

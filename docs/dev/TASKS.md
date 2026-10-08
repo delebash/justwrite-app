@@ -40,6 +40,200 @@ OPEN:   your use of the moved app — `npm run dev`, or the installer from `npm 
         release workflow is rewritten for electron-builder but not run (it needs a tag).
 GO:     none needed to use it; anything you find gets its own item.
 
+## The phone app's UI library — the theming test [2026-10-08]
+STATE:  DECIDED 2026-10-08 (after the test) — the user: "i stopped the electron vite that wasnts
+        supposed to happen 1 quasar 2 your rec 3 sync but we need to discuss the design, there are
+        several ways to sync sqlite turso https://github.com/sqliteai/sqlite-sync and many others",
+        answering the questions as shown: "1. Which library? My lean: Quasar. The override sheet
+        is a one-time cost covering every screen, and the two libraries' costs are close. The
+        phone shell is the point of the move, and Quasar is the only one that ships it." ·
+        "2. Should I commit the test, given the other session is mid-restructure? My lean: on a
+        JustWrite branch, so its restructure doesn't sweep the test in or lose it." · "3. Still
+        open from before: sync in the first phone release or zip first, your own cloud folder or
+        a hosted service, and keep both copies or merge when a chapter is changed on two devices."
+        Then: "save everthing we need to restart session save all research in detail and any
+        session info so we can pickup without redoing anything".
+        So: the phone app's library is **Quasar**; the test is committed on a JustWrite branch
+        (approved, not yet run — that message had no go); sync goes to a design discussion
+        first — the record is `docs/plans/2026-10-08-sync-design.md`.
+        DECIDED 2026-10-08 (the test itself) — the user, "your rec go", on the recs as shown:
+        "1. Which libraries go in the test? My lean: Quasar, Element Plus and Reka UI. One
+        look-based library that's mobile-aware, one built on CSS variables, and one with no look
+        of its own. 2. Which JustWrite screen? My lean: one with fields, buttons, a table and a
+        dialog, plus the editor toolbar. You name it."
+        The test as shown: "Setup: the same JustWrite screen built with each candidate and driven
+        by our appearance engine. Pass: Every Appearance knob changes the screen live. It matches
+        today's screen side by side, at desktop and phone width. Pick: the one that passes with
+        the fewest override lines."
+        Mid-work, the same day: "i dont care how much we have to rewrite dont take that into
+        consideration" — rewrite size is not a criterion; override lines count only as how much
+        a library fights our look.
+        Before it, the same day: "i agree with your recs" (ruling 8 stands; Quasar through its CLI
+        if a framework is taken; one JustWrite screen first), then "the questions is can we do our
+        own custom theme manager nad not rely on material, i think we need to test that if not we
+        can use other vue ui frameworks, use electron vite and capacitor and do our own".
+        Named under the go (the rec left the screen to me): Locations (`src/views/LocationsView.vue`)
+        — its list is a table (EntityIndex → UiTable) with a search field and facet chips; its
+        detail has fields, a checkbox, buttons, tags, the status select, the editor and its
+        toolbar, and its dialogs (Images, Groups, Sweep). Every part the rec named is on it.
+        Found while setting up: the kit already sits on Reka UI (AppModal, HelpDrawer, UiSelect,
+        UiMultiSelect, LuFeatureChip, LuModelCatalog), so today's Locations screen is the Reka
+        entry; the test builds the Quasar and Element Plus versions against it.
+WHY:    one framework for desktop and phones without Material; the question is whether a
+        library's components follow the kit's appearance engine
+        (`../just-llm-runner/ui/src/common/services/appearance.js`, live CSS variables).
+NOT:    Vue Lynx (native views, not DOM — TipTap can't run; pre-alpha) · PrimeVue 5 (a commercial
+        PrimeUI licence with a key since 5.x; 4.5.5 was the last MIT) · Vuetify (Material) · back
+        to Tauri (rejected 2026-10-05; a Node sidecar ships node.exe, 103 MB).
+BUILT:  2026-10-08, uncommitted — the record is `docs/plans/2026-10-08-phone-ui-library-test.md`.
+        The Locations screen on Quasar 2.35.0 and on Element Plus 2.14.7, dev-only pages
+        `#/ui-test/quasar/locations` and `#/ui-test/element/locations` (`src/ui-test/`; the router
+        imports them only under `import.meta.env.DEV`); `@quasar/vite-plugin` in `vite.config.js`;
+        quasar, @quasar/extras, @quasar/vite-plugin, sass-embedded, element-plus as devDependencies
+        (the install also moved @floating-ui/core 1.7.5→1.8.0 and utils 0.2.11→0.2.12).
+CHECKED: both libraries follow every Appearance knob live on every control (121 checks) and
+        match today's screen light and dark, dialogs and menus included; zero JS errors; the
+        shipped `vite build` is unchanged (614/615 chunks equal, the one a kit commit made
+        meanwhile). Overrides beyond the variable mapping: Quasar 150 lines, Element Plus 94. At
+        390 px all three pages are unusable alike (the 280 px sidebar) — only Quasar ships a
+        breakpoint drawer. By the approved pick rule (fewest override lines): Element Plus.
+        Found: today's status menu draws with no background (StatusSelect.vue's scoped styles
+        never reach Reka's portalled menu) — not fixed.
+OPEN:   1. DONE 2026-10-08 under "you have a go on it all your recs": the test's code
+           (package.json, package-lock.json, vite.config.js, src/router/index.js, src/ui-test/) is
+           committed on branch `ui-library-test`; its records (this file, RESEARCH, the plan doc
+           and its folder) on master. NOT committed anywhere: biome.json (the stopped
+           electron-vite session's edit). The Quasar move (item 3) supersedes the test's pages.
+        2. The sync design — moved to its own item below, "Sync — offline first, by file, folder
+           and server".
+        3. DECIDED 2026-10-08 — every app moves to Quasar, and Quasar's own tooling is the desktop
+           shell (its Electron mode, calling the kit's shared function) and the phone (its
+           Capacitor mode): the kit's TASKS, "Every family app moves to Quasar", rec 1.
+GO:     given 2026-10-08 ("your rec go") for the test; for 2, "… go" (the research and the
+        design); 3 is decided. None yet for 1.
+
+## Sync — offline first, by file, folder and server [2026-10-08]
+STATE:  DECIDED 2026-10-08, step by step (the record, with every option shown, is
+        `docs/plans/2026-10-08-sync-design.md`). For every family app, so the code lives in the kit.
+        Widened from JustWrite's phone first — the user: "no we need to decide on sync method for
+        jw and make it so we coudl add it to other apps easily if we decide we want to say sync
+        acrross desktops or just run the server in the cloud … go".
+        1. Offline first — the user, on shape A (one cloud server, every device its client, no
+           sync): "a is out, these need to be offline first so rethink".
+        2. Licences — the user: "the only license we carred about whas onese that prevented
+           commercial use or lgpl no one said it had to be mit". So: anything that allows
+           commercial use and isn't copyleft (Apache-2.0 fine; FSL fine — it bars only a competing
+           product); out: Elastic License 2.0 (sqlite-sync: production needs a paid licence), AGPL.
+           Tightened mid-work the same day — the user: "why are you searching for something thst
+           costs money ditto pricing only open source solutions or one we make". So: open source
+           or our own build only — no paid tiers, commercial editions or closed hosted services,
+           free or not.
+        3. Three ways to carry changes — the user: "we also need an options to manually sync like
+           i think you had importing exporting zip file so you can send changes from phone to
+           desktop without setting up server, ideally since this isnt really a big app i ould love
+           a solution where the user could just open the file one one drive for each app and sync
+           as well". The questions as shown: "1. One folder with a file per device, rather than one
+           shared file? My lean: the folder. If two devices write one file at the same moment,
+           OneDrive saves a conflict copy. For you it's the same single step: pick the OneDrive
+           location once in each app." · "2. Is the cloud server still wanted, or are the file and
+           the folder enough? My lean: build the file and the folder first, and add the server
+           only if you ask for it later." The user: "1 your rec 2 i want server was well 3 think
+           on this again …". So: a file carried by hand (import merges), a shared cloud folder
+           with one change file per device, and a server — all three. The live database never
+           goes in the cloud folder; only change files travel.
+        4. What the hand-carried file holds, and what syncs — shown: "1. Revised lean for 3: the
+           hand-carried file holds the books you pick, each one complete. The picker starts with
+           the books changed since your last export ticked. Importing the same file twice still
+           does no harm. Agreed?" · "2. Still open from before: what syncs? My lean: the books,
+           meaning the manuscript, story bible, images and saved versions. Settings, API keys,
+           writing stats and the search index stay on each device. Chats come later." The user:
+           "your rec on all go".
+        5. Candidates narrowed to cr-sqlite or our own build (shown as "Ready to record once you
+           say go"; approved by the same "your rec on all go"). The user, on cr-sqlite's forks:
+           "we can maintain, we can also write our own if you think that is better since not many
+           choices". My rec as shown: "write our own, using cr-sqlite's merge rules" (plain
+           JavaScript in the kit; triggers record changes; the latest edit wins field by field on
+           a hybrid clock, ties broken by device id; deletes and restores tracked; Yjs for chapter
+           text). NOT decided — the user: "your rec on all go do the testing and think if we
+           should just roll our own", and mid-work: "also what about other datbase backends
+           besides sqlite, other there other better db options for crossplatform and syncing?" …
+           "go".
+        6. How people run it — the user, mid-work the same day: "there have to be good syncing
+           opensour solutions as that is all we do these days use phone and sync to dekstop its a
+           mush for just about any appk, the difference is that we dont necessarily want a
+           complicated cloud server setup, since this is for authors it would be nice for the user
+           to just be able to install a sever on there laptop and sync with phone over internet or
+           do themanual we talked about, but also the option to run the whole thing as a sever
+           where desktop and phone connect to server and sync to their local copies or option to
+           not have local copy and use server directly as phone could run out of storage and just
+           loaded from server would be better, so i want these types of options, think abnout how
+           user would use these apps?" So four ways to run it, as options: the laptop app is the
+           server and the phone syncs with it over the internet · by hand (the file) · a server
+           that desktop and phone sync their local copies with · no local copy, working straight
+           off a server (the thin client; shape A returns as one option, not the only shape). The
+           usage think goes in the design doc's "Round 2". Then: "i can see an author working on
+           desktop, then on tablet they goto dropbox open the file and continue writing" · "maybe
+           we just use export import of database for manual sync but that could be a lot of
+           uncecessary data" (answered: a whole-database import replaces the other copy's newer
+           work; the decided file carries only the picked books and merges).
+        7. DECIDED 2026-10-08 after round 2 — the user, "your rec" then "your rec on all go", on
+           these as shown:
+           · "Should the sync be its own product repo, scoped as above? My lean: yes." The scope as
+           shown: "Its own repo and npm package, built to product standard: a stable, versioned
+           file format, real docs, and heavy tests, including random edits on three copies that
+           must always end up identical. It works on any SQLite database whose tables have primary
+           keys: one owner, many devices, on Node and in a browser or phone webview. The kit uses
+           it, so JustWrite, JustVoice and docgen get it. Left out until wanted: multiple users,
+           permissions, partial sync, other languages. The design shouldn't block adding them
+           later. The name is yours to pick." (Supersedes round 2's "a shared kit module".)
+           · "Scene text: merge with Yjs, or keep both copies on a clash? My lean: Yjs. It's the
+           only one that never makes the author choose, and our editor supports it officially."
+           · "To guard against a wiped phone database, the phone also saves its outgoing changes to
+           the app's own native folder and rebuilds from them if needed? My lean: yes."
+           · "Cloud folder on the phone through signing in to OneDrive, then Dropbox? My lean: yes.
+           Google Drive later, because its app folder is hidden from the desktop."
+           · "Encrypt the change files that go into a cloud folder? My lean: yes, with a library
+           key the desktop shows once as a QR code."
+           · Licences, for what we ship: "MPL-2.0 … not in what we ship; fine for a separate
+           program you install, such as Syncthing" · "FSL … count it as excluded". For programs
+           the user installs, the user: "we arent using antying for commercial use just becuase we
+           are syncing 2 datbases from phone to laptop, we dont care about these licesense".
+           · Phone ↔ laptop over the internet: "we build no relay of our own. Over-the-internet
+           direct sync is 'install Tailscale', documented, on top of the address setting we need
+           anyway" — the user: "we just have instructions for user to setup zerotier or tailscale
+           both rquire a login on perspective site, once setup our apps work correct, no coding
+           required we just authorize our servers, correct?" (answered yes, with our side's three
+           pieces: the server accepts other devices — today it listens on `127.0.0.1`,
+           `server/src/serve.js:64`; a pairing token; the phone app allows `http://` to private
+           addresses). Also "Document Syncthing as a no-Dropbox folder option, Android only for
+           now? My lean: yes."
+           · "iOS test: run it on GitHub's Mac machines with the iPhone simulator (a new workflow
+           file), or wait for a Mac? My lean: GitHub's Mac machines." (Which repo holds the
+           workflow is not decided.)
+           Then: "give me a summary of the ways we can sync and basics of how it works and is
+           setup, then complete the design and code it all". The design is
+           `../just-llm-runner/docs/plans/2026-10-08-sync-product-design.md`.
+WHY:    a writer works on the phone and the desktop with no network, and moves changes without
+        setting up a server; one design any family app can add.
+NOT:    shape A, one cloud server with no offline work (the user, above) · the live SQLite file
+        in a cloud folder (sqlite.org/howtocorrupt.html) · PowerSync (devices sync only with its
+        server; the central copy is Postgres/MongoDB/MySQL/SQL Server; no file or folder mode) ·
+        Turso Sync (syncs only with its sync server; pre-1.0) · ElectricSQL (Postgres, read path
+        only; the old SQLite-client `electric-sql` package is deprecated, last 0.12.1 of
+        2024-06-19) · sqlite-sync (Elastic License 2.0).
+BUILT:  nothing in any app. Round 2 done 2026-10-08 — the design doc's "Round 2" (the measured
+        library, the schema, cr-sqlite and our own change log tested on a copy of the real
+        database, SQLite WASM on OPFS tested on an Android 16 emulator, the research, the five
+        ways authors would use it, the judgement); the four research records and the register are
+        kit 7532f72 (not pushed). Installed for the test: an Android SDK at `E:\Android\Sdk` (AVD
+        `jvtest`), `E:\Android\jdk-21` → Visual Studio's JDK 21.
+OPEN:   the user decides — my rec: roll our own (a kit sync module on Actual Budget's per-cell
+        hybrid-clock design, backless-core's per-device folder, Yjs for prose); plus the round-2
+        questions (phone storage guard, internet meeting point, cloud sign-in on the phone,
+        encryption, MPL/FSL, the iOS and real-phone tests, sync in the first phone release).
+GO:     given 2026-10-08 for the tests and the research ("your rec on all go do the testing";
+        "go"). None for building.
+
 ## THE FAMILY PARITY BATCH — approved 2026-08-05, THE next build
 - **The master plan (read WHOLE before coding any slice):**
   `../justwrite-app/docs/plans/2026-08-05-family-parity-batch.md` — all

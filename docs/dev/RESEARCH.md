@@ -26,6 +26,7 @@ all go". The kit's register carries the rule in full; in short:
   until <date>)".
 
 Subjects: [JustWrite on Electron and Node](#justwrite-on-electron-and-node) ·
+[The phone app: UI library and the server](#the-phone-app-ui-library-and-the-server) ·
 [Records not yet distilled](#records-not-yet-distilled)
 
 ---
@@ -67,6 +68,53 @@ The family's move, step 4 (2026-10-08). The plan is JustVoice's
   one write — the theme test — is undone by writing the `ui` settings section back at the end;
   two tests were stale against the app (AI settings moved to `#/ai`; `--accent-h` became
   `--accent-hue`). (*measured 2026-10-08*.)
+
+---
+
+## The phone app: UI library and the server
+
+**Records:** [`2026-10-08-phone-ui-library-test.md`](../plans/2026-10-08-phone-ui-library-test.md)
+(the theming test; its tools, measurements and screenshots in the folder of the same name) ·
+[`2026-10-08-sync-design.md`](../plans/2026-10-08-sync-design.md) (phone ↔ desktop sync — research
+started, nothing decided). Upstream library facts (versions, licences, Node on phones, sync
+tools) are in the kit's register §2, "Phones".
+
+- **The screens never call the server directly.** No raw `fetch(` in `src/`; every call goes
+  through the kit's `get/post/put/del/requestBlob` and its AI client's `fetch`
+  (`../just-llm-runner/ui/src/client.js`). Answering those two in-app is what a phone build without
+  the server needs; the views would not change. (*code, 2026-10-08*.)
+- **The server is 32 files, 6,765 lines** (`server/src`, tests excluded). Node-only imports in 11
+  files — `node:crypto` for ids, `node:path`, and `node:fs` in autosave snapshots, the data-folder
+  move and the demo seed. Fastify-specific use is small: `reply.code` 19×, `reply.type` and
+  `reply.header` once. The kit modules it uses: `py`, `models`, `pyjson`, `errors`, `log` are
+  plain JavaScript; `data_paths`, `zip` and `server` need Node. The database goes through the kit's
+  synchronous helper (`platform/sql.js` on better-sqlite3). (*code, 2026-10-08*.)
+- **Saving sends the whole book** (`PUT /v1/projects/{id}/book`, `src/services/projectApi.js:83`);
+  the server splits it into the tables. Sync between devices would need per-item changes.
+  (*code, 2026-10-08*.)
+- **35 tables; book rows are keyed `(project_id, id)` with text ids** from
+  `uid(prefix)` = prefix + `Date.now()` in base 36 + 4 random base-36 characters
+  (`src/stores/project.js:29`) — unique in practice, not guaranteed across devices; the tutorial
+  book's ids are fixed (`l1`…). Two chat tables are keyed by **position**
+  (`chat_session_messages`, `chat_messages`); writing stats are keyed by day and chapter; the RAG
+  tables are derived. (*code, 2026-10-08*, `server/src/database/models_schema.js`; the table list
+  is in the sync record.)
+- **Quasar and Element Plus both carry JustWrite's look and follow every Appearance knob live**
+  on the Locations screen — dark mode, accent, button radius, density, label case, both fonts,
+  ink palette; 121 checks. Overrides beyond the variable mapping: Quasar 150 lines, Element Plus
+  94; mapping: Quasar 28 Sass lines + 23-line icon set + 4-line dark bridge, Element Plus 54
+  variables (56 lines) + a 4-line icon helper, no dark bridge. (*measured 2026-10-08*, the record.)
+- **At 390 px every Locations page is unusable alike** — the 280 px sidebar column leaves ~110 px.
+  Quasar's `QDrawer` has a `breakpoint` phone mode; Element Plus's layout components have no
+  breakpoint logic. (*measured* + *code*, 2026-10-08.)
+- **The status menu draws with no background** (`src/components/StatusSelect.vue`): Reka's
+  portalled `SelectContent` has no `data-v-*` attribute, so the component's scoped `.status-menu`
+  rules never apply. In `dist/` built before the test too. (*measured 2026-10-08*.)
+- **A dev-only route list can leak into the build** (Vite 8): a template literal in a route
+  path, or an export the dev pages import from the routes module, kept their chunks in `dist/`; a
+  static import of the module reshuffled the shipped chunks. `await import()` inside the
+  `import.meta.env.DEV` branch kept the build identical (614/615 chunks equal, the one difference
+  a kit commit made meanwhile). (*measured 2026-10-08*, the record.)
 
 ---
 
