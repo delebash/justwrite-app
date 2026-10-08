@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
-// seed_presets.js — the port of justwrite_server/seed_presets.py.
-// GENERATED from the Python by server/scripts/port-seed-modules.py (2026-10-08): every value,
-// constant and comment comes across token for token, and tests/seed_data.test.js checks the
-// values against the Python's. Until the Python server is deleted a seed change lands in
-// both (re-run the script); after that this file is the source.
+// seed_presets.js — the port of justwrite_server/seed_presets.py, generated from it token for token
+// (2026-10-08, value-checked against it before the Python was deleted). This file is the
+// source now: a seed change lands here.
 //
 // Engine presets + the per-ACTION preset refs (the ONE-SOURCE model, 2026-07-15).
 //

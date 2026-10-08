@@ -47,7 +47,8 @@ The family's move, step 4 (2026-10-08). The plan is JustVoice's
   identical, 14 volatile), 37/37 writes, 4,809 database cells, 0 different; the seed comparison
   17,741 cells, 0 different. (*measured 2026-10-08*, the kit's
   `server/scripts/route-diff/route-diff.mjs --app --target justwrite`, and
-  `server/scripts/compare-seed.mjs`.)
+  `server/scripts/compare-seed.mjs` — deleted with the Python tools and the seed-data snapshot
+  test, 2026-10-08: the family keeps no Python, and the parity they proved is recorded here.)
 - **Where the JS answers differ from Python on purpose:** 422 errors now come in field order
   (the kit's fix — Python's order too); the desktop window's origin `app://justwrite` stays
   allowed when the user sets their own CORS origins (Python allowed only the list); a request

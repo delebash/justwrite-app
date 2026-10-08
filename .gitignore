@@ -14,14 +14,6 @@ report/
 biome_output.json
 biome_parsed.json
 
-# Python bytecode
-__pycache__/
-*.pyc
-server/build/
-
-# Python virtualenv (local, never committed)
-.venv/
-
 # just-ai-help — the translation tool's working state.
 # Its folder holds two kinds of file. config.json and *.accepted.json / *.notes.json are
 # DECISIONS and knowledge: committed, because --check-only runs in CI against a fresh clone and
