@@ -12,8 +12,8 @@
 import { HttpError } from "@delebash/llm-runner/platform/errors";
 import { T } from "@delebash/llm-runner/platform/models";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { strip, truthy } from "@delebash/llm-runner/platform/py";
-import { orElse, pyGet, pyIter, pyLoads } from "../book_io.js";
+import { pyIter, pyOr, strip, truthy } from "@delebash/llm-runner/platform/py";
+import { pyGet, pyLoads } from "../book_io.js";
 import { state } from "../database/session.js";
 
 const NO_AUTH = () => ({ tokens: [], requireForLoopback: false });
@@ -25,7 +25,7 @@ function read() {
     const row = h.get("settings", "auth");
     const cfg = row && row.value ? pyLoads(row.value) : {};
     return {
-      tokens: pyIter(orElse(pyGet(cfg, "tokens"), [])).filter((t) => typeof t === "string" && t),
+      tokens: pyIter(pyOr(pyGet(cfg, "tokens"), [])).filter((t) => typeof t === "string" && t),
       requireForLoopback: truthy(pyGet(cfg, "requireForLoopback")),
     };
   } catch {

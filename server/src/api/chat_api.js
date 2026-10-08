@@ -20,8 +20,7 @@ import { randomBytes } from "node:crypto";
 import { HttpError } from "@delebash/llm-runner/platform/errors";
 import { nullable, opt, T } from "@delebash/llm-runner/platform/models";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { splitWs, strip, truthy } from "@delebash/llm-runner/platform/py";
-import { orElse } from "../book_io.js";
+import { pyOr, splitWs, strip, truthy } from "@delebash/llm-runner/platform/py";
 import { getDb } from "../database/session.js";
 
 // Per-session message cap — long threads waste storage and the model already truncates
@@ -206,7 +205,7 @@ export async function router(app) {
             position: i,
             role: m.role,
             content: m.content,
-            citations: pyJson(orElse(m.citations, [])),
+            citations: pyJson(pyOr(m.citations, [])),
             error: m.error,
           });
         }

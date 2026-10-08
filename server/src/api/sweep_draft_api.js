@@ -14,8 +14,9 @@
 
 import { HttpError } from "@delebash/llm-runner/platform/errors";
 import { T } from "@delebash/llm-runner/platform/models";
+import { pyOr } from "@delebash/llm-runner/platform/py";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { isoNowUtc, orElse } from "../book_io.js";
+import { isoNowUtc } from "../book_io.js";
 import { getDb } from "../database/session.js";
 
 export async function router(app) {
@@ -38,7 +39,7 @@ export async function router(app) {
     // an integrity error when the project doesn't exist.
     if (h.get("projects", pid) === null) throw new HttpError(404, "project not found");
     const now = isoNowUtc();
-    const data = pyJson(orElse(req.body, {}));
+    const data = pyJson(pyOr(req.body, {}));
     if (h.get("sweep_drafts", pid) === null) h.insert("sweep_drafts", { project_id: pid, data, updated_at: now });
     else h.update("sweep_drafts", { data, updated_at: now }, { project_id: pid });
     return { ok: true, updatedAt: now };

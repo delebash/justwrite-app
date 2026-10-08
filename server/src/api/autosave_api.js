@@ -22,9 +22,9 @@ import { HttpError } from "@delebash/llm-runner/platform/errors";
 import { purePath, samePath } from "@delebash/llm-runner/platform/data_paths";
 import { T } from "@delebash/llm-runner/platform/models";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { pySorted, strip } from "@delebash/llm-runner/platform/py";
+import { pyOr, pySorted, strip } from "@delebash/llm-runner/platform/py";
 import { getState } from "../app_state.js";
-import { orElse, pyGet } from "../book_io.js";
+import { pyGet } from "../book_io.js";
 import { getDb } from "../database/session.js";
 
 const IS_WIN = process.platform === "win32";
@@ -232,7 +232,7 @@ export async function router(app) {
 
   app.put("/v1/projects/autosave-dir", { schema: { body: T.Record(T.String(), T.Any()) } }, async (req) => {
     const h = getDb();
-    const newDir = pyGet(orElse(req.body, {}), "dir");
+    const newDir = pyGet(pyOr(req.body, {}), "dir");
     if (typeof newDir !== "string" || !strip(newDir)) throw new HttpError(400, "dir is required");
     const oldDir = resolveDir(h); // the folder in use BEFORE the change (from the setting)
     const p = purePath(newDir);

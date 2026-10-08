@@ -20,10 +20,10 @@ import { HttpError } from "@delebash/llm-runner/platform/errors";
 import { T } from "@delebash/llm-runner/platform/models";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
 import { attachment } from "@delebash/llm-runner/platform/server";
-import { rstrip, strip, ValueError } from "@delebash/llm-runner/platform/py";
+import { b64decode, pyOr, rstrip, strip, ValueError } from "@delebash/llm-runner/platform/py";
 import { BadZipFile, ZipReader, ZipWriter } from "@delebash/llm-runner/platform/zip";
 import * as bookIo from "../book_io.js";
-import { b64decode, orElse, pyGet } from "../book_io.js";
+import { pyGet } from "../book_io.js";
 import { getDb } from "../database/session.js";
 
 /**
@@ -106,7 +106,7 @@ export async function router(app) {
     if (assembled === null) throw new HttpError(404, "project not found");
     const [snap, files] = bookIo.externalizeImages(h, assembled);
 
-    const folder = safeTitle(orElse(pyGet(orElse(pyGet(snap, "project"), {}), "title"), "book"));
+    const folder = safeTitle(pyOr(pyGet(pyOr(pyGet(snap, "project"), {}), "title"), "book"));
     const zip = new ZipWriter();
     zip.writestr(`${folder}/book.json`, pyJson(snap, { ensureAscii: false, indent: 2 }));
     for (const [fname, raw] of files) zip.writestr(`${folder}/images/${fname}`, raw);
@@ -152,7 +152,7 @@ export async function router(app) {
     }
     const projectId = `prj_${randomUUID().replace(/-/g, "")}`;
     bookIo.importBookSnapshot(getDb(), snap, files, projectId);
-    const title = orElse(pyGet(orElse(pyGet(snap, "project"), {}), "title"), "Untitled");
+    const title = pyOr(pyGet(pyOr(pyGet(snap, "project"), {}), "title"), "Untitled");
     return { id: projectId, title, created: true };
   });
 }

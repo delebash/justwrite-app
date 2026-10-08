@@ -8,8 +8,8 @@
 // bool }`), read per /v1 request so a change applies live.
 
 import { getLogger } from "@delebash/llm-runner/platform/log";
-import { truthy } from "@delebash/llm-runner/platform/py";
-import { orElse, pyGet, pyIter, pyLoads } from "./book_io.js";
+import { pyIter, pyOr, truthy } from "@delebash/llm-runner/platform/py";
+import { pyGet, pyLoads } from "./book_io.js";
 import { state } from "./database/session.js";
 
 const log = getLogger("justwrite_server.auth");
@@ -22,8 +22,8 @@ export function readAuth() {
   try {
     const row = h.get("settings", "auth");
     if (row === null) return [[], false];
-    const cfg = orElse(pyLoads(row.value), {});
-    const tokens = pyIter(orElse(pyGet(cfg, "tokens"), [])).filter((t) => typeof t === "string" && t);
+    const cfg = pyOr(pyLoads(row.value), {});
+    const tokens = pyIter(pyOr(pyGet(cfg, "tokens"), [])).filter((t) => typeof t === "string" && t);
     return [tokens, truthy(pyGet(cfg, "requireForLoopback"))];
   } catch (e) {
     // never let an auth-config read 500

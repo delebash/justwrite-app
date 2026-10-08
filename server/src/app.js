@@ -22,6 +22,7 @@ import {
 } from "@delebash/llm-runner/platform";
 import { purePath } from "@delebash/llm-runner/platform/data_paths";
 import { getLogger } from "@delebash/llm-runner/platform/log";
+import { pyOr } from "@delebash/llm-runner/platform/py";
 import { router as autosaveRouter } from "./api/autosave_api.js";
 import { router as bookTransferRouter } from "./api/book_transfer_api.js";
 import { router as chatRouter } from "./api/chat_api.js";
@@ -37,7 +38,7 @@ import { router as sweepDraftRouter } from "./api/sweep_draft_api.js";
 import { router as versionsRouter } from "./api/versions_api.js";
 import { AppState, setState } from "./app_state.js";
 import { readAuth } from "./auth.js";
-import { orElse, pyGet, pyLoads } from "./book_io.js";
+import { pyGet, pyLoads } from "./book_io.js";
 import { getDataRouter } from "./data_admin.js";
 import { _bundledSamplesDir, _dirHasSample } from "./database/demo_seed.js";
 import { initDb, state } from "./database/session.js";
@@ -78,7 +79,7 @@ function readCors() {
   if (h === null) return {};
   try {
     const row = h.get("settings", "cors");
-    return row ? orElse(pyLoads(row.value), {}) : {};
+    return row ? pyOr(pyLoads(row.value), {}) : {};
   } catch (e) {
     log.warning(`cors config read failed (allow-all fallback): ${e?.message ?? e}`);
     return {};
@@ -167,7 +168,7 @@ export async function createApp(dataDir = null) {
   // Reuses the CORS origins as the allowlist.
   app.register(CsrfOriginMiddleware, {
     appOrigins: APP_ORIGINS,
-    extraOrigins: orElse(corsOrigins, []),
+    extraOrigins: pyOr(corsOrigins, []),
     typeBase: TYPE_BASE,
   });
 
@@ -176,10 +177,10 @@ export async function createApp(dataDir = null) {
   // The desktop window's own origin stays allowed when the user locks origins down (decided
   // 2026-10-08, JustVoice TASKS, the Electron move: the window IS the app — under Tauri its
   // requests were never refused).
-  if (orElse(corsOrigins, null) || orElse(corsRegex, null)) {
+  if (pyOr(corsOrigins, null) || pyOr(corsRegex, null)) {
     app.register(CorsMiddleware, {
-      allowOrigins: [DESKTOP_ORIGIN, ...orElse(corsOrigins, [])],
-      allowOriginRegex: orElse(corsRegex, null),
+      allowOrigins: [DESKTOP_ORIGIN, ...pyOr(corsOrigins, [])],
+      allowOriginRegex: pyOr(corsRegex, null),
       allowCredentials: true,
       allowMethods: ["*"],
       allowHeaders: ["*"],

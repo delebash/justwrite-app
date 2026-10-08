@@ -8,8 +8,9 @@
 // shape as chat sessions. project_id FKs projects, so deleting a book cascades its versions.
 
 import { opt, T } from "@delebash/llm-runner/platform/models";
+import { pyOr } from "@delebash/llm-runner/platform/py";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { orElse, setdefault } from "../book_io.js";
+import { setdefault } from "../book_io.js";
 import { getDb } from "../database/session.js";
 
 export const VersionIO = T.Object({
@@ -60,7 +61,7 @@ export async function router(app) {
           saved_at: v.savedAt,
           label: v.label,
           words: v.words,
-          scenes: pyJson(orElse(v.scenes, [])),
+          scenes: pyJson(pyOr(v.scenes, [])),
         });
       }
     });

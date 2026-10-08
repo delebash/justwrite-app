@@ -24,7 +24,7 @@
 
 import { randomUUID } from "node:crypto";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { pyInt, truthy, ValueError } from "@delebash/llm-runner/platform/py";
+import { b64decode, isDict, pyInt, pyIter, pyOr, pyTypeName, truthy, ValueError } from "@delebash/llm-runner/platform/py";
 
 // Every per-project table, wiped on decompose (NOT projects itself — it's upserted — and
 // NOT the rag_* tables, which the /v1/rag API owns separately).
@@ -76,18 +76,6 @@ const TAG_KINDS = ["characters", "locations", "objects", "worldbuilding"];
 
 // ── Python value helpers (candidates for platform/) ──────────────────────────
 
-const isDict = (v) => v !== null && typeof v === "object" && !Array.isArray(v) && !Buffer.isBuffer(v);
-
-/** Python's type name for a JSON value, for the error texts Python would raise. */
-export function pyTypeName(v) {
-  if (v === null || v === undefined) return "NoneType";
-  if (typeof v === "boolean") return "bool";
-  if (typeof v === "number") return Number.isInteger(v) ? "int" : "float";
-  if (typeof v === "string") return "str";
-  if (Array.isArray(v)) return "list";
-  return "dict";
-}
-
 /** `d[k] = v` on a dict built from user keys — a "__proto__" key stays data, as in Python. */
 export function dset(obj, k, v) {
   if (k === "__proto__") Object.defineProperty(obj, k, { value: v, enumerable: true, writable: true, configurable: true });
@@ -100,17 +88,6 @@ export function dset(obj, k, v) {
 export function pyGet(d, k, dflt = null) {
   if (!isDict(d)) throw new TypeError(`'${pyTypeName(d)}' object has no attribute 'get'`);
   return Object.hasOwn(d, k) ? d[k] : dflt;
-}
-
-/** `x or dflt`. */
-export const orElse = (x, dflt) => (truthy(x) ? x : dflt);
-
-/** `for x in v` over a JSON value: a list's items, a dict's keys, a string's characters. */
-export function pyIter(v) {
-  if (Array.isArray(v)) return v;
-  if (typeof v === "string") return [...v];
-  if (isDict(v)) return Object.keys(v);
-  throw new TypeError(`'${pyTypeName(v)}' object is not iterable`);
 }
 
 /** `d.items()` on a JSON dict. */
@@ -165,87 +142,6 @@ export function isoNowUtc() {
   return `${iso.slice(0, 19)}${us === "000000" ? "" : `.${us}`}+00:00`;
 }
 
-// ── base64 (Python's base64.b64decode — candidate for platform/) ─────────────
-
-/** binascii.Error. */
-export class Base64Error extends ValueError {
-  constructor(m) {
-    super(m);
-    this.name = "Error";
-  }
-}
-
-const B64 = new Int16Array(256).fill(-1);
-for (const [i, c] of [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"].entries()) {
-  B64[c.charCodeAt(0)] = i;
-}
-
-/**
- * `base64.b64decode(s, validate=…)` — a port of CPython 3.12's `binascii.a2b_base64`
- * (validate = its strict mode), messages included (measured against Python 2026-10-08).
- * Non-strict skips characters outside the alphabet and stops at a complete padding run;
- * strict refuses them. A str holding non-ASCII is Python's ValueError.
- */
-export function b64decode(s, validate = false) {
-  if (typeof s === "string" && /[^\x00-\x7f]/.test(s)) {
-    throw new ValueError("string argument should contain only ASCII characters");
-  }
-  const data = typeof s === "string" ? Buffer.from(s, "latin1") : Buffer.from(s);
-  const out = Buffer.alloc(Math.floor((data.length * 3) / 4) + 3);
-  let n = 0;
-  let quadPos = 0;
-  let leftchar = 0;
-  let pads = 0;
-  let paddingStarted = false;
-  for (let i = 0; i < data.length; i++) {
-    const ch = data[i];
-    if (ch === 0x3d) {
-      paddingStarted = true;
-      if (validate && quadPos === 0) throw new Base64Error(i === 0 ? "Leading padding not allowed" : "Excess padding not allowed");
-      if (quadPos >= 2 && quadPos + ++pads >= 4) {
-        // A pad sequence means no more input is parsed; strict mode refuses data after it.
-        if (validate && i + 1 < data.length) throw new Base64Error("Excess data after padding");
-        return out.subarray(0, n);
-      }
-      continue;
-    }
-    const v = B64[ch];
-    if (v < 0) {
-      if (validate) throw new Base64Error("Only base64 data is allowed");
-      continue;
-    }
-    if (validate && paddingStarted) throw new Base64Error("Discontinuous padding not allowed");
-    pads = 0;
-    switch (quadPos) {
-      case 0:
-        quadPos = 1;
-        leftchar = v;
-        break;
-      case 1:
-        quadPos = 2;
-        out[n++] = ((leftchar << 2) | (v >> 4)) & 0xff;
-        leftchar = v & 0x0f;
-        break;
-      case 2:
-        quadPos = 3;
-        out[n++] = ((leftchar << 4) | (v >> 2)) & 0xff;
-        leftchar = v & 0x03;
-        break;
-      default:
-        quadPos = 0;
-        out[n++] = ((leftchar << 6) | v) & 0xff;
-        leftchar = 0;
-    }
-  }
-  if (quadPos === 1) {
-    throw new Base64Error(
-      `Invalid base64-encoded string: number of data characters (${Math.floor(n / 3) * 4 + 1}) cannot be 1 more than a multiple of 4`,
-    );
-  }
-  if (quadPos !== 0) throw new Base64Error("Incorrect padding");
-  return out.subarray(0, n);
-}
-
 // ── small coercion helpers ──────────────────────────────────────────────
 
 function s_(v) {
@@ -282,11 +178,11 @@ export function decompose(h, projectId, snap) {
 }
 
 function decomposeIn(h, projectId, snapIn) {
-  const snap = orElse(snapIn, {});
-  const proj = orElse(pyGet(snap, "project"), {});
+  const snap = pyOr(snapIn, {});
+  const proj = pyOr(pyGet(snap, "project"), {});
 
   const fields = {
-    title: s_(orElse(pyGet(proj, "title"), "Untitled")),
+    title: s_(pyOr(pyGet(proj, "title"), "Untitled")),
     author: s_(pyGet(proj, "author")),
     subtitle: s_(pyGet(proj, "subtitle")),
     genre: s_(pyGet(proj, "genre")),
@@ -310,25 +206,25 @@ function decomposeIn(h, projectId, snapIn) {
   for (const t of PROJECT_TABLES) h.run(`DELETE FROM ${t} WHERE ${t}.project_id = ?`, [projectId]);
 
   const savedAt = s_(pyGet(snap, "savedAt"));
-  const voiceCanon = new Set(pyIter(orElse(pyGet(snap, "voiceCanonChapterIds"), [])));
+  const voiceCanon = new Set(pyIter(pyOr(pyGet(snap, "voiceCanonChapterIds"), [])));
 
   // #235: the four per-entity AI artifacts arrive as top-level keyed maps
   // (chapterCritiques / chapterReaderKnowledge / chapterMultiReader / characterAudits) —
   // the renderer relocated them off the entity objects so undo can't drag them. A legacy
   // snapshot (old export/backup) may still embed them on the chapter/character objects:
   // accept either, map first. Storage is unchanged — they land on the entity-row columns.
-  const critiquesMap = orElse(pyGet(snap, "chapterCritiques"), {});
-  const rkMap = orElse(pyGet(snap, "chapterReaderKnowledge"), {});
-  const mrMap = orElse(pyGet(snap, "chapterMultiReader"), {});
-  const auditsMap = orElse(pyGet(snap, "characterAudits"), {});
+  const critiquesMap = pyOr(pyGet(snap, "chapterCritiques"), {});
+  const rkMap = pyOr(pyGet(snap, "chapterReaderKnowledge"), {});
+  const mrMap = pyOr(pyGet(snap, "chapterMultiReader"), {});
+  const auditsMap = pyOr(pyGet(snap, "characterAudits"), {});
 
   const add = (table, row) => h.insert(table, { project_id: projectId, ...row });
 
   // parts → chapters → chapter_strands
-  for (const [pi, part] of pyIter(orElse(pyGet(snap, "parts"), [])).entries()) {
+  for (const [pi, part] of pyIter(pyOr(pyGet(snap, "parts"), [])).entries()) {
     const pid = s_(pyGet(part, "id"));
     add("parts", { id: pid, position: pi, title: s_(pyGet(part, "title")) });
-    for (const [ci, ch] of pyIter(orElse(pyGet(part, "chapters"), [])).entries()) {
+    for (const [ci, ch] of pyIter(pyOr(pyGet(part, "chapters"), [])).entries()) {
       const chid = s_(pyGet(ch, "id"));
       add("chapters", {
         id: chid,
@@ -337,25 +233,25 @@ function decomposeIn(h, projectId, snapIn) {
         num: i_(pyGet(ch, "num")),
         title: s_(pyGet(ch, "title")),
         words: i_(pyGet(ch, "words")),
-        status: s_(orElse(pyGet(ch, "status"), "todo")),
+        status: s_(pyOr(pyGet(ch, "status"), "todo")),
         is_voice_canon: voiceCanon.has(chid),
         critique: jsonOrNone(pyGet(critiquesMap, chid, pyGet(ch, "critique"))),
         reader_knowledge: jsonOrNone(pyGet(rkMap, chid, pyGet(ch, "readerKnowledge"))),
         multi_reader: jsonOrNone(pyGet(mrMap, chid, pyGet(ch, "multiReader"))),
       });
-      for (const [li, sid] of pyIter(orElse(pyGet(ch, "strands"), [])).entries()) {
+      for (const [li, sid] of pyIter(pyOr(pyGet(ch, "strands"), [])).entries()) {
         add("chapter_strands", { chapter_id: chid, strand_id: s_(sid), position: li });
       }
     }
   }
 
   // scenes → scene_links
-  for (const [chid, sceneList] of pyItems(orElse(pyGet(snap, "scenes"), {}))) {
-    for (const [si, scn] of pyIter(orElse(sceneList, [])).entries()) {
+  for (const [chid, sceneList] of pyItems(pyOr(pyGet(snap, "scenes"), {}))) {
+    for (const [si, scn] of pyIter(pyOr(sceneList, [])).entries()) {
       const sid = s_(pyGet(scn, "id"));
       add("scenes", { id: sid, chapter_id: s_(chid), position: si, title: s_(pyGet(scn, "title")), body: s_(pyGet(scn, "body")) });
       for (const [plural, singular] of Object.entries(LINK_PLURAL)) {
-        for (const [li, r] of pyIter(orElse(pyGet(scn, plural), [])).entries()) {
+        for (const [li, r] of pyIter(pyOr(pyGet(scn, plural), [])).entries()) {
           add("scene_links", { scene_id: sid, kind: singular, ref_id: s_(r), position: li });
         }
       }
@@ -363,8 +259,8 @@ function decomposeIn(h, projectId, snapIn) {
   }
 
   // characters (+ extras pulled from the characterExtras map)
-  const extrasMap = orElse(pyGet(snap, "characterExtras"), {});
-  for (const [i, c] of pyIter(orElse(pyGet(snap, "characters"), [])).entries()) {
+  const extrasMap = pyOr(pyGet(snap, "characterExtras"), {});
+  for (const [i, c] of pyIter(pyOr(pyGet(snap, "characters"), [])).entries()) {
     const cid = s_(pyGet(c, "id"));
     add("characters", {
       id: cid,
@@ -377,52 +273,52 @@ function decomposeIn(h, projectId, snapIn) {
       life_status: s_(pyGet(c, "lifeStatus")),
       one_liner: s_(pyGet(c, "oneLiner")),
       role: s_(pyGet(c, "role")),
-      aliases: pyJson(orElse(pyGet(c, "aliases"), [])),
-      tags: pyJson(orElse(pyGet(c, "tags"), [])),
+      aliases: pyJson(pyOr(pyGet(c, "aliases"), [])),
+      tags: pyJson(pyOr(pyGet(c, "tags"), [])),
       extras: jsonOrNone(pyGet(extrasMap, cid)),
       audit: jsonOrNone(pyGet(auditsMap, cid, pyGet(c, "audit"))),
     });
   }
 
-  for (const [i, loc] of pyIter(orElse(pyGet(snap, "locations"), [])).entries()) {
+  for (const [i, loc] of pyIter(pyOr(pyGet(snap, "locations"), [])).entries()) {
     add("locations", {
       id: s_(pyGet(loc, "id")),
       position: i,
       name: s_(pyGet(loc, "name")),
       kind: s_(pyGet(loc, "kind")),
       note: s_(pyGet(loc, "note")),
-      tags: pyJson(orElse(pyGet(loc, "tags"), [])),
+      tags: pyJson(pyOr(pyGet(loc, "tags"), [])),
     });
   }
 
-  for (const [i, obj] of pyIter(orElse(pyGet(snap, "objects"), [])).entries()) {
+  for (const [i, obj] of pyIter(pyOr(pyGet(snap, "objects"), [])).entries()) {
     add("objects", {
       id: s_(pyGet(obj, "id")),
       position: i,
       name: s_(pyGet(obj, "name")),
       kind: s_(pyGet(obj, "kind")),
       note: s_(pyGet(obj, "note")),
-      tags: pyJson(orElse(pyGet(obj, "tags"), [])),
+      tags: pyJson(pyOr(pyGet(obj, "tags"), [])),
     });
   }
 
   // groups → group_members (member display name dropped; resolved on assemble)
-  for (const [i, g] of pyIter(orElse(pyGet(snap, "groups"), [])).entries()) {
+  for (const [i, g] of pyIter(pyOr(pyGet(snap, "groups"), [])).entries()) {
     const gid = s_(pyGet(g, "id"));
     add("groups", { id: gid, position: i, name: s_(pyGet(g, "name")), blurb: s_(pyGet(g, "blurb")), color: s_(pyGet(g, "color")) });
-    for (const [mi, m] of pyIter(orElse(pyGet(g, "members"), [])).entries()) {
+    for (const [mi, m] of pyIter(pyOr(pyGet(g, "members"), [])).entries()) {
       add("group_members", { group_id: gid, kind: s_(pyGet(m, "kind")), ref_id: s_(pyGet(m, "id")), position: mi });
     }
   }
 
-  for (const [i, n] of pyIter(orElse(pyGet(snap, "notes"), [])).entries()) {
-    const anchor = orElse(pyGet(n, "anchor"), {});
+  for (const [i, n] of pyIter(pyOr(pyGet(snap, "notes"), [])).entries()) {
+    const anchor = pyOr(pyGet(n, "anchor"), {});
     add("notes", {
       id: s_(pyGet(n, "id")),
       position: i,
       title: s_(pyGet(n, "title")),
       body: s_(pyGet(n, "body")),
-      tag: s_(orElse(pyGet(n, "tag"), "note")),
+      tag: s_(pyOr(pyGet(n, "tag"), "note")),
       updated: s_(pyGet(n, "updated")),
       anchor_chapter_id: ref(pyGet(anchor, "chapterId")),
       anchor_scene_id: ref(pyGet(anchor, "sceneId")),
@@ -430,7 +326,7 @@ function decomposeIn(h, projectId, snapIn) {
   }
 
   // strands → strand_beats
-  for (const [i, st] of pyIter(orElse(pyGet(snap, "strands"), [])).entries()) {
+  for (const [i, st] of pyIter(pyOr(pyGet(snap, "strands"), [])).entries()) {
     const sid = s_(pyGet(st, "id"));
     add("strands", {
       id: sid,
@@ -439,9 +335,9 @@ function decomposeIn(h, projectId, snapIn) {
       color: s_(pyGet(st, "color")),
       blurb: s_(pyGet(st, "blurb")),
       body: s_(pyGet(st, "body")),
-      status: s_(orElse(pyGet(st, "status"), "open")),
+      status: s_(pyOr(pyGet(st, "status"), "open")),
     });
-    for (const [bi, b] of pyIter(orElse(pyGet(st, "beats"), [])).entries()) {
+    for (const [bi, b] of pyIter(pyOr(pyGet(st, "beats"), [])).entries()) {
       add("strand_beats", {
         id: s_(pyGet(b, "id")),
         strand_id: sid,
@@ -454,7 +350,7 @@ function decomposeIn(h, projectId, snapIn) {
     }
   }
 
-  for (const [i, w] of pyIter(orElse(pyGet(snap, "worldbuilding"), [])).entries()) {
+  for (const [i, w] of pyIter(pyOr(pyGet(snap, "worldbuilding"), [])).entries()) {
     add("worldbuilding", {
       id: s_(pyGet(w, "id")),
       position: i,
@@ -464,12 +360,12 @@ function decomposeIn(h, projectId, snapIn) {
       words: i_(pyGet(w, "words")),
       summary: s_(pyGet(w, "summary")),
       body: s_(pyGet(w, "body")),
-      tags: pyJson(orElse(pyGet(w, "tags"), [])),
-      related: pyJson(orElse(pyGet(w, "related"), [])),
+      tags: pyJson(pyOr(pyGet(w, "tags"), [])),
+      related: pyJson(pyOr(pyGet(w, "related"), [])),
     });
   }
 
-  for (const [i, c] of pyIter(orElse(pyGet(snap, "worldbuildingCategories"), [])).entries()) {
+  for (const [i, c] of pyIter(pyOr(pyGet(snap, "worldbuildingCategories"), [])).entries()) {
     add("worldbuilding_categories", {
       id: s_(pyGet(c, "id")),
       position: i,
@@ -479,18 +375,18 @@ function decomposeIn(h, projectId, snapIn) {
     });
   }
 
-  for (const [i, st] of pyIter(orElse(pyGet(snap, "statuses"), [])).entries()) {
+  for (const [i, st] of pyIter(pyOr(pyGet(snap, "statuses"), [])).entries()) {
     add("statuses", { id: s_(pyGet(st, "id")), position: i, label: s_(pyGet(st, "label")), color: s_(pyGet(st, "color")) });
   }
 
-  for (const [kind, items] of pyItems(orElse(pyGet(snap, "tagVocabularies"), {}))) {
-    for (const [i, t] of pyIter(orElse(items, [])).entries()) {
+  for (const [kind, items] of pyItems(pyOr(pyGet(snap, "tagVocabularies"), {}))) {
+    for (const [i, t] of pyIter(pyOr(items, [])).entries()) {
       add("tag_vocab", { id: s_(pyGet(t, "id")), kind: s_(kind), position: i, label: s_(pyGet(t, "label")) });
     }
   }
 
-  for (const [i, [aid, docIn]] of pyItems(orElse(pyGet(snap, "architecture"), {})).entries()) {
-    const doc = orElse(docIn, {});
+  for (const [i, [aid, docIn]] of pyItems(pyOr(pyGet(snap, "architecture"), {})).entries()) {
+    const doc = pyOr(docIn, {});
     add("architecture", {
       id: s_(aid),
       position: i,
@@ -501,8 +397,8 @@ function decomposeIn(h, projectId, snapIn) {
     });
   }
 
-  for (const [entityId, imgList] of pyItems(orElse(pyGet(snap, "images"), {}))) {
-    for (const [i, img] of pyIter(orElse(imgList, [])).entries()) {
+  for (const [entityId, imgList] of pyItems(pyOr(pyGet(snap, "images"), {}))) {
+    for (const [i, img] of pyIter(pyOr(imgList, [])).entries()) {
       const rec = Object.fromEntries(pyItems(img).filter(([k]) => k !== "id" && k !== "addedAt"));
       add("images", {
         id: s_(pyGet(img, "id")),
@@ -515,8 +411,8 @@ function decomposeIn(h, projectId, snapIn) {
     }
   }
 
-  for (const [entityId, evList] of pyItems(orElse(pyGet(snap, "events"), {}))) {
-    for (const [i, ev] of pyIter(orElse(evList, [])).entries()) {
+  for (const [entityId, evList] of pyItems(pyOr(pyGet(snap, "events"), {}))) {
+    for (const [i, ev] of pyIter(pyOr(evList, [])).entries()) {
       add("events", {
         id: s_(pyGet(ev, "id")),
         entity_kind: "",
@@ -529,8 +425,8 @@ function decomposeIn(h, projectId, snapIn) {
     }
   }
 
-  for (const [kind, items] of pyItems(orElse(pyGet(snap, "trash"), {}))) {
-    for (const it of pyIter(orElse(items, []))) {
+  for (const [kind, items] of pyItems(pyOr(pyGet(snap, "trash"), {}))) {
+    for (const it of pyIter(pyOr(items, []))) {
       add("trash", { id: s_(pyGet(it, "id")), kind: s_(kind), payload: pyJson(it), deleted_at: optI(pyGet(it, "deletedAt")) });
     }
   }
@@ -547,7 +443,7 @@ function decomposeIn(h, projectId, snapIn) {
     ["beatSheet", "beatSheets"],
     ["relationshipArc", "relationshipArcs"],
   ]) {
-    for (const [k, v] of pyItems(orElse(pyGet(snap, mapkey), {}))) {
+    for (const [k, v] of pyItems(pyOr(pyGet(snap, mapkey), {}))) {
       add("project_artifacts", { kind, key: s_(k), data: pyJson(v), updated_at: savedAt });
     }
   }
@@ -821,9 +717,9 @@ function extFor(mime) {
 function mapImageRecords(snap, fn) {
   const out = { ...snap };
   out.images = Object.fromEntries(
-    pyItems(orElse(pyGet(snap, "images"), {})).map(([eid, lst]) => [eid, pyIter(orElse(lst, [])).map((rec) => fn(rec))]),
+    pyItems(pyOr(pyGet(snap, "images"), {})).map(([eid, lst]) => [eid, pyIter(pyOr(lst, [])).map((rec) => fn(rec))]),
   );
-  const proj = { ...orElse(pyGet(snap, "project"), {}) };
+  const proj = { ...pyOr(pyGet(snap, "project"), {}) };
   if (truthy(pyGet(proj, "coverImage"))) proj.coverImage = fn(proj.coverImage);
   out.project = proj;
   return out;

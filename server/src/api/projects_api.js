@@ -11,8 +11,9 @@
 
 import { HttpError } from "@delebash/llm-runner/platform/errors";
 import { T } from "@delebash/llm-runner/platform/models";
+import { pyIter, pyOr } from "@delebash/llm-runner/platform/py";
 import * as bookIo from "../book_io.js";
-import { orElse, pyGet, pyIter } from "../book_io.js";
+import { pyGet } from "../book_io.js";
 import { DEMO_PROJECT_ID } from "../database/demo_seed.js";
 import { createDemoProject } from "../database/seed.js";
 import { getDb } from "../database/session.js";
@@ -46,7 +47,7 @@ export async function router(app) {
   app.get("/v1/projects/:project_id", async (req) => assembleOr404(getDb(), req.params.project_id));
 
   app.put("/v1/projects/:project_id", DICT_BODY, async (req, reply) => {
-    bookIo.decompose(getDb(), req.params.project_id, orElse(req.body, {}));
+    bookIo.decompose(getDb(), req.params.project_id, pyOr(req.body, {}));
     return reply.code(204).send();
   });
 
@@ -60,16 +61,16 @@ export async function router(app) {
   app.get("/v1/projects/:project_id/book", async (req) => assembleOr404(getDb(), req.params.project_id));
 
   app.put("/v1/projects/:project_id/book", DICT_BODY, async (req, reply) => {
-    bookIo.decompose(getDb(), req.params.project_id, orElse(req.body, {}));
+    bookIo.decompose(getDb(), req.params.project_id, pyOr(req.body, {}));
     return reply.code(204).send();
   });
 
   app.get("/v1/projects/:project_id/chapters", async (req) => {
     const snap = assembleOr404(getDb(), req.params.project_id);
-    const scenes = orElse(pyGet(snap, "scenes"), {});
+    const scenes = pyOr(pyGet(snap, "scenes"), {});
     const out = [];
-    for (const part of pyIter(orElse(pyGet(snap, "parts"), []))) {
-      for (const ch of pyIter(orElse(pyGet(part, "chapters"), []))) {
+    for (const part of pyIter(pyOr(pyGet(snap, "parts"), []))) {
+      for (const ch of pyIter(pyOr(pyGet(part, "chapters"), []))) {
         out.push({
           id: pyGet(ch, "id"),
           num: pyGet(ch, "num"),
@@ -78,7 +79,7 @@ export async function router(app) {
           status: pyGet(ch, "status"),
           partId: pyGet(part, "id"),
           partTitle: pyGet(part, "title"),
-          sceneCount: orElse(pyGet(scenes, pyGet(ch, "id"), []), []).length,
+          sceneCount: pyOr(pyGet(scenes, pyGet(ch, "id"), []), []).length,
         });
       }
     }
@@ -86,6 +87,6 @@ export async function router(app) {
   });
 
   app.get("/v1/projects/:project_id/characters", async (req) =>
-    orElse(pyGet(assembleOr404(getDb(), req.params.project_id), "characters"), []),
+    pyOr(pyGet(assembleOr404(getDb(), req.params.project_id), "characters"), []),
   );
 }
