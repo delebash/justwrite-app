@@ -263,6 +263,13 @@ STATE:  DECIDED 2026-10-08, step by step (the record, with every option shown, i
            now (adding it to the family list would fail JustVoice's and docgen's tests)." So: the
            phone runs the book, its images and versions, sync, and online AI providers; the four
            choices stand.
+        9. DECIDED 2026-10-08 (the phone's plan, `../just-llm-runner/docs/plans/2026-10-08-the-phone.md`)
+           — the user: "keep going using yo9ur recs, think on your recs twice do it unitl the whole conversions is complete including the move to quasar dont stop", then "go". So the plan's leans stand, two of them changed on the second
+           think: images are stored in scenes by id; the worker's DOM for scene merges is
+           linkedom; AI calls go DIRECT from the worker (they stream) and fall back to native HTTP
+           only for a provider that refuses a webview's call (native HTTP can't stream); the phone's
+           screens are built after the kit's controls move to Quasar (Q3), on Quasar's mobile
+           components, not gated on a separate mock.
 WHY:    a writer works on the phone and the desktop with no network, and moves changes without
         setting up a server; one design any family app can add.
 NOT:    shape A, one cloud server with no offline work (the user, above) · the live SQLite file
