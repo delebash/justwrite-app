@@ -29,6 +29,7 @@ import { UiButton } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiSegmented } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
+import { bookIndexOn } from "../services/rag/vectorStore.js";
 
 const props = defineProps({
   id: { type: String, default: "" },
@@ -846,7 +847,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
         </template>
       </div>
       <div class="pane-actions">
-        <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
+        <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
           v-tooltip.bottom="$t('chapters.header.askTheBookTooltip', { num: ch.num })">
           <Icon name="Chat" :size="14" /> {{ $t('sidebar.nav.askTheBook') }}
         </UiButton>

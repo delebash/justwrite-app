@@ -18,6 +18,7 @@ import { Breadcrumb } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
 import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
+import { bookIndexOn } from "../services/rag/vectorStore.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -182,7 +183,7 @@ function onRowClick(event) {
             @input="update('name', $event.target.value)" />
         </div>
         <div class="pane-actions">
-          <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
+          <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
             v-tooltip.bottom="$t('common.askTheBookAbout', { title: g.name })">
             <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
           </UiButton>

@@ -31,6 +31,7 @@ import { HelpTrigger } from "@delebash/llm-ui";
 import { confirmDialog } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
 import { saveImage } from "../services/imageStore.js";
+import { bookIndexOn } from "../services/rag/vectorStore.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const { t } = useI18n({ useScope: "global" });
@@ -491,11 +492,11 @@ function onRowClick(event) {
             @input="updateField('name', $event.target.value)" />
         </div>
         <div class="pane-actions">
-          <UiButton intent="ghost" size="small" data-panel-toggle @click="talkToCharacter"
+          <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="talkToCharacter"
             v-tooltip.bottom="$t('characters.detail.talkToTooltip', { name: ch.name })">
             <Icon name="Sparkle" :size="14" /> {{ $t("characters.detail.talkTo", { name: ch.name?.split(/\s+/)[0] || $t("characters.detail.talkToFallback") }) }}
           </UiButton>
-          <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
+          <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
             v-tooltip.bottom="$t('characters.detail.askTheBookTooltip', { name: ch.name })">
             <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
           </UiButton>

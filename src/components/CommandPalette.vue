@@ -19,6 +19,7 @@ import { useUiStore } from "../stores/ui.js";
 import { useVersionsStore } from "../stores/versions.js";
 import { promptDialog, openHelp } from "@delebash/llm-ui";
 import { HELP_TOC } from "../services/helpDocs.js";
+import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { Icon } from "@delebash/llm-ui";
 
 const router = useRouter();
@@ -67,7 +68,7 @@ const NAV_ITEMS = [
   { id: "nav:trash",    label: "Trash",                sublabel: "Restore deleted",     icon: "Trash",      to: "/trash" },
   { id: "nav:settings", label: "Settings",             sublabel: "Preferences",         icon: "Settings",   to: "/settings" },
   { id: "nav:usage",    label: "AI usage",             sublabel: "Tokens + cost ledger",icon: "Chart",      to: "/settings/usage" },
-];
+].filter((n) => bookIndexOn || n.id !== "nav:ask"); // Ask the book needs the search index
 
 const ENTITY_ITEMS = computed(() => {
   const out = [];

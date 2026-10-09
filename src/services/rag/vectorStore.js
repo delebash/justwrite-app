@@ -7,6 +7,12 @@
 // server/src/api/rag_api.js + server/src/rag_search.js.
 
 import { get, post, put, del } from "@delebash/llm-ui";
+import { isPhone } from "../native.js";
+
+/** Does this app have the search index? The phone's in-app server has no vector store (the kit's
+ * phone plan §1), so there the features that search the book by meaning — Ask the book, talking
+ * to a character — and the index's own controls hide. */
+export const bookIndexOn = !isPhone();
 
 // ─── Index metadata ─────────────────────────────────────────────────────
 

@@ -26,6 +26,7 @@ import { bootRouting } from "../services/routingBackend.js";
 import { tooltipDirective } from "@delebash/llm-ui";
 import { i18n, detectLocale, setLocale as setI18nLocale } from "../i18n/index.js";
 import { startAutoRebuildWatcher } from "../services/rag/autoIndex.js";
+import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { startWarmOnBoot } from "@delebash/llm-ui";
 
 // The whole shared LLM front end, in ONE call (the UI twin of the server's
@@ -66,6 +67,9 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
     // catalog's "Open folder" rides.
     external: { open: openUrl, openPath },
     // No catalogCopy / quickSetupCopy: the kit defaults ARE JustWrite's words.
+    // The phone runs online providers only, and has no search index (the kit's phone plan §1):
+    // the kit's AI surfaces leave out the local engine's and the embeddings' parts.
+    ...(phone ? { capabilities: { localEngine: false, embeddings: false } } : {}),
   });
 
   // The native "save as", wired ONCE (2026-08-15) — every export in the app and in
@@ -244,6 +248,6 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
 
   // Subscribe to project mutations and silently re-embed scenes a minute
   // after the last edit when ai.autoRebuildRagIndex is on. Safe to call
-  // unconditionally — the watcher itself checks the setting before firing.
-  startAutoRebuildWatcher();
+  // wherever the search index exists — the watcher itself checks the setting before firing.
+  if (bookIndexOn) startAutoRebuildWatcher();
 });

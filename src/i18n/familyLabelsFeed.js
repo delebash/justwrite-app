@@ -54,6 +54,7 @@ export function buildFamilyLabels() {
       eyebrow: t("family.aiOffer.eyebrow"),
       title: t("family.aiOffer.title"),
       body: t("family.aiOffer.body", { appName: "{appName}" }),
+      bodyOnline: t("family.aiOffer.bodyOnline", { appName: "{appName}" }),
       quickSetup: t("family.aiOffer.quickSetup"),
       quickSetupSub: t("family.aiOffer.quickSetupSub"),
       connectProvider: t("family.aiOffer.connectProvider"),

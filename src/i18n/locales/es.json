@@ -107,6 +107,7 @@
       "eyebrow": "Opcional",
       "title": "Configurar funciones de IA",
       "body": "La IA de {appName} se ejecuta donde tú elijas: en este PC, de forma privada y gratuita, o a través de un proveedor en línea. Puedes configurar esto en cualquier momento desde la página de IA.",
+      "bodyOnline": "La IA de {appName} funciona a través del proveedor en línea que tú elijas, con tu propia clave. Puedes configurar esto en cualquier momento desde la página de IA.",
       "quickSetup": "Ejecutar configuración rápida",
       "quickSetupSub": "Local: usa este PC, privado y gratuito",
       "connectProvider": "Conectar un proveedor en línea",

@@ -18,6 +18,7 @@ import { UiTag } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
+import { bookIndexOn } from "../services/rag/vectorStore.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -210,7 +211,7 @@ function onRowClick(event) {
             :value="article.title" @input="update('title', $event.target.value)" />
         </div>
         <div class="pane-actions">
-          <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
+          <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
             v-tooltip.bottom="$t('common.askTheBookAbout', { title: article.title })">
             <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
           </UiButton>

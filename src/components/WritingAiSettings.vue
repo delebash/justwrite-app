@@ -13,6 +13,7 @@ import { useAiStore } from "../stores/ai.js";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
 import { buildVoiceFingerprint } from "../services/voiceFingerprint.js";
+import { bookIndexOn } from "../services/rag/vectorStore.js";
 
 const ai = useAiStore();
 const ui = useUiStore();
@@ -40,7 +41,8 @@ const voicePreview = computed(() => buildVoiceFingerprint(project, { targetWords
 
 <template>
   <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
-    <!-- ─── Embeddings / RAG ────────────────────────────── -->
+    <!-- ─── Embeddings / RAG (where the app has the search index) ── -->
+    <template v-if="bookIndexOn">
     <div class="t-eyebrow">{{ $t("writingAi.embeddingsEyebrow") }}</div>
     <div class="card">
       <div class="card-title">{{ $t("writingAi.indexCardTitle") }}</div>
@@ -56,6 +58,7 @@ const voicePreview = computed(() => buildVoiceFingerprint(project, { targetWords
         </span>
       </label>
     </div>
+    </template>
 
     <!-- Three-alternative streaming -->
     <div class="card">

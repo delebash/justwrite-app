@@ -10,7 +10,7 @@ import { readSetting, writeSetting } from "../services/settings.js";
 import { exportProject, importProject, saveBackupBlob, canSaveFiles, canPickBooks } from "../services/bookTransfer.js";
 import { serverDataDir, chooserDir, rememberDir } from "../services/chooserDirs.js";
 import {
-  hasShell, pickDirectory, shellVersion, storageGetRoot, storageRelocate,
+  hasShell, isPhone, pickDirectory, shellVersion, storageGetRoot, storageRelocate,
   setKeepRunning as nativeSetKeepRunning,
 } from "../services/native.js";
 import * as autosaveApi from "../services/autosaveApi.js";
@@ -33,7 +33,7 @@ import {
   BUTTON_RADIUS_OPTIONS, BUTTON_DENSITY_OPTIONS, BUTTON_LABEL_CASE_OPTIONS,
 } from "../services/appearance.js";
 import { AVAILABLE_LOCALES, setLocale as setI18nLocale } from "../i18n/index.js";
-import { SETTINGS_SECTION_IDS } from "../services/settingsSections.js";
+import { PHONE_HIDDEN_SECTIONS, SETTINGS_SECTION_IDS } from "../services/settingsSections.js";
 // The family Sync screen — by path, not the kit barrel (it needs `qrcode`; SyncPanel.vue's header).
 import SyncPanel from "@delebash/llm-ui/components/SyncPanel.vue";
 import { useSyncPanel } from "../composables/useSyncPanel.js";
@@ -70,13 +70,17 @@ const syncPanel = useSyncPanel();
 // read "Server"; the id and position now match what the tab actually holds.
 // The id list lives in services/settingsSections.js so the canon contract test asserts
 // EXACTLY what renders (slice 11).
+const SECTION_IDS = isPhone() ? SETTINGS_SECTION_IDS.filter((id) => !PHONE_HIDDEN_SECTIONS.includes(id)) : SETTINGS_SECTION_IDS;
 const SECTIONS = computed(() =>
-  SETTINGS_SECTION_IDS.map((id) => ({ id, label: t(`settings.sections.${id}`) })),
+  SECTION_IDS.map((id) => ({ id, label: t(`settings.sections.${id}`) })),
 );
 
 // Pre-batch deep links said /settings/general — keep them landing on the row set
-// they meant (the server section).
-const normalizeSection = (s) => (s === "general" ? "server" : s);
+// they meant (the server section). A section this app leaves out (the phone's) opens the first.
+const normalizeSection = (s) => {
+  const id = s === "general" ? "server" : s;
+  return SETTINGS_SECTION_IDS.includes(id) && !SECTION_IDS.includes(id) ? SECTION_IDS[0] : id;
+};
 const active = ref(normalizeSection(props.section) || "project");
 watch(() => props.section, (s) => { if (s) active.value = normalizeSection(s); });
 
@@ -267,7 +271,7 @@ async function loadAuthCfg() {
     requireLoopbackAuth.value = !!a.requireForLoopback;
   } catch { /* server down — the section shows empty; reopening reloads */ }
 }
-loadAuthCfg();
+if (SECTION_IDS.includes("server")) loadAuthCfg();
 async function saveAuthCfg() {
   try {
     const a = await put("/v1/server-auth", {

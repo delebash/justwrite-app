@@ -120,6 +120,15 @@ html[data-theme="dark"] .titlebar {
 .titlebar-right button:hover svg,
 .titlebar-menu:hover svg,
 .lu-titlebar-btn:not(:disabled):hover svg { stroke-width: 2.3; }
+/* At phone width (Quasar's xs) the bar is ☰ · Back · the title on one line · Undo · Redo · AI
+   status · Search (the kit's phone plan, slice 5): Forward leaves (the title bar's own controls
+   carry Quasar's gt-xs). */
+@media (max-width: $breakpoint-xs-max) {
+  .titlebar { padding: 0 6px; gap: 2px; }
+  .titlebar__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lu-titlebar-forward { display: none; }
+  .titlebar-right { gap: 2px; }
+}
 
 /* ============================================================
    App layout — the sidebar in the layout's drawer
@@ -607,6 +616,12 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
   margin: 0;
 }
 .pane-actions { display: flex; gap: 6px; align-items: center; }
+/* At phone width the title keeps its row and the actions wrap on the row below (the kit's
+   PaneHeader does the same; this covers the detail pages' own headers). */
+@media (max-width: $breakpoint-xs-max) {
+  .pane-header { flex-wrap: wrap; row-gap: 8px; padding: 12px 16px; }
+  .pane-actions { order: 3; flex-basis: 100%; flex-wrap: wrap; }
+}
 
 .pane-body {
   flex: 1; min-height: 0;
@@ -631,6 +646,10 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
   overflow: hidden;
 }
 .pane-card > .scrollarea { flex: 1; min-height: 0; }
+/* At phone width the card is the page: no margin, frame or shadow around it. */
+@media (max-width: $breakpoint-xs-max) {
+  .pane-card { margin: 0; border: 0; border-radius: 0; box-shadow: none; }
+}
 
 /* ============================================================
    Buttons & form elements

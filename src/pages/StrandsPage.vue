@@ -20,6 +20,7 @@ import { Breadcrumb } from "@delebash/llm-ui";
 import { promptDialog } from "@delebash/llm-ui";
 import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
+import { bookIndexOn } from "../services/rag/vectorStore.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -312,7 +313,7 @@ const tableRows = computed(() =>
           </div>
         </div>
         <div class="pane-actions">
-          <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
+          <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
             v-tooltip.bottom="`Ask the book about ${s.name}`">
             <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
           </UiButton>

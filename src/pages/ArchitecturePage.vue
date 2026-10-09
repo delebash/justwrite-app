@@ -12,6 +12,7 @@ import { UiTable } from "@delebash/llm-ui";
 import StatusSelect from "../components/StatusSelect.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
+import { bookIndexOn } from "../services/rag/vectorStore.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -109,7 +110,7 @@ function onRowClick(event) {
           <h1 class="arch-title">{{ docMeta(doc.id).title }}</h1>
         </div>
         <div class="pane-actions">
-          <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
+          <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
             v-tooltip.bottom="$t('architecture.askTheBookAbout', { title: doc.title })">
             <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
           </UiButton>

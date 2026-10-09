@@ -22,6 +22,7 @@ import { pushToast, AiSetupOffer } from "@delebash/llm-ui";
 import CommandPalette from "../components/CommandPalette.vue";
 import ProjectReplaceModal from "../components/ProjectReplaceModal.vue";
 import ChatPanel from "../components/ChatPanel.vue";
+import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { HelpDrawer } from "@delebash/llm-ui";
 import KeyboardCheatsheet from "../components/KeyboardCheatsheet.vue";
 import WhatsNewModal from "../components/WhatsNewModal.vue";
@@ -108,8 +109,8 @@ function onKey(e) {
     palette.value?.open();
     return;
   }
-  // ⌘J / Ctrl+J → toggle the manuscript chat panel.
-  if (key === "j") {
+  // ⌘J / Ctrl+J → toggle the manuscript chat panel (where the app has the search index).
+  if (key === "j" && bookIndexOn) {
     e.preventDefault();
     ui.toggleChatPanel();
     return;
@@ -264,7 +265,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
       @close="ui.closeAiSetupPrompt()"
       @quick-setup="router.push('/ai?quicksetup=1')"
       @connect-provider="router.push('/ai?providers=online')" />
-    <ChatPanel v-model="ui.chatPanelOpen" />
+    <ChatPanel v-if="bookIndexOn" v-model="ui.chatPanelOpen" />
     <HelpDrawer />
     <KeyboardCheatsheet />
     <WhatsNewModal />

@@ -20,6 +20,7 @@ import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
+import { bookIndexOn } from "../services/rag/vectorStore.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -193,7 +194,7 @@ function onRowClick(event) {
             @input="update('name', $event.target.value)" />
         </div>
         <div class="pane-actions">
-          <UiButton intent="ghost" size="small" data-panel-toggle @click="askTheBook"
+          <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
             v-tooltip.bottom="$t('common.askTheBookAbout', { title: obj.name })">
             <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
           </UiButton>

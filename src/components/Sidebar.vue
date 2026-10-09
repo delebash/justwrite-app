@@ -7,6 +7,7 @@ import { useProjectStore } from "../stores/project.js";
 import { promptDialog, confirmDialog, useAiTasksNav } from "@delebash/llm-ui";
 import { promptNewProject, openTutorialProject } from "../services/projectStart.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
+import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
@@ -153,7 +154,7 @@ const NAV = [
   // (FLAGGED — matches the panel's title; "AI queue" on the user's word).
   { id: "ai-tasks", label: "sidebar.nav.aiTasks", icon: "Sparkle", action: "toggleAiTasksPanel" },
   { id: "help",      label: "sidebar.nav.help",       icon: "Help",     path: "/help", activeName: "help" },
-];
+].filter((n) => bookIndexOn || n.id !== "ask"); // Ask the book needs the search index
 
 // Resolve an entity's status id → { statusLabel, statusColor } for the
 // nav. Unknown/unset ids yield empty strings (nav shows nothing).

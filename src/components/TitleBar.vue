@@ -17,6 +17,7 @@ import { useRouter } from "vue-router";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
 import { THEME_PRESETS } from "../services/appearance.js";
+import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { Icon, AiStatusButton, TitleBar } from "@delebash/llm-ui";
 
 // `menu`: the layout is in its phone shape (the sidebar is a drawer that slides in) — the bar shows
@@ -97,7 +98,10 @@ function toggleChat() {
       </button>
     </template>
     <div class="titlebar-right">
-      <div class="theme-switcher" ref="themeWrap">
+      <!-- gt-xs (Quasar's): on a computer only — at phone width the bar keeps ☰, Back, the title,
+           Undo, Redo, AI status and Search (the kit's phone plan, slice 5); Settings → Appearance
+           has the theme and light/dark pickers. -->
+      <div class="theme-switcher gt-xs" ref="themeWrap">
         <button @click="toggleTheme" v-tooltip.bottom="`Theme · ${activePresetLabel}`">
           <Icon name="Palette" :size="13" />
         </button>
@@ -125,7 +129,7 @@ function toggleChat() {
           </div>
         </div>
       </div>
-      <div class="theme-switcher" ref="modeWrap">
+      <div class="theme-switcher gt-xs" ref="modeWrap">
         <button @click="toggleMode" v-tooltip.bottom="$t('titleBar.modeTooltip', { mode: modeLabel })">
           <Icon :name="modeIcon" :size="13" />
         </button>
@@ -139,7 +143,7 @@ function toggleChat() {
           </button>
         </div>
       </div>
-      <span class="titlebar-divider" />
+      <span class="titlebar-divider gt-xs" />
       <button data-undo @click="project.undoFor(undoDomains)" :disabled="!project.canUndoFor(undoDomains)"
         v-tooltip.bottom="project.canUndoFor(undoDomains) ? 'Undo · ⌘Z' : 'Nothing to undo on this page'">
         <Icon name="Refresh" :size="13" style="transform:scaleX(-1)" />
@@ -150,11 +154,11 @@ function toggleChat() {
       </button>
       <span class="titlebar-divider" />
       <AiStatusButton />
-      <span class="titlebar-divider" />
-      <button data-panel-toggle @click="toggleChat" :class="{ active: ui.chatPanelOpen }" v-tooltip.bottom="'Ask the book · ⌘J'">
+      <span class="titlebar-divider gt-xs" />
+      <button v-if="bookIndexOn" data-panel-toggle @click="toggleChat" :class="{ active: ui.chatPanelOpen }" v-tooltip.bottom="'Ask the book · ⌘J'">
         <Icon name="Chat" :size="13" />
       </button>
-      <button @click="ui.toggleSidebar" v-tooltip.bottom="ui.sidebarCollapsed ? 'Expand sidebar · ⌘\\' : 'Collapse sidebar · ⌘\\'">
+      <button class="gt-xs" @click="ui.toggleSidebar" v-tooltip.bottom="ui.sidebarCollapsed ? 'Expand sidebar · ⌘\\' : 'Collapse sidebar · ⌘\\'">
         <Icon name="SidebarToggle" :size="14" />
       </button>
       <router-link to="/search" custom v-slot="{ navigate }">
