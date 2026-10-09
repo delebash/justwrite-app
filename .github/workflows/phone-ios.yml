@@ -1,0 +1,90 @@
+# SPDX-License-Identifier: MIT
+# JustWrite on the iOS simulator (the phone plan's slice 6): the app built by Quasar's Capacitor
+# mode and Xcode for the simulator on GitHub's macOS runner, then driven through Appium's XCUITest
+# driver (e2e/phone-ios.js) — a fresh install, the tutorial book, the key screens photographed,
+# the book kept after the app is quit and reopened. The screenshots and the report are the run's
+# artifact. Manual only, like release.yml: the "Run workflow" button or `gh workflow run`.
+name: Phone (iOS simulator)
+on:
+  workflow_dispatch:
+defaults:
+  run:
+    shell: bash # -eo pipefail: a failed xcodebuild fails the step even through `| tail`
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 75
+    steps:
+      # The app needs the family kit and the sync engine beside it (server/package.json:
+      # file:../../just-llm-runner/server and file:../../just-sqlite-sync; quasar.config.js:
+      # ../just-llm-runner/ui), so all three are checked out side by side.
+      - uses: actions/checkout@v4
+        with:
+          path: justwrite-app
+      - uses: actions/checkout@v4
+        with:
+          repository: delebash/just-llm-runner
+          path: just-llm-runner
+      - uses: actions/checkout@v4
+        with:
+          repository: delebash/just-sqlite-sync
+          path: just-sqlite-sync
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            justwrite-app/package-lock.json
+            justwrite-app/src-capacitor/package-lock.json
+            justwrite-app/e2e/package-lock.json
+            just-llm-runner/server/package-lock.json
+            just-sqlite-sync/package-lock.json
+      - name: Install
+        run: |
+          (cd just-llm-runner/server && npm ci)
+          (cd just-sqlite-sync && npm ci --omit=dev)
+          (cd justwrite-app && npm ci)
+          (cd justwrite-app/src-capacitor && npm ci)
+          (cd justwrite-app/e2e && npm ci)
+      - name: Build the app for the simulator
+        working-directory: justwrite-app
+        run: |
+          # Quasar's CLI run as node (app-structure §Q.6): the UI and the in-app server's worker into
+          # src-capacitor/www, then `cap sync ios`; --skip-pkg leaves the Xcode build to the next line
+          node node_modules/@quasar/app-vite/bin/quasar.js build -m capacitor -T ios --skip-pkg
+          cd src-capacitor/ios/App
+          xcodebuild -project App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build | tail -25
+          echo "APP_PATH=$PWD/build/Build/Products/Debug-iphonesimulator/App.app" >> "$GITHUB_ENV"
+      - name: Boot a simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j | node -e '
+            let s = ""; process.stdin.on("data", (d) => (s += d)).on("end", () => {
+              const all = Object.entries(JSON.parse(s).devices)
+                .filter(([rt]) => rt.includes("iOS"))
+                .flatMap(([rt, ds]) => ds.map((d) => ({ ...d, rt })))
+                .filter((d) => d.name.startsWith("iPhone"));
+              all.sort((a, b) => (a.rt < b.rt ? 1 : -1));
+              console.log(all[0].udid);
+            });')
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+      - name: Start Appium (the XCUITest driver)
+        run: |
+          npm install -g appium@3.8.0
+          appium driver install xcuitest@12.13.2
+          nohup appium --log "$RUNNER_TEMP/appium.log" --log-no-colors >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:4723/status >/dev/null && exit 0; sleep 2; done
+          echo "Appium did not start"; exit 1
+      - name: Run it
+        working-directory: justwrite-app/e2e
+        run: node phone-ios.js "$RUNNER_TEMP/ios"
+      - name: Keep the screenshots and the logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator
+          path: |
+            ${{ runner.temp }}/ios
+            ${{ runner.temp }}/appium.log

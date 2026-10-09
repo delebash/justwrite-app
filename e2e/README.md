@@ -58,6 +58,19 @@ and shares it across the tests. Currently:
 The theme test is the suite's one write: your `ui` settings section is read before the suite
 and written back after it, so your own theme survives a run.
 
+### `npm run phone:ios` — the phone app on the iOS simulator
+
+`phone-ios.js` drives the phone app (Quasar's Capacitor mode) on a booted iOS simulator through
+Appium's XCUITest driver, with WebdriverIO as the client. It needs a Mac, so it runs on GitHub's
+macOS runner: `.github/workflows/phone-ios.yml` (manual — the Actions page's "Run workflow", or
+`gh workflow run phone-ios.yml`) builds the app for the simulator, boots one, starts Appium and
+runs it. A fresh install opens on the welcome screen; **Try the tutorial project** makes the book
+through the app's in-app server; Chapters, a scene in the editor, Characters, AI and
+Settings → Sync are photographed from the simulator's own display (`simctl io screenshot`); then
+the app is quit and reopened and the book must still be there. The screenshots and `report.json`
+are the run's `ios-simulator` artifact. On a Mac by hand: `SIM_UDID=<booted simulator>
+APP_PATH=<App.app> npm run phone:ios -- <outDir>`, with Appium on 127.0.0.1:4723.
+
 ## How it works
 
 1. `lib/driver.js` launches the unpackaged desktop app (Quasar's `dist/electron/UnPackaged`, run

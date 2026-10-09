@@ -10,6 +10,7 @@
     "@capacitor/cli": "^8.5.3",
     "@capacitor/core": "^8.5.3",
     "@capacitor/filesystem": "^8.1.4",
+    "@capacitor/ios": "^8.5.3",
     "@capacitor/share": "^8.0.3"
   },
   "allowScripts": {}
