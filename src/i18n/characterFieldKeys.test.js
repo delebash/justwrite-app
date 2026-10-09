@@ -25,7 +25,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import en from "./locales/en.json";
 
-const VIEW = fileURLToPath(new URL("../views/CharactersView.vue", import.meta.url));
+const VIEW = fileURLToPath(new URL("../pages/CharactersPage.vue", import.meta.url));
 const src = readFileSync(VIEW, "utf8");
 
 /** Resolve a dotted key path against the catalog, or undefined. */

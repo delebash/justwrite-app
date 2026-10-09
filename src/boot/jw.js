@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MIT
 // JustWrite — the renderer's start-up, as a Quasar boot file (app-structure §Q.4). Quasar creates
-// the app (root: App.vue), Pinia (stores/index.js) and the router (router/index.js), awaits this
-// file, then installs the router and mounts. Until the Quasar move (2026-10-08) this was
-// src/main.js, which created and mounted the app itself; the sequence below is unchanged.
+// the app (root: App.vue), Pinia (stores/index.js) and the router (router/index.js), runs the boot
+// files in quasar.config.js order (i18n.js, then this one), then installs the router and mounts.
+// The stylesheets (css/fonts.css, tokens.css, app.scss) are quasar.config.js's `css` list, as
+// Quasar's CLI wires them — the fonts first, so they land earliest in the emitted stylesheet.
+// Until the Quasar move (2026-10-08) this was src/main.js, which created and mounted the app
+// itself; the sequence below is unchanged.
 
-// The bundled type system, FIRST so it lands earliest in the emitted stylesheet — every
-// font the Appearance picker offers, self-hosted. This replaced the render-blocking
-// fonts.googleapis.com <link> in index.html (2026-07-24): a local-first app must not wait
-// on a network round trip to paint its first frame. Full reasoning: fonts.css's own header.
-import "../fonts.css";
 // Apply the default appearance synchronously so we don't render with the wrong
 // colour scheme during the boot tick below. The real persisted appearance is
 // reapplied once bootSettings() resolves.
@@ -24,10 +22,7 @@ import { watchSync } from "../services/projectApi.js";
 import { useSessionsStore } from "../stores/sessions.js";
 import { bootProviders } from "../services/providerBackend.js";
 import { bootRouting } from "../services/routingBackend.js";
-import { serverDown } from "../services/bootState.js";
 
-import "../styles/tokens.css";
-import "../styles/styles.css";
 import { tooltipDirective } from "@delebash/llm-ui";
 import { i18n, detectLocale, setLocale as setI18nLocale } from "../i18n/index.js";
 import { startAutoRebuildWatcher } from "../services/rag/autoIndex.js";
@@ -38,7 +33,7 @@ import { startWarmOnBoot } from "@delebash/llm-ui";
 // origin-aware base for the app transport AND the kit's LLM views (they were
 // separate configure* calls here, the exact per-step wiring the installer
 // exists to make un-forgettable), wires the external opener, and registers
-// <LlmUiHosts /> (Toast + AppDialog, mounted once in AppShell.vue).
+// <LlmUiHosts /> (Toast + AppDialog, mounted once in layouts/MainLayout.vue).
 import { installLlmUi, checkServer, configureFamilyLabels, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, setUiLocale } from "@delebash/llm-ui";
 import { hasShell, openPath, openUrl, saveFile } from "../services/native.js";
 import { buildFamilyLabels } from "../i18n/familyLabelsFeed.js";
@@ -107,15 +102,18 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
   // read from them synchronously in `state: () => ({...})`.
   //
   // Thin-client guard: the renderer has no data of its own — it all lives in the
-  // server. If the server is unreachable, App.vue shows a connection-error screen
-  // instead of the app (which would render seed/default data and then silently fail
-  // to persist). No defaults are loaded without a live backend. The kit's transport
-  // is already configured by installLlmUi above, so the screen names the SAME base
-  // the app talks to — no second resolver to disagree with.
+  // server. If the server is unreachable, every route goes to the connection-error
+  // page (pages/ConnectionErrorPage.vue, outside the layout) instead of the app (which
+  // would render seed/default data and then silently fail to persist). No defaults are
+  // loaded without a live backend. The kit's transport is already configured by
+  // installLlmUi above, so the screen names the SAME base the app talks to — no second
+  // resolver to disagree with. Its Retry reloads the window; once the server answers,
+  // /offline goes back to the page the user was on.
   if (!(await checkServer())) {
-    serverDown.value = true;
+    router.beforeEach((to) => (to.path === "/offline" ? true : { path: "/offline", query: { from: to.fullPath } }));
     return;
   }
+  router.beforeEach((to) => (to.path === "/offline" ? to.query.from || "/" : true));
 
   // Pull the settings document (appearance/ui, AI prefs, hardware presets) off
   // the server (/v1/settings) so the stores' synchronous bootstrap reads it.
@@ -168,7 +166,7 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
   //    that stay reachable with no project loaded: the AI setup page
   //    (/ai?quicksetup=1, /ai — deep-links + the post-first-project AI dialog)
   //    and Help, and Sync (a fresh install bringing its books from another device). They render
-  //    inside the OnboardingShell, whose brand links back
+  //    under the projectless header (components/OnboardingHeader.vue), whose brand links back
   //    to /welcome so they never dead-end.
   //
   // 2. First-run redirect: on the FIRST navigation of a cold load, if it
@@ -193,8 +191,7 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
     return true;
   });
 
-  // (Quasar installs the router after the boot files.)
-  app.use(i18n);
+  // (Quasar installs the router after the boot files; vue-i18n is boot/i18n.js.)
   app.directive("tooltip", tooltipDirective);
 
   // The sessions store hydrates from the server (/v1/sessions) before mount, so

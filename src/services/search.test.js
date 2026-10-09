@@ -106,18 +106,18 @@ describe("searchIndex — the snippet is body-only (no header duplication)", () 
   });
 });
 
-// The editor owns Ctrl/⌘-F (its find-in-editor bar); AppShell.vue's capture-phase global
+// The editor owns Ctrl/⌘-F (its find-in-editor bar); the layout's capture-phase global
 // ⌘F must bail when focus is in the rich editor, mirroring the ⌘Z bail one block down.
-// A source-pin: AppShell.vue keyboard handling is a window capture listener not cheaply
+// A source-pin: layouts/MainLayout.vue's keyboard handling is a window capture listener not cheaply
 // mounted, and this is the whole invariant (the chipPopoverStacking precedent).
 const APP = readFileSync(
-  resolve(dirname(fileURLToPath(import.meta.url)), "../AppShell.vue"), "utf8");
+  resolve(dirname(fileURLToPath(import.meta.url)), "../layouts/MainLayout.vue"), "utf8");
 
 describe("global ⌘F yields to the editor's find-in-editor", () => {
   it("the ⌘F branch bails on focusedInRichEditor()", () => {
     // Isolate the `key === "f"` (non-shift) branch and assert it checks the editor.
     const m = APP.match(/if \(key === "f"\) \{([\s\S]*?)\n {2}\}/);
-    expect(m, "AppShell.vue should have a `if (key === \"f\")` handler").toBeTruthy();
+    expect(m, "MainLayout.vue should have a `if (key === \"f\")` handler").toBeTruthy();
     expect(m[1]).toContain("focusedInRichEditor()");
   });
 });

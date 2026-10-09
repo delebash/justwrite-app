@@ -119,7 +119,7 @@ Phases were locked up front; built and shipped in order.
   LCS over paragraphs with del+ins pair detection promoting to word-level
   inline `mod` paragraphs. `VersionHistoryModal` adds compare-with-current
   and pick-two flows.
-- **Phase 5 — Plot board.** `views/PlotBoardView.vue` — strands as rows,
+- **Phase 5 — Plot board.** `pages/PlotBoardPage.vue` — strands as rows,
   chapters as columns. `services/plotTemplates.js` ships Three-Act /
   Five-Act / Save the Cat / Hero's Journey / Story Circle. Drag-drop beats
   between cells; cross-strand drag preserves beat id via `project.moveBeat`.

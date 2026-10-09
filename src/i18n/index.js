@@ -9,7 +9,7 @@
 // invariant exists to prevent, and it is the kind of thing that silently rots: add the file,
 // forget one of the three, and the language is either missing or half-registered.
 //
-// The active locale is sourced from `useUiStore().locale` and applied on boot (see main.js);
+// The active locale is sourced from `useUiStore().locale` and applied on boot (boot/jw.js; boot/i18n.js installs the instance);
 // the Settings → Project language picker writes back through ui.setLocale().
 
 import { createI18n } from "vue-i18n";

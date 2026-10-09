@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // What JustWrite gives the kit's SyncPanel — in Settings → Sync, and on the project-less Sync page a
-// fresh install reaches from the welcome screen (views/SyncView.vue): the books for the by-hand
+// fresh install reaches from the welcome screen (pages/SyncPage.vue): the books for the by-hand
 // export picker, their noun, the desktop's folder picker, and the phone's ways (it scans a pairing
 // code, nothing reaches it, it has no cloud folder until it can sign in to OneDrive or Dropbox).
 import { computed } from "vue";

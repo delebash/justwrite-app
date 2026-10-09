@@ -100,8 +100,8 @@ describe("no overlay dims or blurs the page behind it (user ruling, 2026-07-19)"
     expect(ruleBody(theme, ":where(.ui-modal-overlay, .help-drawer-overlay) .q-dialog__backdrop")).toMatch(/background:\s*transparent/);
   });
 
-  it("styles.css no longer declares the dead blurring `.modal-overlay` rule", () => {
-    const css = readJw("styles/styles.css").replace(/\/\*[\s\S]*?\*\//g, "");
+  it("app.scss no longer declares the dead blurring `.modal-overlay` rule", () => {
+    const css = readJw("css/app.scss").replace(/\/\*[\s\S]*?\*\//g, "");
     // An unfiltered grep across every file type under src/ found ZERO consumers, so
     // the whole rule was deleted rather than de-dimmed. Comments are stripped above
     // so the tombstone comment can't satisfy this.

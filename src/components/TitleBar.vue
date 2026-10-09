@@ -19,14 +19,17 @@ import { useProjectStore } from "../stores/project.js";
 import { THEME_PRESETS } from "../services/appearance.js";
 import { Icon, AiStatusButton, TitleBar } from "@delebash/llm-ui";
 
-defineProps({ title: { type: String, default: "JustWrite" } });
+// `menu`: the layout is in its phone shape (the sidebar is a drawer that slides in) — the bar shows
+// the ☰ that opens it, and says so with `menu`.
+defineProps({ title: { type: String, default: "JustWrite" }, menu: { type: Boolean, default: false } });
+const emit = defineEmits(["menu"]);
 
 const ui = useUiStore();
 const project = useProjectStore();
 const router = useRouter();
 
 // The current page's undo domains (#235) — the Undo/Redo buttons are scoped
-// exactly like ⌘Z (AppShell.vue): they can only pop this page's data domains.
+// exactly like ⌘Z (layouts/MainLayout.vue): they can only pop this page's data domains.
 const undoDomains = computed(() => router.currentRoute.value.meta.undoDomains || []);
 
 // ── Theme preset switcher dropdown ──────────────────────────────────
@@ -88,6 +91,11 @@ function toggleChat() {
 
 <template>
   <TitleBar :title="title">
+    <template #start>
+      <button v-if="menu" class="titlebar-menu" :aria-label="$t('sidebar.tooltips.toggleSidebar')" @click="emit('menu')">
+        <Icon name="SidebarToggle" :size="15" />
+      </button>
+    </template>
     <div class="titlebar-right">
       <div class="theme-switcher" ref="themeWrap">
         <button @click="toggleTheme" v-tooltip.bottom="`Theme · ${activePresetLabel}`">

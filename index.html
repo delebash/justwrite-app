@@ -15,24 +15,24 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'<% if (ctx.mode.capacitor) { %> 'wasm-unsafe-eval'<% } %>; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: http: https:; media-src 'self' data: blob: http: https:; font-src 'self' data:; connect-src 'self' http: https:<% if (ctx.dev) { %> ws://localhost:*<% } %>; worker-src 'self' blob:;"
     />
-    <!-- No font preconnects: the fonts are bundled (src/fonts.css). These two used to warm
+    <!-- No font preconnects: the fonts are bundled (src/css/fonts.css). These two used to warm
          connections to Google on every launch; with self-hosted fonts they would open
          sockets to a third party for nothing. -->
 
     <!-- First-paint loading screen — shown instantly (before the JS bundle parses and Vue
          mounts) so boot isn't a blank window while the renderer waits on the local server.
          App.vue removes it when it mounts (the shell, or the connection-error screen).
-         KEEP IN SYNC with AppShell.vue's .jw-bootwarm. -->
+         KEEP IN SYNC with layouts/MainLayout.vue's .jw-bootwarm. -->
     <style>
-      /* BOOT PLATE — pre-JS twin of AppShell.vue's .jw-bootwarm. The plate is stretched to fill
+      /* BOOT PLATE — pre-JS twin of layouts/MainLayout.vue's .jw-bootwarm. The plate is stretched to fill
          the window exactly: `contain` left bands the user rejected, and `cover` cropped the
-         lettering (which is part of the artwork). See AppShell.vue for the full reasoning. */
+         lettering (which is part of the artwork). See layouts/MainLayout.vue for the full reasoning. */
       #app-boot { position: fixed; inset: 0; overflow: hidden; background: #d6b689; }
       #app-boot .ab-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
     </style>
 
     <!-- Curated theming font set (Settings → Appearance) is SELF-HOSTED as of 2026-07-24 —
-         see src/fonts.css, imported first by the boot file. There is deliberately NO font <link>
+         see src/css/fonts.css, first in quasar.config.js's css list. There is deliberately NO font <link>
          here: this used to be a render-blocking request to fonts.googleapis.com, so the
          window could not paint until a network round trip finished (and on an offline boot,
          until it timed out) — the slow first paint, and the splash flicker as Fraunces

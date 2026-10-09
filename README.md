@@ -289,16 +289,17 @@ justwrite-app/                 ← a Quasar app (the family layout: the kit's do
 │   ├── samples/               ← the bundled tutorial book
 │   └── tests/                 ← vitest suite
 ├── src/                       ← the Vue renderer
-│   ├── boot/jw.js             ← start-up: wires the kit's UI; boots stores off the server
-│   ├── App.vue                ← the root: the shell (AppShell.vue) or the connection-error screen
-│   ├── router/index.js
-│   ├── css/quasar.variables.scss ← Quasar's variables: the kit's family theme
+│   ├── boot/                  ← start-up: i18n.js (vue-i18n) · jw.js (wires the kit's UI; boots
+│   │                            stores off the server)
+│   ├── App.vue                ← the root: a bare <router-view>
+│   ├── layouts/MainLayout.vue ← the chrome: q-layout — the title bar, the sidebar (q-drawer), the page
+│   ├── pages/                 ← one <Name>Page.vue per route (each a q-page); ConnectionErrorPage at /offline
+│   ├── router/                ← index.js (the router) · routes.js (the pages under the layout)
+│   ├── css/                   ← fonts.css · tokens.css · app.scss · quasar.variables.scss (the kit's theme)
 │   ├── i18n/                  ← vue-i18n setup + locales/ (en, es)
-│   ├── styles/                ← tokens.css · styles.css (fonts.css stays at src/)
 │   ├── stores/                ← project, ui, ai, sessions (Pinia)
 │   ├── services/              ← native.js (the desktop shell's calls) · rag/ · export/ · …
-│   ├── components/
-│   └── views/
+│   └── components/
 └── data/                      ← the dev data folder (gitignored): the database, models, logs
 ```
 

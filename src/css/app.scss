@@ -1,0 +1,1382 @@
+/* ============================================================
+   JustWrite — global styles: reset/base + canonical jw- primitives.
+   Design tokens (:root + [data-theme] overrides) live in tokens.css,
+   imported before this file (see main.js). App standard: tokens.css =
+   tokens only; this file = reset/base + primitives.
+   ============================================================ */
+
+/* ============================================================
+   Reset & base
+   ============================================================ */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  font-family: var(--font-ui);
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 800px at 20% -10%, oklch(0.95 0.02 200 / 0.6), transparent 60%),
+    radial-gradient(1000px 700px at 110% 110%, oklch(0.95 0.02 60 / 0.5), transparent 60%),
+    var(--bg);
+  font-size: 13.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.005em;
+  overflow: hidden;
+}
+html[data-theme="dark"] body {
+  background:
+    radial-gradient(1200px 800px at 20% -10%, oklch(0.32 0.04 250 / 0.45), transparent 60%),
+    radial-gradient(1000px 700px at 110% 110%, oklch(0.30 0.04 320 / 0.35), transparent 60%),
+    var(--bg);
+}
+
+button { font: inherit; cursor: default; }
+/* Native buttons inherit text colour; the shared .ui-btn family manages its own
+   colour and must be excluded, or this reset (:not specificity 0,1,1) would
+   override .ui-btn's own 0,1,0 colour rules — e.g. white-on-accent primary
+   buttons rendered as dark text. (.ui-btn's CSS ships from @delebash/llm-ui's
+   common/styles.css; this is a redundant safety copy of that reset.) */
+button:not(.ui-btn) { color: inherit; }
+input, textarea, select { font: inherit; color: inherit; }
+
+/* Kill the browser-default focus ring on form controls. Every input /
+   textarea / select / button in the app has its own :focus styling (the
+   warm accent-soft glow via .input:focus, .btn:focus, etc.), so the
+   user-agent's blue accessibility ring is redundant and visually clashes
+   with the editorial palette. The old Tauri webview (WebView2) didn't show this ring
+   the same way Chrome does, which is why this only became visible when
+   testing in a browser tab. */
+input:focus, input:focus-visible,
+textarea:focus, textarea:focus-visible,
+select:focus, select:focus-visible,
+button:focus, button:focus-visible {
+  outline: none;
+}
+
+/* Custom scrollbars in panels */
+.scrollarea { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+.scrollarea::-webkit-scrollbar { width: 10px; height: 10px; }
+.scrollarea::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; border: 2px solid transparent; background-clip: content-box; }
+.scrollarea::-webkit-scrollbar-track { background: transparent; }
+
+/* ============================================================
+   Window chrome
+   ============================================================ */
+
+/* The layout (layouts/MainLayout.vue, Quasar's q-layout): the title bar in its header, the sidebar
+   in its drawer, each page (a q-page) in its page container. Its root is fixed to the window and
+   clips: the window never scrolls (each page owns its scroller), and Chrome then paints the whole
+   app — the fixed overlays included (the chat panel, the help drawer, the palette) — in this one
+   opaque layer, where text keeps its sub-pixel smoothing. With the document as the scroller, a
+   fixed overlay is a layer of its own and its text turns grey-smoothed (measured 2026-10-09). */
+.app-stage {
+  position: fixed; inset: 0;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.titlebar {
+  height: 38px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 12px;
+  background: linear-gradient(180deg, oklch(0.99 0.004 85), oklch(0.965 0.005 85));
+  border-bottom: 1px solid var(--border);
+  /* The window-drag region + user-select:none moved INTO the kit's TitleBar
+     (2026-08-07) — it owns the frame, so it owns the behaviour, and docgen gained
+     the dragging it never had. What stays here is JustWrite's chrome: the grid,
+     the padding, the gradient, the border. */
+}
+html[data-theme="dark"] .titlebar {
+  background: linear-gradient(180deg, oklch(0.22 0.005 250), oklch(0.185 0.005 250));
+}
+/* The frame is the kit's TitleBar (2026-08-07): it renders `.titlebar__title` for the
+   title and `.lu-titlebar-btn` for back/forward, so those are what we style. The old
+   `.titlebar-title` / `.titlebar-left` selectors matched markup this app no longer
+   renders. `.titlebar-right` stays — it is OUR wrapper, inside the frame's slot. */
+.titlebar__title {
+  font-size: 12.5px; font-weight: 600; color: var(--ink-2);
+  letter-spacing: 0.01em;
+}
+.titlebar-right { display: flex; justify-content: flex-end; gap: 8px; align-items: center; -webkit-app-region: no-drag; }
+.titlebar-right button,
+.titlebar-menu,
+.lu-titlebar-btn {
+  appearance: none; border: 0; background: transparent;
+  color: var(--ink-2); padding: 4px 8px; border-radius: 6px;
+  font-size: 12px;
+}
+/* The frame's buttons are a child component's inner elements, so TitleBar.vue's scoped
+   block cannot reach them — their disabled look belongs here. */
+.lu-titlebar-btn:disabled { opacity: 0.32; cursor: default; }
+.titlebar-right button:hover,
+.titlebar-menu:hover,
+.lu-titlebar-btn:not(:disabled):hover {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+/* Bolder titlebar icons so they read clearly on the chrome gradient. */
+.titlebar-right button svg,
+.titlebar-menu svg,
+.lu-titlebar-btn svg { stroke-width: 2.1; }
+.titlebar-right button:hover svg,
+.titlebar-menu:hover svg,
+.lu-titlebar-btn:not(:disabled):hover svg { stroke-width: 2.3; }
+
+/* ============================================================
+   App layout — the sidebar in the layout's drawer
+   ============================================================ */
+
+/* The sidebar scrolls inside itself, and its resize strip overhangs its right edge by 2px:
+   Quasar's drawer content box would scroll and clip it. */
+.app-stage .q-drawer__content { overflow: visible; }
+
+.sidebar {
+  height: 100%;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  min-height: 0;
+  position: relative;
+}
+.sidebar-resize {
+  position: absolute;
+  top: 0; right: -2px; bottom: 0;
+  width: 5px;
+  cursor: col-resize;
+  z-index: 10;
+  background: transparent;
+  transition: background .12s ease;
+}
+.sidebar-resize:hover { background: var(--accent); opacity: 0.4; }
+.sidebar-resize:active { background: var(--accent); opacity: 0.7; }
+.sidebar.collapsed {
+  align-items: center;
+  padding: 12px 0;
+  gap: 2px;
+}
+.sidebar.collapsed .brand-mini {
+  margin-bottom: 4px;
+}
+.rail-toggle {
+  width: 32px; height: 32px; border-radius: 7px; border: 0; background: transparent;
+  color: var(--muted); display: grid; place-items: center; margin-bottom: 4px;
+}
+.rail-toggle:hover { background: var(--surface-3); color: var(--ink); }
+.rail-item {
+  width: 36px; height: 36px; border-radius: 8px; border: 0;
+  background: transparent; color: var(--muted);
+  display: grid; place-items: center;
+  margin: 1px 0;
+}
+.rail-item:hover { background: var(--surface-3); color: var(--ink); }
+.rail-item.active { background: var(--accent-soft); color: var(--accent); }
+.rail-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, oklch(0.85 0.05 30), oklch(0.78 0.07 320));
+  color: white; display: grid; place-items: center; font-size: 10px; font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.brand {
+  padding: 14px 14px 10px;
+  display: flex; align-items: center; gap: 10px;
+}
+.brand-mark {
+  width: 22px; height: 22px; border-radius: 6px;
+  background:
+    linear-gradient(135deg, var(--accent) 0%, oklch(0.62 0.07 220) 100%);
+  display: grid; place-items: center; color: white;
+  font-family: var(--font-serif);
+  font-style: italic; font-weight: 600;
+  font-size: 14px; line-height: 1;
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,.15);
+}
+.brand-name {
+  font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+}
+.brand-sub { font-size: 11px; color: var(--muted); margin-top: -1px; }
+
+.project-switcher {
+  margin: 4px 10px 8px; padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px;
+}
+.project-switcher .ttl { font-size: 12.5px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; line-height: 1.2; }
+.project-switcher .by  { font-size: 10.5px; color: var(--muted); }
+.project-switcher svg { color: var(--muted); }
+
+.nav-section {
+  padding: 12px 14px 4px;
+  font-family: var(--nav-section-font, var(--font-ui));
+  font-size: var(--nav-section-size, 10px);
+  font-weight: var(--nav-section-weight, 600);
+  font-style: var(--nav-section-style, normal);
+  text-transform: var(--nav-section-transform, uppercase);
+  letter-spacing: var(--nav-section-letter-spacing, 0.08em);
+  color: var(--muted);
+}
+.nav-section:first-child { padding-top: 4px; }
+
+.nav-scroll {
+  flex: 1; min-height: 0;
+  padding: 0 0 8px;
+}
+.nav-block { padding: 0 8px; }
+
+.nav-list { display: flex; flex-direction: column; gap: 1px; padding: 0 8px; }
+.nav-item {
+  display: grid; grid-template-columns: 18px 1fr auto;
+  align-items: center; gap: 10px;
+  padding: 6px 8px 6px 6px; border-radius: 7px;
+  font-family: var(--nav-item-font, var(--font-ui));
+  font-size: var(--nav-item-size, 12.5px);
+  font-weight: var(--nav-item-weight, 400);
+  font-style: var(--nav-item-style, normal);
+  letter-spacing: var(--nav-item-letter-spacing, 0);
+  color: var(--ink-2);
+  border: 0; background: transparent;
+  text-align: left; width: 100%;
+}
+.nav-item:hover { background: var(--surface-3); color: var(--ink); }
+.nav-item.active { background: var(--accent-soft); color: var(--accent-ink); font-weight: var(--nav-item-active-weight, 500); }
+.nav-item.active .nav-icon { color: var(--accent); }
+.nav-item .nav-icon { color: var(--muted); display: grid; place-items: center start; }
+.nav-item .nav-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Ask the Book (#47) — the AI entry point reads louder than ordinary nav rows:
+   accent ink + icon and a semibold label ("bigger or bolder or in color" —
+   the color + bolder pair). Applies in both sidebar variants. */
+.nav-item.nav-item-accent { color: var(--accent-ink); font-weight: 600; }
+.nav-item.nav-item-accent .nav-icon { color: var(--accent); }
+.nav-item.nav-item-accent:hover { background: var(--accent-soft); }
+.rail-item.nav-item-accent { color: var(--accent); }
+.nav-item .count {
+  font-size: 10.5px; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 4px; padding: 0 5px; line-height: 16px;
+}
+.nav-item.active .count { background: var(--surface); color: var(--accent-ink); border-color: var(--accent-line); }
+.nav-item .kbd-pill {
+  font-size: 9.5px; font-family: var(--font-mono);
+  color: var(--muted); background: var(--surface);
+  border: 1px solid var(--border-soft); border-radius: 4px;
+  padding: 0 5px; line-height: 16px;
+}
+
+/* Expandable item — chevron rotates */
+.nav-item.expandable { grid-template-columns: 18px 1fr auto; }
+.nav-item .nav-chev {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; color: var(--muted);
+  transition: transform .14s ease;
+}
+.nav-item .nav-chev.open { transform: rotate(90deg); }
+
+/* Sub-items */
+.nav-children {
+  margin: 2px 0 6px;
+  padding: 2px 0 4px 8px;
+  border-left: 1px solid var(--border);
+  margin-left: -4px;
+  display: flex; flex-direction: column; gap: 0;
+}
+.nav-subgroup {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--subtle);
+  padding: 8px 8px 4px 8px;
+}
+.nav-child {
+  display: grid; grid-template-columns: auto 1fr auto;
+  gap: 8px; align-items: center;
+  padding: 4px 8px; border-radius: 6px;
+  border: 0; background: transparent;
+  text-align: left; width: 100%;
+  font-size: 12px; color: var(--ink-2);
+  min-width: 0;
+}
+.nav-child:hover { background: var(--surface-3); color: var(--ink); }
+.nav-child.open-all {
+  font-size: 11px; color: var(--muted);
+  padding: 3px 8px; margin-bottom: 2px;
+}
+.nav-child.open-all:hover { color: var(--accent-ink); background: var(--accent-soft); }
+.nav-child-num {
+  width: 18px; text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-serif); font-style: italic;
+  color: var(--muted); font-size: 11.5px;
+}
+.nav-child-label {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  min-width: 0;
+}
+.nav-child-sub {
+  font-size: 10.5px; color: var(--subtle);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.nav-child-status {
+  font-size: 10px; font-weight: 600;
+  text-align: right; white-space: nowrap;
+}
+.nav-child.sel {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.nav-child.sel .nav-child-num { color: var(--accent-ink); }
+.nav-child.sel:hover { background: var(--accent-soft); color: var(--accent-ink); }
+
+/* Chapter row chevron — toggles scenes underneath. Sits inline as the
+   first grid column of the row so it lands inside the selected-row
+   highlight, close to the chapter number/title rather than out in the
+   gutter. */
+.chapter-row {
+  position: relative;
+  padding-left: 4px;
+}
+.chapter-chev {
+  width: 22px; height: 22px;
+  border: 0; background: transparent;
+  color: var(--muted);
+  border-radius: 4px;
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: transform .12s ease, background .12s ease, color .12s ease;
+}
+/* Icon inside the chev is decorative — let pointer events pass through
+   to the button so :hover and clicks always hit the button, not the SVG. */
+.chapter-chev * { pointer-events: none; }
+.chapter-chev:hover { background: var(--surface-3); color: var(--ink); cursor: pointer; }
+.chapter-chev.open { transform: rotate(90deg); color: var(--ink-2); }
+.nav-child.sel .chapter-chev { color: var(--accent-ink); }
+
+/* Per-chapter "add scene" — hover-revealed, right of word count. */
+.chapter-add-scene {
+  width: 18px; height: 18px;
+  border: 0; background: transparent;
+  color: var(--muted);
+  border-radius: 4px;
+  display: grid; place-items: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .1s ease, background .12s ease;
+}
+.nav-child:hover .chapter-add-scene { opacity: 1; }
+.chapter-add-scene:hover { background: var(--surface-3); color: var(--ink); }
+
+/* Scene rows — indented under a chapter when expanded. */
+.nav-scene {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  gap: 8px; align-items: center;
+  padding: 3px 8px 3px 36px;
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--ink-2);
+  border-radius: 4px;
+  cursor: grab;
+  min-width: 0;
+  position: relative;
+  user-select: none;
+}
+.nav-scene:active { cursor: grabbing; }
+.nav-scene:hover { background: var(--surface-3); color: var(--ink); }
+.nav-scene.drop-before::before,
+.nav-scene.drop-after::after {
+  content: ""; position: absolute; left: 28px; right: 4px;
+  height: 2px; background: var(--accent); border-radius: 1px;
+  pointer-events: none;
+}
+.nav-scene.drop-before::before { top: -1px; }
+.nav-scene.drop-after::after  { bottom: -1px; }
+.nav-scene.sel {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.nav-scene.sel:hover { background: var(--accent-soft); color: var(--accent-ink); }
+.nav-scene.sel .scene-bullet { color: var(--accent-ink); }
+.scene-bullet {
+  width: 16px; text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-serif); font-style: italic;
+  color: var(--subtle); font-size: 11px;
+}
+.scene-label {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.scene-delete {
+  width: 16px; height: 16px;
+  border: 0; background: transparent;
+  color: var(--muted);
+  border-radius: 3px;
+  display: grid; place-items: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .1s ease, color .12s ease;
+}
+.nav-scene:hover .scene-delete { opacity: 1; }
+.scene-delete:hover { color: var(--danger, #c0392b); }
+
+/* ── Sidebar drag-to-reorder ───────────────────────────────
+   Each draggable row hides the grab handle until the row is
+   hovered so the sidebar stays uncluttered. Drop indicators
+   are 2px accent lines on the leading/trailing edge of the
+   target row (.drop-before / .drop-after) or a soft accent
+   fill for "into" (chapter dragged onto a part header). */
+.nav-part-row {
+  display: flex; align-items: center; gap: 6px;
+  position: relative;
+  cursor: grab;
+  user-select: none;
+}
+.nav-part-row:active { cursor: grabbing; }
+input.nav-part-title {
+  flex: 1; min-width: 0;
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  outline: none;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  cursor: text;
+}
+input.nav-part-title:hover { border-color: var(--border-soft); background: var(--surface); }
+input.nav-part-title:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 2px var(--accent-soft); }
+
+.part-actions {
+  display: flex; align-items: center; gap: 2px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity .1s ease;
+}
+.nav-part-row:hover .part-actions,
+.nav-part-row:focus-within .part-actions { opacity: 1; }
+.part-action {
+  width: 18px; height: 18px;
+  border: 0; background: transparent;
+  color: var(--muted);
+  border-radius: 4px;
+  display: grid; place-items: center;
+  cursor: pointer;
+}
+.part-action:hover { background: var(--surface-3); color: var(--ink); }
+.part-action.part-action-danger:hover { color: var(--danger, #c0392b); }
+
+.drag-handle {
+  color: var(--subtle);
+  opacity: 0;
+  transition: opacity .1s ease;
+  flex-shrink: 0;
+}
+.nav-part-row:hover .drag-handle,
+.nav-child:hover .drag-handle { opacity: 0.7; }
+
+.nav-child[draggable="true"] { cursor: grab; }
+.nav-child[draggable="true"]:active { cursor: grabbing; }
+
+.nav-part-row.drop-before::before,
+.nav-child.drop-before::before {
+  content: ""; position: absolute; left: 0; right: 0; top: -1px;
+  height: 2px; background: var(--accent); border-radius: 1px;
+  pointer-events: none;
+}
+.nav-part-row.drop-after::after,
+.nav-child.drop-after::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px;
+  height: 2px; background: var(--accent); border-radius: 1px;
+  pointer-events: none;
+}
+.nav-child { position: relative; }
+.nav-part-row.drop-into {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  border-radius: 6px;
+}
+
+/* Item-level drop target highlight — fires the moment the cursor is
+   over a same-subgroup item during a drag, mirroring the scene-block
+   target highlight in the editor. */
+.nav-child.item-drop-target {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+/* Non-chapter draggable rows have one extra column at the front for
+   the grab handle. The label still expands; the optional `sub` text
+   sits in the trailing auto column when present. */
+.nav-child.nav-child-dnd {
+  grid-template-columns: auto auto 1fr auto;
+}
+.nav-child-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  flex-shrink: 0;
+}
+/* Group color swatch — wider/longer than the status dot so it reads as
+   the group's color, not a status. Sits in the trailing column. */
+.nav-child-group-color {
+  display: inline-block;
+  width: 20px; height: 11px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px var(--shadow-soft);
+}
+
+.nav-filter {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 8px; margin: 0 0 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--muted);
+}
+/* the filter's UiInput: its box is QInput's root (the kit's controls on Quasar), the text field
+   the native input inside it */
+.nav-filter .ui-input {
+  flex: 1; min-width: 0; height: 22px;
+  border: 0; outline: 0; background: transparent;
+  font: inherit; font-size: 11.5px; color: var(--ink);
+  padding: 0;
+}
+.nav-filter .ui-input .q-field__native::placeholder { color: var(--subtle); }
+.nav-add {
+  width: 20px; height: 20px; border: 0; background: transparent;
+  color: var(--muted); border-radius: 4px;
+  display: grid; place-items: center;
+}
+.nav-add:hover { background: var(--surface-3); color: var(--ink); }
+.nav-empty {
+  padding: 12px 10px;
+  font-size: 11px; color: var(--muted);
+  font-style: italic;
+  text-align: center;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 10px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-footer .avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(135deg, oklch(0.85 0.05 30), oklch(0.78 0.07 320));
+  display: grid; place-items: center; color: white; font-size: 11px; font-weight: 600;
+}
+.sidebar-footer .meta { flex: 1; }
+.sidebar-footer .meta b { font-size: 12px; display: block; }
+.sidebar-footer .meta span { font-size: 10.5px; color: var(--muted); }
+
+/* ============================================================
+   Main pane — every page's frame (pages/*Page.vue: <q-page :style-fn="pageFill" class="main">)
+   ============================================================ */
+
+.main {
+  display: flex; flex-direction: column;
+  min-height: 0; min-width: 0;
+  /* Tinted backdrop so the surface-colored .pane-card frames read as
+     distinct panels on every screen. */
+  background: var(--app-bg);
+}
+
+.pane-header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 22px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.pane-title {
+  display: flex; flex-direction: column;
+  flex: 1; min-width: 0;
+}
+.pane-eyebrow {
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted);
+}
+.pane-h1 {
+  font-size: 20px; font-weight: 600; letter-spacing: -0.015em;
+  margin: 0;
+}
+.pane-actions { display: flex; gap: 6px; align-items: center; }
+
+.pane-body {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  position: relative;
+}
+
+/* Content card — a bordered panel that fills the pane below the header
+   with a uniform margin, so every screen frames its content the same
+   way. It's a flex column: drop a `.scrollarea` (or any flex:1 child)
+   inside and content scrolls within the card. Children stretch to the
+   card's full width. */
+.pane-card {
+  flex: 1; min-height: 0; min-width: 0;
+  margin: 16px;
+  display: flex; flex-direction: column;
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+.pane-card > .scrollarea { flex: 1; min-height: 0; }
+
+/* ============================================================
+   Buttons & form elements
+   ============================================================ */
+
+/* Every app button is now <JwButton> (components/ui/JwButton.vue). Pick
+   an intent (primary | secondary | ghost | danger | success | info |
+   accent2) and an optional size. Visual rules live in the "JwButton"
+   section further down in this file. Don't roll new `.btn-*` classes. */
+
+.input, .textarea {
+  appearance: none;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  padding: 6px 10px;
+  font-size: 12.5px;
+  outline: none;
+  width: 100%;
+}
+.input:focus, .textarea:focus { border-color: var(--accent); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px; font-weight: 500;
+  background: var(--surface-3);
+  color: var(--ink-2);
+  border: 1px solid var(--border);
+}
+.chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+
+/* Modal shell — shared overlay/dialog chrome used by every *Modal.vue.
+   Lives here (not in a single component) so a modal is styled regardless
+   of which route's components happen to be loaded. */
+/* `.modal-overlay` (a --scrim dim + backdrop-filter: blur(4px)) was DELETED
+   2026-07-19: the user ruled backdrop dimming + blur off app-wide, and an
+   unfiltered grep across every file type under src/ found ZERO consumers —
+   modals are the kit's AppModal (.ui-modal-overlay) now. Do not reinstate. */
+.modal { width: min(640px, 100%); max-height: 80vh; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-window); display: flex; flex-direction: column; }
+.modal-head { padding: 16px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-family: var(--font-serif); font-size: 18px; font-weight: 600; }
+.modal-body { padding: 18px 22px; overflow-y: auto; }
+
+/* Banner callouts — theme-aware state strips used across views. */
+.banner {
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+.banner.danger  { background: var(--danger-bg);  color: var(--danger-ink);  border-color: var(--danger-line); }
+.banner.warn    { background: var(--warn-bg);    color: var(--warn-ink);    border-color: var(--warn-line); }
+.banner.success { background: var(--success-bg); color: var(--success-ink); border-color: var(--success-line); }
+.banner.info    { background: var(--info-bg);    color: var(--info-ink);    border-color: var(--info-line); }
+
+/* ============================================================
+   Cards
+   ============================================================ */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 18px;
+}
+.card.tight { padding: 14px; }
+.card-title {
+  font-size: 12.5px; font-weight: 600; color: var(--ink);
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 0 10px;
+}
+.card-title .pill {
+  font-size: 10.5px; font-weight: 500; color: var(--muted);
+  background: var(--surface-3); border-radius: 4px; padding: 1px 6px;
+}
+
+.card-grid {
+  display: grid; gap: 14px;
+  padding: 22px;
+}
+
+/* ============================================================
+   Lists
+   ============================================================ */
+
+.list { display: flex; flex-direction: column; }
+.list-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px; align-items: center;
+  padding: 12px 22px;
+  border-bottom: 1px solid var(--border-soft);
+  cursor: default;
+}
+.list-item:hover { background: var(--surface-2); }
+.list-item.active { background: var(--accent-soft); }
+.list-item .num {
+  font-family: var(--font-serif); font-style: italic;
+  color: var(--muted);
+  width: 28px; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.list-item .title { font-weight: 500; font-size: 13.5px; }
+.list-item .sub { font-size: 11.5px; color: var(--muted); }
+.list-item .meta { display: flex; gap: 6px; align-items: center; }
+
+/* ============================================================
+   Manuscript editor
+   ============================================================ */
+
+.editor-toolbar {
+  display: flex; align-items: center; gap: 1px; flex-wrap: wrap; row-gap: 3px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  flex-shrink: 0;
+}
+.editor-toolbar .group { display: flex; gap: 1px; align-items: center; }
+.editor-toolbar .group + .group { margin-left: 7px; padding-left: 7px; border-left: 1px solid var(--border); }
+.tb-btn {
+  position: relative;
+  width: 28px; height: 28px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; background: transparent;
+  color: var(--ink-2); border-radius: 6px;
+  cursor: pointer;
+  transition: background .1s ease, color .1s ease;
+}
+.tb-btn:hover { background: var(--surface-3); color: var(--ink); }
+.tb-btn.active { background: var(--accent-soft); color: var(--accent-ink); }
+.tb-btn:disabled { opacity: .35; cursor: default; }
+.tb-btn.wide { width: auto; padding: 0 8px; font-size: 11.5px; gap: 4px; }
+.tb-glyph { font-size: 12px; font-weight: 600; }
+.tb-A { font-size: 13px; font-weight: 700; line-height: 1; }
+
+/* Fast tooltip — pops well before the native title delay. */
+.tb-btn[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute; top: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%) translateY(-3px);
+  padding: 3px 7px;
+  background: var(--ink); color: var(--surface);
+  font-size: 11px; font-weight: 500; line-height: 1.3;
+  white-space: nowrap; border-radius: 5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .18);
+  opacity: 0; pointer-events: none;
+  transition: opacity .09s ease, transform .09s ease;
+  transition-delay: 0s;
+  z-index: 70;
+}
+.tb-btn[data-tip]:hover::after {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+  transition-delay: .18s;
+}
+
+/* Highlight color dropdown */
+.tb-btn-split { width: auto; padding: 0 4px; gap: 1px; }
+.tb-caret { color: var(--muted); }
+.tb-highlight { position: relative; display: inline-flex; }
+.tb-highlight-menu {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 80;
+  display: grid; grid-template-columns: repeat(4, 22px); gap: 6px;
+  padding: 8px;
+  background: var(--surface); border: 1px solid var(--border-strong);
+  border-radius: 9px; box-shadow: 0 8px 28px rgba(0, 0, 0, .18);
+}
+.tb-swatch {
+  width: 22px; height: 22px; border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, .12); cursor: pointer; padding: 0;
+  display: grid; place-items: center;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.tb-swatch:hover { transform: scale(1.08); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
+.tb-swatch-none { background: var(--surface-2); color: var(--muted); }
+
+.manuscript {
+  flex: 1; min-height: 0;
+  overflow-y: auto;
+  padding: 0;
+  background:
+    radial-gradient(800px 600px at 50% 0%, oklch(0.99 0.005 85), transparent 60%),
+    var(--editor-paper);
+}
+html[data-theme="dark"] .manuscript {
+  background:
+    radial-gradient(800px 600px at 50% 0%, oklch(0.28 0.008 80), transparent 60%),
+    var(--editor-paper);
+}
+.manuscript-inner {
+  max-width: 760px; margin: 0 auto;
+  padding: 56px 72px 120px;
+  font-family: var(--editor-font, var(--editor-body-font, var(--font-serif)));
+  font-size: var(--editor-font-size, var(--editor-body-font-size, 17px));
+  line-height: var(--editor-line-height, var(--editor-body-line-height, 1.7));
+  color: var(--ink);
+}
+.manuscript-inner h1, .manuscript-inner h2, .manuscript-inner h3 {
+  font-family: var(--font-serif); font-weight: 600; letter-spacing: -0.01em;
+}
+.manuscript-inner h1 { font-size: 28px; text-align: center; margin: 0 0 4px; }
+.manuscript-inner .scene-mark { text-align: center; color: var(--muted); letter-spacing: 0.4em; font-size: 14px; margin: 28px 0 22px; }
+.manuscript-inner p { margin: 0; text-indent: var(--editor-para-indent, var(--editor-body-para-indent, 1.6em)); }
+.manuscript-inner p:first-of-type { text-indent: 0; }
+.manuscript-inner p + p { margin-top: var(--editor-para-spacing, var(--editor-body-para-spacing, 0)); }
+.manuscript-inner em { font-style: italic; }
+.manuscript-inner ::selection { background: var(--accent-soft); }
+/* Forced page break — visible separator in edit + read views. PDF/DOCX
+   exports honor it as a real page break. */
+.manuscript-inner .page-break {
+  position: relative;
+  margin: 22px 0;
+  height: 1px;
+  background: var(--border-strong);
+  text-indent: 0;
+}
+.manuscript-inner .page-break::after {
+  content: attr(data-content);
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--editor-paper, var(--surface));
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  padding: 0 10px;
+}
+
+/* Continuous-chapter scene boundary — rendered between stitched scenes
+   in the chapter-continuous editor mode. Distinct from a page break
+   (more space, mono label below the rule) so writers always know which
+   scene they're typing into. The boundary is a TipTap atom node:
+   selectable + deletable (delete to merge with the previous scene), but
+   not editable as text. */
+.manuscript-inner .scene-boundary {
+  position: relative;
+  margin: 36px 0 28px;
+  height: 1px;
+  background: var(--border);
+  text-indent: 0;
+}
+.manuscript-inner .scene-boundary::before {
+  content: "* * *";
+  position: absolute;
+  top: -10px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--editor-paper, var(--surface));
+  color: var(--accent);
+  letter-spacing: 0.4em;
+  font-size: 13px;
+  padding: 0 14px;
+}
+.manuscript-inner .scene-boundary.ProseMirror-selectednode {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+/* NodeView layout: title sits inline with the divider rule, centered
+   horizontally. The rule passes edge-to-edge behind the title; the
+   title's editor-paper background visually "punches a gap" in the rule
+   so the text is fully legible and never intersects the line. The
+   prior * * * ornament is dropped — the labeled rule IS the ornament
+   now. */
+.manuscript-inner .scene-boundary-node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 44px 0 40px;
+  padding: 0;
+  height: auto;
+  background: transparent;
+}
+/* Suppress the original .scene-boundary::before * * * ornament on the
+   NodeView path so we don't double-up the ornament + title. */
+.manuscript-inner .scene-boundary-node::before { content: none; }
+.manuscript-inner .scene-boundary-node::after {
+  content: "";
+  position: absolute;
+  top: 50%; left: 0; right: 0;
+  height: 1px;
+  background: var(--border);
+  z-index: 0;
+}
+.scene-boundary-title-input {
+  position: relative;
+  z-index: 1;
+  margin: 0 auto;
+  padding: 4px 14px;
+  min-width: 120px;
+  max-width: 60%;
+  border: 0;
+  background: var(--editor-paper, var(--surface));
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--ink-2);
+  outline: none;
+  border-radius: 4px;
+  transition: background-color .12s, color .12s, box-shadow .12s;
+  cursor: text;
+}
+.scene-boundary-title-input::placeholder { color: var(--muted); }
+.scene-boundary-title-input:hover { color: var(--ink); }
+.scene-boundary-title-input:focus {
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* ============================================================
+   Editor — "traditional page" layout
+   Toggled in Settings → Appearance (html[data-editor-layout="page"]).
+   The manuscript editor reads as a centered paper sheet with margins,
+   a running head, a folio, and a drop cap. The default ("full") keeps
+   the wide writing surface — these rules out-specify the full-bleed
+   override in RichEditor.vue via the leading attribute selector.
+   ============================================================ */
+.page-runninghead, .page-folio { display: none; }
+
+html[data-editor-layout="page"] .rich-editor--manuscript .manuscript { padding: 0 24px; }
+html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner {
+  max-width: 760px;
+  margin: 32px auto 80px;
+  padding: 64px 84px 84px;
+  background: var(--editor-paper);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow-2);
+  position: relative;
+}
+html[data-editor-layout="page"] .page-runninghead {
+  display: block; text-align: center;
+  font-family: var(--font-mono);
+  font-size: 9.5px; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--subtle);
+  margin-bottom: 40px;
+}
+html[data-editor-layout="page"] .page-folio {
+  display: block; text-align: center;
+  font-family: var(--font-serif); font-style: italic;
+  font-size: 13px; color: var(--subtle);
+  margin-top: 48px;
+}
+/* Drop cap on the first paragraph of the sheet — disabled by default;
+   the editor's first letter renders as plain prose. Re-enable by giving
+   the manuscript-inner element the .with-drop-cap class. */
+html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-drop-cap .tiptap-content > p:first-of-type::first-letter {
+  font-family: var(--font-serif); font-weight: 500;
+  font-size: 3.4em; line-height: 0.82;
+  float: left; margin: 0.04em 0.09em -0.06em 0;
+  color: var(--accent);
+}
+
+/* ============================================================
+   Three-pane (list + detail) layout
+   ============================================================ */
+
+.split-2 {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: 100%;
+  min-height: 0;
+}
+.split-2 > .col-list {
+  border-right: 1px solid var(--border);
+  background: var(--surface-2);
+  display: flex; flex-direction: column;
+  min-height: 0;
+}
+.split-2 > .col-detail {
+  display: flex; flex-direction: column;
+  min-height: 0; min-width: 0;
+}
+
+.col-list-header {
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.col-list-header .input { padding: 4px 10px; font-size: 12px; height: 28px; }
+
+/* ============================================================
+   Entity library (list + detail) — the canonical story-bible view
+   family. One source for the toolbar/search/facet/chip/table list
+   shape and the detail name-input/desc pattern shared by Characters,
+   Locations, Objects, Groups, Notes, Strands, Worldbuilding (+ the
+   Architecture table leaves). Promoted from the views' byte-identical
+   scoped copies 2026-07-12 (docs/plans/2026-07-12-i1-css-popup-
+   voicedrift.md Task 2); genuine per-view variants stay scoped.
+   ============================================================ */
+
+/* Detail: the inline-editable name input + header/desc pattern */
+.entity-pane-header .pane-title { gap: 2px; }
+.entity-name {
+  appearance: none;
+  font-family: var(--font-serif);
+  font-size: 20px; font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin-left: -6px;
+  outline: none;
+  min-width: 0;
+}
+.entity-name:hover { border-color: var(--border-soft); }
+.entity-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+.entity-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0;
+}
+.entity-desc strong { color: var(--ink-2); font-weight: 600; }
+
+/* List: toolbar → search → count, facet chip rows, the table cells */
+.entity-toolbar {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px;
+}
+.entity-search {
+  position: relative; flex: 1; max-width: 360px;
+}
+.entity-search-icon {
+  position: absolute; left: 10px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted); pointer-events: none;
+}
+.entity-search-input { width: 100%; padding-left: 30px !important; }
+.entity-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.entity-facets {
+  display: flex; flex-direction: column;
+  gap: 8px;
+  padding: 10px 0 14px;
+}
+.entity-facet { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.entity-facet-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  min-width: 64px;
+}
+.entity-chip {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--ink-2);
+  padding: 3px 9px;
+  border-radius: 999px;
+  font: 500 11.5px/1.4 var(--font-ui);
+  cursor: pointer;
+  transition: background-color .12s, border-color .12s, color .12s;
+}
+.entity-chip:hover { background: var(--surface-3); border-color: var(--border-strong); }
+.entity-chip.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent-ink);
+}
+
+.entity-table { font-size: 13px; }
+.entity-cell-title {
+  display: flex; flex-direction: column; gap: 2px; cursor: pointer;
+}
+.entity-cell-inline {
+  display: flex; align-items: center; gap: 7px; cursor: pointer;
+}
+.entity-cell-title-text { font-family: var(--font-serif); font-size: 14px; color: var(--ink); }
+.entity-cell-sub { font-size: 12.5px; color: var(--ink-2); }
+.entity-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.entity-status-empty { color: var(--muted); }
+.entity-empty { padding: 28px; text-align: center; color: var(--muted); font-style: italic; }
+
+/* ============================================================
+   Charts (analysis)
+   ============================================================ */
+
+.bar-row {
+  display: grid; grid-template-columns: 120px 1fr 56px;
+  align-items: center; gap: 12px;
+  padding: 4px 0;
+  font-size: 12px;
+}
+.bar-row .name { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-row .track { height: 8px; background: var(--surface-3); border-radius: 999px; overflow: hidden; }
+.bar-row .fill { height: 100%; background: var(--accent); border-radius: 999px; }
+.bar-row .val { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ============================================================
+   Timeline (column per chapter)
+   ============================================================ */
+
+.tl-wrap { overflow: auto; height: 100%; padding: 22px; }
+.tl-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 240px;
+  gap: 16px;
+  align-items: start;
+}
+.tl-col-h {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--muted);
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.tl-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 10px 12px;
+  margin-bottom: 10px;
+}
+.tl-card .ttl { font-size: 12.5px; font-weight: 500; }
+.tl-card .meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* ============================================================
+   Events timeline — shared by the per-entity Events view
+   (EventsTimelineView) and the project-wide Timeline view.
+   View-specific bits (edit/delete actions, owner links) stay
+   in those components' scoped styles.
+   ============================================================ */
+
+.events-pane { flex: 1; }
+.events-content {
+  max-width: 1100px;
+  padding: 18px 26px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.events-subtitle {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13.5px;
+  color: var(--ink-2);
+  border-left: 3px solid var(--border);
+  padding: 4px 0 4px 12px;
+  margin: 0;
+}
+.events-empty {
+  padding: 40px 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+  background: var(--surface-2);
+  border: 1px dashed var(--border-strong);
+  border-radius: 10px;
+  line-height: 1.55;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  padding: 24px 0 12px;
+}
+.timeline-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 24px minmax(280px, 2fr);
+  align-items: center;
+  gap: 0;
+}
+
+.timeline-when {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-right: 18px;
+  font-family: var(--font-serif);
+  flex-wrap: wrap;
+}
+.when-weekday { font-size: 14px; color: var(--muted); }
+.when-date {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.when-time { font-family: var(--font-mono); font-size: 13.5px; color: var(--muted); }
+
+.timeline-spine {
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+}
+.timeline-spine::before {
+  content: "";
+  position: absolute;
+  top: -36px;
+  bottom: -36px;
+  width: 1px;
+  background: var(--border);
+}
+.timeline-row:first-child .timeline-spine::before { top: 0; }
+.timeline-row:last-child .timeline-spine::before  { bottom: 50%; }
+.timeline-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--accent);
+  z-index: 1;
+}
+
+.timeline-card {
+  position: relative;
+  margin-left: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px 12px;
+  box-shadow: 0 1px 2px var(--shadow-soft);
+}
+.timeline-card::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: -8px;
+  width: 8px; height: 16px;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  transform: rotate(45deg) translate(2px, -2px);
+  transform-origin: 0 100%;
+  border-radius: 0 0 0 3px;
+}
+.timeline-card-title {
+  font-family: var(--font-serif);
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: -0.005em;
+}
+.timeline-card-note {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+/* ============================================================
+   Mind map (canvas)
+   ============================================================ */
+
+.mindmap-stage {
+  flex: 1; min-height: 0;
+  position: relative;
+  background:
+    radial-gradient(circle at 14px 14px, var(--border-soft) 1px, transparent 1px) 0 0/28px 28px,
+    var(--surface);
+}
+.mm-node {
+  position: absolute;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px; font-weight: 500;
+  box-shadow: var(--shadow-1);
+  min-width: 100px;
+  text-align: center;
+}
+.mm-node.character { border-color: var(--mm-character-line); background: var(--mm-character-bg); }
+.mm-node.location  { border-color: var(--mm-location-line);  background: var(--mm-location-bg); }
+.mm-node.object    { border-color: var(--mm-object-line);    background: var(--mm-object-bg); }
+.mm-node.event     { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent-ink); }
+
+/* ============================================================
+   Status indicator (scene status)
+   ============================================================ */
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border-strong);
+  flex-shrink: 0;
+}
+.status-dot.todo { background: var(--status-todo); }
+.status-dot.draft { background: var(--status-draft); }
+.status-dot.revise { background: var(--status-revise); }
+.status-dot.done { background: var(--status-done); }
+
+/* ============================================================
+   Small text utilities
+   ============================================================ */
+.t-muted { color: var(--muted); }
+.t-num { font-variant-numeric: tabular-nums; }
+.t-serif { font-family: var(--font-serif); }
+.t-mono { font-family: var(--font-mono); }
+.t-eyebrow {
+  font-size: 10.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+/* ============================================================
+   Toasts — JustWrite's rhythm and buttons over the kit's toast
+   (Quasar's Notify, drawn in the kit's quasar/theme.css "Toast"
+   section with vue-sonner's light look, which is what JustWrite's
+   toasts have shown: the dark ink colours set here under sonner
+   never reached them — sonner re-declared its own palette on its
+   list). Radius, padding, shadow, font and the buttons are
+   overridden on the same elements; the kit's --ui-toast-*
+   properties would recolour them.
+   ============================================================ */
+.ui-toast {
+  border-radius: 8px;
+  box-shadow: var(--shadow-2);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  padding: 12px 14px;
+}
+.ui-toast .ui-toast__action {
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 0;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 5px 12px;
+}
+.ui-toast .ui-toast__action:hover {
+  filter: brightness(1.1);
+}
+.ui-toast .ui-toast__close {
+  color: currentColor;
+  opacity: 0.6;
+}
+.ui-toast .ui-toast__close:hover { opacity: 1; }
+

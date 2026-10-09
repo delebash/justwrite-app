@@ -69,7 +69,7 @@ Windows, macOS and Linux layouts) or set `JW_CHROME`. Never hardcode a browser p
 - **No JSON blobs in SQL** — relational data gets real columns and rows. JSON only for genuinely freeform data, with a cited reason.
 - The **`@renderer` alias** is `src/`. Prefer relative imports within a directory, `@renderer/...` across the tree.
 - The renderer dev server is fixed at `http://localhost:1420`; `quasar.config.js` (`devServer.port`) and `src/boot/jw.js` (`devPorts`) reference that port — keep them in lock-step.
-- **Quasar's shape** (app-structure §Q): start-up code is the boot file `src/boot/jw.js` (there is no `main.js`); `src/App.vue` is the root (the shell `AppShell.vue`, or the connection-error screen); the desktop main is `src-electron/electron-main.js`; the server is its own package (`server/package.json`, `justwrite-server`, an npm workspace) and also holds the editor schema the renderer imports as `justwrite-server/editor/…`.
+- **Quasar's shape** (app-structure §Q): the renderer is laid out as Quasar's CLI creates a project — start-up code in boot files (`src/boot/i18n.js`, `src/boot/jw.js`; there is no `main.js`), `src/App.vue` a bare `<router-view>`, the chrome `src/layouts/MainLayout.vue` (q-layout: the title bar, the sidebar as q-drawer), the screens `src/pages/<Name>Page.vue` (each a q-page), the stylesheets `src/css/` (listed in `quasar.config.js > css`), the connection-error screen its own route (`/offline`); the desktop main is `src-electron/electron-main.js`; the server is its own package (`server/package.json`, `justwrite-server`, an npm workspace) and also holds the editor schema the renderer imports as `justwrite-server/editor/…`.
 
 ## Product and design rules
 

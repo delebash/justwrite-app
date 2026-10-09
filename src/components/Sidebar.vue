@@ -12,6 +12,12 @@ import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { useRovingTabindexMap } from "@renderer/composables/useRovingTabindexMap.js";
 
+// The layout's drawer (layouts/MainLayout.vue) mounts this twice: its default slot the full
+// sidebar, its #mini slot — Quasar's mini mode, the collapsed state on a computer — the 56px rail
+// (`rail`). The drawer decides which shows, so the phone's drawer, which has no mini mode, always
+// shows the full sidebar whatever a computer last collapsed.
+const props = defineProps({ rail: { type: Boolean, default: false } });
+
 const { t } = useI18n();
 const ui = useUiStore();
 const project = useProjectStore();
@@ -338,22 +344,18 @@ function addSceneToChapter(chapterId) {
 // dragging we listen on window so the cursor can leave the strip without
 // losing the drag.
 function onResizeStart(e) {
-  if (ui.sidebarCollapsed) return;
+  if (props.rail) return;
   e.preventDefault();
   const startX = e.clientX;
   const startW = ui.sidebarWidth;
   document.body.style.cursor = "col-resize";
   document.body.style.userSelect = "none";
-  // Drop the .app's grid-template-columns transition while dragging so
-  // each mousemove updates the layout immediately, not over 220ms.
-  document.documentElement.classList.add("sidebar-resizing");
   function onMove(ev) { ui.setSidebarWidth(startW + (ev.clientX - startX)); }
   function onUp() {
     window.removeEventListener("mousemove", onMove);
     window.removeEventListener("mouseup", onUp);
     document.body.style.cursor = "";
     document.body.style.userSelect = "";
-    document.documentElement.classList.remove("sidebar-resizing");
   }
   window.addEventListener("mousemove", onMove);
   window.addEventListener("mouseup", onUp);
@@ -835,7 +837,7 @@ const authorInitials = computed(() => {
 </script>
 
 <template>
-  <aside class="sidebar" :class="{ collapsed: ui.sidebarCollapsed }" v-if="!ui.sidebarCollapsed">
+  <aside class="sidebar" v-if="!rail">
     <div class="sidebar-resize" v-tooltip.bottom="$t('sidebar.tooltips.dragToResize')" @mousedown="onResizeStart" />
     <div class="brand">
       <div class="brand-mark">{{ $t("welcome.brandMark") }}</div>

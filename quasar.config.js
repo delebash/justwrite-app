@@ -34,14 +34,28 @@ export default defineConfig((ctx) => {
   }
 
   return {
-    // The renderer's start-up (the old src/main.js): settings, stores, the kit's UI, the router
-    // guards, the warm start — awaited before Quasar mounts the app.
-    boot: ['jw'],
+    // vue-i18n first (as the CLI's i18n preset wires it), then the renderer's start-up (the old
+    // src/main.js): settings, stores, the kit's UI, the router guards, the warm start — awaited
+    // before Quasar mounts the app.
+    boot: ['i18n', 'jw'],
 
-    css: [],
+    // The stylesheets, in cascade order: the self-hosted fonts first (so they land earliest in the
+    // emitted stylesheet), the design tokens the family theme reads, the kit's own (its AI views, its
+    // controls, its Quasar theme — `~` = imported as written, through the alias), then the app's, so
+    // JustWrite's rules win a tie with the kit's, as they always have (until the stylesheets moved
+    // here from the boot file, the kit's loaded first because the boot's modules imported the kit
+    // before it imported styles.css). Plain names are src/css/.
+    css: [
+      'fonts.css',
+      'tokens.css',
+      '~@delebash/llm-ui/styles.css',
+      '~@delebash/llm-ui/common/styles.css',
+      '~@delebash/llm-ui/quasar/theme.css',
+      'app.scss',
+    ],
 
-    // No Quasar icon font or Roboto: JustWrite's fonts are its own (src/fonts.css) and it uses no
-    // Quasar component yet — the family theme and icon set come with the kit's UI on Quasar.
+    // No Quasar icon font or Roboto: JustWrite's fonts are its own (src/css/fonts.css), and the
+    // icons Quasar's components draw are the kit's line icons (its icon set).
     extras: [],
 
     build: {

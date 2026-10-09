@@ -23,7 +23,7 @@ import { readSetting, writeSetting } from "./settings.js";
  * user adding a second project never sees it; the `aiSetupPrompted` setting is
  * the once-ever gate (survives reloads and a delete-all-then-recreate). Opening
  * the dialog is deferred to the ui store so it mounts at App level (surviving
- * the OnboardingShell → real-app swap the new project triggers).
+ * the projectless header → sidebar swap the new project triggers).
  */
 function maybePromptAiSetup(wasFirstProject) {
   if (!wasFirstProject) return;

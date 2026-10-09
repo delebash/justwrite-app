@@ -1,0 +1,230 @@
+<script setup>
+import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
+import { useProjectStore, TRASH_KINDS } from "../stores/project.js";
+import { useUiStore } from "../stores/ui.js";
+import { PaneHeader, pageFill } from "@delebash/llm-ui";
+import { Icon } from "@delebash/llm-ui";
+import { confirmDialog } from "@delebash/llm-ui";
+import { UiButton } from "@delebash/llm-ui";
+import { UiTable } from "@delebash/llm-ui";
+
+const project = useProjectStore();
+const ui = useUiStore();
+const router = useRouter();
+const { t } = useI18n({ useScope: "global" });
+
+// `label` held the English word directly, which no lint rule could see because this is script,
+// not template. `labelOne` held a second set of twelve and was referenced nowhere at all.
+const KIND_META = {
+  chapters:      { i18n: "trash.kinds.chapters",      icon: "Book" },
+  scenes:        { i18n: "trash.kinds.scenes",        icon: "Quote" },
+  characters:    { i18n: "trash.kinds.characters",    icon: "Users" },
+  locations:     { i18n: "trash.kinds.locations",     icon: "Pin" },
+  objects:       { i18n: "trash.kinds.objects",       icon: "Cube" },
+  groups:        { i18n: "trash.kinds.groups",        icon: "GroupIcon" },
+  notes:         { i18n: "trash.kinds.notes",         icon: "Note" },
+  strands:       { i18n: "trash.kinds.strands",       icon: "Strands" },
+  worldbuilding: { i18n: "trash.kinds.worldbuilding", icon: "Sparkle" },
+  events:        { i18n: "trash.kinds.events",        icon: "Calendar" },
+  statuses:      { i18n: "trash.kinds.statuses",      icon: "Check" },
+  tagVocab:      { i18n: "trash.kinds.tagVocab",      icon: "Sparkle" },
+};
+
+// Group by kind with metadata; only show kinds that have items.
+const sections = computed(() => TRASH_KINDS
+  .map((k) => ({ kind: k, meta: KIND_META[k], items: project.trash[k] || [] }))
+  .filter((s) => s.items.length)
+);
+
+const totalCount = computed(() => project.trashCount);
+
+// Item title — different shape per kind.
+function titleOf(kind, item) {
+  if (kind === "chapters")      return t("trash.chapterRef", { num: item.num, title: item.title });
+  if (kind === "scenes")        return item.title || t("chapters.edit.untitledScene");
+  if (kind === "notes")         return item.title;
+  if (kind === "worldbuilding") return item.title;
+  if (kind === "events")        return item.title || t("events.untitled");
+  if (kind === "statuses")      return item.label;
+  if (kind === "tagVocab")      return item.label;
+  return item.name;
+}
+// Resolve the parent entity name for a deleted event (events attach to
+// characters/locations/objects). Returns null if the parent was deleted too.
+function eventParentName(entityId) {
+  if (!entityId) return null;
+  for (const list of [project.characters, project.locations, project.objects]) {
+    const found = list.find((x) => x.id === entityId);
+    if (found) return found.name;
+  }
+  return null;
+}
+function subOf(kind, item) {
+  if (kind === "chapters")   return item.partId ? t("trash.fromPart", { part: project.parts.find((p) => p.id === item.partId)?.title || t("trash.removedPart") }) : null;
+  if (kind === "scenes") {
+    const parent = project.chapterById(item.chapterId);
+    return parent
+      ? t("trash.fromNamed", { name: t("trash.chapterRef", { num: parent.num, title: parent.title }) })
+      : t("trash.fromRemovedChapter");
+  }
+  if (kind === "characters") return item.role;
+  if (kind === "locations")  return item.kind;
+  if (kind === "objects")    return item.kind;
+  if (kind === "notes")      return t("trash.noteTag", { tag: item.tag });
+  if (kind === "groups")     return t("count.member", { n: (item.members || []).length }, (item.members || []).length);
+  if (kind === "worldbuilding") return item.category;
+  if (kind === "events") {
+    const parent = eventParentName(item.entityId);
+    return parent ? t("trash.fromNamed", { name: parent }) : t("trash.fromRemovedEntity");
+  }
+  if (kind === "tagVocab")   return t("trash.forKind", { kind: item.kind });
+  return null;
+}
+function ago(ts) {
+  if (!ts) return "";
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
+}
+
+function restore(kind, id) {
+  // QC-37 (toast law): the row leaves the Trash list in place — the outcome
+  // is visible right here, so no toast.
+  project.restoreFromTrash(kind, id);
+}
+async function purge(kind, id, name) {
+  const yes = await confirmDialog({
+    title: `Permanently delete "${name}"?`,
+    message: "This can't be undone.",
+    confirmLabel: "Delete forever",
+    danger: true,
+  });
+  if (!yes) return;
+  project.purgeFromTrash(kind, id);  // row leaves the list — visible (QC-37)
+}
+async function emptyAll() {
+  const yes = await confirmDialog({
+    title: "Empty trash?",
+    message: `Permanently delete all ${totalCount.value} items in trash. This can't be undone.`,
+    confirmLabel: "Empty trash",
+    danger: true,
+  });
+  if (!yes) return;
+  project.emptyTrash();  // the whole list empties — visible (QC-37)
+}
+
+const trashColumns = [
+  { accessorKey: "title",     header: "Title",   headerStyle: "min-width:200px", cellStyle: "min-width:200px" },
+  { accessorKey: "sub",       header: "Details", headerStyle: "min-width:140px", cellStyle: "min-width:140px" },
+  { accessorKey: "deletedAt", header: "Deleted", sortable: true, headerStyle: "width:130px", cellStyle: "width:130px" },
+  { id: "actions",            header: "Actions", headerStyle: "width:130px;text-align:right", cellStyle: "width:130px;text-align:right" },
+];
+</script>
+
+<template>
+  <q-page :style-fn="pageFill" class="main">
+    <PaneHeader :eyebrow="$t('settings.eyebrow')" :title="$t('nav.trash')" help-key="backups-and-data#restoring-from-autosave">
+      <span class="t-muted" style="font-size:12px">
+        {{ $t("trash.itemCount", { n: totalCount }, totalCount) }}
+      </span>
+      <UiButton v-if="totalCount" intent="ghost" @click="emptyAll">
+        <Icon name="Trash" :size="13" /> {{ $t("trash.emptyTrash") }}
+      </UiButton>
+    </PaneHeader>
+
+    <div class="pane-card">
+    <div class="scrollarea">
+      <div style="padding:18px 26px 0">
+        <i18n-t keypath="trash.intro" tag="p" class="trash-desc" scope="global">
+          <template #trash><strong>{{ $t("nav.trash") }}</strong></template>
+          <template #restore><strong>{{ $t("common.restore") }}</strong></template>
+        </i18n-t>
+      </div>
+
+      <!-- Empty -->
+      <div v-if="totalCount === 0" style="padding:60px 22px;display:grid;place-items:center">
+        <div style="max-width:380px;text-align:center">
+          <div style="width:64px;height:64px;border-radius:16px;margin:0 auto 18px;background:var(--surface-3);color:var(--muted);display:grid;place-items:center">
+            <Icon name="Trash" :size="28" />
+          </div>
+          <h3 style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin:0">{{ $t("trash.emptyTitle") }}</h3>
+          <p style="font-size:13.5px;color:var(--ink-2);margin-top:8px;line-height:1.55">
+            {{ $t("trash.emptyBody") }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Sections -->
+      <div v-else style="padding:18px 26px 60px;max-width:920px">
+        <p class="t-muted" style="font-size:12.5px;margin:0 0 18px;line-height:1.55">
+          {{ $t("trash.keptHint") }}
+        </p>
+
+        <section v-for="s in sections" :key="s.kind" class="trash-section">
+          <div class="trash-section-head">
+            <span class="trash-section-icon"><Icon :name="s.meta.icon" :size="13" /></span>
+            <span class="trash-section-name">{{ $t(s.meta.i18n) }}</span>
+            <span class="t-muted" style="font-size:11px;font-variant-numeric:tabular-nums">{{ s.items.length }}</span>
+            <span style="flex:1;height:1px;background:var(--border-soft);margin-left:8px" />
+          </div>
+          <UiTable :data="s.items" data-key="id" :columns="trashColumns" class="trash-dt">
+            <template #title="{ row }">
+              <div class="trash-title">{{ titleOf(s.kind, row) }}</div>
+            </template>
+            <template #sub="{ row }">
+              <span class="t-muted" style="font-size:11.5px">{{ subOf(s.kind, row) || "—" }}</span>
+            </template>
+            <template #deletedAt="{ row }">
+              <span class="t-muted" style="font-size:11.5px">{{ ago(row.deletedAt) }}</span>
+            </template>
+            <template #actions="{ row }">
+              <div style="display:flex;gap:6px;justify-content:flex-end">
+                <UiButton :label="$t('common.restore')" intent="primary" size="small" @click="restore(s.kind, row.id)">
+                  <template #icon><Icon name="Refresh" :size="11" /></template>
+                </UiButton>
+                <UiButton intent="ghost" size="small" :aria-label="$t('trash.permanentlyDelete')" v-tooltip.bottom="$t('trash.permanentlyDelete')" @click="purge(s.kind, row.id, titleOf(s.kind, row))">
+                  <template #icon><Icon name="Trash" :size="11" /></template>
+                </UiButton>
+              </div>
+            </template>
+          </UiTable>
+        </section>
+      </div>
+    </div>
+    </div>
+  </q-page>
+</template>
+
+<style scoped>
+.trash-section { margin-bottom: 28px; }
+.trash-section-head { display: flex; align-items: center; gap: 8px; padding: 4px 0 10px; }
+.trash-section-icon {
+  width: 22px; height: 22px; border-radius: 6px;
+  background: var(--surface-3); color: var(--muted);
+  display: grid; place-items: center;
+}
+.trash-section-name {
+  font-size: 11.5px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--muted);
+}
+.trash-dt { font-size: 13px; }
+.trash-title {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.trash-desc {
+  font-size: 14px; line-height: 1.55; color: var(--muted);
+  margin: 0 0 18px;
+}
+.trash-desc strong { color: var(--ink-2); font-weight: 600; }
+</style>
