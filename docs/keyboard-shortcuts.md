@@ -28,6 +28,19 @@ Undo and redo are disabled when the focus is inside the rich manuscript editor �
 
 ---
 
+## Tab rows, choices and colours
+
+The same keys work on every page.
+
+| Keys | Action |
+|---|---|
+| **Tab** | Reaches a row of tabs (Settings, …) once, on the open tab |
+| **← / →**, **Home / End** | Move between those tabs; **Enter** or **Space** opens the one you're on |
+| **← / →** in a row of choices (Appearance's sizes and styles, a chapter's Edit / Outline / Read switch, …) | Move between the choices; **Enter** or **Space** picks one, and typing a choice's first letter picks it |
+| **Enter** on a colour swatch | Opens its colours; **Tab** moves through them, **Enter** picks one, **Esc** closes |
+
+---
+
 ## Editor
 
 When the cursor is inside the manuscript editor.
