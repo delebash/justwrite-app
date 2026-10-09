@@ -30,7 +30,7 @@ const driver = await remote({
   hostname: "127.0.0.1",
   port: 4723,
   logLevel: "warn",
-  connectionRetryTimeout: 600000, // the first session builds WebDriverAgent
+  connectionRetryTimeout: 1200000, // the first session builds WebDriverAgent (3 min on the runner)
   connectionRetryCount: 0,
   capabilities: {
     platformName: "iOS",
@@ -42,6 +42,9 @@ const driver = await remote({
     "appium:isHeadless": true,
     "appium:simulatorStartupTimeout": 300000,
     "appium:app": APP_PATH,
+    // the app was uninstalled above, so Appium's own reset has nothing to do — and its "terminate"
+    // of the not-yet-installed app hung for 6 minutes on the runner; the app is still installed
+    "appium:noReset": true,
     "appium:bundleId": BUNDLE,
     "appium:newCommandTimeout": 600,
     "appium:wdaLaunchTimeout": 480000,
