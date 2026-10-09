@@ -67,18 +67,22 @@ function zIndexOf(css, selector) {
 
 const CHIP = styleOf(readKit("components/LuFeatureChip.vue"));
 const MODAL = styleOf(readKit("common/components/AppModal.vue"));
-// UiSelect is Quasar's QSelect now; its list's rule lives in the kit's Quasar theme
-const SELECT = readFileSync(resolve(KIT, "quasar/theme.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+// UiSelect is Quasar's QSelect and AppModal Quasar's QDialog now (Q3); the select list's rule
+// and the modal overlay's (QDialog's root) live in the kit's Quasar theme. The chip's popover
+// is a QMenu, which inside a modal opens in the dialog's own layer — the z-index still decides
+// against everything a modal shares <body> with.
+const THEME = readFileSync(resolve(KIT, "quasar/theme.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const SELECT = THEME;
 
 describe("the chip popover out-ranks the modal it opens over", () => {
   it("parses the three literals it compares (a rename must fail loudly, not silently pass)", () => {
     expect(zIndexOf(CHIP, ":global(.afc-pop)")).toBeTypeOf("number");
-    expect(zIndexOf(MODAL, ".ui-modal-overlay")).toBe(200);
+    expect(zIndexOf(THEME, ".ui-modal-overlay")).toBe(200);
     expect(zIndexOf(MODAL, ".ui-modal")).toBe(201);
   });
 
   it("clears the modal's SCRIM — otherwise it paints behind a backdrop-filter blur", () => {
-    expect(zIndexOf(CHIP, ":global(.afc-pop)")).toBeGreaterThan(zIndexOf(MODAL, ".ui-modal-overlay"));
+    expect(zIndexOf(CHIP, ":global(.afc-pop)")).toBeGreaterThan(zIndexOf(THEME, ".ui-modal-overlay"));
   });
 
   it("clears the modal's PANEL — the chip is in the modal's own header", () => {

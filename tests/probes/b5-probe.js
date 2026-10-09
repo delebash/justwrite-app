@@ -304,7 +304,7 @@ try {
     `note="${noteText.trim()}"`);
   check("B5-7 #43: the 'View task queue' action is there (the old toast word 'View' is gone)",
     (await note.locator('button:has-text("View task queue")').count()) === 1);
-  const doneToasts = await page.locator('[data-sonner-toast]:has-text("done in")').count();
+  const doneToasts = await page.locator('.ui-toast:has-text("done in")').count();
   check("B5-7 #43: NO completion toast fired for the editor run", doneToasts === 0);
   await note.locator(".ai-done-x").click();
   await sleep(300);

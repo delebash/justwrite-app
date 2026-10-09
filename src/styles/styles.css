@@ -1344,53 +1344,37 @@ html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-
 }
 
 /* ============================================================
-   vue-sonner — theme override. Sonner ships its own CSS but
-   exposes both per-mode CSS custom properties AND data-attribute
-   hooks. We retint via the custom props so theming follows
-   tokens.css; visual rhythm (radius, padding, shadow) overrides
-   via the data-attr selectors below.
+   Toasts — JustWrite's rhythm and buttons over the kit's toast
+   (Quasar's Notify, drawn in the kit's quasar/theme.css "Toast"
+   section with vue-sonner's light look, which is what JustWrite's
+   toasts have shown: the dark ink colours set here under sonner
+   never reached them — sonner re-declared its own palette on its
+   list). Radius, padding, shadow, font and the buttons are
+   overridden on the same elements; the kit's --ui-toast-*
+   properties would recolour them.
    ============================================================ */
-.ui-toaster {
-  /* "normal" toast — the default look */
-  --normal-bg: var(--ink);
-  --normal-text: var(--surface);
-  --normal-border: transparent;
-  /* severity ramps — match our JwButton intent colours */
-  --success-bg: var(--status-done);
-  --success-text: var(--surface);
-  --success-border: transparent;
-  --info-bg: var(--info);
-  --info-text: var(--surface);
-  --info-border: transparent;
-  --error-bg: var(--danger);
-  --error-text: var(--surface);
-  --error-border: transparent;
-  --warning-bg: var(--gold);
-  --warning-text: color-mix(in oklab, var(--gold) 22%, black);
-  --warning-border: transparent;
+.ui-toast {
+  border-radius: 8px;
+  box-shadow: var(--shadow-2);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  padding: 12px 14px;
 }
-[data-sonner-toast] {
-  border-radius: 8px !important;
-  box-shadow: var(--shadow-2) !important;
-  font-family: var(--font-ui) !important;
-  font-size: 13px !important;
-  padding: 12px 14px !important;
+.ui-toast .ui-toast__action {
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 0;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 5px 12px;
 }
-[data-sonner-toast] [data-button] {
-  background: var(--accent) !important;
-  color: var(--on-accent) !important;
-  border: 0 !important;
-  border-radius: 5px !important;
-  font-weight: 600 !important;
-  font-size: 12px !important;
-  padding: 5px 12px !important;
-}
-[data-sonner-toast] [data-button]:hover {
+.ui-toast .ui-toast__action:hover {
   filter: brightness(1.1);
 }
-[data-sonner-toast] [data-close-button] {
-  color: currentColor !important;
+.ui-toast .ui-toast__close {
+  color: currentColor;
   opacity: 0.6;
 }
-[data-sonner-toast] [data-close-button]:hover { opacity: 1; }
+.ui-toast .ui-toast__close:hover { opacity: 1; }
 

@@ -7,8 +7,10 @@
 //
 //  * SOURCE-level, for the CSS invariants. jsdom has no layout engine and paints
 //    nothing, so no mount can observe a backdrop-filter or a transform taking effect —
-//    the precedent is chipPopoverStacking.test.js next door, which reads the kit SFC's
-//    <style> block for exactly this reason. `is-dragged`'s `transform: none` is pinned
+//    the precedent is chipPopoverStacking.test.js next door, which reads the kit's
+//    stylesheets for exactly this reason. AppModal is QDialog + QCard (Q3 slice 7): the
+//    overlay is QDialog's root and backdrop, styled by the kit's Quasar theme
+//    (quasar/theme.css); the card's own rules stay in AppModal's <style> block. `is-dragged`'s `transform: none` is pinned
 //    the same way: simulating a real pointer drag needs getBoundingClientRect/offsetWidth
 //    to return real geometry, which jsdom stubs to zero, so the drag MATH cannot be
 //    exercised honestly here. What CAN be pinned is that the rule exists and says what
@@ -72,6 +74,8 @@ function ruleBody(css, selector) {
 
 const MODAL_SRC = readKit("common/components/AppModal.vue");
 const MODAL = styleOf(MODAL_SRC);
+const THEME = readKit("quasar/theme.css").replace(/\/\*[\s\S]*?\*\//g, "");
+const BACKDROP = ":where(.ui-modal-overlay, .help-drawer-overlay) .q-dialog__backdrop";
 
 let app;
 let host;
@@ -83,45 +87,48 @@ afterEach(() => {
   host = null;
 });
 
-function mountModal(props = {}) {
+async function mountModal(props = {}) {
   host = document.createElement("div");
   document.body.appendChild(host);
   app = createTestApp({ render: () => h(AppModal, { title: "T", ...props }, { default: () => "body" }) });
   app.mount(host);
-  return nextTick();
+  // QDialog opens its portal on mount and renders it on the next pass
+  for (let i = 0; i < 4; i++) await nextTick();
 }
 
-// Reka portals DialogContent to <body>, not into the mount host — query the document.
+// QDialog portals to <body>, not into the mount host — query the document.
 function modalEl() {
   return document.querySelector(".ui-modal");
 }
 
 describe("the modal overlay neither dims nor blurs (user ruling, 2026-07-19)", () => {
-  it("parses the overlay rule it asserts on (a rename must fail loudly, not silently pass)", () => {
-    expect(ruleBody(MODAL, ".ui-modal-overlay")).toContain("z-index");
+  it("parses the overlay rules it asserts on (a rename must fail loudly, not silently pass)", () => {
+    expect(ruleBody(THEME, ".ui-modal-overlay")).toContain("z-index");
+    expect(ruleBody(THEME, BACKDROP)).toContain("background");
   });
 
-  it("declares NO backdrop-filter — the blur is gone", () => {
-    expect(ruleBody(MODAL, ".ui-modal-overlay")).not.toMatch(/backdrop-filter/);
-  });
-
-  it("declares NO backdrop-filter anywhere in the stylesheet", () => {
-    // Belt and braces: the blur must not reappear on some other selector.
+  it("declares NO backdrop-filter — not in the theme, the modal's styles, or as QDialog's prop", () => {
+    // Belt and braces: the blur must not reappear on some other selector, nor through
+    // QDialog's own backdrop-filter prop.
+    expect(THEME).not.toMatch(/backdrop-filter/);
     expect(MODAL).not.toMatch(/backdrop-filter/);
+    expect(MODAL_SRC).not.toMatch(/backdrop-filter|backdropFilter/);
   });
 
-  it("paints a transparent background — the scrim dim is gone", () => {
-    const body = ruleBody(MODAL, ".ui-modal-overlay");
+  it("paints QDialog's backdrop transparent — the scrim dim is gone", () => {
+    const body = ruleBody(THEME, BACKDROP);
     expect(body).toMatch(/background:\s*transparent/);
     // The old scrim was a --scrim var / color-mix black. Neither may survive.
     expect(body).not.toMatch(/--scrim/);
     expect(body).not.toMatch(/color-mix/);
   });
 
-  it("keeps the overlay ELEMENT — it still blocks the page behind + carries outside-click", () => {
-    const body = ruleBody(MODAL, ".ui-modal-overlay");
-    expect(body).toMatch(/position:\s*fixed/);
-    expect(body).toMatch(/inset:\s*0/);
+  it("keeps the overlay ELEMENT — QDialog's backdrop still blocks the page behind + takes the outside click", async () => {
+    await mountModal();
+    const overlay = document.querySelector(".ui-modal-overlay");
+    expect(overlay?.getAttribute("role")).toBe("dialog");
+    expect(overlay?.getAttribute("aria-modal")).toBe("true");
+    expect(overlay?.querySelector(".q-dialog__backdrop")).toBeTruthy();
   });
 });
 

@@ -59,8 +59,9 @@ function ruleBody(css, selector) {
 // 1. NO DIM, NO BLUR — per surface.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// HelpDrawer is Quasar's QDialog (Q3 slice 7): its overlay is QDialog's root and backdrop,
+// pinned with AppModal's in modalDragAndScrim.test.js (the kit theme's one backdrop rule).
 const SURFACES = [
-  { name: "HelpDrawer", selector: ".help-drawer-overlay", css: styleOf(readKit("common/components/HelpDrawer.vue")) },
   { name: "CommandPalette", selector: ".cp-overlay", css: styleOf(readJw("components/CommandPalette.vue")) },
   { name: "SceneLinks", selector: ".links-overlay", css: styleOf(readJw("components/SceneLinks.vue")) },
 ];
@@ -90,6 +91,14 @@ describe("no overlay dims or blurs the page behind it (user ruling, 2026-07-19)"
       });
     });
   }
+
+  it("HelpDrawer is a QDialog on the shared transparent backdrop, with no blur of its own", () => {
+    const src = readKit("common/components/HelpDrawer.vue");
+    expect(src).toMatch(/<QDialog[^>]*class="help-drawer-overlay"/);
+    expect(src).not.toMatch(/backdrop-filter|backdropFilter/);
+    const theme = readKit("quasar/theme.css").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(ruleBody(theme, ":where(.ui-modal-overlay, .help-drawer-overlay) .q-dialog__backdrop")).toMatch(/background:\s*transparent/);
+  });
 
   it("styles.css no longer declares the dead blurring `.modal-overlay` rule", () => {
     const css = readJw("styles/styles.css").replace(/\/\*[\s\S]*?\*\//g, "");

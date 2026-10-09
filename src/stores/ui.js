@@ -196,7 +196,7 @@ export const useUiStore = defineStore("ui", {
       }
     },
 
-    // Toasts — delegate to sonner via toastBridge. Pass
+    // Toasts — delegate to the kit's toasts (Quasar's Notify) via toastBridge. Pass
     // `action: { label, fn }` for an inline button (soft-delete's "Undo").
     showToast({ message, action } = {}, ms = 6000) {
       pushToast({ message, action }, ms);

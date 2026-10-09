@@ -9,7 +9,7 @@
 //
 // The kit modules are imported REAL via the source alias (subpath — the
 // whole-kit index.js pulls .vue files the node env can't parse); only the
-// toast bridge (vue-sonner) and global fetch are mocked.
+// toast bridge and global fetch are mocked.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 
