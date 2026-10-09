@@ -550,7 +550,7 @@ JV as of 2026-08-04; the convergence scope itself stands.)*
   NEVER write the computed default into `dataroot.txt` on first run — that lock pinned
   JustVoice to an obsolete default and vetoed the new one silently (JV `6b8b091` context;
   full record in `../JustVioce/docs/dev/TASKS.md`). Contract text: kit
-  `docs/app-structure.md` §5 + §6.
+  `docs/app-structure.md` §Q.8 (the data folder).
 - **Server reuse is VETOED** ("i am affraid of a server running when it shouldnt"); the
   kill+respawn cost (`lib.rs:377-391`) was measured and no cheaper boot lever exists.
 - **Commit-gate hooks are REJECTED** — the remedy for unauthorized change is asking before

@@ -12,6 +12,8 @@ holds no durable data. The whole AI/LLM stack is shared with the sibling apps: `
 in JustVoice, which JustWrite drives over an HTTP contract (JW hands JV the prose; JV does its own
 casting and narration). Do not reintroduce any of it here.
 
+The family rules every family repo follows: @../just-llm-runner/docs/family-rules.md
+
 ## Commands
 
 ```bash
@@ -29,6 +31,7 @@ npm run test:fast      # quick gate: renderer vitest + build:spa + server vitest
 npm run test:unit      # renderer vitest only
 npm run test:server    # server vitest only (server/tests/, on Electron's Node)
 npm run i18n:report    # locale coverage — MISSING must always be zero
+node ../just-llm-runner/scripts/check-family.js   # the family guard — must pass before a commit
 ```
 
 **Server code runs on Electron's own Node.** Every npm script that runs the server or its tests
@@ -58,10 +61,9 @@ Windows, macOS and Linux layouts) or set `JW_CHROME`. Never hardcode a browser p
 ## Invariants that bite
 
 - **JW must run headless** — `npm run server` (installed: `justwrite-server serve`) + a browser is the whole app, no desktop shell (`server/src/app.js` mounts the built UI — `dist/spa`, the app folder when packaged — after the routers). So the server is REQUIRED and owns all persistence. Rationale in `docs/dev/ARCHITECTURE.md`.
-- **The desktop shell is reached only through `src/services/native.js`** (it alone reads `window.appShell`, the kit's preload) — never from views or stores, or the browser-only path breaks.
 - **A new mutating store action must be added to `ACTION_DOMAINS`** — an unmapped action warns and records nothing, so undo silently skips it. Keystroke-grain mutators also go in `COALESCED_ACTIONS` or the undo buffer fills instantly.
 - **`project` is one monolithic Pinia store on purpose** — it owns snapshot-based undo/redo across all entities. That is JustWrite's sanctioned exception to per-domain stores.
-- **Import `Ui*` primitives from `@delebash/llm-ui`.** There is no local `components/ui/` directory and no `Jw*` components; never re-fork one locally. A capability gap gets promoted into the kit. The single `intent` prop encodes role AND style — never add `severity` / `outlined` / `text`.
+- **The kit's `Ui*` controls take one `intent` prop** that encodes role AND style — never add `severity` / `outlined` / `text`.
 - **`i18n/locales/en.json` is the world** for user-facing English. Reuse an existing key before minting a new one; `MISSING` in `i18n:report` must stay zero.
 - **NOTHING hardcoded** — every value, threshold, name, mapping, flag and preset lives in the DB, seeded and user-editable. Code is only the engine.
 - **No JSON blobs in SQL** — relational data gets real columns and rows. JSON only for genuinely freeform data, with a cited reason.
