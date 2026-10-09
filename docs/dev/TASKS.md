@@ -17,6 +17,35 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
+## The phone's cloud folder through the Files app — Dropbox first, OneDrive after November [2026-10-09]
+STATE:  DECIDED 2026-10-09 — asked whether the app could hand files to the OneDrive app instead of
+        an API key; shown (the kit's RESEARCH §2, "OneDrive from the phone"): handing one file works
+        today (Export → share sheet); a folder the app keeps and syncs into isn't reliable yet —
+        Android: "no source shows OneDrive/Google Drive/Dropbox supporting Android's folder
+        picking"; iOS: "OneDrive is moving to Apple's newer file-provider API (rollout to early
+        November 2026)", Dropbox already allows folder access; the one free Capacitor plugin that
+        keeps a folder grant is `@daniele-rolli/capacitor-scoped-storage` (MIT, 0.1.0). The user:
+        "yes i have iphone to test, hold off until after november for file provider role out, lets
+        test on dropbox, i will install app, what do i need to do in dropbox".
+WHY:    syncing the phone through a cloud folder without registering the app with Microsoft or
+        Dropbox (the user: "this does not see to be user friendly has to be a better way").
+NOT:    the OneDrive API registration for now (later, before JustWrite goes to other people);
+        Android (no folder picking from cloud apps).
+BUILT:  nothing yet. Desktop side already works: Settings → Sync → the shared folder, pointed at a
+        folder the Dropbox desktop app syncs.
+OPEN:   1. how a test build reaches the user's iPhone — shown: a Mac with Xcode and a free Apple ID
+        (the app runs 7 days, then re-install), or GitHub's macOS runner + TestFlight (the paid Apple
+        Developer Program, $99/year). The user: "i dont have a mac and am not spending money", then
+        "we will test the app later" — HELD. The free route found for later: the unsigned build from
+        GitHub's macOS runner (free for a public repo), installed from Windows with a free Apple ID
+        through AltStore's AltServer or Sideloadly (7-day expiry, at most 3 sideloaded apps; a
+        third-party tool signs in with the Apple ID — a throwaway ID is possible); 2. the folder
+        grant on iOS — NOT STANDARD either way, needs
+        the user's word by name: `@daniele-rolli/capacitor-scoped-storage` 0.1.0, or a small Swift
+        plugin of our own on Apple's security-scoped bookmarks; 3. OneDrive through the Files app,
+        re-tested after its file-provider rollout (early November 2026).
+GO:     not given.
+
 ## The server moves to Hono [2026-10-09]
 STATE:  DECIDED 2026-10-09, family-wide — the decision with the user's words is the kit's TASKS,
         "The family's servers move to Hono — one server that runs in Node and in a worker".
