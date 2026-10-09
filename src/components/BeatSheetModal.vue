@@ -144,7 +144,7 @@ if (!mapping.value) run();
 
     <AiTaskStrip v-if="running" :task="myTask" />
 
-    <div v-else-if="!mapping" class="bs-loading">
+    <div v-else-if="!mapping && !error" class="bs-loading">
       <span class="bs-spinner" />
       <span>{{ $t("beatSheet.mapping") }}</span>
     </div>

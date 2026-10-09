@@ -284,7 +284,8 @@ This pattern keeps day-to-day cost near zero and only spends on the two features
 
 ## AI usage and cost tracking
 
-If you use cloud providers, **Settings → AI Usage** tracks what you've spent:
+If you use cloud providers, the AI page's **Usage** tab tracks what you've spent (the command
+palette's **AI usage** opens it):
 
 - Aggregate counters: total calls, total tokens, estimated cost in USD
 - Breakdown by feature (chat, critique, entity sweep, writer actions)

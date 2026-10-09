@@ -13,6 +13,7 @@ import { useAiStore } from "../stores/ai.js";
 
 // QC-46 — the welcome screen's "Run Quick Setup" deep-links /ai?quicksetup=1;
 // pass the flag to the shared area so it opens the wizard once after loading.
+// ?tab=<id> opens one of its tabs (the command palette's "AI usage" → ?tab=usage).
 const route = useRoute();
 const router = useRouter();
 
@@ -52,6 +53,7 @@ function runStream(opts) {
         <AiModelsArea app-tab-label="Writing AI" :run-stream="runStream"
           :auto-open-quick-setup="route.query.quicksetup === '1'"
           :initial-provider-scope="route.query.providers === 'online' ? 'online' : ''"
+          :initial-tab="String(route.query.tab || '')"
           @quick-setup-closed="router.push('/')">
           <template #app-tab><WritingAiSettings /></template>
         </AiModelsArea>

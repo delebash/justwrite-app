@@ -117,7 +117,8 @@ engine and the book search by meaning.
 opens from ☰ at the top left and closes when you pick a page; the title bar keeps Back, the book's
 title, Undo, Redo, the AI status and Search (Forward and the theme pickers stay on the computer —
 **Settings → Appearance** has the theme and light/dark). A page's buttons sit on the row under its
-title. A table wider than the screen scrolls sideways with its first column kept in view; the plot
+title. A table wider than the screen scrolls sideways with its first column kept in view, and its
+pager keeps the count, the ‹ › arrows and the page size; the plot
 board, the cast-presence heatmap and the writing calendar on **Analysis** scroll sideways inside
 their own box. In the editor the formatting toolbar wraps onto several rows above the text. A
 dialog's AI chip sits on its own row under the dialog's title. Settings leaves out **Backups**,

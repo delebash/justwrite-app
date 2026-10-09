@@ -67,7 +67,7 @@ const NAV_ITEMS = [
   { id: "nav:ai",       label: "AI Settings",          sublabel: "Providers · features · usage", icon: "Sparkle", to: "/ai" },
   { id: "nav:trash",    label: "Trash",                sublabel: "Restore deleted",     icon: "Trash",      to: "/trash" },
   { id: "nav:settings", label: "Settings",             sublabel: "Preferences",         icon: "Settings",   to: "/settings" },
-  { id: "nav:usage",    label: "AI usage",             sublabel: "Tokens + cost ledger",icon: "Chart",      to: "/settings/usage" },
+  { id: "nav:usage",    label: "AI usage",             sublabel: "Tokens + cost ledger",icon: "Chart",      to: "/ai?tab=usage" },
 ].filter((n) => bookIndexOn || n.id !== "nav:ask"); // Ask the book needs the search index
 
 const ENTITY_ITEMS = computed(() => {

@@ -17,6 +17,36 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
+## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
+STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's
+        `docs/plans/2026-10-08-the-phone.md`, slice 5), as shown:
+        "1. Can I push JustWrite (37 commits ahead), the kit (55) and just-sqlite-sync (3) to GitHub?
+        The iOS build runs on GitHub's macOS runner, and JustWrite's server pulls in both sibling
+        repos, so all three have to be there. — My recommendation: yes, those three. docgen (11
+        ahead) isn't needed for this.
+        2. The pager can't fit on one line at phone width without losing something: it needs 378 px
+        and has 346. For now it takes two clean rows: the count, then the controls. What should it
+        drop on phones? — My recommendation: drop First/Last and "Page n / m". The count and the ‹ ›
+        arrows already show where you are.
+        3. Should I fix the three desktop problems above as part of this work? — My recommendation:
+        yes. They're each a small change." (The three: the command palette's "AI usage" entry goes
+        to a Settings section that doesn't exist; at 1280 px the chapter bar's right end is cut off;
+        the Beat sheet dialog shows its "no model" error and its spinner at the same time.)
+        The user: "you can do whatever your need your rec go".
+WHY:    the phone plan's slices 5 and 6; the screens reviewed as emulator screenshots
+        (claude.ai/artifact/GVRYsL1qV9jU5JR9RkPUAr).
+NOT:    docgen's push; the phone's no-model error wording (it names Quick Setup, which the phone
+        doesn't have — asked separately).
+BUILT:  slice 5 — the kit fdbc100, 33ab9fe; JustWrite 321a6a5 (the 390 px pass, the walk, the
+        screenshots). The answers: 2 — the kit 6f5d294 (the pager at phone width: the count, ‹ › and
+        the page size); 3 — the palette's "AI usage" opens `/ai?tab=usage` (the AI page passes
+        `?tab=` to the shared area, as it does `?providers=`), the chapter bar wraps instead of
+        running past the card, the Beat sheet hides its spinner beside an error; user docs:
+        ai-providers.md (the Usage tab's place), sync.md (the phone pager). Checked: the 390 px walk,
+        1280 px screenshots, `/ai?tab=usage` opens Usage.
+OPEN:   1 — the push, then slice 6 (the plan's slice 6).
+GO:     given 2026-10-09 ("you can do whatever your need your rec go").
+
 ## The phone's cloud folder through the Files app — Dropbox first, OneDrive after November [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked whether the app could hand files to the OneDrive app instead of
         an API key; shown (the kit's RESEARCH §2, "OneDrive from the phone"): handing one file works

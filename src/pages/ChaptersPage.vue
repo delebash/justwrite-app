@@ -1066,7 +1066,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
     <div v-else-if="ch" class="pane-card" :class="{ 'has-side-panel': notesPanelOpen }">
      <div class="chapters-edit-main">
       <div class="chapter-bar">
-        <div class="chapter-bar-group chapter-bar-start">
+        <div class="chapter-bar-group">
           <UiButton intent="ghost" size="small"
             :class="{ 'is-active': continuousMode }"
             v-tooltip.bottom="continuousMode ? $t('chapters.edit.singleSceneTooltip') : $t('chapters.edit.continuousTooltip')"
@@ -1490,19 +1490,19 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
 .chapter-sweep-btn { margin-left: 6px; }
 
 /* The chapter bar above the editor: view toggles left, previous/next chapter in the middle,
-   the chapter's own actions right. At phone width (Quasar's xs) the three groups stack and each
-   wraps its buttons, so none runs off the edge. */
+   the chapter's own actions right. A group that doesn't fit wraps to the next row rather than
+   running past the card (at 1280 px the chapter's actions did); at phone width (Quasar's xs)
+   each group takes its own row. */
 .chapter-bar {
-  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px;
   padding: 10px 22px; border-bottom: 1px solid var(--border);
 }
-.chapter-bar-group { display: flex; gap: 12px; align-items: center; }
-.chapter-bar-start { justify-self: start; }
-.chapter-bar-end { justify-self: end; gap: 8px; }
+.chapter-bar-group { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.chapter-bar-end { gap: 8px; }
 @media (max-width: 599.98px) {
-  .chapter-bar { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 8px 16px; }
-  .chapter-bar-group { flex-wrap: wrap; gap: 8px; }
-  .chapter-bar-end { justify-self: start; }
+  .chapter-bar { padding: 8px 16px; }
+  .chapter-bar-group { flex-basis: 100%; gap: 8px; }
+  .chapter-bar > :empty { display: none; } /* the desktop's centring placeholder */
 }
 
 /* ── Edit-mode layout: editor column + docked notes panel ──────
