@@ -55,6 +55,8 @@ OPEN:   1. DONE — merged into master by the user's go ("your rec all go", on "
         3. The phone: the server in a web worker on SQLite WASM, the storage guard, OneDrive/
            Dropbox sign-in, the QR pairing (the Sync item below). Scope decided 2026-10-08 (the
            Sync item, decision 8): the book, its images and versions, sync, online AI providers.
+           Slices 1–4 built; slice 5 (the phone's screens) in progress — what is built and what
+           is next: the kit's `docs/plans/2026-10-08-the-phone.md`, slice 5, "Where it stands".
         4. The release workflow is rewritten for Quasar but not run (it needs a tag).
 GO:     given 2026-10-08 ("we need to do the quasar conversion as well you have a go on that").
 
