@@ -140,6 +140,16 @@ tests are the kit's RESEARCH §2 "Sync" / "Sync, round 2". JustWrite's:
   own `yjs`; JustWrite passes its own to `openSync({ yjs })`.
 - **Packaging:** the server now imports TipTap at runtime, so those packages moved from
   devDependencies to dependencies (electron-builder ships only production dependencies).
+- **A style attribute's text depends on the DOM** (*measured*, 2026-10-09, on TipTap 3.31.4):
+  ProseMirror's serializer writes `style` through `style.cssText` (prosemirror-model 1.25.2+, to
+  stay clear of a CSP); happy-dom 20.14.6 — the server's — reads it back as browsers do,
+  `prop: value;` declarations joined by one space (`min-width: 50px;`, and it drops a declaration
+  it can't parse), while linkedom 0.18 — the phone's — keeps the text as given (`min-width: 50px`).
+  happy-dom 20.14.5 kept it as given too, so the phone and the server agreed until the update; the
+  phone's `generateHTML` (`server/src/editor/html.phone.js`) now writes the browsers' form.
+- **`npm audit` (2026-10-09):** `braces` (high) and `sprintf-js` (moderate) are flagged in every
+  version, so no update clears them; they reach JustWrite only through `depcheck` (a development
+  tool) and `mammoth`'s command-line argument parser (`argparse`), neither run on the app's input.
 
 ## Records not yet distilled
 
