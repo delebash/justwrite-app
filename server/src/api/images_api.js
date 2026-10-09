@@ -9,6 +9,7 @@ import { randomUUID } from "node:crypto";
 import { HttpError } from "@delebash/llm-runner/platform/errors";
 import { opt, T } from "@delebash/llm-runner/platform/models";
 import { b64decode, ValueError } from "@delebash/llm-runner/platform/py";
+import { Hono, input } from "@delebash/llm-runner/platform/server";
 import { isoNowUtc } from "../book_io.js";
 import { getDb } from "../database/session.js";
 
@@ -23,37 +24,37 @@ function mediaType(mime) {
   return mime.startsWith("text/") && !mime.toLowerCase().includes("charset") ? `${mime}; charset=utf-8` : mime;
 }
 
-export async function router(app) {
-  app.post("/v1/images", { schema: { body: ImageUpload } }, async (req) => {
-    const body = req.body;
-    let raw;
-    try {
-      raw = b64decode(body.dataBase64, true);
-    } catch (e) {
-      if (e instanceof ValueError) throw new HttpError(400, "invalid base64");
-      throw e;
-    }
-    const imageId = randomUUID();
-    const now = isoNowUtc();
-    getDb().insert("image_blobs", {
-      id: imageId,
-      name: body.name,
-      mime: body.mime || "application/octet-stream",
-      data: raw,
-      created_at: now,
-    });
-    return { id: imageId, name: body.name, mime: body.mime, addedAt: now };
+export const router = new Hono();
+router.post("/v1/images", input({ body: ImageUpload }), (c) => {
+  const body = c.req.valid("json");
+  let raw;
+  try {
+    raw = b64decode(body.dataBase64, true);
+  } catch (e) {
+    if (e instanceof ValueError) throw new HttpError(400, "invalid base64");
+    throw e;
+  }
+  const imageId = randomUUID();
+  const now = isoNowUtc();
+  getDb().insert("image_blobs", {
+    id: imageId,
+    name: body.name,
+    mime: body.mime || "application/octet-stream",
+    data: raw,
+    created_at: now,
   });
+  return c.json({ id: imageId, name: body.name, mime: body.mime, addedAt: now });
+});
 
-  app.get("/v1/images/:image_id", async (req, reply) => {
-    const row = getDb().get("image_blobs", req.params.image_id);
-    if (row === null) throw new HttpError(404, "image not found");
-    return reply.type(mediaType(row.mime || "application/octet-stream")).send(Buffer.from(row.data));
-  });
+router.get("/v1/images/:image_id", (c) => {
+  const row = getDb().get("image_blobs", c.req.param("image_id"));
+  if (row === null) throw new HttpError(404, "image not found");
+  return c.body(new Uint8Array(row.data), 200, { "Content-Type": mediaType(row.mime || "application/octet-stream") });
+});
 
-  app.delete("/v1/images/:image_id", async (req, reply) => {
-    const h = getDb();
-    if (h.get("image_blobs", req.params.image_id) !== null) h.delete("image_blobs", { id: req.params.image_id });
-    return reply.code(204).send();
-  });
-}
+router.delete("/v1/images/:image_id", (c) => {
+  const h = getDb();
+  const imageId = c.req.param("image_id");
+  if (h.get("image_blobs", imageId) !== null) h.delete("image_blobs", { id: imageId });
+  return c.body(null, 204);
+});

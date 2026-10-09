@@ -5,8 +5,8 @@
 // bytes and the cover image — is verifiable here, no shell.
 //
 // Python read the zips with `zipfile`; here with the kit's (platform/zip, ZipReader). +2 tests
-// beyond Python: a multi-MB import (the book import posts a base64 zip as JSON — Fastify's
-// default 1 MiB body limit would refuse it; the kit's server lifts it), and a title outside
+// beyond Python: a multi-MB import (the book import posts a base64 zip as JSON — a server's usual
+// 1 MiB body limit, Fastify's default, would refuse it; the kit's server takes up to 1 GiB), and a title outside
 // latin-1 (Python's export failed it with a 500; fixed 2026-10-08).
 import { randomBytes } from "node:crypto";
 import { expect, test } from "vitest";
@@ -100,7 +100,7 @@ test("import_rejects_bad_input", async () => {
 
 test("multi_mb_import_is_accepted", async () => {
   // A book with a 6 MB image (incompressible bytes): the export zip is ~6 MB and its base64
-  // JSON body ~8 MB — far past Fastify's 1 MiB default body limit.
+  // JSON body ~8 MB — far past a usual 1 MiB body limit.
   const c = await client(tmpPath());
   const big = randomBytes(6 * 1024 * 1024);
   const sid = (await c.post("/v1/images", { json: { name: "big.png", mime: "image/png", dataBase64: big.toString("base64") } })).json().id;

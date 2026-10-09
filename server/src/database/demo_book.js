@@ -5,7 +5,7 @@
 // docs/plans/2026-10-08-the-phone.md).
 
 import * as bookIo from "../book_io.js";
-import { DEMO_PROJECT_ID, demoBookSnapshot, demoSampleImages } from "./demo_seed.js";
+import { DEMO_PROJECT_ID, demoBookSnapshot, demoSampleImages } from "#database/demo_seed";
 
 /**
  * Create the demo book (fixed id — reset-safe, never duplicated) if it does not exist. Does

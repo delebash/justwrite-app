@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // The phone's in-app server (server/src/phone.js; the kit's docs/plans/2026-10-08-the-phone.md):
 // its routes answer as the desktop server's do, and the `.phone.js` twins the worker bundle swaps
-// in keep the originals' names and answers. (The bundle itself — Fastify in a web worker on
+// in keep the originals' names and answers. (The bundle itself — Hono in a web worker on
 // SQLite WASM — is run in a browser by the phone checks, not here: this is the same app on Node.)
 import { join } from "node:path";
 import { openDatabase } from "@delebash/llm-runner/platform/sql";
@@ -31,7 +31,6 @@ const SNAP = {
 
 async function phone() {
   const app = await createPhoneApp(phoneOn(tmpPath()));
-  await app.ready();
   return testClient(app);
 }
 
@@ -68,7 +67,7 @@ test("the twins keep the originals' names and answers", async () => {
   expect(syncPlatformTwin.SYNC_PLATFORM.deviceId()).toBeUndefined(); // the engine keeps it
 
   const app = createServer({ typeBase: "https://justwrite.dev/errors/" });
-  app.register(autosaveTwin);
+  app.route("/", autosaveTwin);
   const c = testClient(app);
   expect((await c.post("/v1/projects/prj1/autosave", { json: { project: {} } })).json()).toMatchObject({ ok: true, projectId: "prj1" });
   expect((await c.get("/v1/projects/autosave-dir")).json()).toEqual({ dir: null });

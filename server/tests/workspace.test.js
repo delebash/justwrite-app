@@ -72,8 +72,8 @@ test("backup_restore_roundtrip", async () => {
   // Restore brings the project's saved state back.
   const form = new FormData();
   form.append("file", new Blob([blob], { type: "application/zip" }), "backup.zip");
-  const r = await c.app.inject({ method: "POST", url: "/v1/data/restore", payload: form, headers: { host: "testserver" } });
-  expect(r.statusCode).toBe(200);
+  const r = await c.app.request("http://testserver/v1/data/restore", { method: "POST", body: form, headers: { host: "testserver" } });
+  expect(r.status).toBe(200);
   const snap = (await c.get("/v1/projects/prj1")).json();
   expect(snap.project.title).toBe("Backed up");
 });

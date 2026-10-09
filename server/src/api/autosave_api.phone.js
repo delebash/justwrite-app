@@ -5,17 +5,17 @@
 // folder. The routes answer as "no autosave folder", so the window's autosave timer and Settings
 // → Backups behave as they do when a computer has none.
 import { HttpError } from "@delebash/llm-runner/platform/errors";
+import { Hono } from "@delebash/llm-runner/platform/server";
 
-export async function router(app) {
-  app.post("/v1/projects/:project_id/autosave", async (req) => ({ ok: true, projectId: req.params.project_id, key: null }));
-  app.get("/v1/projects/autosaves", async () => []);
-  app.get("/v1/projects/autosaves/:key", async () => {
-    throw new HttpError(404, "autosave not found");
-  });
-  app.delete("/v1/projects/autosaves", async (_req, reply) => reply.code(204).send());
-  app.delete("/v1/projects/autosaves/:key", async (_req, reply) => reply.code(204).send());
-  app.get("/v1/projects/autosave-dir", async () => ({ dir: null }));
-  app.put("/v1/projects/autosave-dir", async () => {
-    throw new HttpError(400, "there is no autosave folder on the phone");
-  });
-}
+export const router = new Hono();
+router.post("/v1/projects/:project_id/autosave", (c) => c.json({ ok: true, projectId: c.req.param("project_id"), key: null }));
+router.get("/v1/projects/autosaves", (c) => c.json([]));
+router.get("/v1/projects/autosaves/:key", () => {
+  throw new HttpError(404, "autosave not found");
+});
+router.delete("/v1/projects/autosaves", (c) => c.body(null, 204));
+router.delete("/v1/projects/autosaves/:key", (c) => c.body(null, 204));
+router.get("/v1/projects/autosave-dir", (c) => c.json({ dir: null }));
+router.put("/v1/projects/autosave-dir", () => {
+  throw new HttpError(400, "there is no autosave folder on the phone");
+});

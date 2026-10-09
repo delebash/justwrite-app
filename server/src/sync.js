@@ -18,15 +18,16 @@ import { createAppSync } from "@delebash/sqlite-sync/app";
 import { ApiError, HttpError } from "@delebash/llm-runner/platform/errors";
 import { getLogger } from "@delebash/llm-runner/platform/log";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
+import { readJson } from "@delebash/llm-runner/platform/server";
 import { getSchema } from "@tiptap/core";
-import { generateHTML, generateJSON } from "./editor/html.js";
+import { generateHTML, generateJSON } from "#editor/html";
 import { Node as PMNode } from "@tiptap/pm/model";
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from "@tiptap/y-tiptap";
 import * as Y from "yjs";
 import { bodyToHtml, editorExtensions, schemaMention } from "./editor/editorSchema.js";
 import { PROJECT_TABLES, pyLoads } from "./book_io.js";
 import { state as dbState } from "./database/session.js";
-import { SYNC_PLATFORM, syncDatabase } from "./sync_platform.js";
+import { SYNC_PLATFORM, syncDatabase } from "#sync_platform";
 
 const log = getLogger("justwrite_server.sync");
 
@@ -143,6 +144,8 @@ const appSync = createAppSync({
     refused: (e) => new ApiError(409, e.code, "Sync refused", e.message, { error: e.code, ...(e.details ?? {}) }),
   },
   log,
+  // the kit's body rules (no content type → JSON, a JSON error → pydantic's 422), as every route
+  readJson,
   // a computer's defaults, or the phone's (sync_platform.phone.js)
   platform: SYNC_PLATFORM,
 });

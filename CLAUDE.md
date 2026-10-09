@@ -1,7 +1,7 @@
 # JustWrite
 
 A novel-writing app: **a Quasar app (Vue 3) — Electron for the desktop, Capacitor for the phone —
-with a Node (Fastify + SQLite) server** — plain JavaScript since 2026-10-08 (the family's move off
+with a Node (Hono + SQLite) server** — plain JavaScript since 2026-10-08 (the family's move off
 Tauri and Python, then onto Quasar the same day: the kit's `docs/app-structure.md` §Q is the
 layout, `../just-llm-runner/template/` the reference app). Persistence is server-owned SQLite — the renderer
 holds no durable data. The whole AI/LLM stack is shared with the sibling apps: `just-llm-runner`

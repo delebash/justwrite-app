@@ -12,6 +12,7 @@
 import { HttpError } from "@delebash/llm-runner/platform/errors";
 import { T } from "@delebash/llm-runner/platform/models";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
+import { Hono, input } from "@delebash/llm-runner/platform/server";
 import { pyIter, pyOr, strip, truthy } from "@delebash/llm-runner/platform/py";
 import { pyGet, pyLoads } from "../book_io.js";
 import { state } from "../database/session.js";
@@ -34,20 +35,19 @@ function read() {
   }
 }
 
-export async function router(app) {
-  app.get("/v1/server-auth", async () => read());
+export const router = new Hono();
+router.get("/v1/server-auth", (c) => c.json(read()));
 
-  app.put("/v1/server-auth", { schema: { body: T.Record(T.String(), T.Any()) } }, async (req) => {
-    const body = req.body;
-    const tokens = pyGet(body, "tokens");
-    if (!Array.isArray(tokens) || !tokens.every((t) => typeof t === "string")) {
-      throw new HttpError(400, "tokens must be a list of strings");
-    }
-    const cfg = { tokens: tokens.filter((t) => strip(t)), requireForLoopback: truthy(pyGet(body, "requireForLoopback")) };
-    const h = state.handle;
-    if (h === null) throw new HttpError(503, "database not ready");
-    if (h.get("settings", "auth") === null) h.insert("settings", { key: "auth", value: pyJson(cfg) });
-    else h.update("settings", { value: pyJson(cfg) }, { key: "auth" });
-    return cfg;
-  });
-}
+router.put("/v1/server-auth", input({ body: T.Record(T.String(), T.Any()) }), (c) => {
+  const body = c.req.valid("json");
+  const tokens = pyGet(body, "tokens");
+  if (!Array.isArray(tokens) || !tokens.every((t) => typeof t === "string")) {
+    throw new HttpError(400, "tokens must be a list of strings");
+  }
+  const cfg = { tokens: tokens.filter((t) => strip(t)), requireForLoopback: truthy(pyGet(body, "requireForLoopback")) };
+  const h = state.handle;
+  if (h === null) throw new HttpError(503, "database not ready");
+  if (h.get("settings", "auth") === null) h.insert("settings", { key: "auth", value: pyJson(cfg) });
+  else h.update("settings", { value: pyJson(cfg) }, { key: "auth" });
+  return c.json(cfg);
+});

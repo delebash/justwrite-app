@@ -9,6 +9,7 @@
 // double-count.
 
 import { T } from "@delebash/llm-runner/platform/models";
+import { Hono, input } from "@delebash/llm-runner/platform/server";
 import { dset } from "../book_io.js";
 import { getDb } from "../database/session.js";
 
@@ -20,48 +21,47 @@ export const RecordBody = T.Object({
   day: T.String(), // yyyy-mm-dd in the client's local time
 });
 
-export async function router(app) {
-  app.get("/v1/sessions", async () => {
-    const h = getDb();
-    const days = {};
-    for (const r of h.all("SELECT * FROM sessions", [], "sessions")) dset(days, r.day, r.words);
-    const chapterWords = {};
-    for (const r of h.all("SELECT * FROM session_chapter_words", [], "session_chapter_words")) dset(chapterWords, r.chapter_id, r.words);
-    const meta = h.get("session_meta", META_ID);
-    const lastWrite = meta && meta.last_write_chapter ? { chapterId: meta.last_write_chapter, day: meta.last_write_day } : null;
-    return { days, chapterWords, lastWrite };
+export const router = new Hono();
+router.get("/v1/sessions", (c) => {
+  const h = getDb();
+  const days = {};
+  for (const r of h.all("SELECT * FROM sessions", [], "sessions")) dset(days, r.day, r.words);
+  const chapterWords = {};
+  for (const r of h.all("SELECT * FROM session_chapter_words", [], "session_chapter_words")) dset(chapterWords, r.chapter_id, r.words);
+  const meta = h.get("session_meta", META_ID);
+  const lastWrite = meta && meta.last_write_chapter ? { chapterId: meta.last_write_chapter, day: meta.last_write_day } : null;
+  return c.json({ days, chapterWords, lastWrite });
+});
+
+router.post("/v1/sessions/record", input({ body: RecordBody }), (c) => {
+  const h = getDb();
+  const { chapterId, words, day } = c.req.valid("json");
+  h.tx(() => {
+    const cw = h.get("session_chapter_words", chapterId);
+    const prev = cw ? cw.words : 0;
+    const delta = Math.max(0, words - prev); // deletions never subtract recorded progress
+
+    if (cw === null) h.insert("session_chapter_words", { chapter_id: chapterId, words });
+    else h.update("session_chapter_words", { words }, { chapter_id: chapterId });
+
+    if (delta > 0) {
+      const row = h.get("sessions", day);
+      if (row === null) h.insert("sessions", { day, words: delta });
+      else h.update("sessions", { words: row.words + delta }, { day });
+      const meta = h.get("session_meta", META_ID);
+      if (meta === null) h.insert("session_meta", { id: META_ID, last_write_chapter: chapterId, last_write_day: day });
+      else h.update("session_meta", { last_write_chapter: chapterId, last_write_day: day }, { id: META_ID });
+    }
   });
+  return c.body(null, 204);
+});
 
-  app.post("/v1/sessions/record", { schema: { body: RecordBody } }, async (req, reply) => {
-    const h = getDb();
-    const { chapterId, words, day } = req.body;
-    h.tx(() => {
-      const cw = h.get("session_chapter_words", chapterId);
-      const prev = cw ? cw.words : 0;
-      const delta = Math.max(0, words - prev); // deletions never subtract recorded progress
-
-      if (cw === null) h.insert("session_chapter_words", { chapter_id: chapterId, words });
-      else h.update("session_chapter_words", { words }, { chapter_id: chapterId });
-
-      if (delta > 0) {
-        const row = h.get("sessions", day);
-        if (row === null) h.insert("sessions", { day, words: delta });
-        else h.update("sessions", { words: row.words + delta }, { day });
-        const meta = h.get("session_meta", META_ID);
-        if (meta === null) h.insert("session_meta", { id: META_ID, last_write_chapter: chapterId, last_write_day: day });
-        else h.update("session_meta", { last_write_chapter: chapterId, last_write_day: day }, { id: META_ID });
-      }
-    });
-    return reply.code(204).send();
+router.delete("/v1/sessions", (c) => {
+  const h = getDb();
+  h.tx(() => {
+    h.run("DELETE FROM sessions");
+    h.run("DELETE FROM session_chapter_words");
+    h.run("DELETE FROM session_meta");
   });
-
-  app.delete("/v1/sessions", async (_req, reply) => {
-    const h = getDb();
-    h.tx(() => {
-      h.run("DELETE FROM sessions");
-      h.run("DELETE FROM session_chapter_words");
-      h.run("DELETE FROM session_meta");
-    });
-    return reply.code(204).send();
-  });
-}
+  return c.body(null, 204);
+});

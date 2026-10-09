@@ -11,6 +11,7 @@
 
 import { T } from "@delebash/llm-runner/platform/models";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
+import { Hono, input } from "@delebash/llm-runner/platform/server";
 import { dset, pyLoads } from "../book_io.js";
 import { getDb } from "../database/session.js";
 
@@ -51,17 +52,16 @@ export function clearKeepingFolders(h) {
   h.run(`DELETE FROM settings WHERE settings."key" NOT IN (${PRESERVED_FOLDER_KEYS.map(() => "?").join(", ")})`, PRESERVED_FOLDER_KEYS);
 }
 
-export async function router(app) {
-  app.get("/v1/settings", async () => readAll(getDb()));
+export const router = new Hono();
+router.get("/v1/settings", (c) => c.json(readAll(getDb())));
 
-  app.patch("/v1/settings", { schema: { body: T.Record(T.String(), T.Any()) } }, async (req) => {
-    const h = getDb();
-    writeMany(h, req.body);
-    return readAll(h);
-  });
+router.patch("/v1/settings", input({ body: T.Record(T.String(), T.Any()) }), (c) => {
+  const h = getDb();
+  writeMany(h, c.req.valid("json"));
+  return c.json(readAll(h));
+});
 
-  app.delete("/v1/settings", async (_req, reply) => {
-    clearKeepingFolders(getDb());
-    return reply.code(204).send();
-  });
-}
+router.delete("/v1/settings", (c) => {
+  clearKeepingFolders(getDb());
+  return c.body(null, 204);
+});

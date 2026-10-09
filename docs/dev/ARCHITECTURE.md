@@ -32,14 +32,14 @@ backend at all.
 
 Headless means there is no window to hold state, so every durable operation —
 the book, projects, RAG, settings, AI — has to be served by a long-lived process
-that runs with no renderer present. That process is the Node (Fastify) + SQLite
+that runs with no renderer present. That process is the Node (Hono) + SQLite
 server in `server/src/` (it was a Python/FastAPI server until the family's move
 to Electron and Node, 2026-10-08 — a port with the same routes and database).
 
 The pieces that implement it, so a reader can verify rather than trust this page:
 
 - **`app.js`** — after every `/v1/*` router is registered, the UI locator finds
-  the built UI (`dist/spa`; the app folder when packaged) and `@fastify/static` serves it. The static mount is LAST so API
+  the built UI (`dist/spa`; the app folder when packaged) and the kit's `serveStatic` serves it (GET only). The static mount is LAST so API
   routes always win. `JUSTWRITE_UI_DIR` overrides the
   search; without a built UI the server logs a warning and the API still runs.
   The renderer reaches it because the base URL is origin-aware — it targets

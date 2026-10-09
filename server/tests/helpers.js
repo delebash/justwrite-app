@@ -68,20 +68,44 @@ export function useHermeticKit() {
   });
 }
 
-/** Starlette's TestClient over `app.inject`. Each verb takes (url, {json, params, headers}). */
+/**
+ * Starlette's TestClient over Hono's `app.request`. Each verb takes (url, {json, params, headers,
+ * payload}): `json` is sent as JSON, a `payload` object as JSON too, a string or bytes as they
+ * are. The answer carries what the tests read — `statusCode`, `headers` (a plain object,
+ * lowercase names), `body` / `payload` (the text), `rawPayload` (the bytes) and `json()`.
+ */
 export function testClient(app) {
   const call =
     (method) =>
-    (url, { json, params, headers, payload } = {}) => {
+    async (url, { json, params, headers, payload } = {}) => {
       const qs = params ? `?${new URLSearchParams(params)}` : "";
-      return app.inject({
-        method,
-        url: url + qs,
-        headers: { host: "testserver", ...(headers || {}) },
-        remoteAddress: "192.0.2.10",
-        ...(json !== undefined ? { payload: json } : {}),
-        ...(payload !== undefined ? { payload } : {}),
+      const h = { host: "testserver", ...(headers || {}) };
+      const hasType = Object.keys(h).some((k) => k.toLowerCase() === "content-type");
+      let body;
+      const sent = json !== undefined ? json : payload;
+      if (sent !== undefined) {
+        // A string goes as bytes: `new Request` gives a string body `text/plain` by itself, where
+        // inject sent none (no content type → read as JSON).
+        if (typeof sent === "string") body = new TextEncoder().encode(sent);
+        else if (sent instanceof Uint8Array) body = sent;
+        else {
+          body = JSON.stringify(sent);
+          if (!hasType) h["content-type"] = "application/json";
+        }
+      }
+      const res = await app.request(`http://testserver${url}${qs}`, { method, headers: h, body }, {
+        incoming: { socket: { remoteAddress: "192.0.2.10" } },
       });
+      const rawPayload = Buffer.from(await res.arrayBuffer());
+      const text = rawPayload.toString("utf8");
+      return {
+        statusCode: res.status,
+        headers: Object.fromEntries(res.headers),
+        body: text,
+        payload: text,
+        rawPayload,
+        json: () => JSON.parse(text),
+      };
     };
   return {
     app,

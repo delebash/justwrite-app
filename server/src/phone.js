@@ -20,9 +20,8 @@ import { loadFromConfigs } from "@delebash/llm-runner/llm/registry";
 import { seedLlm } from "@delebash/llm-runner/llm/seed";
 import * as llmStores from "@delebash/llm-runner/llm/stores";
 import { getLogger } from "@delebash/llm-runner/platform/log";
-import { createServer } from "@delebash/llm-runner/platform/server";
-import { workerServerFactory } from "@delebash/llm-runner/platform/worker/runtime";
-import { router as autosaveRouter } from "./api/autosave_api.js";
+import { createServer, onClose } from "@delebash/llm-runner/platform/server";
+import { router as autosaveRouter } from "#api/autosave_api";
 import { router as chatRouter } from "./api/chat_api.js";
 import { router as healthRouter } from "./api/health_api.js";
 import { router as imagesRouter } from "./api/images_api.js";
@@ -32,7 +31,7 @@ import { router as settingsRouter } from "./api/settings_api.js";
 import { router as sweepDraftRouter } from "./api/sweep_draft_api.js";
 import { router as versionsRouter } from "./api/versions_api.js";
 import { errorEnvelope, TYPE_BASE } from "./app_errors.js";
-import { AppState, setState } from "./app_state.js";
+import { AppState, setState } from "#app_state";
 import { TABLES } from "./database/models.js";
 import { state } from "./database/session.js";
 import { FEATURE_CATALOG } from "./feature_catalog.js";
@@ -49,7 +48,7 @@ import {
   JW_EMBED_TEMPLATES,
 } from "./seed_presets.js";
 import { flushSync, getSync, openBookSync, stopBookSync, router as syncRouter } from "./sync.js";
-import { SYNC_PLATFORM, startGuard } from "./sync_platform.js";
+import { SYNC_PLATFORM, startGuard } from "#sync_platform";
 
 const log = getLogger("justwrite_server.phone");
 
@@ -59,10 +58,10 @@ export const PHONE_DATA_DIR = "(the app's own storage)";
 
 /**
  * The phone's server on an open database handle (the kit's `openDatabase` — on the phone over
- * SQLite WASM, in a test over a file). Not listening: requests arrive through `inject`. `deviceId`:
+ * SQLite WASM, in a test over a file). Not listening: requests arrive through `app.fetch`. `deviceId`:
  * this device's sync id, kept outside the database (the window's `device.id`).
  */
-export async function createPhoneApp({ handle, dataDir = PHONE_DATA_DIR, deviceId, serverFactory = workerServerFactory } = {}) {
+export async function createPhoneApp({ handle, dataDir = PHONE_DATA_DIR, deviceId } = {}) {
   handle.createTables(TABLES);
   state.handle = handle;
   setState(new AppState(dataDir));
@@ -72,26 +71,27 @@ export async function createPhoneApp({ handle, dataDir = PHONE_DATA_DIR, deviceI
   // then keep them current after every write
   const guard = startGuard ? await startGuard({ sync: getSync(), isEmpty: () => !handle.value("SELECT count(*) FROM projects"), log }) : null;
 
-  const app = createServer({ typeBase: TYPE_BASE, onUnhandled: errorEnvelope, serverFactory });
+  const app = createServer({ typeBase: TYPE_BASE, onUnhandled: errorEnvelope });
   // as on a computer (app.js): stamp what the triggers noted after every request that may have
   // written; stop the auto-sync timers on close
-  app.addHook("onResponse", async (req) => {
-    if (req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS") {
+  app.use("*", async (c, next) => {
+    await next();
+    if (c.req.method !== "GET" && c.req.method !== "HEAD" && c.req.method !== "OPTIONS") {
       flushSync();
       guard?.changed();
     }
   });
-  app.addHook("onClose", async () => stopBookSync());
-  app.register(healthRouter);
-  app.register(autosaveRouter);
-  app.register(sweepDraftRouter);
-  app.register(projectsRouter);
-  app.register(sessionsRouter);
-  app.register(chatRouter);
-  app.register(settingsRouter);
-  app.register(versionsRouter);
-  app.register(imagesRouter);
-  app.register(syncRouter);
+  onClose(app, async () => stopBookSync());
+  app.route("/", healthRouter);
+  app.route("/", autosaveRouter);
+  app.route("/", sweepDraftRouter);
+  app.route("/", projectsRouter);
+  app.route("/", sessionsRouter);
+  app.route("/", chatRouter);
+  app.route("/", settingsRouter);
+  app.route("/", versionsRouter);
+  app.route("/", imagesRouter);
+  syncRouter(app);
 
   // the AI: the kit's stack for online providers, on the same feature data as app.js's installLlm
   await installCloudLlm(app, {

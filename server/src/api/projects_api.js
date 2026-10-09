@@ -12,13 +12,14 @@
 import { HttpError } from "@delebash/llm-runner/platform/errors";
 import { T } from "@delebash/llm-runner/platform/models";
 import { pyIter, pyOr } from "@delebash/llm-runner/platform/py";
+import { Hono, input } from "@delebash/llm-runner/platform/server";
 import * as bookIo from "../book_io.js";
 import { pyGet } from "../book_io.js";
-import { DEMO_PROJECT_ID } from "../database/demo_seed.js";
+import { DEMO_PROJECT_ID } from "#database/demo_seed";
 import { createDemoProject } from "../database/demo_book.js";
 import { getDb } from "../database/session.js";
 
-const DICT_BODY = { schema: { body: T.Record(T.String(), T.Any()) } };
+const DICT_BODY = input({ body: T.Record(T.String(), T.Any()) });
 
 // What each open window last loaded or saved of a book (bookIo.rowsByTable), keyed by the
 // window's `x-jw-client` id: a save writes only that window's own edits against it, so a field
@@ -26,9 +27,9 @@ const DICT_BODY = { schema: { body: T.Record(T.String(), T.Any()) } };
 // window with no base here (no id, or a server restarted under it) saves against the database.
 const bases = new Map();
 const MAX_BASES = 32;
-const baseKey = (req) => {
-  const client = req.headers["x-jw-client"];
-  return client ? `${client}\u0000${req.params.project_id}` : null;
+const baseKey = (c) => {
+  const client = c.req.header("x-jw-client");
+  return client ? `${client}\u0000${c.req.param("project_id")}` : null;
 };
 function remember(key, rows) {
   if (!key) return;
@@ -37,15 +38,16 @@ function remember(key, rows) {
   if (bases.size > MAX_BASES) bases.delete(bases.keys().next().value);
 }
 
-function loadBook(req) {
-  const snap = assembleOr404(getDb(), req.params.project_id);
-  remember(baseKey(req), bookIo.rowsByTable(bookIo.bookRows(req.params.project_id, snap)));
+function loadBook(c) {
+  const projectId = c.req.param("project_id");
+  const snap = assembleOr404(getDb(), projectId);
+  remember(baseKey(c), bookIo.rowsByTable(bookIo.bookRows(projectId, snap)));
   return snap;
 }
 
-function saveBook(req) {
-  const key = baseKey(req);
-  const next = bookIo.saveBookChanges(getDb(), req.params.project_id, pyOr(req.body, {}), key ? (bases.get(key) ?? null) : null);
+function saveBook(c) {
+  const key = baseKey(c);
+  const next = bookIo.saveBookChanges(getDb(), c.req.param("project_id"), pyOr(c.req.valid("json"), {}), key ? (bases.get(key) ?? null) : null);
   remember(key, next);
 }
 
@@ -55,67 +57,69 @@ function assembleOr404(h, projectId) {
   return snap;
 }
 
-export async function router(app) {
-  app.get("/v1/projects", async () =>
+export const router = new Hono();
+router.get("/v1/projects", (c) =>
+  c.json(
     getDb()
       .all("SELECT * FROM projects ORDER BY projects.updated_at DESC", [], "projects")
       .map((p) => ({ id: p.id, title: p.title, author: p.author, updatedAt: p.updated_at })),
-  );
+  ),
+);
 
-  // QC-40: the sample book — "The Ninth Facet" — is no longer seeded at boot; the renderer's
-  // "Try tutorial project" button creates it HERE on demand. Fixed id: never duplicated, and
-  // re-creatable after the user deletes it. Returns the metadata the renderer needs to
-  // register + open it.
-  app.post("/v1/projects/demo", async () => {
-    const h = getDb();
-    const created = createDemoProject(h);
-    const row = h.get("projects", DEMO_PROJECT_ID);
-    return { id: row.id, title: row.title, author: row.author, created };
-  });
+// QC-40: the sample book — "The Ninth Facet" — is no longer seeded at boot; the renderer's
+// "Try tutorial project" button creates it HERE on demand. Fixed id: never duplicated, and
+// re-creatable after the user deletes it. Returns the metadata the renderer needs to
+// register + open it.
+router.post("/v1/projects/demo", (c) => {
+  const h = getDb();
+  const created = createDemoProject(h);
+  const row = h.get("projects", DEMO_PROJECT_ID);
+  return c.json({ id: row.id, title: row.title, author: row.author, created });
+});
 
-  app.get("/v1/projects/:project_id", async (req) => loadBook(req));
+router.get("/v1/projects/:project_id", (c) => c.json(loadBook(c)));
 
-  app.put("/v1/projects/:project_id", DICT_BODY, async (req, reply) => {
-    saveBook(req);
-    return reply.code(204).send();
-  });
+router.put("/v1/projects/:project_id", DICT_BODY, (c) => {
+  saveBook(c);
+  return c.body(null, 204);
+});
 
-  app.delete("/v1/projects/:project_id", async (req, reply) => {
-    const h = getDb();
-    // child rows cascade via the project_id FK
-    if (h.get("projects", req.params.project_id) !== null) h.delete("projects", { id: req.params.project_id });
-    return reply.code(204).send();
-  });
+router.delete("/v1/projects/:project_id", (c) => {
+  const h = getDb();
+  const projectId = c.req.param("project_id");
+  // child rows cascade via the project_id FK
+  if (h.get("projects", projectId) !== null) h.delete("projects", { id: projectId });
+  return c.body(null, 204);
+});
 
-  app.get("/v1/projects/:project_id/book", async (req) => loadBook(req));
+router.get("/v1/projects/:project_id/book", (c) => c.json(loadBook(c)));
 
-  app.put("/v1/projects/:project_id/book", DICT_BODY, async (req, reply) => {
-    saveBook(req);
-    return reply.code(204).send();
-  });
+router.put("/v1/projects/:project_id/book", DICT_BODY, (c) => {
+  saveBook(c);
+  return c.body(null, 204);
+});
 
-  app.get("/v1/projects/:project_id/chapters", async (req) => {
-    const snap = assembleOr404(getDb(), req.params.project_id);
-    const scenes = pyOr(pyGet(snap, "scenes"), {});
-    const out = [];
-    for (const part of pyIter(pyOr(pyGet(snap, "parts"), []))) {
-      for (const ch of pyIter(pyOr(pyGet(part, "chapters"), []))) {
-        out.push({
-          id: pyGet(ch, "id"),
-          num: pyGet(ch, "num"),
-          title: pyGet(ch, "title"),
-          words: pyGet(ch, "words", 0),
-          status: pyGet(ch, "status"),
-          partId: pyGet(part, "id"),
-          partTitle: pyGet(part, "title"),
-          sceneCount: pyOr(pyGet(scenes, pyGet(ch, "id"), []), []).length,
-        });
-      }
+router.get("/v1/projects/:project_id/chapters", (c) => {
+  const snap = assembleOr404(getDb(), c.req.param("project_id"));
+  const scenes = pyOr(pyGet(snap, "scenes"), {});
+  const out = [];
+  for (const part of pyIter(pyOr(pyGet(snap, "parts"), []))) {
+    for (const ch of pyIter(pyOr(pyGet(part, "chapters"), []))) {
+      out.push({
+        id: pyGet(ch, "id"),
+        num: pyGet(ch, "num"),
+        title: pyGet(ch, "title"),
+        words: pyGet(ch, "words", 0),
+        status: pyGet(ch, "status"),
+        partId: pyGet(part, "id"),
+        partTitle: pyGet(part, "title"),
+        sceneCount: pyOr(pyGet(scenes, pyGet(ch, "id"), []), []).length,
+      });
     }
-    return out;
-  });
+  }
+  return c.json(out);
+});
 
-  app.get("/v1/projects/:project_id/characters", async (req) =>
-    pyOr(pyGet(assembleOr404(getDb(), req.params.project_id), "characters"), []),
-  );
-}
+router.get("/v1/projects/:project_id/characters", (c) =>
+  c.json(pyOr(pyGet(assembleOr404(getDb(), c.req.param("project_id")), "characters"), [])),
+);

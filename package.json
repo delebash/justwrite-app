@@ -68,7 +68,6 @@
     "@tiptap/vue-3": "^3.31.4",
     "@vitejs/plugin-vue": "^6.0.9",
     "@vueuse/core": "^15.0.0",
-    "assert": "^2.1.0",
     "autoprefixer": "^10.6.1",
     "depcheck": "^1.4.7",
     "docx": "^9.9.0",

@@ -3,16 +3,22 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "JustWrite's Node server — Fastify on the family kit, run by the desktop app in a utilityProcess, headless as `justwrite-server serve`, or `npm run server` in a checkout. Its own package because the packaged app installs only what src-electron/package.json names (app-structure §Q.3); it also holds the editor schema the renderer and the sync share.",
+  "description": "JustWrite's Node server — Hono on the family kit, run by the desktop app in a utilityProcess, headless as `justwrite-server serve`, or `npm run server` in a checkout. Its own package because the packaged app installs only what src-electron/package.json names (app-structure §Q.3); it also holds the editor schema the renderer and the sync share.",
   "license": "MIT",
   "exports": {
     "./serve": "./src/serve.js",
     "./editor/*": "./src/editor/*"
   },
+  "imports": {
+    "#app_state": { "browser": "./src/app_state.phone.js", "default": "./src/app_state.js" },
+    "#api/autosave_api": { "browser": "./src/api/autosave_api.phone.js", "default": "./src/api/autosave_api.js" },
+    "#database/demo_seed": { "browser": "./src/database/demo_seed.phone.js", "default": "./src/database/demo_seed.js" },
+    "#editor/html": { "browser": "./src/editor/html.phone.js", "default": "./src/editor/html.js" },
+    "#sync_platform": { "browser": "./src/sync_platform.phone.js", "default": "./src/sync_platform.js" }
+  },
   "dependencies": {
     "@delebash/llm-runner": "file:../../just-llm-runner/server",
-    "@delebash/sqlite-sync": "file:../../just-sqlite-sync",
-    "@fastify/static": "^10.1.5",
+    "@delebash/sqlite-sync": "file:../../just-sqlite-sync",
     "@tiptap/core": "^3.31.4",
     "@tiptap/extension-character-count": "^3.31.4",
     "@tiptap/extension-focus": "^3.31.4",

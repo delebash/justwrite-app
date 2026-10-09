@@ -23,10 +23,12 @@ STATE:  DECIDED 2026-10-09, family-wide — the decision with the user's words i
 WHY:    the phone's in-app server ran Fastify through `inject` on ~400 lines of Node stand-ins;
         Hono runs in the worker as it is (`app.fetch`). The kit's item has the full reasons.
 NOT:    the kit's item.
-BUILT:  nothing yet — the plan: `../just-llm-runner/docs/plans/2026-10-09-hono-standard.md`.
-OPEN:   JustWrite's slice (plan §7, slice 4): 14 route files, 52 routes; the phone's worker on
-        `app.fetch`, `#platform` imports in place of the `.phone.js` twins; checked on the Android
-        emulator — after the kit's slice and the user's word on the plan's §3 and §5.
+BUILT:  2026-10-09 — 14 routers, app.js, phone.js, sync.js, the error envelope, the test client
+        on `app.request` (148/148); the phone versions by `server/package.json` `"imports"` (`#app_state`,
+        `#api/autosave_api`, `#database/demo_seed`, `#editor/html`, `#sync_platform`); the phone bundle
+        8.0 MB, checked in Chrome on `dist/spa-in-app` (the book, an image, an AI stream). The plan:
+        `../just-llm-runner/docs/plans/2026-10-09-hono-standard.md` §9.
+OPEN:   the Android emulator run of the phone on Hono.
 GO:     given 2026-10-09 (the kit's item).
 
 ## JustWrite on Quasar — the desktop app and Settings → Sync BUILT and merged; the phone next [2026-10-08]

@@ -2,7 +2,7 @@
 
 A desktop writing app for novels that connects to any **OpenAI-compatible** AI provider — Ollama, LM Studio, OpenAI, or anything else that speaks the standard.
 
-Built with **Electron + Vite + Vue 3 + Pinia**, and a local **Node (Fastify) server** that holds all the data — plain JavaScript end to end (since 2026-10-08; it was Tauri + Rust + Python before).
+Built with **Electron + Vite + Vue 3 + Pinia**, and a local **Node (Hono) server** that holds all the data — plain JavaScript end to end (since 2026-10-08; it was Tauri + Rust + Python before).
 
 User docs live in `docs/`. The marketing site at <https://delebash.github.io/justwrite-website/> mirrors them for each release.
 
@@ -282,7 +282,7 @@ justwrite-app/                 ← a Quasar app (the family layout: the kit's do
 │   ├── capture-direct.js
 │   ├── lib/driver.js
 │   └── tests/smoke.test.js
-├── server/                    ← the data server (Node, Fastify, :17495) — ALL persistence; its own
+├── server/                    ← the data server (Node, Hono, :17495) — ALL persistence; its own
 │   │                            package (justwrite-server), which the desktop app installs
 │   ├── src/                   ← serve.js (the entry) · app.js · api/ · database/ · editor/ (the
 │   │                            editor schema, shared with the renderer)

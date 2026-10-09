@@ -16,38 +16,39 @@ import { HttpError } from "@delebash/llm-runner/platform/errors";
 import { T } from "@delebash/llm-runner/platform/models";
 import { pyOr } from "@delebash/llm-runner/platform/py";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
+import { Hono, input } from "@delebash/llm-runner/platform/server";
 import { isoNowUtc } from "../book_io.js";
 import { getDb } from "../database/session.js";
 
-export async function router(app) {
-  app.get("/v1/projects/:project_id/sweep-draft", async (req) => {
-    const row = getDb().get("sweep_drafts", req.params.project_id);
-    if (row === null) return { draft: null, updatedAt: "" };
-    let draft;
-    try {
-      draft = JSON.parse(row.data);
-    } catch {
-      draft = null;
-    }
-    return { draft, updatedAt: row.updated_at };
-  });
+export const router = new Hono();
+router.get("/v1/projects/:project_id/sweep-draft", (c) => {
+  const row = getDb().get("sweep_drafts", c.req.param("project_id"));
+  if (row === null) return c.json({ draft: null, updatedAt: "" });
+  let draft;
+  try {
+    draft = JSON.parse(row.data);
+  } catch {
+    draft = null;
+  }
+  return c.json({ draft, updatedAt: row.updated_at });
+});
 
-  app.put("/v1/projects/:project_id/sweep-draft", { schema: { body: T.Record(T.String(), T.Any()) } }, async (req) => {
-    const h = getDb();
-    const pid = req.params.project_id;
-    // The FK to projects.id makes an orphan draft impossible — surface a clean 404 instead of
-    // an integrity error when the project doesn't exist.
-    if (h.get("projects", pid) === null) throw new HttpError(404, "project not found");
-    const now = isoNowUtc();
-    const data = pyJson(pyOr(req.body, {}));
-    if (h.get("sweep_drafts", pid) === null) h.insert("sweep_drafts", { project_id: pid, data, updated_at: now });
-    else h.update("sweep_drafts", { data, updated_at: now }, { project_id: pid });
-    return { ok: true, updatedAt: now };
-  });
+router.put("/v1/projects/:project_id/sweep-draft", input({ body: T.Record(T.String(), T.Any()) }), (c) => {
+  const h = getDb();
+  const pid = c.req.param("project_id");
+  // The FK to projects.id makes an orphan draft impossible — surface a clean 404 instead of
+  // an integrity error when the project doesn't exist.
+  if (h.get("projects", pid) === null) throw new HttpError(404, "project not found");
+  const now = isoNowUtc();
+  const data = pyJson(pyOr(c.req.valid("json"), {}));
+  if (h.get("sweep_drafts", pid) === null) h.insert("sweep_drafts", { project_id: pid, data, updated_at: now });
+  else h.update("sweep_drafts", { data, updated_at: now }, { project_id: pid });
+  return c.json({ ok: true, updatedAt: now });
+});
 
-  app.delete("/v1/projects/:project_id/sweep-draft", async (req, reply) => {
-    const h = getDb();
-    if (h.get("sweep_drafts", req.params.project_id) !== null) h.delete("sweep_drafts", { project_id: req.params.project_id });
-    return reply.code(204).send();
-  });
-}
+router.delete("/v1/projects/:project_id/sweep-draft", (c) => {
+  const h = getDb();
+  const pid = c.req.param("project_id");
+  if (h.get("sweep_drafts", pid) !== null) h.delete("sweep_drafts", { project_id: pid });
+  return c.body(null, 204);
+});

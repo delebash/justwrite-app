@@ -21,6 +21,7 @@ import { HttpError } from "@delebash/llm-runner/platform/errors";
 import { nullable, opt, T } from "@delebash/llm-runner/platform/models";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
 import { pyOr, splitWs, strip, truthy } from "@delebash/llm-runner/platform/py";
+import { Hono, input } from "@delebash/llm-runner/platform/server";
 import { getDb } from "../database/session.js";
 
 // Per-session message cap — long threads waste storage and the model already truncates
@@ -139,91 +140,90 @@ function migrateLegacyThreads(h, projectId) {
   });
 }
 
-export async function router(app) {
-  app.get("/v1/chat/sessions", { schema: { querystring: T.Object({ projectId: T.String() }) } }, async (req) => {
-    const h = getDb();
-    const projectId = req.query.projectId;
-    // Lift any pre-sessions thread into the list on first read (see the header). Runs once —
-    // migrated threads' legacy rows are gone afterwards.
-    migrateLegacyThreads(h, projectId);
+export const router = new Hono();
+router.get("/v1/chat/sessions", input({ querystring: T.Object({ projectId: T.String() }) }), (c) => {
+  const h = getDb();
+  const { projectId } = c.req.valid("query");
+  // Lift any pre-sessions thread into the list on first read (see the header). Runs once —
+  // migrated threads' legacy rows are gone afterwards.
+  migrateLegacyThreads(h, projectId);
 
-    const counts = new Map(
-      h
-        .all(
-          "SELECT chat_session_messages.session_id AS session_id, count(*) AS n FROM chat_session_messages WHERE chat_session_messages.project_id = ? GROUP BY chat_session_messages.session_id",
-          [projectId],
-        )
-        .map((r) => [r.session_id, r.n]),
-    );
-    const rows = h.all(
-      "SELECT * FROM chat_sessions WHERE chat_sessions.project_id = ? ORDER BY chat_sessions.updated_at DESC",
-      [projectId],
-      "chat_sessions",
-    );
-    return rows.map((r) => sessionOut(r, counts.get(r.id) ?? 0));
-  });
+  const counts = new Map(
+    h
+      .all(
+        "SELECT chat_session_messages.session_id AS session_id, count(*) AS n FROM chat_session_messages WHERE chat_session_messages.project_id = ? GROUP BY chat_session_messages.session_id",
+        [projectId],
+      )
+      .map((r) => [r.session_id, r.n]),
+  );
+  const rows = h.all(
+    "SELECT * FROM chat_sessions WHERE chat_sessions.project_id = ? ORDER BY chat_sessions.updated_at DESC",
+    [projectId],
+    "chat_sessions",
+  );
+  return c.json(rows.map((r) => sessionOut(r, counts.get(r.id) ?? 0)));
+});
 
-  app.get("/v1/chat/sessions/:session_id", async (req) => {
-    const h = getDb();
-    const row = h.one("SELECT * FROM chat_sessions WHERE chat_sessions.id = ? LIMIT 1", [req.params.session_id], "chat_sessions");
-    if (row === null) throw new HttpError(404, "session not found");
-    const out = sessionOut(row, 0);
-    out.messages = messagesOut(h, row.project_id, row.id);
-    out.messageCount = out.messages.length;
-    return out;
-  });
+router.get("/v1/chat/sessions/:session_id", (c) => {
+  const h = getDb();
+  const row = h.one("SELECT * FROM chat_sessions WHERE chat_sessions.id = ? LIMIT 1", [c.req.param("session_id")], "chat_sessions");
+  if (row === null) throw new HttpError(404, "session not found");
+  const out = sessionOut(row, 0);
+  out.messages = messagesOut(h, row.project_id, row.id);
+  out.messageCount = out.messages.length;
+  return c.json(out);
+});
 
-  app.put("/v1/chat/sessions/:session_id", { schema: { body: SaveSessionBody } }, async (req, reply) => {
-    const h = getDb();
-    const sessionId = req.params.session_id;
-    const body = req.body;
-    const key = { project_id: body.projectId, id: sessionId };
-    const existing = h.get("chat_sessions", key);
+router.put("/v1/chat/sessions/:session_id", input({ body: SaveSessionBody }), (c) => {
+  const h = getDb();
+  const sessionId = c.req.param("session_id");
+  const body = c.req.valid("json");
+  const key = { project_id: body.projectId, id: sessionId };
+  const existing = h.get("chat_sessions", key);
 
-    // Creating: an empty session is never persisted (a rename of a session that doesn't
-    // exist is a no-op, not an empty row).
-    if (existing === null && !truthy(body.messages)) return reply.code(204).send();
+  // Creating: an empty session is never persisted (a rename of a session that doesn't
+  // exist is a no-op, not an empty row).
+  if (existing === null && !truthy(body.messages)) return c.body(null, 204);
 
-    h.tx(() => {
-      const fields = {
-        mode: body.mode,
-        character_id: body.characterId || "",
-        // updated_at: the client's stamp, else the stored one, else now
-        updated_at: body.updatedAt || existing?.updated_at || nowIso(),
-      };
-      if (body.title) fields.title = body.title; // empty never clobbers a stored title
-      if (existing === null) h.insert("chat_sessions", { ...key, ...fields });
-      else h.update("chat_sessions", fields, key);
+  h.tx(() => {
+    const fields = {
+      mode: body.mode,
+      character_id: body.characterId || "",
+      // updated_at: the client's stamp, else the stored one, else now
+      updated_at: body.updatedAt || existing?.updated_at || nowIso(),
+    };
+    if (body.title) fields.title = body.title; // empty never clobbers a stored title
+    if (existing === null) h.insert("chat_sessions", { ...key, ...fields });
+    else h.update("chat_sessions", fields, key);
 
-      // null → meta-only (rename). A list (even empty) → replace-all the turns.
-      if (body.messages !== null) {
-        h.delete("chat_session_messages", { project_id: body.projectId, session_id: sessionId });
-        for (const [i, m] of body.messages.slice(-MAX_MESSAGES).entries()) {
-          h.insert("chat_session_messages", {
-            project_id: body.projectId,
-            session_id: sessionId,
-            position: i,
-            role: m.role,
-            content: m.content,
-            citations: pyJson(pyOr(m.citations, [])),
-            error: m.error,
-          });
-        }
+    // null → meta-only (rename). A list (even empty) → replace-all the turns.
+    if (body.messages !== null) {
+      h.delete("chat_session_messages", { project_id: body.projectId, session_id: sessionId });
+      for (const [i, m] of body.messages.slice(-MAX_MESSAGES).entries()) {
+        h.insert("chat_session_messages", {
+          project_id: body.projectId,
+          session_id: sessionId,
+          position: i,
+          role: m.role,
+          content: m.content,
+          citations: pyJson(pyOr(m.citations, [])),
+          error: m.error,
+        });
       }
-    });
-    return reply.code(204).send();
-  });
-
-  app.delete("/v1/chat/sessions/:session_id", async (req, reply) => {
-    const h = getDb();
-    const sessionId = req.params.session_id;
-    const row = h.one("SELECT * FROM chat_sessions WHERE chat_sessions.id = ? LIMIT 1", [sessionId], "chat_sessions");
-    if (row !== null) {
-      h.tx(() => {
-        h.delete("chat_session_messages", { project_id: row.project_id, session_id: sessionId });
-        h.delete("chat_sessions", { project_id: row.project_id, id: sessionId });
-      });
     }
-    return reply.code(204).send();
   });
-}
+  return c.body(null, 204);
+});
+
+router.delete("/v1/chat/sessions/:session_id", (c) => {
+  const h = getDb();
+  const sessionId = c.req.param("session_id");
+  const row = h.one("SELECT * FROM chat_sessions WHERE chat_sessions.id = ? LIMIT 1", [sessionId], "chat_sessions");
+  if (row !== null) {
+    h.tx(() => {
+      h.delete("chat_session_messages", { project_id: row.project_id, session_id: sessionId });
+      h.delete("chat_sessions", { project_id: row.project_id, id: sessionId });
+    });
+  }
+  return c.body(null, 204);
+});

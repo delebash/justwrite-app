@@ -19,7 +19,7 @@ import { randomUUID } from "node:crypto";
 import { HttpError } from "@delebash/llm-runner/platform/errors";
 import { T } from "@delebash/llm-runner/platform/models";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { attachment } from "@delebash/llm-runner/platform/server";
+import { attachment, Hono, input } from "@delebash/llm-runner/platform/server";
 import { b64decode, pyOr, rstrip, strip, ValueError } from "@delebash/llm-runner/platform/py";
 import { BadZipFile, ZipReader, ZipWriter } from "@delebash/llm-runner/platform/zip";
 import * as bookIo from "../book_io.js";
@@ -99,61 +99,60 @@ function findBookJson(names) {
 // base64 of the .zip bytes — the same upload style as /v1/images (no multipart).
 export const BookZipUpload = T.Object({ zipBase64: T.String() });
 
-export async function router(app) {
-  app.get("/v1/projects/:project_id/export", async (req, reply) => {
-    const h = getDb();
-    const assembled = bookIo.assemble(h, req.params.project_id);
-    if (assembled === null) throw new HttpError(404, "project not found");
-    const [snap, files] = bookIo.externalizeImages(h, assembled);
+export const router = new Hono();
+router.get("/v1/projects/:project_id/export", (c) => {
+  const h = getDb();
+  const assembled = bookIo.assemble(h, c.req.param("project_id"));
+  if (assembled === null) throw new HttpError(404, "project not found");
+  const [snap, files] = bookIo.externalizeImages(h, assembled);
 
-    const folder = safeTitle(pyOr(pyGet(pyOr(pyGet(snap, "project"), {}), "title"), "book"));
-    const zip = new ZipWriter();
-    zip.writestr(`${folder}/book.json`, pyJson(snap, { ensureAscii: false, indent: 2 }));
-    for (const [fname, raw] of files) zip.writestr(`${folder}/images/${fname}`, raw);
-    const body = zip.toBuffer();
-    // The kit's `attachment`: a title outside ASCII (Japanese, say) travels as RFC 5987's
-    // filename*= — Python's export failed such a title with a 500 (fixed 2026-10-08).
-    return reply.header("content-disposition", attachment(`${folder}.zip`)).type("application/zip").send(body);
-  });
+  const folder = safeTitle(pyOr(pyGet(pyOr(pyGet(snap, "project"), {}), "title"), "book"));
+  const zip = new ZipWriter();
+  zip.writestr(`${folder}/book.json`, pyJson(snap, { ensureAscii: false, indent: 2 }));
+  for (const [fname, raw] of files) zip.writestr(`${folder}/images/${fname}`, raw);
+  const body = zip.toBuffer();
+  // The kit's `attachment`: a title outside ASCII (Japanese, say) travels as RFC 5987's
+  // filename*= — Python's export failed such a title with a 500 (fixed 2026-10-08).
+  return c.body(new Uint8Array(body), 200, { "Content-Disposition": attachment(`${folder}.zip`), "Content-Type": "application/zip" });
+});
 
-  app.post("/v1/projects/import", { schema: { body: BookZipUpload } }, async (req) => {
-    let raw;
-    try {
-      raw = b64decode(req.body.zipBase64, true);
-    } catch (e) {
-      if (e instanceof ValueError) throw new HttpError(400, "invalid base64");
-      throw e;
-    }
-    let zf;
-    try {
-      zf = ZipReader.fromBuffer(raw);
-    } catch (e) {
-      if (e instanceof BadZipFile || e instanceof RangeError) throw new HttpError(400, "not a valid zip");
-      throw e;
-    }
+router.post("/v1/projects/import", input({ body: BookZipUpload }), (c) => {
+  let raw;
+  try {
+    raw = b64decode(c.req.valid("json").zipBase64, true);
+  } catch (e) {
+    if (e instanceof ValueError) throw new HttpError(400, "invalid base64");
+    throw e;
+  }
+  let zf;
+  try {
+    zf = ZipReader.fromBuffer(raw);
+  } catch (e) {
+    if (e instanceof BadZipFile || e instanceof RangeError) throw new HttpError(400, "not a valid zip");
+    throw e;
+  }
 
-    const bookName = findBookJson(zf.names());
-    if (bookName === null) throw new HttpError(400, "zip has no book.json");
-    let snap;
-    try {
-      snap = loadsBytes(zf.read(zf.info(bookName)));
-    } catch (e) {
-      if (e instanceof SyntaxError || e instanceof ValueError) throw new HttpError(400, "book.json is not valid JSON");
-      throw e;
-    }
-    const imgDir = `${bookName.slice(0, -"book.json".length)}images/`; // "<folder>/images/" or "images/"
-    const files = new Map();
-    for (const e of zf.entries) {
-      if (!e.name.endsWith("/") && e.name.startsWith(imgDir)) files.set(e.name.slice(imgDir.length), zf.read(e));
-    }
+  const bookName = findBookJson(zf.names());
+  if (bookName === null) throw new HttpError(400, "zip has no book.json");
+  let snap;
+  try {
+    snap = loadsBytes(zf.read(zf.info(bookName)));
+  } catch (e) {
+    if (e instanceof SyntaxError || e instanceof ValueError) throw new HttpError(400, "book.json is not valid JSON");
+    throw e;
+  }
+  const imgDir = `${bookName.slice(0, -"book.json".length)}images/`; // "<folder>/images/" or "images/"
+  const files = new Map();
+  for (const e of zf.entries) {
+    if (!e.name.endsWith("/") && e.name.startsWith(imgDir)) files.set(e.name.slice(imgDir.length), zf.read(e));
+  }
 
-    if (snap === null || typeof snap !== "object" || Array.isArray(snap)) {
-      throw new HttpError(400, "book.json must be an object");
-    }
-    const projectId = `prj_${randomUUID().replace(/-/g, "")}`;
-    bookIo.importBookSnapshot(getDb(), snap, files, projectId);
-    const title = pyOr(pyGet(pyOr(pyGet(snap, "project"), {}), "title"), "Untitled");
-    return { id: projectId, title, created: true };
-  });
-}
+  if (snap === null || typeof snap !== "object" || Array.isArray(snap)) {
+    throw new HttpError(400, "book.json must be an object");
+  }
+  const projectId = `prj_${randomUUID().replace(/-/g, "")}`;
+  bookIo.importBookSnapshot(getDb(), snap, files, projectId);
+  const title = pyOr(pyGet(pyOr(pyGet(snap, "project"), {}), "title"), "Untitled");
+  return c.json({ id: projectId, title, created: true });
+});
 

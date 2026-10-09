@@ -10,6 +10,7 @@
 import { opt, T } from "@delebash/llm-runner/platform/models";
 import { pyOr } from "@delebash/llm-runner/platform/py";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
+import { Hono, input } from "@delebash/llm-runner/platform/server";
 import { setdefault } from "../book_io.js";
 import { getDb } from "../database/session.js";
 
@@ -27,44 +28,43 @@ export const SaveVersionsBody = T.Object({
   versions: opt(T.Array(VersionIO), []),
 });
 
-export async function router(app) {
-  app.get("/v1/versions", { schema: { querystring: T.Object({ projectId: T.String() }) } }, async (req) => {
-    const rows = getDb().all(
-      "SELECT * FROM chapter_versions WHERE chapter_versions.project_id = ? ORDER BY chapter_versions.chapter_id, chapter_versions.position",
-      [req.query.projectId],
-      "chapter_versions",
-    );
-    const out = {};
-    for (const r of rows) {
-      setdefault(out, r.chapter_id, []).push({
-        id: r.id,
-        label: r.label,
-        savedAt: r.saved_at,
-        words: r.words,
-        scenes: JSON.parse(r.scenes || "[]"),
+export const router = new Hono();
+router.get("/v1/versions", input({ querystring: T.Object({ projectId: T.String() }) }), (c) => {
+  const rows = getDb().all(
+    "SELECT * FROM chapter_versions WHERE chapter_versions.project_id = ? ORDER BY chapter_versions.chapter_id, chapter_versions.position",
+    [c.req.valid("query").projectId],
+    "chapter_versions",
+  );
+  const out = {};
+  for (const r of rows) {
+    setdefault(out, r.chapter_id, []).push({
+      id: r.id,
+      label: r.label,
+      savedAt: r.saved_at,
+      words: r.words,
+      scenes: JSON.parse(r.scenes || "[]"),
+    });
+  }
+  return c.json(out);
+});
+
+router.put("/v1/versions", input({ body: SaveVersionsBody }), (c) => {
+  const h = getDb();
+  const body = c.req.valid("json");
+  h.tx(() => {
+    h.delete("chapter_versions", { project_id: body.projectId, chapter_id: body.chapterId });
+    for (const [i, v] of body.versions.entries()) {
+      h.insert("chapter_versions", {
+        project_id: body.projectId,
+        chapter_id: body.chapterId,
+        id: v.id,
+        position: i,
+        saved_at: v.savedAt,
+        label: v.label,
+        words: v.words,
+        scenes: pyJson(pyOr(v.scenes, [])),
       });
     }
-    return out;
   });
-
-  app.put("/v1/versions", { schema: { body: SaveVersionsBody } }, async (req, reply) => {
-    const h = getDb();
-    const body = req.body;
-    h.tx(() => {
-      h.delete("chapter_versions", { project_id: body.projectId, chapter_id: body.chapterId });
-      for (const [i, v] of body.versions.entries()) {
-        h.insert("chapter_versions", {
-          project_id: body.projectId,
-          chapter_id: body.chapterId,
-          id: v.id,
-          position: i,
-          saved_at: v.savedAt,
-          label: v.label,
-          words: v.words,
-          scenes: pyJson(pyOr(v.scenes, [])),
-        });
-      }
-    });
-    return reply.code(204).send();
-  });
-}
+  return c.body(null, 204);
+});

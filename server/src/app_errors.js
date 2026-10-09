@@ -10,12 +10,12 @@ export const TYPE_BASE = "https://justwrite.dev/errors/";
 
 /**
  * The catch-all error envelope: an unhandled exception becomes a JSON 500 that still carries
- * the CORS headers (stamped by the CORS hook before the route ran), so the browser sees a
+ * the CORS headers (stamped by the CORS middleware before the route ran), so the browser sees a
  * real error instead of a CORS block. Uniform with JustVoice's server (verified the hard way
  * there, 2026-06-12). The detail is Python's `str(exc)[:300]`.
  */
-export function errorEnvelope(err, request, reply) {
-  log.exception(`unhandled error on ${request.method} ${request.url.split("?")[0]}`, err);
+export function errorEnvelope(err, c) {
+  log.exception(`unhandled error on ${c.req.method} ${c.req.path}`, err);
   const detail = [...String(err instanceof Error ? err.message : err)].slice(0, 300).join("");
-  return reply.code(500).type("application/json").send({ title: "Internal Server Error", detail });
+  return c.json({ title: "Internal Server Error", detail }, 500);
 }

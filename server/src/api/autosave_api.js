@@ -11,7 +11,8 @@
 // Base dir = the `autosaveDir` setting (a real /v1/settings key), default
 // <dataDir>/projects. Python had to mount this router BEFORE the projects router so the
 // literal `/autosaves` + `/autosave-dir` segments won over `/{project_id}` (FastAPI matches in
-// registration order); Fastify prefers a static segment over a parameter by itself.
+// registration order); Hono matches in registration order too, so app.js and phone.js still mount
+// this router first.
 //
 // The files keep Python's bytes: `json.dumps(snapshot, indent=2)` written through pathlib's
 // `write_text`, which writes "\n" as the OS line separator (CRLF on Windows).
@@ -23,7 +24,8 @@ import { purePath, samePath } from "@delebash/llm-runner/platform/data_paths";
 import { T } from "@delebash/llm-runner/platform/models";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
 import { pyOr, pySorted, strip } from "@delebash/llm-runner/platform/py";
-import { getState } from "../app_state.js";
+import { Hono, input } from "@delebash/llm-runner/platform/server";
+import { getState } from "#app_state";
 import { pyGet } from "../book_io.js";
 import { getDb } from "../database/session.js";
 
@@ -137,110 +139,109 @@ function migrateAutosaves(oldDir, newDir) {
   }
 }
 
-export async function router(app) {
-  app.post("/v1/projects/:project_id/autosave", { schema: { body: T.Record(T.String(), T.Any()) } }, async (req) => {
-    const d = resolveDir(getDb());
-    const pid = safeId(req.params.project_id);
-    const current = path.join(d, `${pid}.autosave.json`);
-    const prev = path.join(d, `${pid}.autosave.prev.json`);
-    const prev2 = path.join(d, `${pid}.autosave.prev2.json`);
-    const tmp = path.join(d, `${pid}.autosave.tmp.json`);
+export const router = new Hono();
+router.post("/v1/projects/:project_id/autosave", input({ body: T.Record(T.String(), T.Any()) }), (c) => {
+  const d = resolveDir(getDb());
+  const pid = safeId(c.req.param("project_id"));
+  const current = path.join(d, `${pid}.autosave.json`);
+  const prev = path.join(d, `${pid}.autosave.prev.json`);
+  const prev2 = path.join(d, `${pid}.autosave.prev2.json`);
+  const tmp = path.join(d, `${pid}.autosave.tmp.json`);
 
-    // Write to tmp first, then rotate + atomic-rename so a crash mid-write can't corrupt the
-    // live autosave (a rename overwrites atomically, as os.replace).
-    writeText(tmp, pyJson(req.body, { indent: 2 }));
-    if (statSync(prev, { throwIfNoEntry: false })) renameSync(prev, prev2);
-    if (statSync(current, { throwIfNoEntry: false })) renameSync(current, prev);
-    renameSync(tmp, current);
+  // Write to tmp first, then rotate + atomic-rename so a crash mid-write can't corrupt the
+  // live autosave (a rename overwrites atomically, as os.replace).
+  writeText(tmp, pyJson(c.req.valid("json"), { indent: 2 }));
+  if (statSync(prev, { throwIfNoEntry: false })) renameSync(prev, prev2);
+  if (statSync(current, { throwIfNoEntry: false })) renameSync(current, prev);
+  renameSync(tmp, current);
 
-    return { ok: true, projectId: pid, key: `${pid}__current` };
-  });
+  return c.json({ ok: true, projectId: pid, key: `${pid}__current` });
+});
 
-  app.get("/v1/projects/autosaves", async () => {
-    const d = resolveDir(getDb());
-    const out = [];
-    if (!isDir(d)) return out;
+router.get("/v1/projects/autosaves", (c) => {
+  const d = resolveDir(getDb());
+  const out = [];
+  if (!isDir(d)) return c.json(out);
+  for (const name of readdirSync(d)) {
+    const entry = path.join(d, name);
+    if (!isFile(entry)) continue;
+    let projectId = null;
+    let generation = null;
+    for (const [suffix, gen] of SUFFIX_GEN) {
+      if (name.endsWith(suffix)) {
+        projectId = name.slice(0, -suffix.length);
+        generation = gen;
+        break;
+      }
+    }
+    if (generation === null || projectId === null) continue;
+    let parsed;
+    try {
+      parsed = JSON.parse(readText(entry));
+    } catch {
+      continue;
+    }
+    let title = "Untitled";
+    let savedAt = "";
+    if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
+      const proj = parsed.project;
+      if (proj !== null && typeof proj === "object" && !Array.isArray(proj) && typeof proj.title === "string") title = proj.title;
+      if (typeof parsed.savedAt === "string") savedAt = parsed.savedAt;
+    }
+    out.push({ projectId, title, savedAt, generation, key: `${projectId}__${generation}` });
+  }
+  // Most recent first; empty savedAt sorts last.
+  return c.json(pySorted(out, (e) => e.savedAt, true));
+});
+
+router.get("/v1/projects/autosaves/:key", (c) => {
+  const d = resolveDir(getDb());
+  const p = pathForKey(d, c.req.param("key"));
+  if (p === null || !isFile(p)) throw new HttpError(404, "autosave not found");
+  let doc;
+  try {
+    doc = JSON.parse(readText(p));
+  } catch (e) {
+    throw new HttpError(500, `autosave read failed: ${e?.message ?? e}`);
+  }
+  // FastAPI validated the `-> dict` return: a file holding anything else failed as an
+  // unhandled response-validation error (the 500 envelope).
+  if (doc === null || typeof doc !== "object" || Array.isArray(doc)) {
+    throw new Error("1 validation error: Input should be a valid dictionary");
+  }
+  return c.json(doc);
+});
+
+router.delete("/v1/projects/autosaves", (c) => {
+  const d = resolveDir(getDb());
+  if (isDir(d)) {
     for (const name of readdirSync(d)) {
       const entry = path.join(d, name);
-      if (!isFile(entry)) continue;
-      let projectId = null;
-      let generation = null;
-      for (const [suffix, gen] of SUFFIX_GEN) {
-        if (name.endsWith(suffix)) {
-          projectId = name.slice(0, -suffix.length);
-          generation = gen;
-          break;
-        }
-      }
-      if (generation === null || projectId === null) continue;
-      let parsed;
-      try {
-        parsed = JSON.parse(readText(entry));
-      } catch {
-        continue;
-      }
-      let title = "Untitled";
-      let savedAt = "";
-      if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
-        const proj = parsed.project;
-        if (proj !== null && typeof proj === "object" && !Array.isArray(proj) && typeof proj.title === "string") title = proj.title;
-        if (typeof parsed.savedAt === "string") savedAt = parsed.savedAt;
-      }
-      out.push({ projectId, title, savedAt, generation, key: `${projectId}__${generation}` });
+      if (isFile(entry) && SUFFIX_GEN.some(([s]) => name.endsWith(s))) unlinkSync(entry);
     }
-    // Most recent first; empty savedAt sorts last.
-    return pySorted(out, (e) => e.savedAt, true);
-  });
+  }
+  return c.body(null, 204);
+});
 
-  app.get("/v1/projects/autosaves/:key", async (req) => {
-    const d = resolveDir(getDb());
-    const p = pathForKey(d, req.params.key);
-    if (p === null || !isFile(p)) throw new HttpError(404, "autosave not found");
-    let doc;
-    try {
-      doc = JSON.parse(readText(p));
-    } catch (e) {
-      throw new HttpError(500, `autosave read failed: ${e?.message ?? e}`);
-    }
-    // FastAPI validated the `-> dict` return: a file holding anything else failed as an
-    // unhandled response-validation error (the 500 envelope).
-    if (doc === null || typeof doc !== "object" || Array.isArray(doc)) {
-      throw new Error("1 validation error: Input should be a valid dictionary");
-    }
-    return doc;
-  });
+router.delete("/v1/projects/autosaves/:key", (c) => {
+  const d = resolveDir(getDb());
+  const p = pathForKey(d, c.req.param("key"));
+  if (p !== null && isFile(p)) unlinkSync(p);
+  return c.body(null, 204);
+});
 
-  app.delete("/v1/projects/autosaves", async (_req, reply) => {
-    const d = resolveDir(getDb());
-    if (isDir(d)) {
-      for (const name of readdirSync(d)) {
-        const entry = path.join(d, name);
-        if (isFile(entry) && SUFFIX_GEN.some(([s]) => name.endsWith(s))) unlinkSync(entry);
-      }
-    }
-    return reply.code(204).send();
-  });
+router.get("/v1/projects/autosave-dir", (c) => c.json({ dir: resolveDir(getDb()) }));
 
-  app.delete("/v1/projects/autosaves/:key", async (req, reply) => {
-    const d = resolveDir(getDb());
-    const p = pathForKey(d, req.params.key);
-    if (p !== null && isFile(p)) unlinkSync(p);
-    return reply.code(204).send();
-  });
-
-  app.get("/v1/projects/autosave-dir", async () => ({ dir: resolveDir(getDb()) }));
-
-  app.put("/v1/projects/autosave-dir", { schema: { body: T.Record(T.String(), T.Any()) } }, async (req) => {
-    const h = getDb();
-    const newDir = pyGet(pyOr(req.body, {}), "dir");
-    if (typeof newDir !== "string" || !strip(newDir)) throw new HttpError(400, "dir is required");
-    const oldDir = resolveDir(h); // the folder in use BEFORE the change (from the setting)
-    const p = purePath(newDir);
-    mkdirSync(p, { recursive: true });
-    migrateAutosaves(oldDir, p); // D3a: carry the user's autosaves to the new folder
-    const encoded = pyJson(newDir);
-    if (h.get("settings", "autosaveDir") === null) h.insert("settings", { key: "autosaveDir", value: encoded });
-    else h.update("settings", { value: encoded }, { key: "autosaveDir" });
-    return { dir: p };
-  });
-}
+router.put("/v1/projects/autosave-dir", input({ body: T.Record(T.String(), T.Any()) }), (c) => {
+  const h = getDb();
+  const newDir = pyGet(pyOr(c.req.valid("json"), {}), "dir");
+  if (typeof newDir !== "string" || !strip(newDir)) throw new HttpError(400, "dir is required");
+  const oldDir = resolveDir(h); // the folder in use BEFORE the change (from the setting)
+  const p = purePath(newDir);
+  mkdirSync(p, { recursive: true });
+  migrateAutosaves(oldDir, p); // D3a: carry the user's autosaves to the new folder
+  const encoded = pyJson(newDir);
+  if (h.get("settings", "autosaveDir") === null) h.insert("settings", { key: "autosaveDir", value: encoded });
+  else h.update("settings", { value: encoded }, { key: "autosaveDir" });
+  return c.json({ dir: p });
+});
