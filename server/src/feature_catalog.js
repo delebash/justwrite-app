@@ -10,7 +10,7 @@
 //
 // Server-side + headless-first (the shared `/v1/ai/routing` endpoint serves it).
 
-import { FeatureCatalogEntry } from "@delebash/llm-runner/llm";
+import { FeatureCatalogEntry } from "@delebash/llm-runner/llm/routing_api";
 
 const e = (key, label, hint, group) => FeatureCatalogEntry({ key, label, hint, group });
 

@@ -5,6 +5,7 @@
 // id and the storage guard's folder (the kit's `callWindow`; the guard: the kit's
 // docs/plans/2026-10-08-the-phone.md §2 and JustWrite's TASKS, Sync decision 7).
 import { CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHint } from "@capacitor/barcode-scanner";
+import { CapacitorHttp } from "@capacitor/core";
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Share } from "@capacitor/share";
 
@@ -51,6 +52,20 @@ const guardPath = (p) => [GUARD, p].filter(Boolean).join("/");
 const missing = (e) => /not exist|no such|not found|ENOENT/i.test(String(e?.message ?? e));
 
 export const workerCalls = {
+  /** A request the in-app server's own fetch was refused — an AI provider that doesn't accept a
+   * webview's call (CORS): the phone's native HTTP, the whole answer at once (the kit's
+   * server/src/platform/worker/shims/undici.js; decided 2026-10-08, the phone's plan §4). */
+  async "http.request"({ url, method, headers, body }) {
+    const r = await CapacitorHttp.request({
+      url,
+      method,
+      headers,
+      data: body ? new TextDecoder().decode(body) : undefined,
+      responseType: "arraybuffer",
+    });
+    const bytes = typeof r.data === "string" ? fromBase64(r.data) : new TextEncoder().encode(JSON.stringify(r.data ?? ""));
+    return { status: r.status, headers: r.headers ?? {}, body: bytes };
+  },
   /** This device's sync id, kept in the app's own files — outside the database, so a phone whose
    * database was lost is still the same device and rebuilds from its guard (sync-device.json, as
    * on a computer). */
