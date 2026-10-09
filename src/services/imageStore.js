@@ -117,7 +117,7 @@ export async function urlFor(image) {
  * `v-scene-images` directive then shows it through `displaySrc`.
  */
 export function withSceneImages(html) {
-  if (!html || !html.includes("<img")) return html;
+  if (!html?.includes("<img")) return html;
   return html.replace(/(<img\b[^>]*?)\ssrc="([^"]*)"/gi, (all, head, src) => (SERVER_IMAGE.test(stableImageSrc(src)) ? `${head} data-scene-image="${src}"` : all));
 }
 
