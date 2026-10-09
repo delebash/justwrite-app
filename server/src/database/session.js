@@ -11,7 +11,7 @@
 
 import { mkdirSync } from "node:fs";
 import path from "node:path";
-import { openDatabase } from "@delebash/llm-runner/platform";
+import { openDatabase } from "@delebash/llm-runner/platform/sql";
 import { purePath, samePath } from "@delebash/llm-runner/platform/data_paths";
 import { getLogger } from "@delebash/llm-runner/platform/log";
 import { RuntimeError } from "@delebash/llm-runner/platform/py";

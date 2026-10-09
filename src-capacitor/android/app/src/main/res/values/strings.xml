@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">JustWrite</string>
+    <string name="title_activity_main">JustWrite</string>
+    <string name="package_name">com.justwrite.app</string>
+    <string name="custom_url_scheme">com.justwrite.app</string>
+</resources>

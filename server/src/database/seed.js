@@ -13,26 +13,13 @@
 
 import { loadFromConfigs, seedLlm, stores } from "@delebash/llm-runner/llm";
 import { getLogger } from "@delebash/llm-runner/platform/log";
-import * as bookIo from "../book_io.js";
-import { DEMO_PROJECT_ID, demoBookSnapshot, demoSampleImages } from "./demo_seed.js";
 import { state } from "./session.js";
 
 const log = getLogger("justwrite_server.database.seed");
 
-/**
- * Create the demo book (fixed id — reset-safe, never duplicated) if it does not exist. Does
- * NOT touch `activeProjectId` (the renderer switches to it through its normal project
- * flow). Returns true if it created the project, false if it already existed.
- */
-export function createDemoProject(h) {
-  if (h.get("projects", DEMO_PROJECT_ID) !== null) return false;
-  const snap = demoBookSnapshot();
-  snap.savedAt = bookIo.isoNowUtc();
-  // ONE "decompose a book (+ its image files)" core, shared with /v1/projects/import (the
-  // sample ships image-less today, so demoSampleImages() is usually empty).
-  bookIo.importBookSnapshot(h, snap, demoSampleImages(), DEMO_PROJECT_ID);
-  return true;
-}
+// The demo book lives in demo_book.js (re-exported here for the callers that import it from
+// this module) — the projects routes import it from there without this module's AI seed.
+export { createDemoProject } from "./demo_book.js";
 
 /** Load the seeded providers into the shared LLM adapter registry so dispatch + the
  * /v1/llm-providers `registered` flag work from boot. */

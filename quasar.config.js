@@ -7,6 +7,7 @@
 
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { defineConfig } from '#q-app'
 
 // `npm run` hands an `allow-scripts` setting from the user's .npmrc to every child process as
@@ -19,7 +20,19 @@ const kitUi = path.resolve(root, '../just-llm-runner/ui')
 // The package.json version, for the "What's new" modal's dismissal pin.
 const version = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8')).version
 
-export default defineConfig(() => {
+export default defineConfig((ctx) => {
+  // The phone runs JustWrite's server inside the app, in a web worker (src/phone/; the kit's
+  // docs/plans/2026-10-08-the-phone.md) — and so does a browser dev run with
+  // JUSTWRITE_IN_APP_SERVER=1, to try it without a phone.
+  const inAppServer = !!ctx.mode.capacitor || process.env.JUSTWRITE_IN_APP_SERVER === '1'
+  // The worker's bundle is built first (scripts/phone-worker.js — imported at run time, by path:
+  // Quasar bundles this file, which would move its import.meta.url).
+  const buildPhoneWorker = async () => {
+    if (!inAppServer) return
+    const { buildPhoneWorker } = await import(pathToFileURL(path.join(root, 'scripts', 'phone-worker.js')).href)
+    await buildPhoneWorker()
+  }
+
   return {
     // The renderer's start-up (the old src/main.js): settings, stores, the kit's UI, the router
     // guards, the warm start — awaited before Quasar mounts the app.
@@ -33,15 +46,24 @@ export default defineConfig(() => {
 
     build: {
       vueRouterMode: 'hash',
+      // a browser build with the in-app server is a try-out, never the headless UI (dist/spa)
+      ...(inAppServer && !ctx.mode.capacitor ? { distDir: 'dist/spa-in-app' } : {}),
 
       alias: {
         '@renderer': path.join(root, 'src'),
         // The kit's UI, consumed from source (the sibling checkout) for the dev/HMR loop.
         '@delebash/llm-ui': path.join(kitUi, 'src'),
+        // The in-app server's start-up on the phone; nothing to start on a computer.
+        '#in-app-server': path.join(root, 'src', 'phone', inAppServer ? 'boot.js' : 'none.js'),
       },
+
+      beforeDev: buildPhoneWorker,
+      beforeBuild: buildPhoneWorker,
 
       extendViteConf (viteConf) {
         viteConf.resolve = viteConf.resolve || {}
+        // the in-app server is a module worker (src/phone/boot.js)
+        viteConf.worker = { ...(viteConf.worker || {}), format: 'es' }
         // The aliased kit imports its peer packages by bare name from its own folder, which has
         // no node_modules: ONE copy of each comes from this app's (Reka's provide/inject and
         // Vue's reactivity break with two).

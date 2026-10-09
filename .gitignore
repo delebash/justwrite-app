@@ -43,5 +43,6 @@ release/
 # (quasar build -m capacitor -T android re-creates them)
 /src-capacitor/www
 /src-capacitor/node_modules
-/src-capacitor/android
-/src-capacitor/ios
+
+# the phone's in-app server, built by scripts/phone-worker.js
+/src/phone/worker-bundle/

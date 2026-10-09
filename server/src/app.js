@@ -58,10 +58,11 @@ import {
   JW_EMBED_TEMPLATES,
 } from "./seed_presets.js";
 import { PRODUCT } from "./version.js";
+import { errorEnvelope, TYPE_BASE } from "./app_errors.js";
 
 const log = getLogger("justwrite_server.app");
 
-export const TYPE_BASE = "https://justwrite.dev/errors/";
+export { TYPE_BASE };
 
 // The origins the app's own pages load from: the Vite dev server, and the Electron window
 // (`app://justwrite` — the desktop shell loads the renderer from there; without it every
@@ -134,18 +135,6 @@ export function locateUiDir() {
     }
   }
   return null;
-}
-
-/**
- * The catch-all error envelope: an unhandled exception becomes a JSON 500 that still carries
- * the CORS headers (stamped by the CORS hook before the route ran), so the browser sees a
- * real error instead of a CORS block. Uniform with JustVoice's server (verified the hard way
- * there, 2026-06-12). The detail is Python's `str(exc)[:300]`.
- */
-function errorEnvelope(err, request, reply) {
-  log.exception(`unhandled error on ${request.method} ${request.url.split("?")[0]}`, err);
-  const detail = [...String(err instanceof Error ? err.message : err)].slice(0, 300).join("");
-  return reply.code(500).type("application/json").send({ title: "Internal Server Error", detail });
 }
 
 /** The Fastify app (not yet listening). `dataDir` defaults to the family data-root ladder. */

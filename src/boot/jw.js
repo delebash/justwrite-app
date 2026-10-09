@@ -16,6 +16,7 @@ import { applyAppearance, migrateAppearance, DEFAULT_APPEARANCE } from "../servi
 applyAppearance(DEFAULT_APPEARANCE);
 
 import { defineBoot } from "#q-app";
+import { startInAppServer } from "#in-app-server";
 import { watch } from "vue";
 import { bootSettings, readSetting } from "../services/settings.js";
 import { hydrateProjects, useProjectStore } from "../stores/project.js";
@@ -53,6 +54,10 @@ import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "../services/labTestData.js";
 // had it. The `http` plugin went with it in both apps.
 
 export default defineBoot(async ({ app, router, store: pinia }) => {
+  // On the phone the server runs inside the app (src/phone/boot.js): started first, so every
+  // request below — the server check included — goes to it.
+  if (startInAppServer) await startInAppServer();
+
   installLlmUi(app, {
     // The KIT resolves the base now (2026-08-15) — services/serverApi.js is
     // deleted. It was one of three shapes for one job: JustWrite had this file,

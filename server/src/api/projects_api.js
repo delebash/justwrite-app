@@ -15,7 +15,7 @@ import { pyIter, pyOr } from "@delebash/llm-runner/platform/py";
 import * as bookIo from "../book_io.js";
 import { pyGet } from "../book_io.js";
 import { DEMO_PROJECT_ID } from "../database/demo_seed.js";
-import { createDemoProject } from "../database/seed.js";
+import { createDemoProject } from "../database/demo_book.js";
 import { getDb } from "../database/session.js";
 
 const DICT_BODY = { schema: { body: T.Record(T.String(), T.Any()) } };
