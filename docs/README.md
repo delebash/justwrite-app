@@ -54,6 +54,7 @@ If you want to plan first:
 - **[AI providers](ai-providers.md)** — OpenAI, Anthropic Claude, Ollama, LM Studio, others
 - **[Appearance](appearance.md)** — themes, fonts, accents, button shape, editor layout
 - **[Backups and data](backups-and-data.md)** — autosave, snapshots, restoring, reset
+- **[Sync](sync.md)** — your books on every device: a cloud folder, pairing, or a file by hand
 - **[Keyboard shortcuts](keyboard-shortcuts.md)** — the full reference
 
 ### What's coming

@@ -34,6 +34,8 @@ import {
 } from "../services/appearance.js";
 import { AVAILABLE_LOCALES, setLocale as setI18nLocale } from "../i18n/index.js";
 import { SETTINGS_SECTION_IDS } from "./settingsSections.js";
+// The family Sync screen — by path, not the kit barrel (it needs `qrcode`; SyncPanel.vue's header).
+import SyncPanel from "@delebash/llm-ui/components/SyncPanel.vue";
 import { useI18n } from "vue-i18n";
 
 import { UiTag } from "@delebash/llm-ui";
@@ -56,6 +58,14 @@ function onLocaleChange(code) {
   ui.setLocale(next);
   setI18nLocale(next);
 }
+
+// ── Sync: the books for the by-hand export picker (savedAt = the book's last change) ──
+const syncUnits = computed(() =>
+  project.projectsList.map((p) => ({ id: p.id, title: p.title, updatedAt: p.savedAt })),
+);
+const syncUnitNoun = computed(() => ({ one: t("settings.sync.unitOne"), many: t("settings.sync.unitMany") }));
+// The desktop's folder picker; a browser types the folder's path instead.
+const syncPickFolder = hasShell() ? () => pickDirectory({ title: t("settings.sections.sync") }) : null;
 
 // The canon relative order (family parity batch 2026-08-05): … Backups · Storage ·
 // Server · Logs · Updates · About, with app sections (Project) leading. The old
@@ -699,6 +709,7 @@ async function deleteCategory(c) {
       <template #project><strong>{{ $t("settings.sections.project") }}</strong></template>
       <template #appearance><strong>{{ $t("settings.sections.appearance") }}</strong></template>
       <template #backups><strong>{{ $t("settings.sections.backups") }}</strong></template>
+      <template #sync><strong>{{ $t("settings.sections.sync") }}</strong></template>
       <template #server><strong>{{ $t("settings.sections.server") }}</strong></template>
       <template #ai><strong>{{ $t("settings.introTerms.ai") }}</strong></template>
     </i18n-t>
@@ -1491,6 +1502,17 @@ async function deleteCategory(c) {
             <UiButton intent="primary" size="small" :disabled="!newToken.trim()" @click="addToken">{{ $t('settings.server.addToken') }}</UiButton>
           </div>
         </div>
+      </div>
+
+      <!-- ── SYNC (the kit's SyncPanel over server/src/sync.js) ─────── -->
+      <div v-else-if="active === 'sync'">
+        <SyncPanel
+          app-name="JustWrite"
+          :unit-noun="syncUnitNoun"
+          :units="syncUnits"
+          file-extension="jwsync"
+          :pick-folder="syncPickFolder"
+        />
       </div>
 
       <!-- ── BACKUPS ───────────────────────────────── -->

@@ -103,6 +103,8 @@ test("a book exported by hand imports on another device, and back", async () => 
   const r = await c.post("/v1/sync/export", { json: { projectIds: ["prj1"] } });
   expect(r.statusCode).toBe(200);
   expect(decodeURIComponent(r.headers["content-disposition"])).toContain(".jwsync");
+  // the export is remembered, so the next export's picker can tick the books changed since
+  expect(Date.parse((await c.get("/v1/sync/status")).json().settings.lastExport)).toBeGreaterThan(Date.now() - 60_000);
   const phone = otherDevice("phone");
   phone.sync.apply(await decodeFile(new Uint8Array(r.rawPayload)), { join: true });
   expect(phone.h.all("SELECT id FROM projects").map((p) => p.id)).toEqual(["prj1"]);
@@ -138,6 +140,20 @@ test("pairing gives a code with the library, its key, a new token and this serve
   const ok = await c.get("/v1/sync/status", { headers: { authorization: `Bearer ${r.code.token}` } });
   expect(ok.statusCode).toBe(200);
   expect(ok.json().settings.listenOnNetwork).toBe(true);
+});
+
+test("joining with a code adopts its library and key even when no address answers", async () => {
+  const c = await client(tmpPath());
+  const laptop = otherDevice("laptop");
+  // a code from a device that's off: its only address refuses connections
+  const code = { v: 1, app: "justwrite", library: laptop.sync.library, key: "k".repeat(43), token: "t".repeat(32), name: "laptop", urls: ["http://127.0.0.1:9"] };
+  const r = await c.post("/v1/sync/pair/join", { json: { code: JSON.stringify(code) } });
+  expect(r.statusCode).toBe(200);
+  expect(r.json()).toMatchObject({ joined: true, url: null });
+  expect(getSync().library).toBe(laptop.sync.library);
+  expect((await c.get("/v1/sync/status")).json().settings.hasKey).toBe(true);
+  // a code that isn't JustWrite's is refused
+  expect((await c.post("/v1/sync/pair/join", { json: { code: "{}" } })).statusCode).toBe(400);
 });
 
 test("a workspace reset starts a new library", async () => {

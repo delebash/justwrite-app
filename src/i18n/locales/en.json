@@ -1610,7 +1610,7 @@
   "settings": {
     "title": "Settings",
     "eyebrow": "Project",
-    "intro": "{settings} is divided into sections — {project} (metadata, goals, statuses, deadlines), {appearance} (themes, fonts, colours, density), {backups} (autosave, full backup / restore, and workspace reset), and {server} (reach JustWrite from a browser, keep it running in the tray, access tokens). AI providers, routing, usage, and writing-AI settings live in the {ai} menu. Nothing here touches your manuscript prose.",
+    "intro": "{settings} is divided into sections — {project} (metadata, goals, statuses, deadlines), {appearance} (themes, fonts, colours, density), {backups} (autosave, full backup / restore, and workspace reset), {sync} (your books on your other devices), and {server} (reach JustWrite from a browser, keep it running in the tray, access tokens). AI providers, routing, usage, and writing-AI settings live in the {ai} menu. Nothing here touches your manuscript prose.",
     "introTerms": {
       "ai": "AI"
     },
@@ -1619,6 +1619,7 @@
       "appearance": "Appearance",
       "server": "Server",
       "backups": "Backups",
+      "sync": "Sync",
       "storage": "Storage",
       "logs": "Logs",
       "updates": "Updates",
@@ -1831,6 +1832,10 @@
       "importing": "Importing…",
       "importButton": "Import a book…",
       "importDesktopOnly": "Importing a book needs the desktop app."
+    },
+    "sync": {
+      "unitOne": "book",
+      "unitMany": "books"
     },
     "statuses": {
       "cardTitle": "Statuses",

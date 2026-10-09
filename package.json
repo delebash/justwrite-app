@@ -40,6 +40,7 @@
     "@tiptap/extension-mention": "^3.27.1",
     "@tiptap/pm": "^3.27.1",
     "@tiptap/suggestion": "^3.27.1",
+    "qrcode": "^1.5.4",
     "quasar": "^2.35.0"
   },
   "devDependencies": {

@@ -1610,7 +1610,7 @@
   "settings": {
     "title": "Ajustes",
     "eyebrow": "Proyecto",
-    "intro": "{settings} se divide en secciones: {project} (metadatos, objetivos, estados, plazos), {appearance} (temas, fuentes, colores, densidad), {backups} (autoguardado, copia de seguridad completa / restauración y restablecimiento del espacio de trabajo) y {server} (accede a JustWrite desde un navegador, mantenlo en ejecución en la bandeja, tokens de acceso). Los proveedores de IA, el enrutamiento, el uso y los ajustes de escritura con IA se encuentran en el menú {ai}. Nada de esto afecta a la prosa de tu manuscrito.",
+    "intro": "{settings} se divide en secciones: {project} (metadatos, objetivos, estados, plazos), {appearance} (temas, fuentes, colores, densidad), {backups} (autoguardado, copia de seguridad completa / restauración y restablecimiento del espacio de trabajo), {sync} (tus libros en tus otros dispositivos) y {server} (accede a JustWrite desde un navegador, mantenlo en ejecución en la bandeja, tokens de acceso). Los proveedores de IA, el enrutamiento, el uso y los ajustes de escritura con IA se encuentran en el menú {ai}. Nada de esto afecta a la prosa de tu manuscrito.",
     "introTerms": {
       "ai": "IA"
     },
@@ -1619,6 +1619,7 @@
       "appearance": "Apariencia",
       "server": "Servidor",
       "backups": "Copias de seguridad",
+      "sync": "Sincronización",
       "storage": "Almacenamiento",
       "logs": "Registros",
       "updates": "Actualizaciones",
@@ -1831,6 +1832,10 @@
       "importing": "Importando…",
       "importButton": "Importa un libro…",
       "importDesktopOnly": "Importar un libro requiere la aplicación de escritorio."
+    },
+    "sync": {
+      "unitOne": "libro",
+      "unitMany": "libros"
     },
     "statuses": {
       "cardTitle": "Estados",

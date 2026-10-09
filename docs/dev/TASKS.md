@@ -51,7 +51,7 @@ CHECKED: dev mode (the window on :1420, the server from source on `data/`, route
         (Quasar's global disabled rule — the kit's TASKS, the Quasar item, OPEN 5).
 OPEN:   1. Your merge of `quasar` into master (close the app first; then `npm install` and once
            `cd src-electron && npm install`).
-        2. The Settings → Sync screen and its user docs (the Sync item below).
+        2. DONE — the Settings → Sync screen and its user docs (the Sync item below).
         3. The phone: the server in a web worker on SQLite WASM, the storage guard, OneDrive/
            Dropbox sign-in, the QR pairing (the Sync item below).
         4. The release workflow is rewritten for Quasar but not run (it needs a tag).
@@ -270,7 +270,8 @@ BUILT:  2026-10-08, under "just-sqlite-sync you have a go on it all your recs co
           `x-jw-client`); decompose (import, samples) still replaces whole;
         · `server/src/sync.js` — the engine on projects + PROJECT_TABLES + image_blobs +
           chapter_versions; scene text merged through Yjs on the editor's own schema
-          (`src/services/editorSchema.js`, shared with RichEditor.vue, shipped in build.files);
+          (since the Quasar move `server/src/editor/editorSchema.js`, in the server package; the
+          renderer imports it as `justwrite-server/editor/editorSchema.js`);
           this device's identity (`sync-device.json`, tied to the machine); the `sync` settings
           section; routes `/v1/sync/{hello,pull,push}` (the engine's) and `/rev`, `/status`,
           `/settings`, `/run`, `/folder/run`, `/folder/libraries`, `/export`, `/import`,
@@ -287,11 +288,31 @@ BUILT:  2026-10-08, under "just-sqlite-sync you have a go on it all your recs co
         headless smoke (all routes, zero JS errors).
         Earlier the same day: round 2 (the design doc's "Round 2"); the Android SDK at
         `E:\Android\Sdk` (AVD `jvtest`), `E:\Android\jdk-21` → Visual Studio's JDK 21.
-OPEN:   the Settings → Sync screen and the phone (after JustWrite moves to Quasar — the kit's
-        `docs/plans/2026-10-08-sync-and-quasar-program.md` Q4) · the user docs with that screen ·
-        a real OneDrive/Dropbox sign-in needs the user's app registrations · my choices under "your
-        recs" where the record had a gap, to confirm: the by-hand file's extension `.jwsync`;
-        by-hand files unencrypted unless asked (the cloud folder's always are).
+BUILT:  2026-10-08, on branch `quasar` (the Quasar item above): Settings → Sync — the kit's
+        `SyncPanel` (`../just-llm-runner/ui/src/components/SyncPanel.vue`, imported by path; it
+        needs `qrcode`, MIT): the status ("Synced 2 min ago · from …", Sync now), this device's
+        name and how often it syncs, "Let my other devices connect" and the pairing code (a QR code
+        plus copyable text), pairing with a code, the cloud folder (a note when it already holds
+        another library), by hand (the books changed since the last export ticked, optional
+        encryption, Export…/Import…, joining another library on import after a confirm), the
+        devices. Server: an export records when it ran (`lastExport`); joining with a code adopts
+        the code's library and key even when none of its addresses answer (the folder carries the
+        changes); one sync shortly after start (the design: "when the app opens"). User docs:
+        `docs/sync.md` (in Help's contents and the guide's index), the Settings intro names Sync.
+        Checked: server 142/142 (new: joining with a code when no address answers; export
+        remembered), unit 592/592, lint, the smoke on a snapshot of your data, and the screen on a
+        copy of your data (status, the book listed, the QR code, the full code, an export saved as
+        "The Ninth Facet 2026-10-09.jwsync").
+OPEN:   the phone (the Quasar item, OPEN 3) · "Use the server directly" (the thin client) comes
+        with the phone · "changes waiting" on the status line (the design §2) has no source yet —
+        no route counts what another device hasn't received · leaving the cloud folder's devices
+        (the folder transport's removeDevice) has no button yet · a real OneDrive/Dropbox sign-in
+        needs the user's app registrations · Sync joins the family's Settings canon when JustVoice
+        gets sync (adding it now would fail JustVoice's and docgen's "renders every family
+        section" tests) · my choices under "your recs" where the record had a gap, to confirm:
+        the by-hand file's extension `.jwsync`; by-hand files unencrypted unless asked (the cloud
+        folder's always are); the screen's words not quoted in the design (its labels, hints and
+        messages — `SyncPanel.vue`).
 GO:     given 2026-10-08 — the tests and research ("your rec on all go do the testing"), then
         the build ("just-sqlite-sync you have a go on it all your recs complete the whole
         project without stopping unless you need to").

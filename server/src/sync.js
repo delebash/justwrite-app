@@ -114,6 +114,7 @@ const DEFAULTS = {
   pollSeconds: 5, // an open window checks this often whether another device's changes landed
   listenOnNetwork: false, // let paired devices reach this server (applies on the next start)
   key: null, // the library key: encrypts folder files; travels in the pairing code
+  lastExport: null, // when books were last exported by hand — the export picker ticks those changed since
   peers: [], // [{ url, token, name }] — devices or servers this one syncs with over HTTP
 };
 
@@ -250,11 +251,17 @@ async function runPeers() {
   return out;
 }
 
+let startSync = null; // the one sync shortly after the server starts (the design: "when the app opens")
+
 function schedule() {
   if (timer) clearInterval(timer);
   timer = null;
   const minutes = Number(readSyncSettings(dbState.handle).autoMinutes) || 0;
   if (minutes <= 0) return;
+  if (startSync === null) {
+    startSync = setTimeout(() => void runFolder().then(runPeers), 15_000);
+    startSync.unref?.();
+  }
   timer = setInterval(() => {
     void runFolder().then(runPeers);
   }, minutes * 60_000);
@@ -265,6 +272,7 @@ function schedule() {
 export function stopBookSync() {
   if (timer) clearInterval(timer);
   timer = null;
+  if (startSync) clearTimeout(startSync);
 }
 
 /** The addresses another device can reach this server at (the same Wi-Fi, Tailscale, ZeroTier…). */
@@ -356,6 +364,7 @@ export async function router(app) {
         pollSeconds: cfg.pollSeconds,
         listenOnNetwork: cfg.listenOnNetwork,
         hasKey: !!cfg.key,
+        lastExport: cfg.lastExport,
         peers: (cfg.peers ?? []).map((p) => ({ url: p.url, name: p.name ?? null })),
       },
       lastRun,
@@ -404,6 +413,7 @@ export async function router(app) {
     const blobs = blobsOf(h, ids);
     const batch = need().changesSince({}, { scope: (t, pk) => (t === "image_blobs" ? blobs.has(pk[0]) : books.has(pk[0])) });
     const bytes = await encodeFile(batch, req.body?.encrypt ? { key: libraryKey(h) } : {});
+    writeSyncSettings(h, { ...readSyncSettings(h), lastExport: new Date().toISOString() });
     const title = h.get("projects", ids[0])?.title || "Books";
     const name = `${String(title).replace(/[\\/:*?"<>|]+/g, " ").trim().slice(0, 60) || "Books"}${ids.length > 1 ? ` +${ids.length - 1}` : ""} ${new Date().toISOString().slice(0, 10)}.jwsync`;
     reply.header("content-disposition", `attachment; filename="${encodeURIComponent(name)}"`);
@@ -477,23 +487,37 @@ export async function router(app) {
     };
   });
 
-  /** The other side of pairing: join with a code from another device. */
+  /**
+   * The other side of pairing: join with a code from another device. The code is the authority:
+   * this device adopts its library and key at once, so a shared cloud folder carries changes
+   * even when the other device can't be reached; then it syncs with the first address that
+   * answers and remembers it.
+   */
   app.post("/v1/sync/pair/join", async (req) => {
-    const code = typeof req.body?.code === "string" ? JSON.parse(req.body.code) : req.body?.code;
-    if (!code || code.app !== "justwrite" || !Array.isArray(code.urls)) throw new HttpError(400, "not a JustWrite pairing code");
+    let code;
+    try {
+      code = typeof req.body?.code === "string" ? JSON.parse(req.body.code) : req.body?.code;
+    } catch {
+      code = null;
+    }
+    if (!code || code.app !== "justwrite" || !code.library || !Array.isArray(code.urls)) throw new HttpError(400, "not a JustWrite pairing code");
     const h = dbState.handle;
-    let lastError = null;
+    const s = need();
+    if (s.library !== code.library) s.joinLibrary(code.library);
+    writeSyncSettings(h, { ...readSyncSettings(h), key: code.key ?? readSyncSettings(h).key });
     for (const url of code.urls) {
       try {
-        const r = await syncWithPeer(need(), { url, token: code.token, join: true });
+        const r = await syncWithPeer(s, { url, token: code.token, join: true });
         const cfg = readSyncSettings(h);
         const peers = (cfg.peers ?? []).filter((p) => p.url !== url);
-        writeSyncSettings(h, { ...cfg, key: code.key ?? cfg.key, peers: [...peers, { url, token: code.token, name: r.peer.name ?? code.name ?? null }] });
-        return { url, peer: r.peer, pulled: r.pulled.applied, sent: r.pushed.sent };
+        writeSyncSettings(h, { ...cfg, peers: [...peers, { url, token: code.token, name: r.peer.name ?? code.name ?? null }] });
+        return { joined: true, url, peer: r.peer, pulled: r.pulled.applied, sent: r.pushed.sent };
       } catch (e) {
-        lastError = e;
+        log.warning(`pairing: ${url} didn't answer: ${e?.message ?? e}`);
       }
     }
-    syncFailure(lastError ?? new HttpError(400, "none of the device's addresses answered"));
+    // Joined, but no address answered (the other device is off or on another network): the
+    // folder, or a later "Sync now", carries the changes.
+    return { joined: true, url: null, peer: { name: code.name ?? null }, pulled: 0, sent: 0 };
   });
 }
