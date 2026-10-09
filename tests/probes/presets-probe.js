@@ -48,8 +48,8 @@ const api = async (path, opts = {}) => {
   try { return await r.json(); } catch { return {}; }
 };
 
-// Reka UiSelect: a real pointer click on the trigger + pointerup on the option.
-async function pickReka(page, triggerSel, optionMatcher) {
+// UiSelect: a real pointer click on the trigger, then a click on the option.
+async function pickSelect(page, triggerSel, optionMatcher) {
   await page.click(triggerSel);
   await sleep(500);
   const hit = await page.evaluate((m) => {
@@ -155,7 +155,7 @@ try {
   check("N7: the column's Temp equals the PRESET's 0.3 (the per-action tunables are dead)",
     String(colTemp) === "0.3", `column Temp=${colTemp}`);
   const rrBefore = await api("/v1/ai/resolved-route?feature=critique");
-  const pickedLevel = await pickReka(page, ".cc-reason .ui-select-trigger", "Medium");
+  const pickedLevel = await pickSelect(page, ".cc-reason .ui-select-trigger", "Medium");
   check("N7: Reasoning set to Medium in the column", /medium/i.test(pickedLevel || ""), pickedLevel);
   const updateClicked = await page.evaluate(() => {
     const btn = [...document.querySelectorAll(".cc-presets button")].find((b) => b.textContent.trim() === "Update");
@@ -178,7 +178,7 @@ try {
     `presetId=${rrAfterEdit.presetId} source=${rrAfterEdit.presetSource}`);
 
   // ── N4: reassign via THE original control — load another preset → Use in production ──
-  const loaded = await pickReka(page, ".cc-presets .ui-select-trigger", "Generate prose");
+  const loaded = await pickSelect(page, ".cc-presets .ui-select-trigger", "Generate prose");
   check("N4: a different preset loads into the column", /Generate prose/.test(loaded || ""), loaded);
   const n4state = await page.evaluate(() => ({
     inProd: !!document.querySelector(".cc-presets .cc-inprod"),
@@ -203,7 +203,7 @@ try {
   check("N4: the marker returns (loaded preset IS now production)", n4after.inProd);
   check("N4: the nav card updates to 'Generate prose · assigned'", /Generate prose · assigned/.test(n4after.card), n4after.card);
   // restore plotHoles → Judgment & scoring through the same control
-  await pickReka(page, ".cc-presets .ui-select-trigger", "Judgment & scoring");
+  await pickSelect(page, ".cc-presets .ui-select-trigger", "Judgment & scoring");
   await page.evaluate(() => {
     [...document.querySelectorAll(".cc-presets button")].find((b) => b.textContent.trim() === "Use in production")?.click();
   });

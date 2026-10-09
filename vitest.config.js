@@ -48,9 +48,9 @@ export default defineConfig({
     },
     // Same dedupe list as quasar.config.js (extendViteConf), and for the same reason: the aliased kit
     // imports its peer deps by bare specifier from its OWN dir, which has no
-    // node_modules — without this a mounted kit SFC fails to resolve "reka-ui". Keep
+    // node_modules — without this a mounted kit SFC fails to resolve "quasar". Keep
     // the two lists in lock-step.
-    dedupe: ["vue", "quasar", "reka-ui", "@floating-ui/dom", "pinia", "vue-router", "vue-i18n", "marked", "vue-sonner", "@tanstack/vue-table", "@vueuse/core", "qrcode"],
+    dedupe: ["vue", "quasar", "@floating-ui/dom", "pinia", "vue-router", "vue-i18n", "marked", "@vueuse/core", "qrcode"],
   },
   test: {
     environment: "node",

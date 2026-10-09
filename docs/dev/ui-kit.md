@@ -8,6 +8,11 @@ There is no local `components/ui/` directory — the `Jw*` forks were fully conv
 `Ui*` family in 2026-06-24, matching JustVoice. Never re-fork a primitive locally; a capability gap
 gets promoted into the kit so both apps share it.
 
+The kit's controls are built on Quasar's components (2026-10-09 — the kit's
+`docs/plans/2026-10-09-kit-controls-on-quasar.md`): JW keeps the `Ui*` API and never writes `q-*`
+tags in its views for a shape the kit has; a shape the kit doesn't have uses Quasar's own component
+before anything hand-rolled.
+
 The kit owns the design contract: a single `intent` prop encodes BOTH semantic role AND visual
 style. Never add `severity` / `outlined` / `text` props — new visual variants become new intents in
 the kit.
@@ -16,29 +21,31 @@ the kit.
 
 | Kit component | What it does |
 |---|---|
-| `UiButton` | Single `intent` prop. `size="small"` for compact toolbars. `as="label"` for file-picker buttons. `<template #icon>` for leading icons. |
-| `UiInput` / `UiTextarea` | `<input>`/`<textarea>` wrappers; `:invalid`, v-model; Textarea `auto-resize`. |
-| `UiCheckbox` / `UiToggle` | Binary v-model (checkbox = inline/multi-select; toggle = on/off setting). |
-| `UiSelect` | Reka UI Select — arrow-key nav, type-ahead, Esc-close, a11y, Floating-UI. `:options` (`{label,value}` or strings), empty-value sentinel, `width` cap. |
-| `UiTag` / `UiChip` | Soft-tint status badge / interactive selection chip. |
+| `UiButton` | On `QBtn`. Single `intent` prop. `size="small"` for compact toolbars. `as="label"` for file-picker buttons (a hidden `<input type="file">` in the slot; a press opens it). `<template #icon>` for leading icons. |
+| `UiInput` / `UiTextarea` | On `QInput`; the root is the box, the native element's own events reach the caller; `:invalid`, v-model; Textarea `auto-resize`. |
+| `UiCheckbox` / `UiToggle` | On `QCheckbox` / `QToggle`. Binary v-model (checkbox = inline/multi-select; toggle = on/off setting). |
+| `UiSelect` | On `QSelect` — arrow-key nav, type-ahead, Esc-close, a11y; modal while open (the page behind takes no pointer). `:options` (`{label,value,hint?}` or strings), values keep their type (`""` included), `width` cap. |
+| `UiMenu` + `UiMenuItem` / `UiMenuSeparator` | On `QMenu` — a row's ⋯ action menu: `@select` per item (`preventDefault()` keeps it open), the menu keyboard (↓/Enter/Space open, arrows, Home/End, type-ahead), modal while open. Look from `trigger-class` / `content-class`. |
+| `UiTag` / `UiChip` | On `QBadge` / `QChip`. Soft-tint status badge / interactive selection chip. |
 | `UiField` | Labelled form row. |
 | `UiNumber` | `Intl.NumberFormat` locale-aware grouping (follows `setUiLocale`); reformats on blur; Up/Down step. |
-| `UiTable` | TanStack Vue Table — `:columns`, slot per column `id` for cells, sort/global-filter/pagination, `#empty`, `@row-click`. Needs the `@tanstack/vue-table` peer dep (in `package.json` + `resolve.dedupe`). |
-| `UiColorPicker` | Swatch → popover preset grid + native custom color. Pass `:presets` (JW uses `services/categoricalColors.js` `PRESET_COLORS`). |
-| `UiProgress` | Determinate (`:value`/`:max`) or indeterminate sweep. Token-styled, `role="progressbar"`. |
+| `UiTable` | On `QTable` — `:columns`, slot per column `id` for cells, sort/global-filter/pagination (TanStack Table's row rules, kept in the kit's `tableRows.js`), `#empty`, `@row-click`. |
+| `UiColorPicker` | Swatch → popover (`QMenu`) preset grid + native custom color. Pass `:presets` (JW uses `services/categoricalColors.js` `PRESET_COLORS`). |
+| `UiProgress` | On `QLinearProgress`. Determinate (`:value`/`:max`) or indeterminate sweep. Token-styled, `role="progressbar"`. |
 | `DownloadBar` | THE one download bar (2026-07-15): renders a `createDownloadTask` (props `{title, role, task}`) — Cancel-while-running, Retry-on-cancelled-or-error, "Ready ✓", the shared `UiProgress`, an error line. Every download (engine, model-load, embed) reuses it. |
 
 ## Shells and services
 
-- `AppModal` — body-scrolling modal (eyebrow/title/wide/noPadding/closable/`dismissable`/`maxWidth`/`draggable` plus `header`/`header-extra`/`footer` slots). Backdrop locked unless `dismissable`. Drags by the header (position resets on reopen); the overlay neither dims nor blurs.
+- `AppModal` — on `QDialog` + `QCard`; body-scrolling modal (eyebrow/title/wide/noPadding/closable/`dismissable`/`maxWidth`/`draggable` plus `header`/`header-extra`/`footer` slots). Backdrop locked unless `dismissable`. Drags by the header (position resets on reopen); the overlay neither dims nor blurs.
 - `AppDialog` + `promptDialog()` / `confirmDialog()` (`dialog.js`) — imperative prompt/confirm host built on `AppModal`. Default labels via `configureDialog({labels})`, wired in `main.js` from `en.json`.
 - `HelpDrawer` + `HelpTrigger` + `openHelp`/`closeHelp` (`help.js`) — the `?` affordance and slide-in docs panel. JW wires the content adapter and `onOpenFull`/`onOpenWeb` via `configureHelp()` in `main.js`; the docs corpus stays JW-local (`services/helpDocs.js`).
-- `Toast` + `pushToast`/`clearToasts` (`toastBridge.js`) — vue-sonner host; `ui.showToast({message, action})` delegates to it. JW themes `.ui-toaster` in `styles.css`.
+- `pushToast`/`clearToasts` (`toastBridge.js`) — Quasar's Notify plugin (listed in `quasar.config.js > framework.plugins`), drawn by the kit's theme; `ui.showToast({message, action})` delegates to it. JW's `styles.css` keeps only the `.ui-toast` rhythm and buttons.
 - `tooltipDirective` (`v-tooltip.bottom="'text'"`, registered in `main.js`), `Breadcrumb`, `EmptyState`, `ConnectionError` (props: appName/serverUrl/need/devHint), `Icon`.
 - `usePanelDismiss(isOpen, panelEl, close, {exempt})` — THE panel Esc and click-outside close (2026-07-19). PANELS ONLY; modals keep `AppModal`'s locked backdrop. Toggle triggers carry `data-panel-toggle`.
 
-Both modal wrappers are Reka UI Dialog primitives — focus trap, scroll lock, Esc and ARIA come
-free. `AppModal` blocks backdrop click by default; `AppDialog` is dismissable.
+Both modal wrappers are Quasar's `QDialog` — focus trap (the kit's `wrapTab` keeps Tab looping),
+scroll lock, Esc and ARIA come free. `AppModal` blocks backdrop click by default; `AppDialog` is
+dismissable.
 
 ## The shared AI task queue
 

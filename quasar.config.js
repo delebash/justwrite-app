@@ -66,12 +66,12 @@ export default defineConfig((ctx) => {
         // the in-app server is a module worker (src/phone/boot.js)
         viteConf.worker = { ...(viteConf.worker || {}), format: 'es' }
         // The aliased kit imports its peer packages by bare name from its own folder, which has
-        // no node_modules: ONE copy of each comes from this app's (Reka's provide/inject and
-        // Vue's reactivity break with two).
+        // no node_modules: ONE copy of each comes from this app's (Vue's provide/inject and
+        // reactivity, and Quasar's, break with two).
         viteConf.resolve.dedupe = [
           ...(viteConf.resolve.dedupe || []),
-          'vue', 'quasar', 'reka-ui', '@floating-ui/dom', 'pinia', 'vue-router', 'vue-i18n', 'marked',
-          'vue-sonner', '@tanstack/vue-table', '@vueuse/core', 'qrcode',
+          'vue', 'quasar', '@floating-ui/dom', 'pinia', 'vue-router', 'vue-i18n', 'marked',
+          '@vueuse/core', 'qrcode',
         ]
         viteConf.server = viteConf.server || {}
         // Never watched: the server, the development data folder (Chromium keeps its files

@@ -142,7 +142,7 @@ const q24a = await page.evaluate(() => {
   const header = document.querySelector(".lu-fw-testin-h");
   const sample = fill ? [...fill.querySelectorAll("button")].find((b) => b.textContent.trim() === "Sample") : null;
   const headerHasControls = !!header?.querySelector("button, .ui-select-trigger, select");
-  // UiSelect's root is a Reka fragment — the rendered picker element is .ui-select-trigger.
+  // UiSelect's root is the picker box, .ui-select-trigger.
   const pickers = fill ? [...fill.querySelectorAll(".ui-select-trigger")].map((p) => p.textContent.trim()) : [];
   return { hasFillRow: !!fill, hasSample: !!sample, headerHasControls, pickers };
 });

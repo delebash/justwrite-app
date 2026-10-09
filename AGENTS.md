@@ -175,15 +175,14 @@ When building a dismissible popover/panel/menu, do NOT reach for
 `document.addEventListener("click", outsideHandler)`. It produces false
 positives that are surprisingly hard to fully exempt:
 
-- Reka UI's Select/Dialog portals teleport content outside the original DOM
-  tree, so `parentRef.contains(e.target)` returns false for clicks the user
-  perceives as "inside."
+- Popups and dialogs (Quasar's QMenu, QSelect's list, QDialog) teleport their
+  content outside the original DOM tree, so `parentRef.contains(e.target)`
+  returns false for clicks the user perceives as "inside."
 - `event.composedPath()` checks aren't reliable either — Vue render scheduling
-  and Reka's pointer-down-outside detection cause subtle target re-targeting
+  and the popups' own outside-click handling cause subtle target re-targeting
   and timing races.
-- Adding exemption selectors (`[role="listbox"]`,
-  `[data-reka-popper-content-wrapper]`, sonner toasts, ...) becomes
-  whack-a-mole.
+- Adding exemption selectors (`[role="listbox"]`, `.q-menu`,
+  `.q-notifications`, ...) becomes whack-a-mole.
 
 **Use a transparent backdrop with z-index hit-testing instead:**
 
@@ -206,8 +205,8 @@ positives that are surprisingly hard to fully exempt:
 
 Render the backdrop **inline** (NOT teleported) so it shares the popover's
 stacking context — z-index hit-testing then guarantees the popover stays
-above. Reka-portaled content (Select dropdowns at z-index 999, modals via
-`DialogPortal`) sits far above the backdrop and intercepts its own clicks
+above. Portaled content (select lists and menus at z-index 999, modals on
+QDialog's root) sits far above the backdrop and intercepts its own clicks
 naturally.
 
 Esc-to-close still uses a `keydown` listener (that one is rock-solid).
@@ -231,10 +230,10 @@ working behind them, which a click-blocking overlay contradicts.
 
 Two consequences worth knowing:
 
-- It listens on **`mousedown`, not `click`**: Reka's Select removes dropdown
-  content from the DOM synchronously on selection, so by the time a `click`
-  bubbles to `document`, `target.closest()` walks a detached tree and returns
-  `null`.
+- It listens on **`mousedown`, not `click`**: a popup can take its content out
+  of the DOM on the press that picks from it (Reka's Select did, synchronously),
+  so by the time a `click` bubbles to `document`, `target.closest()` walks a
+  detached tree and returns `null`.
 - Its exemption selectors live in ONE place (the composable), so "don't add more
   exemption selectors" now means *don't add them at the call site* — a new
   exemption is either a kit-wide portal case or a genuinely panel-specific one

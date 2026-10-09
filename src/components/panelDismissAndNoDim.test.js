@@ -127,7 +127,7 @@ afterEach(() => {
 
 // Mounts a panel wired to the composable, plus the outside fixtures every test needs:
 // a plain outside div, a [data-panel-toggle] trigger, a portaled [role="dialog"], and
-// Reka Select popover content.
+// a select list portaled out of the panel.
 async function mountPanel() {
   const open = ref(true);
   const close = vi.fn(() => { open.value = false; });
@@ -183,7 +183,7 @@ describe("usePanelDismiss — click-outside", () => {
     expect(close).not.toHaveBeenCalled();
   });
 
-  it("does NOT close for Reka Select popover content portaled out of the panel", async () => {
+  it("does NOT close for a select list portaled out of the panel", async () => {
     const { close } = await mountPanel();
     mousedownOn("in-select");
     expect(close).not.toHaveBeenCalled();
@@ -197,7 +197,7 @@ describe("usePanelDismiss — click-outside", () => {
     expect(close).not.toHaveBeenCalled();
   });
 
-  it("listens on mousedown, NOT click — Reka detaches Select options before click bubbles", async () => {
+  it("listens on mousedown, NOT click — a popup can detach its options before a click bubbles", async () => {
     const { close } = await mountPanel();
     document.getElementById("outside").dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(close).not.toHaveBeenCalled();

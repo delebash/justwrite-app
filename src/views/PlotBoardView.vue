@@ -162,8 +162,8 @@ async function handleEditBeat(strandId, beat, e) {
 
 // Keyboard activation: Enter and Space trigger the cell/card's click
 // handler. This makes the board navigable without a mouse and gives the
-// Reka UI Dialog focus-restore mechanism a real focusable target to
-// return to when an Add/Edit Beat dialog closes.
+// dialog's focus restore (QDialog's, through AppModal) a real focusable target
+// to return to when an Add/Edit Beat dialog closes.
 function onCellKey(e, action, enabled) {
   if (!enabled) return;
   if (e.key === "Enter" || e.key === " ") { e.preventDefault(); action(); }
