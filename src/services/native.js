@@ -15,12 +15,20 @@
 // shape, so a dialog can't appear at two different layers in three apps.
 // ============================================================
 
+import { phone } from "#phone";
 import { isDesktopShell } from "@delebash/llm-ui";
 
 /** Is a desktop shell there to answer? The kit owns the one test. */
 export const hasShell = () => isDesktopShell() && !!window.appShell;
 
 const call = (command, args) => window.appShell.invoke(command, args);
+
+/** Is this the phone app (its Capacitor build — src/phone/)? Its native pieces come from its
+ * plugins, not a shell. */
+export const isPhone = () => !!phone;
+
+/** Scan a QR code with the phone's camera; resolves its text, or null (cancelled, or no camera). */
+export const scanCode = () => (phone ? phone.scanCode() : Promise.resolve(null));
 
 /** The desktop runtime's version (Electron's), or "" outside the shell — About's line. */
 export const shellVersion = () => (hasShell() ? window.appShell.versions?.electron || "" : "");
@@ -49,7 +57,8 @@ export function pickFile({ title, filterName, filterExt, defaultDir } = {}) {
  * Resolves `{ ok, path }`, or null if the user cancelled.
  */
 export async function saveFile({ blob, suggestedName, title, filterName, filterExt, defaultDir }) {
-  if (!hasShell()) return null;
+  // the phone: the share sheet (src/phone/plugins.js)
+  if (!hasShell()) return phone ? phone.saveFile({ blob, suggestedName }) : null;
   const bytes = new Uint8Array(await blob.arrayBuffer());
   return call("saveFile", { bytes, suggestedName, title, filterName, filterExt, defaultDir });
 }

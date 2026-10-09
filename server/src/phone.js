@@ -14,6 +14,7 @@
 // The worker bundle swaps a module for its `<name>.phone.js` twin where one sits beside it
 // (app_state, autosave_api, database/demo_seed, editor/html, sync_platform); under Node (tests)
 // the originals load.
+import { getLogger } from "@delebash/llm-runner/platform/log";
 import { createServer } from "@delebash/llm-runner/platform/server";
 import { workerServerFactory } from "@delebash/llm-runner/platform/worker/runtime";
 import { router as autosaveRouter } from "./api/autosave_api.js";
@@ -29,7 +30,10 @@ import { errorEnvelope, TYPE_BASE } from "./app_errors.js";
 import { AppState, setState } from "./app_state.js";
 import { TABLES } from "./database/models.js";
 import { state } from "./database/session.js";
-import { flushSync, openBookSync, stopBookSync, router as syncRouter } from "./sync.js";
+import { flushSync, getSync, openBookSync, stopBookSync, router as syncRouter } from "./sync.js";
+import { SYNC_PLATFORM, startGuard } from "./sync_platform.js";
+
+const log = getLogger("justwrite_server.phone");
 
 /** Where the data is, as /v1/health reports it: inside the app, not a folder. A test passes a
  * temporary folder instead (the computer's modules it runs under Node use one). */
@@ -37,19 +41,27 @@ export const PHONE_DATA_DIR = "(the app's own storage)";
 
 /**
  * The phone's server on an open database handle (the kit's `openDatabase` — on the phone over
- * SQLite WASM, in a test over a file). Not listening: requests arrive through `inject`.
+ * SQLite WASM, in a test over a file). Not listening: requests arrive through `inject`. `deviceId`:
+ * this device's sync id, kept outside the database (the window's `device.id`).
  */
-export async function createPhoneApp({ handle, dataDir = PHONE_DATA_DIR, serverFactory = workerServerFactory } = {}) {
+export async function createPhoneApp({ handle, dataDir = PHONE_DATA_DIR, deviceId, serverFactory = workerServerFactory } = {}) {
   handle.createTables(TABLES);
   state.handle = handle;
   setState(new AppState(dataDir));
+  SYNC_PLATFORM?.useDevice?.(deviceId);
   openBookSync(handle, dataDir);
+  // the storage guard (the phone only): rebuild an empty database from this phone's own files,
+  // then keep them current after every write
+  const guard = startGuard ? await startGuard({ sync: getSync(), isEmpty: () => !handle.value("SELECT count(*) FROM projects"), log }) : null;
 
   const app = createServer({ typeBase: TYPE_BASE, onUnhandled: errorEnvelope, serverFactory });
   // as on a computer (app.js): stamp what the triggers noted after every request that may have
   // written; stop the auto-sync timers on close
   app.addHook("onResponse", async (req) => {
-    if (req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS") flushSync();
+    if (req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS") {
+      flushSync();
+      guard?.changed();
+    }
   });
   app.addHook("onClose", async () => stopBookSync());
   app.register(healthRouter);

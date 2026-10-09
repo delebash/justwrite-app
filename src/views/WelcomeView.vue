@@ -72,6 +72,7 @@ async function onTryTutorial() {
             <span class="wv-cta-sub">{{ $t("welcome.tutorialSub") }}</span>
           </div>
         </div>
+        <p class="wv-sync">{{ $t("welcome.fromAnotherDevice") }} <RouterLink to="/sync">{{ $t("welcome.syncThem") }}</RouterLink></p>
       </div>
 
       <!-- Major features — a wide 3×3 grid of compact cards under a section label. -->
@@ -156,6 +157,13 @@ async function onTryTutorial() {
 .wv-cta-sub {
   font-size: 12px;
   color: var(--muted);
+}
+/* a quiet way in for a device whose books are elsewhere (a new phone, a second computer) */
+.wv-sync {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
 }
 
 /* Feature section — section label + wide 3×3 grid of horizontal cards. */

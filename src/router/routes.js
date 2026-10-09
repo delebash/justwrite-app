@@ -102,6 +102,9 @@ const routes = [
   // standalone Writer Lab + Feature prompts views were removed (2026-06-24).
   // No undoDomains: the kit Routing-by-task tab owns its own ⌘Z (#233).
   { path: "/ai",                  name: "Ai",             component: () => import("../views/AiView.vue") },
+  // Sync with no book open: a fresh install or a new phone brings its books from another device
+  // (project-less, like /ai and /help — boot/jw.js).
+  { path: "/sync",                name: "Sync",           component: () => import("../views/SyncView.vue") },
 ];
 
 export default routes;

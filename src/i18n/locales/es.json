@@ -2565,6 +2565,12 @@
         "title": "Exportar",
         "body": "Produce PDF, DOCX y EPUB: un manuscrito limpio listo para enviar."
       }
-    }
+    },
+    "fromAnotherDevice": "¿Tus libros están en otro dispositivo?",
+    "syncThem": "Sincronízalos aquí"
+  },
+  "syncPage": {
+    "title": "Sincronizar",
+    "lead": "Trae tus libros desde tu otro ordenador o teléfono: emparéjalo, o importa un archivo que exportaste allí."
   }
 }

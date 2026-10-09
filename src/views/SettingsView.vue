@@ -36,6 +36,7 @@ import { AVAILABLE_LOCALES, setLocale as setI18nLocale } from "../i18n/index.js"
 import { SETTINGS_SECTION_IDS } from "./settingsSections.js";
 // The family Sync screen — by path, not the kit barrel (it needs `qrcode`; SyncPanel.vue's header).
 import SyncPanel from "@delebash/llm-ui/components/SyncPanel.vue";
+import { useSyncPanel } from "../composables/useSyncPanel.js";
 import { useI18n } from "vue-i18n";
 
 import { UiTag } from "@delebash/llm-ui";
@@ -59,13 +60,9 @@ function onLocaleChange(code) {
   setI18nLocale(next);
 }
 
-// ── Sync: the books for the by-hand export picker (savedAt = the book's last change) ──
-const syncUnits = computed(() =>
-  project.projectsList.map((p) => ({ id: p.id, title: p.title, updatedAt: p.savedAt })),
-);
-const syncUnitNoun = computed(() => ({ one: t("settings.sync.unitOne"), many: t("settings.sync.unitMany") }));
-// The desktop's folder picker; a browser types the folder's path instead.
-const syncPickFolder = hasShell() ? () => pickDirectory({ title: t("settings.sections.sync") }) : null;
+// ── Sync: what the kit's SyncPanel gets (composables/useSyncPanel.js — shared with the
+// project-less Sync page) ──
+const syncPanel = useSyncPanel();
 
 // The canon relative order (family parity batch 2026-08-05): … Backups · Storage ·
 // Server · Logs · Updates · About, with app sections (Project) leading. The old
@@ -1506,13 +1503,7 @@ async function deleteCategory(c) {
 
       <!-- ── SYNC (the kit's SyncPanel over server/src/sync.js) ─────── -->
       <div v-else-if="active === 'sync'">
-        <SyncPanel
-          app-name="JustWrite"
-          :unit-noun="syncUnitNoun"
-          :units="syncUnits"
-          file-extension="jwsync"
-          :pick-folder="syncPickFolder"
-        />
+        <SyncPanel v-bind="syncPanel" />
       </div>
 
       <!-- ── BACKUPS ───────────────────────────────── -->

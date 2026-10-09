@@ -2565,6 +2565,12 @@
         "title": "Export",
         "body": "Produce PDF, DOCX and EPUB — a clean manuscript ready to send."
       }
-    }
+    },
+    "fromAnotherDevice": "Your books are on another device?",
+    "syncThem": "Sync them here"
+  },
+  "syncPage": {
+    "title": "Sync",
+    "lead": "Bring your books from your other computer or phone: pair with it, or import a file you exported there."
   }
 }

@@ -2182,6 +2182,11 @@ export const useProjectStore = defineStore("project", {
     _writeRegistry(reg) {
       this._projects = reg;
     },
+    /** The book list again — another device's books arrive through sync (the boot file's watchSync). */
+    async refreshProjectsList() {
+      const list = await projectApi.fetchRegistry();
+      if (list) this._writeRegistry(list);
+    },
     // On a brand-new install the minted blank project lives only in memory
     // until the first edit. With the registry derived from the projects table,
     // write its row now (called once from main.js after boot) so it survives a

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- JustWrite talks plain HTTP to the computers it is paired with, on the same Wi-Fi or over
+     Tailscale / ZeroTier (which encrypt the traffic themselves): a computer's JustWrite serves
+     http://<its address>:17495. Android's network config can't name private address ranges, only
+     domains, so plain HTTP is allowed in general; the app makes such requests only to the
+     addresses in a pairing code (the kit's docs/plans/2026-10-08-the-phone.md §2). -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

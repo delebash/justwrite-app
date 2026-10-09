@@ -3,6 +3,7 @@
 	"files": {
 		"includes": [
 			"src/**/*.{js,vue}",
+			"!src/phone/worker-bundle",
 			"scripts/**/*.js",
 			"quasar.config.js",
 			"src-electron/**/*.js",

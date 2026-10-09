@@ -53,8 +53,9 @@ export default defineConfig((ctx) => {
         '@renderer': path.join(root, 'src'),
         // The kit's UI, consumed from source (the sibling checkout) for the dev/HMR loop.
         '@delebash/llm-ui': path.join(kitUi, 'src'),
-        // The in-app server's start-up on the phone; nothing to start on a computer.
-        '#in-app-server': path.join(root, 'src', 'phone', inAppServer ? 'boot.js' : 'none.js'),
+        // The phone's pieces (its in-app server, the share sheet, the code scanner); null on a
+        // computer.
+        '#phone': path.join(root, 'src', 'phone', inAppServer ? 'index.js' : 'none.js'),
       },
 
       beforeDev: buildPhoneWorker,

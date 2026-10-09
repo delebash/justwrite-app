@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 // The phone's start-up: JustWrite's server runs inside the app, in a web worker
 // (worker-bundle/server-worker.js, built from server-worker.js), and every request the window
-// makes goes there through the kit's transport (`setServerTransport(workerFetch(worker))`).
-// quasar.config.js maps `#in-app-server` here for a Capacitor build (and a dev run with
-// JUSTWRITE_IN_APP_SERVER=1); everywhere else to none.js.
-import { setServerTransport, workerFetch } from "@delebash/llm-ui";
+// makes goes there through the kit's transport (`setServerTransport(workerFetch(worker))`); what
+// the server asks of the window (its device id, the storage guard's files) is answered from
+// plugins.js. Part of `#phone` (index.js).
+import { answerWorkerCalls, setServerTransport, workerFetch } from "@delebash/llm-ui";
+import { workerCalls } from "./plugins.js";
 // The worker ships as built (`?url`: no second bundling — it is complete), SQLite's .wasm beside
 // it under its own name, handed to the worker in its address.
 import workerUrl from "./worker-bundle/server-worker.js?url";
@@ -12,6 +13,8 @@ import wasmUrl from "./worker-bundle/sqlite3.wasm?url";
 
 export async function startInAppServer() {
   const worker = new Worker(`${workerUrl}?wasm=${encodeURIComponent(new URL(wasmUrl, location.href).href)}`, { type: "module" });
+  // answered from the start: the server asks for this device's id while it starts
+  answerWorkerCalls(worker, workerCalls);
   await new Promise((resolve, reject) => {
     const onMessage = (event) => {
       if (event.data?.type === "ready") {

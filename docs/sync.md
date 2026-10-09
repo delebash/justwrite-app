@@ -1,6 +1,6 @@
 # Sync — your books on every device
 
-JustWrite keeps your books on each of your computers (and, soon, your phone), and sync carries
+JustWrite keeps your books on each of your computers and on your phone, and sync carries
 your changes between them. Every device works with no network at all — sync catches it up the next
 time it can reach another device. Nothing ever asks you to choose between two versions: if you add a
 paragraph on one device and fix a typo in the same scene on another, both survive.
@@ -105,6 +105,34 @@ If the file comes from a device that hasn't synced with this one before, JustWri
 join that device's library. Say yes, and your books on both devices become one library from then on.
 
 ---
+
+## On your phone
+
+JustWrite on a phone keeps your books in the app itself and works with no network, like a
+computer. What it does there: the books — the manuscript, the story bible, images and saved versions
+— sync, and the AI features that use an online provider. What stays on a computer: the local AI
+engine and the book search by meaning.
+
+**Getting your books onto the phone.** On a new phone the welcome screen says *Your books are on
+another device? Sync them here*. On your computer open **Settings → Sync → Other devices**, turn on
+**Let my other devices connect** (restart JustWrite once), and press **Show pairing code**. On the
+phone press **Scan code…** and point the camera at the QR code — or paste the code's text and press
+**Pair**. The books arrive and the newest opens.
+
+**After that** the phone syncs with the computer shortly after it starts, every few minutes while
+it's open, and when you press **Sync now** — whenever the two can reach each other (the same Wi-Fi,
+or Tailscale / ZeroTier when you're away). Other devices can't reach a phone; it reaches out to your
+computer.
+
+**By hand** works on the phone too: **Export…** hands the file to the phone's share sheet (save it
+to Files or Drive, send it by mail), and **Import…** opens a file you received.
+
+**A cloud folder** (OneDrive, Dropbox) isn't available on the phone yet — it needs signing in to
+them.
+
+**If the phone's storage is cleared.** A phone may clear an app's web storage when it runs short of
+space. JustWrite also keeps a copy of your changes in its own app files, and if it ever starts with
+an empty library, it rebuilds your books from that copy.
 
 ## Good to know
 

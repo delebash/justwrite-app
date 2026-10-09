@@ -16,7 +16,7 @@ import { applyAppearance, migrateAppearance, DEFAULT_APPEARANCE } from "../servi
 applyAppearance(DEFAULT_APPEARANCE);
 
 import { defineBoot } from "#q-app";
-import { startInAppServer } from "#in-app-server";
+import { phone } from "#phone";
 import { watch } from "vue";
 import { bootSettings, readSetting } from "../services/settings.js";
 import { hydrateProjects, useProjectStore } from "../stores/project.js";
@@ -40,7 +40,7 @@ import { startWarmOnBoot } from "@delebash/llm-ui";
 // exists to make un-forgettable), wires the external opener, and registers
 // <LlmUiHosts /> (Toast + AppDialog, mounted once in AppShell.vue).
 import { installLlmUi, checkServer, configureFamilyLabels, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, setUiLocale } from "@delebash/llm-ui";
-import { openPath, openUrl, saveFile } from "../services/native.js";
+import { hasShell, openPath, openUrl, saveFile } from "../services/native.js";
 import { buildFamilyLabels } from "../i18n/familyLabelsFeed.js";
 import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "../services/helpDocs.js";
 import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "../services/labTestData.js";
@@ -54,9 +54,9 @@ import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "../services/labTestData.js";
 // had it. The `http` plugin went with it in both apps.
 
 export default defineBoot(async ({ app, router, store: pinia }) => {
-  // On the phone the server runs inside the app (src/phone/boot.js): started first, so every
-  // request below — the server check included — goes to it.
-  if (startInAppServer) await startInAppServer();
+  // On the phone the server runs inside the app (src/phone/): started first, so every request
+  // below — the server check included — goes to it.
+  if (phone) await phone.startInAppServer();
 
   installLlmUi(app, {
     // The KIT resolves the base now (2026-08-15) — services/serverApi.js is
@@ -81,6 +81,8 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
   configureFileSave({
     save: (blob, { filename, title, filterName, filterExt, defaultDir }) =>
       saveFile({ blob, suggestedName: filename, title, filterName, filterExt, defaultDir }),
+    // the desktop shell's dialog, or the phone's share sheet (native.js decides which)
+    available: () => hasShell() || !!phone,
   });
 
   // The AI Lab's test-input affordances (§7.3 + QC-35): JW's book material
@@ -165,7 +167,8 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
   //    must still redirect). The allowlist is the project-independent surfaces
   //    that stay reachable with no project loaded: the AI setup page
   //    (/ai?quicksetup=1, /ai — deep-links + the post-first-project AI dialog)
-  //    and Help. Both render inside the OnboardingShell, whose brand links back
+  //    and Help, and Sync (a fresh install bringing its books from another device). They render
+  //    inside the OnboardingShell, whose brand links back
   //    to /welcome so they never dead-end.
   //
   // 2. First-run redirect: on the FIRST navigation of a cold load, if it
@@ -174,7 +177,7 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
   //    in-app navigations to "/" (e.g. right after creating a project) are
   //    never intercepted; explicit deep-links pass straight through.
   //    Existing users upgrading have no `welcomeSeen` key, so they see it once.
-  const PROJECTLESS_ROUTES = ["/welcome", "/ai", "/help"];
+  const PROJECTLESS_ROUTES = ["/welcome", "/ai", "/help", "/sync"];
   let welcomeChecked = false;
   router.beforeEach((to) => {
     const project = useProjectStore(pinia);
@@ -225,7 +228,11 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
 
   // Sync: when another device's changes land on the server, reload the open book
   // (services/projectApi.js watchSync; server/src/sync.js).
-  watchSync(() => useProjectStore(pinia).reloadFromServer());
+  watchSync(async () => {
+    const store = useProjectStore(pinia);
+    await store.refreshProjectsList(); // books another device made
+    await store.reloadFromServer(); // the open book's changes
+  });
 
   // Dev-only test seams: the project store (deterministic edits for book-smoke)
   // and the bench hook (the LLM bench harness drives real feature runs through

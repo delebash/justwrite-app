@@ -5,5 +5,10 @@ const { defineCapacitorConfig } = require('@quasar/app-vite/capacitor');
 
 module.exports = defineCapacitorConfig({
   appId: 'com.justwrite.app',
-  appName: 'JustWrite'
+  appName: 'JustWrite',
+  android: {
+    // the page is https://localhost and a paired computer answers on plain http (its address in
+    // the pairing code) — the in-app server's sync requests are mixed content
+    allowMixedContent: true
+  }
 });

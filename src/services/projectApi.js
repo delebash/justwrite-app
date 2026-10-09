@@ -64,6 +64,23 @@ export async function bootProjects(activeId) {
 
 /** Sync read of the project registry (derived from the projects table at boot).
  *  [{ id, title, author, savedAt }], most-recently-updated first. */
+/**
+ * The book list from the server again — another device's books arrive through sync (the boot
+ * file's watchSync). Resolves the new list, or null when the server didn't answer.
+ */
+export async function fetchRegistry() {
+  try {
+    const list = await get("/v1/projects");
+    if (!Array.isArray(list)) return null;
+    _registry = list.map((p) => ({ id: p.id, title: p.title, author: p.author, savedAt: p.updatedAt }));
+    _registryLoaded = true;
+    return listRegistry();
+  } catch (err) {
+    console.error("projectApi.fetchRegistry failed:", err);
+    return null;
+  }
+}
+
 export function listRegistry() {
   return _registry.map((p) => ({ ...p }));
 }
