@@ -67,7 +67,8 @@ function zIndexOf(css, selector) {
 
 const CHIP = styleOf(readKit("components/LuFeatureChip.vue"));
 const MODAL = styleOf(readKit("common/components/AppModal.vue"));
-const SELECT = readFileSync(resolve(KIT, "common/styles.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+// UiSelect is Quasar's QSelect now; its list's rule lives in the kit's Quasar theme
+const SELECT = readFileSync(resolve(KIT, "quasar/theme.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 
 describe("the chip popover out-ranks the modal it opens over", () => {
   it("parses the three literals it compares (a rename must fail loudly, not silently pass)", () => {
