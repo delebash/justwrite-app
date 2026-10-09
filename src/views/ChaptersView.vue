@@ -40,7 +40,7 @@ const router = useRouter();
 const route = useRoute();
 // Same shape SettingsView uses: `t` in script, `$t` in template. Note the
 // `v-for="t in …"` loops in the template SHADOW this `t` inside their scope —
-// those must use `$t`, and build:vite will not catch it if they don't.
+// those must use `$t`, and build:spa will not catch it if they don't.
 const { t } = useI18n({ useScope: "global" });
 
 

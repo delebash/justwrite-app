@@ -11,7 +11,7 @@
 // ============================================================
 
 import Mention from "@tiptap/extension-mention";
-import { MENTION_OPTIONS, mentionAttributes } from "./editorSchema.js";
+import { MENTION_OPTIONS, mentionAttributes } from "justwrite-server/editor/editorSchema.js";
 import { VueRenderer } from "@tiptap/vue-3";
 import MentionList from "@renderer/components/MentionList.vue";
 import { useProjectStore } from "@renderer/stores/project";
@@ -34,7 +34,7 @@ function getItems(query) {
 }
 
 export function buildMentionExtension() {
-  // The node's attributes and rendering are services/editorSchema.js's, shared with the server's
+  // The node's attributes and rendering are the server package's editor/editorSchema.js's, shared with the server's
   // schema-only mention; this adds the @ suggestion popup.
   return Mention.extend({ addAttributes: mentionAttributes }).configure({
     ...MENTION_OPTIONS,

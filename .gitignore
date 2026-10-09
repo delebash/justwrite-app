@@ -32,5 +32,13 @@ server/data/
 # The 2026-08-15 headless root, put aside when the dev root moved here (2026-10-08).
 data-old-*/
 
-# electron-builder output (the installer and the unpacked app)
-release/
+# Quasar's generated files and its build output (dist/spa, dist/electron, dist/capacitor)
+.quasar/
+/quasar.config.*.temporary.compiled*
+
+# The phone app: Capacitor's web copy, its packages, and the native projects it generates
+# (quasar build -m capacitor -T android re-creates them)
+/src-capacitor/www
+/src-capacitor/node_modules
+/src-capacitor/android
+/src-capacitor/ios

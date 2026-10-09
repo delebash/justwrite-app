@@ -34,9 +34,9 @@ jobs:
         env:
           PLATFORMS: ${{ inputs.platforms }}
         run: |
-          WIN='{"platform":"windows-latest","args":"--win"}'
-          MAC='{"platform":"macos-latest","args":"--mac --universal"}'
-          LIN='{"platform":"ubuntu-22.04","args":"--linux"}'
+          WIN='{"platform":"windows-latest","target":"win32"}'
+          MAC='{"platform":"macos-latest","target":"darwin"}'
+          LIN='{"platform":"ubuntu-22.04","target":"linux"}'
           case "$PLATFORMS" in
             windows) MATRIX="{\"include\":[$WIN]}" ;;
             macos)   MATRIX="{\"include\":[$MAC]}" ;;
@@ -53,8 +53,9 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
-      # The app needs the family kit beside it (package.json: file:../just-llm-runner/server;
-      # vite.config.js: ../just-llm-runner/ui), so both are checked out side by side.
+      # The app needs the family kit and the sync engine beside it (server/package.json:
+      # file:../../just-llm-runner/server and file:../../just-sqlite-sync; quasar.config.js:
+      # ../just-llm-runner/ui), so all three are checked out side by side.
       - name: Checkout (at tag)
         uses: actions/checkout@v4
         with:
@@ -67,6 +68,12 @@ jobs:
           repository: delebash/just-llm-runner
           path: just-llm-runner
 
+      - name: Checkout the sync engine
+        uses: actions/checkout@v4
+        with:
+          repository: delebash/just-sqlite-sync
+          path: just-sqlite-sync
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -74,21 +81,28 @@ jobs:
           cache: npm
           cache-dependency-path: |
             justwrite-app/package-lock.json
+            justwrite-app/src-electron/package-lock.json
             just-llm-runner/server/package-lock.json
 
       # better-sqlite3 and koffi ship per-platform N-API prebuilds, so nothing native is
-      # compiled here; electron-builder packages the Electron the app pins.
+      # compiled here; electron-builder (Quasar's Electron mode, quasar.config.js) packages the
+      # Electron src-electron/package.json pins.
       - name: Install the kit's server deps
         working-directory: just-llm-runner/server
         run: npm ci
 
-      - name: Install JS deps
+      - name: Install JS deps (the renderer and the server/ workspace)
         working-directory: justwrite-app
+        run: npm ci
+
+      - name: Install the desktop app's deps
+        working-directory: justwrite-app/src-electron
         run: npm ci
 
       - name: Build the installers
         working-directory: justwrite-app
-        run: npx vite build && npx electron-builder ${{ matrix.args }} --publish never
+        # Quasar's CLI run as node (app-structure §Q.6); -P never: publishing is the next step's job
+        run: node node_modules/@quasar/app-vite/bin/quasar.js build -m electron -T ${{ matrix.target }} -P never
 
       - name: Publish to the release
         working-directory: justwrite-app
@@ -101,7 +115,7 @@ jobs:
             --notes "JustWrite $TAG. See \`docs.tar.gz\` for the bundled user documentation that the marketing site mirrors for this release." \
             || gh release view "$TAG" >/dev/null  # another platform's job created it first
           shopt -s nullglob
-          gh release upload "$TAG" release/*.exe release/*.dmg release/*.AppImage release/*.deb --clobber
+          gh release upload "$TAG" dist/electron/Packaged/*.exe dist/electron/Packaged/*.dmg dist/electron/Packaged/*.AppImage dist/electron/Packaged/*.deb --clobber
 
   attach-docs:
     needs: build

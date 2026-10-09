@@ -115,15 +115,19 @@ function materializeSamples(dataDir) {
   }
 }
 
-/** Find the Vite build output (dist/) across dev + packaged layouts. */
+/** Find the built UI across the checkout and packaged layouts (Quasar's build, 2026-10-08). */
 export function locateUiDir() {
   const candidates = [];
   const override = process.env.JUSTWRITE_UI_DIR;
   if (override) candidates.push(override);
-  // Source layout: server/src/app.js → the repo root holds dist/.
-  candidates.push(path.join(SOURCE_ROOT, "dist"));
-  // Packaged / cwd fallback.
-  candidates.push(path.join(process.cwd(), "dist"));
+  // A checkout: server/src/app.js → the repo root holds Quasar's browser build, dist/spa/.
+  candidates.push(path.join(SOURCE_ROOT, "dist", "spa"));
+  // The packaged app: this package is installed at <app>/node_modules/justwrite-server, so
+  // SOURCE_ROOT (two folders above src/) is <app>/node_modules — and Quasar puts the built UI
+  // at <app> itself (resources/app.asar), beside electron-main.js.
+  if (path.basename(SOURCE_ROOT) === "node_modules") candidates.push(path.dirname(SOURCE_ROOT));
+  // cwd fallback.
+  candidates.push(path.join(process.cwd(), "dist", "spa"));
   for (const c of candidates) {
     if (statSync(c, { throwIfNoEntry: false })?.isDirectory() && statSync(path.join(c, "index.html"), { throwIfNoEntry: false })?.isFile()) {
       return c;
@@ -264,7 +268,7 @@ export async function createApp(dataDir = null) {
     allowKeyReveal: true,
   });
 
-  // Headless UI — serve the Vite build (dist/) so the headless server + a browser at the
+  // Headless UI — serve the built UI (dist/spa/; the app root when packaged) so the headless server + a browser at the
   // server's origin gives the full app WITHOUT the desktop shell (the renderer's
   // origin-aware serverApi targets window.location.origin). Every /v1/* route wins first (a
   // static route beats the wildcard). Starlette's StaticFiles(html=True) semantics: "/" is
@@ -292,7 +296,7 @@ export async function createApp(dataDir = null) {
     });
     log.info(`UI served from ${uiDir}`);
   } else {
-    log.warning("UI build not found — headless UI disabled. Run `npm run build:vite` to produce dist/, or set JUSTWRITE_UI_DIR.");
+    log.warning("UI build not found — headless UI disabled. Run `npm run build:spa` to produce dist/spa/, or set JUSTWRITE_UI_DIR.");
   }
 
   return app;

@@ -11,7 +11,7 @@
 // Nothing else can catch this class of defect:
 //   · destructuring an absent key is legal JS — `undefined`, not an error;
 //   · Biome does not check cross-module object shapes, and there are no types here;
-//   · `npm run build:vite` compiles the SFC without resolving the identifier;
+//   · `npm run build:spa` compiles the SFC without resolving the identifier;
 //   · the headless smoke never opens the wizard, and even if it did, the throw is caught
 //     and rendered as a banner — the page keeps working, so "zero JS errors" still passes.
 // The only durable guard is to assert the contract directly, which is what this does.

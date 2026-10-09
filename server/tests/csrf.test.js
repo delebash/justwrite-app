@@ -20,7 +20,7 @@ test("no_origin_and_app_origin_allowed", async () => {
   const c = await client(tmpPath());
   // No Origin (non-browser client) → allowed.
   expect((await c.put("/v1/projects/a/book", { json: { project: { title: "T" } } })).statusCode).toBe(204);
-  // The app's own dev origin → allowed (so dev:vite + the headless smoke work).
+  // The app's own dev origin → allowed (so dev:spa + the headless smoke work).
   expect(
     (await c.put("/v1/projects/b/book", { json: { project: { title: "T" } }, headers: { origin: "http://localhost:1420" } }))
       .statusCode,

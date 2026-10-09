@@ -11,7 +11,7 @@
 // but `sk-` is the OpenAI key prefix — misleading for Anthropic/Gemini/DeepSeek/etc.
 // The hint is removed (user: "sk is misleading as that is only openai, just remove").
 //
-// WHY A SOURCE-READING TEST: these are kit SFCs (@delebash/llm-ui) — build:vite
+// WHY A SOURCE-READING TEST: these are kit SFCs (@delebash/llm-ui) — build:spa
 // compiles without resolving that a toast call is present on the success path, and
 // biome doesn't read .vue identifiers. The precedent is chipPopoverStacking.test.js
 // next door (the kit has no harness of its own; JW's is where kit components get

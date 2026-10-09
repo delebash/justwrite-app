@@ -26,7 +26,7 @@ const project = useProjectStore();
 const router = useRouter();
 
 // The current page's undo domains (#235) — the Undo/Redo buttons are scoped
-// exactly like ⌘Z (App.vue): they can only pop this page's data domains.
+// exactly like ⌘Z (AppShell.vue): they can only pop this page's data domains.
 const undoDomains = computed(() => router.currentRoute.value.meta.undoDomains || []);
 
 // ── Theme preset switcher dropdown ──────────────────────────────────

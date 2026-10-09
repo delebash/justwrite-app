@@ -1,51 +1,48 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!--
-      The desktop app's Content Security Policy is a response header from the shell's
-      app:// handler (the kit's server/src/shell/main.js); no meta-tag CSP here — it
-      would also bind Vite's dev server and the headless UI.
-    -->
-    <title>JustWrite</title>
+    <title><%= productName %></title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1<% if (ctx.mode.cordova || ctx.mode.capacitor) { %>, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover<% } %>">
+    <!-- The family's CSP (app-structure §Q.5). The page talks to its server — beside it on the
+         desktop (http://127.0.0.1:17495), a paired device or a server over the network for sync
+         and the thin client — so connect/img/media allow http(s) (img also: an image pasted
+         from the web into a manuscript); scripts stay 'self' only. In development Quasar's HMR
+         also needs ws://localhost. The desktop shell sends its own CSP header for app://
+         (the kit's server/src/shell/main.js); both apply there. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'<% if (ctx.mode.capacitor) { %> 'wasm-unsafe-eval'<% } %>; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: http: https:; media-src 'self' data: blob: http: https:; font-src 'self' data:; connect-src 'self' http: https:<% if (ctx.dev) { %> ws://localhost:*<% } %>; worker-src 'self' blob:;"
+    />
     <!-- No font preconnects: the fonts are bundled (src/fonts.css). These two used to warm
          connections to Google on every launch; with self-hosted fonts they would open
          sockets to a third party for nothing. -->
 
-    <!-- First-paint loading screen — shown instantly (before the JS bundle
-         parses and Vue mounts) so boot isn't a blank window while the
-         renderer waits on the local server. Vue's mount() replaces #app's
-         content (the app, or the connection-error screen). prefers-color-scheme
-         approximates the user's theme until the real appearance is applied. -->
+    <!-- First-paint loading screen — shown instantly (before the JS bundle parses and Vue
+         mounts) so boot isn't a blank window while the renderer waits on the local server.
+         App.vue removes it when it mounts (the shell, or the connection-error screen).
+         KEEP IN SYNC with AppShell.vue's .jw-bootwarm. -->
     <style>
-      /* BOOT PLATE — pre-JS twin of App.vue's .jw-bootwarm. The plate is stretched to fill
+      /* BOOT PLATE — pre-JS twin of AppShell.vue's .jw-bootwarm. The plate is stretched to fill
          the window exactly: `contain` left bands the user rejected, and `cover` cropped the
-         lettering (which is part of the artwork). See App.vue for the full reasoning. */
+         lettering (which is part of the artwork). See AppShell.vue for the full reasoning. */
       #app-boot { position: fixed; inset: 0; overflow: hidden; background: #d6b689; }
       #app-boot .ab-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
     </style>
 
     <!-- Curated theming font set (Settings → Appearance) is SELF-HOSTED as of 2026-07-24 —
-         see src/fonts.css, imported first from main.js. There is deliberately NO font <link>
+         see src/fonts.css, imported first by the boot file. There is deliberately NO font <link>
          here: this used to be a render-blocking request to fonts.googleapis.com, so the
          window could not paint until a network round trip finished (and on an offline boot,
          until it timed out) — the slow first paint, and the splash flicker as Fraunces
          arrived late and re-laid-out the boot screen. A local-first app ships its own fonts.
          Anything added here that is not a local asset re-breaks first paint. -->
-
   </head>
   <body>
-    <div id="app">
-      <div id="app-boot">
-        <img class="ab-art" src="./src/assets/splash-plate.jpg" alt="JustWrite — a quiet room for the long form" />
-      </div>
+    <div id="app-boot">
+      <img class="ab-art" src="./src/assets/splash-plate.jpg" alt="JustWrite — a quiet room for the long form" />
     </div>
-    <script type="module" src="/src/main.js"></script>
+    <!-- quasar:entry-point -->
   </body>
 </html>
-
-
-
-
-

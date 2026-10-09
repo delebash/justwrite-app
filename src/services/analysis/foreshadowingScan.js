@@ -21,7 +21,7 @@ import { withAiTask } from "@delebash/llm-ui";
 
 import { normalizeName as norm, textMentionsTerm } from "../text.js";
 import { extractThreads } from "./threadExtraction.js";
-import { scanProjectMarkers } from "../markers.js";
+import { scanProjectMarkers } from "justwrite-server/editor/markers.js";
 
 const DEFAULT_CONCURRENCY = 4;
 

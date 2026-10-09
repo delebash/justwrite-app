@@ -17,7 +17,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useAiTasksStore, AiTaskStrip, Icon, AppModal, EmptyState, UiButton } from "@delebash/llm-ui";
 import { scanForDanglingThreads } from "../services/analysis/foreshadowingScan.js";
-import { addMarkerToSceneHtml } from "../services/markers.js";
+import { addMarkerToSceneHtml } from "justwrite-server/editor/markers.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import StatusRow from "./StatusRow.vue";
 

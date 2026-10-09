@@ -3,7 +3,7 @@
 // it replaced tauri-driver + msedgedriver on 2026-10-08), saving PNGs straight into the
 // website's public/screenshots/ folder.
 //
-// Run with: node capture-direct.js   (from e2e/; `npm run build:vite` at the app root first)
+// Run with: node capture-direct.js   (from e2e/; `npm run build:unpacked` at the app root first)
 
 import fs from "node:fs";
 import path from "node:path";

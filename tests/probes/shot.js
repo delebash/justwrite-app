@@ -1,6 +1,6 @@
 // Screenshot one hash route of the running renderer (Playwright + Chromium) so a
 // GUI change can be eyeballed, not just smoke-tested. Boot the two processes
-// first (same as the smoke): justwrite-server serve --port 17495, npm run dev:vite.
+// first (same as the smoke): justwrite-server serve --port 17495, npm run dev:spa.
 // Usage: node scripts/shot.js '#/ai-prompts' out.png
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";

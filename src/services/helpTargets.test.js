@@ -5,7 +5,7 @@
 // is a plain string attribute, `help-key="story-bible#relations"` (PaneHeader)
 // or `<HelpTrigger slug="…">`, resolved at RUNTIME by services/helpDocs.js
 // against a Vite glob of docs/*.md. Nothing in the toolchain can see it:
-//   · `npm run build:vite` compiles the attribute as an ordinary string;
+//   · `npm run build:spa` compiles the attribute as an ordinary string;
 //   · biome lints identifiers, not attribute values;
 //   · the headless smoke asserts zero JS errors — and a bad slug is NOT an
 //     error: hasDoc() returns false and HelpView quietly redirects to the

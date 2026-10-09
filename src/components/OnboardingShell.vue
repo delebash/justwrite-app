@@ -1,7 +1,7 @@
 <script setup>
 // The projectless "onboarding shell" (Option A, 2026-07-11). While no project is
 // loaded — `project.hasActiveProject` is false: a fresh workspace, a post-reset DB,
-// or the last project deleted (`_activeId` null) — App.vue renders THIS instead of
+// or the last project deleted (`_activeId` null) — AppShell.vue renders THIS instead of
 // the project Sidebar + data nav. So the zero-project state can never show a phantom
 // "Untitled" project's chrome (the old bug: the Sidebar always mounted and bound to
 // a blank BLANK_PROJECT_META project).

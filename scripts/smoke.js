@@ -3,7 +3,7 @@
 //
 // WHY this script exists (the user's ruling, 2026-07-26: "why arent you using
 // the app directory with its models and setup with its data db?"):
-// `tests/smoke/headless-smoke.js` assumes a server and a vite are already up,
+// `tests/smoke/headless-smoke.js` assumes a server and the UI are already up,
 // so every run needed a hand-rolled boot — and the hand-rolled boot kept
 // pointing at an EMPTY scratch data dir. An empty dir has no project, so the app
 // renders the onboarding screen for every route and the sweep asserts the
@@ -20,31 +20,27 @@
 // SQLite's backup API (scripts/snapshot-db.js) is used rather than a file copy
 // precisely because the source may be open and mid-write.
 //
-// Ports: vite MUST be 1420. src/main.js declares devPorts:["1420"],
-// and the shared resolver (kit serverApi.js:35-44) returns the PAGE ORIGIN for
-// any other port — so on :1421 the renderer would send its API calls to the vite
-// server. The JW server, by contrast, is addressed explicitly via
-// VITE_SERVER_URL + JW_SERVER, so it takes a free port and stays off the live
-// one.
+// The UI it drives is the BUILT one (Quasar's browser build, dist/spa — built fresh at the start
+// of every run), served by the scratch server itself, as the headless app serves it. Same origin,
+// so the renderer talks to the server it was served from, and nothing needs the renderer's dev
+// port 1420 — the run can share the box with a running app. (Before the Quasar move it ran
+// Vite's dev server on 1420, which is why it used to refuse to run beside `npm run dev`.)
 //
 // Env: JW_DATA_ROOT (source root to snapshot), JW_SMOKE_PORT (server port),
 // JW_KEEP (leave the servers up after the run), plus everything the smoke reads.
 
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, rmSync, statSync } from "node:fs";
-import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveAppDataRoot } from "../bench/harness/lib/dataRoot.js";
-import { isUp, sleep, waitReady } from "../tests/lib/smoke-common.js";
+import { sleep, waitReady } from "../tests/lib/smoke-common.js";
 
-const require = createRequire(import.meta.url);
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const VITE_PORT = 1420;
 const SERVER_PORT = Number(process.env.JW_SMOKE_PORT || 17496);
 const SERVER_URL = `http://127.0.0.1:${SERVER_PORT}`;
-const APP_URL = `http://localhost:${VITE_PORT}`;
+const APP_URL = SERVER_URL; // the scratch server serves the built UI at /
 
 const children = [];
 let scratch = "";
@@ -100,19 +96,9 @@ function snapshotDataRoot(source) {
   return dir;
 }
 
-/** Vite's own CLI entry, resolved through its package.json `bin` map.
- *  NOT `require.resolve("vite/bin/vite.js")`: vite's "exports" field does not
- *  publish that subpath, so the resolve throws ERR_PACKAGE_PATH_NOT_EXPORTED
- *  (measured 2026-07-26, vite in this repo's node_modules). And not
- *  `node_modules/.bin/vite` either — on Windows that is a .cmd, which node
- *  refuses to spawn without a shell. The `bin` map is the published contract. */
-function viteBin() {
-  const pkgPath = require.resolve("vite/package.json");
-  const { bin } = require(pkgPath);
-  const rel = typeof bin === "string" ? bin : bin?.vite;
-  if (!rel) throw new Error("vite package.json declares no `bin` entry");
-  return join(dirname(pkgPath), rel);
-}
+/** Quasar's CLI entry (app-structure §Q.6: run as node, never through npm's .cmd shims). */
+const QUASAR = join(ROOT, "node_modules", "@quasar", "app-vite", "bin", "quasar.js");
+const UI_DIR = join(ROOT, "dist", "spa");
 
 function track(label, child) {
   child.on("exit", (code) => {
@@ -141,27 +127,12 @@ function cleanup() {
   }
 }
 
-/** Is anything holding the vite port? Probed in THREE address forms because
- *  `npm run dev`'s vite binds ::1 ONLY on this box (verified 2026-07-26:
- *  Get-NetTCPConnection showed LocalAddress ::1, LocalPort 1420), so a
- *  127.0.0.1-only probe reports the port free while the user's app is running —
- *  and the guard below would then wave the run through to a confusing
- *  strictPort bind failure. */
-async function vitePortBusy() {
-  for (const host of ["localhost", "127.0.0.1", "[::1]"]) {
-    if (await isUp(`http://${host}:${VITE_PORT}`)) return true;
-  }
-  return false;
-}
-
 async function main() {
-  if (await vitePortBusy()) {
-    console.log(
-      `✗ port ${VITE_PORT} is already serving — that is your running app.\n` +
-      "  The renderer MUST be on 1420 (src/main.js devPorts), so this\n" +
-      "  script cannot share the box with `npm run dev`. Close the app and re-run,\n" +
-      "  or drive tests/smoke/headless-smoke.js yourself against your own boot.",
-    );
+  // The UI under test is built from the current source, every run.
+  console.log("· ui                building dist/spa (quasar build)…");
+  const built = spawnSync(process.execPath, [QUASAR, "build"], { cwd: ROOT, stdio: ["ignore", "ignore", "inherit"] });
+  if (built.status !== 0 || !existsSync(join(UI_DIR, "index.html"))) {
+    console.log("✗ quasar build failed — see the output above");
     process.exit(2);
   }
 
@@ -179,16 +150,9 @@ async function main() {
     // outlives cleanup becomes a Quick Setup cache offer (the 2026-08-08 ghost —
     // one proceed click repointed the real install's cache at %TEMP%). The kit now
     // also refuses temp-dir roots, but this harness should not rely on that net.
-    env: { ...process.env, JUSTWRITE_DATA_DIR: scratch, JUST_AI_HOME: scratch },
+    env: { ...process.env, JUSTWRITE_DATA_DIR: scratch, JUST_AI_HOME: scratch, JUSTWRITE_UI_DIR: UI_DIR },
   }));
-  track("vite", spawn(process.execPath, [viteBin(), "--port", String(VITE_PORT), "--strictPort"], {
-    cwd: ROOT,
-    stdio: ["ignore", "ignore", "inherit"],
-    env: { ...process.env, VITE_SERVER_URL: SERVER_URL },
-  }));
-
   await waitReady(`${SERVER_URL}/v1/health`, "smoke server");
-  await waitReady(APP_URL, "smoke vite");
   await sleep(500);
 
   const smoke = spawn(process.execPath, [join(ROOT, "tests", "smoke", "headless-smoke.js")], {
@@ -199,7 +163,7 @@ async function main() {
   const code = await new Promise((r) => smoke.on("exit", r));
 
   if (process.env.JW_KEEP) {
-    console.log(`\n(JW_KEEP set — leaving vite on ${APP_URL}, server on ${SERVER_URL}, data at ${scratch})`);
+    console.log(`\n(JW_KEEP set — leaving the server (and the UI) on ${SERVER_URL}, data at ${scratch})`);
     children.length = 0;
     scratch = "";
   }

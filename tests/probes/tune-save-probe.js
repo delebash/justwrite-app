@@ -11,7 +11,7 @@
 // rows → 0). Reuses findChrome() from headless-smoke.js (never hardcode the
 // Chromium path). Model REHOMED 2026-07-07: the Plan-B era `qwen3-8b-q4_k_m`
 // left the catalog in the Gemma-first lineup — the probe now rides the 12B rung.
-// Prereqs: server :17495 (reset DB) + dev:vite :1420 + the stub GGUF at
+// Prereqs: server :17495 (reset DB) + dev:spa :1420 + the stub GGUF at
 // <data>/ai-cache/hf/models--unsloth--gemma-4-12B-it-qat-GGUF/snapshots/fake/
 // gemma-4-12B-it-UD-Q4_K_XL.gguf (any *.gguf whose name contains the quant).
 import { existsSync, readdirSync } from "node:fs";

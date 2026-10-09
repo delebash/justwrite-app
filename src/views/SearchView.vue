@@ -75,7 +75,7 @@ watch(q, (v) => {
 
 function openHit(hit) { router.push(hit.doc.route); }
 
-// Esc clears the query and filters when the input is focused. ⌘F is owned by App.vue.
+// Esc clears the query and filters when the input is focused. ⌘F is owned by AppShell.vue.
 function onKey(e) {
   if (e.key === "Escape" && document.activeElement === inputEl.value) {
     q.value = "";

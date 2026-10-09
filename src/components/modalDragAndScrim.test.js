@@ -16,7 +16,7 @@
 //
 //  * MOUNT-level, for the draggable/opt-out class. That one is plain conditional-class
 //    rendering, which jsdom renders faithfully — and mounting also proves the SFC's
-//    script actually EXECUTES (useDraggable resolves, no ReferenceError). build:vite
+//    script actually EXECUTES (useDraggable resolves, no ReferenceError). build:spa
 //    compiles SFCs without resolving script identifiers and biome doesn't check .vue
 //    identifiers, so a mount is the only gate that runs this code. Mounted with plain
 //    `createApp`, matching LuFeatureChip.save.test.js (no @vue/test-utils dep).

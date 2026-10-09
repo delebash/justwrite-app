@@ -4,8 +4,9 @@
 		"includes": [
 			"src/**/*.{js,vue}",
 			"scripts/**/*.js",
-			"vite.config.js",
-			"electron/**/*.js",
+			"quasar.config.js",
+			"src-electron/**/*.js",
+			"!src-electron/node_modules",
 			"server/src/**/*.js",
 			"server/tests/**/*.js",
 			"server/scripts/**/*.js"
@@ -34,7 +35,7 @@
 	"formatter": { "enabled": false },
 	"overrides": [
 		{
-			"includes": ["server/**", "electron/**"],
+			"includes": ["server/**", "src-electron/**"],
 			"linter": {
 				"rules": {
 					"recommended": false,

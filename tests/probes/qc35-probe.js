@@ -1,5 +1,5 @@
 // QC-35 (#232) acceptance probe — the per-action test-input affordances, LIVE.
-// Asserts the locked mechanism on the running app (dev:vite :1420 + server
+// Asserts the locked mechanism on the running app (dev:spa :1420 + server
 // :17495): per-action pickers, the "From this book" compose button running the
 // feature's own composer over the real project, relationshipArc as
 // sample+type only, the A-group header shape, and zero page errors.

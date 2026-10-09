@@ -9,7 +9,7 @@
 // band became the one-time offer that opens right after the user's FIRST project
 // is created/opened (services/projectStart.js) — since the parity batch that is
 // the kit's AiSetupOffer (lifted FROM this app's dialog, ruling R3), mounted in
-// App.vue. Here, AI is just one of the nine feature cards — a description, not a
+// AppShell.vue. Here, AI is just one of the nine feature cards — a description, not a
 // setup step.
 //
 // First-run detection lives in main.js (a run-once router guard on the initial root

@@ -10,8 +10,8 @@ so the app's real Content-Security-Policy stays on), and every DOM helper rides 
 ## Prereqs
 
 ```bash
-npm install                          # here (playwright-core) and at the app root (electron)
-npm run build:vite                   # from the app root — the harness drives the BUILT UI
+npm install                          # here (playwright-core), at the app root and in src-electron/ (electron)
+npm run build:unpacked               # from the app root — the harness drives the BUILT desktop app
 ```
 
 No browser download and no driver binary: Playwright attaches to the Electron the app ships.
@@ -58,9 +58,10 @@ and written back after it, so your own theme survives a run.
 
 ## How it works
 
-1. `lib/driver.js` launches `electron .` from the app root with Playwright's `_electron`, which
-   loads the built UI from `app://justwrite`; the app's shell starts its server on :17495 over
-   `<repo>/data`. `JUSTWRITE_DEV_NO_SERVER=1` keeps the shell from starting one (then the suite
+1. `lib/driver.js` launches the unpackaged desktop app (Quasar's `dist/electron/UnPackaged`, run
+   by `src-electron`'s Electron) with Playwright's `_electron`, which loads the built UI from
+   `app://justwrite`; the app's shell starts its server on :17495 over `<repo>/data` (or
+   `JUSTWRITE_DATA_DIR`). `JUSTWRITE_DEV_NO_SERVER=1` keeps the shell from starting one (then the suite
    talks to whatever you started on :17495).
 2. `exec(script, args)` evaluates a function expression in the page; `navigate`, `textOf`,
    `exists`, `click`, `waitUntil`… ride it. `maximize` and `screenshot` go through Electron and
@@ -95,8 +96,8 @@ lands at `../../justwrite-website/public/screenshots/<name>.png`.
 
 ## Gotchas
 
-- The harness drives whatever `dist/` was last built. Run `npm run build:vite` in the app root
-  if your source has drifted.
+- The harness drives whatever `dist/electron/UnPackaged/` was last built. Run
+  `npm run build:unpacked` in the app root if your source has drifted.
 - Don't run with your own JustWrite open — both would start a server on :17495 over the same
   data folder (the shell evicts the other listener).
 - On boot the app may start loading your default AI model (warm-on-startup); closing the app

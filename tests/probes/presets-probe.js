@@ -1,7 +1,7 @@
 // Preset-workflow acceptance probe (2026-07-15 one-source rewrite; REBUILT the same
 // day for the user's correction: the separate Presets page was DELETED — Routing by
 // feature is the ONE routing surface, and the Lab bar is the ONE preset control,
-// restored to its original 1302f88 shape). Drives the live app (dev:vite :1420 +
+// restored to its original 1302f88 shape). Drives the live app (dev:spa :1420 +
 // server :17495):
 //   N1  the AI subnav has NO "Presets" tab; "Routing by feature" opens;
 //   N2  the feature nav cards carry "→ <preset> · assigned/default" provenance;

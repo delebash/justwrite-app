@@ -1,45 +1,48 @@
-// JustWrite — renderer entry point.
+// SPDX-License-Identifier: MIT
+// JustWrite — the renderer's start-up, as a Quasar boot file (app-structure §Q.4). Quasar creates
+// the app (root: App.vue), Pinia (stores/index.js) and the router (router/index.js), awaits this
+// file, then installs the router and mounts. Until the Quasar move (2026-10-08) this was
+// src/main.js, which created and mounted the app itself; the sequence below is unchanged.
 
 // The bundled type system, FIRST so it lands earliest in the emitted stylesheet — every
 // font the Appearance picker offers, self-hosted. This replaced the render-blocking
 // fonts.googleapis.com <link> in index.html (2026-07-24): a local-first app must not wait
 // on a network round trip to paint its first frame. Full reasoning: fonts.css's own header.
-import "./fonts.css";
+import "../fonts.css";
 // Apply the default appearance synchronously so we don't render with the wrong
 // colour scheme during the boot tick below. The real persisted appearance is
 // reapplied once bootSettings() resolves.
-import { applyAppearance, migrateAppearance, DEFAULT_APPEARANCE } from "./services/appearance.js";
+import { applyAppearance, migrateAppearance, DEFAULT_APPEARANCE } from "../services/appearance.js";
 applyAppearance(DEFAULT_APPEARANCE);
 
-import { createApp, watch } from "vue";
-import { createPinia } from "pinia";
-import App from "./App.vue";
-import router from "./router/index.js";
-import { bootSettings, readSetting } from "./services/settings.js";
-import { hydrateProjects, useProjectStore } from "./stores/project.js";
-import { watchSync } from "./services/projectApi.js";
-import { useSessionsStore } from "./stores/sessions.js";
-import { bootProviders } from "./services/providerBackend.js";
-import { bootRouting } from "./services/routingBackend.js";
+import { defineBoot } from "#q-app";
+import { watch } from "vue";
+import { bootSettings, readSetting } from "../services/settings.js";
+import { hydrateProjects, useProjectStore } from "../stores/project.js";
+import { watchSync } from "../services/projectApi.js";
+import { useSessionsStore } from "../stores/sessions.js";
+import { bootProviders } from "../services/providerBackend.js";
+import { bootRouting } from "../services/routingBackend.js";
+import { serverDown } from "../services/bootState.js";
 
-import "./styles/tokens.css";
-import "./styles/styles.css";
+import "../styles/tokens.css";
+import "../styles/styles.css";
 import { tooltipDirective } from "@delebash/llm-ui";
-import { i18n, detectLocale, setLocale as setI18nLocale } from "./i18n/index.js";
-import { startAutoRebuildWatcher } from "./services/rag/autoIndex.js";
+import { i18n, detectLocale, setLocale as setI18nLocale } from "../i18n/index.js";
+import { startAutoRebuildWatcher } from "../services/rag/autoIndex.js";
 import { startWarmOnBoot } from "@delebash/llm-ui";
 
 // The whole shared LLM front end, in ONE call (the UI twin of the server's
-// install_llm; the family shape — docgen is the reference). It resolves ONE
+// installLlm; the family shape — docgen is the reference). It resolves ONE
 // origin-aware base for the app transport AND the kit's LLM views (they were
 // separate configure* calls here, the exact per-step wiring the installer
 // exists to make un-forgettable), wires the external opener, and registers
-// <LlmUiHosts /> (Toast + AppDialog, mounted once in App.vue).
-import { installLlmUi, checkServer, configureFamilyLabels, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, serverUrl, setUiLocale, ConnectionError } from "@delebash/llm-ui";
-import { openPath, openUrl, saveFile } from "./services/native.js";
-import { buildFamilyLabels } from "./i18n/familyLabelsFeed.js";
-import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "./services/helpDocs.js";
-import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "./services/labTestData.js";
+// <LlmUiHosts /> (Toast + AppDialog, mounted once in AppShell.vue).
+import { installLlmUi, checkServer, configureFamilyLabels, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, setUiLocale } from "@delebash/llm-ui";
+import { openPath, openUrl, saveFile } from "../services/native.js";
+import { buildFamilyLabels } from "../i18n/familyLabelsFeed.js";
+import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "../services/helpDocs.js";
+import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "../services/labTestData.js";
 
 // The cross-origin fetch override was DELETED 2026-08-15, after a test rather
 // than an argument: driven inside the real webview (origin http://tauri.localhost)
@@ -49,71 +52,61 @@ import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "./services/labTestData.js";
 // nothing. It came from the Electron-era bridge; JustVoice and i18n-docgen never
 // had it. The `http` plugin went with it in both apps.
 
-const app = createApp(App);
-const pinia = createPinia();
-app.use(pinia);
+export default defineBoot(async ({ app, router, store: pinia }) => {
+  installLlmUi(app, {
+    // The KIT resolves the base now (2026-08-15) — services/serverApi.js is
+    // deleted. It was one of three shapes for one job: JustWrite had this file,
+    // JustVoice had src/config.js, docgen had nothing and let the installer do it.
+    // docgen was right.
+    devPorts: ["1420"],
+    fallbackBase: import.meta.env?.VITE_SERVER_URL || "http://127.0.0.1:17495",
+    // The openers, through services/native.js (the shell's one bridge) — the SAME
+    // line in all three apps. The kit decides when they can be used (browser vs
+    // desktop window); no app repeats that reasoning. `openPath` is what the model
+    // catalog's "Open folder" rides.
+    external: { open: openUrl, openPath },
+    // No catalogCopy / quickSetupCopy: the kit defaults ARE JustWrite's words.
+  });
 
-installLlmUi(app, {
-  // The KIT resolves the base now (2026-08-15) — services/serverApi.js is
-  // deleted. It was one of three shapes for one job: JustWrite had this file,
-  // JustVoice had src/config.js, docgen had nothing and let the installer do it.
-  // docgen was right.
-  devPorts: ["1420"],
-  fallbackBase: import.meta.env?.VITE_SERVER_URL || "http://127.0.0.1:17495",
-  // The openers, through services/native.js (the shell's one bridge) — the SAME
-  // line in all three apps. The kit decides when they can be used (browser vs
-  // desktop window); no app repeats that reasoning. `openPath` is what the model
-  // catalog's "Open folder" rides.
-  external: { open: openUrl, openPath },
-  // No catalogCopy / quickSetupCopy: the kit defaults ARE JustWrite's words.
-});
+  // The native "save as", wired ONCE (2026-08-15) — every export in the app and in
+  // the kit's shared panels now goes through the same door, instead of each
+  // surface remembering to pass a prop. The dialog and the write are the shell's
+  // `saveFile`; the folder MEMORY stays in services/download.js, which is the part
+  // that is actually JustWrite's.
+  configureFileSave({
+    save: (blob, { filename, title, filterName, filterExt, defaultDir }) =>
+      saveFile({ blob, suggestedName: filename, title, filterName, filterExt, defaultDir }),
+  });
 
-// The native "save as", wired ONCE (2026-08-15) — every export in the app and in
-// the kit's shared panels now goes through the same door, instead of each
-// surface remembering to pass a prop. The dialog and the write are the shell's
-// `saveFile`; the folder MEMORY stays in services/download.js, which is the part
-// that is actually JustWrite's.
-configureFileSave({
-  save: (blob, { filename, title, filterName, filterExt, defaultDir }) =>
-    saveFile({ blob, suggestedName: filename, title, filterName, filterExt, defaultDir }),
-});
+  // The AI Lab's test-input affordances (§7.3 + QC-35): JW's book material
+  // (chapters / characters, read lazily from the live stores) plus the
+  // per-action declaration table — pickers, "From this book" composers, and
+  // the sample labels that fit each action's prompt contract.
+  configureTestData({ sources: LAB_TEST_SOURCES, actions: LAB_TEST_ACTIONS });
 
-// The AI Lab's test-input affordances (§7.3 + QC-35): JW's book material
-// (chapters / characters, read lazily from the live stores) plus the
-// per-action declaration table — pickers, "From this book" composers, and
-// the sample labels that fit each action's prompt contract.
-configureTestData({ sources: LAB_TEST_SOURCES, actions: LAB_TEST_ACTIONS });
+  // Shared in-app Help (kit HelpDrawer + HelpTrigger). JustWrite supplies the
+  // content adapter over its docs/*.md corpus plus both handoffs: "Open full
+  // docs" → the in-app /help reader, "Open on the web" → the public docs site
+  // (OS browser via the desktop shell, window.open in the browser dev path).
+  configureHelp({
+    loadDoc,
+    hasDoc,
+    titleForSlug,
+    onOpenFull: (slug) => { router.push(slug ? `/help/${slug}` : "/help"); closeHelp(); },
+    onOpenWeb: (slug) => openExternal(webUrlFor(slug)),
+  });
 
-// Shared in-app Help (kit HelpDrawer + HelpTrigger). JustWrite supplies the
-// content adapter over its docs/*.md corpus plus both handoffs: "Open full
-// docs" → the in-app /help reader, "Open on the web" → the public docs site
-// (OS browser via the desktop shell, window.open in the browser dev path).
-configureHelp({
-  loadDoc,
-  hasDoc,
-  titleForSlug,
-  onOpenFull: (slug) => { router.push(slug ? `/help/${slug}` : "/help"); closeHelp(); },
-  onOpenWeb: (slug) => openExternal(webUrlFor(slug)),
-});
-
-// Hydrate the server-backed caches BEFORE any Pinia store initialises — stores
-// read from them synchronously in `state: () => ({...})`.
-// Wrapped in an async IIFE to keep the build target compatible with
-// engines that don't support top-level await (esbuild's safari13).
-(async () => {
+  // Hydrate the server-backed caches BEFORE any Pinia store initialises — stores
+  // read from them synchronously in `state: () => ({...})`.
+  //
   // Thin-client guard: the renderer has no data of its own — it all lives in the
-  // server. If the server is unreachable, mount a connection-error screen
-  // instead of booting the app (which would render seed/default data and then
-  // silently fail to persist). No defaults are loaded without a live backend.
+  // server. If the server is unreachable, App.vue shows a connection-error screen
+  // instead of the app (which would render seed/default data and then silently fail
+  // to persist). No defaults are loaded without a live backend. The kit's transport
+  // is already configured by installLlmUi above, so the screen names the SAME base
+  // the app talks to — no second resolver to disagree with.
   if (!(await checkServer())) {
-    createApp(ConnectionError, {
-      appName: "JustWrite",
-      // The kit's transport is already configured by installLlmUi above, so this
-      // is the SAME base the app talks to — no second resolver to disagree with.
-      serverUrl: serverUrl(""),
-      need: "load and save your work",
-      devHint: "Dev: start it with `npm run server` in the project root, then retry.",
-    }).mount("#app");
+    serverDown.value = true;
     return;
   }
 
@@ -157,9 +150,6 @@ configureHelp({
   // boot and went stale the day the runtime language switcher shipped.)
   watch(i18n.global.locale, () => configureFamilyLabels(buildFamilyLabels()), { immediate: true });
 
-  // (app + pinia are created at module scope now, before installLlmUi —
-  // the installer needs the app instance to register <LlmUiHosts />.)
-
   // QC-46 — the welcome screen owns two redirect rules:
   //
   // 1. THE ZERO-PROJECT LAW (user, 2026-07-10 — bootstrap() no longer mints a
@@ -195,7 +185,7 @@ configureHelp({
     return true;
   });
 
-  app.use(router);
+  // (Quasar installs the router after the boot files.)
   app.use(i18n);
   app.directive("tooltip", tooltipDirective);
 
@@ -210,7 +200,7 @@ configureHelp({
   // the zero-project state (null active id).
   useProjectStore(pinia).ensureActiveProjectPersisted();
 
-  // Warm the default local chat model into VRAM BEFORE mount, so App.vue comes up with the
+  // Warm the default local chat model into VRAM BEFORE mount, so the shell comes up with the
   // boot overlay (the kit's <BootModelLoad />) already showing the load — a seamless hand-off
   // from the static index.html splash. Only the DECISION + load kickoff is awaited; the load
   // itself runs in the background. A no-op when the toggle is off / the default isn't a
@@ -226,7 +216,7 @@ configureHelp({
     },
   });
 
-  app.mount("#app");
+  // Quasar mounts the app when this returns. The rest only subscribes, so it runs here.
 
   // Sync: when another device's changes land on the server, reload the open book
   // (services/projectApi.js watchSync; server/src/sync.js).
@@ -235,11 +225,11 @@ configureHelp({
   // Dev-only test seams: the project store (deterministic edits for book-smoke)
   // and the bench hook (the LLM bench harness drives real feature runs through
   // it). Both are stripped from production builds by the import.meta.env.DEV
-  // guard — esbuild dead-code-eliminates the branch, and benchHook.js is
+  // guard — the bundler dead-code-eliminates the branch, and benchHook.js is
   // imported DYNAMICALLY so its module graph never enters a prod bundle.
   if (import.meta.env.DEV) {
     window.__jwProject = useProjectStore(pinia);
-    const { installBenchHook } = await import("./services/benchHook.js");
+    const { installBenchHook } = await import("../services/benchHook.js");
     installBenchHook();
   }
 
@@ -247,4 +237,4 @@ configureHelp({
   // after the last edit when ai.autoRebuildRagIndex is on. Safe to call
   // unconditionally — the watcher itself checks the setting before firing.
   startAutoRebuildWatcher();
-})();
+});

@@ -77,9 +77,9 @@ async function ensureBrowserStack({ app, server, autostart, repoRoot, onLog }) {
   }
 
   if (!(await isUp(app))) {
-    if (!autostart) throw new Error(`no vite dev server at ${app} (run \`npm run dev:vite\`, or pass --autostart)`);
+    if (!autostart) throw new Error(`no vite dev server at ${app} (run \`npm run dev:spa\`, or pass --autostart)`);
     onLog?.(`starting vite (nothing answering at ${app})`);
-    started.push(startProcess("vite", "npm", ["run", "dev:vite"], { cwd: repoRoot, onLog }));
+    started.push(startProcess("vite", "npm", ["run", "dev:spa"], { cwd: repoRoot, onLog }));
     await waitReady(app, "vite", 120);
   } else {
     onLog?.(`vite already up at ${app}`);

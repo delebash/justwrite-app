@@ -1,5 +1,5 @@
 // Headless smoke / whole-app sweep for the server-backed renderer (Linux —
-// Playwright + Chromium). Drives `npm run dev:vite` against a running
+// Playwright + Chromium). Drives `npm run dev:spa` against a running
 // justwrite-server: asserts the app boots, every top-level route renders, and
 // the whole run produces ZERO JS errors. A bootStorage failure logs a console
 // error, so a clean run also proves storage.js reached /v1/kv.
@@ -9,7 +9,7 @@
 //
 // Assumes both are already running (the orchestrator / a local run starts them):
 //   server: justwrite-server serve --port 17495
-//   vite:   npm run dev:vite               (renderer on :1420)
+//   vite:   npm run dev:spa               (renderer on :1420)
 // Env: JW_APP, JW_SERVER, JW_CHROME.
 
 import { execFileSync } from "node:child_process";
@@ -238,7 +238,7 @@ try {
     try {
       await page.evaluate((h) => { window.location.hash = h; }, route);
       await sleep(550);
-      const chars = await page.evaluate(() => document.querySelector("#app")?.innerText?.length || 0);
+      const chars = await page.evaluate(() => document.querySelector("#q-app")?.innerText?.length || 0);
       const newErrs = errors.length - mark;
       const rok = chars > 0 && newErrs === 0;
       if (!rok) failed++;
@@ -322,7 +322,7 @@ try {
       const label = (await tabs[i].innerText().catch(() => `tab ${i}`)).trim().replace(/\s+/g, " ");
       await tabs[i].click();
       await sleep(600);
-      const chars = await page.evaluate(() => document.querySelector("#app")?.innerText?.length || 0);
+      const chars = await page.evaluate(() => document.querySelector("#q-app")?.innerText?.length || 0);
       const newErrs = errors.length - mark;
       const ok = chars > 0 && newErrs === 0;
       if (!ok) failed++;

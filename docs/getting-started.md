@@ -130,12 +130,12 @@ Running from source keeps its data in the `data` folder inside the checkout.
 
 | Command | What it does |
 |---|---|
-| `npm install` | JS dependencies (first run only) |
+| `npm install` | JS dependencies (first run only; then once `cd src-electron && npm install` for the desktop app) |
 | `npm run dev` | The desktop app, with the interface reloading as you edit |
-| `npm run build` | The installer for the current OS, in the `release` folder |
-| `npm run dev:vite` | The interface only, in a plain browser tab (no desktop window — start the server with `npm run server`) |
+| `npm run build` | The installer for the current OS, in the `dist/electron/Packaged` folder |
+| `npm run dev:spa` | The interface only, in a plain browser tab (no desktop window — start the server with `npm run server`) |
 | `npm run server` | The server alone, with no window (see [Headless access](headless-access.md)) |
-| `npm run build:vite` | The interface build only (`npm run build` runs it first) |
+| `npm run build:spa` | The interface build only, for the browser (`dist/spa`) |
 | `npm run bump <version>` | Update the version number in `package.json` |
 | `npm run release` | Trigger the GitHub Actions cross-platform release build (manual only) |
 | `npm run release:windows` | Same, but build Windows only — useful for iteration before going full release |

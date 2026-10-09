@@ -36,7 +36,7 @@ import { generateHTML, generateJSON } from "@tiptap/html/server";
 import { Node as PMNode } from "@tiptap/pm/model";
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from "@tiptap/y-tiptap";
 import * as Y from "yjs";
-import { bodyToHtml, editorExtensions, schemaMention } from "../../src/services/editorSchema.js";
+import { bodyToHtml, editorExtensions, schemaMention } from "./editor/editorSchema.js";
 import { PROJECT_TABLES, pyLoads } from "./book_io.js";
 import { state as dbState } from "./database/session.js";
 

@@ -11,7 +11,7 @@
 // when the reveal never loaded (a brand-new provider, or a reveal that FAILED), which
 // must keep the stored key ("" preserves, server-side).
 //
-// Why a MOUNT test: this is a credential path — biome/build:vite never execute the SFC,
+// Why a MOUNT test: this is a credential path — biome/build:spa never execute the SFC,
 // and the guard is behavioral (which sentinel Save sends), so only running it proves the
 // guard FIRES. The kit has no harness of its own; JW's is where kit components get tested
 // (the LuFeatureChip.save.test.js precedent next door). Mounted with plain createApp;

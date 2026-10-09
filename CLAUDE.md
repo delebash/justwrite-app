@@ -1,8 +1,9 @@
 # JustWrite
 
-A novel-writing app: **Electron + Vue 3 renderer + a Node (Fastify + SQLite) server** — plain
-JavaScript since 2026-10-08 (the family's move off Tauri and Python; the plan is JustVoice's
-`docs/plans/2026-10-07-electron-node-plan.md`). Persistence is server-owned SQLite — the renderer
+A novel-writing app: **a Quasar app (Vue 3) — Electron for the desktop, Capacitor for the phone —
+with a Node (Fastify + SQLite) server** — plain JavaScript since 2026-10-08 (the family's move off
+Tauri and Python, then onto Quasar the same day: the kit's `docs/app-structure.md` §Q is the
+layout, `../just-llm-runner/template/` the reference app). Persistence is server-owned SQLite — the renderer
 holds no durable data. The whole AI/LLM stack is shared with the sibling apps: `just-llm-runner`
 (its JavaScript package `server/`, `@delebash/llm-runner`, beside this repo) + `@delebash/llm-ui`
 (Vue).
@@ -14,14 +15,16 @@ casting and narration). Do not reintroduce any of it here.
 ## Commands
 
 ```bash
-npm install            # JS deps (first run only); the kit checkout ../just-llm-runner sits beside this repo
-npm run dev            # the desktop app: Vite (:1420) + the Electron window; its server on data/
-npm run build          # the installer for the current OS (electron-builder → release/)
-npm run dev:vite       # Renderer only, in a browser tab (no desktop shell; data still via the server)
+npm install            # the renderer + the server/ workspace; then once: cd src-electron && npm install
+                       # (the kit ../just-llm-runner and ../just-sqlite-sync sit beside this repo)
+npm run dev            # the desktop app: Quasar's dev server (:1420) + the Electron window; its server on data/
+npm run build          # the installer for the current OS (electron-builder → dist/electron/Packaged)
+npm run dev:spa        # Renderer only, in a browser tab (no desktop shell; data still via the server)
 npm run server         # the server alone (headless) on :17495, on data/
-npm run build:vite     # Renderer build only — a COMPILE check, not a substitute for the smoke
+npm run build:spa      # Renderer build only (dist/spa) — a COMPILE check, not a substitute for the smoke
+npm run build:unpacked # the desktop app unpackaged (dist/electron/UnPackaged) — what the e2e drives
 
-npm run test:fast      # quick gate: renderer vitest + build:vite + server vitest
+npm run test:fast      # quick gate: renderer vitest + build:spa + server vitest
 npm run test:unit      # renderer vitest only
 npm run test:server    # server vitest only (server/tests/, on Electron's Node)
 npm run i18n:report    # locale coverage — MISSING must always be zero
@@ -42,8 +45,8 @@ there is no renderer gate or that it cannot run in this environment — false. `
 does NOT clear a renderer or GUI change; run the smoke:
 
 ```bash
-npm run smoke     # snapshots your data, starts a scratch server (:17496) + vite (:1420),
-                  # drives every hash route, asserts zero JS errors
+npm run smoke     # builds dist/spa, snapshots your data, starts a scratch server (:17496) that
+                  # serves that build, drives every hash route, asserts zero JS errors
 ```
 
 Any new Playwright script must reuse `findChrome()` from `tests/lib/smoke-common.js` (it handles
@@ -53,7 +56,7 @@ Windows, macOS and Linux layouts) or set `JW_CHROME`. Never hardcode a browser p
 
 ## Invariants that bite
 
-- **JW must run headless** — `npm run server` (installed: `justwrite-server serve`) + a browser is the whole app, no desktop shell (`server/src/app.js` mounts `dist/` after the routers). So the server is REQUIRED and owns all persistence. Rationale in `docs/dev/ARCHITECTURE.md`.
+- **JW must run headless** — `npm run server` (installed: `justwrite-server serve`) + a browser is the whole app, no desktop shell (`server/src/app.js` mounts the built UI — `dist/spa`, the app folder when packaged — after the routers). So the server is REQUIRED and owns all persistence. Rationale in `docs/dev/ARCHITECTURE.md`.
 - **The desktop shell is reached only through `src/services/native.js`** (it alone reads `window.appShell`, the kit's preload) — never from views or stores, or the browser-only path breaks.
 - **A new mutating store action must be added to `ACTION_DOMAINS`** — an unmapped action warns and records nothing, so undo silently skips it. Keystroke-grain mutators also go in `COALESCED_ACTIONS` or the undo buffer fills instantly.
 - **`project` is one monolithic Pinia store on purpose** — it owns snapshot-based undo/redo across all entities. That is JustWrite's sanctioned exception to per-domain stores.
@@ -62,7 +65,8 @@ Windows, macOS and Linux layouts) or set `JW_CHROME`. Never hardcode a browser p
 - **NOTHING hardcoded** — every value, threshold, name, mapping, flag and preset lives in the DB, seeded and user-editable. Code is only the engine.
 - **No JSON blobs in SQL** — relational data gets real columns and rows. JSON only for genuinely freeform data, with a cited reason.
 - The **`@renderer` alias** is `src/`. Prefer relative imports within a directory, `@renderer/...` across the tree.
-- The renderer dev server is fixed at `http://localhost:1420`; `scripts/dev.js` and `src/main.js` (`devPorts`) reference that URL — keep them in lock-step.
+- The renderer dev server is fixed at `http://localhost:1420`; `quasar.config.js` (`devServer.port`) and `src/boot/jw.js` (`devPorts`) reference that port — keep them in lock-step.
+- **Quasar's shape** (app-structure §Q): start-up code is the boot file `src/boot/jw.js` (there is no `main.js`); `src/App.vue` is the root (the shell `AppShell.vue`, or the connection-error screen); the desktop main is `src-electron/electron-main.js`; the server is its own package (`server/package.json`, `justwrite-server`, an npm workspace) and also holds the editor schema the renderer imports as `justwrite-server/editor/…`.
 
 ## Product and design rules
 

@@ -4,7 +4,7 @@
 // tab you stand on seeds a NEW provider's where-it-runs choice.
 //
 // Why a MOUNT test: both behaviors are conditional-render + prop-default logic that
-// biome/build:vite never execute — only running the SFCs proves the scope actually
+// biome/build:spa never execute — only running the SFCs proves the scope actually
 // switches the list, hides the built-in card, and reaches ProviderForm's WHERE control.
 // Mounted with plain createApp and a stubbed fetch, matching the kit-component-tested-
 // from-JW precedent next door (ProviderForm.keyReveal.test.js).

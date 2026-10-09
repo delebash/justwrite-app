@@ -5,13 +5,13 @@
 // so the two surfaces can never drift. Callers run their own pre-step first
 // (Sidebar closes its menu; Welcome marks the screen seen), then call these.
 //
-// Uses the router singleton (the same instance main.js installs — the
-// configureHelp onOpenFull precedent, main.js:63) and the imperative i18n
+// Uses the router singleton (the same instance Quasar installs — router/index.js; the
+// configureHelp onOpenFull precedent, boot/jw.js) and the imperative i18n
 // `t` (i18n/index.js:46); the stores are resolved lazily so this module can be
 // imported before Pinia is active.
 
 import { promptDialog } from "@delebash/llm-ui";
-import router from "../router/index.js";
+import { router } from "../router/index.js";
 import { t } from "../i18n/index.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";

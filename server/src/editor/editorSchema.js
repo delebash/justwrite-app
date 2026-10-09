@@ -7,8 +7,9 @@
 //     when two devices' edits to a scene merge — the same schema, so a merged scene renders back
 //     exactly as the editor writes it.
 // So this file and the modules it imports must load in Node: plain TipTap only, no Vue, no
-// `@renderer/` alias, the DOM touched only inside functions. They ship with the packaged app (the
-// `build.files` list in package.json names them).
+// `@renderer/` alias, the DOM touched only inside functions. They live in the server package
+// (`server/src/editor/`, which ships with the packaged app) and the renderer imports them as
+// `justwrite-server/editor/<file>` (the Quasar move, 2026-10-08).
 
 import { Extension, Mark, Node, mergeAttributes } from "@tiptap/core";
 import CharacterCount from "@tiptap/extension-character-count";

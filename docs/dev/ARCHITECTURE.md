@@ -39,9 +39,9 @@ to Electron and Node, 2026-10-08 — a port with the same routes and database).
 The pieces that implement it, so a reader can verify rather than trust this page:
 
 - **`app.js`** — after every `/v1/*` router is registered, the UI locator finds
-  the Vite build and `@fastify/static` serves it. The static mount is LAST so API
+  the built UI (`dist/spa`; the app folder when packaged) and `@fastify/static` serves it. The static mount is LAST so API
   routes always win. `JUSTWRITE_UI_DIR` overrides the
-  search; without a `dist/` the server logs a warning and the API still runs.
+  search; without a built UI the server logs a warning and the API still runs.
   The renderer reaches it because the base URL is origin-aware — it targets
   `window.location.origin`, so the same bundle works in the desktop window and under the
   server's own origin unchanged. That resolution is the KIT's since 2026-08-15
@@ -445,7 +445,7 @@ WebDriver-style script body over the debugger protocol, so the app's real CSP
 stays on); tests via Node's built-in `node --test`.
 
 **Why this matters:** earlier attempts to capture views by driving the
-renderer in browser-mode (`npm run dev:vite` + Playwright + IDB injection)
+renderer in browser-mode (the Vite dev server + Playwright + IDB injection)
 succeeded for Home / Analysis / Plot board but failed silently for Audio Studio /
 Settings / Worldbuilding / Timeline — lazy-loaded views error at mount when
 run in vanilla browser. The desktop harness gets all of them.
@@ -459,8 +459,8 @@ run in vanilla browser. The desktop harness gets all of them.
 - `cd e2e && npm test` — runs `tests/*.test.js` against the same app, on your
   real data (7 tests, all passing on 2026-10-08). The theme test's clicks are
   undone: the suite writes your `ui` settings section back when it ends.
-- The harness drives whatever `dist/` was last built. If source has drifted,
-  run `npm run build:vite` from the app root first.
+- The harness drives whatever `dist/electron/UnPackaged/` was last built. If source has
+  drifted, run `npm run build:unpacked` from the app root first.
 - Don't run with your own JustWrite open — both would start a server on :17495
   over the same data folder.
 

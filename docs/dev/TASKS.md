@@ -17,6 +17,46 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
+## JustWrite on Quasar — the desktop app BUILT on branch `quasar`; the Sync screen and the phone next [2026-10-08]
+STATE:  DECIDED 2026-10-08 — every family app moves to Quasar (the kit's TASKS, "Every family app
+        moves to Quasar…", rec 1: "Quasar's own tooling for everything. Its Electron mode is the
+        desktop app, calling the kit's shared function for the data folder, the server and the
+        tray. Its Capacitor mode is the phone app."); the go: "we need to do the quasar conversion
+        as well you have a go on that". The order of work and its status: the kit's
+        `docs/plans/2026-10-08-sync-and-quasar-program.md`, step Q4; the layout: the kit's
+        `docs/app-structure.md` §Q.
+BUILT:  2026-10-08, on branch `quasar` (worktree `../justwrite-quasar` — the master checkout runs
+        your app, so the move stays off it until you merge): `quasar.config.js` (the one build
+        config; the kit UI alias; port 1420; electron-builder with the old installer's settings —
+        NSIS, the fuses, the launcher, a universal macOS .dmg); `src-electron/` (the kit's
+        `runDesktopApp`, the same settings as `electron/main.js`; icons moved from `build/`);
+        `src-capacitor/` (com.justwrite.app); the start-up `src/main.js` → the boot file
+        `src/boot/jw.js` (the same sequence), the root `src/App.vue` (the shell, renamed
+        `AppShell.vue`, or the connection-error screen); `router/routes.js`; `stores/index.js`;
+        `src/css/quasar.variables.scss` (the kit's theme); `server/` its own package
+        (`justwrite-server`, an npm workspace) holding the editor schema (`server/src/editor/`, the
+        renderer imports `justwrite-server/editor/…`) and the samples (`server/samples/`); the
+        headless UI from `dist/spa` (the app folder when packaged); the smoke serves the built UI
+        from its scratch server (no Vite on 1420 — it can run beside the app now) and snapshots
+        through the kit's `openDatabase` (better-sqlite3 was never a root dependency, so every
+        smoke ran on an empty folder); the e2e drives `dist/electron/UnPackaged`; the release
+        workflow on Quasar's CLI (and it now checks out `just-sqlite-sync`); the docs.
+CHECKED: dev mode (the window on :1420, the server from source on `data/`, routes, zero errors once
+        Vite's dependency cache is warm — the first run hits Vite's "Outdated Optimize Dep"
+        reloads) · the installer builds; the packaged app on a copy of your data (`app://`, the
+        bridge, the server, five routes, zero errors) · the headless launcher serves the UI from
+        the archive · e2e 7/7 · the smoke on a snapshot of your data · unit 590/590 · server
+        141/141 · lint · the kit's guard (kind quasar, no violations) · ten screens against the
+        Electron + Vite build at 1440×900: within 0.02 % of their pixels, except disabled buttons
+        (Quasar's global disabled rule — the kit's TASKS, the Quasar item, OPEN 5).
+OPEN:   1. Your merge of `quasar` into master (close the app first; then `npm install` and once
+           `cd src-electron && npm install`).
+        2. The Settings → Sync screen and its user docs (the Sync item below).
+        3. The phone: the server in a web worker on SQLite WASM, the storage guard, OneDrive/
+           Dropbox sign-in, the QR pairing (the Sync item below).
+        4. The release workflow is rewritten for Quasar but not run (it needs a tag).
+GO:     given 2026-10-08 ("we need to do the quasar conversion as well you have a go on that").
+
 ## The family moves to Electron and a Node server — JustWrite's step is BUILT, waiting on your use [2026-10-08]
 STATE:  DECIDED 2026-10-05, 2026-10-07 and 2026-10-08 — every ruling, as shown and approved, is in
         JustVoice's TASKS, "The family moves to Electron and a Node server; Tauri and Python go"

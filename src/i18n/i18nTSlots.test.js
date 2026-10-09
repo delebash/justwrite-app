@@ -12,7 +12,7 @@
 //     LITERALLY, so the page ships "{chapters}" in visible copy.
 // `i18n:lint` only looks for raw text and finds none inside an <i18n-t>;
 // `i18n:report` matches plain string literals, not keypath attributes;
-// `build:vite` compiles the SFC without resolving any key. So an interpolated
+// `build:spa` compiles the SFC without resolving any key. So an interpolated
 // sentence could break on a key rename with every gate green — and these are
 // the LONGEST strings in the app, the intros and hints nobody re-reads.
 //

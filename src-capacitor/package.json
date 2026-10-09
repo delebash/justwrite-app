@@ -1,0 +1,13 @@
+{
+  "name": "justwrite-capacitor",
+  "version": "1.0.0",
+  "description": "JustWrite's phone app (Quasar's Capacitor mode).",
+  "private": true,
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0"
+  },
+  "allowScripts": {}
+}

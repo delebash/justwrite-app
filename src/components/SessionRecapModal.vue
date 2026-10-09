@@ -19,7 +19,7 @@ import { useSessionsStore } from "../stores/sessions.js";
 import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/llm-ui";
 import { generateSessionRecap } from "../services/sessionRecap.js";
-import { addMarkerToSceneHtml } from "../services/markers.js";
+import { addMarkerToSceneHtml } from "justwrite-server/editor/markers.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 
 const emit = defineEmits(["close"]);

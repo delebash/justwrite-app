@@ -78,7 +78,7 @@ export function setKeepRunning(keepRunning) {
   return call("setKeepRunning", { keepRunning: !!keepRunning }).catch(() => {});
 }
 
-/** The tray menu's words, fed from vue-i18n (App.vue, at boot + every locale
+/** The tray menu's words, fed from vue-i18n (AppShell.vue, at boot + every locale
  *  switch) — the shell holds only pre-boot English defaults. Missing keys keep those
  *  defaults; `labels` is { show, hide, serverStart, serverStop, serverRestart,
  *  openSettings, copyUrl, openLogs, about, quit }. */

@@ -9,7 +9,7 @@
 //     — and note it scans .js too: spelling a translate-call out longhand in this
 //     comment made the report invent a missing key named "literal";
 //   · `npm run i18n:lint` only finds raw text, and there is none left here;
-//   · `npm run build:vite` compiles the SFC without resolving any key;
+//   · `npm run build:spa` compiles the SFC without resolving any key;
 //   · the headless smoke asserts zero JS errors — and a missing key is NOT an
 //     error: i18n/index.js sets missingWarn:false + fallbackWarn:false, so a
 //     typo'd key renders an EMPTY STRING, silently, on a page that still passes.

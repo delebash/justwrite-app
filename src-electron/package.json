@@ -1,0 +1,18 @@
+{
+  "name": "justwrite-electron",
+  "version": "1.0.0",
+  "description": "JustWrite's desktop app — the main process's dependencies (Quasar's Electron mode).",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3"
+  },
+  "allowScripts": {
+    "electron": true
+  },
+  "dependencies": {
+    "@delebash/llm-runner": "file:../../just-llm-runner/server",
+    "justwrite-server": "file:../server"
+  }
+}

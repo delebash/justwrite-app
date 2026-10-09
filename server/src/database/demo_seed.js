@@ -45,13 +45,14 @@ export function _dirHasSample(d) {
 
 /**
  * The samples source SHIPPED with the app: `JUSTWRITE_SAMPLES_SRC` when set (the packaged
- * build points it at the bundled resource), else the repo-root `justwrite-app/samples/`
- * (three folders up from this file, which sits in `server/src/database/`).
+ * build points it at the bundled resource), else the server package's own `samples/` (two
+ * folders up from this file, which sits in `src/database/`) — `server/samples/` in a checkout,
+ * `node_modules/justwrite-server/samples/` in the packaged app (the Quasar move, 2026-10-08).
  */
 export function _bundledSamplesDir() {
   const env = process.env.JUSTWRITE_SAMPLES_SRC;
   if (env) return env;
-  return path.resolve(import.meta.dirname, "..", "..", "..", "samples");
+  return path.resolve(import.meta.dirname, "..", "..", "samples");
 }
 
 /**

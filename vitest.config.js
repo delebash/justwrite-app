@@ -24,11 +24,14 @@ export default defineConfig({
   resolve: {
     alias: {
       "@renderer": resolve(__dirname, "src"),
-      // Same source-alias as vite.config.js — tests mock it with vi.mock where
+      // Same source-alias as quasar.config.js (build.alias) — tests mock it with vi.mock where
       // network transport is involved.
       "@delebash/llm-ui": resolve(__dirname, "../just-llm-runner/ui/src"),
+      // Quasar's wrappers (defineBoot / defineRouter / defineStore) — the alias Quasar's own
+      // build defines (@quasar/app-vite's lib/config-tools.js).
+      "#q-app": "@quasar/app-vite",
     },
-    // Same dedupe list as vite.config.js, and for the same reason: the aliased kit
+    // Same dedupe list as quasar.config.js (extendViteConf), and for the same reason: the aliased kit
     // imports its peer deps by bare specifier from its OWN dir, which has no
     // node_modules — without this a mounted kit SFC fails to resolve "reka-ui". Keep
     // the two lists in lock-step.

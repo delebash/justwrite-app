@@ -152,18 +152,19 @@ Run from the repo root unless noted.
 
 | Script | What it does |
 |---|---|
-| `npm run dev` | The desktop app — a Vite dev server on :1420 with hot reload, and the Electron window pointed at it; the window's server runs on the dev data folder `data/`. |
-| `npm run build` | The installer for the current OS (electron-builder). Outputs to `release/` — on Windows `JustWrite Setup <version>.exe`, with `release/win-unpacked/` beside it. |
-| `npm run dev:vite` | Renderer only, in a plain browser tab at `http://localhost:1420` — no desktop shell; data still flows through the server (start it yourself: `npm run server`). |
+| `npm run dev` | The desktop app — Quasar's dev server on :1420 with hot reload, and the Electron window pointed at it; the window's server runs on the dev data folder `data/`. |
+| `npm run build` | The installer for the current OS (Quasar's Electron mode, electron-builder). Outputs to `dist/electron/Packaged/` — on Windows `JustWrite Setup <version>.exe`, with `win-unpacked/` beside it. |
+| `npm run dev:spa` | Renderer only, in a plain browser tab at `http://localhost:1420` — no desktop shell; data still flows through the server (start it yourself: `npm run server`). |
 | `npm run server` | The server alone (headless) on :17495, on the dev data folder `data/` (`--port`, `--host`, `--data-dir` after `--`). |
-| `npm run build:vite` | Renderer build only (`dist/` — what the window loads and the headless server serves). `npm run build` runs it first. |
-| `npm run preview:vite` | Serves the built renderer over Vite preview — handy for sanity-checking the bundle. |
+| `npm run build:spa` | Renderer build only (`dist/spa/` — what the headless server serves). |
+| `npm run build:unpacked` | The desktop app built but not packaged (`dist/electron/UnPackaged/`) — what the e2e harness drives. |
+| `npm run build:android` | The Android app (Quasar's Capacitor mode). |
 | `npm run bump <version>` | Updates the version in `package.json` (the one place it lives). **Does not commit or tag** — you do. See [Release process](#release-process). |
 | `npm run release [version]` | Triggers the GitHub Actions release build via `gh workflow run`. Requires the tag to already exist on origin. Interactive `[y/N]` confirm. |
 | `npm run release:windows` · `:macos` · `:linux` | Same as `release` but builds a single platform. |
-| `npm run screenshots` | Runs the e2e screenshot capture (same as `cd e2e && npm run capture`). Drives the desktop app on the built UI, writes PNGs to `../justwrite-website/public/screenshots/`. Requires `npm run build:vite` first. |
-| `npm test` | Runs the e2e smoke suite (delegates to `npm test --prefix e2e`). Drives the desktop app (the built UI, your real data) through the major routes and asserts each surface renders. Requires `npm run build:vite` first. |
-| `npm run test:unit` · `test:server` · `test:fast` | vitest over the renderer · vitest over the server (`server/tests/`, on Electron's Node) · the quick gate chaining both plus `build:vite`. |
+| `npm run screenshots` | Runs the e2e screenshot capture (same as `cd e2e && npm run capture`). Drives the desktop app on the built UI, writes PNGs to `../justwrite-website/public/screenshots/`. Requires `npm run build:unpacked` first. |
+| `npm test` | Runs the e2e smoke suite (delegates to `npm test --prefix e2e`). Drives the desktop app (the built UI, your real data) through the major routes and asserts each surface renders. Requires `npm run build:unpacked` first. |
+| `npm run test:unit` · `test:server` · `test:fast` | vitest over the renderer · vitest over the server (`server/tests/`, on Electron's Node) · the quick gate chaining both plus `build:spa`. |
 | `npm run i18n:lint` · `i18n:report` · `i18n:pseudo` | i18n-only eslint rules · locale coverage report (MISSING must stay zero) · pseudo-locale build. |
 | `npm run bench` (`:gpu`, `:cpu`) · `npm run smoke` · `npm run dup` | LLM bench harness · scripted smoke · jscpd duplicate scan. |
 
@@ -179,7 +180,7 @@ Lives in `e2e/`. Automation over the real desktop app — Electron, the built UI
 
 ```bash
 cd e2e && npm install        # playwright-core; no browser download, no driver binary
-npm run build:vite           # from the repo root — the harness drives the BUILT UI
+npm run build:unpacked       # from the repo root — the harness drives the BUILT desktop app
 ```
 
 ### Smoke tests
@@ -198,7 +199,7 @@ npm run screenshots          # from repo root
 cd e2e && npm run capture
 ```
 
-Drives the desktop app through a fixed list of routes (`TARGETS` in `e2e/capture-direct.js`) and writes PNGs straight into the marketing site's `public/screenshots/` folder. Rebuild the UI first with `npm run build:vite` if the renderer has drifted.
+Drives the desktop app through a fixed list of routes (`TARGETS` in `e2e/capture-direct.js`) and writes PNGs straight into the marketing site's `public/screenshots/` folder. Rebuild it first with `npm run build:unpacked` if the renderer has drifted.
 
 #### Re-capture with a different theme
 
@@ -216,7 +217,7 @@ The theme name has to match the preset's visible `<b>` label exactly. The change
 
 #### Capture gotchas
 
-- **The harness drives whatever `dist/` was last built.** Run `npm run build:vite` before capturing if you've changed renderer code.
+- **The harness drives whatever `dist/electron/UnPackaged/` was last built.** Run `npm run build:unpacked` before capturing if you've changed renderer code.
 - **Don't have JustWrite open** while capturing — both would run a server on :17495 over the same data folder.
 
 ---
@@ -242,7 +243,7 @@ npm run release:windows      # or one
 
 What the workflow does (see `.github/workflows/release.yml`):
 
-1. Builds .dmg (macOS universal), .exe (Windows, NSIS), .AppImage + .deb (Linux) with electron-builder on per-platform runners — each checks out the kit (`delebash/just-llm-runner`) beside the app.
+1. Builds .dmg (macOS universal), .exe (Windows, NSIS), .AppImage + .deb (Linux) with Quasar's Electron mode (electron-builder) on per-platform runners — each checks out the kit (`delebash/just-llm-runner`) and the sync engine (`delebash/just-sqlite-sync`) beside the app. Not yet run since the Quasar move (it needs a tag).
 2. Creates / updates GitHub Release `v<version>` with the binaries attached.
 3. Packs `docs/` into `docs.tar.gz` and attaches it to the release.
 4. Fires a `repository_dispatch` at the marketing-site repo so it rebuilds with the new docs.
@@ -256,34 +257,42 @@ Watch with `gh run watch` or open the workflow runs page. A full all-platform bu
 ## Project structure
 
 ```
-justwrite-app/
+justwrite-app/                 ← a Quasar app (the family layout: the kit's docs/app-structure.md §Q)
 ├── CLAUDE.md                  ← instructions for Claude Code (project context, conventions)
 ├── README.md
 ├── docs/                      ← user-facing docs (the in-app Help corpus; docs.tar.gz on release)
 │   ├── dev/                   ← TASKS.md (live tracker) · IDEAS.md · architecture notes
 │   └── plans/                 ← dated plan/history docs (archive/ = closed history)
 ├── biome.json                 ← the linter (checker only; formatter off)
-├── package.json
-├── vite.config.js             ← vite root is the REPO root; aliases @delebash/llm-ui → ../just-llm-runner/ui/src
-├── index.html
+├── package.json               ← the renderer; npm workspace "server"
+├── quasar.config.js           ← the ONE build config: the renderer, the desktop app, the phone app
+├── index.html                 ← the CSP and the static boot plate
 ├── scripts/
-│   ├── dev.js                ← `npm run dev`: Vite, then the Electron window pointed at it
-│   ├── node24.js             ← runs a script on Electron's own Node (the server's runtime)
+│   ├── node24.js              ← runs a script on Electron's own Node (the server's runtime)
+│   ├── smoke.js               ← `npm run smoke`: the renderer gate
 │   ├── bump.js                ← version bumper (package.json)
 │   └── release.js             ← wraps gh workflow run
-├── electron/main.js           ← the desktop app: the kit's runDesktopApp with this app's settings
-├── build/                     ← installer icons, tray icon, the headless launcher (launcher/)
+├── src-electron/              ← the desktop app (Quasar's Electron mode; own package.json)
+│   ├── electron-main.js       ← the kit's runDesktopApp with this app's settings
+│   ├── electron-preload.js    ← the kit's preload
+│   └── electron-assets/icons/ ← app and tray icons
+├── src-capacitor/             ← the phone app (Quasar's Capacitor mode)
+├── build/launcher/            ← the headless launcher, installed beside the exe
 ├── e2e/                       ← screenshot capture + smoke tests (own package.json)
 │   ├── capture-direct.js
 │   ├── lib/driver.js
 │   └── tests/smoke.test.js
-├── server/                    ← the data server (Node, Fastify, :17495) — ALL persistence
-│   ├── src/                   ← serve.js (the entry) · app.js · api/ · database/
+├── server/                    ← the data server (Node, Fastify, :17495) — ALL persistence; its own
+│   │                            package (justwrite-server), which the desktop app installs
+│   ├── src/                   ← serve.js (the entry) · app.js · api/ · database/ · editor/ (the
+│   │                            editor schema, shared with the renderer)
+│   ├── samples/               ← the bundled tutorial book
 │   └── tests/                 ← vitest suite
-├── src/                       ← the Vue renderer (no src/renderer nesting)
-│   ├── main.js                ← Vue entry; wires the kit's UI; boots stores off the server
-│   ├── App.vue
+├── src/                       ← the Vue renderer
+│   ├── boot/jw.js             ← start-up: wires the kit's UI; boots stores off the server
+│   ├── App.vue                ← the root: the shell (AppShell.vue) or the connection-error screen
 │   ├── router/index.js
+│   ├── css/quasar.variables.scss ← Quasar's variables: the kit's family theme
 │   ├── i18n/                  ← vue-i18n setup + locales/ (en, es)
 │   ├── styles/                ← tokens.css · styles.css (fonts.css stays at src/)
 │   ├── stores/                ← project, ui, ai, sessions (Pinia)
@@ -301,8 +310,8 @@ The renderer reaches the desktop shell through ONE file, `src/services/native.js
 exports (`pickDirectory`, `pickFile`, `saveFile`, `storageGetRoot`, `storageRelocate`,
 `setKeepRunning`, `setTrayLabels`, the openers, `onShellEvent` for the tray), each calling the
 kit's preload object `window.appShell`. The shell itself is the kit's shared Electron main
-module (`@delebash/llm-runner/shell`); `electron/main.js` only names this app's settings. Outside
-the desktop app (a browser tab on `npm run dev:vite`, or the headless server's UI) every call
+module (`@delebash/llm-runner/shell`); `src-electron/electron-main.js` only names this app's settings.
+Outside the desktop app (a browser tab on `npm run dev:spa`, or the headless server's UI) every call
 answers the browser's way — null or a no-op — and the renderer falls back to downloads and
 file inputs.
 

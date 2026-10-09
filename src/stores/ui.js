@@ -347,7 +347,7 @@ export const useUiStore = defineStore("ui", {
       this._persist();
     },
     // The family headless ruling (2026-08-04): persisted here, re-applied to the
-    // shell every boot (App.vue) — the shell's flag resets per launch.
+    // shell every boot (AppShell.vue) — the shell's flag resets per launch.
     setKeepServerRunning(v) {
       this.keepServerRunning = !!v;
       this._persist();

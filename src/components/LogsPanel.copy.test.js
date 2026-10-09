@@ -11,7 +11,7 @@
 // discards the level filter, so "Errors only" would paste the whole log.
 //
 // Why a MOUNT test: the contract is behavioral (what lands on the clipboard), and
-// neither biome nor build:vite executes the SFC — only running it proves the
+// neither biome nor build:spa executes the SFC — only running it proves the
 // mapping fires. The kit has no harness of its own; JW's is where kit components
 // get tested (the ProviderForm.keyReveal.test.js precedent). Mounted with plain
 // createApp; fetch and the clipboard are stubbed.

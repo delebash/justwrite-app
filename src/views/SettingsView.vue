@@ -85,7 +85,7 @@ const headlessUrl = computed(
 const authTokens = ref([]);
 
 // The keep-running toggle writes the shell flag immediately AND persists in the
-// ui store (App.vue re-applies it every boot — the shell's flag resets per launch).
+// ui store (AppShell.vue re-applies it every boot — the shell's flag resets per launch).
 // Through services/native.js, which owns the command name.
 async function setKeepRunning(v) {
   ui.setKeepServerRunning(!!v);

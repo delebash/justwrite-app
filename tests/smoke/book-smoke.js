@@ -7,7 +7,7 @@
 //
 // Assumes server + vite are already running (the orchestrator starts them):
 //   server: justwrite-server serve --port 17495 --data-dir <fresh tmp>
-//   vite:   npm run dev:vite           (renderer on :1420)
+//   vite:   npm run dev:spa           (renderer on :1420)
 // Env: JW_APP, JW_SERVER, JW_CHROME.
 
 import { createRequire } from "node:module";

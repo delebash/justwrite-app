@@ -6,13 +6,13 @@ per-task history lives in `docs/plans/*`.
 
 ## Layout
 
-- The REPO ROOT is the Vite root (`index.html` at top level; the Vue 3 + Pinia renderer lives in `src/`). This line once pointed at a `src/renderer/` nesting that no longer exists.
-- `electron/main.js` — the desktop app: the kit's shared Electron main module (`runDesktopApp` from `@delebash/llm-runner/shell`) with this app's settings (id `justwrite`, port 17495, the 400 ms close hold). No logic lives there. It replaced `src-tauri/` on 2026-10-08.
-- `server/src/` — the server (Node, Fastify, SQLite through the kit's SQL helper); `serve.js` is the entry. It replaced the Python `server/justwrite_server/` the same day — a port with the same routes and database, checked by a route diff against the Python server.
-- `dist/` — Vite output: the window loads it from `app://justwrite`, the headless server serves it at `/`.
+- A Quasar app (the family layout, the kit's `docs/app-structure.md` §Q, since 2026-10-08): `quasar.config.js` is the one build config; the Vue 3 + Pinia renderer lives in `src/`, started by the boot file `src/boot/jw.js` (no `main.js`), rooted at `src/App.vue` (the shell is `src/AppShell.vue`).
+- `src-electron/electron-main.js` — the desktop app (Quasar's Electron mode): the kit's shared Electron main module (`runDesktopApp` from `@delebash/llm-runner/shell`) with this app's settings (id `justwrite`, port 17495, the 400 ms close hold). No logic lives there. It replaced `src-tauri/` on 2026-10-08, then `electron/main.js` with the Quasar move. `src-capacitor/` is the phone app (Quasar's Capacitor mode).
+- `server/` — the server, its own package (`justwrite-server`, an npm workspace; the desktop app installs it): `src/` (Node, Fastify, SQLite through the kit's SQL helper; `serve.js` is the entry; `editor/` the editor schema the renderer imports as `justwrite-server/editor/…`), `samples/` (the bundled tutorial book). It replaced the Python `server/justwrite_server/` the same day — a port with the same routes and database, checked by a route diff against the Python server.
+- `dist/` — Quasar's output: `dist/spa/` (the browser build the headless server serves at `/`), `dist/electron/` (`UnPackaged/` and the installer in `Packaged/`; the window loads the UI from `app://justwrite`).
 
-The renderer dev server is fixed at `http://localhost:1420`; `scripts/dev.js` (which points the
-window at it) and `src/main.js` (`devPorts`) reference that URL — keep them in lock-step.
+The renderer dev server is fixed at `http://localhost:1420`; `quasar.config.js` (`devServer.port`)
+and `src/boot/jw.js` (`devPorts`) reference that port — keep them in lock-step.
 
 ## Calling the shell (Electron ↔ renderer)
 
@@ -42,7 +42,7 @@ engine, models, logs); `storageRelocate` moves it and restarts the app (Chromium
 under it too). The shell and the server resolve it through the kit's one ladder
 (`platform/data_paths.js`); in a checkout it is `<repo>/data`.
 
-Outside the shell (plain `vite dev` in a browser), project data still persists to the server via
+Outside the shell (`npm run dev:spa` in a browser), project data still persists to the server via
 `projectApi`, and images upload via `imageStore` (inline data-URL fallback only when the server is
 unreachable). Gate desktop-only affordances on `hasShell()` so the browser path keeps working.
 
@@ -51,7 +51,8 @@ Adding a new shell command: add it to the kit (`COMMANDS` and its handler in
 `src/services/native.js` — one place names each command string.
 
 The window's Content-Security-Policy is the kit's default plus `https:` images (`cspAdd` in
-`electron/main.js`: a manuscript can hold an image pasted from the web).
+`src-electron/electron-main.js`: a manuscript can hold an image pasted from the web), and the
+family `<meta>` CSP in `index.html` (app-structure §Q.5) applies too.
 
 ## Stores
 
@@ -180,7 +181,7 @@ Rules when adding or converting a string:
 - **Reuse before minting.** Search `en.json` for the exact English first — `common.*` (Save, Cancel, Delete, Close…), `nav.*` and the `sidebar.actions.*` dialog cluster already carry a lot of shared vocabulary. Never create a second key for the same English.
 - **Semantic keys, namespaced by section** — `settings.<section>.<semanticLeaf>`, e.g. `settings.appearance.editorFontSizeLabel`. The leaf says what the string IS, never the first few words of the sentence (`settings.thisFreesSizeOf` is the wrong shape).
 - **Runtime values are interpolations**, never concatenation: `$t('k', { n })` with `{n}` in the value.
-- **`v-for="t in …"` shadows the setup `t`.** Inside such a loop use `$t`, never the destructured `t` — `build:vite` will not catch the shadowing.
+- **`v-for="t in …"` shadows the setup `t`.** Inside such a loop use `$t`, never the destructured `t` — `build:spa` will not catch the shadowing.
 - **Locale-dependent constant arrays must be `computed()`**, or they freeze at module load and never re-translate when the language changes (see `SECTIONS` in `SettingsView.vue`).
 - **Not translated:** thrown `Error` messages, console/debug strings, data values, ids, enum strings, and DB-seeded text (seeded defaults stay English in v1).
 - **Kit strings are a separate, later batch** — `@delebash/llm-ui` does not take vue-i18n as a peer dep yet. Don't convert kit components from here.
@@ -202,7 +203,7 @@ folder leaves the app building and running in every language it has.
 
 ## Test harness detail
 
-The gates (2026-10-08, after the move to Node): renderer vitest, `build:vite`, the server's vitest
+The gates (2026-10-08, after the move to Node): renderer vitest, `build:spa`, the server's vitest
 (`npm run test:server`, about 10 s on Electron's Node), the kit's own suite
 (`cd ../just-llm-runner/server && npm test`), the headless smoke (`npm run smoke`) and the e2e over
 the desktop app (`npm test`). Tests were never the bottleneck; don't skip them.

@@ -9,7 +9,7 @@
 //     <slot :name="name" v-bind="slotProps" />
 //   </template>
 // If that doesn't forward, every consumer's custom cell renders BLANK: the table
-// still has the right number of rows, `build:vite` is clean, biome is clean and
+// still has the right number of rows, `build:spa` is clean, biome is clean and
 // the headless smoke reports zero JS errors, because an empty cell is not an
 // error. Nothing but rendering the thing catches it. The same goes for the facet
 // filtering — it is plain logic, but it is logic seven views now depend on.

@@ -3,7 +3,7 @@
 // THE ONE TEST THAT EXECUTES THE CHIP'S THINKING SAVE (2026-07-16, preset tier).
 //
 // Why a mount test: this write path shipped two bugs past a fully green build + tests +
-// biome earlier the same day, because nothing executed the SFC (`build:vite` compiles
+// biome earlier the same day, because nothing executed the SFC (`build:spa` compiles
 // without resolving script identifiers; biome doesn't check .vue identifiers; the smoke
 // only mounts routes). The path has since been REDESIGNED — "feature is the end of the
 // line": the thinking control is three-state (Off / Model default / a level) and the

@@ -5,13 +5,13 @@ import { BubbleMenu } from "@tiptap/vue-3/menus";
 import SceneBoundaryView from "./SceneBoundaryView.vue";
 import { DOMSerializer } from "@tiptap/pm/model";
 import { useRouter } from "vue-router";
-import { searchReplacePluginKey } from "@renderer/services/searchReplace";
+import { searchReplacePluginKey } from "justwrite-server/editor/searchReplace.js";
 import { buildMentionExtension } from "@renderer/services/editorMentions";
-import { bodyToHtml, editorExtensions } from "@renderer/services/editorSchema";
+import { bodyToHtml, editorExtensions } from "justwrite-server/editor/editorSchema.js";
 import { EDITOR_TOOLBAR_FULL } from "@renderer/services/editorToolbars";
 import { saveImage, urlFor } from "@renderer/services/imageStore";
-import { hasPendingChanges, hasStrikethroughs, listPendingChanges } from "@renderer/services/aiDiff";
-import { MARKER_CATEGORIES } from "@renderer/services/markers";
+import { hasPendingChanges, hasStrikethroughs, listPendingChanges } from "justwrite-server/editor/aiDiff.js";
+import { MARKER_CATEGORIES } from "justwrite-server/editor/markers.js";
 import * as writerAI from "@renderer/services/writerAI";
 import VariationsModal from "./VariationsModal.vue";
 import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
@@ -85,11 +85,11 @@ const inlineBodyStyle = computed(() => {
   return null;
 });
 
-// Legacy plain-text bodies become HTML — services/editorSchema.js's bodyToHtml, the same
+// Legacy plain-text bodies become HTML — the server package's editor/editorSchema.js's bodyToHtml, the same
 // conversion the server's sync uses when it merges scene text.
 const toHtml = bodyToHtml;
 
-// The editor's extensions come from services/editorSchema.js — one list shared with the server's
+// The editor's extensions come from the server package's editor/editorSchema.js — one list shared with the server's
 // sync (which parses and renders scene HTML with the same schema). The editor adds its Vue node
 // view for scene boundaries and the @-mention popup.
 const extensions = editorExtensions({

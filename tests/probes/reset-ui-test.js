@@ -32,7 +32,7 @@ async function gotoProviders() {
   await page.evaluate(() => { const t = [...document.querySelectorAll(".lu-subnav a")].find((a) => /providers/i.test(a.textContent)); t && t.click(); });
   await sleep(1000);
   return await page.evaluate(() => {
-    const txt = document.querySelector("#app")?.innerText || "";
+    const txt = document.querySelector("#q-app")?.innerText || "";
     const m = txt.match(/Providers\s+(\d+)\s+configured/i);
     return { configured: m ? m[1] : "?", noLocal: /No local providers yet/i.test(txt), noCloud: /No cloud providers/i.test(txt) };
   });

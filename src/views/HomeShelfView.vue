@@ -14,7 +14,7 @@ import { useWritingNav } from "../composables/useWritingNav.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore, reorderForMonday } from "../stores/sessions.js";
-import { scanProjectMarkers } from "../services/markers.js";
+import { scanProjectMarkers } from "justwrite-server/editor/markers.js";
 import { UiButton } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 
