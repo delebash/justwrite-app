@@ -17,7 +17,7 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
-## JustWrite on Quasar — the desktop app BUILT on branch `quasar`; the Sync screen and the phone next [2026-10-08]
+## JustWrite on Quasar — the desktop app and Settings → Sync BUILT and merged; the phone next [2026-10-08]
 STATE:  DECIDED 2026-10-08 — every family app moves to Quasar (the kit's TASKS, "Every family app
         moves to Quasar…", rec 1: "Quasar's own tooling for everything. Its Electron mode is the
         desktop app, calling the kit's shared function for the data folder, the server and the
@@ -49,11 +49,12 @@ CHECKED: dev mode (the window on :1420, the server from source on `data/`, route
         141/141 · lint · the kit's guard (kind quasar, no violations) · ten screens against the
         Electron + Vite build at 1440×900: within 0.02 % of their pixels, except disabled buttons
         (Quasar's global disabled rule — the kit's TASKS, the Quasar item, OPEN 5).
-OPEN:   1. Your merge of `quasar` into master (close the app first; then `npm install` and once
-           `cd src-electron && npm install`).
+OPEN:   1. DONE — merged into master by the user's go ("your rec all go", on "1. Merge both quasar
+           branches?"); after pulling: `npm install` and once `cd src-electron && npm install`.
         2. DONE — the Settings → Sync screen and its user docs (the Sync item below).
         3. The phone: the server in a web worker on SQLite WASM, the storage guard, OneDrive/
-           Dropbox sign-in, the QR pairing (the Sync item below).
+           Dropbox sign-in, the QR pairing (the Sync item below). Scope decided 2026-10-08 (the
+           Sync item, decision 8): the book, its images and versions, sync, online AI providers.
         4. The release workflow is rewritten for Quasar but not run (it needs a tag).
 GO:     given 2026-10-08 ("we need to do the quasar conversion as well you have a go on that").
 
@@ -253,6 +254,15 @@ STATE:  DECIDED 2026-10-08, step by step (the record, with every option shown, i
            Then: "give me a summary of the ways we can sync and basics of how it works and is
            setup, then complete the design and code it all". The design is
            `../just-llm-runner/docs/plans/2026-10-08-sync-product-design.md`.
+        8. DECIDED 2026-10-08 (after Settings → Sync was built) — the user: "your rec all go", on
+           these as shown: "3. Phone scope: which JustWrite features run on the phone? A phone
+           can't run the local AI engine, the search index or the file autosave. Lean: the book,
+           images, versions, sync and online AI providers." · "7. Confirm my choices where the
+           record had gaps: The .jwsync file extension. Hand-carried files unencrypted unless you
+           tick the box. The Sync screen's wording. Sync as a JustWrite-only Settings section for
+           now (adding it to the family list would fail JustVoice's and docgen's tests)." So: the
+           phone runs the book, its images and versions, sync, and online AI providers; the four
+           choices stand.
 WHY:    a writer works on the phone and the desktop with no network, and moves changes without
         setting up a server; one design any family app can add.
 NOT:    shape A, one cloud server with no offline work (the user, above) · the live SQLite file
