@@ -51,7 +51,7 @@ export function walk(node) {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const HERE = path.dirname(fileURLToPath(import.meta.url));
-  const LOCALES = path.join(HERE, "..", "src", "renderer", "src", "i18n", "locales");
+  const LOCALES = path.join(HERE, "..", "src", "i18n", "locales");
   const SRC = path.join(LOCALES, "en.json");
   const OUT = path.join(LOCALES, "qps.json");
   const en = JSON.parse(fs.readFileSync(SRC, "utf8"));
