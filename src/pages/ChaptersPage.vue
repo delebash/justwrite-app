@@ -1065,8 +1065,8 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
          row so the editor column (.chapters-edit-main) shrinks beside it. -->
     <div v-else-if="ch" class="pane-card" :class="{ 'has-side-panel': notesPanelOpen }">
      <div class="chapters-edit-main">
-      <div style="padding:10px 22px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px">
-        <div style="display:flex;gap:12px;align-items:center;justify-self:start">
+      <div class="chapter-bar">
+        <div class="chapter-bar-group chapter-bar-start">
           <UiButton intent="ghost" size="small"
             :class="{ 'is-active': continuousMode }"
             v-tooltip.bottom="continuousMode ? $t('chapters.edit.singleSceneTooltip') : $t('chapters.edit.continuousTooltip')"
@@ -1080,7 +1080,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
             {{ editStyle === 'cards' ? $t('chapters.edit.listView') : $t('chapters.edit.cardView') }}
           </UiButton>
         </div>
-        <div style="display:flex;gap:12px;align-items:center">
+        <div class="chapter-bar-group">
           <UiButton v-if="prev" intent="ghost" size="small"
             v-tooltip.bottom="$t('chapters.edit.chapterRefDash', { num: prev.num, title: prev.title })"
             @click="goPrev">
@@ -1092,7 +1092,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
             {{ $t('chapters.edit.nextChapter') }} <Icon name="ChevRight" :size="12" />
           </UiButton>
         </div>
-        <div v-if="!activeScene" style="display:flex;gap:8px;align-items:center;justify-self:end">
+        <div v-if="!activeScene" class="chapter-bar-group chapter-bar-end">
           <StatusSelect
             :model-value="ch.status || ''"
             @update:model-value="(v) => project.setChapterStatus(ch.id, v)" />
@@ -1479,9 +1479,31 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 }
 .chapter-pane-header .pane-actions { grid-column: 2; }
+/* At phone width (Quasar's xs) one column, like every other page header: the breadcrumb and
+   title on their row, the Edit/Outline/Read switch on the row below. */
+@media (max-width: 599.98px) {
+  .chapter-pane-header { grid-template-columns: minmax(0, 1fr); }
+  .chapter-pane-header .pane-actions { grid-column: 1; }
+}
 /* Entity sweep sits to the right of the Edit/Outline/Read control with a
    little breathing room so it doesn't read as part of the segmented group. */
 .chapter-sweep-btn { margin-left: 6px; }
+
+/* The chapter bar above the editor: view toggles left, previous/next chapter in the middle,
+   the chapter's own actions right. At phone width (Quasar's xs) the three groups stack and each
+   wraps its buttons, so none runs off the edge. */
+.chapter-bar {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px;
+  padding: 10px 22px; border-bottom: 1px solid var(--border);
+}
+.chapter-bar-group { display: flex; gap: 12px; align-items: center; }
+.chapter-bar-start { justify-self: start; }
+.chapter-bar-end { justify-self: end; gap: 8px; }
+@media (max-width: 599.98px) {
+  .chapter-bar { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 8px 16px; }
+  .chapter-bar-group { flex-wrap: wrap; gap: 8px; }
+  .chapter-bar-end { justify-self: start; }
+}
 
 /* ── Edit-mode layout: editor column + docked notes panel ──────
    The card is a flex column by default; .chapters-edit-main fills it and
@@ -1824,6 +1846,11 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
 .scene-strip-actions {
   display: flex; align-items: center; gap: 8px;
   flex-shrink: 0;
+}
+/* At phone width (Quasar's xs) the strip's actions wrap instead of running off the edge. */
+@media (max-width: 599.98px) {
+  .scene-strip { padding: 8px 16px; }
+  .scene-strip-actions { flex-shrink: 1; min-width: 0; flex-wrap: wrap; }
 }
 /* B5-7 — the bottom-bar AI-complete notice (right of the word count). */
 .ai-done-note {

@@ -774,6 +774,12 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
 }
 .editor-toolbar .group { display: flex; gap: 1px; align-items: center; }
 .editor-toolbar .group + .group { margin-left: 7px; padding-left: 7px; border-left: 1px solid var(--border); }
+/* At phone width the toolbar wraps onto several rows, and a group's separator would open the
+   row it wraps to — the groups are set apart by space instead. */
+@media (max-width: $breakpoint-xs-max) {
+  .editor-toolbar { column-gap: 12px; }
+  .editor-toolbar .group + .group { margin-left: 0; padding-left: 0; border-left: 0; }
+}
 .tb-btn {
   position: relative;
   width: 28px; height: 28px;
@@ -805,9 +811,13 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
   transition-delay: 0s;
   z-index: 70;
 }
-.tb-btn[data-tip]:hover::after {
-  opacity: 1; transform: translateX(-50%) translateY(0);
-  transition-delay: .18s;
+/* Only where a pointer really hovers: on a touch screen a tap leaves :hover standing, and with it
+   the tip (the kit's tooltips answer a hover the same way). */
+@media (hover: hover) {
+  .tb-btn[data-tip]:hover::after {
+    opacity: 1; transform: translateX(-50%) translateY(0);
+    transition-delay: .18s;
+  }
 }
 
 /* Highlight color dropdown */
@@ -1259,6 +1269,14 @@ html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-
 }
 .timeline-row:first-child .timeline-spine::before { top: 0; }
 .timeline-row:last-child .timeline-spine::before  { bottom: 50%; }
+/* At phone width one column: the spine down the left, each event's date above its card. */
+@media (max-width: $breakpoint-xs-max) {
+  .events-content { padding: 16px 16px 60px; }
+  .timeline-row { grid-template-columns: 24px minmax(0, 1fr); row-gap: 6px; align-items: start; }
+  .timeline-spine { grid-column: 1; grid-row: 1 / span 2; }
+  .timeline-when { grid-column: 2; grid-row: 1; justify-content: flex-start; padding: 0 0 0 12px; }
+  .timeline-card { grid-column: 2; grid-row: 2; margin-left: 12px; }
+}
 .timeline-dot {
   width: 14px;
   height: 14px;

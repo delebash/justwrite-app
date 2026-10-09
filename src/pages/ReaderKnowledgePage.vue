@@ -355,6 +355,12 @@ function jumpToChapter(chapterId) {
 }
 .pane-sub { margin: 0; max-width: 70ch; color: var(--muted); font-size: 13px; line-height: 1.55; }
 .pane-actions { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+/* This header is a column inside the page's scroller, not the bar the shared .pane-header phone
+   rule wraps: at phone width it keeps its column and padding, and only the actions wrap. */
+@media (max-width: 599.98px) {
+  .pane-header { flex-wrap: nowrap; padding: 0; }
+  .pane-actions { flex-basis: auto; flex-wrap: wrap; }
+}
 .rk-stamp { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
 
 .rk-error {

@@ -113,6 +113,16 @@ computer. What it does there: the books — the manuscript, the story bible, ima
 — sync, and the AI features that use an online provider. What stays on a computer: the local AI
 engine and the book search by meaning.
 
+**The screens.** The phone shows the same pages as a computer, laid out in one column. The sidebar
+opens from ☰ at the top left and closes when you pick a page; the title bar keeps Back, the book's
+title, Undo, Redo, the AI status and Search (Forward and the theme pickers stay on the computer —
+**Settings → Appearance** has the theme and light/dark). A page's buttons sit on the row under its
+title. A table wider than the screen scrolls sideways with its first column kept in view; the plot
+board, the cast-presence heatmap and the writing calendar on **Analysis** scroll sideways inside
+their own box. In the editor the formatting toolbar wraps onto several rows above the text. A
+dialog's AI chip sits on its own row under the dialog's title. Settings leaves out **Backups**,
+**Storage**, **Server** and **Logs**, which belong to a computer.
+
 **Getting your books onto the phone.** On a new phone the welcome screen says *Your books are on
 another device? Sync them here*. On your computer open **Settings → Sync → Other devices**, turn on
 **Let my other devices connect** (restart JustWrite once), and press **Show pairing code**. On the

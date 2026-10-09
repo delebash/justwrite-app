@@ -1386,7 +1386,7 @@ async function deleteCategory(c) {
                 :aria-label="$t('settings.appearance.btnLabelCasingLabel')"
                 @update:model-value="setAp({ btnLabelCase: $event })" />
             </div>
-            <div style="display:flex;gap:10px;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-soft)">
+            <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-soft)">
               <span class="t-muted" style="font-size:11.5px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.08em">{{ $t('settings.appearance.previewLabel') }}</span>
               <UiButton intent="primary" :label="$t('common.save')" />
               <UiButton intent="secondary" :label="$t('common.cancel')" />

@@ -190,6 +190,12 @@ function closeTellScan() { tellScanOpen.value = false; }
 }
 .pane-header { display: flex; flex-direction: column; gap: 6px; position: relative; }
 .pane-help-abs { position: absolute; top: 0; right: 0; }
+/* This header is a column inside the page's scroller, not the bar the shared .pane-header phone
+   rule wraps: at phone width it keeps its column and padding, and only the actions wrap. */
+@media (max-width: 599.98px) {
+  .pane-header { flex-wrap: nowrap; padding: 0; }
+  .pane-actions { flex-basis: auto; flex-wrap: wrap; }
+}
 .pane-h1 {
   font-family: var(--font-serif);
   font-size: 28px; font-weight: 600;
