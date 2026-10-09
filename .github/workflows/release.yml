@@ -83,6 +83,7 @@ jobs:
             justwrite-app/package-lock.json
             justwrite-app/src-electron/package-lock.json
             just-llm-runner/server/package-lock.json
+            just-sqlite-sync/package-lock.json
 
       # better-sqlite3 and koffi ship per-platform N-API prebuilds, so nothing native is
       # compiled here; electron-builder (Quasar's Electron mode, quasar.config.js) packages the
@@ -90,6 +91,9 @@ jobs:
       - name: Install the kit's server deps
         working-directory: just-llm-runner/server
         run: npm ci
+      - name: Install the sync engine's deps
+        working-directory: just-sqlite-sync
+        run: npm ci --omit=dev
 
       - name: Install JS deps (the renderer and the server/ workspace)
         working-directory: justwrite-app

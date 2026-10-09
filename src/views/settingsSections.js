@@ -7,7 +7,7 @@ export const SETTINGS_SECTION_IDS = [
   "project",
   "appearance",
   "backups",
-  "sync", // app section (not yet the family canon — it joins when JustVoice gets sync)
+  "sync", // app section (not yet the family canon — docgen has no sync)
   "storage",
   "server",
   "logs",
