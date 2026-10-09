@@ -2,6 +2,11 @@
 // The app's routes (Quasar's layout, app-structure §Q.1: router/routes.js holds them,
 // router/index.js creates the router).
 
+// The layout is imported, not lazy-loaded: every screen needs it, so a chunk of its own would only
+// delay the first paint, and its components' styles stay in the entry stylesheet — ahead of the
+// app's, where the app's rules have always won a tie with them. The pages are lazy.
+import MainLayout from "../layouts/MainLayout.vue";
+
 // Generic event-page route factory. Every entity with an Events button
 // (characters / locations / objects / groups / architecture/setting)
 // uses the same three pages: timeline, new, edit.
@@ -111,7 +116,7 @@ const pageRoutes = [
 // sidebar as Quasar's drawer, the page container), so their paths are relative to it; the
 // connection-error page outside it (boot/jw.js sends every route there while the server is down).
 const routes = [
-  { path: "/", component: () => import("../layouts/MainLayout.vue"), children: pageRoutes },
+  { path: "/", component: MainLayout, children: pageRoutes },
   { path: "/offline", name: "Offline", component: () => import("../pages/ConnectionErrorPage.vue") },
 ];
 
