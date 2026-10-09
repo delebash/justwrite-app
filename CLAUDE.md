@@ -22,7 +22,8 @@ npm run build          # the installer for the current OS (electron-builder → 
 npm run dev:spa        # Renderer only, in a browser tab (no desktop shell; data still via the server)
 npm run server         # the server alone (headless) on :17495, on data/
 npm run build:spa      # Renderer build only (dist/spa) — a COMPILE check, not a substitute for the smoke
-npm run build:unpacked # the desktop app unpackaged (dist/electron/UnPackaged) — what the e2e drives
+npm run build:unpacked # the desktop app unpackaged (dist/electron/UnPackaged), without the server package
+npm run build          # the installer — and the UnPackaged app with its server, what the e2e drives
 
 npm run test:fast      # quick gate: renderer vitest + build:spa + server vitest
 npm run test:unit      # renderer vitest only

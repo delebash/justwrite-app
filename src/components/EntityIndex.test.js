@@ -17,11 +17,13 @@
 // Mounted with plain `createApp`, matching modalDragAndScrim.test.js next door
 // (no @vue/test-utils dependency).
 import { afterEach, describe, expect, it } from "vitest";
-import { createApp, h, nextTick } from "vue";
+import { h, nextTick } from "vue";
 import { createI18n } from "vue-i18n";
 
 import EntityIndex from "./EntityIndex.vue";
 import en from "../i18n/locales/en.json";
+// Quasar installed as in the real app — the kit's controls are Quasar components
+import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
 
 let app;
 let host;
@@ -29,7 +31,7 @@ let host;
 function mount(props, slots) {
   host = document.createElement("div");
   document.body.appendChild(host);
-  app = createApp({ render: () => h(EntityIndex, props, slots) });
+  app = createTestApp({ render: () => h(EntityIndex, props, slots) });
   // Global scope so the component's shared `common` keys resolve against the
   // REAL catalog — a stub would hide a renamed key. (Spelling a translate call
   // out longhand in a comment here makes vue-i18n-extract report it as a missing

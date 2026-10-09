@@ -15,9 +15,11 @@
 //
 // Mounted with plain `createApp` (no @vue/test-utils dep); fetch is stubbed.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick } from "vue";
+import { h, nextTick } from "vue";
 
 import LuFeatureChip from "@delebash/llm-ui/components/LuFeatureChip.vue";
+// Quasar installed as in the real app — the kit's controls are Quasar components
+import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
 
 const CLASS_KEY = "vram8|ram32";
 const LOCAL_ROUTE = {
@@ -94,7 +96,7 @@ function thinkingSelect() {
 
 async function openPopover(route = LOCAL_ROUTE) {
   activeRoute = route;
-  app = createApp({
+  app = createTestApp({
     render: () => h(LuFeatureChip, {
       feature: "critique", label: "Critique", editable: true, route,
       resolvedProviderName: "Built-in runner", resolvedModel: "gemma",
@@ -160,7 +162,6 @@ describe("LuFeatureChip — the thinking save is ONE preset write", () => {
     expect(layerWrites()).toEqual([]);
     expect(JSON.stringify(presetPut.body)).not.toContain("reasoning_budget");
   });
-
 
   it("Off saves think false and writes nothing else", async () => {
     await openPopover();

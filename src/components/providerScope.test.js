@@ -9,10 +9,12 @@
 // Mounted with plain createApp and a stubbed fetch, matching the kit-component-tested-
 // from-JW precedent next door (ProviderForm.keyReveal.test.js).
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick } from "vue";
+import { h, nextTick } from "vue";
 
 import AiModelsArea from "@delebash/llm-ui/views/AiModelsArea.vue";
 import ProviderForm from "@delebash/llm-ui/views/ProviderForm.vue";
+// Quasar installed as in the real app — the kit's controls are Quasar components
+import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
 
 const BUILTIN = {
   id: "builtin", name: "Built-in provider — llama.cpp", providerType: "local-llamacpp",
@@ -68,7 +70,7 @@ async function flush(times = 24) {
 }
 
 async function mountArea(props = {}) {
-  app = createApp({ render: () => h(AiModelsArea, props) });
+  app = createTestApp({ render: () => h(AiModelsArea, props) });
   app.directive("tooltip", {}); // host-registered in the real app; a no-op here
   app.mount(host);
   await flush();
@@ -196,7 +198,7 @@ function whereActive() {
 }
 
 async function mountForm(props) {
-  app = createApp({ render: () => h(ProviderForm, props) });
+  app = createTestApp({ render: () => h(ProviderForm, props) });
   app.directive("tooltip", {});
   app.mount(host);
   await flush();

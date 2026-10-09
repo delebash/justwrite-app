@@ -157,13 +157,13 @@ Run from the repo root unless noted.
 | `npm run dev:spa` | Renderer only, in a plain browser tab at `http://localhost:1420` — no desktop shell; data still flows through the server (start it yourself: `npm run server`). |
 | `npm run server` | The server alone (headless) on :17495, on the dev data folder `data/` (`--port`, `--host`, `--data-dir` after `--`). |
 | `npm run build:spa` | Renderer build only (`dist/spa/` — what the headless server serves). |
-| `npm run build:unpacked` | The desktop app built but not packaged (`dist/electron/UnPackaged/`) — what the e2e harness drives. |
+| `npm run build:unpacked` | The desktop app built but not packaged (`dist/electron/UnPackaged/`), without its server package installed — so it runs only against a server you start. The e2e harness needs `npm run build`. |
 | `npm run build:android` | The Android app (Quasar's Capacitor mode). |
 | `npm run bump <version>` | Updates the version in `package.json` (the one place it lives). **Does not commit or tag** — you do. See [Release process](#release-process). |
 | `npm run release [version]` | Triggers the GitHub Actions release build via `gh workflow run`. Requires the tag to already exist on origin. Interactive `[y/N]` confirm. |
 | `npm run release:windows` · `:macos` · `:linux` | Same as `release` but builds a single platform. |
-| `npm run screenshots` | Runs the e2e screenshot capture (same as `cd e2e && npm run capture`). Drives the desktop app on the built UI, writes PNGs to `../justwrite-website/public/screenshots/`. Requires `npm run build:unpacked` first. |
-| `npm test` | Runs the e2e smoke suite (delegates to `npm test --prefix e2e`). Drives the desktop app (the built UI, your real data) through the major routes and asserts each surface renders. Requires `npm run build:unpacked` first. |
+| `npm run screenshots` | Runs the e2e screenshot capture (same as `cd e2e && npm run capture`). Drives the desktop app on the built UI, writes PNGs to `../justwrite-website/public/screenshots/`. Requires `npm run build` first. |
+| `npm test` | Runs the e2e smoke suite (delegates to `npm test --prefix e2e`). Drives the desktop app (the built UI, your real data) through the major routes and asserts each surface renders. Requires `npm run build` first. |
 | `npm run test:unit` · `test:server` · `test:fast` | vitest over the renderer · vitest over the server (`server/tests/`, on Electron's Node) · the quick gate chaining both plus `build:spa`. |
 | `npm run i18n:lint` · `i18n:report` · `i18n:pseudo` | i18n-only eslint rules · locale coverage report (MISSING must stay zero) · pseudo-locale build. |
 | `npm run bench` (`:gpu`, `:cpu`) · `npm run smoke` · `npm run dup` | LLM bench harness · scripted smoke · jscpd duplicate scan. |
@@ -180,7 +180,7 @@ Lives in `e2e/`. Automation over the real desktop app — Electron, the built UI
 
 ```bash
 cd e2e && npm install        # playwright-core; no browser download, no driver binary
-npm run build:unpacked       # from the repo root — the harness drives the BUILT desktop app
+npm run build                # from the repo root — the harness drives the BUILT desktop app (with its server)
 ```
 
 ### Smoke tests
@@ -199,7 +199,7 @@ npm run screenshots          # from repo root
 cd e2e && npm run capture
 ```
 
-Drives the desktop app through a fixed list of routes (`TARGETS` in `e2e/capture-direct.js`) and writes PNGs straight into the marketing site's `public/screenshots/` folder. Rebuild it first with `npm run build:unpacked` if the renderer has drifted.
+Drives the desktop app through a fixed list of routes (`TARGETS` in `e2e/capture-direct.js`) and writes PNGs straight into the marketing site's `public/screenshots/` folder. Rebuild it first with `npm run build` if the renderer has drifted.
 
 #### Re-capture with a different theme
 
@@ -217,7 +217,7 @@ The theme name has to match the preset's visible `<b>` label exactly. The change
 
 #### Capture gotchas
 
-- **The harness drives whatever `dist/electron/UnPackaged/` was last built.** Run `npm run build:unpacked` before capturing if you've changed renderer code.
+- **The harness drives whatever `dist/electron/UnPackaged/` was last built.** Run `npm run build` before capturing if you've changed renderer code.
 - **Don't have JustWrite open** while capturing — both would run a server on :17495 over the same data folder.
 
 ---

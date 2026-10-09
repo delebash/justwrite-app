@@ -17,9 +17,11 @@
 // proves it fires. The routing move shows up as a PUT /v1/ai/engine-presets/{id} (chat)
 // or PUT /v1/ai/routing (embedding); the provider PATCH always fires.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick } from "vue";
+import { h, nextTick } from "vue";
 
 import ProviderForm from "@delebash/llm-ui/views/ProviderForm.vue";
+// Quasar installed as in the real app — the kit's controls are Quasar components
+import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
 
 const SAVED = {
   id: "gemini", name: "Gemini", providerType: "gemini",
@@ -93,7 +95,7 @@ async function flush(times = 24) {
 }
 
 async function mountForm() {
-  app = createApp({ render: () => h(ProviderForm, { provider: SAVED }) });
+  app = createTestApp({ render: () => h(ProviderForm, { provider: SAVED }) });
   app.directive("tooltip", {}); // host-registered in the real app; a no-op here
   app.mount(host);
   await flush();

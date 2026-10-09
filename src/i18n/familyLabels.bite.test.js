@@ -8,11 +8,13 @@
 // Kit modules imported by relative path like familyContract.test.js — the kit index
 // would drag styles.css + the full view graph into the test environment.
 import { afterEach, describe, expect, it } from "vitest";
-import { createApp, nextTick } from "vue";
+import { nextTick } from "vue";
 
 import ConnectionError from "../../../just-llm-runner/ui/src/common/components/ConnectionError.vue";
 import { FAMILY_LABELS } from "../../../just-llm-runner/ui/src/common/familyContract.js";
 import { configureFamilyLabels, familyLabels } from "../../../just-llm-runner/ui/src/common/services/familyLabels.js";
+// Quasar installed as in the real app — the kit's controls are Quasar components
+import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
 
 afterEach(() => {
   // Re-feed the English canon so no later test inherits the probe words.
@@ -30,7 +32,7 @@ describe("familyLabels — the one reactive store behind kit chrome", () => {
 
   it("a mounted kit component's text follows a re-feed", async () => {
     const host = document.createElement("div");
-    const app = createApp(ConnectionError, { appName: "JustWrite", serverUrl: "http://localhost:9" });
+    const app = createTestApp(ConnectionError, { appName: "JustWrite", serverUrl: "http://localhost:9" });
     app.mount(host);
     expect(host.textContent).toContain("Can't reach the JustWrite server");
     configureFamilyLabels({

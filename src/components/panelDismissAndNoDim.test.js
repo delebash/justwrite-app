@@ -22,12 +22,14 @@
 // Node.contains(), neither of which needs geometry — jsdom runs them faithfully. These
 // are real tests of real dismissal, not source greps.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, ref, nextTick } from "vue";
+import { h, ref, nextTick } from "vue";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { usePanelDismiss } from "@delebash/llm-ui";
+// Quasar installed as in the real app — the kit's controls are Quasar components
+import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // …/justwrite-app/src/components → …/Web, then into the kit.
@@ -124,7 +126,7 @@ async function mountPanel() {
 
   host = document.createElement("div");
   document.body.appendChild(host);
-  app = createApp({
+  app = createTestApp({
     setup() {
       usePanelDismiss(open, panelEl, close);
       return () => h("div", [

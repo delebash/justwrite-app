@@ -27,12 +27,14 @@
 // not yanking a moved modal back to centre. The clamp arithmetic specifically cannot be
 // tested here: it reads offsetWidth and window.innerWidth, which jsdom stubs to zero.
 import { afterEach, describe, expect, it } from "vitest";
-import { createApp, h, nextTick } from "vue";
+import { h, nextTick } from "vue";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import AppModal from "@delebash/llm-ui/common/components/AppModal.vue";
+// Quasar installed as in the real app — the kit's controls are Quasar components
+import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // …/justwrite-app/src/components → …/Web, then into the kit.
@@ -84,7 +86,7 @@ afterEach(() => {
 function mountModal(props = {}) {
   host = document.createElement("div");
   document.body.appendChild(host);
-  app = createApp({ render: () => h(AppModal, { title: "T", ...props }, { default: () => "body" }) });
+  app = createTestApp({ render: () => h(AppModal, { title: "T", ...props }, { default: () => "body" }) });
   app.mount(host);
   return nextTick();
 }

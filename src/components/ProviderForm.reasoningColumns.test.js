@@ -14,9 +14,11 @@
 // branch paints. Mounted with plain createApp; fetch stubbed. (Kit components are tested in
 // JW's harness — the LuFeatureChip.save.test.js / ProviderForm.keyReveal.test.js precedent.)
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick } from "vue";
+import { h, nextTick } from "vue";
 
 import ProviderForm from "@delebash/llm-ui/views/ProviderForm.vue";
+// Quasar installed as in the real app — the kit's controls are Quasar components
+import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
 
 const REASON_ROWS = [
   { level: "low", word: "", tokens: 1024 }, { level: "medium", word: "", tokens: 4096 },
@@ -62,7 +64,7 @@ async function openReasoning(providerType) {
     id: "p", name: "P", providerType, baseUrl: "https://x", hasApiKey: false, local: false,
     defaultModel: "", embeddingModel: "", timeoutSeconds: 60,
   };
-  app = createApp({ render: () => h(ProviderForm, { provider }) });
+  app = createTestApp({ render: () => h(ProviderForm, { provider }) });
   app.directive("tooltip", {});
   app.mount(host);
   await flush();

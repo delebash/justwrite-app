@@ -16,9 +16,11 @@
 // same pattern as ProviderForm.keyReveal.test.js. Distinct provider ids per case because
 // the useProviderModels cache is module-scoped (persists across a file's tests).
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick } from "vue";
+import { h, nextTick } from "vue";
 
 import ProviderForm from "@delebash/llm-ui/views/ProviderForm.vue";
+// Quasar installed as in the real app — the kit's controls are Quasar components
+import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
 
 let modelGets;   // provider ids whose GET /{id}/models fired
 let probePosts;  // count of draft-probe POSTs
@@ -72,7 +74,7 @@ async function flush(times = 24) {
 }
 
 async function mount(provider) {
-  app = createApp({ render: () => h(ProviderForm, { provider }) });
+  app = createTestApp({ render: () => h(ProviderForm, { provider }) });
   app.directive("tooltip", {});
   app.mount(host);
   await flush();

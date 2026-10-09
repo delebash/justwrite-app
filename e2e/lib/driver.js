@@ -9,7 +9,8 @@
 // on during the tests.
 //
 // What it launches: the built desktop app before packaging — Quasar's
-// dist/electron/UnPackaged (`npm run build:unpacked` first, or `npm run build`), run by the
+// dist/electron/UnPackaged (`npm run build` first — `build:unpacked` doesn't install the server
+// package there, so the app's shell finds no server to start), run by the
 // checkout's Electron — loading the BUILT UI from app://, with its own server on the dev data
 // folder `<repo>/data` (the user's real data; JUSTWRITE_DATA_DIR points it there, since an
 // unpacked app has no checkout of its own). JUSTWRITE_DEV_NO_SERVER=1 keeps the shell from

@@ -14,15 +14,16 @@
 // app renders no Quasar component yet.
 import { expect } from "vitest";
 import { registerBootSmoke } from "@delebash/llm-ui/test/bootSmoke.js";
+// Quasar installed as in the real app — the kit's controls are Quasar components
+import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
 
 registerBootSmoke({
   boot: async () => {
-    const { createApp } = await import("vue");
     const { default: App } = await import("./App.vue");
     const { default: createStore } = await import("./stores/index.js");
     const { default: createRouter } = await import("./router/index.js");
     const { default: jwBoot } = await import("./boot/jw.js");
-    const app = createApp(App);
+    const app = createTestApp(App);
     const store = await createStore({});
     app.use(store);
     const router = await createRouter({ store });

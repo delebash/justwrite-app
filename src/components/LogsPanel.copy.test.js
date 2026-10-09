@@ -16,9 +16,11 @@
 // get tested (the ProviderForm.keyReveal.test.js precedent). Mounted with plain
 // createApp; fetch and the clipboard are stubbed.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, nextTick } from "vue";
+import { nextTick } from "vue";
 
 import LogsPanel from "@delebash/llm-ui/components/LogsPanel.vue";
+// Quasar installed as in the real app — the kit's controls are Quasar components
+import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
 
 // Two INFO lines and an ERROR with a continuation, exactly as the server writes
 // them since logs_api.py `_FMT` went strict-ISO.
@@ -65,7 +67,7 @@ afterEach(() => {
 });
 
 async function mountPanel() {
-  app = createApp(LogsPanel);
+  app = createTestApp(LogsPanel);
   app.mount(host);
   // let onMounted's loadDays + refresh resolve
   for (let i = 0; i < 6; i++) await nextTick();

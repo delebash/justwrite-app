@@ -11,7 +11,9 @@ so the app's real Content-Security-Policy stays on), and every DOM helper rides 
 
 ```bash
 npm install                          # here (playwright-core), at the app root and in src-electron/ (electron)
-npm run build:unpacked               # from the app root — the harness drives the BUILT desktop app
+npm run build                        # from the app root — the harness drives the BUILT desktop app
+                                     # (dist/electron/UnPackaged with its server package installed —
+                                     # build:unpacked skips that install, so the app finds no server)
 ```
 
 No browser download and no driver binary: Playwright attaches to the Electron the app ships.
@@ -97,7 +99,7 @@ lands at `../../justwrite-website/public/screenshots/<name>.png`.
 ## Gotchas
 
 - The harness drives whatever `dist/electron/UnPackaged/` was last built. Run
-  `npm run build:unpacked` in the app root if your source has drifted.
+  `npm run build` in the app root if your source has drifted.
 - Don't run with your own JustWrite open — both would start a server on :17495 over the same
   data folder (the shell evicts the other listener).
 - On boot the app may start loading your default AI model (warm-on-startup); closing the app
