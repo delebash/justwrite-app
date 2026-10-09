@@ -28,7 +28,8 @@ BUILT:  2026-10-09 — 14 routers, app.js, phone.js, sync.js, the error envelope
         `#api/autosave_api`, `#database/demo_seed`, `#editor/html`, `#sync_platform`); the phone bundle
         8.0 MB, checked in Chrome on `dist/spa-in-app` (the book, an image, an AI stream). The plan:
         `../just-llm-runner/docs/plans/2026-10-09-hono-standard.md` §9.
-OPEN:   the Android emulator run of the phone on Hono.
+OPEN:   nothing. (2026-10-09: the phone on Hono ran on the Android 16 emulator — the tutorial book,
+        kept across a force-stop, an AI answer through native HTTP.)
 GO:     given 2026-10-09 (the kit's item).
 
 ## JustWrite on Quasar — the desktop app and Settings → Sync BUILT and merged; the phone next [2026-10-08]
