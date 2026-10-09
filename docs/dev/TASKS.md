@@ -43,8 +43,19 @@ BUILT:  slice 5 — the kit fdbc100, 33ab9fe; JustWrite 321a6a5 (the 390 px pass
         `?tab=` to the shared area, as it does `?providers=`), the chapter bar wraps instead of
         running past the card, the Beat sheet hides its spinner beside an error; user docs:
         ai-providers.md (the Usage tab's place), sync.md (the phone pager). Checked: the 390 px walk,
-        1280 px screenshots, `/ai?tab=usage` opens Usage.
-OPEN:   1 — the push, then slice 6 (the plan's slice 6).
+        1280 px screenshots, `/ai?tab=usage` opens Usage. 1 — pushed (JustWrite, the kit,
+        just-sqlite-sync). Slice 6 — `src-capacitor/ios` (Capacitor's, Swift Package Manager; Info.plist:
+        local-network HTTP and the camera line), `.github/workflows/phone-ios.yml` (manual) +
+        `e2e/phone-ios.js` (Appium's XCUITest driver): green on run 38000436545 — welcome, the tutorial
+        book, five screens, the book kept after quit and reopen, no errors (iOS 18.6 simulator). Found
+        and fixed: the title bar under the status bar and island, the editor's word count under the
+        home indicator (the kit's theme, a4e4639, b35e0e4). Screenshots, Android and iPhone:
+        claude.ai/artifact/GVRYsL1qV9jU5JR9RkPUAr.
+OPEN:   1. your review of the screenshots; 2. the phone's no-model error wording (it names Quick
+        Setup, which the phone doesn't have) — your words; 3. the camera line on iOS ("JustWrite uses
+        the camera to scan the pairing code your computer shows.") — written by me, yours to change;
+        4. not run: sync with a paired computer from iOS, the unsigned device build for the sideload
+        route (the cloud-folder item, OPEN 1).
 GO:     given 2026-10-09 ("you can do whatever your need your rec go").
 
 ## The phone's cloud folder through the Files app — Dropbox first, OneDrive after November [2026-10-09]
@@ -129,8 +140,8 @@ OPEN:   1. DONE — merged into master by the user's go ("your rec all go", on "
         3. The phone: the server in a web worker on SQLite WASM, the storage guard, OneDrive/
            Dropbox sign-in, the QR pairing (the Sync item below). Scope decided 2026-10-08 (the
            Sync item, decision 8): the book, its images and versions, sync, online AI providers.
-           Slices 1–4 built; slice 5 (the phone's screens) in progress — what is built and what
-           is next: the kit's `docs/plans/2026-10-08-the-phone.md`, slice 5, "Where it stands".
+           Slices 1–6 built (5 and 6 on 2026-10-09 — the item "The phone's screens (slice 5) and
+           the iOS build (slice 6)"); the record: the kit's `docs/plans/2026-10-08-the-phone.md`.
         4. The release workflow is rewritten for Quasar but not run (it needs a tag).
 GO:     given 2026-10-08 ("we need to do the quasar conversion as well you have a go on that").
 
