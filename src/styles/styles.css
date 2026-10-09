@@ -542,13 +542,15 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
   border-radius: 7px;
   color: var(--muted);
 }
-.nav-filter input {
+/* the filter's UiInput: its box is QInput's root (the kit's controls on Quasar), the text field
+   the native input inside it */
+.nav-filter .ui-input {
   flex: 1; min-width: 0; height: 22px;
   border: 0; outline: 0; background: transparent;
   font: inherit; font-size: 11.5px; color: var(--ink);
   padding: 0;
 }
-.nav-filter input::placeholder { color: var(--subtle); }
+.nav-filter .ui-input .q-field__native::placeholder { color: var(--subtle); }
 .nav-add {
   width: 20px; height: 20px; border: 0; background: transparent;
   color: var(--muted); border-radius: 4px;
