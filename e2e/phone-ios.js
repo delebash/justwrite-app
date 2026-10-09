@@ -132,10 +132,11 @@ try {
 
   // ── the tutorial book, made through the app ──
   await click("^Try the tutorial project");
-  const book = await waitFor(/Ninth Facet[\s\S]*Brass Rank|Brass Rank[\s\S]*Ninth Facet/);
+  // the book's home page (its chapter list is in the drawer, closed on a phone)
+  const book = await waitFor(/Ninth Facet/);
   await skipAiOffer();
   shot("02-home");
-  check("the tutorial book opens", !!book);
+  check("the tutorial book opens", !!book && !/Try the tutorial project/i.test(book));
 
   // ── the key screens ──
   await driver.execute(`document.querySelector('[aria-label*="sidebar" i], [aria-label*="menu" i], .q-header button')?.click()`);
