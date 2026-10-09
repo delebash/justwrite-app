@@ -48,6 +48,9 @@ const driver = await remote({
     "appium:wdaConnectionTimeout": 480000,
     "appium:showSafariConsoleLog": true,
     "appium:webviewConnectTimeout": 60000,
+    // the simulator's web inspector lists the app by its executable ("process-App"), not its
+    // bundle id, so Appium doesn't pick its web view without being told
+    "appium:additionalWebviewBundleIds": ["process-App"],
   },
 });
 
