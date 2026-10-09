@@ -38,6 +38,7 @@ The same keys work on every page.
 | **← / →**, **Home / End** | Move between those tabs; **Enter** or **Space** opens the one you're on |
 | **← / →** in a row of choices (Appearance's sizes and styles, a chapter's Edit / Outline / Read switch, …) | Move between the choices; **Enter** or **Space** picks one, and typing a choice's first letter picks it |
 | **Enter** on a colour swatch | Opens its colours; **Tab** moves through them, **Enter** picks one, **Esc** closes |
+| **↓**, **Enter** or **Space** on a **⋯** menu (AI Settings → a model's actions) | Opens it on its first action (**↑** on its last); **↑ / ↓**, **Home / End** and typing an action's first letter move; **Enter** picks; **Esc** closes |
 
 ---
 

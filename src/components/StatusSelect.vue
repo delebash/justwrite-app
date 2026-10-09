@@ -5,20 +5,21 @@
 // status…" that adds to the palette and selects it. Recolor/rename/delete live
 // in Settings → Project.
 //
-// Built on Reka UI Select primitives (2026-07-20) — the hand-rolled listbox +
-// raw document-mousedown dismissal it replaced had NO keyboard support. Reka
-// gives arrow-key nav, type-ahead, Enter/Esc, focus management, and full ARIA
-// for free. Visual parity is preserved (color dots, colored labels, the
-// "New status…" footer). The create action is a sentinel-valued item: selecting
-// it (mouse OR keyboard) opens the prompt instead of setting a status — the same
-// pattern the kit's own shells use to compose behavior onto Reka primitives.
+// Built on Quasar's QSelect (the kit's controls on Quasar — the kit's
+// docs/plans/2026-10-09-kit-controls-on-quasar.md, slice 7b; Reka UI's Select
+// before it, 2026-07-20, which replaced a hand-rolled listbox with NO keyboard
+// support). QSelect gives arrow-key nav, type-ahead, Enter/Esc, focus management
+// and the ARIA; the pill is its control, the menu its list. Visual parity is
+// preserved (color dots, colored labels, the "New status…" footer), and the items
+// keep Reka's state attributes (data-highlighted, data-state) the styles read.
+// "New status…" is an option of its own: picking it (mouse OR keyboard) opens the
+// prompt instead of setting a status. The two rules are disabled options, so the
+// keys pass over them.
 
-import { computed } from "vue";
-import {
-  SelectRoot, SelectTrigger, SelectPortal, SelectContent, SelectViewport,
-  SelectItem, SelectItemText, SelectItemIndicator,
-} from "reka-ui";
-import { promptDialog, Icon } from "@delebash/llm-ui";
+import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
+import { QSelect } from "quasar";
+import { promptDialog, Icon, useModalPopup } from "@delebash/llm-ui";
 import { useProjectStore } from "../stores/project.js";
 
 const props = defineProps({
@@ -26,10 +27,8 @@ const props = defineProps({
 });
 const emit = defineEmits(["update:modelValue"]);
 const project = useProjectStore();
+const { t } = useI18n();
 
-// Reka reserves "" as its no-selection value, so "Unset" rides an internal
-// sentinel; "New status…" rides another (selecting it opens the prompt).
-const UNSET_SENTINEL = "__status_unset__";
 const NEW_SENTINEL = "__status_new__";
 
 // "Unset" is a synthetic, non-editable status: items with no status id still
@@ -38,16 +37,18 @@ const UNSET = { label: "Status Unset", color: "var(--muted)" };
 const real = computed(() => project.statusById(props.modelValue));
 const current = computed(() => real.value || UNSET);
 
-// Round-trip the model through the sentinel for the empty ("unset") value.
-const selected = computed({
-  get() {
-    return props.modelValue ? String(props.modelValue) : UNSET_SENTINEL;
-  },
-  set(v) {
-    if (v === NEW_SENTINEL) { addNew(); return; }          // don't change the value
-    emit("update:modelValue", v === UNSET_SENTINEL ? "" : v);
-  },
-});
+const options = computed(() => [
+  { value: "", label: t("status.unset"), unset: true },
+  { value: "__rule_1__", rule: true, disable: true },
+  ...project.statuses.map((s) => ({ value: s.id, label: s.label, color: s.color })),
+  { value: "__rule_2__", rule: true, disable: true },
+  { value: NEW_SENTINEL, label: t("status.new"), add: true },
+]);
+
+function pick(v) {
+  if (v === NEW_SENTINEL) { addNew(); return; } // don't change the value
+  emit("update:modelValue", v ?? "");
+}
 
 // Curated, legible hues for newly-added statuses (defaults keep their
 // theme-adaptive CSS vars).
@@ -69,64 +70,106 @@ async function addNew() {
   const id = project.addStatusDef({ label, color });
   emit("update:modelValue", id);
 }
+
+const open = ref(false);
+// while the list is open the page behind takes no pointer, as under Reka (the kit's useModalPopup)
+useModalPopup(open);
+// the option slot gets QItem's props; the item here is a plain element, so only these reach it
+function itemAttrs(p) {
+  return {
+    id: p.id, role: p.role, tabindex: p.tabindex,
+    "aria-selected": p["aria-selected"], "aria-setsize": p["aria-setsize"], "aria-posinset": p["aria-posinset"],
+    onClick: p.onClick, onPointermove: p.onPointermove,
+  };
+}
 </script>
 
 <template>
-  <SelectRoot v-model="selected">
-    <SelectTrigger class="status-pill" :aria-label="$t('status.ariaLabel')" aria-haspopup="listbox">
+  <QSelect
+    :model-value="modelValue || ''"
+    :options="options"
+    option-label="label"
+    option-value="value"
+    emit-value
+    map-options
+    borderless
+    dense
+    hide-bottom-space
+    hide-dropdown-icon
+    options-dense
+    behavior="menu"
+    popup-content-class="status-menu"
+    menu-anchor="bottom right"
+    menu-self="top right"
+    :menu-offset="[0, 4]"
+    :transition-duration="0"
+    :aria-label="$t('status.ariaLabel')"
+    class="status-pill"
+    :class="{ 'is-open': open }"
+    @update:model-value="pick"
+    @popup-show="open = true"
+    @popup-hide="open = false"
+  >
+    <template #selected>
       <span class="status-pill-dot" :class="{ 'status-pill-dot--empty': !real }" :style="real ? { background: current.color } : null" />
       <span class="status-pill-label" :style="{ color: current.color }">{{ current.label }}</span>
+    </template>
+    <template #append>
       <Icon name="ChevDown" :size="13" class="status-pill-chev" />
-    </SelectTrigger>
-
-    <SelectPortal>
-      <SelectContent class="status-menu" position="popper" align="end" :side-offset="4" :collision-padding="8">
-        <SelectViewport>
-          <SelectItem :value="UNSET_SENTINEL" class="status-opt status-opt-muted">
-            <span class="status-pill-dot status-pill-dot--empty" />
-            <SelectItemText class="status-opt-label">{{ $t("status.unset") }}</SelectItemText>
-            <SelectItemIndicator class="status-opt-check"><Icon name="Check" :size="13" /></SelectItemIndicator>
-          </SelectItem>
-
-          <div class="status-menu-sep" />
-
-          <SelectItem v-for="s in project.statuses" :key="s.id" :value="s.id"
-            class="status-opt" :style="{ color: s.color }">
-            <span class="status-pill-dot" :style="{ background: s.color }" />
-            <SelectItemText class="status-opt-label">{{ s.label }}</SelectItemText>
-            <SelectItemIndicator class="status-opt-check"><Icon name="Check" :size="13" /></SelectItemIndicator>
-          </SelectItem>
-
-          <div class="status-menu-sep" />
-
-          <SelectItem :value="NEW_SENTINEL" class="status-opt status-opt-muted">
-            <Icon name="Plus" :size="13" />
-            <SelectItemText class="status-opt-label">{{ $t("status.new") }}</SelectItemText>
-          </SelectItem>
-        </SelectViewport>
-      </SelectContent>
-    </SelectPortal>
-  </SelectRoot>
+    </template>
+    <template #option="{ itemProps, opt, selected, focused }">
+      <div v-if="opt.rule" class="status-menu-sep" role="separator" />
+      <div
+        v-else
+        v-bind="itemAttrs(itemProps)"
+        class="status-opt"
+        :class="{ 'status-opt-muted': opt.unset || opt.add }"
+        :style="opt.color ? { color: opt.color } : null"
+        :data-highlighted="focused ? '' : undefined"
+        :data-state="selected && !opt.add ? 'checked' : 'unchecked'"
+      >
+        <Icon v-if="opt.add" name="Plus" :size="13" />
+        <span v-else class="status-pill-dot" :class="{ 'status-pill-dot--empty': opt.unset }" :style="opt.color ? { background: opt.color } : null" />
+        <span class="status-opt-label">{{ opt.label }}</span>
+        <span v-if="selected && !opt.add" class="status-opt-check"><Icon name="Check" :size="13" /></span>
+      </div>
+    </template>
+  </QSelect>
 </template>
 
 <style scoped>
+/* QSelect's root holds the pill; its control (where QSelect hangs the menu) is the pill's box,
+   the wrappers around it pass through, and the value and the chevron sit in the box's row. */
 .status-pill {
-  appearance: none; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 7px;
-  height: 30px; padding: 0 9px;
-  border: 1px solid var(--border); border-radius: 8px;
-  background: var(--surface); font: inherit; font-size: 12.5px;
-  color: var(--ink);
+  display: inline-flex; vertical-align: middle; cursor: pointer;
+  font: inherit; font-size: 12.5px; color: var(--ink);
+  letter-spacing: normal; word-spacing: normal; text-transform: none;
 }
-.status-pill:hover { border-color: var(--border-strong); background: var(--surface-2); }
-.status-pill[data-state="open"] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.status-pill :deep(.q-field__inner),
+.status-pill :deep(.q-field__control-container),
+.status-pill :deep(.q-field__native),
+.status-pill :deep(.q-field__append) { display: contents; }
+/* QSelect sets its own text metrics on the value; the pill's are the button's it replaced */
+.status-pill :deep(.q-field__native) { font: inherit; letter-spacing: inherit; line-height: inherit; color: inherit; }
+.status-pill :deep(.q-field__control) {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 30px; min-height: 0; padding: 0 9px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); color: inherit;
+}
+.status-pill :deep(.q-field__control::before),
+.status-pill :deep(.q-field__control::after) { display: none; }
+.status-pill:hover :deep(.q-field__control) { border-color: var(--border-strong); background: var(--surface-2); }
+.status-pill.is-open :deep(.q-field__control) { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .status-pill-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--border-strong); flex: none; }
 .status-pill-dot--empty { background: transparent; border: 1px dashed var(--border-strong); }
 .status-pill-label { font-weight: 500; }
 .status-pill-chev { color: var(--muted); transition: transform .15s ease; }
-.status-pill[data-state="open"] .status-pill-chev { transform: rotate(180deg); }
+.status-pill.is-open .status-pill-chev { transform: rotate(180deg); }
 
-.status-menu {
+/* the menu is QSelect's, teleported out of this component: its box is a global rule */
+:global(.status-menu) {
+  pointer-events: auto;
   z-index: 40;
   min-width: 180px; padding: 4px;
   background: var(--surface); border: 1px solid var(--border-strong);
