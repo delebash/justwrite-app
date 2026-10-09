@@ -65,15 +65,10 @@ button:focus, button:focus-visible {
    ============================================================ */
 
 /* The layout (layouts/MainLayout.vue, Quasar's q-layout): the title bar in its header, the sidebar
-   in its drawer, each page (a q-page) in its page container. Its root is fixed to the window and
-   clips: the window never scrolls (each page owns its scroller), and Chrome then paints the whole
-   app — the fixed overlays included (the chat panel, the help drawer, the palette) — in this one
-   opaque layer, where text keeps its sub-pixel smoothing. With the document as the scroller, a
-   fixed overlay is a layer of its own and its text turns grey-smoothed (measured 2026-10-09). */
+   in its drawer, each page (a q-page) in its page container — fixed to the window and clipped, as
+   every family app's (the kit's quasar/theme.css, "Layout"). */
 .app-stage {
-  position: fixed; inset: 0;
   background: var(--surface);
-  overflow: hidden;
 }
 
 .titlebar {
