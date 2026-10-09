@@ -13,6 +13,8 @@ import { openDatabase } from "@delebash/llm-runner/platform/sql";
 import { join } from "node:path";
 import { testClient, tmpPath } from "./helpers.js";
 
+const phoneOn = (dir) => ({ handle: openDatabase(join(dir, "justwrite.db"), { foreignKeys: true }), dataDir: dir });
+
 test("an image's address becomes its path; other images stay as they are", () => {
   expect(stableImageSrc("http://127.0.0.1:17495/v1/images/img_1a2b")).toBe("/v1/images/img_1a2b");
   expect(stableImageSrc("https://localhost/v1/images/img_1a2b")).toBe("/v1/images/img_1a2b");
@@ -32,7 +34,7 @@ test("a scene stored with an absolute image address is written back with the pat
 });
 
 test("the phone's server keeps and returns an image's bytes", async () => {
-  const app = await createPhoneApp({ handle: openDatabase(join(tmpPath(), "justwrite.db"), { foreignKeys: true }) });
+  const app = await createPhoneApp(phoneOn(tmpPath()));
   const c = testClient(app);
   const png = Buffer.from("89504e470d0a1a0a0000000d49484452", "hex");
   const up = await c.post("/v1/images", { json: { name: "map.png", mime: "image/png", dataBase64: png.toString("base64") } });

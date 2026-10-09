@@ -14,19 +14,19 @@
 // (the settings table's `sync` and `auth` rows), what an export holds (the picked books and their
 // images), and the error shape (the kit's problem+json).
 
-import { betterSqlite3Adapter } from "@delebash/sqlite-sync";
 import { createAppSync } from "@delebash/sqlite-sync/app";
 import { ApiError, HttpError } from "@delebash/llm-runner/platform/errors";
 import { getLogger } from "@delebash/llm-runner/platform/log";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
 import { getSchema } from "@tiptap/core";
-import { generateHTML, generateJSON } from "@tiptap/html/server";
+import { generateHTML, generateJSON } from "./editor/html.js";
 import { Node as PMNode } from "@tiptap/pm/model";
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from "@tiptap/y-tiptap";
 import * as Y from "yjs";
 import { bodyToHtml, editorExtensions, schemaMention } from "./editor/editorSchema.js";
 import { PROJECT_TABLES, pyLoads } from "./book_io.js";
 import { state as dbState } from "./database/session.js";
+import { SYNC_PLATFORM, syncDatabase } from "./sync_platform.js";
 
 const log = getLogger("justwrite_server.sync");
 
@@ -110,7 +110,7 @@ const appSync = createAppSync({
   appName: "JustWrite",
   schemaVersion: SYNC_SCHEMA_VERSION,
   tables: tableConfig,
-  database: () => betterSqlite3Adapter(dbState.handle.raw),
+  database: () => syncDatabase(dbState.handle.raw),
   yjs: Y,
   settings: { read: () => readRow("sync"), write: (cfg) => writeRow("sync", cfg) },
   auth: {
@@ -143,6 +143,8 @@ const appSync = createAppSync({
     refused: (e) => new ApiError(409, e.code, "Sync refused", e.message, { error: e.code, ...(e.details ?? {}) }),
   },
   log,
+  // a computer's defaults, or the phone's (sync_platform.phone.js)
+  platform: SYNC_PLATFORM,
 });
 
 /** Open sync on the book tables (after initDb). Safe to call again (a reset, a new data dir). */

@@ -28,7 +28,7 @@ export async function buildPhoneWorker() {
     platform: "browser",
     target: "es2022",
     inject: [WORKER_GLOBALS],
-    plugins: [workerShims({ appRoot: root }), nodeModulesPolyfillPlugin({ globals: { Buffer: true, process: true }, fallback: "empty" })],
+    plugins: [workerShims({ appRoot: root, dedupe: ["yjs"] }), nodeModulesPolyfillPlugin({ globals: { Buffer: true, process: true }, fallback: "empty" })],
     logLevel: "warning",
     metafile: true,
   });

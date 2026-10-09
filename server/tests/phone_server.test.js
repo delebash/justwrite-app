@@ -12,8 +12,15 @@ import * as demo from "../src/database/demo_seed.js";
 import { router as autosaveTwin } from "../src/api/autosave_api.phone.js";
 import * as appStateTwin from "../src/app_state.phone.js";
 import * as appState from "../src/app_state.js";
-import { createPhoneApp, PHONE_DATA_DIR } from "../src/phone.js";
+import * as htmlTwin from "../src/editor/html.phone.js";
+import * as html from "../src/editor/html.js";
+import * as syncPlatformTwin from "../src/sync_platform.phone.js";
+import * as syncPlatform from "../src/sync_platform.js";
+import { createPhoneApp } from "../src/phone.js";
 import { testClient, tmpPath } from "./helpers.js";
+
+/** The phone's server on a temporary folder (its database, and the computer's sync identity file). */
+const phoneOn = (dir) => ({ handle: openDatabase(join(dir, "justwrite.db"), { foreignKeys: true }), dataDir: dir });
 
 const SNAP = {
   project: { title: "The Lamp", author: "Mira Halden" },
@@ -23,14 +30,14 @@ const SNAP = {
 };
 
 async function phone() {
-  const app = await createPhoneApp({ handle: openDatabase(join(tmpPath(), "justwrite.db"), { foreignKeys: true }) });
+  const app = await createPhoneApp(phoneOn(tmpPath()));
   await app.ready();
   return testClient(app);
 }
 
 test("the phone's server keeps a book, its versions and settings, and answers errors as the desktop's", async () => {
   const c = await phone();
-  expect((await c.get("/v1/health")).json()).toMatchObject({ status: "ok", product: "JustWrite Server", dataDir: PHONE_DATA_DIR, dbReady: true });
+  expect((await c.get("/v1/health")).json()).toMatchObject({ status: "ok", product: "JustWrite Server", dbReady: true });
   expect((await c.get("/v1/projects")).json()).toEqual([]);
   expect((await c.put("/v1/projects/prj1/book", { json: SNAP, headers: { "x-jw-client": "w1" } })).statusCode).toBe(204);
   const book = (await c.get("/v1/projects/prj1/book")).json();
@@ -56,6 +63,9 @@ test("the twins keep the originals' names and answers", async () => {
   expect(demoTwin.demoBookSnapshot()).toEqual(demo.demoBookSnapshot());
   expect([...demoTwin.demoSampleImages()]).toEqual([...demo.demoSampleImages()]);
   expect(Object.keys(appStateTwin).sort()).toEqual(Object.keys(appState).sort());
+  expect(Object.keys(syncPlatformTwin).sort()).toEqual(Object.keys(syncPlatform).sort());
+  expect(Object.keys(htmlTwin).sort()).toEqual(Object.keys(html).sort());
+  expect(syncPlatformTwin.SYNC_PLATFORM.deviceId()).toBeUndefined(); // the engine keeps it
 
   const app = createServer({ typeBase: "https://justwrite.dev/errors/" });
   app.register(autosaveTwin);
