@@ -6,7 +6,8 @@
 // the simulator's display (`simctl io screenshot` — the screen itself, not the web inspector's
 // capture); then the app is quit and opened again, and the book must still be there.
 // Exits 1 when a check fails.
-//   SIM_UDID — the booted simulator; APP_PATH — the built App.app; Appium on 127.0.0.1:4723.
+//   SIM_UDID — the booted simulator (SIM_VERSION its iOS, optional); APP_PATH — the built App.app;
+//   Appium on 127.0.0.1:4723.
 // Usage: node phone-ios.js <outDir>
 import { spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -35,6 +36,11 @@ const driver = await remote({
     platformName: "iOS",
     "appium:automationName": "XCUITest",
     "appium:udid": UDID,
+    ...(process.env.SIM_VERSION ? { "appium:platformVersion": process.env.SIM_VERSION } : {}),
+    // the simulator is already booted with no window (the runner has no screen); without this
+    // Appium reboots it under the Simulator app and times out waiting
+    "appium:isHeadless": true,
+    "appium:simulatorStartupTimeout": 300000,
     "appium:app": APP_PATH,
     "appium:bundleId": BUNDLE,
     "appium:newCommandTimeout": 600,

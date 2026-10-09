@@ -58,16 +58,25 @@ jobs:
           echo "APP_PATH=$PWD/build/Build/Products/Debug-iphonesimulator/App.app" >> "$GITHUB_ENV"
       - name: Boot a simulator
         run: |
-          UDID=$(xcrun simctl list devices available -j | node -e '
+          # The newest iPhone on an iOS of the active Xcode's SDK major: Appium builds its
+          # WebDriverAgent with that Xcode, which can't drive a newer major (the image also carries
+          # iOS 26 runtimes beside Xcode 16's iOS 18 SDK).
+          SDK=$(xcrun --sdk iphonesimulator --show-sdk-version)
+          read -r UDID VERSION < <(xcrun simctl list devices available -j | SDK="$SDK" node -e '
             let s = ""; process.stdin.on("data", (d) => (s += d)).on("end", () => {
+              const major = process.env.SDK.split(".")[0];
+              const ver = (rt) => (rt.match(/iOS-([\d-]+)$/)?.[1] || "").split("-").map(Number);
+              const newer = (a, b) => { for (let i = 0; i < 3; i++) if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) - (b[i] || 0); return 0; };
               const all = Object.entries(JSON.parse(s).devices)
-                .filter(([rt]) => rt.includes("iOS"))
-                .flatMap(([rt, ds]) => ds.map((d) => ({ ...d, rt })))
+                .filter(([rt]) => ver(rt)[0] === Number(major))
+                .flatMap(([rt, ds]) => ds.map((d) => ({ ...d, v: ver(rt) })))
                 .filter((d) => d.name.startsWith("iPhone"));
-              all.sort((a, b) => (a.rt < b.rt ? 1 : -1));
-              console.log(all[0].udid);
+              all.sort((a, b) => newer(b.v, a.v));
+              console.log(all[0].udid, all[0].v.join("."));
             });')
+          echo "SDK $SDK → simulator $UDID, iOS $VERSION"
           echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+          echo "SIM_VERSION=$VERSION" >> "$GITHUB_ENV"
           xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b
       - name: Start Appium (the XCUITest driver)
