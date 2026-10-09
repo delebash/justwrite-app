@@ -118,6 +118,29 @@ tools) are in the kit's register §2, "Phones".
 
 ---
 
+## Sync (2026-10-08)
+
+The engine's own facts are `../just-sqlite-sync/docs/dev/RESEARCH.md`; the field and the phone
+tests are the kit's RESEARCH §2 "Sync" / "Sync, round 2". JustWrite's:
+
+- **The book save used to rewrite the whole book** (`book_io.decompose`: delete every child row,
+  insert again) — with change recording on, every save would have stamped every field and
+  overwritten other devices' edits. The renderer's save now goes through `saveBookChanges`
+  against the rows that window last loaded (server/src/api/projects_api.js).
+- **The editor's schema loads in Node** (`src/services/editorSchema.js` + aiDiff/markers/
+  searchReplace: plain TipTap, the DOM only inside functions); `getSchema` gives 21 nodes and 14
+  marks; TipTap warns "Duplicate extension names found: ['link', 'underline']" (StarterKit 3
+  already includes both) — as the editor always has.
+- **Scene merge through y-tiptap** (`@tiptap/y-tiptap` 3.0.9 `updateYFragment`, `@tiptap/html`
+  3.27.1 `/server` on happy-dom 20.14.5): HTML round-trips exactly; two devices' edits to one
+  scene merge (tested). Known limit: `updateYText` diffs each text run by common prefix/suffix, so
+  a mark one device adds can stretch over words the other inserted inside the same run — text is
+  never lost, formatting can over-extend in that case (spike, 2026-10-08).
+- **Two copies of Yjs break each other's `instanceof` checks** — the linked engine resolves its
+  own `yjs`; JustWrite passes its own to `openSync({ yjs })`.
+- **Packaging:** the server now imports TipTap at runtime, so those packages moved from
+  devDependencies to dependencies (electron-builder ships only production dependencies).
+
 ## Records not yet distilled
 
 Indexed by subject so they can be found; their facts move into a section above when work next

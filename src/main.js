@@ -17,6 +17,7 @@ import App from "./App.vue";
 import router from "./router/index.js";
 import { bootSettings, readSetting } from "./services/settings.js";
 import { hydrateProjects, useProjectStore } from "./stores/project.js";
+import { watchSync } from "./services/projectApi.js";
 import { useSessionsStore } from "./stores/sessions.js";
 import { bootProviders } from "./services/providerBackend.js";
 import { bootRouting } from "./services/routingBackend.js";
@@ -226,6 +227,10 @@ configureHelp({
   });
 
   app.mount("#app");
+
+  // Sync: when another device's changes land on the server, reload the open book
+  // (services/projectApi.js watchSync; server/src/sync.js).
+  watchSync(() => useProjectStore(pinia).reloadFromServer());
 
   // Dev-only test seams: the project store (deterministic edits for book-smoke)
   // and the bench hook (the LLM bench harness drives real feature runs through

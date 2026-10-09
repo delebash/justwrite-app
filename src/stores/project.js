@@ -26,7 +26,12 @@ import { nextColor, nextHue } from "../services/categoricalColors.js";
 // Undo/redo is in-memory only (not persisted across reloads); durable rollback
 // is the per-chapter version history (stores/versions.js).
 
-const uid = (p) => `${p}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+// Ids are unique across devices — sync merges the books of several (the 4 random characters
+// this had could meet on two devices): time + 14 random base-36 characters (64 bits).
+const uid = (p) => {
+  const r = globalThis.crypto.getRandomValues(new Uint32Array(2));
+  return `${p}_${Date.now().toString(36)}_${r[0].toString(36).padStart(7, "0")}${r[1].toString(36).padStart(7, "0")}`;
+};
 
 function wordCountFromHtml(html) {
   if (!html) return 0;
@@ -2255,6 +2260,20 @@ export const useProjectStore = defineStore("project", {
       this.clearHistory();
       this._persist();
       return id;
+    },
+
+    /**
+     * Another device's changes landed in the open book (sync): save what this window has
+     * pending, then load the book again. Undo history is cleared — an undo would otherwise
+     * write back the pre-sync book.
+     */
+    async reloadFromServer() {
+      const id = this._activeId;
+      if (!id) return;
+      const snap = normalizeSnapshot(await projectApi.refetchSnapshot(id));
+      if (!snap || id !== this._activeId) return;
+      Object.assign(this.$state, snap);
+      this.clearHistory();
     },
 
     async switchProject(id) {

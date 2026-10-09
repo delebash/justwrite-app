@@ -44,6 +44,7 @@ import { _bundledSamplesDir, _dirHasSample } from "./database/demo_seed.js";
 import { initDb, state } from "./database/session.js";
 import { FEATURE_CATALOG } from "./feature_catalog.js";
 import { defaultDataDir, SOURCE_ROOT } from "./paths.js";
+import { flushSync, openBookSync, stopBookSync, router as syncRouter } from "./sync.js";
 import { DEFAULT_FEATURE_PROMPTS, FEATURE_PROMPT_HEALS } from "./seed_feature_prompts.js";
 import {
   DEFAULT_ENGINE_PRESETS,
@@ -146,7 +147,10 @@ function errorEnvelope(err, request, reply) {
 /** The Fastify app (not yet listening). `dataDir` defaults to the family data-root ladder. */
 export async function createApp(dataDir = null) {
   dataDir = dataDir ? purePath(String(dataDir)) : defaultDataDir();
-  initDb(dataDir);
+  const h = initDb(dataDir);
+  // Sync on the book tables (../just-sqlite-sync; docs/dev/TASKS.md "Sync — …"): the engine
+  // notes every change to them from here on, and adopts the rows already there.
+  openBookSync(h, dataDir);
   setState(new AppState(dataDir));
   materializeSamples(dataDir);
   // Server logs → in-memory ring (the AI/Logs viewer) + a per-day file that survives a
@@ -193,12 +197,20 @@ export async function createApp(dataDir = null) {
   // /v1/* only.
   app.register(BearerAuthMiddleware, { readAuth, typeBase: TYPE_BASE });
 
+  // Sync: stamp what the triggers noted after every request that may have written (the order
+  // edits were made in is the order their stamps run); stop the auto-sync timer on close.
+  app.addHook("onResponse", async (req) => {
+    if (req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS") flushSync();
+  });
+  app.addHook("onClose", async () => stopBookSync());
+
   app.register(healthRouter);
   app.register(serverAuthRouter); // the auth door + lockout escape (family shape)
   // The server-owned rotating on-disk JSON mirror of each book (moved off Rust 2026-07-13).
   app.register(autosaveRouter);
   app.register(sweepDraftRouter); // /v1/projects/{id}/sweep-draft
   app.register(projectsRouter);
+  app.register(syncRouter); // /v1/sync/* — the sync engine's routes + JustWrite's (export, import, folder, pairing)
   app.register(bookTransferRouter); // per-project zip export/import (/v1/projects/*)
   app.register(sessionsRouter);
   app.register(chatRouter);

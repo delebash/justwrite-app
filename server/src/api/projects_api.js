@@ -20,6 +20,35 @@ import { getDb } from "../database/session.js";
 
 const DICT_BODY = { schema: { body: T.Record(T.String(), T.Any()) } };
 
+// What each open window last loaded or saved of a book (bookIo.rowsByTable), keyed by the
+// window's `x-jw-client` id: a save writes only that window's own edits against it, so a field
+// another device changed meanwhile (sync) isn't written back with the window's older value. A
+// window with no base here (no id, or a server restarted under it) saves against the database.
+const bases = new Map();
+const MAX_BASES = 32;
+const baseKey = (req) => {
+  const client = req.headers["x-jw-client"];
+  return client ? `${client}\u0000${req.params.project_id}` : null;
+};
+function remember(key, rows) {
+  if (!key) return;
+  bases.delete(key);
+  bases.set(key, rows);
+  if (bases.size > MAX_BASES) bases.delete(bases.keys().next().value);
+}
+
+function loadBook(req) {
+  const snap = assembleOr404(getDb(), req.params.project_id);
+  remember(baseKey(req), bookIo.rowsByTable(bookIo.bookRows(req.params.project_id, snap)));
+  return snap;
+}
+
+function saveBook(req) {
+  const key = baseKey(req);
+  const next = bookIo.saveBookChanges(getDb(), req.params.project_id, pyOr(req.body, {}), key ? (bases.get(key) ?? null) : null);
+  remember(key, next);
+}
+
 function assembleOr404(h, projectId) {
   const snap = bookIo.assemble(h, projectId);
   if (snap === null) throw new HttpError(404, "project not found");
@@ -44,10 +73,10 @@ export async function router(app) {
     return { id: row.id, title: row.title, author: row.author, created };
   });
 
-  app.get("/v1/projects/:project_id", async (req) => assembleOr404(getDb(), req.params.project_id));
+  app.get("/v1/projects/:project_id", async (req) => loadBook(req));
 
   app.put("/v1/projects/:project_id", DICT_BODY, async (req, reply) => {
-    bookIo.decompose(getDb(), req.params.project_id, pyOr(req.body, {}));
+    saveBook(req);
     return reply.code(204).send();
   });
 
@@ -58,10 +87,10 @@ export async function router(app) {
     return reply.code(204).send();
   });
 
-  app.get("/v1/projects/:project_id/book", async (req) => assembleOr404(getDb(), req.params.project_id));
+  app.get("/v1/projects/:project_id/book", async (req) => loadBook(req));
 
   app.put("/v1/projects/:project_id/book", DICT_BODY, async (req, reply) => {
-    bookIo.decompose(getDb(), req.params.project_id, pyOr(req.body, {}));
+    saveBook(req);
     return reply.code(204).send();
   });
 

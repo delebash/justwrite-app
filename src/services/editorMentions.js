@@ -11,6 +11,7 @@
 // ============================================================
 
 import Mention from "@tiptap/extension-mention";
+import { MENTION_OPTIONS, mentionAttributes } from "./editorSchema.js";
 import { VueRenderer } from "@tiptap/vue-3";
 import MentionList from "@renderer/components/MentionList.vue";
 import { useProjectStore } from "@renderer/stores/project";
@@ -33,34 +34,11 @@ function getItems(query) {
 }
 
 export function buildMentionExtension() {
-  return Mention.extend({
-    addAttributes() {
-      return {
-        id: {
-          default: null,
-          parseHTML: (el) => el.getAttribute("data-id"),
-          renderHTML: (attrs) => (attrs.id == null ? {} : { "data-id": attrs.id }),
-        },
-        label: {
-          default: null,
-          parseHTML: (el) => el.getAttribute("data-label"),
-          renderHTML: (attrs) => (attrs.label == null ? {} : { "data-label": attrs.label }),
-        },
-        kind: {
-          default: "character",
-          parseHTML: (el) => el.getAttribute("data-kind") || "character",
-          renderHTML: (attrs) => ({ "data-kind": attrs.kind || "character" }),
-        },
-      };
-    },
-  }).configure({
+  // The node's attributes and rendering are services/editorSchema.js's, shared with the server's
+  // schema-only mention; this adds the @ suggestion popup.
+  return Mention.extend({ addAttributes: mentionAttributes }).configure({
+    ...MENTION_OPTIONS,
     deleteTriggerWithBackspace: true,
-    // Per-kind class for chip colouring; the data-kind attr drives the
-    // actual colour in CSS, this just guarantees a base `.mention` hook.
-    HTMLAttributes: { class: "mention" },
-    renderText({ node }) {
-      return `@${node.attrs.label ?? node.attrs.id}`;
-    },
     suggestion: {
       char: "@",
       items: ({ query }) => getItems(query),

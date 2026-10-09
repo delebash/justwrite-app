@@ -8,6 +8,12 @@
 //   session (committed by the route); here it runs in ONE transaction, so a failure part-way
 //   leaves the old rows, as Python's uncommitted session did.
 // - `assemble(h, projectId)` rebuilds the snapshot from the rows, read-only.
+// - `bookRows(projectId, snapshot)` is the snapshot as the rows decompose writes (no database).
+// - `saveBookChanges(h, projectId, snapshot, base)` is the renderer's save: it writes only what
+//   changed between `base` (the rows that renderer last loaded or saved) and the snapshot, so a
+//   field another device changed meanwhile through sync stays as it is. decompose's wipe-and-
+//   reinsert would record every field of the book as changed on every save (the sync design,
+//   ../just-llm-runner/docs/plans/2026-10-08-sync-product-design.md §7.1).
 //
 // assemble emits the **canonical** snapshot shape (link arrays always present on scenes;
 // full-key entities; the four default tag-vocab kinds; an empty scene list for every
@@ -25,10 +31,11 @@
 import { randomUUID } from "node:crypto";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
 import { b64decode, isDict, pyInt, pyIter, pyOr, pyTypeName, truthy, ValueError } from "@delebash/llm-runner/platform/py";
+import { TABLES } from "./database/models.js";
 
 // Every per-project table, wiped on decompose (NOT projects itself — it's upserted — and
 // NOT the rag_* tables, which the /v1/rag API owns separately).
-const PROJECT_TABLES = [
+export const PROJECT_TABLES = [
   "parts",
   "chapters",
   "scenes",
@@ -178,6 +185,22 @@ export function decompose(h, projectId, snap) {
 }
 
 function decomposeIn(h, projectId, snapIn) {
+  const { project, list } = bookRows(projectId, snapIn);
+  // The parent row first (Python flushed it before the wipe), so the project_id FK of every
+  // child row below is satisfiable.
+  if (h.get("projects", projectId) === null) h.insert("projects", { id: projectId, ...project });
+  else h.update("projects", project, { id: projectId });
+
+  // Wipe existing child rows; reinsert below.
+  for (const t of PROJECT_TABLES) h.run(`DELETE FROM ${t} WHERE ${t}.project_id = ?`, [projectId]);
+  for (const [table, row] of list) h.insert(table, row);
+}
+
+/**
+ * A snapshot as rows, without touching the database: `project` — the projects row's fields;
+ * `list` — [table, row] in the order decompose inserts them (each row carries project_id).
+ */
+export function bookRows(projectId, snapIn) {
   const snap = pyOr(snapIn, {});
   const proj = pyOr(pyGet(snap, "project"), {});
 
@@ -197,14 +220,7 @@ function decomposeIn(h, projectId, snapIn) {
     updated_at: s_(pyGet(snap, "savedAt")),
     data: "{}", // legacy blob retired once normalized
   };
-  // The parent row first (Python flushed it before the wipe), so the project_id FK of every
-  // child row below is satisfiable.
-  if (h.get("projects", projectId) === null) h.insert("projects", { id: projectId, ...fields });
-  else h.update("projects", fields, { id: projectId });
-
-  // Wipe existing child rows; reinsert below.
-  for (const t of PROJECT_TABLES) h.run(`DELETE FROM ${t} WHERE ${t}.project_id = ?`, [projectId]);
-
+  const list = [];
   const savedAt = s_(pyGet(snap, "savedAt"));
   const voiceCanon = new Set(pyIter(pyOr(pyGet(snap, "voiceCanonChapterIds"), [])));
 
@@ -218,7 +234,7 @@ function decomposeIn(h, projectId, snapIn) {
   const mrMap = pyOr(pyGet(snap, "chapterMultiReader"), {});
   const auditsMap = pyOr(pyGet(snap, "characterAudits"), {});
 
-  const add = (table, row) => h.insert(table, { project_id: projectId, ...row });
+  const add = (table, row) => list.push([table, { project_id: projectId, ...row }]);
 
   // parts → chapters → chapter_strands
   for (const [pi, part] of pyIter(pyOr(pyGet(snap, "parts"), [])).entries()) {
@@ -447,6 +463,79 @@ function decomposeIn(h, projectId, snapIn) {
       add("project_artifacts", { kind, key: s_(k), data: pyJson(v), updated_at: savedAt });
     }
   }
+  return { project: fields, list };
+}
+
+// ── save: only what changed ─────────────────────────────────────────────
+
+const PK = Object.fromEntries(TABLES.map((t) => [t.name, Object.keys(t.columns).filter((c) => t.columns[c].pk)]));
+const BOOL = Object.fromEntries(TABLES.map((t) => [t.name, new Set(Object.keys(t.columns).filter((c) => t.columns[c].kind === "bool"))]));
+// Columns rewritten by every save whatever changed (the save time): a row whose only difference
+// is one of these isn't a change.
+const TOUCHED_ON_EVERY_SAVE = { project_artifacts: new Set(["updated_at"]) };
+
+const keyOf = (table, row) => JSON.stringify(PK[table].map((c) => row[c]));
+const whereOf = (table, row) => Object.fromEntries(PK[table].map((c) => [c, row[c]]));
+const same = (table, col, a, b) => {
+  const norm = (v) => (v === undefined ? null : BOOL[table]?.has(col) || typeof v === "boolean" ? (v ? 1 : 0) : v);
+  return norm(a) === norm(b);
+};
+function changed(table, next, prev) {
+  const out = {};
+  for (const c of Object.keys(next)) if (!PK[table].includes(c) && !same(table, c, next[c], prev[c])) out[c] = next[c];
+  const touched = TOUCHED_ON_EVERY_SAVE[table];
+  if (touched && Object.keys(out).every((c) => touched.has(c))) return {};
+  return out;
+}
+
+/** bookRows grouped: table → Map(key → row). */
+export function rowsByTable({ project, list }) {
+  const rows = new Map();
+  for (const [table, row] of list) {
+    if (!rows.has(table)) rows.set(table, new Map());
+    rows.get(table).set(keyOf(table, row), row);
+  }
+  return { project, rows };
+}
+
+/**
+ * The renderer's save: write only what changed between `base` (rowsByTable of what this
+ * renderer last loaded or saved) and `snapshot`. With no base (a server restarted under an
+ * open window), the book as it is in the database is the base. Returns the new rows (the next
+ * base). One transaction.
+ */
+export function saveBookChanges(h, projectId, snapIn, base = null) {
+  const next = rowsByTable(bookRows(projectId, snapIn));
+  h.tx(() => {
+    if (!base) {
+      const cur = h.get("projects", projectId) === null ? null : assemble(h, projectId);
+      base = cur ? rowsByTable(bookRows(projectId, cur)) : { project: null, rows: new Map() };
+    }
+    const curProject = h.get("projects", projectId);
+    if (curProject === null) h.insert("projects", { id: projectId, ...next.project });
+    else {
+      const diff = changed("projects", next.project, base.project ?? curProject);
+      if (Object.keys(diff).length) h.update("projects", diff, { id: projectId });
+    }
+    const none = new Map();
+    for (const t of PROJECT_TABLES) {
+      const now = next.rows.get(t) ?? none;
+      const before = base.rows.get(t) ?? none;
+      for (const [k, row] of now) {
+        const prev = before.get(k);
+        const where = whereOf(t, row);
+        const inDb = h.get(t, where);
+        if (inDb === null) {
+          h.insert(t, row); // new here — or deleted meanwhile by another device and kept by this edit
+          continue;
+        }
+        const diff = changed(t, row, prev ?? inDb);
+        if (Object.keys(diff).length) h.update(t, diff, where);
+      }
+      for (const [k, prev] of before) if (!now.has(k)) h.delete(t, whereOf(t, prev));
+    }
+  });
+  return next;
 }
 
 // ── assemble: rows → snapshot ───────────────────────────────────────────

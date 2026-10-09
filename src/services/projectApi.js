@@ -20,6 +20,12 @@ let _registryLoaded = false;  // did the GET /v1/projects at boot actually succe
 let _booted = false;
 
 const PUT_DEBOUNCE_MS = 400;
+
+// This window's id on its book requests: the server remembers what each window last loaded
+// and saves only that window's own edits, so a field another device changed meanwhile (sync)
+// isn't written back (server/src/api/projects_api.js).
+const CLIENT_ID = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+const BOOK = { headers: { "x-jw-client": CLIENT_ID } };
 const _putTimers = new Map();
 
 /**
@@ -44,7 +50,7 @@ export async function bootProjects(activeId) {
   }
   if (activeId) {
     try {
-      const snap = await get(`/v1/projects/${activeId}/book`);
+      const snap = await get(`/v1/projects/${activeId}/book`, BOOK);
       if (snap && typeof snap === "object") _snapshots.set(activeId, snap);
     } catch (err) {
       // 404 is normal for a freshly-minted, never-saved active id.
@@ -80,7 +86,7 @@ function _flushPut(id) {
   _putTimers.delete(id);
   const snap = _snapshots.get(id);
   if (snap === undefined) return Promise.resolve();
-  return put(`/v1/projects/${id}/book`, snap, { keepalive: true }).catch((err) =>
+  return put(`/v1/projects/${id}/book`, snap, { keepalive: true, ...BOOK }).catch((err) =>
     console.error("projectApi PUT failed:", err),
   );
 }
@@ -113,7 +119,7 @@ export async function createDemoProject() {
 export async function fetchSnapshot(id) {
   if (_snapshots.has(id)) return _snapshots.get(id);
   try {
-    const snap = await get(`/v1/projects/${id}/book`);
+    const snap = await get(`/v1/projects/${id}/book`, BOOK);
     if (snap && typeof snap === "object") {
       _snapshots.set(id, snap);
       return snap;
@@ -122,6 +128,49 @@ export async function fetchSnapshot(id) {
     console.error("projectApi.fetchSnapshot failed:", err);
   }
   return null;
+}
+
+/** Load a book again from the server (after a sync changed it): pending saves go first. */
+export async function refetchSnapshot(id) {
+  await _flushPut(id);
+  try {
+    const snap = await get(`/v1/projects/${id}/book`, BOOK);
+    if (snap && typeof snap === "object") {
+      _snapshots.set(id, snap);
+      return snap;
+    }
+  } catch (err) {
+    console.error("projectApi.refetchSnapshot failed:", err);
+  }
+  return null;
+}
+
+/**
+ * Watch for other devices' changes landing on the server (sync): its counter moves, and
+ * `onChange` runs (the store reloads the open book). The interval is the server's sync
+ * setting `pollSeconds`. Returns a stop function.
+ */
+export function watchSync(onChange) {
+  let last = null;
+  let timer = null;
+  let stopped = false;
+  const tick = async () => {
+    let wait = 5;
+    try {
+      const r = await get("/v1/sync/rev");
+      wait = Number(r?.pollSeconds) > 0 ? Number(r.pollSeconds) : wait;
+      if (last !== null && r.rev !== last) await onChange();
+      last = r.rev;
+    } catch {
+      // the server is busy or restarting: try again next time
+    }
+    if (!stopped) timer = setTimeout(tick, wait * 1000);
+  };
+  void tick();
+  return () => {
+    stopped = true;
+    clearTimeout(timer);
+  };
 }
 
 export function flushPendingProjects() {

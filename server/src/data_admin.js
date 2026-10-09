@@ -5,6 +5,7 @@
 // table sets: JustWrite's domain tables and the shared LLM tables, which live on the same
 // DB. `reset` drops every table, recreates them and reseeds.
 
+import path from "node:path";
 import { LLM_TABLES } from "@delebash/llm-runner/llm";
 import * as llmDb from "@delebash/llm-runner/llm/db";
 import { makeDataRouter } from "@delebash/llm-runner/platform";
@@ -13,6 +14,7 @@ import { PRESERVED_FOLDER_KEYS } from "./api/settings_api.js";
 import { TABLES } from "./database/models.js";
 import { seedWorkspace } from "./database/seed.js";
 import { state } from "./database/session.js";
+import { flushSync, resetBookSync } from "./sync.js";
 
 /**
  * Full runner teardown (unload every child + clear the VRAM ledger). A reset or restore is a
@@ -61,6 +63,9 @@ export async function reset() {
   });
 
   seedWorkspace(h);
+  // Sync starts a new library: the old one's engine tables and triggers go with the dropped
+  // tables (this device keeps its identity).
+  resetBookSync(h, path.dirname(state.dbPath));
   // Restore the preserved folder-path config (user value wins over any seed).
   h.tx(() => {
     for (const [key, value] of preserved) {
@@ -78,6 +83,11 @@ export function getDataRouter() {
     assetDirs: () => ({}),
     // A restore replaces routing/tunes under the live app — same clean-slate rule as reset:
     // no child keeps running under the pre-restore config.
-    onReplaced: stopRunnerBestEffort,
+    onReplaced: async () => {
+      await stopRunnerBestEffort();
+      // the restore rewrote the book tables on its own connection; the triggers noted it —
+      // stamp it now, so the restored books sync as this device's change
+      flushSync();
+    },
   });
 }

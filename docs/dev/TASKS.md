@@ -221,18 +221,40 @@ NOT:    shape A, one cloud server with no offline work (the user, above) · the 
         Turso Sync (syncs only with its sync server; pre-1.0) · ElectricSQL (Postgres, read path
         only; the old SQLite-client `electric-sql` package is deprecated, last 0.12.1 of
         2024-06-19) · sqlite-sync (Elastic License 2.0).
-BUILT:  nothing in any app. Round 2 done 2026-10-08 — the design doc's "Round 2" (the measured
-        library, the schema, cr-sqlite and our own change log tested on a copy of the real
-        database, SQLite WASM on OPFS tested on an Android 16 emulator, the research, the five
-        ways authors would use it, the judgement); the four research records and the register are
-        kit 7532f72 (not pushed). Installed for the test: an Android SDK at `E:\Android\Sdk` (AVD
-        `jvtest`), `E:\Android\jdk-21` → Visual Studio's JDK 21.
-OPEN:   the user decides — my rec: roll our own (a kit sync module on Actual Budget's per-cell
-        hybrid-clock design, backless-core's per-device folder, Yjs for prose); plus the round-2
-        questions (phone storage guard, internet meeting point, cloud sign-in on the phone,
-        encryption, MPL/FSL, the iOS and real-phone tests, sync in the first phone release).
-GO:     given 2026-10-08 for the tests and the research ("your rec on all go do the testing";
-        "go"). None for building.
+BUILT:  2026-10-08, under "just-sqlite-sync you have a go on it all your recs complete the whole
+        project…": the engine is its own repo, github.com/delebash/just-sqlite-sync
+        (`@delebash/sqlite-sync`, a `file:` dependency; its README/design/TASKS). JustWrite's
+        server side (no UI yet — it's built on Quasar, the kit's program step Q4):
+        · the save writes only what changed against what that window last loaded
+          (`book_io.saveBookChanges`, `api/projects_api.js` bases keyed by the window's
+          `x-jw-client`); decompose (import, samples) still replaces whole;
+        · `server/src/sync.js` — the engine on projects + PROJECT_TABLES + image_blobs +
+          chapter_versions; scene text merged through Yjs on the editor's own schema
+          (`src/services/editorSchema.js`, shared with RichEditor.vue, shipped in build.files);
+          this device's identity (`sync-device.json`, tied to the machine); the `sync` settings
+          section; routes `/v1/sync/{hello,pull,push}` (the engine's) and `/rev`, `/status`,
+          `/settings`, `/run`, `/folder/run`, `/folder/libraries`, `/export`, `/import`,
+          `/peer/run`, `/pair`, `/pair/join`; folder + peer auto-sync every `autoMinutes`;
+          `serve.js` listens on the network only when "let my other devices connect" is on AND a
+          pairing token exists; reset starts a new library; restore's writes are stamped;
+        · the renderer: ids with 64 random bits (`stores/project.js` uid), the window id on book
+          requests, `watchSync` → `reloadFromServer()` when another device's changes land;
+        · the kit's CSRF guard allows the phone webview's origins (`CAPACITOR_ORIGINS`).
+        Checked: server 141/141 (7 new in tests/sync.test.js: only changed fields written · a
+        window's old snapshot doesn't undo another device's change · scene text written on two
+        devices merges through the editor schema · export/import by hand · another library refused
+        until joined · pairing behind its token · reset), unit 590/590, lint, vite build, the
+        headless smoke (all routes, zero JS errors).
+        Earlier the same day: round 2 (the design doc's "Round 2"); the Android SDK at
+        `E:\Android\Sdk` (AVD `jvtest`), `E:\Android\jdk-21` → Visual Studio's JDK 21.
+OPEN:   the Settings → Sync screen and the phone (after JustWrite moves to Quasar — the kit's
+        `docs/plans/2026-10-08-sync-and-quasar-program.md` Q4) · the user docs with that screen ·
+        a real OneDrive/Dropbox sign-in needs the user's app registrations · my choices under "your
+        recs" where the record had a gap, to confirm: the by-hand file's extension `.jwsync`;
+        by-hand files unencrypted unless asked (the cloud folder's always are).
+GO:     given 2026-10-08 — the tests and research ("your rec on all go do the testing"), then
+        the build ("just-sqlite-sync you have a go on it all your recs complete the whole
+        project without stopping unless you need to").
 
 ## THE FAMILY PARITY BATCH — approved 2026-08-05, THE next build
 - **The master plan (read WHOLE before coding any slice):**

@@ -21,6 +21,7 @@ import { pathToFileURL } from "node:url";
 import { runServer } from "@delebash/llm-runner/platform";
 import { pyInt } from "@delebash/llm-runner/platform/py";
 import { createApp } from "./app.js";
+import { networkHost } from "./sync.js";
 import { seedWorkspace } from "./database/seed.js";
 import { PRODUCT, VERSION } from "./version.js";
 
@@ -118,6 +119,9 @@ export async function main(argv = process.argv.slice(2)) {
     process.stdout.write(HELP);
     return process.exit(0);
   }
+  // An explicit --host / JUSTWRITE_HOST always wins; otherwise sync's "let my other devices
+  // connect" (with a pairing token) widens 127.0.0.1 to the network (server/src/sync.js).
+  const hostGiven = argv.includes("--host") || process.env.JUSTWRITE_HOST != null;
   return runServer({
     argv: ["serve", "--host", args.host, "--port", String(args.port), ...(args.dataDir ? ["--data-dir", args.dataDir] : [])],
     envPrefix: "JUSTWRITE",
@@ -128,7 +132,7 @@ export async function main(argv = process.argv.slice(2)) {
       // Kept here — and in the workspace-reset handler — rather than in createApp(), so the
       // test suite's createApp(tmp) apps still start from an empty database.
       seedWorkspace();
-      return { app, host, port };
+      return { app, host: hostGiven ? host : (networkHost() ?? host), port };
     },
   });
 }
