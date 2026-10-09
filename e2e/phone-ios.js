@@ -83,11 +83,13 @@ async function webview() {
   throw new Error("the app's web view never appeared");
 }
 const text = () => driver.execute(`return document.body.innerText.replace(/\\s+/g, " ")`);
-async function waitFor(re, ms = 90000) {
+// wait for the page's text to match (a RegExp, or a test function)
+async function waitFor(want, ms = 90000) {
+  const ok = typeof want === "function" ? want : (t) => want.test(t);
   const t0 = Date.now();
   for (;;) {
     const t = await text().catch(() => "");
-    if (re.test(t)) return t;
+    if (ok(t)) return t;
     if (Date.now() - t0 > ms) return null;
     await sleep(750);
   }
@@ -133,10 +135,11 @@ try {
   // ── the tutorial book, made through the app ──
   await click("^Try the tutorial project");
   // the book's home page (its chapter list is in the drawer, closed on a phone)
-  const book = await waitFor(/Ninth Facet/);
+  // — and the welcome page gone: during the switch the book's title shows beside its text
+  const book = await waitFor((t) => /Ninth Facet/.test(t) && !/Try the tutorial project/i.test(t));
   await skipAiOffer();
   shot("02-home");
-  check("the tutorial book opens", !!book && !/Try the tutorial project/i.test(book));
+  check("the tutorial book opens", !!book);
 
   // ── the key screens ──
   await driver.execute(`document.querySelector('[aria-label*="sidebar" i], [aria-label*="menu" i], .q-header button')?.click()`);

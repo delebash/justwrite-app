@@ -128,7 +128,8 @@ dialog's AI chip sits on its own row under the dialog's title. Settings leaves o
 another device? Sync them here*. On your computer open **Settings → Sync → Other devices**, turn on
 **Let my other devices connect** (restart JustWrite once), and press **Show pairing code**. On the
 phone press **Scan code…** and point the camera at the QR code — or paste the code's text and press
-**Pair**. The books arrive and the newest opens.
+**Pair**. The books arrive and the newest opens. (The first scan asks to let JustWrite use the
+camera; pasting the code needs no camera.)
 
 **After that** the phone syncs with the computer shortly after it starts, every few minutes while
 it's open, and when you press **Sync now** — whenever the two can reach each other (the same Wi-Fi,
