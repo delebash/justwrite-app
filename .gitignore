@@ -32,6 +32,9 @@ server/data/
 # The 2026-08-15 headless root, put aside when the dev root moved here (2026-10-08).
 data-old-*/
 
+# The Electron + Vite era's installer output (electron-builder → release/); older checkouts still hold it
+release/
+
 # Quasar's generated files and its build output (dist/spa, dist/electron, dist/capacitor)
 .quasar/
 /quasar.config.*.temporary.compiled*
