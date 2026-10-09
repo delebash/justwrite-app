@@ -13,10 +13,11 @@ vi.mock("@delebash/llm-ui", () => ({
   post: vi.fn(),
   del: vi.fn(),
   requestBlob: vi.fn(),
+  inAppServer: vi.fn(() => false),
 }));
 
 import { requestBlob } from "@delebash/llm-ui";
-import { readImageBytes } from "./imageStore.js";
+import { imagePath, readImageBytes, storedSrcFor, withSceneImages } from "./imageStore.js";
 
 describe("imageStore.readImageBytes — path-first requestBlob (kit client.js:65)", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -36,5 +37,26 @@ describe("imageStore.readImageBytes — path-first requestBlob (kit client.js:65
     expect(out.mime).toBe("image/png");
     expect(out.ext).toBe("png");
     expect(Array.from(out.bytes)).toEqual(Array.from(png));
+  });
+});
+
+// Images by path (2026-10-08): a scene stores a server image as `/v1/images/<id>`, never the
+// address of the server that showed it; a read-only view moves that path aside so the browser
+// doesn't load the bare path (the `v-scene-images` directive then shows it via `displaySrc`).
+describe("imageStore — images by path", () => {
+  it("a server image is stored as its path; an inline one as its data URL", async () => {
+    expect(imagePath("img_9")).toBe("/v1/images/img_9");
+    expect(await storedSrcFor({ kind: "server", serverId: "img_9" })).toBe("/v1/images/img_9");
+    expect(await storedSrcFor({ kind: "dataurl", dataUrl: "data:image/png;base64,AA" })).toBe("data:image/png;base64,AA");
+  });
+
+  it("read views move only server images aside — the path and old absolute addresses", () => {
+    const html =
+      '<p>a</p><img src="/v1/images/img_1" alt="x"><img alt="y" src="http://127.0.0.1:17495/v1/images/img_2"><img src="https://example.com/p.png">';
+    const out = withSceneImages(html);
+    expect(out).toContain('<img data-scene-image="/v1/images/img_1" alt="x">');
+    expect(out).toContain('<img alt="y" data-scene-image="http://127.0.0.1:17495/v1/images/img_2">');
+    expect(out).toContain('<img src="https://example.com/p.png">');
+    expect(withSceneImages("<p>no images</p>")).toBe("<p>no images</p>");
   });
 });

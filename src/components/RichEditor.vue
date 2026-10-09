@@ -9,7 +9,7 @@ import { searchReplacePluginKey } from "justwrite-server/editor/searchReplace.js
 import { buildMentionExtension } from "@renderer/services/editorMentions";
 import { bodyToHtml, editorExtensions } from "justwrite-server/editor/editorSchema.js";
 import { EDITOR_TOOLBAR_FULL } from "@renderer/services/editorToolbars";
-import { saveImage, urlFor } from "@renderer/services/imageStore";
+import { imageView, saveImage, storedSrcFor } from "@renderer/services/imageStore";
 import { hasPendingChanges, hasStrikethroughs, listPendingChanges } from "justwrite-server/editor/aiDiff.js";
 import { MARKER_CATEGORIES } from "justwrite-server/editor/markers.js";
 import * as writerAI from "@renderer/services/writerAI";
@@ -95,6 +95,8 @@ const toHtml = bodyToHtml;
 const extensions = editorExtensions({
   placeholder: props.placeholder,
   sceneBoundaryView: () => VueNodeViewRenderer(SceneBoundaryView),
+  // a server image is stored by its path and shown through this window's address for it
+  imageView,
   mention: props.mentions ? buildMentionExtension() : null,
 });
 
@@ -999,7 +1001,7 @@ async function onImagePicked(e) {
   if (!file) return;
   try {
     const rec = await saveImage(file);
-    const src = await urlFor(rec);
+    const src = await storedSrcFor(rec);
     if (src) editor.value?.chain().focus().setImage({ src, alt: rec.name }).run();
   } catch (err) {
     console.error("onImagePicked failed:", err);

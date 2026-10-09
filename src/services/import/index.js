@@ -2,7 +2,7 @@ import { parseDocx } from './docx.js';
 import { parseEpub } from './epub.js';
 import { parseOdt }  from './odt.js';
 import { parseText } from './text.js';
-import { saveImage, urlFor } from '../imageStore.js';
+import { saveImage, storedSrcFor } from '../imageStore.js';
 
 async function rewriteImageSrcs(parsed) {
   const { images = [] } = parsed;
@@ -20,7 +20,7 @@ async function rewriteImageSrcs(parsed) {
     try {
       const file = new File([bytes], name, { type: mime });
       const record = await saveImage(file);
-      const src = await urlFor(record);
+      const src = await storedSrcFor(record);
       if (src) {
         srcMap.set(href, src);
         savedCount++;

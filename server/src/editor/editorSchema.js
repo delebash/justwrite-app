@@ -338,7 +338,24 @@ export function schemaMention() {
  *   sceneBoundaryView: the editor's node view for scene boundaries; mention: the mention extension
  *   (the editor's, with its suggestion popup; the server passes schemaMention())
  */
-export function editorExtensions({ placeholder = "", sceneBoundaryView = null, mention = null } = {}) {
+/**
+ * An image in a scene is one of the server's images, stored by its path — `/v1/images/<id>` — never
+ * by the address of the server that showed it: a scene syncs to devices whose servers sit
+ * elsewhere (another port, the phone's in-app server). An absolute address stored before
+ * 2026-10-08 is read back to the path. A window shows the path through the address it has
+ * (src/services/imageStore.js `displaySrc`; the editor's `imageView`).
+ */
+export const SERVER_IMAGE = /^(?:[a-z][a-z0-9+.-]*:\/\/[^/]+)?(\/v1\/images\/[^/?#"']+)$/i;
+export const stableImageSrc = (src) => SERVER_IMAGE.exec(String(src ?? ""))?.[1] ?? src;
+
+const SceneImage = Image.extend({
+  addAttributes() {
+    const parent = this.parent?.() ?? {};
+    return { ...parent, src: { ...parent.src, parseHTML: (el) => stableImageSrc(el.getAttribute("src")) } };
+  },
+}).configure({ allowBase64: true });
+
+export function editorExtensions({ placeholder = "", sceneBoundaryView = null, imageView = null, mention = null } = {}) {
   const extensions = [
     StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
     Placeholder.configure({ placeholder }),
@@ -355,7 +372,7 @@ export function editorExtensions({ placeholder = "", sceneBoundaryView = null, m
     Typography,
     CharacterCount,
     Focus.configure({ className: "has-focus", mode: "shallowest" }),
-    Image.configure({ allowBase64: true }),
+    imageView ? SceneImage.extend({ addNodeView: imageView }) : SceneImage,
     TaskList,
     TaskItem.configure({ nested: true }),
     Table.configure({ resizable: true }),

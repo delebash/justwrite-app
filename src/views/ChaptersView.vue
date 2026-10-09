@@ -23,6 +23,7 @@ import StatusSelect from "../components/StatusSelect.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
 import { promptDialog, confirmDialog, useAiTasksStore } from "@delebash/llm-ui";
 import { stitchChapter, splitChapter } from "../services/chapterStitch.js";
+import { vSceneImages, withSceneImages } from "../services/imageStore.js";
 import { EDITOR_TOOLBAR_FULL } from "../services/editorToolbars.js";
 import { UiButton } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
@@ -214,7 +215,8 @@ function readBody(chId) {
   const html = project.chapterBody[chId];
   if (!html) return `<h1>${ch.value?.title || ""}</h1><p><em>Empty chapter.</em></p>`;
   const div = document.createElement("div");
-  div.innerHTML = html;
+  // a server image's stored path moves aside first (a parsed <img> starts loading at once)
+  div.innerHTML = withSceneImages(html);
   div.querySelectorAll("h2.scene-title, p.scene-mark").forEach((el) => { el.remove(); });
   div.querySelectorAll("span.comment-mark").forEach((el) => { el.replaceWith(...el.childNodes); });
   // Pending AI revisions are authoring chrome — strip from the read view:
@@ -723,9 +725,9 @@ const bookScrollEl = ref(null);
 // does for stitched chapters, but on a single raw scene body).
 function sceneReadHtml(body) {
   if (!body) return "";
-  if (!body.includes("comment-mark")) return body;
+  if (!body.includes("comment-mark")) return withSceneImages(body);
   const div = document.createElement("div");
-  div.innerHTML = body;
+  div.innerHTML = withSceneImages(body);
   div.querySelectorAll("span.comment-mark").forEach((el) => { el.replaceWith(...el.childNodes); });
   return div.innerHTML;
 }
@@ -1005,7 +1007,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
 
     <!-- Single chapter: existing prev/next paging. -->
     <div v-if="readScope === 'chapter'" class="manuscript scrollarea">
-      <article class="manuscript-inner read-content" v-html="readBody(ch.id)" />
+      <article v-scene-images class="manuscript-inner read-content" v-html="readBody(ch.id)" />
       <nav class="read-nav">
         <button v-if="prev" class="read-nav-btn" @click="goPrev">
           <Icon name="ChevRight" :size="14" style="transform:rotate(180deg)" />
@@ -1046,7 +1048,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
               class="book-scene"
               :data-scene-id="scn.id"
               :data-chapter-id="chap.id">
-              <div class="book-scene-body" v-html="sceneReadHtml(scn.body)" />
+              <div v-scene-images class="book-scene-body" v-html="sceneReadHtml(scn.body)" />
             </section>
           </section>
         </template>

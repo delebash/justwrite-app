@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 // JustWrite's server on the phone — the in-app server (the kit's docs/plans/2026-10-08-the-phone.md;
 // JustWrite's TASKS, Sync decisions 8 and 9). The same routes as on a computer for what the phone
-// runs — the books, their versions, settings, writing sessions, saved chats, the sweep draft — on
-// the kit's server, answering inside a web worker (src/phone/server-worker.js) on SQLite WASM.
+// runs — the books and their images, their versions, settings, writing sessions, saved chats, the
+// sweep draft — on the kit's server, answering inside a web worker (src/phone/server-worker.js) on
+// SQLite WASM.
 //
 // Not here: the network door (CSRF, CORS, bearer auth — nothing outside the app can reach this
 // server), the file autosave (its phone twin answers "no folder"), backups and the book zip, logs
-// and disk, the search index, the local AI engine, serving the UI. Images, sync and the online AI
-// providers join in the plan's slices 2–4.
+// and disk, the search index, the local AI engine, serving the UI. Sync and the online AI
+// providers join in the plan's slices 3–4.
 //
 // The worker bundle swaps a module for its `<name>.phone.js` twin where one sits beside it
 // (app_state, autosave_api, database/demo_seed); under Node (tests) the originals load.
@@ -16,6 +17,7 @@ import { workerServerFactory } from "@delebash/llm-runner/platform/worker/runtim
 import { router as autosaveRouter } from "./api/autosave_api.js";
 import { router as chatRouter } from "./api/chat_api.js";
 import { router as healthRouter } from "./api/health_api.js";
+import { router as imagesRouter } from "./api/images_api.js";
 import { router as projectsRouter } from "./api/projects_api.js";
 import { router as sessionsRouter } from "./api/sessions_api.js";
 import { router as settingsRouter } from "./api/settings_api.js";
@@ -47,5 +49,6 @@ export async function createPhoneApp({ handle, serverFactory = workerServerFacto
   app.register(chatRouter);
   app.register(settingsRouter);
   app.register(versionsRouter);
+  app.register(imagesRouter);
   return app;
 }

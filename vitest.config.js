@@ -30,6 +30,8 @@ export default defineConfig({
       // Quasar's wrappers (defineBoot / defineRouter / defineStore) — the alias Quasar's own
       // build defines (@quasar/app-vite's lib/config-tools.js).
       "#q-app": "@quasar/app-vite",
+      // as quasar.config.js on a computer: the server is a separate process, nothing to start
+      "#in-app-server": resolve(__dirname, "src/phone/none.js"),
     },
     // Same dedupe list as quasar.config.js (extendViteConf), and for the same reason: the aliased kit
     // imports its peer deps by bare specifier from its OWN dir, which has no
