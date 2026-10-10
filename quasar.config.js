@@ -168,6 +168,9 @@ export default defineConfig((ctx) => {
         extraResources: [ { from: path.join(root, 'build', 'launcher'), to: '..' } ],
         win: { target: 'nsis', executableName: 'justwrite' },
         nsis: {
+          // no spaces: GitHub renames a spaced asset on upload (spaces → dots), and latest.yml names
+          // electron-builder's dashed form — the updater would download a file that isn't there
+          artifactName: '${productName}-Setup-${version}.${ext}',
           oneClick: false,
           perMachine: false,
           allowToChangeInstallationDirectory: true,
