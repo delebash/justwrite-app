@@ -41,13 +41,14 @@ const TARGETS = [
 
   // Analysis / reflection
   { name: "analysis",           hash: "#/analysis",            wait: 3500, scroll: 340 },
-  { name: "writer-lab",         hash: "#/writer-lab",          wait: 2500 },
+  // the file names are the website's; the old Writer Lab is the AI page's Writing AI tab now
+  { name: "writer-lab",         hash: "#/ai?tab=app",          wait: 2500 },
 
   // Settings
   { name: "settings-project",   hash: "#/settings/project",    wait: 2500 },
-  { name: "settings-ai",        hash: "#/settings/audio",      wait: 2500 },
+  { name: "settings-ai",        hash: "#/ai",                  wait: 2500 },
   { name: "settings-appearance", hash: "#/settings/appearance", wait: 2500 },
-  { name: "settings-usage",     hash: "#/settings/usage",      wait: 2500 },
+  { name: "settings-usage",     hash: "#/ai?tab=usage",        wait: 2500 },
   { name: "settings-backups",   hash: "#/settings/backups",    wait: 2500 },
 
   // Import / export
