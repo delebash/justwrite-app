@@ -152,6 +152,10 @@ export default defineConfig((ctx) => {
         // https://www.electron.build/configuration
         appId: 'com.justwrite.app',
         productName: 'JustWrite',
+        // the updater's feed (https://www.electron.build/publish): app-update.yml in the app and
+        // latest*.yml beside the installers, written even under -P never; the release workflow
+        // uploads them
+        publish: [ { provider: 'github', owner: 'delebash', repo: 'justwrite-app' } ],
         files: [
           '**/*',
           '!**/node_modules/better-sqlite3/{deps,src,build/Release/obj,build/Release/obj.target,build/deps}/**',

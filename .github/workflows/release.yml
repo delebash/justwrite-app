@@ -119,7 +119,9 @@ jobs:
             --notes "JustWrite $TAG. See \`docs.tar.gz\` for the bundled user documentation that the marketing site mirrors for this release." \
             || gh release view "$TAG" >/dev/null  # another platform's job created it first
           shopt -s nullglob
-          gh release upload "$TAG" dist/electron/Packaged/*.exe dist/electron/Packaged/*.dmg dist/electron/Packaged/*.AppImage dist/electron/Packaged/*.deb --clobber
+          # the updater's feed (latest*.yml) and the blockmaps its downloads are checked against go up
+          # with the installers
+          gh release upload "$TAG" dist/electron/Packaged/*.exe dist/electron/Packaged/*.dmg dist/electron/Packaged/*.AppImage dist/electron/Packaged/*.deb dist/electron/Packaged/latest*.yml dist/electron/Packaged/*.blockmap --clobber
 
   attach-docs:
     needs: build

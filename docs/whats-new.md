@@ -4,6 +4,15 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## 2026-10-09
+
+**The desktop app updates itself.** It checks for a new version when it starts; **Settings →
+Updates** says when one is out, **Download** fetches it, and it installs when you quit the app —
+or at once with **Restart now**. On a Mac, which can't install an unsigned update, it opens the
+release page instead.
+
+---
+
 ## 2026-10-08
 
 **Export this book works for any title.** A book titled outside Western European letters —
@@ -123,5 +132,5 @@ For the full history of shipped features, dip into the [Roadmap](roadmap.md) and
 ---
 
 *This page is also what **Settings → Updates** shows in-app: your current version
-plus these release notes. The panel is informational — it doesn't check for or
-install updates.*
+plus these release notes. In the desktop app the panel also says whether a newer
+version is out — **Download** fetches it, and it installs when you quit the app.*

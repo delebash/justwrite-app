@@ -116,3 +116,18 @@ export function onShellEvent(event, fn) {
   if (!hasShell()) return () => {};
   return window.appShell.on(event, fn);
 }
+
+// ─── Updates (the shell's electron-updater, 2026-10-09) ─────────────
+
+/** The desktop app's updater for the kit's UpdatesPanel — its status, check, download, "Restart
+ *  now", and the shell's `update:status` push. Null outside the desktop app. */
+export function desktopUpdater() {
+  if (!hasShell()) return null;
+  return {
+    status: () => call("updateStatus"),
+    check: () => call("updateCheck"),
+    download: () => call("updateDownload"),
+    install: () => call("updateInstall"),
+    onStatus: (fn) => window.appShell.on("update:status", fn),
+  };
+}

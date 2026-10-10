@@ -44,4 +44,7 @@ runDesktopApp({
   // A manuscript can hold an image pasted from the web (an <img> with an https: source); the
   // Tauri window had no CSP and showed it, so this window keeps showing it (2026-10-08).
   cspAdd: { "img-src": ["https:"] },
+  // Updates: the feed is the GitHub releases electron-builder's `publish` names (quasar.config.js);
+  // a Mac, which can't install an unsigned update, gets the release's page from here.
+  updates: { releasesUrl: "https://github.com/delebash/justwrite-app/releases" },
 });

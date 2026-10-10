@@ -10,7 +10,7 @@ import { readSetting, writeSetting } from "../services/settings.js";
 import { exportProject, importProject, saveBackupBlob, canSaveFiles, canPickBooks } from "../services/bookTransfer.js";
 import { serverDataDir, chooserDir, rememberDir } from "../services/chooserDirs.js";
 import {
-  hasShell, isPhone, pickDirectory, shellVersion, storageGetRoot, storageRelocate,
+  desktopUpdater, hasShell, isPhone, pickDirectory, shellVersion, storageGetRoot, storageRelocate,
   setKeepRunning as nativeSetKeepRunning,
 } from "../services/native.js";
 import * as autosaveApi from "../services/autosaveApi.js";
@@ -106,6 +106,8 @@ async function setKeepRunning(v) {
 // Updates / changelog — version + the rendered whats-new.md (single-sourced with
 // the WhatsNew modal). Loaded lazily the first time the Updates tab opens.
 const APP_VERSION = import.meta.env.VITE_APP_VERSION || "1.0.0";
+// The desktop app's updater (the kit shell's electron-updater); null in a browser or on a phone.
+const updater = desktopUpdater();
 const changelogHtml = ref("");
 watch(active, async (a) => {
   if (a === "updates" && !changelogHtml.value) {
@@ -1629,7 +1631,7 @@ async function deleteCategory(c) {
 
         <!-- ── UPDATES (shared panel) ─────────────────── -->
         <div v-else-if="active === 'updates'" style="display:flex;flex-direction:column;gap:14px">
-          <UpdatesPanel :app-version="APP_VERSION" :changelog-html="changelogHtml" />
+          <UpdatesPanel :app-version="APP_VERSION" :changelog-html="changelogHtml" :updater="updater" />
         </div>
 
         <!-- ── ABOUT ─────────────────────────────────── -->
