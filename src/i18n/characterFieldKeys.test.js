@@ -1,4 +1,4 @@
-// Every DYNAMIC i18n key CharactersView builds must exist in the catalog.
+// Every DYNAMIC i18n key the character sheet builds must exist in the catalog.
 //
 // WHY a bespoke test rather than the normal gates: the character sheet resolves
 // its ~200 field labels with a computed key —
@@ -16,56 +16,33 @@
 // A one-character typo in a group or field name would therefore ship a blank
 // label with every gate green. This test is what makes that impossible.
 //
-// It reads the view as TEXT on purpose: the descriptor arrays are `const`s
-// inside an SFC's <script setup>, so there is nothing importable, and parsing
-// the literal source is what keeps the test honest about what actually ships.
+// The fields live in services/characterSheet.js since 2026-10-11 (one source
+// with the AI drafting); the page renders every one of them from there — the
+// descriptor arrays by v-for, the motivation grid / arc card / voice grid from
+// the module's MOTIVATION_CORE / ARC_FIELDS / VOICE_CORE. So the module IS what
+// ships, and this test reads it directly (it used to parse the page's source,
+// when the arrays were consts inside the SFC with nothing to import).
 
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { SHEET_SECTIONS } from "../services/characterSheet.js";
 import en from "./locales/en.json";
-
-const VIEW = fileURLToPath(new URL("../pages/CharactersPage.vue", import.meta.url));
-const src = readFileSync(VIEW, "utf8");
 
 /** Resolve a dotted key path against the catalog, or undefined. */
 function lookup(path) {
   return path.split(".").reduce((o, k) => (o == null ? undefined : o[k]), en);
 }
 
-/** The eight v3 descriptor arrays: every `{ group: "x", k: "y", type: … }`. */
-function descriptorFields() {
-  return [...src.matchAll(/\{\s*group:\s*"([^"]+)",\s*k:\s*"([^"]+)"/g)].map((m) => ({
-    group: m[1],
-    k: m[2],
-  }));
-}
+/** Every field the sheet renders under `characters.fields` (the backstory's label is
+ *  `characters.detail.backstory`, outside this tree). */
+const fields = SHEET_SECTIONS.flatMap((s) => s.fields).filter((f) => f.group !== "_top");
 
-/** A bespoke group whose members are `{ k: "x", … }` with the group implied by
- *  the const's name (MOTIVATIONS → motivation, ARC_STEPS → arc). */
-function bespokeFields(constName, group) {
-  const block = src.match(new RegExp(`const ${constName} = \\[([\\s\\S]*?)\\];`));
-  if (!block) return null; // signals a renamed/removed const — asserted below
-  return [...block[1].matchAll(/\{\s*k:\s*"([^"]+)"/g)].map((m) => ({ group, k: m[1] }));
-}
-
-describe("CharactersView dynamic i18n keys", () => {
-  it("finds the descriptor arrays it is meant to police", () => {
-    // Guards against the test quietly passing on zero fields if the view is
-    // refactored into a different shape.
-    expect(descriptorFields().length).toBeGreaterThanOrEqual(45);
-    expect(bespokeFields("MOTIVATIONS", "motivation")).toHaveLength(4);
-    expect(bespokeFields("ARC_STEPS", "arc")).toHaveLength(3);
+describe("character sheet dynamic i18n keys", () => {
+  it("finds the fields it is meant to police", () => {
+    // Guards against the test quietly passing on zero fields after a refactor.
+    expect(fields.length).toBeGreaterThanOrEqual(58);
   });
 
-  it("has a label and a hint for every field the view renders", () => {
-    const fields = [
-      ...descriptorFields(),
-      ...(bespokeFields("MOTIVATIONS", "motivation") || []),
-      ...(bespokeFields("ARC_STEPS", "arc") || []),
-      // The bespoke voice grid resolves these four by static key.
-      ...["accent", "vocabulary", "tic", "sample"].map((k) => ({ group: "voice", k })),
-    ];
+  it("has a label and a hint for every field the sheet renders", () => {
     const missing = [];
     for (const { group, k } of fields) {
       for (const leaf of ["label", "hint"]) {
@@ -77,20 +54,13 @@ describe("CharactersView dynamic i18n keys", () => {
     expect(missing).toEqual([]);
   });
 
-  it("has no catalog field entry the view never renders", () => {
+  it("has no catalog field entry the sheet never renders", () => {
     // The other direction: a stale key left behind by a removed field. Dead copy
     // is not a crash, but it is a translator asked to translate nothing.
-    const rendered = new Set(
-      [
-        ...descriptorFields(),
-        ...(bespokeFields("MOTIVATIONS", "motivation") || []),
-        ...(bespokeFields("ARC_STEPS", "arc") || []),
-        ...["accent", "vocabulary", "tic", "sample"].map((k) => ({ group: "voice", k })),
-      ].map(({ group, k }) => `${group}.${k}`),
-    );
+    const rendered = new Set(fields.map(({ group, k }) => `${group}.${k}`));
     const orphans = [];
-    for (const [group, fields] of Object.entries(en.characters.fields)) {
-      for (const k of Object.keys(fields)) {
+    for (const [group, groupFields] of Object.entries(en.characters.fields)) {
+      for (const k of Object.keys(groupFields)) {
         if (!rendered.has(`${group}.${k}`)) orphans.push(`characters.fields.${group}.${k}`);
       }
     }
