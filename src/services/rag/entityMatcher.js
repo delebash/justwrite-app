@@ -82,9 +82,10 @@ export function matchEntities(text, entities) {
 
 // Pinned cards ride a token BUDGET (the SillyTavern World Info pattern) so
 // they can never crowd out prose evidence — ~2-3 typical cards. Tokens are
-// estimated at 4 chars each (module fact, not a user knob).
+// estimated at 4 chars each (module fact, not a user knob; exported — the story-context
+// composer, services/storyContext.js, budgets with the same figure).
 const PIN_TOKEN_BUDGET = 1200;
-const CHARS_PER_TOKEN = 4;
+export const CHARS_PER_TOKEN = 4;
 
 /**
  * Pick the cards to pin for a question (+ recent user turns — follow-ups
