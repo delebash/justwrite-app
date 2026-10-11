@@ -154,7 +154,8 @@ tests are the kit's RESEARCH §2 "Sync" / "Sync, round 2". JustWrite's:
 
 ## What other writing apps ship
 
-Asked 2026-10-11 for the AI drafting design ([`../plans/2026-10-11-ai-drafting-spec.md`](../plans/2026-10-11-ai-drafting-spec.md)).
+Asked 2026-10-11 for the AI drafting design ([`../plans/2026-10-11-ai-drafting-spec.md`](../plans/2026-10-11-ai-drafting-spec.md);
+its implementation plan [`../plans/2026-10-11-ai-drafting-plan.md`](../plans/2026-10-11-ai-drafting-plan.md)).
 The full survey — two web passes, the matrices, about 90 sources — is
 [`../plans/2026-10-11-ai-writing-apps-survey.md`](../plans/2026-10-11-ai-writing-apps-survey.md);
 the 2026-06-05 passes it builds on are the roadmaps under *Records* below. *web, agent* = checked
@@ -217,6 +218,13 @@ against the page by an agent, not re-checked by the session.
 - **The sync engine skips a column the receiving device doesn't have**
   (`../just-sqlite-sync/src/engine.js:469`), and its README asks for a schema-version bump on a
   shape change — JustWrite's is 2 since `d55f8f5`. (*code 2026-10-11*.)
+- **Status and Exclude from AI are lost on every save:** the server keeps no `status` for
+  scenes, characters, locations, objects or groups, and no `excludeFromAi` for those or worldbuilding
+  articles — both come back `undefined` after a save and reload. No AI code filters entities on
+  `excludeFromAi` (only scenes, `src/services/rag/chunker.js:99`), though its tooltip promises
+  "Hides this entity from any AI feature that pulls in story-world context." (*measured
+  2026-10-11*, a scratch round-trip through `book_io` on a temp database; the pages' writes vs the
+  tables' columns.)
 - **The kit's additive columns needed quoting** for a keyword column (`when`): fixed in the kit's
   `1ab9a69`, with a test. (*measured 2026-10-11*.)
 

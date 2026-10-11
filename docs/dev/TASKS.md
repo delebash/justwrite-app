@@ -18,8 +18,8 @@
 
 
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
-STATE:  DESIGN APPROVED 2026-10-11 — the spec is written, waiting on your review and on two
-        questions. Asked, as shown (after Fable's review of the first design, whose changes were
+STATE:  DECIDED + IMPLEMENTING 2026-10-11 — slice 1 (characters) and slice 2 being built, per the
+        plan `docs/plans/2026-10-11-ai-drafting-plan.md`. First round, asked as shown (after Fable's review of the first design, whose changes were
         accepted: one context composer first; the describe box stays while a page is thin; keep
         the name "Fill from book"; locations/objects/groups need a fields decision; your own AI
         actions are the kit's; names before titles; verify the POV/"when" loss first):
@@ -37,19 +37,42 @@ STATE:  DESIGN APPROVED 2026-10-11 — the spec is written, waiting on your revi
         whether you want the POV/"when" round-trip test run now." (Earlier, as shown: "if the
         round-trip test confirms it, fix it as its own bug.")
         The user: "your rec all go".
+        Second round, asked as shown (each with its reason, in the spec §9):
+        "1. Locations, objects, groups: give them small sheets. Each keeps its current description
+        and gains a few fields that stay folded when empty: Location: Atmosphere & senses, History.
+        Object: Properties, History, Where it is now. Group: Goals & beliefs, Leadership, History.
+        Worldbuilding stays an article; the AI drafts its body from the title and summary.
+        2. Order: characters first, then translation, then the rest. 1. AI drafting for characters,
+        plus the AI writing actions that know the story. 2. The translation work. 3. The new sheets,
+        scene summaries and planning, then scene drafting.
+        3. When to show the describe box: while none of a character's sheet sections has anything in
+        it. Elsewhere, while the page's own fields are empty.
+        4. How much story the AI is sent: at most 15% of the model's context window, adjustable in
+        Settings → AI. Only the relevant cards are sent, so this limit only matters in crowded scenes.
+        5. Line edits don't get the story notes.
+        6. Save to sheet: a chat answer goes through the same describe-and-draft review, and you tick
+        which fields to keep.
+        7. Scene drafting switch: set per book, in Settings → Project next to Premise, off by
+        default, labelled AI scene drafting.
+        8. Button labels: keep the proposed list, with three changes: "Create selected" → "Add {n}
+        to story bible"; "Draft the Fabula / Setting from the premise" → "Draft from the premise";
+        "Write dialogue" → "Write dialogue…".
+        9. Fix the three user-doc errors.
+        10. Leave JustVoice's unlinked plan doc to the JustVoice session."
+        The user: "your rec all go"; then "you have go for implementation".
 WHY:    the user, 2026-10-11 — AI creation on each story-world page, not only on Brainstorm, and AI
         that writes the story or parts of it. Picks up IDEAS.md "Brainstorm → point-of-use
         generation" (2026-07-26).
 DETAIL: the spec `docs/plans/2026-10-11-ai-drafting-spec.md`; the survey
         `docs/plans/2026-10-11-ai-writing-apps-survey.md`; RESEARCH.md "What other writing apps ship".
 BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV and "when" are
-        saved; existing databases gain the columns at boot; sync schema 2; whats-new.
-OPEN:   1. your review of the spec; 2. 3 above — no recommendation was given, so it needs your
-        word; 3. before or after the translation work — likewise; 4. the spec's §9 items (the
-        "thin" rule, the story-context budget, line edits and context, where Save to sheet goes,
-        scene drafting's switch, the new labels).
-GO:     given 2026-10-11 ("your rec all go") — for the design, the RESEARCH.md entry and the
-        POV/"when" test and fix; the implementation plan follows your spec review.
+        saved; existing databases gain the columns at boot; sync schema 2; whats-new. Decision 9 —
+        the three user-doc errors fixed (getting-started.md auto-update; writing.md "When" and
+        Entity sweep).
+OPEN:   slices 1 and 2 (the plan's tasks); after them, per decision 2: the translation work, then
+        the sheets and slices 3–4.
+GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
+        the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2.
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's

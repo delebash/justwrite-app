@@ -189,7 +189,7 @@ Click **Links** on the scene strip to open a modal that records the connective t
 - **Characters present** — main and secondary; you can create a new character right here without leaving the scene
 - **Locations** — same; inline-create supported
 - **Objects** — same
-- **When** — free-text date, with a toggle between gregorian and any alternative calendar you use
+- **When** — when the scene happens: a date and time, picked from a calendar
 - **Narrative strands** — which threads this scene belongs to
 
 **Why a writer would bother.** The Links panel is what makes the rest of the app intelligent. Search uses it to find scenes by character or strand. The Strands view shows you which scenes each strand touches. The Cast Presence heatmap in Analysis is built from it. The Relations graph uses it to draw edges. Filling it in is a five-second job per scene; the payoff is everywhere.
@@ -376,7 +376,7 @@ Both passes — and every other AI call in JustWrite — show up live in the **A
 
 > *"I imported three chapters from my old draft and new characters appeared in the prose that aren't in my Story Bible yet. I want to find them all without reading every chapter by hand."*
 
-The **Characters**, **Locations**, and **Objects** views each have a **Find new** button that runs a sweep across every chapter and proposes Story Bible entities of that kind that appear in your prose but aren't yet in the Bible. Same-name proposals from multiple chapters are merged into one with the originating chapters listed. You review every proposal individually on the next screen; nothing is added without your click. Useful after writing or after importing a draft from elsewhere.
+The **Characters**, **Locations**, and **Objects** views each have an **Entity sweep** button. It reads the chapters you tick and proposes the characters, locations and objects that appear in your prose but aren't yet in the Bible — all three kinds, whichever view you start from. Same-name proposals from multiple chapters are merged into one with the originating chapters listed. You review every proposal individually on the next screen; nothing is added without your click. Useful after writing or after importing a draft from elsewhere.
 
 ---
 

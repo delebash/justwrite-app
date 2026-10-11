@@ -1,8 +1,9 @@
 # AI drafting on the story-world pages and in the editor — spec (2026-10-11)
 
-**Status:** the design is approved ("your rec all go", 2026-10-11 — the decisions as shown are in
-`docs/dev/TASKS.md`); this spec is for your review before the implementation plan and before any
-code. §9 lists what still needs your word.
+**Status:** decided 2026-10-11 — the design and every open question (§9) ("your rec all go", twice;
+the decisions as shown are in `docs/dev/TASKS.md`). Implementation approved the same day ("you
+have go for implementation"): slices 1 (characters) and 2 now, per §1.5; the plan is
+[`2026-10-11-ai-drafting-plan.md`](2026-10-11-ai-drafting-plan.md).
 
 **Why:** the user, 2026-10-11 — AI creation on each story-world page ("describe a character and
 have the ai create one like prosellm … i dont like it seperate like they are on brainstorm") and AI
@@ -30,9 +31,11 @@ Generate; Generate / Rewrite per trait). The survey: [`2026-10-11-ai-writing-app
    lost on every save — tested, fixed, shipped (`d55f8f5`, kit `1ab9a69`).
 4. **Prose:** scene drafting is opt-in; every AI draft is recorded in AI usage; AI-drafted text is
    marked.
-5. **Order:** the context composer → story-world drafting → story-aware writer actions → scene
-   summaries + planning from the premise → scene drafting. Your own AI actions are the kit's, sized
-   separately. Not doing: whole-book generation; AI portraits (for now).
+5. **Order (§9.2):** the context composer and story-world drafting for characters (slice 1) →
+   story-aware writer actions (slice 2) → the translation work → the location / object / group
+   sheets → scene summaries + planning from the premise (slice 3) → scene drafting (slice 4). Your
+   own AI actions are the kit's, sized separately. Not doing: whole-book generation; AI portraits
+   (for now).
 
 ---
 
@@ -77,11 +80,11 @@ shown: a **Context:** line in the AI strip naming the cards.
    to one source both surfaces read (today hardcoded, in English outside i18n,
    `src/pages/BrainstormPage.vue:18-61`).
 4. **Suggest characters…** (and locations… after §9.1) — list-page header: composer(book) → a
-   list of proposals (name, role, one-liner) with checkboxes → **Create selected**: a new store
+   list of proposals (name, role, one-liner) with checkboxes → **Add {n} to story bible** (the sweep's label): a new store
    action, mapped in `ACTION_DOMAINS` (`src/stores/project.js:384`). Shaped like
    `EntitySweepModal.vue`.
 5. **Save to sheet** on a Talk to {name} answer — where it goes is §9.6.
-6. Locations, objects, groups, worldbuilding wait for §9.1.
+6. Locations, objects, groups and worldbuilding come after the translation work, with the sheets in §9.1.
 
 ## 4. Slice 2 — story-aware writer actions
 
@@ -91,7 +94,7 @@ in `src/services/writerAI.js:128,169`) gain a `storyContext` variable from compo
 (revised through the prompt stale-heal, `server/src/seed_feature_prompts.js:1098`); the Lab's
 sample variables gain it (`src/services/labTestData.js:103`). Line edits (`applyRule`, `:186`)
 per §9.5. Two new actions on the same footing: **Rewrite with direction…** (sibling of Continue
-with direction) and **Write dialogue** (the scene's characters, from their voice fields).
+with direction) and **Write dialogue…** (the scene's characters, from their voice fields).
 
 ## 5. Slice 3 — scene summaries + planning from the premise
 
@@ -104,7 +107,7 @@ with direction) and **Write dialogue** (the scene's characters, from their voice
   book from composer(book); reviewed) and **Suggest next beats** per strand (the `brainstormPlot`
   action → beat cards; reviewed). Brainstorm's Next plot beats / Plot twists also appear here and
   in the editor's AI menu.
-- **Architecture:** **Draft the Fabula / Setting from the premise** (lands as a diff in the
+- **Architecture:** **Draft from the premise**, on the Fabula and Setting documents (lands as a diff in the
   document).
 
 ## 6. Slice 4 — scene drafting (opt-in)
@@ -148,10 +151,10 @@ prompt store + Feature Workbench, shown in the editor's AI menu. Sized separatel
 
 Nothing is NOT STANDARD.
 
-## 9. Open — needs your word (each with the recommendation and why)
+## 9. Decided 2026-10-11 (each with its reason)
 
 1. **Locations, objects, groups: structured sheets or a drafted note?**
-   *Rec:* small sheets that collapse when empty, like the character sheet. Each keeps its
+   *Decided:* small sheets that collapse when empty, like the character sheet. Each keeps its
    existing description; the added fields are:
    - **Location:** Atmosphere & senses · History.
    - **Object:** Properties · History · Where it is now.
@@ -169,9 +172,9 @@ Nothing is NOT STANDARD.
      history / origin (your screenshots, 2026-07-18). Its groups weren't in the screenshots.
    - Adding columns is a proven, safe path since `d55f8f5`.
 
-   The field names are labels: confirm or change them.
+   The field names are approved as listed.
 2. **Before or after the translation work?**
-   *Rec:* the character half of slice 1 and slice 2 first; then the translation work; then the
+   *Decided:* the character half of slice 1 and slice 2 first; then the translation work; then the
    location/object/group sheets and slices 3–5.
    *Why:*
    - Slices 1–2 for characters are mostly reuse (Fill from book's pipeline, the card builder), and
@@ -181,13 +184,13 @@ Nothing is NOT STANDARD.
    - The new sheets bring many field hints — exactly the text the single-source system exists to
      stop duplicating between the page and the docs — so they cost less after it.
 3. **"Thin" for the describe box.**
-   *Rec:* a character is thin while none of the sheet's sections has a filled field, so a swept
+   *Decided:* a character is thin while none of the sheet's sections has a filled field, so a swept
    character with only a role and a one-liner still counts; another page is thin while its sheet
    fields are empty.
    *Why:* there's no number to tune (nothing to hardcode or seed), it covers the case Entity sweep
    creates, and you can predict it.
 4. **The story-context budget.**
-   *Rec:* a ceiling — a share of the routed model's context window, seeded at **15%** and
+   *Decided:* a ceiling — a share of the routed model's context window, seeded at **15%** and
    editable in Settings → AI. The composer sends only what's relevant, so the ceiling matters only
    for crowded scenes.
    *Why — measured 2026-10-11:*
@@ -211,16 +214,16 @@ Nothing is NOT STANDARD.
      is a retrieval balance, not a share, and stays as it is. Moving it into the database is a
      separate small item.
 5. **Line edits and story context.**
-   *Rec:* no.
+   *Decided:* no.
    *Why:* they rework the style of the selected text, and the story doesn't change a passive-voice
    fix. On a local model the context costs tokens and wait time, and it invites the model to
    rewrite content instead of style.
 6. **Save to sheet.**
-   *Rec:* the chat answer goes through slice 1's describe-and-draft flow. The answer is the
+   *Decided:* the chat answer goes through slice 1's describe-and-draft flow. The answer is the
    description, the review window proposes field changes, and you tick what to keep.
    *Why:* no new field or storage, slice 1 reused whole, and nothing saves without review.
 7. **Scene drafting's switch.**
-   *Rec:* per book, in Settings → Project beside Premise, off by default, labelled **AI scene
+   *Decided:* per book, in Settings → Project beside Premise, off by default, labelled **AI scene
    drafting**.
    *Why:*
    - Both rules apply per book. The Authors Guild issues its Human Authored mark "per title"
@@ -231,7 +234,7 @@ Nothing is NOT STANDARD.
    - The per-book record is the AI-text marks in the book's own text. The AI usage ledger has no
      book (`just-llm-runner/server/src/llm/usage_sink.js:24`).
 8. **New labels.**
-   *Rec:* keep the list below, with three changes:
+   *Decided:* keep the list below, with three changes:
    - **Create selected** → the sweep's existing **Add {n} to story bible**: one name for one action.
    - **Draft the Fabula / Setting from the premise** → **Draft from the premise**: the page already
      names the document.

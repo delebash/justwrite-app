@@ -181,7 +181,7 @@ The workflow runs three jobs:
 
 **Code signing.** Skipped intentionally. macOS users see a "unidentified developer" Gatekeeper prompt on first launch (right-click → Open to bypass); Windows users may see SmartScreen warnings. Add an Apple Developer Certificate + Windows code-signing cert later if the friction becomes a problem.
 
-**Auto-update.** Not enabled. Users download newer versions manually from the GitHub Releases page.
+**Auto-update.** On. The desktop app checks the GitHub Releases page for a newer version when it starts; **Settings → Updates** says when one is out, **Download** fetches it, and it installs when the app quits (or at once with **Restart now**). On a Mac, which can't install an unsigned update, it opens the release page instead. The updater finds the installer by its file name, which therefore has no spaces.
 
 ---
 
