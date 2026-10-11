@@ -150,7 +150,7 @@ export const DEFAULT_MODEL_CATALOG_EXTRA = [
 // ── the per-ACTION preset refs (action -> preset_id — the ONE source of what an action
 // runs) + the catch-all default. writerAI splits here (continue -> Generate prose,
 // tighten -> Edit prose); every writerAI.rule.* is listed EXPLICITLY (no prefix magic).
-// 37 refs across the 10 presets. ──
+// 43 refs across the 10 presets (+4 AI drafting actions, 2026-10-11). ──
 export const DEFAULT_FEATURE_PRESETS = {
     // Generate prose
     "writerAI.continue": "p_prose_voiced",
@@ -188,6 +188,11 @@ export const DEFAULT_FEATURE_PRESETS = {
     "recap": "p_extract",
     // Structured creative
     "unstuck": "p_creative_structured",
+    // The AI drafting (2026-10-11): they INVENT from a description, so creative, in JSON.
+    "characterProfileDraft": "p_creative_structured",
+    "characterVoiceDraft": "p_creative_structured",
+    "characterSection": "p_creative_structured",
+    "suggestCharacters": "p_creative_structured",
     "sensory": "p_creative_structured",
     "marketingPack": "p_creative_structured",
     // Judgment & scoring
@@ -360,6 +365,51 @@ export const DEFAULT_TEST_SAMPLES = [
     // characterAudit + characterProfile: BOTH ride composeCharacterAuditInput —
     // profile block + the scene digest with per-scene chapter headers — so the
     // one blob fans to both (the authored-once sample law).
+    // ── the AI drafting (2026-10-11): the composed input of characterDraft.js ──
+    {"actions": ["characterProfileDraft", "characterVoiceDraft"], "label": "Character from a description",
+     "variables": {"user_content": "BOOK CONTEXT\n" +
+                                   "## Premise\n" +
+                                   "A harbor archivist unpicks who altered her dead father's ledger.\n\n" +
+                                   "## Genre\n" +
+                                   "Literary mystery\n\n" +
+                                   "## Main cast\n" +
+                                   "Main cast:\n" +
+                                   "- Mira (Harbor archivist) — Guarded and dry-witted; keeps grief private.\n\n" +
+                                   "CHARACTER PROFILE\n" +
+                                   "Name: Tomas Vell\n" +
+                                   "Role: Customs clerk\n\n" +
+                                   "THE WRITER'S DESCRIPTION\n" +
+                                   "A nervous customs clerk who owes money to the wrong people — and the only one " +
+                                   "who saw the ledger being altered."}},
+    {"actions": ["characterSection"], "label": "Character sheet section",
+     "variables": {"user_content": "BOOK CONTEXT\n" +
+                                   "## Premise\n" +
+                                   "A harbor archivist unpicks who altered her dead father's ledger.\n\n" +
+                                   "## Genre\n" +
+                                   "Literary mystery\n\n" +
+                                   "## Main cast\n" +
+                                   "Main cast:\n" +
+                                   "- Mira (Harbor archivist) — Guarded and dry-witted; keeps grief private.\n\n" +
+                                   "CHARACTER PROFILE\n" +
+                                   "Name: Tomas Vell\n" +
+                                   "Role: Customs clerk\n" +
+                                   "One-liner: Owes money to the wrong people; saw the ledger altered.\n\n" +
+                                   "FIELDS TO DRAFT\n" +
+                                   "- function.theme — Thematic argument: the position this character embodies in the story's central question.\n" +
+                                   "- function.buttons — Buttons: what reliably provokes them, to anger or shame or delight."}},
+    {"actions": ["suggestCharacters"], "label": "Suggest characters",
+     "variables": {"user_content": "BOOK CONTEXT\n" +
+                                   "## Premise\n" +
+                                   "A harbor archivist unpicks who altered her dead father's ledger.\n\n" +
+                                   "## Genre\n" +
+                                   "Literary mystery\n\n" +
+                                   "## Main cast\n" +
+                                   "Main cast:\n" +
+                                   "- Mira (Harbor archivist) — Guarded and dry-witted; keeps grief private.\n\n" +
+                                   "ALREADY IN THE CAST\n" +
+                                   "- Mira\n\n" +
+                                   "WHAT THE WRITER IS LOOKING FOR\n" +
+                                   "Someone at the harbor who gains if the ledger stays altered."}},
     {"actions": ["characterAudit", "characterProfile", "characterVoice"], "label": "Character audit scenes",
      "variables": {"user_content": "CHARACTER PROFILE\n" +
                                    "Name: Mira\n" +

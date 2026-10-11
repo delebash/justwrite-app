@@ -25,7 +25,7 @@ export const FEATURE_CATALOG = [
   // ── Drafting tools — get-unstuck / research / ideas ──
   e("sensory", "Research feel", "Structured sensory pack (smell / sound / touch / …) for a selected subject — the editor's “Research feel” modal.", "Drafting tools"),
   e("unstuck", "Unstuck", "Five ways to unblock the current scene — goal shift / interrupt / setting / reveal / time cut.", "Drafting tools"),
-  e("brainstorm", "Brainstorm", "The Brainstorm view — name / title / freeform idea generation with thumbs-up steering.", "Drafting tools"),
+  e("brainstorm", "Brainstorm", "The Brainstorm view — name / title / freeform idea generation with thumbs-up steering — plus Name ideas and Suggest characters on the Characters page.", "Drafting tools"),
   // ── Analysis — per-chapter passes ──
   e("critique", "Critique", "The Critique modal — line-level Notes (flags / suggestions / observations) and the Structure pass (tension, hook, pacing, ending).", "Analysis"),
   e("multiReader", "Multi-reader panel", "Four reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel.", "Multi-reader panel"),
@@ -40,8 +40,8 @@ export const FEATURE_CATALOG = [
   // ── Characters / story bible ──
   e("entitySweep", "Entity sweep", "Scans chapters for new characters / locations / objects to add to the story bible.", "Characters"),
   e("characterAudit", "Character audit", "Per-character consistency audit (profile + their scenes → flagged actions) on the Characters view.", "Characters"),
-  e("characterProfile", "Character profile", "Drafts a character's profile fields (description, motivation, arc, backstory) from their scenes — reviewed before anything saves.", "Characters"),
-  e("characterVoice", "Character voice", "Drafts how a character speaks (register, rhythm, verbatim sample lines) from their actual dialogue — reviewed before anything saves.", "Characters"),
+  e("characterProfile", "Character profile", "Drafts a character's profile fields (description, motivation, arc, backstory) from their scenes, from your description, or a sheet section at a time — reviewed before anything saves.", "Characters"),
+  e("characterVoice", "Character voice", "Drafts how a character speaks (register, rhythm, sample lines) from their actual dialogue, or from your description — reviewed before anything saves.", "Characters"),
   e("relationshipArc", "Relationship arc", "Chapter-by-chapter warmth / tension / power tracking for a pair of characters.", "Characters"),
   // ── Chat ──
   e("chat", "Ask the book", "RAG question/answer over your manuscript — the chat panel's “Ask the book” mode.", "Chat"),

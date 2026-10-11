@@ -105,3 +105,27 @@ test("entity_sweep_schema_has_character_aliases_only", () => {
   // The prompt text describes the same field.
   expect(DEFAULT_FEATURE_PROMPTS.entitySweep.system).toContain("aliases");
 });
+
+// ── the AI drafting actions (2026-10-11, the AI drafting plan Task 6) ──
+test("the drafting actions are seeded with their feature, their preset and a JSON contract", async () => {
+  const SP = await import("../src/seed_presets.js");
+  const want = {
+    characterProfileDraft: "characterProfile",
+    characterVoiceDraft: "characterVoice",
+    characterSection: "characterProfile",
+    suggestCharacters: "brainstorm",
+  };
+  for (const [key, feature] of Object.entries(want)) {
+    const spec = DEFAULT_FEATURE_PROMPTS[key];
+    expect(spec, key).toBeTruthy();
+    expect(spec.feature, key).toBe(feature);
+    expect(spec.json_mode, key).toBe(true);
+    expect(spec.user_template, key).toBe("{{user_content}}");
+    expect(SP.DEFAULT_FEATURE_PRESETS[key], key).toBe("p_creative_structured");
+    expect(SP.DEFAULT_TEST_SAMPLES.some((s) => s.actions.includes(key)), `${key} has a Lab sample`).toBe(true);
+  }
+  // The two description drafts return Fill from book's exact shapes, so its sanitizers apply.
+  expect(DEFAULT_FEATURE_PROMPTS.characterProfileDraft.system).toContain('"motivation"');
+  expect(DEFAULT_FEATURE_PROMPTS.characterVoiceDraft.system).toContain('"sampleCalm"');
+  expect(DEFAULT_FEATURE_PROMPTS.suggestCharacters.system).toContain('"characters"');
+});

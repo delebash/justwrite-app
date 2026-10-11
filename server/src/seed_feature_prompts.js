@@ -379,6 +379,139 @@ Rules:
 
 Return ONLY the JSON object. No preface, no markdown fences.`;
 
+// ── characterDraft.js (the AI drafting, 2026-10-11) ──────────────────────────
+// Drafting a character from the WRITER'S DESCRIPTION and the book's context — the
+// counterpart of Fill from book, which grounds in scenes. The two description drafts return
+// Fill from book's exact JSON shapes (so its sanitizers and review rows apply) but INVENT
+// where Fill from book quotes; the section draft takes its field list in the input; the
+// suggestions propose characters the book doesn't have. Every reply is a PROPOSAL the writer
+// reviews before anything is saved.
+const CHARACTER_PROFILE_DRAFT_SYSTEM = `You draft a character profile for a novelist, from the writer's own description of the character and the book's context.
+
+You will be given:
+  - the book's context (premise, genre, world rules, setting, the main cast) — any part may be missing
+  - the character's CURRENT profile (name, role, plus whatever the writer has filled in)
+  - the writer's description of the character
+
+Your job: invent a profile that fits the description and the book. The writer reviews every field before anything is saved.
+
+Return ONLY a JSON object:
+
+{
+  "identity": {
+    "gender":   "the character's gender (free text) — \"\" if the description and the book give no reason to choose",
+    "pronouns": "their pronouns, e.g. she/her — \"\" if unclear",
+    "age":      <integer years, or null when nothing points to an age>,
+    "role":     "their occupation or role in the story"
+  },
+  "oneLiner": "1-2 sentences: who this character is — the tension in them, specific to THIS book",
+  "motivation": {
+    "want":  "what they consciously pursue",
+    "need":  "what they actually need, often unrecognized",
+    "lie":   "the false belief they operate under",
+    "truth": "the truth they meet or must accept",
+    "fear":  "what they organize their life to avoid",
+    "contradiction": "two things that are both true about them and don't fit",
+    "stakes": "what specifically breaks, for them or for others, if they fail to get the want"
+  },
+  "arc": {
+    "start":    "who they are when the book opens — 1-2 sentences",
+    "midpoint": "what shifts in the middle — 1-2 sentences",
+    "end":      "who they are by the end — 1-2 sentences"
+  },
+  "continuity": {
+    "physicalConstants": "physical features that must not drift — build, coloring, scars, marks"
+  },
+  "backstory": "a short paragraph of their past, before the story began"
+}
+
+Rules:
+  - Honour the description first. Where it is silent, invent what fits the book — concrete and specific ("complex character who goes on a journey" is a failure).
+  - Build on the current profile; never contradict a field the writer has filled, or the book's context.
+  - Never reuse the name of someone in the main cast.
+  - Keep each field tight: one-liners are 1-2 sentences; the backstory is one short paragraph.
+
+Return ONLY the JSON object. No preface, no markdown fences.`;
+
+const CHARACTER_VOICE_DRAFT_SYSTEM = `You describe how ONE character speaks, for a novelist, from the writer's description of the character and the book's context.
+
+You will be given:
+  - the book's context (premise, genre, world rules, setting, the main cast) — any part may be missing
+  - the character's CURRENT profile (name, role, plus whatever the writer has filled in)
+  - the writer's description of the character
+
+Your job: invent this character's voice so that it fits the description and the book. The writer reviews each field before anything is saved.
+
+Return ONLY a JSON object (every value a string):
+
+{
+  "register":    "formal ↔ casual — where their speech sits, and when it slips",
+  "rhythm":      "clipped or flowing; do they interrupt; do they trail off",
+  "vocabulary":  "3-5 words or phrases only THIS character would use",
+  "subtext":     "their subtext habit — deflects with jokes, answers questions with questions, agrees then does the opposite",
+  "humor":       "their humor style — dry / absent / cruel / self-deprecating / none",
+  "languages":   "languages they speak or understand, if the book has more than one",
+  "tic":         "a recurring verbal habit, if they have one",
+  "sampleCalm":  "ONE line they would say in a calm, ordinary moment — in their voice",
+  "sampleAngry": "ONE line they would say angry or under pressure — in their voice",
+  "sampleLying": "ONE line they would say while lying, deflecting, or concealing — in their voice",
+  "stressTells": "their physical baseline and how being rattled, afraid, or lying leaks through"
+}
+
+Rules:
+  - The three samples are lines you WRITE in the character's voice — the writer knows they are composed, not quoted.
+  - Make the voice distinct: it should be recognisable without a dialogue tag.
+  - Build on the current profile; never contradict what it says.
+  - Where nothing supports a field (languages in a one-language book, a tic they don't have), return "".
+
+Return ONLY the JSON object. No preface, no markdown fences.`;
+
+const CHARACTER_SECTION_SYSTEM = `You draft part of a novelist's character sheet.
+
+You will be given:
+  - the book's context (premise, genre, world rules, setting, the main cast) — any part may be missing
+  - the character's CURRENT profile
+  - possibly, the writer's description of the character
+  - the FIELDS to draft — each with its key, its label, and what it asks for
+
+Your job: write each listed field for THIS character — consistent with the profile and the book, specific, in the writer's service. The writer reviews every field before anything is saved.
+
+Return ONLY a JSON object whose keys are exactly the field keys you were given, each with a string value:
+
+{ "<field key>": "<text>" }
+
+Rules:
+  - Use exactly the given keys — no others.
+  - Build on the profile; never contradict what it already says.
+  - Give each field what its description asks for, usually in 1-2 sentences.
+  - If nothing supports a field and any answer would be arbitrary, return "" for it.
+
+Return ONLY the JSON object. No preface, no markdown fences.`;
+
+const SUGGEST_CHARACTERS_SYSTEM = `You suggest new characters for a novelist's book.
+
+You will be given:
+  - the book's context (premise, genre, world rules, setting, the main cast)
+  - the names already in the cast
+  - possibly, what the writer is looking for
+
+Your job: propose 4-8 characters the book doesn't have yet, each serving the story in a different way — an obstacle, a mirror, an ally with a cost, a source of pressure, a witness.
+
+Return ONLY a JSON object:
+
+{
+  "characters": [
+    { "name": "a name that fits the book's world", "role": "their role or occupation, a few words", "oneLiner": "1-2 sentences: who they are and the tension they bring" }
+  ]
+}
+
+Rules:
+  - Never reuse a name already in the cast, and keep the names distinct from one another.
+  - Fit the genre and the world: names, roles and tensions that belong in THIS book.
+  - Each one-liner names a tension, not a list of traits.
+
+Return ONLY the JSON object. No preface, no markdown fences.`;
+
 // ── relationshipArc.js (analyseRelationship) ────────────────────────────────
 const RELATIONSHIP_SYSTEM = `You track a relationship between two characters across a novel — chapter by chapter.
 
@@ -809,6 +942,32 @@ export const DEFAULT_FEATURE_PROMPTS = {
         "user_template": "{{user_content}}",
         "json_mode": true,
     },
+    // The AI drafting (2026-10-11): a character from a description, a sheet section,
+    // suggested characters. {{user_content}} is composed client-side (characterDraft.js).
+    "characterProfileDraft": {
+        "feature": "characterProfile",
+        "system": CHARACTER_PROFILE_DRAFT_SYSTEM,
+        "user_template": "{{user_content}}",
+        "json_mode": true,
+    },
+    "characterVoiceDraft": {
+        "feature": "characterVoice",
+        "system": CHARACTER_VOICE_DRAFT_SYSTEM,
+        "user_template": "{{user_content}}",
+        "json_mode": true,
+    },
+    "characterSection": {
+        "feature": "characterProfile",
+        "system": CHARACTER_SECTION_SYSTEM,
+        "user_template": "{{user_content}}",
+        "json_mode": true,
+    },
+    "suggestCharacters": {
+        "feature": "brainstorm",
+        "system": SUGGEST_CHARACTERS_SYSTEM,
+        "user_template": "{{user_content}}",
+        "json_mode": true,
+    },
     "relationshipArc": {
         "feature": "relationshipArc",
         "system": RELATIONSHIP_SYSTEM,
@@ -1049,6 +1208,12 @@ const ACTION_META = {
     "critique": {"description": "Line-level editorial notes — flags, suggestions, and observations."},
     "critiqueStructure": {"description": "Structural pass — tension, hook, pacing, and how the ending lands."},
     "brainstorm": {"description": "Freeform idea generation — names, titles, and concepts with thumbs-up steering."},
+    "characterProfile": {"description": "Drafts a character's profile from the scenes that feature them."},
+    "characterVoice": {"description": "Drafts how a character speaks from the lines they actually say."},
+    "characterProfileDraft": {"description": "Invents a character's profile from your description and the book."},
+    "characterVoiceDraft": {"description": "Invents how a character speaks — register, rhythm, sample lines — from your description."},
+    "characterSection": {"description": "Drafts one section of a character sheet, field by field."},
+    "suggestCharacters": {"description": "Proposes characters the book doesn't have yet, from its premise and cast."},
     "brainstormPlot": {"description": "Plot-focused ideas — what-ifs, complications, and next beats."},
 };
 
@@ -1080,6 +1245,12 @@ const ACTION_LABELS = {
     "critiqueStructure": "Structure",
     "brainstorm": "Ideas",
     "brainstormPlot": "Plot",
+    "characterProfile": "Fill from book",
+    "characterVoice": "Fill from book",
+    "characterProfileDraft": "From a description",
+    "characterVoiceDraft": "From a description",
+    "characterSection": "Draft this section",
+    "suggestCharacters": "Suggest characters",
 };
 
 // Sub-section labels clustering a multi-action feature's actions in the nav
