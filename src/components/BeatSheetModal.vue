@@ -14,7 +14,7 @@ import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiSelect } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiSelect, UiBanner } from "@delebash/llm-ui";
 import {
   mapToBeatSheet,
   BEAT_TEMPLATES,
@@ -101,26 +101,20 @@ if (!mapping.value) run();
 </script>
 
 <template>
-  <AppModal
-    :eyebrow="$t('beatSheet.eyebrow')"
-    :title="$t('beatSheet.title')"
+  <AppModal :eyebrow="$t('beatSheet.eyebrow')" :title="$t('beatSheet.title')"
     wide
     :closable="!running"
     @close="emit('close')"
   >
-    <template #header>
-      <div class="bs-titleblock">
-        <div class="t-eyebrow">{{ $t("beatSheet.eyebrow") }}</div>
-        <h2 class="modal-title">{{ $t("beatSheet.title") }}</h2>
-      </div>
-      <div class="bs-header-actions">
-        <AiFeatureChip feature="beatSheet" :label="$t('beatSheet.eyebrow')" editable />
-      </div>
+    <template #header-extra>
+      <AiFeatureChip feature="beatSheet" :label="$t('beatSheet.eyebrow')" editable />
     </template>
 
-    <i18n-t keypath="beatSheet.blurb" tag="p" class="bs-blurb" scope="global">
-      <template #missing><strong>{{ $t("beatSheet.missingTag") }}</strong></template>
-    </i18n-t>
+    <template #lede>
+      <i18n-t keypath="beatSheet.blurb" scope="global">
+        <template #missing><strong>{{ $t("beatSheet.missingTag") }}</strong></template>
+      </i18n-t>
+    </template>
 
     <div class="bs-controls">
       <div class="bs-picker">
@@ -135,12 +129,14 @@ if (!mapping.value) run();
       <p v-if="currentTemplate?.blurb" class="bs-blurb-template">{{ currentTemplate.blurb }}</p>
     </div>
 
-    <div v-if="error" class="bs-error">
-      <Icon name="Alert" :size="13" /> {{ error }}
-      <UiButton intent="ghost" size="small" @click="run">
-        <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
-      </UiButton>
-    </div>
+    <UiBanner v-if="error">
+      {{ error }}
+      <template #action>
+        <UiButton intent="ghost" size="small" @click="run">
+          <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
+        </UiButton>
+      </template>
+    </UiBanner>
 
     <AiTaskStrip v-if="running" :task="myTask" />
 
@@ -202,12 +198,6 @@ if (!mapping.value) run();
 </template>
 
 <style scoped>
-.bs-blurb {
-  margin: 0 0 16px; max-width: 80ch;
-  font-size: 12.5px; line-height: 1.55; color: var(--muted);
-}
-.bs-blurb strong { color: var(--ink-2); font-weight: 600; }
-
 .bs-controls {
   display: flex; flex-direction: column; gap: 8px;
   margin-bottom: 18px;
@@ -220,14 +210,6 @@ if (!mapping.value) run();
 .bs-blurb-template {
   margin: 0; max-width: 78ch;
   font-size: 12px; color: var(--muted); font-style: italic;
-}
-
-.bs-error {
-  display: flex; gap: 10px; align-items: center;
-  padding: 10px 14px; border-radius: 6px;
-  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
-  color: var(--danger-ink, #b91c1c);
-  font-size: 12.5px;
 }
 
 .bs-loading {
@@ -302,8 +284,4 @@ if (!mapping.value) run();
 }
 
 .bs-foot-spacer { flex: 1; }
-
-.bs-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.bs-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
-.bs-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

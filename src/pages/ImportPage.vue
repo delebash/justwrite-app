@@ -2,7 +2,7 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { PaneHeader, pageFill } from "@delebash/llm-ui";
+import { PaneHeader, pageFill, UiBanner } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { parseFile, normalizeHtml } from "../services/import/index.js";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
@@ -400,9 +400,7 @@ function finishAfterSweep() {
             <div v-if="parsing" class="wiz-status">
               <Icon name="Refresh" :size="14" /> {{ $t("import.parsing", { file: fileName }) }}
             </div>
-            <div v-if="parseError" class="wiz-error">
-              <Icon name="Alert" :size="14" /> {{ parseError }}
-            </div>
+            <UiBanner v-if="parseError">{{ parseError }}</UiBanner>
           </section>
         </div>
 
@@ -564,12 +562,11 @@ function finishAfterSweep() {
   background: var(--surface-3);
 }
 
-.wiz-status, .wiz-error {
+.wiz-status {
   display: inline-flex; align-items: center; gap: 7px;
   font-size: 12.5px; padding: 8px 12px; border-radius: 6px;
 }
 .wiz-status { color: var(--muted); background: var(--surface-2); }
-.wiz-error  { color: var(--danger-ink, #c33); background: color-mix(in oklab, var(--danger-ink, #c33) 12%, transparent); }
 
 /* Preview summary */
 .preview-summary {

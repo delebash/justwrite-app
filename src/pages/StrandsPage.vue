@@ -1,6 +1,6 @@
 <script setup>
-import { computed, ref, watch, nextTick } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { PaneHeader, pageFill } from "@delebash/llm-ui";
@@ -16,17 +16,16 @@ import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import GroupsModal from "../components/GroupsModal.vue";
-import { Breadcrumb } from "@delebash/llm-ui";
 import { promptDialog } from "@delebash/llm-ui";
 import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
+import { useSelectNewName } from "../composables/useSelectNewName.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
-const route = useRoute();
 const modal = ref(null);
 
 const s = computed(() => props.id ? project.strandById(props.id) : null);
@@ -109,18 +108,9 @@ function goBeat(b) {
   router.push(b.sceneId ? `/chapters/${b.chapterId}/${b.sceneId}` : `/chapters/${b.chapterId}`);
 }
 
-// The detail name input, focused + selected when we arrive via "+ New"
-// (?new=1) so the first keystroke replaces the default "Untitled …"; the
-// query is then stripped so a reload doesn't re-select.
-const nameInput = ref(null);
-watch(() => route.query.new, (isNew) => {
-  if (!isNew) return;
-  nextTick(() => {
-    nameInput.value?.focus();
-    nameInput.value?.select?.();
-    router.replace({ query: {} });
-  });
-}, { immediate: true });
+// "+ New" lands here with ?new=1: the header's name is selected, ready to type over.
+const header = ref(null);
+useSelectNewName(header);
 
 function addStrand() {
   const id = project.addStrand();
@@ -301,28 +291,19 @@ const tableRows = computed(() =>
 
     <!-- ── Detail mode (id present, strand found) ───────────────── -->
     <template v-else-if="s">
-      <header class="pane-header entity-pane-header">
-        <div class="pane-title">
-          <Breadcrumb :segments="[{ label: 'Narrative strand', to: '/strands' }]" />
-          <div class="strand-name-row">
-            <span v-if="s.color" class="strand-name-dot" :style="{ background: s.color }" :title="s.color" />
-            <input class="entity-name" ref="nameInput"
-              :value="s.name"
-              :placeholder="$t('strands.namePlaceholder')"
-              @input="update('name', $event.target.value)" />
-          </div>
-        </div>
-        <div class="pane-actions">
-          <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
-            v-tooltip.bottom="`Ask the book about ${s.name}`">
-            <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
-          </UiButton>
-          <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> {{ $t("nav.groups") }}</UiButton>
-          <UiButton intent="ghost" size="small" @click="deleteStrand">{{ $t("common.delete") }}</UiButton>
-          <UiButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> {{ $t("strands.newStrand") }}</UiButton>
-          <StatusSelect :model-value="s.status || ''" @update:model-value="(v) => update('status', v)" />
-        </div>
-      </header>
+      <PaneHeader ref="header" :crumbs="[{ label: $t('strands.breadcrumb'), to: '/strands' }]"
+        editable :title="s.name" :placeholder="$t('strands.namePlaceholder')"
+        @update:title="(v) => update('name', v)">
+        <template #before-title><span v-if="s.color" class="strand-name-dot" :style="{ background: s.color }" :title="s.color" /></template>
+        <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
+          v-tooltip.bottom="$t('common.askTheBookAbout', { title: s.name })">
+          <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
+        </UiButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> {{ $t("nav.groups") }}</UiButton>
+        <UiButton intent="ghost" size="small" @click="deleteStrand">{{ $t("common.delete") }}</UiButton>
+        <UiButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> {{ $t("strands.newStrand") }}</UiButton>
+        <StatusSelect :model-value="s.status || ''" @update:model-value="(v) => update('status', v)" />
+      </PaneHeader>
 
       <div class="pane-card">
         <div class="strand-body">
@@ -425,15 +406,9 @@ const tableRows = computed(() =>
 
     <!-- ── id in URL but strand not found ───────────────────────── -->
     <template v-else>
-      <header class="pane-header entity-pane-header">
-        <div class="pane-title">
-          <Breadcrumb :segments="[{ label: 'Narrative strand', to: '/strands' }]" />
-          <h1 class="pane-h1">{{ $t("strands.notFound") }}</h1>
-        </div>
-        <div class="pane-actions">
-          <UiButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> {{ $t("strands.newStrand") }}</UiButton>
-        </div>
-      </header>
+      <PaneHeader :crumbs="[{ label: $t('strands.breadcrumb'), to: '/strands' }]" :title="$t('strands.notFound')">
+        <UiButton intent="primary" size="small" @click="addStrand"><Icon name="Plus" :size="14" /> {{ $t("strands.newStrand") }}</UiButton>
+      </PaneHeader>
       <div class="pane-card" style="display:grid;place-items:center;padding:60px">
         <div class="t-muted" style="text-align:center">
           {{ $t("strands.notFoundBody") }}<br />
@@ -455,10 +430,6 @@ const tableRows = computed(() =>
   overflow-y: auto;
 }
 
-.strand-name-row {
-  display: flex; align-items: center; gap: 8px;
-  min-width: 0;
-}
 .strand-name-dot {
   width: 12px; height: 12px; border-radius: 50%;
   box-shadow: inset 0 0 0 1px var(--shadow-soft);

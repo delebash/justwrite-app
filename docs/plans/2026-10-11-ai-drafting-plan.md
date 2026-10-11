@@ -244,6 +244,16 @@ for a section); `en.json`.
 
 ## Task 9b — The detail header on the kit's PaneHeader (the third round, point 6)
 
+**Built** 2026-10-11 — the kit's `5856019` and the commit "Every page header and every window on
+the kit's shared pieces". Reopened before building: the hand-built headers were 15 pages, not 5
+(TASKS, the decision as asked), and the user ruled reuse the default ("you shouldnt need to ask").
+So: all 15 page headers on PaneHeader (Chapters' centred switch a layout on it; Markers and Reader
+knowledge its `intro` variant), the app.scss copy and four copies of the editable-title style
+deleted, `composables/useSelectNewName.js` for the eight pages' "+ New" selection; every window's
+header, intro line and error box on AppModal (`:eyebrow`/`:title`/`#header-extra`, `lede`/`#lede`)
+and `UiBanner` — 16 hand-built window headers, 19 intro lines, 19 error boxes. Measured before and
+after on every page header at 1280 and 390 px and on eight windows (TASKS BUILT).
+
 The character page's name box is 14 px wide at 1280 px with the sidebar open (measured
 2026-10-11): ten header controls and a name box that shrinks instead of wrapping. The five detail
 pages (Characters, Locations, Objects, Groups, Notes) hand-build that header — ten
@@ -254,7 +264,7 @@ pages (Characters, Locations, Objects, Groups, Notes) hand-build that header —
 name; the actions wrap below the title whenever they don't fit, at every width — today only under
 600 px); the five pages switch to it; the app.scss copy goes once nothing uses it.
 
-- [ ] Measured at 1280 and 390 px on every detail page: the name box keeps its content's width,
+- [x] Measured at 1280 and 390 px on every detail page: the name box keeps its content's width,
   the actions wrap below it, no horizontal scroll; the 21 list pages look as before (smoke + a
   look). Kit suite; commit both.
 

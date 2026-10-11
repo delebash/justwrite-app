@@ -1,8 +1,8 @@
 <script setup>
-import { computed, ref, watch, nextTick } from "vue";
+import { computed, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import { Icon, pageFill } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
@@ -18,15 +18,14 @@ import GroupsModal from "../components/GroupsModal.vue";
 import TagEditor from "../components/TagEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
-import { Breadcrumb } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
+import { useSelectNewName } from "../composables/useSelectNewName.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
-const route = useRoute();
 const sweepOpen = ref(false);
 
 // When id is present → detail mode. When absent → list mode.
@@ -41,18 +40,9 @@ const tagPool = computed(() => {
   return out;
 });
 
-// The detail name input, focused + selected when we arrive via "+ New"
-// (?new=1) so the first keystroke replaces the default "Untitled …"; the
-// query is then stripped so a reload doesn't re-select.
-const nameInput = ref(null);
-watch(() => route.query.new, (isNew) => {
-  if (!isNew) return;
-  nextTick(() => {
-    nameInput.value?.focus();
-    nameInput.value?.select?.();
-    router.replace({ query: {} });
-  });
-}, { immediate: true });
+// "+ New" lands here with ?new=1: the header's name is selected, ready to type over.
+const header = ref(null);
+useSelectNewName(header);
 
 function addObject() {
   const id = project.addObject(); ui.select("objects", id); router.push(`/objects/${id}?new=1`);
@@ -185,29 +175,22 @@ function onRowClick(event) {
 
     <!-- ── Detail mode (id present, object found) ───────────────── -->
     <template v-else-if="obj">
-      <header class="pane-header entity-pane-header">
-        <div class="pane-title">
-          <Breadcrumb :segments="[{ label: 'Object', to: '/objects' }]" />
-          <input class="entity-name" ref="nameInput"
-            :value="obj.name"
-            :placeholder="$t('objects.namePlaceholder')"
-            @input="update('name', $event.target.value)" />
-        </div>
-        <div class="pane-actions">
-          <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
-            v-tooltip.bottom="$t('common.askTheBookAbout', { title: obj.name })">
-            <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
-          </UiButton>
-          <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> {{ $t("common.images") }}</UiButton>
-          <router-link :to="`/objects/${obj.id}/events`" custom v-slot="{ navigate }">
-            <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> {{ $t("common.events") }}</UiButton>
-          </router-link>
-          <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> {{ $t("nav.groups") }}</UiButton>
-          <UiButton intent="ghost" size="small" @click="deleteObject">{{ $t("common.delete") }}</UiButton>
-          <UiButton intent="primary" size="small" @click="addObject"><Icon name="Plus" :size="14" /> {{ $t("objects.newObject") }}</UiButton>
-          <StatusSelect :model-value="obj.status || ''" @update:model-value="(v) => update('status', v)" />
-        </div>
-      </header>
+      <PaneHeader ref="header" :crumbs="[{ label: $t('events.kinds.object'), to: '/objects' }]"
+        editable :title="obj.name" :placeholder="$t('objects.namePlaceholder')"
+        @update:title="(v) => update('name', v)">
+        <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
+          v-tooltip.bottom="$t('common.askTheBookAbout', { title: obj.name })">
+          <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
+        </UiButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> {{ $t("common.images") }}</UiButton>
+        <router-link :to="`/objects/${obj.id}/events`" custom v-slot="{ navigate }">
+          <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> {{ $t("common.events") }}</UiButton>
+        </router-link>
+        <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> {{ $t("nav.groups") }}</UiButton>
+        <UiButton intent="ghost" size="small" @click="deleteObject">{{ $t("common.delete") }}</UiButton>
+        <UiButton intent="primary" size="small" @click="addObject"><Icon name="Plus" :size="14" /> {{ $t("objects.newObject") }}</UiButton>
+        <StatusSelect :model-value="obj.status || ''" @update:model-value="(v) => update('status', v)" />
+      </PaneHeader>
       <div class="pane-card">
         <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
           <p class="entity-desc">
@@ -253,15 +236,9 @@ function onRowClick(event) {
 
     <!-- ── id in URL but object not found ───────────────────────── -->
     <template v-else>
-      <header class="pane-header entity-pane-header">
-        <div class="pane-title">
-          <Breadcrumb :segments="[{ label: 'Object', to: '/objects' }]" />
-          <h1 class="pane-h1">{{ $t("objects.notFound") }}</h1>
-        </div>
-        <div class="pane-actions">
-          <UiButton intent="primary" size="small" @click="addObject"><Icon name="Plus" :size="14" /> {{ $t("objects.newObject") }}</UiButton>
-        </div>
-      </header>
+      <PaneHeader :crumbs="[{ label: $t('events.kinds.object'), to: '/objects' }]" :title="$t('objects.notFound')">
+        <UiButton intent="primary" size="small" @click="addObject"><Icon name="Plus" :size="14" /> {{ $t("objects.newObject") }}</UiButton>
+      </PaneHeader>
       <div class="pane-card" style="display:grid;place-items:center;padding:60px">
         <div class="t-muted" style="text-align:center">
           {{ $t("objects.notFoundBody") }}<br />

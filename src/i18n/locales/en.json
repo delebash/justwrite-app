@@ -381,7 +381,8 @@
     "beatLabelPlaceholder": "Beat label (e.g. Midpoint)",
     "beatNotePlaceholder": "Note (optional)",
     "removeBeat": "Remove beat",
-    "goToBeat": "Go to {label}"
+    "goToBeat": "Go to {label}",
+    "breadcrumb": "Narrative strand"
   },
   "sceneLinks": {
     "title": "Links",

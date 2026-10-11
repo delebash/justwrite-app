@@ -3,7 +3,7 @@ import { computed, ref, watch, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import Avatar from "../components/Avatar.vue";
 import { Icon, pageFill } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
@@ -28,8 +28,6 @@ import CharacterSheetSection from "../components/CharacterSheetSection.vue";
 import TagEditor from "../components/TagEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
-import { Breadcrumb } from "@delebash/llm-ui";
-import { HelpTrigger } from "@delebash/llm-ui";
 import { confirmDialog } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
 import {
@@ -38,13 +36,13 @@ import {
 } from "../services/characterSheet.js";
 import { saveImage } from "../services/imageStore.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
+import { useSelectNewName } from "../composables/useSelectNewName.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const { t } = useI18n({ useScope: "global" });
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
-const route = useRoute();
 const sweepOpen = ref(false);
 const auditOpen = ref(false);
 const relationshipArcOpen = ref(false);
@@ -126,18 +124,9 @@ const LIFE_STATUS_OPTIONS = computed(() => [
   { value: "unknown",  label: t("characters.lifeStatus.unknown") },
 ]);
 
-// The detail name input, focused + selected when we arrive via "+ New"
-// (?new=1) so the first keystroke replaces the default "Untitled …"; the
-// query is then stripped so a reload doesn't re-select.
-const nameInput = ref(null);
-watch(() => route.query.new, (isNew) => {
-  if (!isNew) return;
-  nextTick(() => {
-    nameInput.value?.focus();
-    nameInput.value?.select?.();
-    router.replace({ query: {} });
-  });
-}, { immediate: true });
+// "+ New" lands here with ?new=1: the header's name is selected, ready to type over.
+const header = ref(null);
+useSelectNewName(header);
 
 function addCharacter() {
   const id = project.addCharacter();
@@ -437,40 +426,33 @@ function onRowClick(event) {
 
     <!-- ── Detail mode (id present, character found) ────────────── -->
     <template v-else-if="ch">
-      <header class="pane-header entity-pane-header">
-        <div class="pane-title">
-          <Breadcrumb :segments="[{ label: ch.main ? $t('characters.detail.mainCharacter') : $t('characters.detail.secondaryCharacter'), to: '/characters' }]" />
-          <input class="entity-name" ref="nameInput"
-            :value="ch.name"
-            :placeholder="$t('characters.detail.namePlaceholder')"
-            @input="updateField('name', $event.target.value)" />
-        </div>
-        <div class="pane-actions">
-          <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="talkToCharacter"
-            v-tooltip.bottom="$t('characters.detail.talkToTooltip', { name: ch.name })">
-            <Icon name="Sparkle" :size="14" /> {{ $t("characters.detail.talkTo", { name: ch.name?.split(/\s+/)[0] || $t("characters.detail.talkToFallback") }) }}
-          </UiButton>
-          <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
-            v-tooltip.bottom="$t('characters.detail.askTheBookTooltip', { name: ch.name })">
-            <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
-          </UiButton>
-          <UiMenu :label="$t('characters.draft.menu')" :title="$t('characters.draft.menuTooltip')"
-            trigger-class="ui-btn ui-btn--ghost ui-btn--small" content-class="lu-mmenu" align="end">
-            <template #trigger><Icon name="Sparkle" :size="14" /> {{ $t("characters.draft.menu") }} <Icon name="ChevDown" :size="12" /></template>
-            <UiMenuItem class="lu-mmi" @select="startFromDescription">{{ $t("characters.draft.fromDescription") }}</UiMenuItem>
-            <UiMenuItem class="lu-mmi" @select="openDraft('book')">{{ $t("characters.header.fillFromBook") }}</UiMenuItem>
-          </UiMenu>
-          <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> {{ $t("characters.detail.images") }}</UiButton>
-          <router-link :to="`/characters/${ch.id}/events`" custom v-slot="{ navigate }">
-            <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> {{ $t("characters.detail.events") }}</UiButton>
-          </router-link>
-          <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> {{ $t("nav.groups") }}</UiButton>
-          <UiButton intent="ghost" size="small" @click="deleteCharacter">{{ $t("common.delete") }}</UiButton>
-          <UiButton intent="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> {{ $t("characters.header.newCharacter") }}</UiButton>
-          <StatusSelect :model-value="ch.status || ''" @update:model-value="(v) => updateField('status', v)" />
-          <HelpTrigger slug="character-sheet" :label="$t('characters.detail.helpLabel')" />
-        </div>
-      </header>
+      <PaneHeader ref="header" :crumbs="[{ label: ch.main ? $t('characters.detail.mainCharacter') : $t('characters.detail.secondaryCharacter'), to: '/characters' }]"
+        editable :title="ch.name" :placeholder="$t('characters.detail.namePlaceholder')"
+        @update:title="(v) => updateField('name', v)"
+        help-key="character-sheet" :help-label="$t('characters.detail.helpLabel')">
+        <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="talkToCharacter"
+          v-tooltip.bottom="$t('characters.detail.talkToTooltip', { name: ch.name })">
+          <Icon name="Sparkle" :size="14" /> {{ $t("characters.detail.talkTo", { name: ch.name?.split(/\s+/)[0] || $t("characters.detail.talkToFallback") }) }}
+        </UiButton>
+        <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
+          v-tooltip.bottom="$t('characters.detail.askTheBookTooltip', { name: ch.name })">
+          <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
+        </UiButton>
+        <UiMenu :label="$t('characters.draft.menu')" :title="$t('characters.draft.menuTooltip')"
+          trigger-class="ui-btn ui-btn--ghost ui-btn--small" content-class="lu-mmenu" align="end">
+          <template #trigger><Icon name="Sparkle" :size="14" /> {{ $t("characters.draft.menu") }} <Icon name="ChevDown" :size="12" /></template>
+          <UiMenuItem class="lu-mmi" @select="startFromDescription">{{ $t("characters.draft.fromDescription") }}</UiMenuItem>
+          <UiMenuItem class="lu-mmi" @select="openDraft('book')">{{ $t("characters.header.fillFromBook") }}</UiMenuItem>
+        </UiMenu>
+        <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> {{ $t("characters.detail.images") }}</UiButton>
+        <router-link :to="`/characters/${ch.id}/events`" custom v-slot="{ navigate }">
+          <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> {{ $t("characters.detail.events") }}</UiButton>
+        </router-link>
+        <UiButton intent="ghost" size="small" @click="modal = 'groups'"><Icon name="GroupIcon" :size="14" /> {{ $t("nav.groups") }}</UiButton>
+        <UiButton intent="ghost" size="small" @click="deleteCharacter">{{ $t("common.delete") }}</UiButton>
+        <UiButton intent="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> {{ $t("characters.header.newCharacter") }}</UiButton>
+        <StatusSelect :model-value="ch.status || ''" @update:model-value="(v) => updateField('status', v)" />
+      </PaneHeader>
 
       <div class="pane-card">
         <div class="scrollarea" style="padding:24px 28px 40px">
@@ -753,15 +735,9 @@ function onRowClick(event) {
 
     <!-- ── id in URL but character not found (deleted / bad link) ── -->
     <template v-else>
-      <header class="pane-header entity-pane-header">
-        <div class="pane-title">
-          <Breadcrumb :segments="[{ label: $t('characters.notFound.breadcrumb'), to: '/characters' }]" />
-          <h1 class="pane-h1">{{ $t("characters.notFound.title") }}</h1>
-        </div>
-        <div class="pane-actions">
-          <UiButton intent="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> {{ $t("characters.header.newCharacter") }}</UiButton>
-        </div>
-      </header>
+      <PaneHeader :crumbs="[{ label: $t('characters.notFound.breadcrumb'), to: '/characters' }]" :title="$t('characters.notFound.title')">
+        <UiButton intent="primary" size="small" @click="addCharacter"><Icon name="Plus" :size="14" /> {{ $t("characters.header.newCharacter") }}</UiButton>
+      </PaneHeader>
       <div class="pane-card" style="display:grid;place-items:center;padding:60px">
         <div class="t-muted" style="text-align:center">
           {{ $t("characters.notFound.message") }}<br />

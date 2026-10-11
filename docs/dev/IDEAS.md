@@ -178,6 +178,16 @@ menu — their contents and order. A power-user affordance over the existing men
 
 ## Infra / tooling
 
+### The extraction-vs-copies audit (owed since 2026-07-26; candidates noted 2026-10-11)
+
+The user, 2026-07-26, on the EntityIndex extraction: "this is the kind of refactoring audit we need
+to do at some point." 2026-10-11 the page headers (15 hand-built + a global copy), the windows'
+headers (16), intro lines (19) and error boxes (19) were extracted onto the kit — finding them took
+a near-copy search, not jscpd (which passes). Seen while doing it, not yet done: each AI window's
+own loading / empty / stamp blocks (`.bs-loading`, `.cpf-empty`, `.ck-stamp`, …); the detail
+pages' bodies below the header; per-page empty states; the probe scripts' private findChrome()
+copies.
+
 ### Multi-model co-residency VRAM budgeting (was ledger §J2)
 
 For big-VRAM boxes running 2–3 resident models, the fit calculation must count the

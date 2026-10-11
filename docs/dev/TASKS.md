@@ -90,6 +90,23 @@ STATE:  DECIDED + IMPLEMENTING 2026-10-11 — slice 1 (characters) and slice 2 b
         Suggested order: Task 0; you run the three Lab samples; points 3, 4 and 5 in one commit;
         the header fix in the kit, then Task 10; Tasks 12, 13, 14 and 15."
         The user: "your rec go" (2026-10-11).
+        Task 9b, reopened (my count of the hand-built headers was wrong: 15 pages, not 5), asked
+        as shown: "Step 1 — one source: the header classes move into the kit's shared stylesheet
+        … PaneHeader uses those classes and drops its private copy; JustWrite's app.scss copy is
+        deleted. The wrap fix is written once there. Step 2 — reuse the component, not just the
+        styles: PaneHeader gains a slot for a breadcrumb plus an editable name; the 12 hand-built
+        headers with the same shape switch to it … their hardcoded English breadcrumb labels move
+        into translations. Window headers: the window header wraps whenever it doesn't fit, and
+        the chip shortens the model name (…) instead of overflowing. Error boxes (21 files) and
+        intro lines (9 files): one shared error box and one intro-line class in the kit."
+        The user: "good coding practices reuse not copy"; then "this is one of your rules you
+        shouldnt need to ask this question, you should do what a profressional software dev
+        does, reuse code make components use frameworks, its not difficult, this is one of your
+        rules, follow it, think on the correct profressional way to solve this, then go"
+        (2026-10-11). Done the professional way: every page header is the kit's PaneHeader (all
+        15, the three custom layouts included — Chapters keeps its centred switch as a layout on
+        it, Markers and Reader knowledge are its "intro" variant), so no global copy is needed at
+        all; every window's header, intro line and error box are AppModal's and UiBanner's.
 WHY:    the user, 2026-10-11 — AI creation on each story-world page, not only on Brainstorm, and AI
         that writes the story or parts of it. Picks up IDEAS.md "Brainstorm → point-of-use
         generation" (2026-07-26).
@@ -100,9 +117,9 @@ BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV 
         the three user-doc errors fixed (getting-started.md auto-update; writing.md "When" and
         Entity sweep). Plan Tasks 1–9 and 11 (the kit's `1476549` `b9ea75d`; `d797c1f`,
         `c2a98c5` + `850a848`, `4b9f073`, `52222e0`, `7d66857`, `72ddd50`, `7c07ce9`, `a976c34`). Task 0 — status and Exclude from AI kept (sync schema 3), and honoured by
-        every card reader.
-OPEN:   in the third round's order: Task 0; the Lab check (the user); Task 11b; Task 9b, then
-        Task 10; Tasks 12–15. After them, per decision 2: the translation work, then the sheets and
+        every card reader. Task 11b — Suggest characters in Entity sweep's shape. Task 9b — one page
+        header, one window header / intro line / error banner (the kit's `5856019`).
+OPEN:   in the third round's order: the Lab check (the user); Task 10; Tasks 12–15. After them, per decision 2: the translation work, then the sheets and
         slices 3–4.
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;

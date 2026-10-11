@@ -13,7 +13,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
 import {
   runMultiReaderPanel,
   PERSONAS,
@@ -120,38 +120,34 @@ const ago = (ts) => {
 </script>
 
 <template>
-  <AppModal
-    eyebrow="Multi-reader panel"
-    :title="ch ? `Chapter ${ch.num} — ${ch.title || 'Untitled'}` : 'Multi-reader panel'"
+  <AppModal :eyebrow="$t('multiReader.eyebrow')" :title="ch ? $t('multiReader.chapterTitle', { num: ch.num, title: ch.title || $t('multiReader.untitled') }) : $t('multiReader.eyebrow')"
     wide
     :closable="!running"
     @close="emit('close')"
   >
-    <template #header>
-      <div class="mr-titleblock">
-        <div class="t-eyebrow">{{ $t("multiReader.eyebrow") }}</div>
-        <h2 class="modal-title">{{ ch ? $t("multiReader.chapterTitle", { num: ch.num, title: ch.title || $t("multiReader.untitled") }) : $t("multiReader.eyebrow") }}</h2>
-      </div>
-      <div class="mr-header-actions">
-        <AiFeatureChip feature="multiReader" :label="$t('multiReader.chipLabel')" editable />
-      </div>
+    <template #header-extra>
+      <AiFeatureChip feature="multiReader" :label="$t('multiReader.chipLabel')" editable />
     </template>
 
-    <i18n-t keypath="multiReader.blurb" tag="p" class="mr-blurb" scope="global">
-      <template #genre><strong>{{ $t("multiReader.genreTerm") }}</strong></template>
-      <template #critic><strong>{{ $t("multiReader.criticTerm") }}</strong></template>
-      <template #intern><strong>{{ $t("multiReader.internTerm") }}</strong></template>
-      <template #bookClub><strong>{{ $t("multiReader.bookClubTerm") }}</strong></template>
-    </i18n-t>
+    <template #lede>
+      <i18n-t keypath="multiReader.blurb" scope="global">
+        <template #genre><strong>{{ $t("multiReader.genreTerm") }}</strong></template>
+        <template #critic><strong>{{ $t("multiReader.criticTerm") }}</strong></template>
+        <template #intern><strong>{{ $t("multiReader.internTerm") }}</strong></template>
+        <template #bookClub><strong>{{ $t("multiReader.bookClubTerm") }}</strong></template>
+      </i18n-t>
+    </template>
 
     <AiTaskStrip :task="myTask" />
 
-    <div v-if="error" class="mr-error">
-      <Icon name="Alert" :size="13" /> {{ error }}
-      <UiButton intent="ghost" size="small" @click="run">
-        <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
-      </UiButton>
-    </div>
+    <UiBanner v-if="error">
+      {{ error }}
+      <template #action>
+        <UiButton intent="ghost" size="small" @click="run">
+          <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
+        </UiButton>
+      </template>
+    </UiBanner>
 
     <div v-else-if="running && !cached" class="mr-loading">
       <span class="mr-spinner" />
@@ -225,24 +221,6 @@ const ago = (ts) => {
 </template>
 
 <style scoped>
-.mr-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.mr-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
-.mr-header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-
-.mr-blurb {
-  margin: 0 0 16px; max-width: 82ch;
-  font-size: 12.5px; line-height: 1.55; color: var(--muted);
-}
-.mr-blurb strong { color: var(--ink-2); font-weight: 600; }
-
-.mr-error {
-  display: flex; gap: 10px; align-items: center;
-  padding: 10px 14px; border-radius: 6px;
-  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
-  color: var(--danger-ink, #b91c1c);
-  font-size: 12.5px;
-}
-
 .mr-loading {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   font-size: 12.5px; color: var(--muted); font-style: italic;

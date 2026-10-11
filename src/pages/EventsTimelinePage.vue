@@ -5,9 +5,8 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import { Icon, pageFill } from "@delebash/llm-ui";
-import { Breadcrumb } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
-import { HelpTrigger } from "@delebash/llm-ui";
+import { PaneHeader } from "@delebash/llm-ui";
 
 const props = defineProps({
   kind:     { type: String, required: true },
@@ -67,22 +66,16 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
 
 <template>
   <q-page :style-fn="pageFill" class="main">
-    <header class="pane-header">
-      <div class="pane-title">
-        <Breadcrumb :segments="crumbs" />
-        <h1 class="pane-h1">{{ $t("common.events") }}</h1>
-      </div>
-      <div class="pane-actions">
-        <UiButton intent="ghost" size="small" @click="goBack">
-          <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
-          {{ $t("events.backTo", { name: meta?.i18n ? $t(meta.i18n) : "" }) }}
-        </UiButton>
-        <UiButton intent="primary" @click="goAdd">
-          <Icon name="Plus" :size="13" /> {{ $t("events.addEvent") }}
-        </UiButton>
-      </div>
-      <HelpTrigger slug="plot-and-time#per-entity-events-biographies-and-place-histories" :label="$t('common.events')" class="pane-help" />
-    </header>
+    <PaneHeader :crumbs="crumbs" :title="$t('common.events')"
+      help-key="plot-and-time#per-entity-events-biographies-and-place-histories" :help-label="$t('common.events')">
+      <UiButton intent="ghost" size="small" @click="goBack">
+        <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
+        {{ $t("events.backTo", { name: meta?.i18n ? $t(meta.i18n) : "" }) }}
+      </UiButton>
+      <UiButton intent="primary" @click="goAdd">
+        <Icon name="Plus" :size="13" /> {{ $t("events.addEvent") }}
+      </UiButton>
+    </PaneHeader>
 
     <div class="pane-card">
     <div class="scrollarea events-pane">

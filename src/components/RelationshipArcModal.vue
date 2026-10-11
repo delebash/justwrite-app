@@ -19,7 +19,7 @@ import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiSelect, UiInput, UiTextarea } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiSelect, UiInput, UiTextarea, UiBanner } from "@delebash/llm-ui";
 import { analyseRelationship, pairKey, TRAJECTORY_LABELS } from "../services/analysis/relationshipArc.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 
@@ -182,28 +182,22 @@ const TRAJECTORY_COLOURS = {
 </script>
 
 <template>
-  <AppModal
-    :eyebrow="$t('relationshipArc.eyebrow')"
-    :title="$t('relationshipArc.title')"
+  <AppModal :eyebrow="$t('relationshipArc.eyebrow')" :title="$t('relationshipArc.title')"
     wide
     :closable="!running"
     @close="emit('close')"
   >
-    <template #header>
-      <div class="ra-titleblock">
-        <div class="t-eyebrow">{{ $t("relationshipArc.eyebrow") }}</div>
-        <h2 class="modal-title">{{ $t("relationshipArc.title") }}</h2>
-      </div>
-      <div class="ra-header-actions">
-        <AiFeatureChip feature="relationshipArc" :label="$t('relationshipArc.chipLabel')" editable />
-      </div>
+    <template #header-extra>
+      <AiFeatureChip feature="relationshipArc" :label="$t('relationshipArc.chipLabel')" editable />
     </template>
 
-    <i18n-t keypath="relationshipArc.blurb" tag="p" class="ra-blurb" scope="global">
-      <template #warmth><strong>{{ $t("relationshipArc.warmthTerm") }}</strong></template>
-      <template #tension><strong>{{ $t("relationshipArc.tensionTerm") }}</strong></template>
-      <template #power><strong>{{ $t("relationshipArc.powerTerm") }}</strong></template>
-    </i18n-t>
+    <template #lede>
+      <i18n-t keypath="relationshipArc.blurb" scope="global">
+        <template #warmth><strong>{{ $t("relationshipArc.warmthTerm") }}</strong></template>
+        <template #tension><strong>{{ $t("relationshipArc.tensionTerm") }}</strong></template>
+        <template #power><strong>{{ $t("relationshipArc.powerTerm") }}</strong></template>
+      </i18n-t>
+    </template>
 
     <div class="ra-pickers">
       <div class="ra-picker">
@@ -220,9 +214,7 @@ const TRAJECTORY_COLOURS = {
       </div>
     </div>
 
-    <div v-if="error" class="ra-error">
-      <Icon name="Alert" :size="13" /> {{ error }}
-    </div>
+    <UiBanner v-if="error">{{ error }}</UiBanner>
 
     <AiTaskStrip v-if="running" :task="myTask" />
 
@@ -374,12 +366,6 @@ const TRAJECTORY_COLOURS = {
 </template>
 
 <style scoped>
-.ra-blurb {
-  margin: 0 0 16px; max-width: 80ch;
-  font-size: 12.5px; line-height: 1.55; color: var(--muted);
-}
-.ra-blurb strong { color: var(--ink-2); font-weight: 600; }
-
 .ra-pickers {
   display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: end;
   margin-bottom: 18px;
@@ -390,14 +376,6 @@ const TRAJECTORY_COLOURS = {
   letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
 }
 .ra-swap { align-self: end; }
-
-.ra-error {
-  display: flex; gap: 8px; align-items: center;
-  padding: 8px 12px; border-radius: 6px;
-  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
-  color: var(--danger-ink, #b91c1c);
-  font-size: 12.5px; margin-bottom: 10px;
-}
 
 .ra-loading {
   display: flex; align-items: center; gap: 12px;
@@ -500,8 +478,4 @@ const TRAJECTORY_COLOURS = {
 }
 
 .ra-foot-spacer { flex: 1; }
-
-.ra-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.ra-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
-.ra-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

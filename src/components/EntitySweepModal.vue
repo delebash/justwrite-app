@@ -12,7 +12,7 @@
 
 import { ref, computed, onMounted, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, Icon, AppModal, UiButton, UiCheckbox, confirmDialog } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, Icon, AppModal, UiButton, UiCheckbox, confirmDialog, UiBanner } from "@delebash/llm-ui";
 import { isLikelyNonStoryTitle, scanAllChapters, stripChapterText } from "../services/analysis/entitySweep.js";
 import {
   clearSweepDraft, draftCounts, draftFoundTotal, emptyDraft, loadSweepDraft,
@@ -309,30 +309,20 @@ function onReviewCommitted(payload) {
   <!-- ── SCANNING PHASE ─────────────────────────────────────────────── -->
   <AppModal v-else :eyebrow="$t('common.entitySweep')" :title="$t('entitySweep.title')"
     :closable="!running" @close="emit('close')">
-    <template #header>
-      <div class="sweep-titleblock">
-        <div class="t-eyebrow">{{ $t("common.entitySweep") }}</div>
-        <div class="modal-title">{{ $t("entitySweep.title") }}</div>
-      </div>
+    <template #header-extra>
       <!-- No Cancel here: the shared AiTaskStrip below renders THE Cancel (user,
-           2026-07-17: "top cancel button redundant" — both were live at once). -->
-      <div class="sweep-header-actions">
-        <AiFeatureChip feature="entitySweep" :label="$t('common.entitySweep')" editable />
-      </div>
+      2026-07-17: "top cancel button redundant" — both were live at once). -->
+      <AiFeatureChip feature="entitySweep" :label="$t('common.entitySweep')" editable />
     </template>
 
-    <p class="sweep-desc">
-      <i18n-t keypath="entitySweep.desc" tag="span" scope="global">
+    <template #lede>
+      <i18n-t keypath="entitySweep.desc" scope="global">
         <template #entities><strong>{{ $t("entitySweep.entitiesTerm") }}</strong></template>
       </i18n-t>
-      <template v-if="!rows.length">
-        {{ $t("entitySweep.matterHint") }}
-      </template>
-    </p>
+      <template v-if="!rows.length">{{ " " + $t("entitySweep.matterHint") }}</template>
+    </template>
 
-    <div v-if="error" class="sweep-error">
-      <Icon name="Alert" :size="13" /> {{ error }}
-    </div>
+    <UiBanner v-if="error">{{ error }}</UiBanner>
 
     <AiTaskStrip :task="myTask" />
 
@@ -401,23 +391,6 @@ function onReviewCommitted(payload) {
 </template>
 
 <style scoped>
-.sweep-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.sweep-header-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
-
-.sweep-desc {
-  font-size: 12px; line-height: 1.55; color: var(--muted);
-  margin: 0;
-}
-.sweep-desc strong { color: var(--ink-2); font-weight: 600; }
-
-.sweep-error {
-  display: flex; gap: 8px; align-items: center;
-  padding: 8px 12px; border-radius: 6px;
-  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
-  color: var(--danger-ink, #b91c1c);
-  font-size: 12.5px;
-}
-
 /* D — the pre-run chapter picker. */
 .sweep-pick { display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; }
 /* A — the draft resume line. */

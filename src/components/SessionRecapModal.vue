@@ -166,20 +166,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <AppModal
-    :eyebrow="$t('sessionRecap.eyebrow')"
-    :title="$t('sessionRecap.title')"
+  <AppModal :eyebrow="$t('sessionRecap.eyebrow')" :title="$t('sessionRecap.title')"
     :closable="!running"
     @close="emit('close')"
   >
-    <template #header>
-      <div class="recap-titleblock">
-        <div class="t-eyebrow">{{ $t("sessionRecap.eyebrow") }}</div>
-        <h2 class="modal-title">{{ $t("sessionRecap.title") }}</h2>
-      </div>
-      <div class="recap-header-actions">
-        <AiFeatureChip feature="recap" :label="$t('sessionRecap.chipLabel')" editable />
-      </div>
+    <template #header-extra>
+      <AiFeatureChip feature="recap" :label="$t('sessionRecap.chipLabel')" editable />
     </template>
 
     <div class="recap-stats">
@@ -398,8 +390,4 @@ onMounted(() => {
 
 .recap-foot { display: flex; align-items: center; gap: 10px; width: 100%; }
 .recap-foot-spacer { flex: 1; }
-
-.recap-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.recap-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
-.recap-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

@@ -597,31 +597,7 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
   background: var(--app-bg);
 }
 
-.pane-header {
-  display: flex; align-items: center; gap: 16px;
-  padding: 14px 22px 14px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.pane-title {
-  display: flex; flex-direction: column;
-  flex: 1; min-width: 0;
-}
-.pane-eyebrow {
-  font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em;
-  text-transform: uppercase; color: var(--muted);
-}
-.pane-h1 {
-  font-size: 20px; font-weight: 600; letter-spacing: -0.015em;
-  margin: 0;
-}
-.pane-actions { display: flex; gap: 6px; align-items: center; }
-/* At phone width the title keeps its row and the actions wrap on the row below (the kit's
-   PaneHeader does the same; this covers the detail pages' own headers). */
-@media (max-width: $breakpoint-xs-max) {
-  .pane-header { flex-wrap: wrap; row-gap: 8px; padding: 12px 16px; }
-  .pane-actions { order: 3; flex-basis: 100%; flex-wrap: wrap; }
-}
+/* Every page header is the kit's PaneHeader (its styles ride along with it). */
 
 .pane-body {
   flex: 1; min-height: 0;
@@ -692,7 +668,6 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
    modals are the kit's AppModal (.ui-modal-overlay) now. Do not reinstate. */
 .modal { width: min(640px, 100%); max-height: 80vh; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-window); display: flex; flex-direction: column; }
 .modal-head { padding: 16px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-.modal-title { font-family: var(--font-serif); font-size: 18px; font-weight: 600; }
 .modal-body { padding: 18px 22px; overflow-y: auto; }
 
 /* Banner callouts — theme-aware state strips used across views. */
@@ -1059,24 +1034,7 @@ html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-
    voicedrift.md Task 2); genuine per-view variants stay scoped.
    ============================================================ */
 
-/* Detail: the inline-editable name input + header/desc pattern */
-.entity-pane-header .pane-title { gap: 2px; }
-.entity-name {
-  appearance: none;
-  font-family: var(--font-serif);
-  font-size: 20px; font-weight: 600;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 6px;
-  padding: 2px 6px;
-  margin-left: -6px;
-  outline: none;
-  min-width: 0;
-}
-.entity-name:hover { border-color: var(--border-soft); }
-.entity-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+/* Detail: the description under the header (the editable name is PaneHeader's) */
 .entity-desc {
   font-size: 14px; line-height: 1.55; color: var(--muted);
   margin: 0;

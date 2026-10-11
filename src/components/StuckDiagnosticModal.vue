@@ -8,7 +8,7 @@
 
 import { ref, computed, onMounted } from "vue";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
 import {
   generateUnstuckMoves,
   MOVE_BLURB_I18N,
@@ -74,32 +74,24 @@ function useMove(move) {
 </script>
 
 <template>
-  <AppModal
-    :eyebrow="$t('stuck.eyebrow')"
-    :title="$t('stuck.title')"
+  <AppModal :lede="$t('stuck.blurb')" :eyebrow="$t('stuck.eyebrow')" :title="$t('stuck.title')"
     :closable="!running"
     @close="emit('close')"
   >
-    <template #header>
-      <div class="su-titleblock">
-        <div class="t-eyebrow">{{ $t("stuck.eyebrow") }}</div>
-        <h2 class="modal-title">{{ $t("stuck.title") }}</h2>
-      </div>
-      <div class="su-header-actions">
-        <AiFeatureChip feature="unstuck" :label="$t('stuck.chipLabel')" editable />
-      </div>
+    <template #header-extra>
+      <AiFeatureChip feature="unstuck" :label="$t('stuck.chipLabel')" editable />
     </template>
 
-    <p class="su-blurb">
-      {{ $t("stuck.blurb") }}
-    </p>
+    
 
-    <div v-if="error" class="su-error">
-      <Icon name="Alert" :size="13" /> {{ error }}
-      <UiButton intent="ghost" size="small" @click="run">
-        <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
-      </UiButton>
-    </div>
+    <UiBanner v-if="error">
+      {{ error }}
+      <template #action>
+        <UiButton intent="ghost" size="small" @click="run">
+          <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
+        </UiButton>
+      </template>
+    </UiBanner>
 
     <AiTaskStrip v-if="running" :task="myTask" />
 
@@ -142,19 +134,6 @@ function useMove(move) {
 </template>
 
 <style scoped>
-.su-blurb {
-  margin: 0 0 16px; max-width: 76ch;
-  font-size: 12.5px; line-height: 1.55; color: var(--muted);
-}
-
-.su-error {
-  display: flex; gap: 10px; align-items: center;
-  padding: 10px 14px; border-radius: 6px;
-  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
-  color: var(--danger-ink, #b91c1c);
-  font-size: 12.5px;
-}
-
 .su-empty {
   display: flex; flex-direction: column; align-items: center;
   gap: 14px; padding: 32px 18px;
@@ -204,8 +183,4 @@ function useMove(move) {
 .su-move-actions { display: flex; justify-content: flex-end; }
 
 .su-foot-spacer { flex: 1; }
-
-.su-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.su-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
-.su-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

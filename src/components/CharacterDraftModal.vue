@@ -18,7 +18,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiButton, UiCheckbox, UiTextarea } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiButton, UiCheckbox, UiTextarea, UiBanner } from "@delebash/llm-ui";
 import {
   profileFromBook, voiceFromBook,
   profileFieldDefs, voiceFieldDefs, draftRows, applyProfileDrafts,
@@ -177,16 +177,16 @@ const loadingLine = computed(() => {
 </script>
 
 <template>
-  <AppModal :eyebrow="eyebrow" :title="ch?.name || $t('characterProfile.titleFallback')" :closable="!running" @close="onClose">
+  <AppModal :lede="desc" :eyebrow="eyebrow" :title="ch?.name || $t('characterProfile.titleFallback')" :closable="!running" @close="onClose">
     <template #header-extra>
       <AiFeatureChip feature="characterProfile" :label="$t('characterProfile.chipLabel')" editable />
     </template>
 
-    <p class="cpf-desc">{{ desc }}</p>
+    
 
     <AiTaskStrip :task="myTask" />
 
-    <div v-if="error" class="cpf-error"><Icon name="Alert" :size="13" /> {{ error }}</div>
+    <UiBanner v-if="error">{{ error }}</UiBanner>
 
     <div v-if="noScenes" class="cpf-empty">
       {{ $t("characterProfile.noScenes", { name: ch?.name || $t("characterProfile.thisCharacter") }) }}
@@ -229,14 +229,6 @@ const loadingLine = computed(() => {
 </template>
 
 <style scoped>
-.cpf-desc { font-size: 12px; line-height: 1.55; color: var(--muted); margin: 0 0 12px; }
-.cpf-error {
-  display: flex; gap: 8px; align-items: center;
-  padding: 8px 12px; border-radius: 6px;
-  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
-  color: var(--danger-ink, #b91c1c); font-size: 12.5px;
-  margin-bottom: 10px;
-}
 .cpf-empty {
   padding: 26px 18px; text-align: center;
   background: var(--surface-2); border-radius: 10px;

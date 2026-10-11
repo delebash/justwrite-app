@@ -1,8 +1,8 @@
 <script setup>
-import { computed, ref, watch, nextTick } from "vue";
+import { computed, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import { Icon, pageFill } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
@@ -14,17 +14,16 @@ import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_SLIM } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
 import MentionRefList from "../components/MentionRefList.vue";
-import { Breadcrumb } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
 import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
+import { useSelectNewName } from "../composables/useSelectNewName.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
-const route = useRoute();
 
 const g = computed(() => props.id ? project.groupById(props.id) : null);
 const modal = ref(null);
@@ -54,18 +53,9 @@ const memberGroups = computed(() => {
 });
 
 function update(k, v) { project.updateGroup(g.value.id, { [k]: v }); }
-// The detail name input, focused + selected when we arrive via "+ New"
-// (?new=1) so the first keystroke replaces the default "Untitled …"; the
-// query is then stripped so a reload doesn't re-select.
-const nameInput = ref(null);
-watch(() => route.query.new, (isNew) => {
-  if (!isNew) return;
-  nextTick(() => {
-    nameInput.value?.focus();
-    nameInput.value?.select?.();
-    router.replace({ query: {} });
-  });
-}, { immediate: true });
+// "+ New" lands here with ?new=1: the header's name is selected, ready to type over.
+const header = ref(null);
+useSelectNewName(header);
 
 function addGroup() {
   const id = project.addGroup(); ui.select("groups", id); router.push(`/groups/${id}?new=1`);
@@ -174,28 +164,21 @@ function onRowClick(event) {
 
     <!-- ── Detail mode (id present, group found) ─────────────────── -->
     <template v-else-if="g">
-      <header class="pane-header entity-pane-header">
-        <div class="pane-title">
-          <Breadcrumb :segments="[{ label: 'Group', to: '/groups' }]" />
-          <input class="entity-name" ref="nameInput"
-            :value="g.name"
-            :placeholder="$t('groups.namePlaceholder')"
-            @input="update('name', $event.target.value)" />
-        </div>
-        <div class="pane-actions">
-          <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
-            v-tooltip.bottom="$t('common.askTheBookAbout', { title: g.name })">
-            <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
-          </UiButton>
-          <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> {{ $t("common.images") }}</UiButton>
-          <router-link :to="`/groups/${g.id}/events`" custom v-slot="{ navigate }">
-            <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> {{ $t("common.events") }}</UiButton>
-          </router-link>
-          <UiButton intent="ghost" size="small" @click="deleteGroup">{{ $t("common.delete") }}</UiButton>
-          <UiButton intent="primary" size="small" @click="addGroup"><Icon name="Plus" :size="14" /> {{ $t("groups.newGroup2") }}</UiButton>
-          <StatusSelect :model-value="g.status || ''" @update:model-value="(v) => update('status', v)" />
-        </div>
-      </header>
+      <PaneHeader ref="header" :crumbs="[{ label: $t('events.kinds.group'), to: '/groups' }]"
+        editable :title="g.name" :placeholder="$t('groups.namePlaceholder')"
+        @update:title="(v) => update('name', v)">
+        <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
+          v-tooltip.bottom="$t('common.askTheBookAbout', { title: g.name })">
+          <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
+        </UiButton>
+        <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> {{ $t("common.images") }}</UiButton>
+        <router-link :to="`/groups/${g.id}/events`" custom v-slot="{ navigate }">
+          <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> {{ $t("common.events") }}</UiButton>
+        </router-link>
+        <UiButton intent="ghost" size="small" @click="deleteGroup">{{ $t("common.delete") }}</UiButton>
+        <UiButton intent="primary" size="small" @click="addGroup"><Icon name="Plus" :size="14" /> {{ $t("groups.newGroup2") }}</UiButton>
+        <StatusSelect :model-value="g.status || ''" @update:model-value="(v) => update('status', v)" />
+      </PaneHeader>
       <div class="pane-card">
         <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
           <i18n-t keypath="groups.introDetail" tag="p" class="entity-desc" scope="global">
@@ -255,15 +238,9 @@ function onRowClick(event) {
 
     <!-- ── id in URL but group not found ─────────────────────────── -->
     <template v-else>
-      <header class="pane-header entity-pane-header">
-        <div class="pane-title">
-          <Breadcrumb :segments="[{ label: 'Group', to: '/groups' }]" />
-          <h1 class="pane-h1">{{ $t("groups.notFound") }}</h1>
-        </div>
-        <div class="pane-actions">
-          <UiButton intent="primary" size="small" @click="addGroup"><Icon name="Plus" :size="14" /> {{ $t("groups.newGroup2") }}</UiButton>
-        </div>
-      </header>
+      <PaneHeader :crumbs="[{ label: $t('events.kinds.group'), to: '/groups' }]" :title="$t('groups.notFound')">
+        <UiButton intent="primary" size="small" @click="addGroup"><Icon name="Plus" :size="14" /> {{ $t("groups.newGroup2") }}</UiButton>
+      </PaneHeader>
       <div class="pane-card" style="display:grid;place-items:center;padding:60px">
         <div class="t-muted" style="text-align:center">
           {{ $t("groups.notFoundBody") }}<br />

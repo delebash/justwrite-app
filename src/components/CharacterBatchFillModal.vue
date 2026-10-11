@@ -217,7 +217,7 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
 </script>
 
 <template>
-  <AppModal wide :eyebrow="$t('characterProfile.eyebrow')" :title="$t('batchFill.title')"
+  <AppModal :lede="phase === 'pick' ? $t('batchFill.desc') : phase === 'run' ? (autoApply ? $t('batchFill.runningAuto') : $t('batchFill.runningReview')) : ''" wide :eyebrow="$t('characterProfile.eyebrow')" :title="$t('batchFill.title')"
     :closable="phase !== 'run'" @close="onClose">
     <template #header-extra>
       <AiFeatureChip feature="characterProfile" :label="$t('characterProfile.chipLabel')" editable />
@@ -225,9 +225,7 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
 
     <!-- ── PICK ────────────────────────────────────────────────── -->
     <template v-if="phase === 'pick'">
-      <p class="cbf-desc">
-        {{ $t("batchFill.desc") }}
-      </p>
+      
       <div class="cbf-bar">
         <span class="t-muted">{{ $t("common.selectedOf", { selected: checkedCount, total: pickRows.length }) }}</span>
         <div class="cbf-bar-actions">
@@ -254,9 +252,6 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
 
     <!-- ── RUN ─────────────────────────────────────────────────── -->
     <template v-else-if="phase === 'run'">
-      <p class="cbf-desc">
-        {{ autoApply ? $t("batchFill.runningAuto") : $t("batchFill.runningReview") }}
-      </p>
       <div class="cbf-list">
         <div v-for="row in runs" :key="row.id" class="cbf-run-row">
           <Icon :name="row.status === 'done' ? 'Check' : row.status === 'failed' ? 'Alert' : 'Sparkle'" :size="14"
@@ -354,7 +349,6 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
 </template>
 
 <style scoped>
-.cbf-desc { font-size: 12px; line-height: 1.55; color: var(--muted); margin: 0 0 12px; }
 .cbf-bar { display: flex; align-items: center; gap: 8px; padding: 0 2px 6px; }
 .cbf-bar-actions { display: flex; gap: 4px; margin-left: auto; }
 .cbf-list {

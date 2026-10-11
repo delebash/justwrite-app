@@ -10,7 +10,6 @@ import { UiButton } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
 import { UiTable } from "@delebash/llm-ui";
 import StatusSelect from "../components/StatusSelect.vue";
-import { Breadcrumb } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 
@@ -104,20 +103,14 @@ function onRowClick(event) {
 
     <!-- ── Detail mode (id present, doc found) ──────────────────── -->
     <template v-else-if="doc">
-      <header class="pane-header arch-pane-header">
-        <div class="pane-title">
-          <Breadcrumb :segments="[{ label: 'Architecture', to: '/architecture' }]" />
-          <h1 class="arch-title">{{ docMeta(doc.id).title }}</h1>
-        </div>
-        <div class="pane-actions">
-          <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
-            v-tooltip.bottom="$t('architecture.askTheBookAbout', { title: doc.title })">
-            <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
-          </UiButton>
-          <UiButton v-if="doc.id === 'setting'" intent="ghost" size="small" @click="openEvents"><Icon name="Calendar" :size="14" /> {{ $t("common.events") }}</UiButton>
-          <StatusSelect :model-value="doc.status || ''" @update:model-value="(v) => update('status', v)" />
-        </div>
-      </header>
+      <PaneHeader :crumbs="[{ label: $t('nav.architecture'), to: '/architecture' }]" :title="docMeta(doc.id).title">
+        <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
+          v-tooltip.bottom="$t('architecture.askTheBookAbout', { title: doc.title })">
+          <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
+        </UiButton>
+        <UiButton v-if="doc.id === 'setting'" intent="ghost" size="small" @click="openEvents"><Icon name="Calendar" :size="14" /> {{ $t("common.events") }}</UiButton>
+        <StatusSelect :model-value="doc.status || ''" @update:model-value="(v) => update('status', v)" />
+      </PaneHeader>
 
       <div class="pane-card">
         <div class="arch-wrap scrollarea">
@@ -137,12 +130,7 @@ function onRowClick(event) {
 
     <!-- ── id in URL but doc not found ─────────────────────────── -->
     <template v-else>
-      <header class="pane-header arch-pane-header">
-        <div class="pane-title">
-          <Breadcrumb :segments="[{ label: $t('nav.architecture'), to: '/architecture' }]" />
-          <h1 class="pane-h1">{{ $t("architecture.notFoundTitle") }}</h1>
-        </div>
-      </header>
+      <PaneHeader :crumbs="[{ label: $t('nav.architecture'), to: '/architecture' }]" :title="$t('architecture.notFoundTitle')"></PaneHeader>
       <div class="pane-card" style="display:grid;place-items:center;padding:60px">
         <div class="t-muted" style="text-align:center">
           {{ $t("architecture.notFoundBody") }}<br />
@@ -161,14 +149,6 @@ function onRowClick(event) {
   display: flex;
   flex-direction: column;
   gap: 14px;
-}
-.arch-pane-header .pane-title { gap: 4px; }
-.arch-title {
-  font-family: var(--font-serif);
-  font-size: 22px;
-  font-weight: 600;
-  margin: 0;
-  line-height: 1.2;
 }
 /* Fixed "what this section is" line — a hint, not editable, not stored. */
 .arch-desc {

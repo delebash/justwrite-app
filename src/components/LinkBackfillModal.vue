@@ -84,14 +84,12 @@ function apply() {
 </script>
 
 <template>
-  <AppModal
+  <AppModal :lede="totalProposed ? $t('linkBackfill.desc') : ''"
     :eyebrow="$t('linkBackfill.eyebrow')"
     :title="$t('linkBackfill.title')"
     @close="emit('close')"
   >
-    <p v-if="totalProposed" class="lb-desc">
-      {{ $t("linkBackfill.desc") }}
-    </p>
+    
 
     <EmptyState v-if="!totalProposed"
       icon="Check"
@@ -137,11 +135,6 @@ function apply() {
 </template>
 
 <style scoped>
-.lb-desc {
-  font-size: 12px; line-height: 1.55; color: var(--muted);
-  margin: 0 0 14px;
-}
-
 .lb-body { display: flex; flex-direction: column; gap: 20px; }
 
 .lb-section { display: flex; flex-direction: column; gap: 10px; }

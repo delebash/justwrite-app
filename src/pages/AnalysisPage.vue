@@ -3,7 +3,7 @@ import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useSessionsStore } from "../stores/sessions.js";
-import { PaneHeader, pageFill } from "@delebash/llm-ui";
+import { PaneHeader, pageFill, UiBanner } from "@delebash/llm-ui";
 import { Icon, AiTaskStrip, useAiTasksStore, UiTable, UiSegmented, UiButton } from "@delebash/llm-ui";
 import StatPill from "../components/StatPill.vue";
 import {
@@ -762,9 +762,7 @@ const milestoneState = computed(() => {
           </span>
         </div>
 
-        <div v-if="tensionError" class="st-error">
-          <Icon name="Alert" :size="13" /> {{ tensionError }}
-        </div>
+        <UiBanner v-if="tensionError">{{ tensionError }}</UiBanner>
 
         <AiTaskStrip :task="tensionTask" />
 
@@ -1013,7 +1011,6 @@ const milestoneState = computed(() => {
 .kpi-of { color: var(--muted); font-weight: 400; font-size: 18px; }
 .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-
 .bar-row { display: grid; grid-template-columns: 200px 1fr 70px; gap: 14px; align-items: center; padding: 4px 0; font-size: 12.5px; width: 100%; border: 0; background: transparent; cursor: pointer; text-align: left; }
 .bar-row .name { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar-row .track { height: 8px; background: var(--surface-3); border-radius: 999px; overflow: hidden; }
@@ -1144,13 +1141,6 @@ const milestoneState = computed(() => {
   font-family: var(--font-mono); font-size: 10.5px;
   padding: 3px 10px; border-radius: 999px;
   background: var(--surface-3); color: var(--muted);
-}
-.st-error {
-  display: flex; gap: 8px; align-items: center;
-  padding: 8px 12px; border-radius: 6px;
-  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
-  color: var(--danger-ink, #b91c1c);
-  font-size: 12.5px; margin-bottom: 10px;
 }
 .st-progress {
   display: flex; align-items: center; gap: 10px;

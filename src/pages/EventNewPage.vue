@@ -4,11 +4,11 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import { Icon, pageFill } from "@delebash/llm-ui";
-import { Breadcrumb } from "@delebash/llm-ui";
 import DateTimePicker from "../components/DateTimePicker.vue";
 import { UiInput } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
+import { PaneHeader } from "@delebash/llm-ui";
 
 const props = defineProps({
   kind:     { type: String, required: true },
@@ -51,18 +51,12 @@ function save() {
 
 <template>
   <q-page :style-fn="pageFill" class="main">
-    <header class="pane-header">
-      <div class="pane-title">
-        <Breadcrumb :segments="crumbs" />
-        <h1 class="pane-h1">{{ $t("events.newTitle") }}</h1>
-      </div>
-      <div class="pane-actions">
-        <UiButton intent="ghost" @click="cancel">{{ $t("common.cancel") }}</UiButton>
-        <UiButton intent="primary" :disabled="!titleStr.trim()" @click="save">
-          <Icon name="Plus" :size="13" /> {{ $t("events.addEvent") }}
-        </UiButton>
-      </div>
-    </header>
+    <PaneHeader :crumbs="crumbs" :title="$t('events.newTitle')">
+      <UiButton intent="ghost" @click="cancel">{{ $t("common.cancel") }}</UiButton>
+      <UiButton intent="primary" :disabled="!titleStr.trim()" @click="save">
+        <Icon name="Plus" :size="13" /> {{ $t("events.addEvent") }}
+      </UiButton>
+    </PaneHeader>
 
     <div class="pane-card">
     <div class="scrollarea event-new-pane">

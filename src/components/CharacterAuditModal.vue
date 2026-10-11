@@ -15,7 +15,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AppModal, AiTaskStrip, EmptyState, UiButton } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AppModal, AiTaskStrip, EmptyState, UiButton, UiBanner } from "@delebash/llm-ui";
 import { auditAllCharacters } from "../services/analysis/characterAudit.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import StatusRow from "./StatusRow.vue";
@@ -188,33 +188,29 @@ onMounted(() => {
 </script>
 
 <template>
-  <AppModal
-    :eyebrow="$t('characterAudit.eyebrow')"
-    :title="$t('characterAudit.title')"
+  <AppModal :eyebrow="$t('characterAudit.eyebrow')" :title="$t('characterAudit.title')"
     wide
     :closable="!running"
     @close="emit('close')"
   >
-    <template #header>
-      <div class="ca-titleblock">
-        <div class="t-eyebrow">{{ $t("characterAudit.eyebrow") }}</div>
-        <h2 class="modal-title">{{ $t("characterAudit.title") }}</h2>
-      </div>
-      <div class="ca-header-actions">
-        <AiFeatureChip feature="characterAudit" :label="$t('characterAudit.eyebrow')" editable />
-      </div>
+    <template #header-extra>
+      <AiFeatureChip feature="characterAudit" :label="$t('characterAudit.eyebrow')" editable />
     </template>
 
-    <i18n-t keypath="characterAudit.blurb" tag="p" class="ca-blurb" scope="global">
-      <template #flagged><strong>{{ $t("characterAudit.flaggedTerm") }}</strong></template>
-    </i18n-t>
+    <template #lede>
+      <i18n-t keypath="characterAudit.blurb" scope="global">
+        <template #flagged><strong>{{ $t("characterAudit.flaggedTerm") }}</strong></template>
+      </i18n-t>
+    </template>
 
-    <div v-if="error" class="ca-error">
-      <Icon name="Alert" :size="13" /> {{ error }}
-      <UiButton intent="ghost" size="small" @click="runSweep(false)">
-        <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
-      </UiButton>
-    </div>
+    <UiBanner v-if="error">
+      {{ error }}
+      <template #action>
+        <UiButton intent="ghost" size="small" @click="runSweep(false)">
+          <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
+        </UiButton>
+      </template>
+    </UiBanner>
 
     <AiTaskStrip :task="myTask" />
 
@@ -316,21 +312,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.ca-blurb {
-  margin: 0 0 16px; max-width: 82ch;
-  font-size: 12.5px; line-height: 1.55; color: var(--muted);
-}
-.ca-blurb strong { color: var(--ink-2); font-weight: 600; }
-
-.ca-error {
-  display: flex; gap: 10px; align-items: center;
-  padding: 10px 14px; border-radius: 6px;
-  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
-  color: var(--danger-ink, #b91c1c);
-  font-size: 12.5px;
-  margin-bottom: 10px;
-}
-
 .ca-empty {
   display: flex; flex-direction: column; align-items: center;
   gap: 14px; padding: 32px 18px;
@@ -438,8 +419,4 @@ onMounted(() => {
 }
 
 .ca-foot-spacer { flex: 1; }
-
-.ca-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.ca-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
-.ca-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

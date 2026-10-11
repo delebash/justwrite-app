@@ -13,7 +13,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, EmptyState } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, EmptyState, UiBanner } from "@delebash/llm-ui";
 import { scanPlotHoles } from "../services/analysis/plotHoleScan.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 
@@ -142,27 +142,21 @@ const ago = (ts) => {
 </script>
 
 <template>
-  <AppModal
-    :eyebrow="$t('plotHoles.eyebrow')"
-    :title="$t('plotHoles.title')"
+  <AppModal :eyebrow="$t('plotHoles.eyebrow')" :title="$t('plotHoles.title')"
     wide
     :closable="!running"
     @close="emit('close')"
   >
-    <template #header>
-      <div class="ph-titleblock">
-        <div class="t-eyebrow">{{ $t("plotHoles.eyebrow") }}</div>
-        <h2 class="modal-title">{{ $t("plotHoles.title") }}</h2>
-      </div>
-      <div class="ph-header-actions">
-        <AiFeatureChip feature="plotHoles" :label="$t('plotHoles.chipLabel')" editable />
-      </div>
+    <template #header-extra>
+      <AiFeatureChip feature="plotHoles" :label="$t('plotHoles.chipLabel')" editable />
     </template>
 
-    <i18n-t keypath="plotHoles.blurb" tag="p" class="ph-blurb" scope="global">
-      <template #contradictions><strong>{{ $t("plotHoles.contradictionsTerm") }}</strong></template>
-      <template #knowledgeErrors><strong>{{ $t("plotHoles.knowledgeErrorsTerm") }}</strong></template>
-    </i18n-t>
+    <template #lede>
+      <i18n-t keypath="plotHoles.blurb" scope="global">
+        <template #contradictions><strong>{{ $t("plotHoles.contradictionsTerm") }}</strong></template>
+        <template #knowledgeErrors><strong>{{ $t("plotHoles.knowledgeErrorsTerm") }}</strong></template>
+      </i18n-t>
+    </template>
 
     <!-- World rules — optional extra constraint set the audit enforces. -->
     <details class="ph-rules" :open="worldRulesOpen" @toggle="(e) => worldRulesOpen = e.target.open">
@@ -184,12 +178,14 @@ const ago = (ts) => {
       </textarea>
     </details>
 
-    <div v-if="error" class="ph-error">
-      <Icon name="Alert" :size="13" /> {{ error }}
-      <UiButton intent="ghost" size="small" @click="run">
-        <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
-      </UiButton>
-    </div>
+    <UiBanner v-if="error">
+      {{ error }}
+      <template #action>
+        <UiButton intent="ghost" size="small" @click="run">
+          <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
+        </UiButton>
+      </template>
+    </UiBanner>
 
     <AiTaskStrip v-if="running" :task="myTask" />
 
@@ -290,20 +286,6 @@ const ago = (ts) => {
 </template>
 
 <style scoped>
-.ph-blurb {
-  margin: 0 0 16px; max-width: 82ch;
-  font-size: 12.5px; line-height: 1.55; color: var(--muted);
-}
-.ph-blurb strong { color: var(--ink-2); font-weight: 600; }
-
-.ph-error {
-  display: flex; gap: 10px; align-items: center;
-  padding: 10px 14px; border-radius: 6px;
-  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
-  color: var(--danger-ink, #b91c1c);
-  font-size: 12.5px;
-}
-
 .ph-empty {
   display: flex; flex-direction: column; align-items: center;
   gap: 14px; padding: 32px 18px;
@@ -433,8 +415,4 @@ const ago = (ts) => {
 }
 
 .ph-foot-spacer { flex: 1; }
-
-.ph-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.ph-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
-.ph-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

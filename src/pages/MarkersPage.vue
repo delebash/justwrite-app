@@ -20,7 +20,7 @@ import { Icon, pageFill } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import ForeshadowingScanModal from "../components/ForeshadowingScanModal.vue";
 import AiTellScanModal from "../components/AiTellScanModal.vue";
-import { HelpTrigger } from "@delebash/llm-ui";
+import { PaneHeader } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const router = useRouter();
@@ -74,25 +74,16 @@ function closeTellScan() { tellScanOpen.value = false; }
 <template>
   <q-page :style-fn="pageFill" class="main">
     <div class="markers-pane scrollarea">
-      <header class="pane-header">
-        <HelpTrigger slug="markers" :label="$t('markers.title')" class="pane-help-abs" />
-        <div class="pane-title">
-          <h1 class="pane-h1">{{ $t("markers.title") }}</h1>
-          <p class="pane-sub">
-            {{ $t("markers.sub") }}
-          </p>
-        </div>
-        <div class="pane-actions">
-          <UiButton intent="secondary" @click="openScan"
-                    v-tooltip.bottom="$t('markers.findDanglingTooltip')">
-            <Icon name="Sparkle" :size="13" /> {{ $t("markers.findDangling") }}
-          </UiButton>
-          <UiButton intent="secondary" @click="openTellScan"
-                    v-tooltip.bottom="$t('markers.findAiTellsTooltip')">
-            <Icon name="Eye" :size="13" /> {{ $t("markers.findAiTells") }}
-          </UiButton>
-        </div>
-      </header>
+      <PaneHeader variant="intro" :title="$t('markers.title')" :sub="$t('markers.sub')" help-key="markers">
+        <UiButton intent="secondary" @click="openScan"
+                  v-tooltip.bottom="$t('markers.findDanglingTooltip')">
+          <Icon name="Sparkle" :size="13" /> {{ $t("markers.findDangling") }}
+        </UiButton>
+        <UiButton intent="secondary" @click="openTellScan"
+                  v-tooltip.bottom="$t('markers.findAiTellsTooltip')">
+          <Icon name="Eye" :size="13" /> {{ $t("markers.findAiTells") }}
+        </UiButton>
+      </PaneHeader>
 
       <!-- Orientation descriptor. -->
       <i18n-t keypath="markers.intro" tag="p" class="mk-desc" scope="global">
@@ -187,25 +178,6 @@ function closeTellScan() { tellScanOpen.value = false; }
   overflow-y: auto;
   display: flex; flex-direction: column;
   gap: 24px;
-}
-.pane-header { display: flex; flex-direction: column; gap: 6px; position: relative; }
-.pane-help-abs { position: absolute; top: 0; right: 0; }
-/* This header is a column inside the page's scroller, not the bar the shared .pane-header phone
-   rule wraps: at phone width it keeps its column and padding, and only the actions wrap. */
-@media (max-width: 599.98px) {
-  .pane-header { flex-wrap: nowrap; padding: 0; }
-  .pane-actions { flex-basis: auto; flex-wrap: wrap; }
-}
-.pane-h1 {
-  font-family: var(--font-serif);
-  font-size: 28px; font-weight: 600;
-  letter-spacing: -0.01em;
-  margin: 0; color: var(--ink);
-}
-.pane-sub {
-  margin: 0; color: var(--muted);
-  font-size: 13.5px; line-height: 1.55;
-  max-width: 680px;
 }
 
 .markers-timeline-wrap {

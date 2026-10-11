@@ -4,8 +4,7 @@
 // carries THE Cancel; the window can't close mid-run, so leaving the page can't lose the answer)
 // → review (EntityReviewModal with the proposals, as EntitySweepModal hands off its aggregate).
 import { computed, onBeforeUnmount, ref } from "vue";
-import { QBanner } from "quasar";
-import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiButton, UiTextarea } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiBanner, UiButton, UiTextarea } from "@delebash/llm-ui";
 import { useProjectStore } from "../stores/project.js";
 import { suggestCharacters } from "../services/analysis/characterDraft.js";
 import EntityReviewModal from "./EntityReviewModal.vue";
@@ -50,12 +49,12 @@ onBeforeUnmount(() => abort?.abort());
     @close="emit('close')" @committed="(payload) => emit('committed', payload)" />
 
   <!-- ── ASK + RUN ── -->
-  <AppModal v-else :title="$t('characters.suggest.title')" :closable="!running" @close="emit('close')">
+  <AppModal v-else :lede="$t('characters.suggest.intro')" :title="$t('characters.suggest.title')" :closable="!running" @close="emit('close')">
     <template #header-extra>
       <AiFeatureChip feature="brainstorm" :label="$t('brainstorm.title')" editable />
     </template>
 
-    <p class="sc-intro">{{ $t("characters.suggest.intro") }}</p>
+    
 
     <label class="sc-field">
       <span class="t-eyebrow">{{ $t("characters.suggest.lookingForLabel") }}</span>
@@ -63,10 +62,7 @@ onBeforeUnmount(() => abort?.abort());
         :placeholder="$t('characters.suggest.lookingForPlaceholder')" :disabled="running" />
     </label>
 
-    <QBanner v-if="error" dense rounded class="sc-error">
-      <template #avatar><Icon name="Alert" :size="13" /></template>
-      {{ error }}
-    </QBanner>
+    <UiBanner v-if="error">{{ error }}</UiBanner>
 
     <AiTaskStrip :task="myTask" />
 
@@ -82,12 +78,6 @@ onBeforeUnmount(() => abort?.abort());
 </template>
 
 <style scoped>
-.sc-intro { font-size: 12px; line-height: 1.55; color: var(--muted); margin: 0 0 12px; }
 .sc-field { display: flex; flex-direction: column; gap: 6px; }
 .sc-input { width: 60ch; max-width: 100%; }
-.sc-error {
-  margin-top: 10px;
-  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
-  color: var(--danger-ink, #b91c1c); font-size: 12.5px;
-}
 </style>

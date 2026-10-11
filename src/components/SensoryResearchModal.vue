@@ -9,7 +9,7 @@
 
 import { ref, computed, onMounted } from "vue";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
 import { generateSensoryPack, SENSORY_CATEGORIES } from "../services/sensoryResearch.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 
@@ -87,33 +87,29 @@ const totalCount = computed(() =>
 </script>
 
 <template>
-  <AppModal
-    :eyebrow="$t('sensory.eyebrow')"
-    :title="$t('sensory.title')"
+  <AppModal :eyebrow="$t('sensory.eyebrow')" :title="$t('sensory.title')"
     wide
     :closable="!running"
     @close="emit('close')"
   >
-    <template #header>
-      <div class="sr-titleblock">
-        <div class="t-eyebrow">{{ $t("sensory.eyebrow") }}</div>
-        <h2 class="modal-title">{{ $t("sensory.title") }}</h2>
-      </div>
-      <div class="sr-header-actions">
-        <AiFeatureChip feature="sensory" :label="$t('sensory.chipLabel')" editable />
-      </div>
+    <template #header-extra>
+      <AiFeatureChip feature="sensory" :label="$t('sensory.chipLabel')" editable />
     </template>
 
-    <i18n-t keypath="sensory.blurb" tag="p" class="sr-blurb" scope="global">
-      <template #subject><strong>"{{ subject }}"</strong></template>
-    </i18n-t>
+    <template #lede>
+      <i18n-t keypath="sensory.blurb" scope="global">
+        <template #subject><strong>"{{ subject }}"</strong></template>
+      </i18n-t>
+    </template>
 
-    <div v-if="error" class="sr-error">
-      <Icon name="Alert" :size="13" /> {{ error }}
-      <UiButton intent="ghost" size="small" @click="run">
-        <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
-      </UiButton>
-    </div>
+    <UiBanner v-if="error">
+      {{ error }}
+      <template #action>
+        <UiButton intent="ghost" size="small" @click="run">
+          <Icon name="Refresh" :size="12" /> {{ $t("common.retry") }}
+        </UiButton>
+      </template>
+    </UiBanner>
 
     <AiTaskStrip v-if="running" :task="myTask" />
 
@@ -163,20 +159,6 @@ const totalCount = computed(() =>
 </template>
 
 <style scoped>
-.sr-blurb {
-  margin: 0 0 16px; max-width: 80ch;
-  font-size: 12.5px; line-height: 1.55; color: var(--muted);
-}
-.sr-blurb strong { color: var(--ink-2); font-weight: 600; font-style: italic; }
-
-.sr-error {
-  display: flex; gap: 10px; align-items: center;
-  padding: 10px 14px; border-radius: 6px;
-  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
-  color: var(--danger-ink, #b91c1c);
-  font-size: 12.5px;
-}
-
 .sr-empty {
   display: flex; flex-direction: column; align-items: center;
   gap: 14px; padding: 32px 18px;
@@ -235,8 +217,4 @@ const totalCount = computed(() =>
 .sr-phrase.inserted .sr-phrase-icon { color: var(--status-done); }
 
 .sr-foot-spacer { flex: 1; }
-
-.sr-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.sr-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
-.sr-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

@@ -15,7 +15,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { useAiTasksStore, AiTaskStrip, Icon, AppModal, EmptyState, UiButton } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, Icon, AppModal, EmptyState, UiButton, UiBanner } from "@delebash/llm-ui";
 import { scanForDanglingThreads } from "../services/analysis/foreshadowingScan.js";
 import { addMarkerToSceneHtml } from "justwrite-server/editor/markers.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
@@ -209,27 +209,21 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
 <template>
   <!-- ── REVIEW PHASE ─────────────────────────────────────────── -->
   <AppModal
-    v-if="phase === 'review'"
-    :eyebrow="$t('foreshadowing.eyebrow')"
-    :title="$t('foreshadowing.reviewTitle')"
+    v-if="phase === 'review'" :eyebrow="$t('foreshadowing.eyebrow')" :title="$t('foreshadowing.reviewTitle')"
     wide
     @close="emit('close')"
   >
-    <template #header>
-      <div class="fs-titleblock">
-        <div class="t-eyebrow">{{ $t("foreshadowing.eyebrow") }}</div>
-        <div class="modal-title">{{ $t("foreshadowing.reviewTitle") }}</div>
-      </div>
-      <div class="fs-header-actions">
-        <AiFeatureChip feature="foreshadowing" :label="$t('foreshadowing.chipLabel')" editable />
-      </div>
+    <template #header-extra>
+      <AiFeatureChip feature="foreshadowing" :label="$t('foreshadowing.chipLabel')" editable />
     </template>
 
-    <i18n-t keypath="foreshadowing.reviewDesc" tag="p" class="fs-desc" scope="global">
-      <template #dangling><strong>{{ $t("foreshadowing.danglingTerm") }}</strong></template>
-      <template #mentionedLater><strong>{{ $t("foreshadowing.mentionedLaterTerm") }}</strong></template>
-      <template #looseThread><strong>{{ $t("foreshadowing.looseThreadTerm") }}</strong></template>
-    </i18n-t>
+    <template #lede>
+      <i18n-t keypath="foreshadowing.reviewDesc" scope="global">
+        <template #dangling><strong>{{ $t("foreshadowing.danglingTerm") }}</strong></template>
+        <template #mentionedLater><strong>{{ $t("foreshadowing.mentionedLaterTerm") }}</strong></template>
+        <template #looseThread><strong>{{ $t("foreshadowing.looseThreadTerm") }}</strong></template>
+      </i18n-t>
+    </template>
 
     <div v-if="!proposals.length" class="fs-empty-wrap">
       <EmptyState
@@ -325,32 +319,24 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
 
   <!-- ── SCANNING PHASE ───────────────────────────────────────── -->
   <AppModal
-    v-else
-    :eyebrow="$t('foreshadowing.eyebrow')"
-    :title="$t('foreshadowing.runTitle')"
+    v-else :eyebrow="$t('foreshadowing.eyebrow')" :title="$t('foreshadowing.runTitle')"
     :closable="!running"
     @close="emit('close')"
   >
-    <template #header>
-      <div class="fs-titleblock">
-        <div class="t-eyebrow">{{ $t("foreshadowing.eyebrow") }}</div>
-        <div class="modal-title">{{ $t("foreshadowing.runTitle") }}</div>
-      </div>
+    <template #header-extra>
       <!-- No Cancel here: the shared AiTaskStrip below renders THE Cancel (user,
-           2026-07-17: "top cancel button redundant" — both were live at once). -->
-      <div class="fs-header-actions">
-        <AiFeatureChip feature="foreshadowing" :label="$t('foreshadowing.chipLabel')" editable />
-      </div>
+      2026-07-17: "top cancel button redundant" — both were live at once). -->
+      <AiFeatureChip feature="foreshadowing" :label="$t('foreshadowing.chipLabel')" editable />
     </template>
 
-    <i18n-t keypath="foreshadowing.runDesc" tag="p" class="fs-desc" scope="global">
-      <template #setups><strong>{{ $t("foreshadowing.setupsTerm") }}</strong></template>
-      <template #dangling><strong>{{ $t("foreshadowing.danglingLower") }}</strong></template>
-    </i18n-t>
+    <template #lede>
+      <i18n-t keypath="foreshadowing.runDesc" scope="global">
+        <template #setups><strong>{{ $t("foreshadowing.setupsTerm") }}</strong></template>
+        <template #dangling><strong>{{ $t("foreshadowing.danglingLower") }}</strong></template>
+      </i18n-t>
+    </template>
 
-    <div v-if="error" class="fs-error">
-      <Icon name="Alert" :size="13" /> {{ error }}
-    </div>
+    <UiBanner v-if="error">{{ error }}</UiBanner>
 
     <div v-if="!running && !rows.length" class="fh-empty">
       <Icon name="Sparkle" :size="20" />
@@ -377,20 +363,6 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
 </template>
 
 <style scoped>
-.fs-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.fs-header-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
-.fs-desc { font-size: 12.5px; line-height: 1.6; color: var(--muted); margin: 0 0 14px; max-width: 80ch; }
-.fs-desc strong { color: var(--ink-2); font-weight: 600; }
-
-.fs-error {
-  display: flex; gap: 8px; align-items: center;
-  padding: 8px 12px; border-radius: 6px;
-  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
-  color: var(--danger-ink, #b91c1c);
-  font-size: 12.5px;
-  margin-bottom: 10px;
-}
-
 .fh-empty {
   display: flex; flex-direction: column; align-items: center;
   gap: 14px; padding: 32px 18px;

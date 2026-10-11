@@ -112,14 +112,12 @@ function originTitle(originChapters) {
 </script>
 
 <template>
-  <AppModal
+  <AppModal :lede="anyProposed ? desc || $t('entityReview.desc') : ''"
     :eyebrow="eyebrow || $t('entityReview.eyebrow')"
     :title="chapterTitle ? $t('entityReview.titleFrom', { chapter: chapterTitle }) : $t('entityReview.titleFallback')"
     @close="emit('close')"
   >
-    <p v-if="anyProposed" class="er-desc">
-      {{ desc || $t("entityReview.desc") }}
-    </p>
+    
 
     <EmptyState v-if="!anyProposed"
       icon="Check"
@@ -184,12 +182,6 @@ function originTitle(originChapters) {
 </template>
 
 <style scoped>
-
-.er-desc {
-  font-size: 12px; line-height: 1.55; color: var(--muted);
-  margin: 0 0 14px;
-}
-
 .er-body { display: flex; flex-direction: column; gap: 20px; }
 
 .er-section { display: flex; flex-direction: column; gap: 8px; }

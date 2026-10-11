@@ -7,7 +7,6 @@ import { PaneHeader, pageFill } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import RichEditor from "../components/RichEditor.vue";
 import StatusSelect from "../components/StatusSelect.vue";
-import { Breadcrumb } from "@delebash/llm-ui";
 import TagEditor from "../components/TagEditor.vue";
 import { promptDialog } from "@delebash/llm-ui";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
@@ -203,28 +202,22 @@ function onRowClick(event) {
     </template>
 
     <template v-else>
-      <header class="pane-header entity-pane-header">
-        <div class="pane-title">
-          <Breadcrumb :segments="[{ label: cat?.label || $t('nav.worldbuilding'), to: '/worldbuilding' }]" />
-          <input class="entity-name"
-            :placeholder="$t('worldbuilding.titlePlaceholder')"
-            :value="article.title" @input="update('title', $event.target.value)" />
-        </div>
-        <div class="pane-actions">
-          <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
-            v-tooltip.bottom="$t('common.askTheBookAbout', { title: article.title })">
-            <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
-          </UiButton>
-          <UiButton :label="$t('common.back')" intent="ghost" size="small" @click="router.push('/worldbuilding')">
-            <template #icon><Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /></template>
-          </UiButton>
-          <UiButton :label="$t('common.delete')" intent="ghost" size="small" @click="deleteArticle" />
-          <UiButton :label="$t('worldbuilding.newArticle')" intent="primary" size="small" @click="addArticle">
-            <template #icon><Icon name="Plus" :size="14" /></template>
-          </UiButton>
-          <StatusSelect :model-value="article.status || ''" @update:model-value="(v) => update('status', v)" />
-        </div>
-      </header>
+      <PaneHeader :crumbs="[{ label: cat?.label || $t('nav.worldbuilding'), to: '/worldbuilding' }]"
+        editable :title="article.title" :placeholder="$t('worldbuilding.titlePlaceholder')"
+        @update:title="(v) => update('title', v)">
+        <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
+          v-tooltip.bottom="$t('common.askTheBookAbout', { title: article.title })">
+          <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
+        </UiButton>
+        <UiButton :label="$t('common.back')" intent="ghost" size="small" @click="router.push('/worldbuilding')">
+          <template #icon><Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /></template>
+        </UiButton>
+        <UiButton :label="$t('common.delete')" intent="ghost" size="small" @click="deleteArticle" />
+        <UiButton :label="$t('worldbuilding.newArticle')" intent="primary" size="small" @click="addArticle">
+          <template #icon><Icon name="Plus" :size="14" /></template>
+        </UiButton>
+        <StatusSelect :model-value="article.status || ''" @update:model-value="(v) => update('status', v)" />
+      </PaneHeader>
 
       <div class="pane-card">
         <p class="entity-desc wb-desc">

@@ -17,6 +17,7 @@ import { useSessionsStore, reorderForMonday } from "../stores/sessions.js";
 import { scanProjectMarkers } from "justwrite-server/editor/markers.js";
 import { UiButton, pageFill } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
+import { PaneHeader } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -211,23 +212,13 @@ const formLine = computed(() => {
 
 <template>
   <q-page :style-fn="pageFill" class="main">
-    <header class="pane-header shelf-pane-header">
-      <div class="pane-title">
-        <span class="pane-eyebrow">{{ $t("homeShelf.eyebrow") }}</span>
-        <input
-          class="shelf-title-input"
-          :value="P.title"
-          :placeholder="$t('homeShelf.titlePlaceholder')"
-          @input="project.updateProjectMeta({ title: $event.target.value })"
-        />
-      </div>
-      <div class="pane-actions">
-        <router-link to="/import" custom v-slot="{ navigate }">
-          <UiButton intent="ghost" @click="navigate"><Icon name="Plus" :size="14" /> {{ $t("homeShelf.import") }}</UiButton>
-        </router-link>
-        <UiButton intent="primary" @click="nav.quickWrite()"><Icon name="Plus" :size="14" /> {{ $t("homeShelf.quickWrite") }}</UiButton>
-      </div>
-    </header>
+    <PaneHeader :eyebrow="$t('homeShelf.eyebrow')" editable :title="P.title" :placeholder="$t('homeShelf.titlePlaceholder')"
+      @update:title="(v) => project.updateProjectMeta({ title: v })">
+      <router-link to="/import" custom v-slot="{ navigate }">
+        <UiButton intent="ghost" @click="navigate"><Icon name="Plus" :size="14" /> {{ $t("homeShelf.import") }}</UiButton>
+      </router-link>
+      <UiButton intent="primary" @click="nav.quickWrite()"><Icon name="Plus" :size="14" /> {{ $t("homeShelf.quickWrite") }}</UiButton>
+    </PaneHeader>
 
     <div class="pane-card shelf-card">
       <div class="shelf-wrap">
@@ -368,26 +359,6 @@ const formLine = computed(() => {
 </template>
 
 <style scoped>
-/* Header — mirrors HomeView's editable serif title so the chrome reads
-   identically across Home variants. */
-.shelf-pane-header .pane-title { gap: 2px; }
-.shelf-title-input {
-  appearance: none;
-  font-family: var(--font-serif);
-  font-size: 20px; font-weight: 600;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 6px;
-  padding: 2px 6px;
-  margin-left: -6px;
-  outline: none;
-  min-width: 0;
-}
-.shelf-title-input:hover { border-color: var(--border-soft); }
-.shelf-title-input:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
-
 /* Shelf card — let the inner shelf-wrap drive its own layout. */
 .shelf-card { padding: 0; overflow: hidden; }
 

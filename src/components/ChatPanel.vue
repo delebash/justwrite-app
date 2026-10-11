@@ -21,7 +21,7 @@
 import { ref, computed, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect, confirmDialog, promptDialog, usePanelDismiss } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect, confirmDialog, promptDialog, usePanelDismiss, UiBanner } from "@delebash/llm-ui";
 import { useUiStore } from "../stores/ui.js";
 import { askManuscript } from "../services/rag/chat.js";
 import { askAsCharacter } from "../services/rag/characterChat.js";
@@ -555,9 +555,7 @@ defineExpose({ open: () => { open.value = true; }, close });
 
             <!-- Assistant bubble -->
             <div v-else class="cp-msg cp-msg-assistant">
-              <div v-if="m.error" class="cp-error">
-                <Icon name="Alert" :size="13" /> {{ m.error }}
-              </div>
+              <UiBanner v-if="m.error">{{ m.error }}</UiBanner>
               <template v-else>
                 <div class="cp-bubble cp-bubble-assistant">{{ m.content || (m.pending ? "…" : "") }}</div>
                 <div v-if="m.citations && m.citations.length" class="cp-cites">
@@ -804,14 +802,6 @@ defineExpose({ open: () => { open.value = true; }, close });
   color: var(--ink-2); background: var(--surface);
   border: 1px solid var(--border-soft); border-radius: 4px;
   padding: 1px 5px; line-height: 14px;
-}
-
-.cp-error {
-  display: flex; gap: 8px; align-items: center;
-  padding: 8px 12px; border-radius: 6px;
-  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
-  color: var(--danger-ink, #b91c1c);
-  font-size: 12px;
 }
 
 .cp-cites { display: flex; flex-direction: column; gap: 6px; width: 100%; }

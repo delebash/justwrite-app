@@ -130,26 +130,20 @@ onBeforeUnmount(cancelAll);
 </script>
 
 <template>
-  <AppModal
-    :eyebrow="eyebrow"
-    :title="label"
+  <AppModal :eyebrow="eyebrow" :title="label"
     wide
     :closable="!anyRunning"
     @close="close"
   >
-    <template #header>
-      <div class="va-titleblock">
-        <div class="t-eyebrow">{{ eyebrow }}</div>
-        <h2 class="modal-title">{{ label }}</h2>
-      </div>
-      <div class="va-header-actions">
-        <AiFeatureChip feature="writerAI" :label="$t('variations.chipLabel')" editable />
-      </div>
+    <template #header-extra>
+      <AiFeatureChip feature="writerAI" :label="$t('variations.chipLabel')" editable />
     </template>
 
-    <i18n-t keypath="variations.blurb" tag="p" class="va-blurb" scope="global">
-      <template #useThis><strong>{{ $t("variations.useThis") }}</strong></template>
-    </i18n-t>
+    <template #lede>
+      <i18n-t keypath="variations.blurb" scope="global">
+        <template #useThis><strong>{{ $t("variations.useThis") }}</strong></template>
+      </i18n-t>
+    </template>
 
     <!-- QC-30b: the shared strip is THE progress surface — one per running
          column (the CritiqueModal one-strip-per-task precedent); the columns
@@ -218,12 +212,6 @@ onBeforeUnmount(cancelAll);
 </template>
 
 <style scoped>
-.va-blurb {
-  margin: 0 0 16px; max-width: 78ch;
-  font-size: 12.5px; line-height: 1.55; color: var(--muted);
-}
-.va-blurb strong { color: var(--ink-2); font-weight: 600; }
-
 .va-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -296,8 +284,4 @@ onBeforeUnmount(cancelAll);
 .va-spacer { flex: 1; }
 
 .va-foot-spacer { flex: 1; }
-
-.va-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.va-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
-.va-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
 </style>

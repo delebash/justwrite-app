@@ -13,7 +13,7 @@
 
 import { ref, computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
 import { runCritique, runStructuralAnalysis, PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 
@@ -145,23 +145,15 @@ const SEVERITY_META = {
 </script>
 
 <template>
-  <AppModal
-    eyebrow="Chapter critique"
-    :title="ch ? `Ch. ${ch.num} · ${ch.title}` : ''"
+  <AppModal :eyebrow="$t('critique.eyebrow')" :title="ch ? $t('critique.chapterTitle', { num: ch.num, title: ch.title }) : ''"
     :closable="!runningNotes && !runningStruct"
     @close="emit('close')"
   >
-    <template #header>
-      <div class="ck-titleblock">
-        <div class="t-eyebrow">{{ $t("critique.eyebrow") }}</div>
-        <h2 class="modal-title">{{ ch ? $t("critique.chapterTitle", { num: ch.num, title: ch.title }) : "" }}</h2>
-      </div>
-      <div class="ck-header-actions">
-        <AiFeatureChip feature="critique" :label="$t('critique.chipLabel')" editable />
-        <UiButton v-if="critique" intent="ghost" size="small" @click="clearAll">
-          <Icon name="Trash" :size="12" /> {{ $t("common.clear") }}
-        </UiButton>
-      </div>
+    <template #header-extra>
+      <AiFeatureChip feature="critique" :label="$t('critique.chipLabel')" editable />
+      <UiButton v-if="critique" intent="ghost" size="small" @click="clearAll">
+        <Icon name="Trash" :size="12" /> {{ $t("common.clear") }}
+      </UiButton>
     </template>
 
     <div v-if="critique?.generatedAt" class="ck-stamp">
@@ -169,9 +161,7 @@ const SEVERITY_META = {
       {{ $t("critique.generatedStamp", { when: ago(critique.generatedAt), model: critique.model || $t("critique.unknownModel") }) }}
     </div>
 
-    <div v-if="err" class="ck-error">
-      <Icon name="Alert" :size="13" /> {{ err }}
-    </div>
+    <UiBanner v-if="err">{{ err }}</UiBanner>
 
     <!-- ── Structural analysis ───────────────────────────────────── -->
     <section class="ck-section">
@@ -255,22 +245,11 @@ const SEVERITY_META = {
 </template>
 
 <style scoped>
-.ck-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.ck-titleblock h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin: 4px 0 0; }
-.ck-header-actions { display: flex; gap: 8px; flex-shrink: 0; }
-
 .ck-stamp {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em;
   color: var(--muted);
   margin-top: -4px;
-}
-.ck-error {
-  display: flex; gap: 8px; align-items: center;
-  padding: 8px 12px; border-radius: 6px;
-  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
-  color: var(--danger-ink, #b91c1c);
-  font-size: 12.5px;
 }
 .ck-empty {
   font-size: 12.5px; color: var(--muted); font-style: italic;

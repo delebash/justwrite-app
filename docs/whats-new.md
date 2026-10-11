@@ -15,6 +15,11 @@ page header. You review every field before anything saves, and fields you've
 written are never overwritten unless you tick them. See the
 [Character sheet](character-sheet.md).
 
+**Headers that fit.** A page header with many buttons no longer squeezes the name beside them —
+a character's name box had shrunk to a sliver; the buttons now move to the row below. Window titles
+no longer squeeze beside the AI chip either, and the chip shortens its model name instead of running
+past the edge on a phone.
+
 **Suggest characters.** **Suggest characters…** on the Characters list asks the
 AI for people your book doesn't have yet — say what you're looking for, or leave
 it blank. Tick the ones you want and add them to your story bible. See

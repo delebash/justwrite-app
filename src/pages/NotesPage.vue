@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch, nextTick } from "vue";
+import { computed, ref, watch } from "vue";
 import { UiInput, pageFill } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
@@ -7,18 +7,17 @@ import { UiTag } from "@delebash/llm-ui";
 import EntityIndex from "../components/EntityIndex.vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import { Icon } from "@delebash/llm-ui";
 import RichEditor from "../components/RichEditor.vue";
-import { Breadcrumb } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
 import { parseFile } from "../services/import/index.js";
+import { useSelectNewName } from "../composables/useSelectNewName.js";
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
-const route = useRoute();
 
 const n = computed(() => props.id ? project.noteById(props.id) : null);
 
@@ -64,18 +63,9 @@ function onTagKeydown(e) {
   }
 }
 
-// The detail title input, focused + selected when we arrive via "+ New"
-// (?new=1) so the first keystroke replaces the default "Untitled …"; the
-// query is then stripped so a reload doesn't re-select.
-const nameInput = ref(null);
-watch(() => route.query.new, (isNew) => {
-  if (!isNew) return;
-  nextTick(() => {
-    nameInput.value?.focus();
-    nameInput.value?.select?.();
-    router.replace({ query: {} });
-  });
-}, { immediate: true });
+// "+ New" lands here with ?new=1: the header's name is selected, ready to type over.
+const header = ref(null);
+useSelectNewName(header);
 
 function addNote() {
   const id = project.addNote(); ui.select("notes", id); router.push(`/notes/${id}?new=1`);
@@ -282,47 +272,40 @@ function onRowClick(event) {
 
     <!-- ── Detail mode (id present, note found) ─────────────────── -->
     <template v-else-if="n">
-      <header class="pane-header entity-pane-header">
-        <div class="pane-title">
-          <Breadcrumb :segments="[{ label: $t('notes.breadcrumb'), to: '/notes' }]" />
-          <input class="entity-name" ref="nameInput"
-            :value="n.title"
-            :placeholder="$t('notes.titlePlaceholder')"
-            @input="update('title', $event.target.value)" />
+      <PaneHeader ref="header" :crumbs="[{ label: $t('notes.breadcrumb'), to: '/notes' }]"
+        editable :title="n.title" :placeholder="$t('notes.titlePlaceholder')"
+        @update:title="(v) => update('title', v)">
+        <div class="note-anchor-wrap" v-tooltip.bottom="$t('notes.anchorTooltip')">
+          <Icon name="Pin" :size="11" class="note-anchor-icon" />
+          <UiSelect class="note-anchor-select"
+            :model-value="anchorValue"
+            @update:model-value="anchorValue = $event"
+            :options="anchorOptions"
+            :aria-label="$t('notes.anchorAriaLabel')" />
         </div>
-        <div class="pane-actions">
-          <div class="note-anchor-wrap" v-tooltip.bottom="$t('notes.anchorTooltip')">
-            <Icon name="Pin" :size="11" class="note-anchor-icon" />
-            <UiSelect class="note-anchor-select"
-              :model-value="anchorValue"
-              @update:model-value="anchorValue = $event"
-              :options="anchorOptions"
-              :aria-label="$t('notes.anchorAriaLabel')" />
-          </div>
-          <div class="note-tag-wrap">
-            <UiInput fluid :placeholder="$t('notes.tagPlaceholder')"
-              :model-value="n.tag"
-              @update:model-value="update('tag', $event)"
-              @focus="onTagFocus"
-              @blur="onTagBlur"
-              @keydown="onTagKeydown" />
-            <ul v-if="tagSuggestOpen && tagSuggestions.length" class="note-tag-suggest" role="listbox">
-              <li v-for="(t, i) in tagSuggestions" :key="t"
-                class="note-tag-suggest-item"
-                :class="{ active: i === tagSuggestIndex }"
-                role="option"
-                :aria-selected="i === tagSuggestIndex"
-                @mouseenter="tagSuggestIndex = i"
-                @mousedown.prevent="pickTag(t)">
-                {{ t }}
-              </li>
-            </ul>
-          </div>
-          <span class="t-muted" style="font-size:12px;padding:0 8px">{{ $t("notes.updated", { when: n.updated }) }}</span>
-          <UiButton intent="ghost" size="small" @click="deleteNote">{{ $t("common.delete") }}</UiButton>
-          <UiButton intent="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> {{ $t("notes.newNote") }}</UiButton>
+        <div class="note-tag-wrap">
+          <UiInput fluid :placeholder="$t('notes.tagPlaceholder')"
+            :model-value="n.tag"
+            @update:model-value="update('tag', $event)"
+            @focus="onTagFocus"
+            @blur="onTagBlur"
+            @keydown="onTagKeydown" />
+          <ul v-if="tagSuggestOpen && tagSuggestions.length" class="note-tag-suggest" role="listbox">
+            <li v-for="(t, i) in tagSuggestions" :key="t"
+              class="note-tag-suggest-item"
+              :class="{ active: i === tagSuggestIndex }"
+              role="option"
+              :aria-selected="i === tagSuggestIndex"
+              @mouseenter="tagSuggestIndex = i"
+              @mousedown.prevent="pickTag(t)">
+              {{ t }}
+            </li>
+          </ul>
         </div>
-      </header>
+        <span class="t-muted" style="font-size:12px;padding:0 8px">{{ $t("notes.updated", { when: n.updated }) }}</span>
+        <UiButton intent="ghost" size="small" @click="deleteNote">{{ $t("common.delete") }}</UiButton>
+        <UiButton intent="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> {{ $t("notes.newNote") }}</UiButton>
+      </PaneHeader>
 
       <div class="pane-card">
         <p class="entity-desc note-desc">
@@ -338,15 +321,9 @@ function onRowClick(event) {
 
     <!-- ── id in URL but note not found ─────────────────────────── -->
     <template v-else>
-      <header class="pane-header entity-pane-header">
-        <div class="pane-title">
-          <Breadcrumb :segments="[{ label: 'Note', to: '/notes' }]" />
-          <h1 class="pane-h1">{{ $t("notes.notFound") }}</h1>
-        </div>
-        <div class="pane-actions">
-          <UiButton intent="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> {{ $t("notes.newNote") }}</UiButton>
-        </div>
-      </header>
+      <PaneHeader :crumbs="[{ label: $t('notes.breadcrumb'), to: '/notes' }]" :title="$t('notes.notFound')">
+        <UiButton intent="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> {{ $t("notes.newNote") }}</UiButton>
+      </PaneHeader>
       <div class="pane-card" style="display:grid;place-items:center;padding:60px">
         <div class="t-muted" style="text-align:center">
           {{ $t("notes.notFoundBody") }}<br />

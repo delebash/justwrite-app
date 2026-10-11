@@ -82,9 +82,11 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
     wide
     @close="emit('close')"
   >
-    <i18n-t keypath="aiTell.blurb" tag="p" class="at-blurb" scope="global">
-      <template #noAiCall><strong>{{ $t("aiTell.noAiCall") }}</strong></template>
-    </i18n-t>
+    <template #lede>
+      <i18n-t keypath="aiTell.blurb" scope="global">
+        <template #noAiCall><strong>{{ $t("aiTell.noAiCall") }}</strong></template>
+      </i18n-t>
+    </template>
 
     <div v-if="!result" class="at-empty">
       <Icon name="Sparkle" :size="20" />
@@ -168,12 +170,6 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
 </template>
 
 <style scoped>
-.at-blurb {
-  margin: 0 0 16px; max-width: 82ch;
-  font-size: 12.5px; line-height: 1.55; color: var(--muted);
-}
-.at-blurb strong { color: var(--ink-2); font-weight: 600; }
-
 .at-empty {
   display: flex; flex-direction: column; align-items: center;
   gap: 14px; padding: 32px 18px;

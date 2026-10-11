@@ -89,9 +89,9 @@ blindly migrate them when sweeping for compliance:
 **Title-style inline-editable inputs** — flat borderless `<input>` styled to
 look like editable text (transparent border idle, hover border, accent ring on
 focus, font inherited). `UiInput` would draw a real field box and break the
-flat-text feel. Examples: `WorldbuildingView .wb-title`, `NotesView .note-title`,
-`ArchitectureView .arch-title`, `PlotBoardView .strand-name`,
-`StrandsView .beat-label` and `.beat-note`.
+flat-text feel. A page's own name is the kit's `PaneHeader` with `editable` (one definition
+for every page header since 2026-10-11); the raw ones left are inside page bodies:
+`PlotBoardPage .strand-name`, `StrandsPage .beat-label` and `.beat-note`.
 
 **Sidebar chrome (`.nav-item`, `.rail-toggle`, `.rail-item`, `.project-switcher`,
 `.project-menu-*`)** — these are layout-specific structures whose grid

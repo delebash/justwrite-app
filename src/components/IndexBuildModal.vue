@@ -11,7 +11,7 @@ import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
 // useAiTasksStore stays for the READ (myTask feeds the inline AiTaskStrip);
 // the lifecycle rides withAiTask per the AI-call convention (2026-08-08).
-import { useAiTasksStore, withAiTask, AiTaskStrip, Icon, AppModal, UiButton } from "@delebash/llm-ui";
+import { useAiTasksStore, withAiTask, AiTaskStrip, Icon, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
 import { buildOrUpdateIndex, rebuildIndex, indexStatus, clearIndex } from "../services/rag/indexer.js";
 import StatusRow from "./StatusRow.vue";
 
@@ -151,36 +151,30 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
 </script>
 
 <template>
-  <AppModal
+  <AppModal :eyebrow="$t('indexBuild.eyebrow')" :title="mode === 'rebuild' ? $t('indexBuild.rebuilding') : $t('indexBuild.building')"
     ref="appModal"
-    eyebrow="Manuscript index"
-    :title="mode === 'rebuild' ? 'Rebuilding index' : 'Building index'"
     :closable="!running"
     @close="emit('close')"
   >
-    <template #header>
-      <div class="idx-titleblock">
-        <div class="t-eyebrow">{{ $t("indexBuild.eyebrow") }}</div>
-        <div class="modal-title">{{ mode === "rebuild" ? $t("indexBuild.rebuilding") : $t("indexBuild.building") }}</div>
-      </div>
+    <template #header-extra>
       <UiButton v-if="running" intent="ghost" size="small" @click="cancel">
         <Icon name="Close" :size="12" /> {{ $t("common.cancel") }}
       </UiButton>
     </template>
 
-    <i18n-t keypath="indexBuild.desc" tag="p" class="idx-desc" scope="global">
-      <template #scenes><strong>{{ $t("indexBuild.scenesTerm") }}</strong></template>
-      <template #embeddingModel><strong>{{ $t("indexBuild.embeddingModelTerm") }}</strong></template>
-      <template #chat><strong>{{ $t("indexBuild.chatTerm") }}</strong></template>
-    </i18n-t>
+    <template #lede>
+      <i18n-t keypath="indexBuild.desc" scope="global">
+        <template #scenes><strong>{{ $t("indexBuild.scenesTerm") }}</strong></template>
+        <template #embeddingModel><strong>{{ $t("indexBuild.embeddingModelTerm") }}</strong></template>
+        <template #chat><strong>{{ $t("indexBuild.chatTerm") }}</strong></template>
+      </i18n-t>
+    </template>
 
     <div v-if="before.exists && !running && !result" class="idx-stat">
       {{ $t("indexBuild.currentIndex", { scenes: $t("count.scene", { n: before.entryCount }, before.entryCount), model: before.model || $t("indexBuild.unknownShort"), dims: $t("indexBuild.dims", { n: before.dims || $t("indexBuild.unknownShort") }) }) }}
     </div>
 
-    <div v-if="error" class="idx-error">
-      <Icon name="Alert" :size="13" /> {{ error }}
-    </div>
+    <UiBanner v-if="error">{{ error }}</UiBanner>
 
     <AiTaskStrip :task="myTask" />
 
@@ -209,14 +203,6 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
 </template>
 
 <style scoped>
-.idx-titleblock { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-
-.idx-desc {
-  font-size: 12px; line-height: 1.55; color: var(--muted);
-  margin: 0;
-}
-.idx-desc strong { color: var(--ink-2); font-weight: 600; }
-
 .idx-stat {
   font-size: 12px; color: var(--muted);
   padding: 8px 12px; background: var(--surface-2); border-radius: 6px;
@@ -225,13 +211,6 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
 .idx-stat code {
   font-family: var(--font-mono); font-size: 11px;
   background: var(--surface-3); padding: 1px 5px; border-radius: 3px;
-}
-.idx-error {
-  display: flex; gap: 8px; align-items: center;
-  padding: 8px 12px; border-radius: 6px;
-  background: color-mix(in oklab, var(--danger-ink, #b91c1c) 12%, transparent);
-  color: var(--danger-ink, #b91c1c);
-  font-size: 12.5px;
 }
 
 .idx-list {

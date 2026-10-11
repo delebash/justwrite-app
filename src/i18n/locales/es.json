@@ -381,7 +381,8 @@
     "beatLabelPlaceholder": "Etiqueta del beat (p. ej., Midpoint)",
     "beatNotePlaceholder": "Nota (opcional)",
     "removeBeat": "Eliminar beat",
-    "goToBeat": "Ir a {label}"
+    "goToBeat": "Ir a {label}",
+    "breadcrumb": "Hilo narrativo"
   },
   "sceneLinks": {
     "title": "Enlaces",

@@ -5,7 +5,8 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore, DOW_LABELS_MONDAY_FIRST, reorderForMonday } from "../stores/sessions.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, UiButton, HelpTrigger, pageFill } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, UiButton, pageFill } from "@delebash/llm-ui";
+import { PaneHeader } from "@delebash/llm-ui";
 import { generateResumeBriefing, buildBriefingContext } from "../services/resumeBriefing.js";
 import { useWritingNav } from "../composables/useWritingNav.js";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
@@ -253,22 +254,14 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 
 <template>
   <q-page :style-fn="pageFill" class="main">
-    <header class="pane-header home-pane-header">
-      <div class="pane-title">
-        <span class="pane-eyebrow">{{ $t("home.eyebrow") }}</span>
-        <input class="home-title"
-          :value="P.title"
-          :placeholder="$t('home.titlePlaceholder')"
-          @input="project.updateProjectMeta({ title: $event.target.value })" />
-      </div>
-      <div class="pane-actions">
-        <router-link to="/import" custom v-slot="{ navigate }">
-          <UiButton intent="ghost" @click="navigate"><Icon name="Plus" :size="14" /> {{ $t("home.importManuscript") }}</UiButton>
-        </router-link>
-        <UiButton intent="primary" @click="nav.quickWrite()"><Icon name="Plus" :size="14" /> {{ $t("home.quickWrite") }}</UiButton>
-      </div>
-      <HelpTrigger slug="writing#home" :label="$t('home.helpLabel')" class="pane-help" />
-    </header>
+    <PaneHeader :eyebrow="$t('home.eyebrow')" editable :title="P.title" :placeholder="$t('home.titlePlaceholder')"
+      @update:title="(v) => project.updateProjectMeta({ title: v })"
+      help-key="writing#home" :help-label="$t('home.helpLabel')">
+      <router-link to="/import" custom v-slot="{ navigate }">
+        <UiButton intent="ghost" @click="navigate"><Icon name="Plus" :size="14" /> {{ $t("home.importManuscript") }}</UiButton>
+      </router-link>
+      <UiButton intent="primary" @click="nav.quickWrite()"><Icon name="Plus" :size="14" /> {{ $t("home.quickWrite") }}</UiButton>
+    </PaneHeader>
 
     <div class="pane-card">
     <div class="scrollarea">
@@ -485,23 +478,6 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 }
 .home-desc strong { color: var(--ink-2); font-weight: 600; }
 
-.home-pane-header .pane-title { gap: 2px; }
-.home-title {
-  appearance: none;
-  font-family: var(--font-serif);
-  font-size: 20px; font-weight: 600;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 6px;
-  padding: 2px 6px;
-  margin-left: -6px;
-  outline: none;
-  min-width: 0;
-}
-.home-title:hover { border-color: var(--border-soft); }
-.home-title:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
 .deadline-link { color: inherit; text-decoration: none; border-radius: 4px; }
 .deadline-link:hover { color: var(--accent); text-decoration: underline; }
 

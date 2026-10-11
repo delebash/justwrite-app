@@ -20,7 +20,6 @@ import SensoryResearchModal from "../components/SensoryResearchModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
 import { EmptyState } from "@delebash/llm-ui";
 import StatusSelect from "../components/StatusSelect.vue";
-import { Breadcrumb } from "@delebash/llm-ui";
 import { promptDialog, confirmDialog, useAiTasksStore } from "@delebash/llm-ui";
 import { stitchChapter, splitChapter } from "../services/chapterStitch.js";
 import { vSceneImages, withSceneImages } from "../services/imageStore.js";
@@ -30,6 +29,7 @@ import { UiSelect } from "@delebash/llm-ui";
 import { UiSegmented } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
+import { useSelectNewName } from "../composables/useSelectNewName.js";
 
 const props = defineProps({
   id: { type: String, default: "" },
@@ -403,19 +403,25 @@ function removeScene(scene) {
 }
 
 // ── CRUD ─────────────────────────────────────────────────────────────
-// Arriving via "+ New" (?new=1) — the create handlers below push
-// /chapters/<id>?new=1 after minting a default (untitled) chapter. Focus +
-// select the chapter-title input so the first keystroke names it, then strip
-// the query so a reload doesn't re-select. (Matches the entity views' create.)
-const nameInput = ref(null);
-watch(() => route.query.new, (isNew) => {
-  if (!isNew) return;
-  nextTick(() => {
-    nameInput.value?.focus();
-    nameInput.value?.select?.();
-    router.replace({ query: {} });
-  });
-}, { immediate: true });
+// The header's title: in Edit, the open scene's name (else the chapter's), edited in place; in
+// Read and Outline, the chapter's heading. "+ New" lands here with ?new=1 — the create handlers
+// below push /chapters/<id>?new=1 after minting a default chapter — and the name is selected,
+// ready to type over.
+const header = ref(null);
+useSelectNewName(header);
+const headerTitle = computed(() => {
+  if (mode.value === "edit") return activeScene.value ? activeScene.value.title : ch.value?.title;
+  return mode.value === "outline"
+    ? t("chapters.modes.outline")
+    : t("chapters.header.chapterTitle", { num: ch.value?.num, title: ch.value?.title });
+});
+const headerPlaceholder = computed(() => (activeScene.value
+  ? t("chapters.edit.sceneTitlePlaceholder", { n: activeSceneIdx.value + 1 })
+  : t("sidebar.actions.newChapterLabel")));
+function onHeaderTitle(v) {
+  if (activeScene.value) onSceneTitleInput(activeScene.value.id, v);
+  else updateTitle(ch.value.id, v);
+}
 
 function addChapter() {
   const id = project.addChapter({});
@@ -828,47 +834,32 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
          doesn't jump when you switch view. Mode-specific action buttons
          (if we ever add any back) go inside .pane-actions, where they'll
          be conditional on `mode`. -->
-    <header v-if="ch" class="pane-header chapter-pane-header">
-      <div class="pane-title">
-        <template v-if="mode === 'edit'">
-          <Breadcrumb :segments="crumbs" />
-          <input v-if="activeScene" class="chapter-name"
-            :value="activeScene.title"
-            :placeholder="$t('chapters.edit.sceneTitlePlaceholder', { n: activeSceneIdx + 1 })"
-            @input="onSceneTitleInput(activeScene.id, $event.target.value)" />
-          <input v-else class="chapter-name" ref="nameInput"
-            :value="ch.title"
-            :placeholder="$t('sidebar.actions.newChapterLabel')"
-            @input="updateTitle(ch.id, $event.target.value)" />
+    <PaneHeader v-if="ch" ref="header" class="chapter-pane-header"
+      :crumbs="mode === 'edit' ? crumbs : null"
+      :eyebrow="mode === 'outline' ? $t('sidebar.sections.manuscript') : ch.partTitle"
+      :editable="mode === 'edit'" :title="headerTitle" :placeholder="headerPlaceholder"
+      @update:title="onHeaderTitle">
+      <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
+        v-tooltip.bottom="$t('chapters.header.askTheBookTooltip', { num: ch.num })">
+        <Icon name="Chat" :size="14" /> {{ $t('sidebar.nav.askTheBook') }}
+      </UiButton>
+      <UiSegmented
+        class="seg-toggle"
+        :model-value="mode"
+        :options="MODES"
+        option-value="value"
+        :aria-label="$t('chapters.header.viewModeAriaLabel')"
+        @update:model-value="mode = $event">
+        <template #option="{ option }">
+          <Icon :name="option.icon" :size="13" />
+          <span>{{ option.label }}</span>
         </template>
-        <template v-else>
-          <span class="pane-eyebrow">{{ mode === 'outline' ? $t('sidebar.sections.manuscript') : ch.partTitle }}</span>
-          <h1 class="pane-h1">{{ mode === 'outline' ? $t('chapters.modes.outline') : $t('chapters.header.chapterTitle', { num: ch.num, title: ch.title }) }}</h1>
-        </template>
-      </div>
-      <div class="pane-actions">
-        <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
-          v-tooltip.bottom="$t('chapters.header.askTheBookTooltip', { num: ch.num })">
-          <Icon name="Chat" :size="14" /> {{ $t('sidebar.nav.askTheBook') }}
-        </UiButton>
-        <UiSegmented
-          class="seg-toggle"
-          :model-value="mode"
-          :options="MODES"
-          option-value="value"
-          :aria-label="$t('chapters.header.viewModeAriaLabel')"
-          @update:model-value="mode = $event">
-          <template #option="{ option }">
-            <Icon :name="option.icon" :size="13" />
-            <span>{{ option.label }}</span>
-          </template>
-        </UiSegmented>
-        <UiButton intent="ghost" size="small" class="chapter-sweep-btn" @click="sweepOpen = true"
-          v-tooltip.bottom="$t('chapters.header.entitySweepTooltip')">
-          <Icon name="Sparkle" :size="13" /> {{ $t('chapters.header.entitySweep') }}
-        </UiButton>
-      </div>
-    </header>
+      </UiSegmented>
+      <UiButton intent="ghost" size="small" class="chapter-sweep-btn" @click="sweepOpen = true"
+        v-tooltip.bottom="$t('chapters.header.entitySweepTooltip')">
+        <Icon name="Sparkle" :size="13" /> {{ $t('chapters.header.entitySweep') }}
+      </UiButton>
+    </PaneHeader>
     <!-- No chapter in the route: the INDEX header, matching every other section.
          The title only says "No chapters" when the book genuinely has none. -->
     <PaneHeader v-else :eyebrow="$t('panes.chapters.eyebrow')"
@@ -1469,21 +1460,20 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
 .chap-desc strong { color: var(--ink-2); font-weight: 600; }
 .chap-desc code { font-family: var(--font-mono); font-size: 0.92em; padding: 0 4px; background: var(--surface-3); border-radius: 4px; }
 
-.chapter-pane-header .pane-title { gap: 2px; }
 /* 3-column grid [title 1fr | seg-toggle auto | spacer 1fr] so the
    Edit/Outline/Read toggle sits in the horizontal centre of the header
    regardless of title width. The seg-toggle is the only thing left in
    .pane-actions after all other actions moved into the toolbar below. */
-.chapter-pane-header {
+.pane-header.chapter-pane-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 }
-.chapter-pane-header .pane-actions { grid-column: 2; }
+.pane-header.chapter-pane-header :deep(.pane-actions) { grid-column: 2; }
 /* At phone width (Quasar's xs) one column, like every other page header: the breadcrumb and
    title on their row, the Edit/Outline/Read switch on the row below. */
 @media (max-width: 599.98px) {
-  .chapter-pane-header { grid-template-columns: minmax(0, 1fr); }
-  .chapter-pane-header .pane-actions { grid-column: 1; }
+  .pane-header.chapter-pane-header { grid-template-columns: minmax(0, 1fr); }
+  .pane-header.chapter-pane-header :deep(.pane-actions) { grid-column: 1; }
 }
 /* Entity sweep sits to the right of the Edit/Outline/Read control with a
    little breathing room so it doesn't read as part of the segmented group. */
@@ -1516,22 +1506,6 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
 }
 .pane-card.has-side-panel { flex-direction: row; }
 
-.chapter-name {
-  appearance: none;
-  font-family: var(--font-serif);
-  font-size: 20px; font-weight: 600;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 6px;
-  padding: 2px 6px;
-  margin-left: -6px;
-  outline: none;
-  min-width: 0;
-}
-.chapter-name:hover { border-color: var(--border-soft); }
-.chapter-name:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
 
 /* UiSegmented override — matches the original .seg-toggle look */
 .seg-toggle :deep(button) {
