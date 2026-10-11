@@ -13,6 +13,7 @@ import { T } from "@delebash/llm-runner/platform/models";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
 import { Hono, input } from "@delebash/llm-runner/platform/server";
 import { dset, pyLoads } from "../book_io.js";
+import { seedAppSettings } from "../database/app_settings_seed.js";
 import { getDb } from "../database/session.js";
 
 // D3b (2026-07-13, user): a user-changed FOLDER PATH never resets. These setting keys are
@@ -62,6 +63,8 @@ router.patch("/v1/settings", input({ body: T.Record(T.String(), T.Any()) }), (c)
 });
 
 router.delete("/v1/settings", (c) => {
-  clearKeepingFolders(getDb());
+  const h = getDb();
+  clearKeepingFolders(h);
+  seedAppSettings(h); // a reset returns the seeded values, as a fresh install has them
   return c.body(null, 204);
 });

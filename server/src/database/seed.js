@@ -13,6 +13,7 @@
 
 import { loadFromConfigs, seedLlm, stores } from "@delebash/llm-runner/llm";
 import { getLogger } from "@delebash/llm-runner/platform/log";
+import { seedAppSettings } from "./app_settings_seed.js";
 import { state } from "./session.js";
 
 const log = getLogger("justwrite_server.database.seed");
@@ -50,6 +51,11 @@ export function seedWorkspace(h = null) {
   } catch (e) {
     // never let a seed failure crash boot / reset (the transaction rolled back)
     log.warning(`workspace seed failed: ${e?.message ?? e}`);
+  }
+  try {
+    seedAppSettings(h); // JustWrite's own seeded settings (the story-context share)
+  } catch (e) {
+    log.warning(`settings seed failed: ${e?.message ?? e}`);
   }
   // After providers are committed, register them with the shared adapter registry.
   registerSeededProviders();

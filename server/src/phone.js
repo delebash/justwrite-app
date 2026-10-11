@@ -32,6 +32,7 @@ import { router as sweepDraftRouter } from "./api/sweep_draft_api.js";
 import { router as versionsRouter } from "./api/versions_api.js";
 import { errorEnvelope, TYPE_BASE } from "./app_errors.js";
 import { AppState, setState } from "#app_state";
+import { seedAppSettings } from "./database/app_settings_seed.js";
 import { ADDED_COLUMNS, TABLES } from "./database/models.js";
 import { state } from "./database/session.js";
 import { FEATURE_CATALOG } from "./feature_catalog.js";
@@ -113,6 +114,7 @@ export async function createPhoneApp({ handle, dataDir = PHONE_DATA_DIR, deviceI
   // the providers into the dispatch registry
   try {
     seedLlm(handle);
+    seedAppSettings(handle);
     loadFromConfigs(llmStores.getProviderStore().list());
   } catch (e) {
     log.warning(`AI seed failed: ${e?.message ?? e}`);

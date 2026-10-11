@@ -45,6 +45,9 @@ function saveRouting(state) {
 function savePrefs(state) {
   writeSetting("ai", {
     autoRebuildRagIndex: state.autoRebuildRagIndex,
+    // Written only once the server has seeded it — a null written back would keep the seed
+    // from ever filling it (server/src/database/app_settings_seed.js).
+    ...(state.storyContextShare != null ? { storyContextShare: state.storyContextShare } : {}),
   });
 }
 
@@ -72,6 +75,10 @@ export const useAiStore = defineStore("ai", {
       // burns embed tokens on every save against a cloud provider, which
       // the user shouldn't get without opting in.
       autoRebuildRagIndex: prefs?.autoRebuildRagIndex ?? false,
+      // The most of the routed model's context window the story notes may take (a 0–1 share).
+      // Seeded by the server (app_settings_seed.js) — no number here; null means unseeded, and
+      // the story context then sends nothing rather than guess.
+      storyContextShare: typeof prefs?.storyContextShare === "number" ? prefs.storyContextShare : null,
     };
   },
 
@@ -166,6 +173,12 @@ export const useAiStore = defineStore("ai", {
         console.error("ensureEmbeddingDefaults resync failed:", err);
       }
       return this.embeddingProvider;
+    },
+    setStoryContextShare(share) {
+      const n = Number(share);
+      if (!Number.isFinite(n) || n <= 0 || n > 1) return;
+      this.storyContextShare = n;
+      savePrefs(this.$state);
     },
     setAutoRebuildRagIndex(on) {
       this.autoRebuildRagIndex = !!on;

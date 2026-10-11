@@ -54,7 +54,9 @@ test("persist_across_instances_and_clear", async () => {
   const c2 = await client(tmp); // new server instance, same SQLite file
   expect((await c2.get("/v1/settings")).json()).toEqual({ ui: { sidebarCollapsed: true } });
   expect((await c2.delete("/v1/settings")).statusCode).toBe(204);
-  expect((await c2.get("/v1/settings")).json()).toEqual({});
+  // The user's sections are gone; the seeded ones come back, as a fresh install has them
+  // (app_settings_seed.js, 2026-10-11).
+  expect((await c2.get("/v1/settings")).json()).toEqual({ ai: { storyContextShare: 0.15 } });
 });
 
 test("clear_preserves_folder_path_config", async () => {
