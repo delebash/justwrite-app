@@ -157,9 +157,9 @@ if (process.env.JW_SEED === "0") {
 // Wait for a REAL boot signal instead of a blind sleep (2026-07-26 — the "splash-aware
 // wait"). The old `sleep(1500)` raced the boot: bootStorage + hydrate + mount can exceed
 // it, and since 2026-07-24 the boot SPLASH (`.jw-bootwarm`) overlays the shell while a
-// warm model load runs — so the shell-structure guard below could look for `.app` before
+// warm model load runs — so the shell-structure guard below could look for the shell before
 // it existed and report a FALSE failure. Resolves as soon as the app reaches EITHER
-// settled state: the shell (`.app`, a project is open) or the onboarding view
+// settled state: the shell (`.q-drawer`, a project is open) or the onboarding view
 // (`.onboarding`, no project — what the smoke's isolated empty data dir produces). If the
 // splash is up it takes the splash's OWN always-present escape ("Continue without
 // waiting" — the kit BootModelLoad's `.lu-bootload__skip`; it never traps), then keeps
@@ -168,12 +168,16 @@ if (process.env.JW_SEED === "0") {
 // interactive probe below timed out under it (found by the 2026-08-08 backfill).
 // Returns which state it reached so the log tells the truth rather than hiding a stall
 // behind a timeout.
+// The shell's mark is `.q-drawer` since the Quasar layout (20c7f29, 2026-10-08): the
+// sidebar drawer mounts ONLY with a project open, as `.app` did before it — `.app` no longer
+// exists, so from that commit every run timed out here while the app had booted fine
+// (found 2026-10-11 by a probe that read the page).
 async function waitForBoot(timeoutMs = 20000) {
   const deadline = Date.now() + timeoutMs;
   let last = { shell: false, onboarding: false, splash: false };
   while (Date.now() < deadline) {
     last = await page.evaluate(() => ({
-      shell: !!document.querySelector(".app"),
+      shell: !!document.querySelector(".q-drawer"),
       onboarding: !!document.querySelector(".ob-stage"),   // OnboardingShell's root
       splash: !!document.querySelector(".jw-bootwarm"),
     }));
@@ -206,27 +210,31 @@ try {
   // full-height with the rail itself NOT scrolling (a fixed-region + scroll-
   // middle sidebar) — the regressions that bit JustVoice on 2026-06-24.
   {
+    // Under the Quasar layout (20c7f29) the rail lives in the drawer below the header: the
+    // rail must fill the drawer (measured 2026-10-11: drawer 682 = rail 682, + the 38 px
+    // header = the 720 px viewport). `.q-page-container` is NOT the comparison — its height
+    // includes the header's offset padding.
     const s = await page.evaluate(() => {
       const stage = document.querySelector(".app-stage");
-      const body = document.querySelector(".app");
+      const drawer = document.querySelector(".q-drawer");
       const rail = document.querySelector(".sidebar");
-      if (!stage || !body || !rail) return { missing: true };
+      if (!stage || !drawer || !rail) return { missing: true };
       return {
         stageH: Math.round(stage.getBoundingClientRect().height), vh: window.innerHeight,
-        railH: rail.clientHeight, bodyH: body.clientHeight,
+        railH: rail.clientHeight, drawerH: drawer.clientHeight,
         railSelfScroll: rail.scrollHeight - rail.clientHeight,
       };
     });
     const problems = [];
-    // No project open ⇒ OnboardingShell renders instead of the shell, so `.app`/`.sidebar`
-    // are legitimately absent — that is a STATE, not a regression (2026-07-26: this is the
-    // false failure the smoke reported every run in its isolated empty data dir). The
-    // structure guard only applies to the shell it exists to guard.
+    // No project open ⇒ OnboardingShell renders instead of the shell, so the drawer and
+    // `.sidebar` are legitimately absent — that is a STATE, not a regression (2026-07-26:
+    // this is the false failure the smoke reported every run in its isolated empty data
+    // dir). The structure guard only applies to the shell it exists to guard.
     if (!boot.shell) console.log("· shell-structure   skipped (onboarding — no project open)");
-    else if (s.missing) problems.push(".app-stage / .app / .sidebar missing");
+    else if (s.missing) problems.push(".app-stage / .q-drawer / .sidebar missing");
     else {
       if (Math.abs(s.stageH - s.vh) > 2) problems.push(`shell ${s.stageH}px != viewport ${s.vh}px (dead space — use a height:100% chain, not 100vh)`);
-      if (Math.abs(s.railH - s.bodyH) > 2) problems.push(`rail ${s.railH}px != body ${s.bodyH}px (rail not full-height — nav would jump between views)`);
+      if (Math.abs(s.railH - s.drawerH) > 2) problems.push(`rail ${s.railH}px != drawer ${s.drawerH}px (rail not full-height — nav would jump between views)`);
       if (s.railSelfScroll > 2) problems.push(`rail itself scrolls by ${s.railSelfScroll}px (use fixed top + scroll middle + fixed bottom)`);
     }
     if (problems.length) { failed++; console.log("✗ shell-structure   " + problems.join(" | ")); }
