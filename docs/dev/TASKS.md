@@ -17,6 +17,40 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
+## AI drafting on the story-world pages and in the editor [2026-10-11]
+STATE:  DESIGN APPROVED 2026-10-11 — the spec is written, waiting on your review and on two
+        questions. Asked, as shown (after Fable's review of the first design, whose changes were
+        accepted: one context composer first; the describe box stays while a page is thin; keep
+        the name "Fill from book"; locations/objects/groups need a fields decision; your own AI
+        actions are the kit's; names before titles; verify the POV/"when" loss first):
+        "1. Placement: describe box, kept visible while a page is thin, plus **Draft with AI ▾**
+        with **Fill from book** kept as its item. Or the review window only.
+        2. Brainstorm: keep it, with names moving into the name fields first.
+        3. **New:** do locations, objects and groups get structured sheets, and with which fields?
+        Or is a drafted note enough?
+        4. Scene plan: a Summary field, after the POV/"when" test.
+        5. How far into prose: opt-in scene drafting.
+        6. Order: the composer, then story-world drafting, then story-aware writer actions, then
+        summaries and planning, then scene drafting. The kit's custom actions are sized
+        separately. Before or after the translation work?
+        Still open from before: say go and I'll add the survey findings to RESEARCH.md. Also say
+        whether you want the POV/"when" round-trip test run now." (Earlier, as shown: "if the
+        round-trip test confirms it, fix it as its own bug.")
+        The user: "your rec all go".
+WHY:    the user, 2026-10-11 — AI creation on each story-world page, not only on Brainstorm, and AI
+        that writes the story or parts of it. Picks up IDEAS.md "Brainstorm → point-of-use
+        generation" (2026-07-26).
+DETAIL: the spec `docs/plans/2026-10-11-ai-drafting-spec.md`; the survey
+        `docs/plans/2026-10-11-ai-writing-apps-survey.md`; RESEARCH.md "What other writing apps ship".
+BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV and "when" are
+        saved; existing databases gain the columns at boot; sync schema 2; whats-new.
+OPEN:   1. your review of the spec; 2. 3 above — no recommendation was given, so it needs your
+        word; 3. before or after the translation work — likewise; 4. the spec's §9 items (the
+        "thin" rule, the story-context budget, line edits and context, where Save to sheet goes,
+        scene drafting's switch, the new labels).
+GO:     given 2026-10-11 ("your rec all go") — for the design, the RESEARCH.md entry and the
+        POV/"when" test and fix; the implementation plan follows your spec review.
+
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's
         `docs/plans/2026-10-08-the-phone.md`, slice 5), as shown:

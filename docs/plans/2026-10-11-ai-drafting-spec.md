@@ -1,0 +1,206 @@
+# AI drafting on the story-world pages and in the editor — spec (2026-10-11)
+
+**Status:** the design is approved ("your rec all go", 2026-10-11 — the decisions as shown are in
+`docs/dev/TASKS.md`); this spec is for your review before the implementation plan and before any
+code. §9 lists what still needs your word.
+
+**Why:** the user, 2026-10-11 — AI creation on each story-world page ("describe a character and
+have the ai create one like prosellm … i dont like it seperate like they are on brainstorm") and AI
+that writes the story or parts of it. The itch was first recorded 2026-07-26 (IDEAS.md "Brainstorm →
+point-of-use generation", which this spec picks up).
+
+**Precedent (in this app):** **Fill from book** — `src/components/CharacterProfileFillModal.vue`:
+proposals per field beside the current value, empty fields pre-ticked, nothing saved until
+**Apply**. For prose: **Continue with direction…** and its accept/reject diff in the editor.
+**Real-world references:** LocalProse's Workshops (the user's screenshots, 2026-07-18: a describe
+box, "Preserve existing data", Generate / Complete) and Sudowrite's Story Bible (+ Add Character →
+Generate; Generate / Rewrite per trait). The survey: [`2026-10-11-ai-writing-apps-survey.md`](2026-10-11-ai-writing-apps-survey.md).
+
+---
+
+## 1. Decisions (approved 2026-10-11)
+
+1. **Placement.** On a story-world page, a describe box while the page is thin; once it isn't, the
+   box collapses to one line. The header's Fill from book button becomes **Draft with AI ▾** with
+   two items: *From a description* and **Fill from book** (its name kept — its behaviour doesn't
+   change).
+2. **Brainstorm stays;** its categories also appear where they're used — names first (the name
+   fields), titles later.
+3. **Scene plan:** a **Summary** field per scene. Prerequisite done: scenes' POV and "when" were
+   lost on every save — tested, fixed, shipped (`d55f8f5`, kit `1ab9a69`).
+4. **Prose:** scene drafting is opt-in; every AI draft is recorded in AI usage; AI-drafted text is
+   marked.
+5. **Order:** the context composer → story-world drafting → story-aware writer actions → scene
+   summaries + planning from the premise → scene drafting. Your own AI actions are the kit's, sized
+   separately. Not doing: whole-book generation; AI portraits (for now).
+
+---
+
+## 2. The context composer (built with slice 1)
+
+One module, two scopes — the single source every drafting feature reads (no second context
+builder beside it):
+
+- **book** — premise, genre, the Setting document, world rules, the cast roster; for an entity
+  draft, the entity's own filled fields.
+- **scene** — book, plus: the cards of the characters / locations / objects linked to the scene,
+  its POV, the strand beats pinned to it, its notes, its Summary (§5), and the end of the
+  previous scene.
+
+Entity text comes from `buildEntityCards` (`src/services/rag/cards.js:443`) — the card builder the
+index and both chats already share — and the roster from the same file. The precedent for one
+composer serving several features is `composeCharacterAuditInput`
+(`src/services/analysis/characterAudit.js:100`: Fill from book + the audit, "QC-35: one source").
+It honours **Exclude from AI** as the chunker does. It trims to the feature's budget (§9.4) — each
+feature's context window is its own preset under Settings → AI → Routing by feature; the writer
+preset is measured at ctx 8192 (`docs/dev/measured-performance.md:17`). What it sent is shown:
+a **Context:** line in the AI strip naming the cards.
+
+## 3. Slice 1 — story-world drafting (characters first)
+
+1. **Describe box.** Top of the character page. Open while the page is thin (§9.3); otherwise a
+   one-line row that opens it. Input: the description + composer(book). Output: Fill from book's
+   two lean JSON contracts (profile, voice), from two new prompt actions with the same reply
+   shapes — so `sanitizeProfile`, `sanitizeVoice`, `draftRows` and `applyProfileDrafts`
+   (`src/services/analysis/characterProfile.js`) are reused unchanged. The new actions sit under
+   the existing features **Character profile** / **Character voice** (one model choice per drafting
+   job); their catalog hints (`server/src/feature_catalog.js`) are rewritten to say "from their
+   scenes or from your description". Review: the Fill from book window, its eyebrow naming the
+   source; nothing saves until Apply; one undo step.
+2. **Draft this section** — ✨ in each `CharacterSheetSection` header: the same flow, rows limited
+   to that section's fields; the draft reads the sheet's other filled fields.
+3. **Name ideas** — ✨ in the name box (characters; the other pages after §9.1): a list from the
+   existing `brainstorm` action, its category by page kind, its seed from the page's fields +
+   composer(book). Click sets the name; **More like these** as on Brainstorm. The categories move
+   to one source both surfaces read (today hardcoded, in English outside i18n,
+   `src/pages/BrainstormPage.vue:18-61`).
+4. **Suggest characters…** (and locations… after §9.1) — list-page header: composer(book) → a
+   list of proposals (name, role, one-liner) with checkboxes → **Create selected**: a new store
+   action, mapped in `ACTION_DOMAINS` (`src/stores/project.js:384`). Shaped like
+   `EntitySweepModal.vue`.
+5. **Save to sheet** on a Talk to {name} answer — where it goes is §9.6.
+6. Locations, objects, groups, worldbuilding wait for §9.1.
+
+## 4. Slice 2 — story-aware writer actions
+
+The prose actions (`runAction`, `guidedContinue` in `src/services/writerAI.js:128,169`) gain a
+`storyContext` variable from composer(scene); their seeded prompts gain `{{storyContext}}`
+(revised through the prompt stale-heal, `server/src/seed_feature_prompts.js:1098`); the Lab's
+sample variables gain it (`src/services/labTestData.js:103`). Line edits (`applyRule`, `:186`)
+per §9.5. Two new actions on the same footing: **Rewrite with direction…** (sibling of Continue
+with direction) and **Write dialogue** (the scene's characters, from their voice fields).
+
+## 5. Slice 3 — scene summaries + planning from the premise
+
+- `scenes.summary` — `models_schema.js` + `ADDED_COLUMNS` + `book_io` save and load + the
+  round-trip fixture + sync schema 3 (the same path `d55f8f5` took).
+- Shown in the scene's Links panel; the chapter's card view shows it instead of the first 180
+  characters of prose (`src/pages/ChaptersPage.vue:320`). **Summarize this scene** drafts it from
+  the prose (reviewed).
+- **Plot board:** **Fill this template for my story** (the template's beats get notes for this
+  book from composer(book); reviewed) and **Suggest next beats** per strand (the `brainstormPlot`
+  action → beat cards; reviewed). Brainstorm's Next plot beats / Plot twists also appear here and
+  in the editor's AI menu.
+- **Architecture:** **Draft the Fabula / Setting from the premise** (lands as a diff in the
+  document).
+
+## 6. Slice 4 — scene drafting (opt-in)
+
+- Off until switched on (§9.7).
+- **Draft from plan** — in an empty scene and in the AI menu: composer(scene) with the Summary →
+  the existing accept/reject diff, or 3 variations.
+- Its own feature row, so it can take a larger-context preset than the writer's 8k.
+- Every draft recorded in AI usage. AI-drafted text marked: a TipTap mark like the markers
+  (`server/src/editor/markers.js`) — the editor schema is shared with sync's scene adapter, so a
+  new mark is a sync schema change; its look and whether it survives edits get their own design
+  pass.
+- **Gate:** a bench leg on your box with the full scene context, before building.
+
+## 7. Slice 5 — your own AI actions (the kit)
+
+A named prompt with variables (`{{passage}}`, `{{storyContext}}`, `{{direction}}`) in the kit's
+prompt store + Feature Workbench, shown in the editor's AI menu. Sized separately, in
+`just-llm-runner`.
+
+## 8. Standards each piece follows
+
+| Piece | Follows |
+|---|---|
+| Review window | ours: `CharacterProfileFillModal.vue`, on the kit's `AppModal` → Quasar QDialog — https://quasar.dev/vue-components/dialog |
+| Describe box, section ✨ | ours: the page's composition and `CharacterSheetSection.vue`'s header |
+| Name ideas | Quasar QPopupProxy (a menu on the desktop, a dialog on the phone) — https://quasar.dev/vue-components/popup-proxy |
+| Suggest list | ours: `EntitySweepModal.vue`'s review list |
+| AI calls, progress, model chip | the kit: `runAiFeature`, `AiTaskStrip`, `AiFeatureChip`; ours: `FEATURE_CATALOG` + seeded prompts |
+| Context composer | ours: `buildEntityCards` (`src/services/rag/cards.js`) |
+| Prose landing | ours: `RichEditor`'s accept/reject diff + `VariationsModal` |
+| Scene Summary column | the kit: `createTables` additive columns (`just-llm-runner/server/src/platform/sql.js:191`); the sync engine's schema rule (`just-sqlite-sync/README.md` "Schema changes") |
+| AI-text mark | ours: the markers' TipTap `Mark` (`server/src/editor/markers.js`) |
+| Your own AI actions | the kit: its prompt store + Feature Workbench |
+
+Nothing is NOT STANDARD.
+
+## 9. Open — needs your word
+
+1. **Locations, objects, groups (and worldbuilding):** structured sheets — which fields? — or a
+   drafted description note?
+2. **Before or after the translation work** (TASKS: "THE NEXT BIG TASK")?
+3. **"Thin" for the describe box.** Proposal: a character is thin while none of the sheet's
+   sections has a filled field (a swept character with only a role and one-liner counts as thin);
+   another page while its description is empty.
+4. **The story-context budget** — the share of a feature's context window the story notes may
+   take (a seeded, editable number): your number.
+5. **Line edits and story context.** Proposal: no — they rework style, and the context costs tokens.
+6. **Save to sheet:** where a saved chat answer goes.
+7. **Scene drafting's switch:** its label and where it lives.
+8. **New labels:** Draft with AI · From a description · Describe this character · Draft · Draft
+   this section · Name ideas · Suggest characters… · Create selected · Save to sheet · Rewrite with
+   direction… · Write dialogue · Summary · Summarize this scene · Fill this template for my story ·
+   Suggest next beats · Draft the Fabula / Setting from the premise · Draft from plan · Context: —
+   confirm or change.
+
+## 10. Blast radius (greps, 2026-10-11)
+
+```
+# the writer actions — gain storyContext (slice 2)
+src/components/RichEditor.vue:344,357   writerAI.describe(
+src/components/RichEditor.vue:375,388   writerAI.continueFrom(
+src/components/RichEditor.vue:414-436   rewrite / expand / tighten picked by name (fnVariation, fn)
+src/components/RichEditor.vue:466,478   writerAI.applyRule(
+src/components/RichEditor.vue:1142,1155 writerAI.guidedContinue(
+src/services/labTestData.js:103         { passage, voiceCanon: voiceCanonVar() } — the Lab's writer variables
+
+# Fill from book's helpers — reused by the description draft (slice 1)
+src/components/CharacterProfileFillModal.vue:58,66,70,71,112
+src/components/CharacterBatchFillModal.vue:107,117,137,138,140,191,192,208
+src/services/analysis/characterProfile.js:85,113,144,169,198,225
+src/services/analysis/characterAudit.js:100,133   composeCharacterAuditInput
+src/services/labTestData.js:202                   composeCharacterAuditInput
+
+# the card builder — the composer's source
+src/services/rag/cards.js:443          export function buildEntityCards
+src/services/rag/characterChat.js:122  src/services/rag/chat.js:169  src/services/rag/chunker.js:141
+
+# undo — new mutating store actions go here
+src/stores/project.js:384  ACTION_DOMAINS     src/stores/project.js:469  COALESCED_ACTIONS
+
+# Brainstorm — its one caller of the brainstorm actions
+src/pages/BrainstormPage.vue:124       action: isPlot ? "brainstormPlot" : "brainstorm"
+
+# scene rows — slice 3's Summary column
+server/src/book_io.js:268 (save)  :574 (load)
+server/src/database/models.js:55  ADDED_COLUMNS
+server/src/database/session.js:43  server/src/phone.js:65   createTables(TABLES, ADDED_COLUMNS)
+server/src/sync.js:38             SYNC_SCHEMA_VERSION = 2
+```
+
+## 11. Testing, per slice
+
+- **Unit:** the composer (both scopes, the budget trim, Exclude from AI); the new store actions are
+  in `ACTION_DOMAINS`; the sanitizers' existing tests still hold.
+- **Server:** the seeded prompts exist and heal; the book round-trip carries Summary; the sync
+  schema version.
+- **Renderer:** `npm run smoke` (every route, zero JS errors); the rendered layout measured at
+  1280 and 390 px.
+- **Local model:** the new prompts run in the Lab on your box; slice 4's bench leg.
+- **User docs, in the same change as each slice:** `character-sheet.md`, `story-bible.md`,
+  `brainstorm.md`, `writing.md`, `plot-and-time.md`, `ai-features.md`.

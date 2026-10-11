@@ -18,6 +18,9 @@ through).
 
 ### Brainstorm → point-of-use generation (2026-07-26; moved here from TASKS in the 2026-08-04 sweep)
 
+> **Picked up 2026-10-11** → `docs/plans/2026-10-11-ai-drafting-spec.md` (TASKS: "AI drafting on
+> the story-world pages and in the editor").
+
 **The itch (user):** "take brainstorm and move some features to where they relate to, such
 as characters creating a new character from description or creating a name, we do this
 across app, a brainstorm/character/location creation by description, fill in character

@@ -27,6 +27,7 @@ all go". The kit's register carries the rule in full; in short:
 
 Subjects: [JustWrite on Electron and Node](#justwrite-on-electron-and-node) ·
 [The phone app: UI library and the server](#the-phone-app-ui-library-and-the-server) ·
+[What other writing apps ship](#what-other-writing-apps-ship) ·
 [Records not yet distilled](#records-not-yet-distilled)
 
 ---
@@ -150,6 +151,56 @@ tests are the kit's RESEARCH §2 "Sync" / "Sync, round 2". JustWrite's:
 - **`npm audit` (2026-10-09):** `braces` (high) and `sprintf-js` (moderate) are flagged in every
   version, so no update clears them; they reach JustWrite only through `depcheck` (a development
   tool) and `mammoth`'s command-line argument parser (`argparse`), neither run on the app's input.
+
+## What other writing apps ship
+
+Asked 2026-10-11 for the AI drafting design ([`../plans/2026-10-11-ai-drafting-spec.md`](../plans/2026-10-11-ai-drafting-spec.md)).
+The full survey — two web passes, the matrices, about 90 sources — is
+[`../plans/2026-10-11-ai-writing-apps-survey.md`](../plans/2026-10-11-ai-writing-apps-survey.md);
+the 2026-06-05 passes it builds on are the roadmaps under *Records* below. *web, agent* = checked
+against the page by an agent, not re-checked by the session.
+
+- **Sudowrite generates story-bible entries three ways:** **+ Add Character → Blank / Generate /
+  Surprise Me**; **Generate** on an empty trait and **Rewrite** on a filled one; **Generate All
+  Characters** from the Synopsis; Smart Import takes up to 30 characters per batch from up to 60k
+  words. (*web 2026-10-11*, the docs page updated 2026-01-14, re-fetched by the session; survey A1.)
+- **LocalProse fills an entity from a describe box in its own editor,** and since v2.1.3
+  (2026-05-01) "Préserver l'existant" fills only empty fields; it has no scene, chapter or outline
+  generation as of v3.7.0 (2026-10-01). (*web, agent 2026-10-11*, its changelog; the user's
+  screenshots 2026-07-18; survey A8, A9.)
+- **NovelCrafter has no describe-to-generate in its Codex;** it creates entries from Chat through
+  **Extract**, a review pop-up. Its prose prompts take the Codex entries mentioned in the beat or
+  the text before it, manual references, the POV entry and "Always include" entries with their
+  children; each entry is **Always / Include when detected / Don't include when detected / Never**.
+  (*web 2026-10-11*, the codex-context page re-fetched by the session; survey A5, A34.)
+- **Sudowrite's Write sends up to 20,000 words before the cursor plus the Story Bible;** its Draft
+  writes a chapter from scenes after a pre-check. (*web, agent 2026-10-11*; survey A26, A27.)
+- **No surveyed product documents several entity candidates side by side, or a name button inside
+  the entity form.** (*web, agent 2026-10-11*; survey A3.)
+- **Writers reject AI prose more than AI planning:** 87% of 258 published novelists are "extremely
+  negative" about AI writing short sections (Cambridge, 2025-11); the Authors Guild's Human
+  Authored mark allows brainstorming and outlining "as long as … no actual AI-generated text
+  appears in your work"; SFWA's Nebulas bar partly LLM-written works. (*web, agent 2026-10-11*;
+  survey A42, A45, A47.)
+- **Sudowrite added Character Portraits (2026-09-25) and Worldbuilding Images (2026-10-07);**
+  JustWrite's engine makes no images. (*web, agent 2026-10-11*; survey A35, B1.)
+- **JustWrite's writer actions send only the passage and the voice canon** — no story-bible
+  context (`src/services/writerAI.js:128,169,186`). (*code 2026-10-11*.)
+- **Brainstorm's results go only to the clipboard** (`src/pages/BrainstormPage.vue:165`), and its
+  categories are hardcoded English outside i18n (`:18-61`). (*code 2026-10-11*.)
+- **Entity sweep fills only role, kind, one-liner and note** on what it creates
+  (`src/services/analysis/entitySweep.js:124`). (*code 2026-10-11*.)
+- **A scene has no summary field;** the card view shows its first 180 characters of prose
+  (`src/pages/ChaptersPage.vue:320`). (*code 2026-10-11*.)
+- **A scene's POV and "when" were lost on every save** — the scenes table had no columns for them
+  (a failing round-trip test, 2026-10-11); fixed in `d55f8f5`. On a copy of `data/`, the upgrade
+  added both columns, changed no row count in 77 tables, and The Ninth Facet (12 scenes) came back
+  identical through both save paths. (*measured 2026-10-11*, a scratch script on the copy.)
+- **The sync engine skips a column the receiving device doesn't have**
+  (`../just-sqlite-sync/src/engine.js:469`), and its README asks for a schema-version bump on a
+  shape change — JustWrite's is 2 since `d55f8f5`. (*code 2026-10-11*.)
+- **The kit's additive columns needed quoting** for a keyword column (`when`): fixed in the kit's
+  `1ab9a69`, with a test. (*measured 2026-10-11*.)
 
 ## Records not yet distilled
 
