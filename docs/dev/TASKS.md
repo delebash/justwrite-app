@@ -19,7 +19,7 @@
 
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
 STATE:  DECIDED + IMPLEMENTING 2026-10-11 — slice 1 (characters) and slice 2 being built, per the
-        plan `docs/plans/2026-10-11-ai-drafting-plan.md`. First round, asked as shown (after Fable's review of the first design, whose changes were
+        plan `docs/plans/2026-10-11-ai-drafting-plan.md` (each task ticked there with its commit). First round, asked as shown (after Fable's review of the first design, whose changes were
         accepted: one context composer first; the describe box stays while a page is thin; keep
         the name "Fill from book"; locations/objects/groups need a fields decision; your own AI
         actions are the kit's; names before titles; verify the POV/"when" loss first):
@@ -60,6 +60,36 @@ STATE:  DECIDED + IMPLEMENTING 2026-10-11 — slice 1 (characters) and slice 2 b
         9. Fix the three user-doc errors.
         10. Leave JustVoice's unlinked plan doc to the JustVoice session."
         The user: "your rec all go"; then "you have go for implementation".
+        Third round (after Task 11, a second look at what was built), asked as shown:
+        "1. Do Task 0 next, before slice 2. server/src/book_io.js never saves excludeFromAi, and
+        drops status for scenes, characters, locations, objects and groups. So Exclude from AI on
+        a scene, character or group resets the next time the book loads. The story-context
+        builder (storyContext.js:38) and Ask the book's index (chunker.js:99) both honour the
+        checkbox, but only until that reload. Slice 2 sends story notes with every prose action,
+        so after a restart a character you excluded would go out with every Rewrite.
+        2. Try the new prompts on your real model before I build more like them. No real model
+        has run the four new actions; every test faked the model's reply. In your app: Settings →
+        AI → Routing by feature → Character profile, and Brainstorm → the Lab; run the three
+        seeded samples ("Character from a description", "Character sheet section", "Suggest
+        characters").
+        3. Rebuild Suggest characters the way the spec described it — shaped like Entity sweep:
+        you type what you're looking for and click Suggest; while it runs, the window shows the
+        shared progress strip with Cancel and can't be closed; the rows then go to the same review
+        list, as EntitySweepModal.vue:301 does. (Today: leaving the page while it runs loses the
+        answer; Cancel is only in the AI tasks panel; a failure is only a toast.)
+        4. Translate the review list's leftover English: the section names (reusing the nav.*
+        keys), the "Ch. N — Untitled" chapter labels, and the toast — "Added {n} to the story
+        bible.", to match the button.
+        5. Hide the empty Aliases box on suggested rows; show it only for Entity sweep.
+        6. The header squeeze: give the kit's PaneHeader a slot for the name box, and let its
+        buttons wrap below the title whenever they don't fit; the five detail pages (Characters,
+        Locations, Objects, Groups, Notes) use it, and the CSS copy in src/css/app.scss goes.
+        Unblocks Task 10 (Name ideas).
+        7. Put Save to sheet (Task 12) in the chat panel itself, so it works on every page.
+        8. Record progress as each task lands: tick each task in the plan with its commit.
+        Suggested order: Task 0; you run the three Lab samples; points 3, 4 and 5 in one commit;
+        the header fix in the kit, then Task 10; Tasks 12, 13, 14 and 15."
+        The user: "your rec go" (2026-10-11).
 WHY:    the user, 2026-10-11 — AI creation on each story-world page, not only on Brainstorm, and AI
         that writes the story or parts of it. Picks up IDEAS.md "Brainstorm → point-of-use
         generation" (2026-07-26).
@@ -68,11 +98,14 @@ DETAIL: the spec `docs/plans/2026-10-11-ai-drafting-spec.md`; the survey
 BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV and "when" are
         saved; existing databases gain the columns at boot; sync schema 2; whats-new. Decision 9 —
         the three user-doc errors fixed (getting-started.md auto-update; writing.md "When" and
-        Entity sweep).
-OPEN:   slices 1 and 2 (the plan's tasks); after them, per decision 2: the translation work, then
-        the sheets and slices 3–4.
+        Entity sweep). Plan Tasks 1–9 and 11 (the kit's `1476549` `b9ea75d`; `d797c1f`,
+        `c2a98c5` + `850a848`, `4b9f073`, `52222e0`, `7d66857`, `72ddd50`, `7c07ce9`, `a976c34`).
+OPEN:   in the third round's order: Task 0; the Lab check (the user); Task 11b; Task 9b, then
+        Task 10; Tasks 12–15. After them, per decision 2: the translation work, then the sheets and
+        slices 3–4.
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
-        the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2.
+        the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;
+        "your rec go" for the third round (Task 0, Tasks 9b and 11b, Task 12 in the chat panel).
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's
