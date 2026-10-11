@@ -12,7 +12,26 @@ features that draw on story-world context — **Ask the book**, **Talk to
 retrieval. Nothing you write here is required, and nothing is shown to readers;
 it's your working memory for the character.
 
-> **Fill from book** (button in the page header) drafts many of these fields
+> **Draft with AI** (the menu in the page header) drafts fields for you, two
+> ways. You review every field before anything saves; fields you've already
+> written stay unticked unless you tick them.
+>
+> - **From a description** — type who the character is in the **Describe this
+>   character** box (a line or a paragraph), then **Draft**. The AI drafts the
+>   identity basics, motivation, arc, physical constants, backstory and their
+>   voice from your description and the book — your premise, genre, world rules,
+>   Setting and main cast — and fills in what your description leaves open. The
+>   sample lines are *written* for the character, not quoted. The box sits under
+>   the one-liner while the sheet is empty; once any section has content it
+>   becomes one line, **Describe this character…**, that opens it again.
+> - **Fill from book** — see below.
+>
+> Each section also has **Draft this section**, which drafts just that
+> section's fields from what the sheet already says (and your description, if
+> you've typed one). It covers every section, including function, capabilities
+> and the continuity ledger.
+>
+> **Fill from book** drafts many of these fields
 > for you from the scenes that actually feature the character — one-liner,
 > motivation (including fear, contradiction, and stakes), arc, backstory, the
 > identity basics, physical constants, **and their voice**: register, rhythm,

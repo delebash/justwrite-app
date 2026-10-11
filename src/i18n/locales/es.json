@@ -900,7 +900,10 @@
     "inCanon": "{chapters} en canon",
     "wordSample": "· ~{n} palabras de muestra",
     "clearAll": "Limpiar todo",
-    "previewFingerprint": "Vista previa de la huella que se inyectará"
+    "previewFingerprint": "Vista previa de la huella que se inyectará",
+    "storyContextCardTitle": "Contexto de la historia",
+    "storyContextDesc": "Cuando la IA redacta un personaje, lee tu premisa, el género, las reglas del mundo, el Escenario y el reparto principal. Solo se envía lo relevante; este es el máximo de la ventana de contexto del modelo que pueden ocupar esas notas. En un modelo con una ventana pequeña, una proporción menor deja más espacio para la respuesta; en uno grande rara vez importa.",
+    "storyContextLabel": "Las notas de la historia pueden usar hasta"
   },
   "richEditor": {
     "superscriptGlyph": "x²",
@@ -1359,7 +1362,21 @@
     "listening": "Escuchando el diálogo de {name}…",
     "reading": "Leyendo las escenas de {name}…",
     "overwriteWarning": "reemplaza lo que escribiste",
-    "applyAction": "Aplicar campo {n} | Aplicar campos {n}"
+    "applyAction": "Aplicar campo {n} | Aplicar campos {n}",
+    "nothingGrounded": "El modelo no pudo basar ningún campo del perfil en estas escenas."
+  },
+  "characterDraft": {
+    "eyebrowDescription": "A partir de una descripción",
+    "eyebrowSection": "Redactar esta sección",
+    "descDescription": "Redactado a partir de tu descripción y del libro. La IA completa lo que tu descripción deja abierto y escribe las frases de ejemplo en lugar de citarlas. Marca los campos que desees, edítalos directamente y luego aplícalos. Los campos que ya has escrito aparecen desmarcados para que nada sobrescriba tu trabajo sin tu consentimiento.",
+    "descSection": "Redacta la sección {section} a partir de lo que ya dice la ficha y del libro. Marca los campos que desees, edítalos directamente y luego aplícalos. Los campos que ya has escrito aparecen desmarcados para que nada sobrescriba tu trabajo sin tu consentimiento.",
+    "draftingProfile": "Redactando el perfil de {name}…",
+    "draftingVoice": "Redactando cómo habla {name}…",
+    "draftingSection": "Redactando {section}…",
+    "nothingDrafted": "El modelo no redactó ningún campo. Inténtalo de nuevo o di un poco más en la descripción.",
+    "voiceFailed": "La pasada de voz falló ({error}); los campos del perfil de abajo no se ven afectados.",
+    "groupProfile": "Perfil",
+    "groupVoice": "Voz"
   },
   "linkBackfill": {
     "eyebrow": "Vincular escenas",
@@ -2485,6 +2502,18 @@
           "hint": "Pequeñas preferencias que los hacen ser personas. p. ej., odia la música; colecciona mapas antiguos."
         }
       }
+    },
+    "draft": {
+      "menu": "Redactar con IA",
+      "menuTooltip": "Redacta este personaje con IA, a partir de tu descripción o de las escenas en las que aparece. Revisas cada campo antes de que se guarde nada.",
+      "fromDescription": "A partir de una descripción",
+      "describeLabel": "Describe este personaje",
+      "describeHint": "Quién es, qué quiere, cómo se presenta: una línea o un párrafo. La IA redacta la ficha y tú revisas cada campo.",
+      "describePlaceholder": "p. ej., una cartógrafa cínica de cuarenta y tantos que debe dinero al gremio y no soporta la música",
+      "draft": "Redactar",
+      "describeCollapsed": "Describe este personaje…",
+      "draftSection": "Redactar esta sección",
+      "draftSectionTooltip": "Redacta los campos de esta sección con IA; revisas cada campo antes de que se guarde nada"
     }
   },
   "analysis": {

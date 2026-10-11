@@ -42,8 +42,10 @@ The page also shows two reverse indexes:
 The character page carries a deeper, collapsible dossier — identity & core
 engine, voice & presence, function in the story, capabilities, a continuity
 ledger, and backstory. Each field explains itself on the page; the **[Character
-sheet](character-sheet)** guide covers all of them, and **Fill from book**
-drafts many of them from the character's own scenes. After an entity-sweep
+sheet](character-sheet)** guide covers all of them. **Draft with AI** (the page
+header's menu) drafts them for you — **from a description** you type, or with
+**Fill from book** from the character's own scenes — and **Draft this section**
+drafts one section at a time; you review every field before anything saves. After an entity-sweep
 accept, JustWrite offers to draft the new characters' profiles in one batch.
 
 ### Why a writer would use the Motivation panel

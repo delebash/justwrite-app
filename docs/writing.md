@@ -233,6 +233,10 @@ There are two ways to turn it on:
 
 The chosen column threads back into the existing accept/reject AI-diff machinery — same UX you use for single-stream results.
 
+### Story context
+
+**AI Settings page → Writing AI tab → Story context** sets how much of the model's context window the story notes may take when the AI drafts — your premise, genre, world rules, Setting and main cast. See [The AI features](ai-features.md#story-context).
+
 ### Match my voice — the voice canon
 
 > *"The AI rewrites the scene technically correctly, but it doesn't sound like me."*

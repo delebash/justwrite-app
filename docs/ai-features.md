@@ -51,11 +51,12 @@ while quick ones stay local. How routing, presets and providers work is
 - **Character audit** — per-character consistency audit (profile + their
   scenes → flagged actions) on the Characters view.
 - **Character profile** — drafts a character's profile fields (description,
-  motivation, arc, backstory) from their scenes — reviewed before anything
-  saves.
+  motivation, arc, backstory) from their scenes (**Fill from book**), from your
+  description (**From a description**), or one sheet section at a time
+  (**Draft this section**) — reviewed before anything saves.
 - **Character voice** — drafts how a character speaks (register, rhythm,
-  verbatim sample lines) from their actual dialogue — reviewed before
-  anything saves.
+  sample lines) from their actual dialogue, or from your description —
+  reviewed before anything saves.
 - **Relationship arc** — chapter-by-chapter warmth / tension / power tracking
   for a pair of characters.
 
@@ -72,6 +73,15 @@ while quick ones stay local. How routing, presets and providers work is
   card.
 - **Session recap** — the end-of-day "Wrap up session" recap with open-thread
   suggestions.
+
+## Story context
+
+When the AI drafts a character it reads your book's frame: the premise, genre,
+world rules, the Setting document and the main cast. Only what's relevant is
+sent, and never anything marked **Exclude from AI**. **Settings → AI → Writing
+AI → Story context** sets the most of the model's context window those notes may
+take (15% to start). On a model with a small window a lower share leaves more
+room for the reply; on a large one it rarely matters.
 
 ## Where each one runs
 

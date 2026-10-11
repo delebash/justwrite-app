@@ -6,6 +6,15 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-11
 
+**Draft a character with AI.** On a character's page, describe them in the
+**Describe this character** box and click **Draft**: the AI drafts the sheet —
+identity, motivation, arc, voice, backstory — from your description and your
+book. **Draft this section** on each section of the sheet drafts just that
+section. **Fill from book** moved into the new **Draft with AI** menu in the
+page header. You review every field before anything saves, and fields you've
+written are never overwritten unless you tick them. See the
+[Character sheet](character-sheet.md).
+
 **A scene's POV and "When" are kept.** The two answers you give in a scene's
 [Links panel](writing.md#the-links-panel), the POV perspective and when the scene happens, were
 lost the next time the book was saved and reopened. They're saved now. Earlier answers

@@ -513,6 +513,8 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   behind the kit's labels feed (`src/i18n/familyLabelsFeed.js`: AI tabs, download-bar
   actions, connection-error copy, the `family.lab` group) got hand-es'd values; run them through the docgen
   translator + review workspace when that pipeline goes live, like the rest of es.json.
+  Same for the AI drafting's keys (2026-10-11): `characterDraft.*`, `characters.draft.*`,
+  `writingAi.storyContext*`, `characterProfile.nothingGrounded`.
 - **"Serve `/health` before `seed_workspace`" — recommend DROPPING; your ruling owed.**
   Measured 2026-07-25: it buys 36 ms of a ~975 ms pre-listen window dominated by framework
   imports that cannot be deferred. (Correction, docs campaign: there is no "re-measure

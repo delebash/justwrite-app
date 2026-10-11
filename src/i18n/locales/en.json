@@ -900,7 +900,10 @@
     "inCanon": "{chapters} in canon",
     "wordSample": "· ~{n} word sample",
     "clearAll": "Clear all",
-    "previewFingerprint": "Preview the fingerprint that will be injected"
+    "previewFingerprint": "Preview the fingerprint that will be injected",
+    "storyContextCardTitle": "Story context",
+    "storyContextDesc": "When the AI drafts a character, it reads your premise, genre, world rules, Setting and main cast. Only what's relevant is sent; this is the most of the model's context window those notes may take. On a model with a small window, a lower share leaves more room for the reply; on a large one it rarely matters.",
+    "storyContextLabel": "Story notes may use up to"
   },
   "richEditor": {
     "superscriptGlyph": "x²",
@@ -1359,7 +1362,21 @@
     "listening": "Listening to {name}'s dialogue…",
     "reading": "Reading {name}'s scenes…",
     "overwriteWarning": "replaces what you wrote",
-    "applyAction": "Apply {n} field | Apply {n} fields"
+    "applyAction": "Apply {n} field | Apply {n} fields",
+    "nothingGrounded": "The model couldn't ground any profile fields in these scenes."
+  },
+  "characterDraft": {
+    "eyebrowDescription": "From a description",
+    "eyebrowSection": "Draft this section",
+    "descDescription": "Drafted from your description and the book. The AI fills in what your description leaves open, and writes the sample lines rather than quoting them. Tick the fields you want, edit them inline, then apply. Fields you've already written are unticked so nothing overwrites your work without you.",
+    "descSection": "Drafts the {section} section from what the sheet already says and the book. Tick the fields you want, edit them inline, then apply. Fields you've already written are unticked so nothing overwrites your work without you.",
+    "draftingProfile": "Drafting {name}'s profile…",
+    "draftingVoice": "Drafting how {name} speaks…",
+    "draftingSection": "Drafting {section}…",
+    "nothingDrafted": "The model didn't draft any fields. Try again, or say a little more in the description.",
+    "voiceFailed": "The voice pass failed ({error}) — the profile fields below are unaffected.",
+    "groupProfile": "Profile",
+    "groupVoice": "Voice"
   },
   "linkBackfill": {
     "eyebrow": "Link scenes",
@@ -2485,6 +2502,18 @@
           "hint": "Small preferences that make them a person. e.g. hates music; collects old maps."
         }
       }
+    },
+    "draft": {
+      "menu": "Draft with AI",
+      "menuTooltip": "Draft this character with AI — from your description, or from the scenes that feature them. You review every field before anything saves.",
+      "fromDescription": "From a description",
+      "describeLabel": "Describe this character",
+      "describeHint": "Who they are, what they want, how they come across — a line or a paragraph. The AI drafts the sheet and you review every field.",
+      "describePlaceholder": "e.g. a cynical cartographer in her forties who owes the guild money and can't stand music",
+      "draft": "Draft",
+      "describeCollapsed": "Describe this character…",
+      "draftSection": "Draft this section",
+      "draftSectionTooltip": "Draft this section's fields with AI — you review every field before anything saves"
     }
   },
   "analysis": {

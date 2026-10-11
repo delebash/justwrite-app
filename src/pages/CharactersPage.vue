@@ -13,6 +13,7 @@ import { UiNumber } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
+import { UiMenu, UiMenuItem } from "@delebash/llm-ui";
 import EntityIndex from "../components/EntityIndex.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
@@ -20,7 +21,7 @@ import CharacterAuditModal from "../components/CharacterAuditModal.vue";
 import RelationshipArcModal from "../components/RelationshipArcModal.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
-import CharacterProfileFillModal from "../components/CharacterProfileFillModal.vue";
+import CharacterDraftModal from "../components/CharacterDraftModal.vue";
 import CharacterBatchFillModal from "../components/CharacterBatchFillModal.vue";
 import CharacterSheetSection from "../components/CharacterSheetSection.vue";
 import TagEditor from "../components/TagEditor.vue";
@@ -32,7 +33,7 @@ import { confirmDialog } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
 import {
   ARC_FIELDS, CAPABILITY_FIELDS, CONTINUITY_FIELDS, CORE_ENGINE_FIELDS, DEPTH_FIELDS, FUNCTION_FIELDS,
-  IDENTITY_FIELDS, MOTIVATION_CORE, PRESENCE_FIELDS, VOICE_FIELDS, sectionCount,
+  IDENTITY_FIELDS, MOTIVATION_CORE, PRESENCE_FIELDS, VOICE_FIELDS, isThinCharacter, sectionCount,
 } from "../services/characterSheet.js";
 import { saveImage } from "../services/imageStore.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
@@ -71,6 +72,35 @@ async function onSweepCommitted(payload) {
 const ch = computed(() => props.id ? project.characterById(props.id) : null);
 const extras = computed(() => project.characterExtras[ch.value?.id]);
 const modal = ref(null);
+
+// ── AI drafting (2026-10-11, the AI drafting spec §3) ───────────────────
+// The review window's run: { source: "book" | "description" | "section", description, sectionKey }.
+const draft = ref(null);
+function openDraft(source, opts = {}) {
+  draft.value = { source, description: "", sectionKey: "", ...opts };
+  modal.value = "draft";
+}
+function closeDraft() { modal.value = null; draft.value = null; }
+// The describe box: open while the sheet is thin (no section has a filled field — the spec
+// §9.3), else one line that opens it. Its text is kept per character while the page lives, so
+// a redraft or a section draft can reuse it.
+const describeText = ref("");
+const describeOpen = ref(false);
+const describeBox = ref(null);
+const showDescribe = computed(() => isThinCharacter(extras.value) || describeOpen.value);
+watch(() => ch.value?.id, () => { describeText.value = ""; describeOpen.value = false; });
+function startFromDescription() {
+  describeOpen.value = true;
+  nextTick(() => describeBox.value?.querySelector("textarea")?.focus());
+}
+function draftFromDescription() {
+  const text = describeText.value.trim();
+  if (!text) return startFromDescription();
+  openDraft("description", { description: text });
+}
+function draftSectionFor(sectionKey) {
+  openDraft("section", { sectionKey, description: describeText.value.trim() });
+}
 
 // Copy lives in the catalog, keyed by the DATA MODEL — `characters.fields.<extras
 // group>.<field key>.{label,hint}` — so these descriptor arrays stay pure data
@@ -417,10 +447,12 @@ function onRowClick(event) {
             v-tooltip.bottom="$t('characters.detail.askTheBookTooltip', { name: ch.name })">
             <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
           </UiButton>
-          <UiButton intent="ghost" size="small" @click="modal = 'profileFill'"
-            v-tooltip.bottom="$t('characters.detail.fillFromBookTooltip', { name: ch.name })">
-            <Icon name="Book" :size="14" /> {{ $t("characters.header.fillFromBook") }}
-          </UiButton>
+          <UiMenu :label="$t('characters.draft.menu')" :title="$t('characters.draft.menuTooltip')"
+            trigger-class="ui-btn ui-btn--ghost ui-btn--small" content-class="lu-mmenu" align="end">
+            <template #trigger><Icon name="Sparkle" :size="14" /> {{ $t("characters.draft.menu") }} <Icon name="ChevDown" :size="12" /></template>
+            <UiMenuItem class="lu-mmi" @select="startFromDescription">{{ $t("characters.draft.fromDescription") }}</UiMenuItem>
+            <UiMenuItem class="lu-mmi" @select="openDraft('book')">{{ $t("characters.header.fillFromBook") }}</UiMenuItem>
+          </UiMenu>
           <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> {{ $t("characters.detail.images") }}</UiButton>
           <router-link :to="`/characters/${ch.id}/events`" custom v-slot="{ navigate }">
             <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> {{ $t("characters.detail.events") }}</UiButton>
@@ -513,6 +545,25 @@ function onRowClick(event) {
             </div>
           </div>
 
+          <!-- The describe box (the AI drafting): open while the sheet is thin, else one line. -->
+          <div ref="describeBox" class="ch-describe">
+            <div v-if="showDescribe" class="ch-field">
+              <span class="ch-field-label">{{ $t("characters.draft.describeLabel") }}
+                <span class="ch-field-hint">{{ $t("characters.draft.describeHint") }}</span>
+              </span>
+              <div class="ch-describe-row">
+                <UiTextarea class="ch-describe-input" auto-resize :rows="2" v-model="describeText"
+                  :placeholder="$t('characters.draft.describePlaceholder')" />
+                <UiButton intent="primary" :disabled="!describeText.trim()" @click="draftFromDescription">
+                  <Icon name="Sparkle" :size="13" /> {{ $t("characters.draft.draft") }}
+                </UiButton>
+              </div>
+            </div>
+            <UiButton v-else intent="secondary" size="small" @click="startFromDescription">
+              <Icon name="Sparkle" :size="12" /> {{ $t("characters.draft.describeCollapsed") }}
+            </UiButton>
+          </div>
+
           <TagEditor
             :model-value="ch.tags || []"
             :pool="tagPool"
@@ -532,7 +583,7 @@ function onRowClick(event) {
           <CharacterSheetSection :key="`identity-${ch.id}`"
             :title="$t('characters.sections.identity.title')"
             :hint="$t('characters.sections.identity.hint')"
-            :count="identityCount">
+            :count="identityCount" draftable @draft="draftSectionFor('identity')">
             <div class="ch-grid-2">
               <div v-for="f in IDENTITY_FIELDS" :key="f.k" class="ch-field">
                 <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
@@ -560,7 +611,7 @@ function onRowClick(event) {
           <CharacterSheetSection :key="`arc-${ch.id}`"
             :title="$t('characters.sections.arc.title')"
             :hint="$t('characters.sections.arc.hint')"
-            :count="arcCount">
+            :count="arcCount" draftable @draft="draftSectionFor('arc')">
             <div class="card tight" style="padding:0;overflow:hidden">
               <div class="arc-grid" style="display:grid">
                 <div v-for="(s, i) in ARC_STEPS" :key="s.k"
@@ -580,7 +631,7 @@ function onRowClick(event) {
           <CharacterSheetSection :key="`voice-${ch.id}`"
             :title="$t('characters.sections.voice.title')"
             :hint="$t('characters.sections.voice.hint')"
-            :count="voiceCount">
+            :count="voiceCount" draftable @draft="draftSectionFor('voice')">
             <div class="card tight voice-grid" style="padding:16px;gap:10px 18px;font-size:12.5px">
               <div>
                 <div class="t-muted">{{ $t("characters.fields.voice.accent.label") }}</div>
@@ -619,7 +670,7 @@ function onRowClick(event) {
           <CharacterSheetSection :key="`function-${ch.id}`"
             :title="$t('characters.sections.function.title')"
             :hint="$t('characters.sections.function.hint')"
-            :count="functionCount">
+            :count="functionCount" draftable @draft="draftSectionFor('function')">
             <div class="ch-fieldset">
               <div v-for="f in FUNCTION_FIELDS" :key="f.k" class="ch-field">
                 <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
@@ -632,7 +683,7 @@ function onRowClick(event) {
           <CharacterSheetSection :key="`capabilities-${ch.id}`"
             :title="$t('characters.sections.capabilities.title')"
             :hint="$t('characters.sections.capabilities.hint')"
-            :count="capabilitiesCount">
+            :count="capabilitiesCount" draftable @draft="draftSectionFor('capabilities')">
             <div class="ch-fieldset">
               <div v-for="f in CAPABILITY_FIELDS" :key="f.k" class="ch-field">
                 <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
@@ -645,7 +696,7 @@ function onRowClick(event) {
           <CharacterSheetSection :key="`continuity-${ch.id}`"
             :title="$t('characters.sections.continuity.title')"
             :hint="$t('characters.sections.continuity.hint')"
-            :count="continuityCount">
+            :count="continuityCount" draftable @draft="draftSectionFor('continuity')">
             <div class="ch-fieldset">
               <div v-for="f in CONTINUITY_FIELDS" :key="f.k" class="ch-field">
                 <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
@@ -658,7 +709,7 @@ function onRowClick(event) {
           <CharacterSheetSection :key="`depth-${ch.id}`"
             :title="$t('characters.sections.depth.title')"
             :hint="$t('characters.sections.depth.hint')"
-            :count="depthCount">
+            :count="depthCount" draftable @draft="draftSectionFor('depth')">
             <div class="ch-field">
               <span class="ch-field-label">{{ $t("characters.detail.backstory") }}<span class="ch-field-hint">{{ $t("characters.detail.backstoryHint") }}</span></span>
               <UiTextarea rows="5" style="font-family:var(--font-serif);font-size:15px;line-height:1.65"
@@ -688,7 +739,9 @@ function onRowClick(event) {
 
       <ImagesModal v-if="modal === 'images'" kind="characters" :entity-id="ch.id" :entity-name="ch.name" @close="modal = null" />
       <GroupsModal v-if="modal === 'groups'" :entity-id="ch.id" :entity-name="ch.name" entity-kind="character" @close="modal = null" />
-      <CharacterProfileFillModal v-if="modal === 'profileFill'" :character-id="ch.id" @close="modal = null" />
+      <CharacterDraftModal v-if="modal === 'draft' && draft" :character-id="ch.id"
+        :source="draft.source" :description="draft.description" :section-key="draft.sectionKey"
+        @close="closeDraft" />
     </template>
 
     <!-- ── id in URL but character not found (deleted / bad link) ── -->
@@ -731,6 +784,12 @@ function onRowClick(event) {
 .ch-desc { margin: 0 0 18px; }
 
 .ch-aliases-label { margin: 14px 0 6px; }
+
+/* The describe box: a prose field (~60ch) with its Draft button beside it, aligned to the
+   input (the layout rule); one line when collapsed. */
+.ch-describe { margin: 16px 0 4px; }
+.ch-describe-row { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.ch-describe-input { flex: 0 1 60ch; min-width: 0; }
 
 .avatar-drop {
   position: relative;

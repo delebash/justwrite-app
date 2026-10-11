@@ -1,51 +1,96 @@
 <script setup>
-// "Fill from book" review modal (E, 2026-07-18).
-//
-// Runs the characterProfile action over the scenes featuring this character,
-// then shows every proposed field NEXT TO its current value for review —
-// nothing saves until Apply (the sweep's nothing-lands-without-confirm rule).
-// Default ticks: a proposal is ticked only when the field is currently EMPTY;
-// overwriting something the writer wrote is always opt-in.
+// The character draft review window — Fill from book (E, 2026-07-18) and, since 2026-10-11,
+// the AI drafting (the AI drafting plan, Task 8). One window, three sources:
+//   book        — Fill from book: the profile + voice passes over the scenes featuring the
+//                 character (characterProfile.js), grounded in the prose;
+//   description — the profile + voice drafted from the writer's description and the book
+//                 (characterDraft.js), invented where the description is silent;
+//   section     — one sheet section's fields (characterDraft.js draftSection).
+// Every proposed field shows NEXT TO its current value — nothing saves until Apply (the
+// sweep's nothing-lands-without-confirm rule). A proposal is ticked only when the field is
+// EMPTY; overwriting what the writer wrote is always opt-in. Apply is one undo step
+// (applyProfileDrafts → the store's applyCharacterDraft).
 //
 // RULE #1 precedent: EntityReviewModal — UiCheckbox rows, editable proposals,
 // footer = count · spacer · Cancel · primary apply. Task progress + cancel
-// ride the shared AiTaskStrip (feature "characterProfile").
+// ride the shared AiTaskStrip (features "characterProfile" / "characterVoice").
 
 import { computed, onMounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
 import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiButton, UiCheckbox, UiTextarea } from "@delebash/llm-ui";
 import {
   profileFromBook, voiceFromBook,
   profileFieldDefs, voiceFieldDefs, draftRows, applyProfileDrafts,
 } from "../services/analysis/characterProfile.js";
+import { draftSection, profileFromDescription, voiceFromDescription } from "../services/analysis/characterDraft.js";
+import { sectionFieldDefs } from "../services/characterSheet.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 
 const props = defineProps({
   characterId: { type: String, required: true },
+  // "book" (Fill from book) · "description" · "section"
+  source: { type: String, default: "book" },
+  // The writer's description (source "description"; optional context for "section").
+  description: { type: String, default: "" },
+  // The sheet section to draft (source "section") — a services/characterSheet.js key.
+  sectionKey: { type: String, default: "" },
 });
 const emit = defineEmits(["close"]);
 
+const { t } = useI18n({ useScope: "global" });
 const project = useProjectStore();
 const aiTasks = useAiTasksStore();
 const myTask = computed(() =>
-  aiTasks.runningTasks.find((t) => t.feature === "characterProfile" || t.feature === "characterVoice"));
+  aiTasks.runningTasks.find((task) => task.feature === "characterProfile" || task.feature === "characterVoice"));
 
 const ch = computed(() => (project.characters || []).find((c) => c.id === props.characterId));
 const extras = computed(() => project.characterExtras?.[props.characterId] || {});
+const name = computed(() => ch.value?.name || t("characterProfile.theCharacter"));
+const sectionTitle = computed(() => (props.sectionKey ? t(`characters.sections.${props.sectionKey}.title`) : ""));
+
+const eyebrow = computed(() =>
+  props.source === "description" ? t("characterDraft.eyebrowDescription")
+    : props.source === "section" ? t("characterDraft.eyebrowSection")
+      : t("characterProfile.eyebrow"));
+const desc = computed(() =>
+  props.source === "description" ? t("characterDraft.descDescription")
+    : props.source === "section" ? t("characterDraft.descSection", { section: sectionTitle.value })
+      : t("characterProfile.desc"));
 
 const loading = ref(true);
 const noScenes = ref(false);
 const error = ref("");
-const rows = ref([]); // [{ key, label, current, proposed, accept }]
-const sceneCount = ref(0);
+const rows = ref([]); // [{ key, label, current, proposed, accept, section }]
 
 let abort = null;
-// Two passes, one review (WS8): the profile call, then the voice call — each a
-// LEAN JSON contract (two small schemas beat one bloated one on local models).
-// Rows carry a `section` so the review list groups Profile / Voice; a voice
-// failure is non-fatal (the profile rows still show, with a notice).
+// Two passes, one review (WS8): the profile call, then the voice call — each a LEAN JSON
+// contract (two small schemas beat one bloated one on local models). Rows carry a `section`
+// so the review list groups Profile / Voice; a voice failure is non-fatal (the profile rows
+// still show, with a notice). A section draft is one call.
 const phase = ref("profile"); // which pass the loading line names
 const voiceNotice = ref("");
+const toRows = (defs, fields, section) => draftRows(defs, fields).map((row) => ({ ...row, section }));
+
+async function runTwoPasses(profilePass, voicePass) {
+  phase.value = "profile";
+  const r = await profilePass();
+  if (!r) {
+    noScenes.value = true;
+    return;
+  }
+  rows.value = toRows(profileFieldDefs(ch.value, extras.value), r.fields, t("characterDraft.groupProfile"));
+  phase.value = "voice";
+  try {
+    const v = await voicePass();
+    if (v) rows.value = [...rows.value, ...toRows(voiceFieldDefs(extras.value), v.fields, t("characterDraft.groupVoice"))];
+  } catch (e) {
+    const msg = e?.message || String(e);
+    if (/abort|cancel/i.test(msg)) return;
+    voiceNotice.value = t("characterDraft.voiceFailed", { error: msg });
+  }
+}
+
 async function run() {
   loading.value = true;
   noScenes.value = false;
@@ -54,27 +99,26 @@ async function run() {
   rows.value = [];
   try {
     abort = new AbortController();
-    phase.value = "profile";
-    const r = await profileFromBook({ project, characterId: props.characterId, signal: abort.signal });
-    if (!r) {
-      noScenes.value = true;
-      return;
+    const signal = abort.signal;
+    const characterId = props.characterId;
+    if (props.source === "description") {
+      await runTwoPasses(
+        () => profileFromDescription({ project, characterId, description: props.description, signal }),
+        () => voiceFromDescription({ project, characterId, description: props.description, signal }),
+      );
+    } else if (props.source === "section") {
+      phase.value = "section";
+      const r = await draftSection({ project, characterId, sectionKey: props.sectionKey, description: props.description, t, signal });
+      rows.value = toRows(sectionFieldDefs(props.sectionKey, extras.value, t), r.fields, sectionTitle.value);
+    } else {
+      await runTwoPasses(
+        () => profileFromBook({ project, characterId, signal }),
+        () => voiceFromBook({ project, characterId, signal }),
+      );
     }
-    sceneCount.value = r.sceneCount;
-    const toRows = (defs, fields, section) =>
-      draftRows(defs, fields).map((row) => ({ ...row, section }));
-    rows.value = toRows(profileFieldDefs(ch.value, extras.value), r.fields, "Profile");
-
-    phase.value = "voice";
-    try {
-      const v = await voiceFromBook({ project, characterId: props.characterId, signal: abort.signal });
-      if (v) rows.value = [...rows.value, ...toRows(voiceFieldDefs(extras.value), v.fields, "Voice")];
-    } catch (e) {
-      const msg = e?.message || String(e);
-      if (/abort|cancel/i.test(msg)) return;
-      voiceNotice.value = `The voice pass failed (${msg}) — the profile fields below are unaffected.`;
+    if (!rows.value.length && !noScenes.value && !error.value) {
+      error.value = props.source === "book" ? t("characterProfile.nothingGrounded") : t("characterDraft.nothingDrafted");
     }
-    if (!rows.value.length) error.value = "The model couldn't ground any profile fields in these scenes.";
   } catch (e) {
     const msg = e?.message || String(e);
     if (!/abort|cancel/i.test(msg)) error.value = msg;
@@ -117,17 +161,28 @@ function onClose() {
   abort?.abort();
   emit("close");
 }
+
+// The loading line: which pass is running, named for the source.
+const loadingLine = computed(() => {
+  if (props.source === "section") return t("characterDraft.draftingSection", { section: sectionTitle.value });
+  if (props.source === "description") {
+    return phase.value === "voice"
+      ? t("characterDraft.draftingVoice", { name: name.value })
+      : t("characterDraft.draftingProfile", { name: name.value });
+  }
+  return phase.value === "voice"
+    ? t("characterProfile.listening", { name: name.value })
+    : t("characterProfile.reading", { name: name.value });
+});
 </script>
 
 <template>
-  <AppModal :eyebrow="$t('characterProfile.eyebrow')" :title="ch?.name || $t('characterProfile.titleFallback')" :closable="!running" @close="onClose">
+  <AppModal :eyebrow="eyebrow" :title="ch?.name || $t('characterProfile.titleFallback')" :closable="!running" @close="onClose">
     <template #header-extra>
       <AiFeatureChip feature="characterProfile" :label="$t('characterProfile.chipLabel')" editable />
     </template>
 
-    <p class="cpf-desc">
-      {{ $t("characterProfile.desc") }}
-    </p>
+    <p class="cpf-desc">{{ desc }}</p>
 
     <AiTaskStrip :task="myTask" />
 
@@ -137,14 +192,7 @@ function onClose() {
       {{ $t("characterProfile.noScenes", { name: ch?.name || $t("characterProfile.thisCharacter") }) }}
     </div>
 
-    <!-- Both keypaths spelled out as literals rather than a ternary INSIDE $t():
-         vue-i18n-extract only matches plain string literals, so the folded form
-         reported both keys as unused and would not have caught a rename. -->
-    <div v-else-if="loading" class="cpf-empty">
-      {{ phase === "voice"
-           ? $t("characterProfile.listening", { name: ch?.name || $t("characterProfile.theCharacter") })
-           : $t("characterProfile.reading", { name: ch?.name || $t("characterProfile.theCharacter") }) }}
-    </div>
+    <div v-else-if="loading" class="cpf-empty">{{ loadingLine }}</div>
 
     <div v-else class="cpf-rows">
       <div v-if="rows.length" class="cpf-selectbar">

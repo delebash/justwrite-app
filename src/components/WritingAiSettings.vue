@@ -8,7 +8,7 @@
 // Lifted verbatim from the old App Settings → "Writing AI" tab (2026-06-24
 // AI consolidation); see docs/plans/2026-06-24-shared-platform-settings.md.
 import { computed } from "vue";
-import { UiCheckbox, UiButton } from "@delebash/llm-ui";
+import { UiCheckbox, UiButton, UiNumber } from "@delebash/llm-ui";
 import { useAiStore } from "../stores/ai.js";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
@@ -37,6 +37,13 @@ function clearCanon() {
   project.clearVoiceCanon();
 }
 const voicePreview = computed(() => buildVoiceFingerprint(project, { targetWords: 600 }));
+
+// The story-context share (2026-10-11, the AI drafting): seeded by the server as a 0–1 share,
+// shown and edited as a whole percentage. null until seeded — the field then stays empty.
+const sharePercent = computed(() => (ai.storyContextShare == null ? null : Math.round(ai.storyContextShare * 100)));
+function setSharePercent(v) {
+  if (typeof v === "number") ai.setStoryContextShare(v / 100);
+}
 </script>
 
 <template>
@@ -129,6 +136,18 @@ const voicePreview = computed(() => buildVoiceFingerprint(project, { targetWords
           <div style="margin-top:8px;padding:12px 14px;background:var(--surface-2);border-radius:6px;font-family:var(--font-serif);font-size:12.5px;line-height:1.6;color:var(--ink-2);white-space:pre-wrap;max-height:300px;overflow:auto">{{ voicePreview.block }}</div>
         </details>
       </template>
+    </div>
+
+    <!-- Story context (2026-10-11): the most of the model's window the story notes may take -->
+    <div class="card">
+      <div class="card-title">{{ $t("writingAi.storyContextCardTitle") }}</div>
+      <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">{{ $t("writingAi.storyContextDesc") }}</p>
+      <label style="display:flex;gap:10px;align-items:center">
+        <span style="color:var(--ink-2);font-size:13px">{{ $t("writingAi.storyContextLabel") }}</span>
+        <UiNumber width="num" :min="1" :max="100" :use-grouping="false"
+          :model-value="sharePercent" @update:model-value="setSharePercent" />
+        <span style="color:var(--muted);font-size:13px">%</span>
+      </label>
     </div>
   </div>
 </template>
