@@ -147,6 +147,16 @@ The model gets the full profile (name, role, one-liner, voice, arc, motivation, 
 
 **Routable** as the **characterAudit** feature in Settings → AI. This is one of the most reasoning-heavy LLM tasks in JustWrite — long context windows and strong text comprehension help materially. Pin to your strongest cloud model if you can; the per-character cost is real but the value-per-call is high.
 
+### Suggest characters — who is this book missing?
+
+> *"My heist needs someone on the inside at the harbor, and I can't picture who."*
+
+A cast grows from what the story needs: a rival, a mentor, the one person who knows what the hero doesn't. When you can feel the gap but can't see who fills it, ask for candidates instead of staring at a blank character page.
+
+**Suggest characters…** on the Characters header asks the AI for people your book doesn't have yet. You can say what you're looking for — a role, a gap, a relationship — or leave it blank. The AI reads your premise, genre, world rules, setting and main cast, plus the names already in your cast so it doesn't offer them again, and proposes characters with a name, a role and a one-line description each. They open in the same review list as the entity sweep: tick the ones you want, edit any field, and **Add {n} to story bible** adds them. Nothing is added until you confirm, and one Ctrl/⌘ + Z takes the whole batch back out. To flesh one out, open their page and use **Draft with AI**.
+
+**Routable** as the **brainstorm** feature in Settings → AI.
+
 ---
 
 ## Locations

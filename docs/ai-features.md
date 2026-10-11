@@ -18,7 +18,8 @@ while quick ones stay local. How routing, presets and providers work is
 - **Unstuck** — five ways to unblock the current scene: goal shift, interrupt,
   setting, reveal, time cut.
 - **Brainstorm** — the Brainstorm view: name / title / freeform idea
-  generation with thumbs-up steering.
+  generation with thumbs-up steering. Also runs **Suggest characters…** on
+  the Characters list.
 
 ## Analysis
 

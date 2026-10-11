@@ -2514,6 +2514,18 @@
       "describeCollapsed": "Describe this character…",
       "draftSection": "Draft this section",
       "draftSectionTooltip": "Draft this section's fields with AI — you review every field before anything saves"
+    },
+    "suggest": {
+      "button": "Suggest characters…",
+      "tooltip": "Suggest characters your book doesn't have yet, from its premise and cast — you pick which to add",
+      "dialogTitle": "Suggest characters",
+      "dialogMessage": "The AI proposes characters your book doesn't have yet, from its premise, genre, world and cast.",
+      "lookingForLabel": "What are you looking for? (optional)",
+      "lookingForPlaceholder": "e.g. someone at the harbor who gains if the ledger stays altered",
+      "confirm": "Suggest",
+      "eyebrow": "Suggest characters",
+      "desc": "The AI suggested these characters for your book. Tick the ones you want, edit any field inline, then add them to your story bible. Unticked rows are discarded — nothing is saved until you confirm.",
+      "empty": "The model didn't suggest anyone new. Try again, or say more about what you're looking for."
     }
   },
   "analysis": {

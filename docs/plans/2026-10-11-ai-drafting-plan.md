@@ -225,12 +225,16 @@ phone); `CharactersPage.vue` (✨ in the name box); `en.json`; `docs/brainstorm.
 
 ## Task 11 — Suggest characters…
 
-**Files:** the Characters list header (`CharactersPage.vue`), create
-`src/components/SuggestCharactersModal.vue` (review rows like `EntityReviewModal`: name, role,
-one-liner editable, ticked), `en.json`, `docs/story-bible.md`.
+**Files:** the Characters list header (`CharactersPage.vue`), `EntityReviewModal.vue` reused
+(not a new modal: the family rule — a screen that already has the shape is reused; it gains
+optional eyebrow / desc / empty-message props), `src/services/entityProposals.js` (its adds, moved
+out so they are testable), `en.json` + `es.json`, `docs/story-bible.md`, `docs/ai-features.md`,
+`docs/whats-new.md`.
 
-- **Add {n} to story bible** → `addCharacters` (one undo step).
-- [ ] Tests: the service dedupe (Task 7); smoke; docs. Commit.
+- **Add {n} to story bible** → `addCharacters` (one undo step) — for Entity sweep too.
+- [x] Tests: the service dedupe (Task 7); one undo step (`projectHistory.test.js`); smoke; docs;
+  the flow driven in a browser on a scratch copy with the model's reply stubbed (2026-10-11).
+  Built.
 
 ## Task 12 — Save to sheet from Talk to {name}
 

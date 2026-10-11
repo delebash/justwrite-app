@@ -2514,6 +2514,18 @@
       "describeCollapsed": "Describe este personaje…",
       "draftSection": "Redactar esta sección",
       "draftSectionTooltip": "Redacta los campos de esta sección con IA; revisas cada campo antes de que se guarde nada"
+    },
+    "suggest": {
+      "button": "Sugerir personajes…",
+      "tooltip": "Sugiere personajes que tu libro aún no tiene, a partir de su premisa y su reparto; tú eliges cuáles añadir",
+      "dialogTitle": "Sugerir personajes",
+      "dialogMessage": "La IA propone personajes que tu libro aún no tiene, a partir de su premisa, su género, su mundo y su reparto.",
+      "lookingForLabel": "¿Qué estás buscando? (opcional)",
+      "lookingForPlaceholder": "p. ej., alguien del puerto que gana si el libro de cuentas sigue alterado",
+      "confirm": "Sugerir",
+      "eyebrow": "Sugerir personajes",
+      "desc": "La IA sugirió estos personajes para tu libro. Marca los que desees, edita cualquier campo directamente y luego añádelos a tu biblia de la historia. Las filas desmarcadas se descartan; no se guarda nada hasta que confirmes.",
+      "empty": "El modelo no sugirió a nadie nuevo. Inténtalo de nuevo o di más sobre lo que buscas."
     }
   },
   "analysis": {

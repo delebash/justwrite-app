@@ -43,6 +43,7 @@ vi.mock("./sessions.js", () => ({
 import * as projectApi from "../services/projectApi.js";
 import { useProjectStore } from "./project.js";
 import { applyProfileDrafts } from "../services/analysis/characterProfile.js";
+import { addProposedEntities } from "../services/entityProposals.js";
 
 function freshStore() {
   setActivePinia(createPinia());
@@ -149,6 +150,28 @@ describe("per-domain page-related undo (#235)", () => {
     expect(store._past.characters.length).toBe(1);
     store.undoFor(["characters"]);
     expect(store.characters).toHaveLength(0);
+  });
+
+  it("a review list's accepted characters land as ONE undo step (Entity sweep, Suggest characters)", () => {
+    const store = useProjectStore();
+    store.clearHistory();
+    const accepted = addProposedEntities(store, {
+      characters: [
+        { name: "Odo", role: "pilot", oneLiner: "knows the reef", aliases: "the Pilot, Odo Ren", accept: true },
+        { name: "Skip me", accept: false },
+        { name: "Vell", role: "clerk", oneLiner: "", aliases: [], accept: true, originChapters: [{ id: "ch1" }] },
+      ],
+      locations: [{ name: "Reef", kind: "shoal", note: "", accept: true }],
+      objects: [],
+    });
+    expect(store.characters.map((c) => c.name)).toEqual(["Odo", "Vell"]);
+    expect(store.characterById(accepted[0].entityId).aliases).toEqual(["the Pilot", "Odo Ren"]);
+    expect(store._past.characters.length).toBe(1);
+    expect(accepted.map((a) => [a.kind, a.name])).toEqual([["character", "Odo"], ["character", "Vell"], ["location", "Reef"]]);
+    expect(accepted[1].origins).toEqual([{ id: "ch1" }]);
+    store.undoFor(["characters"]);
+    expect(store.characters).toHaveLength(0);
+    expect(store.locations).toHaveLength(1); // its own domain, its own step
   });
 
   it("coalesces a same-action burst into one entry", () => {

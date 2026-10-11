@@ -11,6 +11,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { proposeSceneLinks } from "../services/rag/entityMatcher.js";
 import { isLikelyNonStoryTitle } from "../services/analysis/entitySweep.js";
+import { addProposedEntities } from "../services/entityProposals.js";
 import { Icon } from "@delebash/llm-ui";
 import { AppModal } from "@delebash/llm-ui";
 import { EmptyState } from "@delebash/llm-ui";
@@ -22,6 +23,10 @@ const props = defineProps({
   proposals: { type: Object, required: true },
   // Chapter context shown in the header.
   chapterTitle: { type: String, default: "" },
+  // Other sources' own words (Suggest characters, 2026-10-11); the sweep's by default.
+  eyebrow: { type: String, default: "" },
+  desc: { type: String, default: "" },
+  emptyMessage: { type: String, default: "" },
 });
 const emit = defineEmits(["close", "committed"]);
 
@@ -55,39 +60,14 @@ function setAll(kind, on) {
   rows.value[kind] = rows.value[kind].map((r) => ({ ...r, accept: on }));
 }
 
-// Aliases arrive from the sweep as an array (E3) and are edited here as a
-// comma-separated string — normalize either shape.
-function parseAliases(value) {
-  if (Array.isArray(value)) return value.map((a) => String(a).trim()).filter(Boolean);
-  return String(value || "").split(",").map((a) => a.trim()).filter(Boolean);
-}
-
 function commit() {
-  let added = 0;
   // E1 (RAG build): the sweep KNOWS which chapters each entity came from —
   // keep that provenance through accept by scanning the origin chapters'
   // scenes for the accepted names/aliases (the shared matcher, no LLM) and
-  // setting the scene presence links in ONE batched store action.
-  const accepted = [];
-  for (const r of rows.value.characters) {
-    if (!r.accept) continue;
-    const aliases = parseAliases(r.aliases);
-    const id = project.addCharacter({ name: r.name, role: r.role, oneLiner: r.oneLiner, aliases });
-    accepted.push({ kind: "character", entityId: id, name: r.name, aliases, origins: r.originChapters || [] });
-    added++;
-  }
-  for (const r of rows.value.locations) {
-    if (!r.accept) continue;
-    const id = project.addLocation({ name: r.name, kind: r.kind, note: r.note });
-    accepted.push({ kind: "location", entityId: id, name: r.name, aliases: [], origins: r.originChapters || [] });
-    added++;
-  }
-  for (const r of rows.value.objects) {
-    if (!r.accept) continue;
-    const id = project.addObject({ name: r.name, kind: r.kind, note: r.note });
-    accepted.push({ kind: "object", entityId: id, name: r.name, aliases: [], origins: r.originChapters || [] });
-    added++;
-  }
+  // setting the scene presence links in ONE batched store action. The adds
+  // themselves (characters as ONE undo step): services/entityProposals.js.
+  const accepted = addProposedEntities(project, rows.value);
+  const added = accepted.length;
 
   // Scene-link backfill scans the origin chapters for the accepted names, but
   // NOT reference pages: linking "Gavin Guile" to the Character-List chapter's
@@ -129,18 +109,18 @@ function originTitle(originChapters) {
 
 <template>
   <AppModal
-    :eyebrow="$t('entityReview.eyebrow')"
+    :eyebrow="eyebrow || $t('entityReview.eyebrow')"
     :title="chapterTitle ? $t('entityReview.titleFrom', { chapter: chapterTitle }) : $t('entityReview.titleFallback')"
     @close="emit('close')"
   >
     <p v-if="anyProposed" class="er-desc">
-      {{ $t("entityReview.desc") }}
+      {{ desc || $t("entityReview.desc") }}
     </p>
 
     <EmptyState v-if="!anyProposed"
       icon="Check"
       :title="$t('entityReview.emptyTitle')"
-      :message="$t('entityReview.emptyMessage')" />
+      :message="emptyMessage || $t('entityReview.emptyMessage')" />
 
     <div v-else class="er-body">
       <section v-for="sec in SECTIONS" :key="sec.key" v-show="rows[sec.key].length" class="er-section">

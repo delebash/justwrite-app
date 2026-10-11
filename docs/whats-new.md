@@ -15,6 +15,11 @@ page header. You review every field before anything saves, and fields you've
 written are never overwritten unless you tick them. See the
 [Character sheet](character-sheet.md).
 
+**Suggest characters.** **Suggest characters…** on the Characters list asks the
+AI for people your book doesn't have yet — say what you're looking for, or leave
+it blank. Tick the ones you want and add them to your story bible. See
+[Story bible](story-bible.md#suggest-characters-who-is-this-book-missing).
+
 **A scene's POV and "When" are kept.** The two answers you give in a scene's
 [Links panel](writing.md#the-links-panel), the POV perspective and when the scene happens, were
 lost the next time the book was saved and reopened. They're saved now. Earlier answers
