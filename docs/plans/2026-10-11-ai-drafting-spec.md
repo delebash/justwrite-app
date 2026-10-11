@@ -51,10 +51,12 @@ Entity text comes from `buildEntityCards` (`src/services/rag/cards.js:443`) — 
 index and both chats already share — and the roster from the same file. The precedent for one
 composer serving several features is `composeCharacterAuditInput`
 (`src/services/analysis/characterAudit.js:100`: Fill from book + the audit, "QC-35: one source").
-It honours **Exclude from AI** as the chunker does. It trims to the feature's budget (§9.4) — each
-feature's context window is its own preset under Settings → AI → Routing by feature; the writer
-preset is measured at ctx 8192 (`docs/dev/measured-performance.md:17`). What it sent is shown:
-a **Context:** line in the AI strip naming the cards.
+It honours **Exclude from AI** as the chunker does. It sends only what is relevant (the cards
+linked to the scene, its beats and notes) and stops at a budget (§9.4): a share of the context
+window of the model the feature is routed to. On your box every preset — both prose presets
+included — uses `gemma-4-26b-a4b-qat` at 32,768 tokens (`data/ai-runtime/models.ini`; one launch
+profile serves every task since 2026-07-06, `server/src/seed_presets.js:34`). What it sent is
+shown: a **Context:** line in the AI strip naming the cards.
 
 ## 3. Slice 1 — story-world drafting (characters first)
 
@@ -83,8 +85,9 @@ a **Context:** line in the AI strip naming the cards.
 
 ## 4. Slice 2 — story-aware writer actions
 
-The prose actions (`runAction`, `guidedContinue` in `src/services/writerAI.js:128,169`) gain a
-`storyContext` variable from composer(scene); their seeded prompts gain `{{storyContext}}`
+Today Continue sees the last 800 characters before the cursor and nothing else
+(`src/components/RichEditor.vue:371`, `:489`). The prose actions (`runAction`, `guidedContinue`
+in `src/services/writerAI.js:128,169`) gain a `storyContext` variable from composer(scene); their seeded prompts gain `{{storyContext}}`
 (revised through the prompt stale-heal, `server/src/seed_feature_prompts.js:1098`); the Lab's
 sample variables gain it (`src/services/labTestData.js:103`). Line edits (`applyRule`, `:186`)
 per §9.5. Two new actions on the same footing: **Rewrite with direction…** (sibling of Continue
@@ -109,8 +112,11 @@ with direction) and **Write dialogue** (the scene's characters, from their voice
 - Off until switched on (§9.7).
 - **Draft from plan** — in an empty scene and in the AI menu: composer(scene) with the Summary →
   the existing accept/reject diff, or 3 variations.
-- Its own feature row, so it can take a larger-context preset than the writer's 8k.
-- Every draft recorded in AI usage. AI-drafted text marked: a TipTap mark like the markers
+- Its own feature row, so it can be routed to a different model (a cloud model, or a larger
+  window) than the other writer actions.
+- Every draft is recorded in AI usage — by feature and model; the ledger has no book
+  (`just-llm-runner/server/src/llm/usage_sink.js:24`). The per-book record is the marks:
+  AI-drafted text marked with a TipTap mark like the markers
   (`server/src/editor/markers.js`) — the editor schema is shared with sync's scene adapter, so a
   new mark is a sync schema change; its look and whether it survives edits get their own design
   pass.
@@ -155,9 +161,12 @@ Nothing is NOT STANDARD.
    *Why:*
    - The review window's "fill only empty fields" means nothing with one note.
    - The composer gets facts it can use: atmosphere is what a scene set there needs, and where an
-     object is now is what the continuity checks need.
+     object is now is what the continuity checks need. The character sheet already asks where
+     each possession with story weight is (`docs/character-sheet.md:211`).
    - Real columns, not text blobs, is the house rule.
-   - LocalProse, your reference, splits them the same way.
+   - LocalProse, your reference, splits places and items the same way: visual description ·
+     atmosphere & sensations · history / lore, and visual description · properties & aura ·
+     history / origin (your screenshots, 2026-07-18). Its groups weren't in the screenshots.
    - Adding columns is a proven, safe path since `d55f8f5`.
 
    The field names are labels: confirm or change them.
@@ -178,14 +187,26 @@ Nothing is NOT STANDARD.
    *Why:* there's no number to tune (nothing to hardcode or seed), it covers the case Entity sweep
    creates, and you can predict it.
 4. **The story-context budget.**
-   *Rec:* a share of the routed model's context window, seeded at **25%** and editable in
-   Settings → AI.
-   *Why:*
-   - It works for both kinds of model. The writer's local 8k window gives about 2,000 tokens, two
-     or three full cards (chat measured one full character card at ~750 tokens). A frontier
-     model's large window takes most of the story bible.
-   - The other 75% is left for the instructions, the voice canon (~600 words), the passage and the
-     reply.
+   *Rec:* a ceiling — a share of the routed model's context window, seeded at **15%** and
+   editable in Settings → AI. The composer sends only what's relevant, so the ceiling matters only
+   for crowded scenes.
+   *Why — measured 2026-10-11:*
+   - On your box the writer actions run at a 32,768-token window (above). The 12B model is set at
+     16,384 (`data/ai-runtime/models.ini`).
+   - The sample book's whole story bible — 50 cards from the app's own builder — is ~4,800
+     tokens. Its largest character card is ~440 tokens. Its scenes link 1–5 characters, 4 in most.
+     A typical scene's notes come to roughly 2,000 tokens.
+   - The cost is wait time: your box reads a prompt at ~560 tokens a second (the 32k profile,
+     `docs/dev/measured-performance.md:20`). 2,000 tokens of notes add ~4 s before the first word,
+     where Continue starts in ~1.5 s today (`server/src/seed_presets.js:39`).
+   - At 15%: 32k → ~4,900 tokens. Every typical scene fits, and so would the sample book's whole
+     bible; the worst case adds ~9 s. 16k → ~2,450 tokens, so a four-character scene fits. A
+     200k-token frontier model → ~30,000 tokens, six times the sample book's whole bible.
+   - 25% would allow ~8,200 tokens at 32k: up to ~15 s more wait on crowded scenes, and no gain on
+     typical ones.
+   - Caveat: the sample book's profiles are thin. Chat's notes record one rich protagonist's card
+     at 3,009 characters (~750 tokens, `src/services/rag/entityMatcher.js:166`), so a full book's
+     scenes will run larger. Measuring a real book is the first step of slice 2.
    - Chat's own pin budget (1,200 tokens, a code constant, `src/services/rag/entityMatcher.js:86`)
      is a retrieval balance, not a share, and stays as it is. Moving it into the database is a
      separate small item.
@@ -201,9 +222,14 @@ Nothing is NOT STANDARD.
 7. **Scene drafting's switch.**
    *Rec:* per book, in Settings → Project beside Premise, off by default, labelled **AI scene
    drafting**.
-   *Why:* the Authors Guild mark and publishers' disclosure rules apply per book, so one book can
-   stay human-written while another uses drafting. AI usage and the AI-text marking are per book
-   too.
+   *Why:*
+   - Both rules apply per book. The Authors Guild issues its Human Authored mark "per title"
+     (FAQ #2, #17). KDP asks about AI-generated text when each book is published or republished;
+     AI-assisted editing needn't be disclosed (KDP content guidelines, G200672390; both read
+     2026-10-11).
+   - So one book can stay human-written while another uses drafting.
+   - The per-book record is the AI-text marks in the book's own text. The AI usage ledger has no
+     book (`just-llm-runner/server/src/llm/usage_sink.js:24`).
 8. **New labels.**
    *Rec:* keep the list below, with three changes:
    - **Create selected** → the sweep's existing **Add {n} to story bible**: one name for one action.

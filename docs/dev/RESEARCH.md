@@ -195,7 +195,25 @@ against the page by an agent, not re-checked by the session.
 - **A scene's POV and "when" were lost on every save** — the scenes table had no columns for them
   (a failing round-trip test, 2026-10-11); fixed in `d55f8f5`. On a copy of `data/`, the upgrade
   added both columns, changed no row count in 77 tables, and The Ninth Facet (12 scenes) came back
-  identical through both save paths. (*measured 2026-10-11*, a scratch script on the copy.)
+  identical through both save paths. The Ninth Facet is the bundled sample book, the only book in
+  `data/`. (*measured 2026-10-11*, a scratch script on the copy.)
+- **The writer actions run at a 32,768-token window on the user's box:** every preset, both prose
+  presets included, uses `gemma-4-26b-a4b-qat` (the presets on the copy of `data/`), set to
+  `ctx-size = 32768` in `data/ai-runtime/models.ini`. The 12B there is 16,384. One launch profile
+  has served every task since 2026-07-06 (`server/src/seed_presets.js:34`); the "writer 8k" in
+  IDEAS.md and `measured-performance.md:17` is the earlier dedicated section. (*code + measured
+  2026-10-11*.)
+- **Continue sends only the last 800 characters before the cursor** (`src/components/RichEditor.vue:371`,
+  `:489`). (*code 2026-10-11*.)
+- **The sample book's story bible is ~4,800 tokens:** 50 cards from `buildEntityCards`, 19,199
+  characters; the largest character card is 1,746 characters (~440 tokens); scenes link 1–5
+  characters, 4 in most. (*measured 2026-10-11*, a scratch vitest run on the copy's export.)
+- **The AI usage ledger has no book:** each row is feature, provider, model, tokens, cost and
+  timing (`../just-llm-runner/server/src/llm/usage_sink.js:24`). (*code 2026-10-11*.)
+- **Both AI rules a writer meets apply per book:** the Authors Guild issues Human Authored "per
+  title" (FAQ #2, #17); KDP asks about AI-generated text when each book is published or
+  republished, and AI-assisted editing needn't be disclosed (content guidelines G200672390).
+  (*web 2026-10-11*, both re-fetched by the session.)
 - **The sync engine skips a column the receiving device doesn't have**
   (`../just-sqlite-sync/src/engine.js:469`), and its README asks for a schema-version bump on a
   shape change — JustWrite's is 2 since `d55f8f5`. (*code 2026-10-11*.)
