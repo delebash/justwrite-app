@@ -9,6 +9,7 @@
 import { useProjectStore } from "../stores/project";
 import { useSessionsStore } from "../stores/sessions.js";
 import { composeCharacterAuditInput } from "./analysis/characterAudit.js";
+import { composeSuggestInput } from "./analysis/characterDraft.js";
 import { composeEntitySweepInput } from "./analysis/entityExtraction.js";
 import { composeBeatSheetInput } from "./analysis/beatSheet.js";
 import { composeMarketingPackInput } from "./analysis/marketingPack.js";
@@ -275,6 +276,10 @@ export const LAB_TEST_ACTIONS = {
   readerKnowledge: { pickers: [{ source: "chapters", fill: fillReaderKnowledge }], samples: ["Reader knowledge chapter"] },
   entitySweep: { pickers: [{ source: "chapters", fill: fillEntitySweep }], samples: ["Chapter for entity sweep"] },
   characterAudit: { pickers: [{ source: "characters", fill: fillCharacterAudit }], samples: ["Character audit scenes"] },
+  // Fill from book's two passes ride the audit's composer (characterProfile.js) — declared
+  // 2026-10-11; they had been seeded without a Lab entry since 2026-07-18/19.
+  characterProfile: { pickers: [{ source: "characters", fill: fillCharacterAudit }], samples: ["Character audit scenes"] },
+  characterVoice: { pickers: [{ source: "characters", fill: fillCharacterAudit }], samples: ["Character audit scenes"] },
   voiceDrift: { pickers: [{ source: "chapters", fill: fillVoiceDrift }], samples: ["Voice drift comparison"] },
   plotHoles: {
     compose: { run: () => composePlotHolesInput(useProjectStore()).variables },
@@ -295,6 +300,9 @@ export const LAB_TEST_ACTIONS = {
     samples: ["Marketing pack digest"],
   },
   recap: { compose: { run: composeRecap }, samples: ["Session recap context"] },
+  // Suggest characters: the book's frame + the cast (characterDraft.js), with no story-context
+  // ceiling — the Lab has no routed window to take a share of.
+  suggestCharacters: { compose: { run: () => composeSuggestInput(useProjectStore()).variables }, samples: ["Suggest characters"] },
   briefing: { compose: { run: composeBriefing }, samples: ["Resume briefing context"] },
   // relationshipArc: a single dropdown can't honestly pick a PAIR —
   // sample + type only (the user's decided word).
@@ -304,6 +312,10 @@ export const LAB_TEST_ACTIONS = {
   brainstorm: { samples: ["Brainstorm seed"] },
   brainstormPlot: { samples: ["Brainstorm seed"] },
   sensory: { samples: ["Sensory subject"] },
+  // The AI drafting from a description — the writer types it (2026-10-11).
+  characterProfileDraft: { samples: ["Character from a description"] },
+  characterVoiceDraft: { samples: ["Character from a description"] },
+  characterSection: { samples: ["Character sheet section"] },
   // unstuck is book prose in disguise — the chapter TAIL is where they're stuck.
   unstuck: { pickers: [{ source: "chapters", fill: fillUnstuck }], samples: ["Stuck prose"] },
 

@@ -30,7 +30,8 @@ const SEVERITY_LIST = ["flag", "suggest", "info"];
  * prepend the name because buildCharacterProfile omits it (chat sets the
  * persona name separately); the third-person voice reads as reference prose.
  */
-function buildProfileText(character, extras) {
+// Exported: the AI drafting composes the SAME profile text (characterDraft.js — one source).
+export function buildProfileText(character, extras) {
   return `Name: ${character.name || ""}${buildCharacterProfile(character, extras, { voice: "third" })}`;
 }
 
