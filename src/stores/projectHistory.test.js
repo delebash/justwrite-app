@@ -42,6 +42,7 @@ vi.mock("./sessions.js", () => ({
 
 import * as projectApi from "../services/projectApi.js";
 import { useProjectStore } from "./project.js";
+import { applyProfileDrafts } from "../services/analysis/characterProfile.js";
 
 function freshStore() {
   setActivePinia(createPinia());
@@ -110,6 +111,44 @@ describe("per-domain page-related undo (#235)", () => {
     store.undoFor(["manuscript"]);
     store.setSceneTitle(chId, scnId, "new title"); // same-domain edit
     expect(store.canRedoFor(["manuscript"])).toBe(false); // invalidated
+  });
+
+  it("lands an AI draft as ONE undo step — the record and every extras group together", () => {
+    const store = useProjectStore();
+    const cid = store.addCharacter({ name: "Mira" });
+    store.clearHistory();
+    const written = applyProfileDrafts(store, cid, [
+      { key: "oneLiner", proposed: "Guarded archivist." },
+      { key: "identity.role", proposed: "Archivist" },
+      { key: "identity.classOrigin", proposed: "dock family" },
+      { key: "motivation.want", proposed: "the ledger" },
+      { key: "function.theme", proposed: "truth costs" },
+      { key: "capabilities.limits", proposed: "cannot swim" },
+      { key: "depth.family", proposed: "two sisters" },
+      { key: "backstory", proposed: "Born at sea." },
+    ]);
+    expect(written).toBe(8);
+    expect(store._past.characters.length).toBe(1);
+    const x = store.characterExtras[cid];
+    expect([x.identity.classOrigin, x.function.theme, x.capabilities.limits, x.depth.family, x.backstory])
+      .toEqual(["dock family", "truth costs", "cannot swim", "two sisters", "Born at sea."]);
+    expect(store.characterById(cid).role).toBe("Archivist");
+
+    store.undoFor(["characters"]);
+    expect(store.characterById(cid).oneLiner || "").toBe("");
+    expect(store.characterExtras[cid]).toBeUndefined();
+  });
+
+  it("adds a list of characters as ONE undo step", () => {
+    const store = useProjectStore();
+    store.clearHistory();
+    const ids = store.addCharacters([{ name: "A", role: "smith" }, { name: "B" }, { name: "C", oneLiner: "quiet" }]);
+    expect(ids).toHaveLength(3);
+    expect(ids.map((id) => store.characterById(id).name)).toEqual(["A", "B", "C"]);
+    expect(store.characterById(ids[0]).role).toBe("smith");
+    expect(store._past.characters.length).toBe(1);
+    store.undoFor(["characters"]);
+    expect(store.characters).toHaveLength(0);
   });
 
   it("coalesces a same-action burst into one entry", () => {

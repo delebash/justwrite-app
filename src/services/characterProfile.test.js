@@ -181,25 +181,25 @@ describe("draftRows + emptyOnlyPicks — the never-overwrite property", () => {
 });
 
 describe("applyProfileDrafts", () => {
+  // One store action per apply (2026-10-11: one Apply = one undo step).
   function mockProject(extras = {}) {
-    const calls = { updateCharacter: [], setCharacterExtras: [] };
+    const calls = [];
     return {
       calls,
       characterExtras: { c1: extras },
-      updateCharacter: (id, patch) => calls.updateCharacter.push([id, patch]),
-      setCharacterExtras: (id, patch) => calls.setCharacterExtras.push([id, patch]),
+      applyCharacterDraft: (id, draft) => calls.push([id, draft]),
     };
   }
 
-  it("batches identity + oneLiner into ONE updateCharacter, age as a number", () => {
+  it("patches identity + oneLiner on the record in the ONE call, age as a number", () => {
     const p = mockProject();
     const written = applyProfileDrafts(p, "c1", [
       { key: "identity.role", proposed: "Prism" },
       { key: "identity.age", proposed: "34" },
       { key: "oneLiner", proposed: "a line" },
     ]);
-    expect(p.calls.updateCharacter).toHaveLength(1);
-    expect(p.calls.updateCharacter[0]).toEqual(["c1", { role: "Prism", age: 34, oneLiner: "a line" }]);
+    expect(p.calls).toHaveLength(1);
+    expect(p.calls[0]).toEqual(["c1", { patch: { role: "Prism", age: 34, oneLiner: "a line" }, extras: null }]);
     expect(written).toBe(3);
   });
 
@@ -210,16 +210,30 @@ describe("applyProfileDrafts", () => {
       { key: "voice.register", proposed: "formal" },
       { key: "presence.stressTells", proposed: "goes still" },
     ]);
-    const patch = Object.assign({}, ...p.calls.setCharacterExtras.map((c) => c[1]));
-    expect(patch.motivation).toEqual({ want: "keep me", fear: "being seen" });   // sibling kept
-    expect(patch.voice).toEqual({ accent: "keep me too", register: "formal" });  // sibling kept
-    expect(patch.presence).toEqual({ stressTells: "goes still" });
+    const { extras } = p.calls[0][1];
+    expect(extras.motivation).toEqual({ want: "keep me", fear: "being seen" });   // sibling kept
+    expect(extras.voice).toEqual({ accent: "keep me too", register: "formal" });  // sibling kept
+    expect(extras.presence).toEqual({ stressTells: "goes still" });
+  });
+
+  it("lands every sheet group, and drops a group the sheet doesn't have", () => {
+    const p = mockProject();
+    const written = applyProfileDrafts(p, "c1", [
+      { key: "function.theme", proposed: "truth costs" },
+      { key: "depth.family", proposed: "two sisters" },
+      { key: "invented.thing", proposed: "dropped" },
+    ]);
+    const { extras } = p.calls[0][1];
+    expect(extras.function).toEqual({ theme: "truth costs" });
+    expect(extras.depth).toEqual({ family: "two sisters" });
+    expect(extras.invented).toBeUndefined();
+    expect(written).toBe(2);
   });
 
   it("age → null when non-numeric; empty picks write nothing", () => {
     const p = mockProject();
     applyProfileDrafts(p, "c1", [{ key: "identity.age", proposed: "unknown" }]);
-    expect(p.calls.updateCharacter[0][1]).toEqual({ age: null });
+    expect(p.calls[0][1].patch).toEqual({ age: null });
     expect(applyProfileDrafts(p, "c1", [])).toBe(0);
   });
 });

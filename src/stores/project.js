@@ -33,6 +33,11 @@ const uid = (p) => {
   return `${p}_${Date.now().toString(36)}_${r[0].toString(36).padStart(7, "0")}${r[1].toString(36).padStart(7, "0")}`;
 };
 
+// A new character record — ONE shape for addCharacter and addCharacters.
+function newCharacter(input = {}) {
+  return { id: uid("c"), main: false, age: null, gender: "", pronouns: "", aliases: [], lifeStatus: "", oneLiner: "", role: "", name: "Untitled character", tags: [], ...input };
+}
+
 function wordCountFromHtml(html) {
   if (!html) return 0;
   const text = String(html).replace(/<[^>]+>/g, " ").trim();
@@ -394,6 +399,7 @@ const ACTION_DOMAINS = {
   restoreChapterScenes: "manuscript", reorderScenes: "manuscript",
   addCharacter: "characters", removeCharacter: "characters", updateCharacter: "characters",
   setCharacterExtras: "characters", reorderCharacters: "characters",
+  addCharacters: "characters", applyCharacterDraft: "characters",
   addLocation: "locations", removeLocation: "locations", updateLocation: "locations",
   reorderLocations: "locations",
   addObject: "objects", removeObject: "objects", updateObject: "objects", reorderObjects: "objects",
@@ -1443,10 +1449,30 @@ export const useProjectStore = defineStore("project", {
     // ── Characters ──────────────────────────────────────────
     addCharacter(input = {}) {
       this._record("addCharacter");
-      const id = uid("c");
-      this.characters.push({ id, main: false, age: null, gender: "", pronouns: "", aliases: [], lifeStatus: "", oneLiner: "", role: "", name: "Untitled character", tags: [], ...input });
+      const c = newCharacter(input);
+      this.characters.push(c);
       this._persist();
-      return id;
+      return c.id;
+    },
+    // Several at once — Suggest characters' "Add {n} to story bible" — as ONE undo step.
+    addCharacters(list) {
+      if (!list?.length) return [];
+      this._record("addCharacters");
+      const made = list.map((input) => newCharacter(input));
+      this.characters.push(...made);
+      this._persist();
+      return made.map((c) => c.id);
+    },
+    // An applied AI draft (Fill from book, a description, a section) as ONE undo step: the
+    // record's fields and the extras groups together (2026-10-11 — it was two).
+    applyCharacterDraft(id, { patch = null, extras = null } = {}) {
+      const hasPatch = patch && Object.keys(patch).length;
+      const hasExtras = extras && Object.keys(extras).length;
+      if (!hasPatch && !hasExtras) return;
+      this._record("applyCharacterDraft");
+      if (hasPatch) this.characters = this.characters.map((c) => c.id === id ? { ...c, ...patch } : c);
+      if (hasExtras) this.characterExtras = { ...this.characterExtras, [id]: { ...(this.characterExtras[id] || {}), ...extras } };
+      this._persist();
     },
     removeCharacter(id) {
       this._record("removeCharacter");

@@ -10,6 +10,7 @@
 // PROPOSAL the writer reviews before anything is saved (the sweep's
 // nothing-lands-without-confirm rule).
 
+import { SHEET_SECTIONS } from "../characterSheet.js";
 import { runJsonAnalysis } from "../runJson.js";
 import { composeCharacterAuditInput } from "./characterAudit.js";
 
@@ -217,16 +218,21 @@ export function emptyOnlyPicks(defs, fields) {
   return out;
 }
 
+// Every extras group the sheet edits (services/characterSheet.js) — a drafted key in one of
+// them lands; any other key is dropped (a model-invented group never reaches the record).
+const EXTRAS_GROUPS = [...new Set(SHEET_SECTIONS.flatMap((s) => s.fields.map((f) => f.group)))].filter((g) => g !== "_top");
+
 /** Route accepted drafts onto a character. `picks` = [{ key, proposed }].
- *  Identity facts + oneLiner batch into ONE updateCharacter; every other key
- *  (group.field) merges into its extras group without clobbering siblings.
- *  THE one apply path — the single modal AND the batch modal both call this.
+ *  Identity facts + oneLiner patch the record; every other key (group.field) merges into its
+ *  extras group without clobbering siblings; "backstory" is the top-level extras string. One
+ *  store action, so one Apply is ONE undo step (2026-10-11).
+ *  THE one apply path — Fill from book (single + batch) and every AI draft call this.
  *  @returns {number} fields written */
 export function applyProfileDrafts(project, characterId, picks) {
   if (!project || !characterId || !picks?.length) return 0;
   const extras = project.characterExtras?.[characterId] || {};
   const charPatch = {};
-  const groups = { motivation: {}, arc: {}, continuity: {}, voice: {}, presence: {} };
+  const groups = Object.fromEntries(EXTRAS_GROUPS.map((g) => [g, {}]));
   let backstory;
   for (const p of picks) {
     const v = String(p.proposed ?? "").trim();
@@ -238,14 +244,13 @@ export function applyProfileDrafts(project, characterId, picks) {
     else if (p.key === "backstory") backstory = v;
     else { const [g, k] = p.key.split("."); if (groups[g]) groups[g][k] = v; }
   }
-  if (Object.keys(charPatch).length) project.updateCharacter(characterId, charPatch);
   let extrasPatch = null;
   if (backstory !== undefined) extrasPatch = { backstory };
   for (const [g, patch] of Object.entries(groups)) {
     if (!Object.keys(patch).length) continue;
     extrasPatch = { ...(extrasPatch || {}), [g]: { ...(extras[g] || {}), ...patch } };
   }
-  if (extrasPatch) project.setCharacterExtras(characterId, extrasPatch);
+  project.applyCharacterDraft(characterId, { patch: charPatch, extras: extrasPatch });
   let written = Object.keys(charPatch).length + (backstory !== undefined ? 1 : 0);
   for (const patch of Object.values(groups)) written += Object.keys(patch).length;
   return written;
