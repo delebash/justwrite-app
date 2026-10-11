@@ -35,7 +35,9 @@ const log = getLogger("justwrite_server.sync");
  * devices can't apply (the engine refuses newer batches: "update JustWrite on this device"). */
 // 2 (2026-10-11): scenes gained `pov` and `"when"`. A version-1 device would apply a scene change
 // without them and, once updated, never receive the values it skipped — so it asks to be updated.
-export const SYNC_SCHEMA_VERSION = 2;
+// 3 (2026-10-11): scenes, characters, locations, objects and groups gained `status` and
+// `exclude_from_ai`; worldbuilding gained `exclude_from_ai`. Same reason as 2.
+export const SYNC_SCHEMA_VERSION = 3;
 
 // ── scene text: merged edit by edit through Yjs, on the editor's own schema ──────────────
 

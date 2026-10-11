@@ -56,4 +56,17 @@ export const ADDED_COLUMNS = [
   // 2026-10-11: the scene's narration mode and story time (the Links panel) were never stored.
   ["scenes", "pov", "VARCHAR"],
   ["scenes", "when", "VARCHAR NOT NULL DEFAULT ''"],
+  // 2026-10-11: the status picker and "Exclude from AI" on scenes and the story-world pages were
+  // never stored either (worldbuilding already kept its status).
+  ["scenes", "status", "VARCHAR NOT NULL DEFAULT ''"],
+  ["scenes", "exclude_from_ai", "BOOLEAN NOT NULL DEFAULT 0"],
+  ["characters", "status", "VARCHAR NOT NULL DEFAULT ''"],
+  ["characters", "exclude_from_ai", "BOOLEAN NOT NULL DEFAULT 0"],
+  ["locations", "status", "VARCHAR NOT NULL DEFAULT ''"],
+  ["locations", "exclude_from_ai", "BOOLEAN NOT NULL DEFAULT 0"],
+  ["objects", "status", "VARCHAR NOT NULL DEFAULT ''"],
+  ["objects", "exclude_from_ai", "BOOLEAN NOT NULL DEFAULT 0"],
+  ["groups", "status", "VARCHAR NOT NULL DEFAULT ''"],
+  ["groups", "exclude_from_ai", "BOOLEAN NOT NULL DEFAULT 0"],
+  ["worldbuilding", "exclude_from_ai", "BOOLEAN NOT NULL DEFAULT 0"],
 ];

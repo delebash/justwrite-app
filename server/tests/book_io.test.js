@@ -6,6 +6,7 @@
 import { join } from "node:path";
 import { openDatabase } from "@delebash/llm-runner/platform/sql";
 import { expect, test } from "vitest";
+import { ADDED_COLUMNS, TABLES } from "../src/database/models.js";
 import { client, tmpPath, useHermeticKit } from "./helpers.js";
 
 useHermeticKit();
@@ -45,9 +46,10 @@ function canonicalBook() {
     scenes: {
       ch1: [
         // pov (a POV_OPTIONS slug, null when unset) + when (the story time, "" when unset): the
-        // Links panel sets both — lost on every save until 2026-10-11.
-        { id: "scn1", title: "The key", body: "<p>The key turned.</p>", pov: "limited-third", when: "1881-06-15T09:00", characters: ["c1"], locations: ["l1"], objects: ["o1"], strands: ["s1"] },
-        { id: "scn2", title: "", body: "<p>Cedar and ash.</p>", pov: null, when: "", characters: ["c1", "c2"], locations: [], objects: [], strands: ["s2"] },
+        // Links panel sets both — lost on every save until 2026-10-11. So were status (a statuses
+        // id, "" when unset) and excludeFromAi, here and on the story-world entities below.
+        { id: "scn1", title: "The key", body: "<p>The key turned.</p>", pov: "limited-third", when: "1881-06-15T09:00", status: "draft", excludeFromAi: true, characters: ["c1"], locations: ["l1"], objects: ["o1"], strands: ["s1"] },
+        { id: "scn2", title: "", body: "<p>Cedar and ash.</p>", pov: null, when: "", status: "", excludeFromAi: false, characters: ["c1", "c2"], locations: [], objects: [], strands: ["s2"] },
       ],
       ch2: [],
     },
@@ -64,6 +66,8 @@ function canonicalBook() {
         role: "Protagonist",
         name: "Elen Vael",
         tags: ["lead"],
+        status: "done",
+        excludeFromAi: false,
       },
       {
         id: "c2",
@@ -77,19 +81,23 @@ function canonicalBook() {
         role: "Father",
         name: "Idris Vael",
         tags: [],
+        status: "",
+        excludeFromAi: true,
       },
     ],
     characterExtras: {
       c1: { voice: { accent: "north" }, motivation: { want: "freedom" }, quotes: ["..."] },
     },
-    locations: [{ id: "l1", name: "Halden House", kind: "Home", note: "Cliff road.", tags: ["setting"] }],
-    objects: [{ id: "o1", name: "The Ledger", kind: "Manuscript", note: "84 pages.", tags: [] }],
+    locations: [{ id: "l1", name: "Halden House", kind: "Home", note: "Cliff road.", tags: ["setting"], status: "todo", excludeFromAi: true }],
+    objects: [{ id: "o1", name: "The Ledger", kind: "Manuscript", note: "84 pages.", tags: [], status: "", excludeFromAi: false }],
     groups: [
       {
         id: "g1",
         name: "The Vael family",
         blurb: "Three generations.",
         color: "red",
+        status: "draft",
+        excludeFromAi: true,
         members: [
           { kind: "character", id: "c1", name: "Elen Vael" },
           { kind: "character", id: "c2", name: "Idris Vael" },
@@ -119,8 +127,8 @@ function canonicalBook() {
       setting: { id: "setting", title: "Setting", status: "draft", words: 90, body: "..." },
     },
     worldbuilding: [
-      { id: "wb1", category: "geography", title: "North Coast", tags: ["setting"], status: "done", words: 540, summary: "s", body: "b", related: ["wb2"] },
-      { id: "wb2", category: "geography", title: "Brackish Cove", tags: ["disputed"], status: "draft", words: 230, summary: "s2", body: "b2", related: ["wb1"] },
+      { id: "wb1", category: "geography", title: "North Coast", tags: ["setting"], status: "done", words: 540, summary: "s", body: "b", related: ["wb2"], excludeFromAi: true },
+      { id: "wb2", category: "geography", title: "Brackish Cove", tags: ["disputed"], status: "draft", words: 230, summary: "s2", body: "b2", related: ["wb1"], excludeFromAi: false },
     ],
     worldbuildingCategories: [
       { id: "geography", label: "Geography", icon: "Pin", hue: 130 },
@@ -176,14 +184,20 @@ test("book_round_trips", async () => {
   expect((await c.get("/v1/projects/prj1/book")).json()).toEqual(book);
 });
 
-// A database made before scenes had `pov` / `"when"` gains both at boot (ADDED_COLUMNS) and then
-// round-trips them — no reset, so a writer's existing books survive the upgrade.
-test("an_older_database_gains_the_scene_columns", async () => {
+// A database made before the ADDED_COLUMNS columns existed (scenes' pov / "when"; status and
+// exclude_from_ai on scenes and the story-world tables — all 2026-10-11) gains every one at boot
+// and then round-trips them — no reset, so a writer's existing books survive the upgrade.
+test("an_older_database_gains_the_added_columns", async () => {
   const dir = tmpPath();
   const old = openDatabase(join(dir, "justwrite.db"), { foreignKeys: true });
-  old.exec(
-    "CREATE TABLE scenes (\n\tproject_id VARCHAR NOT NULL, \n\tid VARCHAR NOT NULL, \n\tchapter_id VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\ttitle VARCHAR NOT NULL, \n\tbody TEXT NOT NULL, \n\tPRIMARY KEY (project_id, id), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
-  );
+  // Each such table as it was made before: today's DDL without its added columns' lines.
+  for (const table of new Set(ADDED_COLUMNS.map(([t]) => t))) {
+    const added = ADDED_COLUMNS.filter(([t]) => t === table).map(([, column]) => column);
+    const isAdded = (line) => added.some((column) => line.startsWith(`\t${column} `) || line.startsWith(`\t"${column}" `));
+    old.exec(TABLES.find((t) => t.name === table).ddl.split("\n").filter((line) => !isAdded(line)).join("\n"));
+    const made = old.all(`PRAGMA table_info(${table})`).map((c) => c.name);
+    for (const column of added) expect(made).not.toContain(column);
+  }
   old.close();
   const c = await client(dir);
   const book = canonicalBook();

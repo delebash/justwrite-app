@@ -136,6 +136,21 @@ describe("buildEntityCards", () => {
     expect(bren.text).not.toContain("fears from Aria"); // empty → no line
   });
 
+  // Task 0 (2026-10-11): "Exclude from AI" hides an entity's own card and drops it from the cast
+  // roster, so every card reader — Ask the book, Talk to, the story context — honours it.
+  it("skips an excluded entity's card and drops an excluded character from the cast roster", () => {
+    const p = fixtureProject();
+    for (const list of [p.characters, p.locations, p.objects, p.groups, p.worldbuilding]) list[0].excludeFromAi = true;
+    const ids = buildEntityCards(p).map((c) => c.id);
+    for (const gone of ["card:character:c_aria", "card:location:l_customs", "card:object:o_ledger", "card:group:g1", "card:worldbuilding:wb1"]) {
+      expect(ids.filter((id) => id === gone || id.startsWith(`${gone}:`))).toEqual([]);
+    }
+    expect(ids).toContain("card:character:c_bren");
+    expect(ids.some((id) => id.startsWith("card:worldbuilding:wb2"))).toBe(true);
+    const cast = buildEntityCards(p).find((c) => c.id === "card:cast:main");
+    expect(cast?.text || "").not.toContain("Aria");
+  });
+
   it("builds a compact main-cast roster — one line per main, non-mains excluded", () => {
     const cast = cardById(cards, "card:cast:main");
     expect(cast.kind).toBe("cast");

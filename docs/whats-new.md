@@ -20,11 +20,20 @@ AI for people your book doesn't have yet — say what you're looking for, or lea
 it blank. Tick the ones you want and add them to your story bible. See
 [Story bible](story-bible.md#suggest-characters-who-is-this-book-missing).
 
+**Status and Exclude from AI are kept.** The status you pick for a scene, character, location,
+object or group, and the **Exclude from AI** box on those and on worldbuilding articles, were
+forgotten when the book was reopened. They're saved now. And Exclude from AI now does what it says
+for characters, locations, objects, groups and articles: Ask the book, Talk to a character and AI
+drafting leave them out (it already worked for scenes, until the book was reopened). Earlier
+settings couldn't be recovered, so set them again where you need them. See
+[Keeping content out of AI context](ai-providers.md#keeping-content-out-of-ai-context).
+
 **A scene's POV and "When" are kept.** The two answers you give in a scene's
 [Links panel](writing.md#the-links-panel), the POV perspective and when the scene happens, were
 lost the next time the book was saved and reopened. They're saved now. Earlier answers
 couldn't be recovered, so set them again where you need them. If you sync, update JustWrite on
-each device: one on an older version asks to be updated before it syncs again.
+each device: one on an older version asks to be updated before it syncs again (for both of these
+fixes).
 
 ---
 

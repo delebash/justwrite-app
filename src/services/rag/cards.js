@@ -163,9 +163,14 @@ function relationshipLines(project, characterId, nameOf) {
 
 // ── per-kind builders ────────────────────────────────────────────────────
 
+// "Exclude from AI" (the checkbox on each story-world page): the entity gets no card, so no card
+// reader — Ask the book, Talk to, the story context — sends it. Names other entities' text uses
+// for it (a group's member list, a scene's links line, a relationship) stay theirs.
+const included = (list) => (list || []).filter((e) => !e?.excludeFromAi);
+
 function characterCards(project, index, nameOf) {
   const out = [];
-  for (const c of project.characters || []) {
+  for (const c of included(project.characters)) {
     const header = `${c.name}${c.main ? " (main character)" : ""}`;
     const lines = [header];
     const profile = buildCharacterProfile(c, project.characterExtras?.[c.id] || null, { voice: "third" });
@@ -202,7 +207,7 @@ function characterCards(project, index, nameOf) {
 function placeThingCards(project, index, nameOf, kind) {
   const list = kind === "location" ? project.locations : project.objects;
   const byId = kind === "location" ? index.byLocation : index.byObject;
-  return (list || []).map((e) => {
+  return included(list).map((e) => {
     const lines = [`${e.name}${e.kind ? ` (${e.kind})` : ""}`];
     if (e.note) lines.push(e.note);
     if (tagsLine(e)) lines.push(tagsLine(e));
@@ -227,7 +232,7 @@ function placeThingCards(project, index, nameOf, kind) {
 }
 
 function groupCards(project, nameOf) {
-  return (project.groups || []).map((g) => {
+  return included(project.groups).map((g) => {
     const lines = [g.name];
     if (g.blurb) lines.push(g.blurb);
     const members = (g.members || [])
@@ -273,7 +278,7 @@ function worldbuildingCards(project) {
   const catLabel = (id) =>
     (project.worldbuildingCategories || []).find((c) => c.id === id)?.label || id || "";
   const out = [];
-  for (const a of project.worldbuilding || []) {
+  for (const a of included(project.worldbuilding)) {
     const header = [`${a.title} (${catLabel(a.category)})`];
     if (a.summary) header.push(a.summary);
     if (tagsLine(a)) header.push(tagsLine(a));
@@ -354,7 +359,7 @@ function architectureCards(project) {
 // depth rides retrieval over the split cards. Falls back to the first several characters
 // when NONE are flagged main, so a project that never set the flag still gets a cast.
 function mainCastCard(project) {
-  const chars = project.characters || [];
+  const chars = included(project.characters);
   const mains = chars.filter((c) => c?.main);
   const cast = mains.length ? mains : chars.slice(0, 8);
   const lines = cast

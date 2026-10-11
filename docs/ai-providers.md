@@ -23,7 +23,7 @@ A provider can speak more than one of these. **OpenAI**, for example, provides L
 
 ## Keeping content out of AI context
 
-Every scene's **Links** panel and every character / location / object / group / worldbuilding article has an **Exclude from AI** checkbox. Tick it and that item is skipped by Ask-the-Book retrieval and any future feature that pulls scene or entity text into an LLM prompt. Use it for spoilers you haven't planted yet, drafts you don't want surfaced in chat answers, or sensitive backstory the model shouldn't read. The flag stays with the item; nothing else changes about how you write it.
+Every scene's **Links** panel and every character / location / object / group / worldbuilding article has an **Exclude from AI** checkbox. Tick it and that item is left out of what the AI is sent: Ask the book and Talk to a character stop pulling it in — their search from the index's next refresh, which **Auto-rebuild** does for you — and AI drafting leaves it out of the story context. Use it for spoilers you haven't planted yet, drafts you don't want surfaced in chat answers, or sensitive backstory the model shouldn't read. Its name can still reach the AI where something else mentions it: your prose, another character's relationships, a group's member list. The flag stays with the item; nothing else changes about how you write it.
 
 ---
 

@@ -99,7 +99,8 @@ BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV 
         saved; existing databases gain the columns at boot; sync schema 2; whats-new. Decision 9 —
         the three user-doc errors fixed (getting-started.md auto-update; writing.md "When" and
         Entity sweep). Plan Tasks 1–9 and 11 (the kit's `1476549` `b9ea75d`; `d797c1f`,
-        `c2a98c5` + `850a848`, `4b9f073`, `52222e0`, `7d66857`, `72ddd50`, `7c07ce9`, `a976c34`).
+        `c2a98c5` + `850a848`, `4b9f073`, `52222e0`, `7d66857`, `72ddd50`, `7c07ce9`, `a976c34`). Task 0 — status and Exclude from AI kept (sync schema 3), and honoured by
+        every card reader.
 OPEN:   in the third round's order: Task 0; the Lab check (the user); Task 11b; Task 9b, then
         Task 10; Tasks 12–15. After them, per decision 2: the translation work, then the sheets and
         slices 3–4.

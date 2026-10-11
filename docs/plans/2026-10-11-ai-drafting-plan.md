@@ -57,6 +57,10 @@ ticked here with its commit when it lands.
 
 ## Task 0 — Status and Exclude from AI are lost on save (go 2026-10-11, the third round)
 
+**Built** 2026-10-11 — the commit "Status and Exclude from AI are kept". Names that other entities'
+text uses for an excluded entity (a group's member list, a scene's links line, a relationship)
+stay in those cards: the flag removes the entity's own card and its cast-roster line.
+
 Found 2026-10-11 while building the composer (a scratch round-trip on a temp database): the
 server stores no `status` for scenes, characters, locations, objects, groups and no
 `excludeFromAi` for those plus worldbuilding articles — both come back `undefined` after a save.
@@ -66,7 +70,13 @@ context." The fix, when approved: columns `status VARCHAR NOT NULL DEFAULT ''` a
 `exclude_from_ai BOOLEAN NOT NULL DEFAULT 0` via `ADDED_COLUMNS` (the `d55f8f5` path), both ways
 in `book_io`, the round-trip fixture, sync schema 3, whats-new; and `buildEntityCards` skips an
 excluded entity (so chat, character chat and the composer all honour it). Until then the
-composer filters on the flag in memory (Task 4), which works within a session only.
+composer filtered on the flag in memory (Task 4), which worked within a session only.
+
+- [x] The round-trip fixture carries both on every entity (set and unset); a database made before
+  any ADDED_COLUMNS column gains them all at boot; the cards skip an excluded entity. On a copy
+  of data/: the upgrade adds the columns, no story table changes its row count, The Ninth Facet
+  loads with the new fields at their defaults and saves back unchanged; in the browser a
+  character's status and Exclude from AI and a location's status survive a reload.
 
 ## Task 1 — The kit: the resolved route carries the model's context window
 
