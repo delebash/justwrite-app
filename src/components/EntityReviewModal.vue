@@ -7,6 +7,7 @@
 // commit is an explicit confirm.
 
 import { ref, computed, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { proposeSceneLinks } from "../services/rag/entityMatcher.js";
@@ -27,11 +28,14 @@ const props = defineProps({
   eyebrow: { type: String, default: "" },
   desc: { type: String, default: "" },
   emptyMessage: { type: String, default: "" },
+  // The sweep finds nicknames in the prose; invented characters (Suggest characters) have none.
+  showAliases: { type: Boolean, default: true },
 });
 const emit = defineEmits(["close", "committed"]);
 
 const project = useProjectStore();
 const ui = useUiStore();
+const { t } = useI18n({ useScope: "global" });
 
 // Local editable rows so the user can tweak names/blurbs before
 // committing. Mirrors the prop shape and adds an "accept" flag.
@@ -83,8 +87,7 @@ function commit() {
   }
 
   ui.showToast({
-    message: `Added ${added} ${added === 1 ? "entity" : "entities"} to the story bible.` +
-      (linked ? ` Linked to ${linked} scene${linked === 1 ? "" : "s"}.` : ""),
+    message: t("entityReview.added", { n: added }) + (linked ? ` ${t("entityReview.linked", { n: linked }, linked)}` : ""),
   });
   // WS-C: the accepted characters' ids so the caller can offer to draft their
   // profiles in one batch (Fill from book) right after the sweep.
@@ -93,17 +96,18 @@ function commit() {
   emit("close");
 }
 
+// Each section's heading and its two fields' placeholders are catalog keys (the pages' own words).
 const SECTIONS = [
-  { key: "characters", label: "Characters", icon: "Users", primary: "role",     blurb: "oneLiner" },
-  { key: "locations",  label: "Locations",  icon: "Pin",   primary: "kind",     blurb: "note" },
-  { key: "objects",    label: "Objects",    icon: "Cube",  primary: "kind",     blurb: "note" },
+  { key: "characters", label: "nav.characters", icon: "Users", primary: "role", primaryHint: "characters.columns.role",   blurb: "oneLiner", blurbHint: "characters.detail.oneLiner" },
+  { key: "locations",  label: "nav.locations",  icon: "Pin",   primary: "kind", primaryHint: "locations.kindPlaceholder", blurb: "note",     blurbHint: "common.description" },
+  { key: "objects",    label: "nav.objects",    icon: "Cube",  primary: "kind", primaryHint: "objects.kindPlaceholder",   blurb: "note",     blurbHint: "common.description" },
 ];
 
 // Tooltip listing every chapter an entity was found in. Used when more
 // origins overflow the chip cap of 6.
 function originTitle(originChapters) {
   if (!originChapters?.length) return "";
-  return originChapters.map((oc) => `Ch. ${oc.num} — ${oc.title || "Untitled"}`).join("\n");
+  return originChapters.map((oc) => `${t("common.chapterShort", { num: oc.num })} — ${oc.title || t("entitySweep.untitled")}`).join("\n");
 }
 </script>
 
@@ -126,7 +130,7 @@ function originTitle(originChapters) {
       <section v-for="sec in SECTIONS" :key="sec.key" v-show="rows[sec.key].length" class="er-section">
         <header class="er-section-h">
           <Icon :name="sec.icon" :size="13" />
-          <h3>{{ sec.label }}</h3>
+          <h3>{{ $t(sec.label) }}</h3>
           <span class="t-muted">{{ $t("common.selectedOf", { selected: counts[sec.key], total: rows[sec.key].length }) }}</span>
           <!-- .tb-text has no global definition (it lives only in RichEditor's
                scoped block) — the resolving modifier is .tb-btn.wide, which
@@ -142,13 +146,13 @@ function originTitle(originChapters) {
             <div class="er-fields">
               <div class="er-fields-row">
                 <input class="er-name" v-model="r.name" :placeholder="$t('entityReview.namePlaceholder')" :disabled="!r.accept" />
-                <input class="er-primary" v-model="r[sec.primary]" :placeholder="sec.primary" :disabled="!r.accept" />
+                <input class="er-primary" v-model="r[sec.primary]" :placeholder="$t(sec.primaryHint)" :disabled="!r.accept" />
               </div>
-              <input class="er-blurb" v-model="r[sec.blurb]" :placeholder="sec.blurb" :disabled="!r.accept" />
+              <input class="er-blurb" v-model="r[sec.blurb]" :placeholder="$t(sec.blurbHint)" :disabled="!r.accept" />
               <!-- E3: the sweep proposes aliases for characters — editable
                    (comma-separated) before accept; they feed dedupe, pinning,
                    and the scene-link matcher. -->
-              <input v-if="sec.key === 'characters'" class="er-blurb"
+              <input v-if="sec.key === 'characters' && showAliases" class="er-blurb"
                 :value="Array.isArray(r.aliases) ? r.aliases.join(', ') : (r.aliases || '')"
                 :placeholder="$t('entityReview.aliasesPlaceholder')" :disabled="!r.accept"
                 @input="r.aliases = $event.target.value" />

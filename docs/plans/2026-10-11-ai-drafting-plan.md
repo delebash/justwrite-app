@@ -287,6 +287,8 @@ out so they are testable), `en.json` + `es.json`, `docs/story-bible.md`, `docs/a
 
 ## Task 11b — Suggest characters in Entity sweep's shape (the third round, points 3–5)
 
+**Built** 2026-10-11 — the commit "Suggest characters gets its own window".
+
 Task 11 shipped a quick dialog and a spinner on the header button: leaving the page while it runs
 loses the answer (it lands in the page's own state; pages aren't kept alive), Cancel is only in
 the AI tasks panel, and a failure is only a toast. The spec (§3.4) said "shaped like
@@ -300,7 +302,7 @@ does); `CharactersPage.vue` (the button opens it; the dialog and the page-held r
 ("Added {n} to the story bible.") through i18n, and the Aliases box only for Entity sweep rows;
 `en.json`, `es.json`; docs.
 
-- [ ] The flow driven in a browser on a scratch copy (the model's reply stubbed): Cancel in the
+- [x] The flow driven in a browser on a scratch copy (the model's reply stubbed): Cancel in the
   window while running; the error in the window; Entity sweep's review unchanged. Smoke. Commit.
 
 ## Task 12 — Save to sheet from Talk to {name}

@@ -13,11 +13,11 @@ import { UiNumber } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
-import { UiMenu, UiMenuItem, useAiTasksStore } from "@delebash/llm-ui";
+import { UiMenu, UiMenuItem } from "@delebash/llm-ui";
 import EntityIndex from "../components/EntityIndex.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
-import EntityReviewModal from "../components/EntityReviewModal.vue";
+import SuggestCharactersModal from "../components/SuggestCharactersModal.vue";
 import CharacterAuditModal from "../components/CharacterAuditModal.vue";
 import RelationshipArcModal from "../components/RelationshipArcModal.vue";
 import StatusSelect from "../components/StatusSelect.vue";
@@ -30,13 +30,12 @@ import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import { Breadcrumb } from "@delebash/llm-ui";
 import { HelpTrigger } from "@delebash/llm-ui";
-import { confirmDialog, promptDialog } from "@delebash/llm-ui";
+import { confirmDialog } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
 import {
   ARC_FIELDS, CAPABILITY_FIELDS, CONTINUITY_FIELDS, CORE_ENGINE_FIELDS, DEPTH_FIELDS, FUNCTION_FIELDS,
   IDENTITY_FIELDS, MOTIVATION_CORE, PRESENCE_FIELDS, VOICE_FIELDS, isThinCharacter, sectionCount,
 } from "../services/characterSheet.js";
-import { suggestCharacters } from "../services/analysis/characterDraft.js";
 import { saveImage } from "../services/imageStore.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 
@@ -75,32 +74,8 @@ const ch = computed(() => props.id ? project.characterById(props.id) : null);
 const extras = computed(() => project.characterExtras[ch.value?.id]);
 const modal = ref(null);
 
-// ── Suggest characters (2026-10-11, the AI drafting spec §3.4) ─────────
-// An optional ask, then the book's frame + cast → proposals in the review list Entity sweep
-// uses; "Add {n} to story bible" adds the ticked ones as ONE undo step.
-const aiTasks = useAiTasksStore();
-const suggesting = computed(() =>
-  !!aiTasks.runningTasks.find((task) => task.feature === "brainstorm" && task.meta?.kind === "suggest-characters"));
-const suggestions = ref(null); // { characters, locations: [], objects: [] }
-async function openSuggest() {
-  const values = await promptDialog({
-    title: t("characters.suggest.dialogTitle"),
-    message: t("characters.suggest.dialogMessage"),
-    fields: [{
-      key: "lookingFor", label: t("characters.suggest.lookingForLabel"), type: "textarea", rows: 3,
-      placeholder: t("characters.suggest.lookingForPlaceholder"), optional: true,
-    }],
-    confirmLabel: t("characters.suggest.confirm"),
-  });
-  if (!values) return;
-  try {
-    const list = await suggestCharacters({ project, lookingFor: String(values.lookingFor || "").trim() });
-    suggestions.value = { characters: list.map((c) => ({ ...c, aliases: [] })), locations: [], objects: [] };
-  } catch (e) {
-    const msg = e?.message || String(e);
-    if (!/abort|cancel/i.test(msg)) ui.showToast({ message: msg });
-  }
-}
+// Suggest characters (the AI drafting spec §3.4): its own window, in Entity sweep's shape.
+const suggestOpen = ref(false);
 
 // ── AI drafting (2026-10-11, the AI drafting spec §3) ───────────────────
 // The review window's run: { source: "book" | "description" | "section", description, sectionKey }.
@@ -381,8 +356,7 @@ function onRowClick(event) {
         <UiButton intent="ghost" size="small" @click="relationshipArcOpen = true" v-tooltip.bottom="$t('characters.header.relationshipArcTooltip')">
           <Icon name="Network" :size="13" /> {{ $t("characters.header.relationshipArc") }}
         </UiButton>
-        <UiButton intent="ghost" size="small" :loading="suggesting" :disabled="suggesting" @click="openSuggest"
-          v-tooltip.bottom="$t('characters.suggest.tooltip')">
+        <UiButton intent="ghost" size="small" @click="suggestOpen = true" v-tooltip.bottom="$t('characters.suggest.tooltip')">
           <Icon name="Sparkle" :size="13" /> {{ $t("characters.suggest.button") }}
         </UiButton>
         <UiButton intent="ghost" size="small" @click="batchFillOpen = true" v-tooltip.bottom="$t('characters.header.fillFromBookTooltip')">
@@ -806,10 +780,7 @@ function onRowClick(event) {
     <RelationshipArcModal v-if="relationshipArcOpen"
       @close="relationshipArcOpen = false" />
 
-    <EntityReviewModal v-if="suggestions" :proposals="suggestions"
-      :eyebrow="$t('characters.suggest.eyebrow')" :desc="$t('characters.suggest.desc')"
-      :empty-message="$t('characters.suggest.empty')"
-      @close="suggestions = null" @committed="suggestions = null" />
+    <SuggestCharactersModal v-if="suggestOpen" @close="suggestOpen = false" />
     <CharacterBatchFillModal v-if="batchFillOpen"
       :pre-checked-ids="batchFillIds"
       @close="batchFillOpen = false; batchFillIds = null" />

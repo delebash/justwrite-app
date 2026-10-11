@@ -621,7 +621,8 @@
     "chaptersFailed": "{chapters} falló",
     "reviewFound": "Revisar {n} encontrado",
     "scanAction": "Escanear {chapters}",
-    "retryFailed": "Reintentar {n} fallido"
+    "retryFailed": "Reintentar {n} fallido",
+    "wholeBookTitle": "Análisis de todo el libro"
   },
   "chat": {
     "talkToCharacter": "Hablar con un personaje",
@@ -1349,7 +1350,9 @@
     "aliasesPlaceholder": "alias (separados por comas)",
     "foundIn": "Encontrado en",
     "quote": "Cita",
-    "addAction": "Añadir {n} a la biblia de la historia"
+    "addAction": "Añadir {n} a la biblia de la historia",
+    "added": "Se añadieron {n} a la biblia de la historia.",
+    "linked": "Vinculados a {n} escena. | Vinculados a {n} escenas."
   },
   "characterProfile": {
     "eyebrow": "Rellenar desde el libro",
@@ -2518,8 +2521,8 @@
     "suggest": {
       "button": "Sugerir personajes…",
       "tooltip": "Sugiere personajes que tu libro aún no tiene, a partir de su premisa y su reparto; tú eliges cuáles añadir",
-      "dialogTitle": "Sugerir personajes",
-      "dialogMessage": "La IA propone personajes que tu libro aún no tiene, a partir de su premisa, su género, su mundo y su reparto.",
+      "title": "Sugerir personajes",
+      "intro": "La IA propone personajes que tu libro aún no tiene, a partir de su premisa, su género, su mundo y su reparto.",
       "lookingForLabel": "¿Qué estás buscando? (opcional)",
       "lookingForPlaceholder": "p. ej., alguien del puerto que gana si el libro de cuentas sigue alterado",
       "confirm": "Sugerir",

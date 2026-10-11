@@ -301,7 +301,7 @@ function onReviewCommitted(payload) {
   <EntityReviewModal
     v-if="phase === 'review'"
     :proposals="proposals"
-    chapter-title="Whole-book scan"
+    :chapter-title="$t('entitySweep.wholeBookTitle')"
     @close="onReviewClose"
     @committed="onReviewCommitted"
   />

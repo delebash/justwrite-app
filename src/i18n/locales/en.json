@@ -621,7 +621,8 @@
     "chaptersFailed": "{chapters} failed",
     "reviewFound": "Review {n} found",
     "scanAction": "Scan {chapters}",
-    "retryFailed": "Retry {n} failed"
+    "retryFailed": "Retry {n} failed",
+    "wholeBookTitle": "Whole-book scan"
   },
   "chat": {
     "talkToCharacter": "Talk to a character",
@@ -1349,7 +1350,9 @@
     "aliasesPlaceholder": "aliases (comma-separated)",
     "foundIn": "Found in",
     "quote": "Quote",
-    "addAction": "Add {n} to story bible"
+    "addAction": "Add {n} to story bible",
+    "added": "Added {n} to the story bible.",
+    "linked": "Linked to {n} scene. | Linked to {n} scenes."
   },
   "characterProfile": {
     "eyebrow": "Fill from book",
@@ -2518,8 +2521,8 @@
     "suggest": {
       "button": "Suggest characters…",
       "tooltip": "Suggest characters your book doesn't have yet, from its premise and cast — you pick which to add",
-      "dialogTitle": "Suggest characters",
-      "dialogMessage": "The AI proposes characters your book doesn't have yet, from its premise, genre, world and cast.",
+      "title": "Suggest characters",
+      "intro": "The AI proposes characters your book doesn't have yet, from its premise, genre, world and cast.",
       "lookingForLabel": "What are you looking for? (optional)",
       "lookingForPlaceholder": "e.g. someone at the harbor who gains if the ledger stays altered",
       "confirm": "Suggest",
