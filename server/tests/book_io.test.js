@@ -3,6 +3,8 @@
 // (P2.1). The contract: on a canonical snapshot, `GET /book` after `PUT /book` returns
 // exactly what went in (no data loss across the normalized tables). The fixture exercises
 // every entity, relationship, polymorphic attachment, AI artifact, and trash bucket.
+import { join } from "node:path";
+import { openDatabase } from "@delebash/llm-runner/platform/sql";
 import { expect, test } from "vitest";
 import { client, tmpPath, useHermeticKit } from "./helpers.js";
 
@@ -42,8 +44,10 @@ function canonicalBook() {
     characterAudits: { c1: { verdict: "consistent", concerns: [] } },
     scenes: {
       ch1: [
-        { id: "scn1", title: "The key", body: "<p>The key turned.</p>", characters: ["c1"], locations: ["l1"], objects: ["o1"], strands: ["s1"] },
-        { id: "scn2", title: "", body: "<p>Cedar and ash.</p>", characters: ["c1", "c2"], locations: [], objects: [], strands: ["s2"] },
+        // pov (a POV_OPTIONS slug, null when unset) + when (the story time, "" when unset): the
+        // Links panel sets both — lost on every save until 2026-10-11.
+        { id: "scn1", title: "The key", body: "<p>The key turned.</p>", pov: "limited-third", when: "1881-06-15T09:00", characters: ["c1"], locations: ["l1"], objects: ["o1"], strands: ["s1"] },
+        { id: "scn2", title: "", body: "<p>Cedar and ash.</p>", pov: null, when: "", characters: ["c1", "c2"], locations: [], objects: [], strands: ["s2"] },
       ],
       ch2: [],
     },
@@ -167,6 +171,21 @@ function canonicalBook() {
 
 test("book_round_trips", async () => {
   const c = await client(tmpPath());
+  const book = canonicalBook();
+  expect((await c.put("/v1/projects/prj1/book", { json: book })).statusCode).toBe(204);
+  expect((await c.get("/v1/projects/prj1/book")).json()).toEqual(book);
+});
+
+// A database made before scenes had `pov` / `"when"` gains both at boot (ADDED_COLUMNS) and then
+// round-trips them — no reset, so a writer's existing books survive the upgrade.
+test("an_older_database_gains_the_scene_columns", async () => {
+  const dir = tmpPath();
+  const old = openDatabase(join(dir, "justwrite.db"), { foreignKeys: true });
+  old.exec(
+    "CREATE TABLE scenes (\n\tproject_id VARCHAR NOT NULL, \n\tid VARCHAR NOT NULL, \n\tchapter_id VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\ttitle VARCHAR NOT NULL, \n\tbody TEXT NOT NULL, \n\tPRIMARY KEY (project_id, id), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
+  );
+  old.close();
+  const c = await client(dir);
   const book = canonicalBook();
   expect((await c.put("/v1/projects/prj1/book", { json: book })).statusCode).toBe(204);
   expect((await c.get("/v1/projects/prj1/book")).json()).toEqual(book);

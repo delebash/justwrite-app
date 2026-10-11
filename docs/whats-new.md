@@ -4,6 +4,16 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## 2026-10-11
+
+**A scene's POV and "When" are kept.** The two answers you give in a scene's
+[Links panel](writing.md#the-links-panel), the POV perspective and when the scene happens, were
+lost the next time the book was saved and reopened. They're saved now. Earlier answers
+couldn't be recovered, so set them again where you need them. If you sync, update JustWrite on
+each device: one on an older version asks to be updated before it syncs again.
+
+---
+
 ## 2026-10-09
 
 **The desktop app updates itself.** It checks for a new version when it starts; **Settings →

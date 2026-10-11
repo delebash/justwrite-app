@@ -15,7 +15,7 @@ import { openDatabase } from "@delebash/llm-runner/platform/sql";
 import { purePath, samePath } from "@delebash/llm-runner/platform/data_paths";
 import { getLogger } from "@delebash/llm-runner/platform/log";
 import { RuntimeError } from "@delebash/llm-runner/platform/py";
-import { TABLES } from "./models.js";
+import { ADDED_COLUMNS, TABLES } from "./models.js";
 
 const log = getLogger("justwrite_server.database.session");
 
@@ -40,7 +40,7 @@ export function initDb(dataDir) {
   mkdirSync(dataDir, { recursive: true });
   state.dbPath = purePath(path.join(dataDir, "justwrite.db"));
   const h = openDatabase(state.dbPath, { foreignKeys: true });
-  h.createTables(TABLES);
+  h.createTables(TABLES, ADDED_COLUMNS);
   state.handle = h;
   log.info(`Database: ${state.dbPath}`);
   return h;

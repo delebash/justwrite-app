@@ -265,7 +265,15 @@ export function bookRows(projectId, snapIn) {
   for (const [chid, sceneList] of pyItems(pyOr(pyGet(snap, "scenes"), {}))) {
     for (const [si, scn] of pyIter(pyOr(sceneList, [])).entries()) {
       const sid = s_(pyGet(scn, "id"));
-      add("scenes", { id: sid, chapter_id: s_(chid), position: si, title: s_(pyGet(scn, "title")), body: s_(pyGet(scn, "body")) });
+      add("scenes", {
+        id: sid,
+        chapter_id: s_(chid),
+        position: si,
+        title: s_(pyGet(scn, "title")),
+        body: s_(pyGet(scn, "body")),
+        pov: s_(pyGet(scn, "pov")) || null, // a POV_OPTIONS slug, or null when unset
+        when: s_(pyGet(scn, "when")),
+      });
       for (const [plural, singular] of Object.entries(LINK_PLURAL)) {
         for (const [li, r] of pyIter(pyOr(pyGet(scn, plural), [])).entries()) {
           add("scene_links", { scene_id: sid, kind: singular, ref_id: s_(r), position: li });
@@ -564,7 +572,7 @@ export function assemble(h, projectId) {
   }
   const scenesByCh = {};
   for (const scn of ordered("scenes")) {
-    const s = { id: scn.id, title: scn.title, body: scn.body };
+    const s = { id: scn.id, title: scn.title, body: scn.body, pov: scn.pov ?? null, when: scn.when ?? "" };
     Object.assign(s, truthy(linksByScene[scn.id]) ? linksByScene[scn.id] : emptyLinks());
     setdefault(scenesByCh, scn.chapter_id, []).push(s);
   }

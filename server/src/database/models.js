@@ -47,3 +47,13 @@
 //   sweep_drafts          the entity sweep's per-project working draft
 
 export { TABLES } from "./models_schema.js";
+
+// Additive columns: an existing database gains a column added after it was made, without a
+// reset (the kit's createTables runs `ALTER TABLE … ADD COLUMN` when it's missing). Each
+// declaration matches its column in models_schema.js, so old and new databases end up alike.
+// `[table, column, "SQL type + default"]`.
+export const ADDED_COLUMNS = [
+  // 2026-10-11: the scene's narration mode and story time (the Links panel) were never stored.
+  ["scenes", "pov", "VARCHAR"],
+  ["scenes", "when", "VARCHAR NOT NULL DEFAULT ''"],
+];

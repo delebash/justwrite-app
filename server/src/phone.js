@@ -32,7 +32,7 @@ import { router as sweepDraftRouter } from "./api/sweep_draft_api.js";
 import { router as versionsRouter } from "./api/versions_api.js";
 import { errorEnvelope, TYPE_BASE } from "./app_errors.js";
 import { AppState, setState } from "#app_state";
-import { TABLES } from "./database/models.js";
+import { ADDED_COLUMNS, TABLES } from "./database/models.js";
 import { state } from "./database/session.js";
 import { FEATURE_CATALOG } from "./feature_catalog.js";
 import { DEFAULT_FEATURE_PROMPTS, FEATURE_PROMPT_HEALS } from "./seed_feature_prompts.js";
@@ -62,7 +62,7 @@ export const PHONE_DATA_DIR = "(the app's own storage)";
  * this device's sync id, kept outside the database (the window's `device.id`).
  */
 export async function createPhoneApp({ handle, dataDir = PHONE_DATA_DIR, deviceId } = {}) {
-  handle.createTables(TABLES);
+  handle.createTables(TABLES, ADDED_COLUMNS);
   state.handle = handle;
   setState(new AppState(dataDir));
   SYNC_PLATFORM?.useDevice?.(deviceId);

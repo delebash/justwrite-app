@@ -33,7 +33,9 @@ const log = getLogger("justwrite_server.sync");
 
 /** Raised when JustWrite's synced tables or the scene adapter change shape in a way older
  * devices can't apply (the engine refuses newer batches: "update JustWrite on this device"). */
-export const SYNC_SCHEMA_VERSION = 1;
+// 2 (2026-10-11): scenes gained `pov` and `"when"`. A version-1 device would apply a scene change
+// without them and, once updated, never receive the values it skipped — so it asks to be updated.
+export const SYNC_SCHEMA_VERSION = 2;
 
 // ── scene text: merged edit by edit through Yjs, on the editor's own schema ──────────────
 

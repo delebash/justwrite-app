@@ -329,7 +329,7 @@ export const TABLES = [
   },
   {
     "name": "scenes",
-    "ddl": "CREATE TABLE scenes (\n\tproject_id VARCHAR NOT NULL, \n\tid VARCHAR NOT NULL, \n\tchapter_id VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\ttitle VARCHAR NOT NULL, \n\tbody TEXT NOT NULL, \n\tPRIMARY KEY (project_id, id), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
+    "ddl": "CREATE TABLE scenes (\n\tproject_id VARCHAR NOT NULL, \n\tid VARCHAR NOT NULL, \n\tchapter_id VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\ttitle VARCHAR NOT NULL, \n\tbody TEXT NOT NULL, \n\tpov VARCHAR, \n\t\"when\" VARCHAR NOT NULL DEFAULT '', \n\tPRIMARY KEY (project_id, id), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
     "indexes": [],
     "columns": {
       "project_id": {
@@ -358,6 +358,14 @@ export const TABLES = [
         "default": ""
       },
       "body": {
+        "kind": "text",
+        "notNull": true,
+        "default": ""
+      },
+      "pov": {
+        "kind": "text"
+      },
+      "when": {
         "kind": "text",
         "notNull": true,
         "default": ""
