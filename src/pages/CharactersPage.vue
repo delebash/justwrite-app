@@ -30,6 +30,10 @@ import { Breadcrumb } from "@delebash/llm-ui";
 import { HelpTrigger } from "@delebash/llm-ui";
 import { confirmDialog } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
+import {
+  ARC_FIELDS, CAPABILITY_FIELDS, CONTINUITY_FIELDS, CORE_ENGINE_FIELDS, DEPTH_FIELDS, FUNCTION_FIELDS,
+  IDENTITY_FIELDS, MOTIVATION_CORE, PRESENCE_FIELDS, VOICE_FIELDS, sectionCount,
+} from "../services/characterSheet.js";
 import { saveImage } from "../services/imageStore.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 
@@ -73,13 +77,8 @@ const modal = ref(null);
 // (no locale text to freeze at module load) and the template resolves the words
 // with $t. Every (group, key) pair is unique across these and the eight v3 field
 // arrays below, which is what lets one flat tree serve them all.
-const MOTIVATIONS = [
-  { k: "want",  color: "var(--trait-want-ink)",  bg: "var(--trait-want-bg)" },
-  { k: "need",  color: "var(--trait-need-ink)",  bg: "var(--trait-need-bg)" },
-  { k: "lie",   color: "var(--trait-lie-ink)",   bg: "var(--trait-lie-bg)" },
-  { k: "truth", color: "var(--trait-truth-ink)", bg: "var(--trait-truth-bg)" },
-];
-const ARC_STEPS = [{ k: "start" }, { k: "midpoint" }, { k: "end" }];
+const MOTIVATIONS = MOTIVATION_CORE.map((f) => ({ k: f.k, color: `var(--trait-${f.k}-ink)`, bg: `var(--trait-${f.k}-bg)` }));
+const ARC_STEPS = ARC_FIELDS.map((f) => ({ k: f.k }));
 // computed(), not a module const: a plain array captures the labels at import
 // and never re-translates when the language changes (the SettingsView SECTIONS
 // precedent). The empty sentinel is a neutral "unset", NOT a repeat of the field
@@ -194,99 +193,17 @@ function extraVal(group, k) { return (group === "_top" ? extras.value?.[k] : ext
 function updateExtrasGroup(group, k, v) {
   project.setCharacterExtras(ch.value.id, { [group]: { ...(extras.value?.[group] || {}), [k]: v } });
 }
-function countExtras(pairs) {
-  return pairs.filter(([g, k]) => String((g === "_top" ? extras.value?.[k] : extras.value?.[g]?.[k]) || "").trim()).length;
-}
 
-// v3 field descriptors — plain fields grouped by section. Rendered as a
-// labeled .ch-field (UiInput for single-line facts, UiTextarea for anything
-// sentence-shaped). Label + hint come from `characters.fields.<group>.<k>` in
-// the catalog (see the note above MOTIVATIONS), so what lives here is only the
-// shape: which extras group owns the field, its key, and how to render it.
-// The existing colored Motivation grid, Arc card, Voice grid, and Backstory
-// keep their bespoke rendering; these are the NEW v3 fields that join them.
-const IDENTITY_FIELDS = [
-  { group: "identity", k: "classOrigin", type: "input" },
-  { group: "identity", k: "education", type: "input" },
-];
-const CORE_ENGINE_FIELDS = [
-  { group: "motivation", k: "fear", type: "textarea" },
-  { group: "motivation", k: "lieOrigin", type: "textarea" },
-  { group: "motivation", k: "contradiction", type: "textarea" },
-  { group: "motivation", k: "values", type: "input" },
-  { group: "motivation", k: "heuristic", type: "input" },
-  { group: "motivation", k: "stakes", type: "textarea" },
-];
-const VOICE_FIELDS = [
-  { group: "voice", k: "register", type: "input" },
-  { group: "voice", k: "rhythm", type: "input" },
-  { group: "voice", k: "forbidden", type: "input" },
-  { group: "voice", k: "subtext", type: "input" },
-  { group: "voice", k: "humor", type: "input" },
-  { group: "voice", k: "languages", type: "input" },
-  { group: "voice", k: "sampleAngry", type: "textarea" },
-  { group: "voice", k: "sampleLying", type: "textarea" },
-];
-const PRESENCE_FIELDS = [
-  { group: "presence", k: "physicality", type: "textarea" },
-  { group: "presence", k: "presentation", type: "textarea" },
-  { group: "presence", k: "stressTells", type: "textarea" },
-];
-const FUNCTION_FIELDS = [
-  { group: "function", k: "theme", type: "textarea" },
-  { group: "function", k: "protagonistRelation", type: "input" },
-  { group: "function", k: "selfImage", type: "textarea" },
-  { group: "function", k: "persona", type: "textarea" },
-  { group: "function", k: "privateTruth", type: "textarea" },
-  { group: "function", k: "buttons", type: "textarea" },
-  { group: "function", k: "allegiances", type: "textarea" },
-  { group: "function", k: "escalation", type: "input" },
-  { group: "function", k: "cornered", type: "textarea" },
-];
-const CAPABILITY_FIELDS = [
-  { group: "capabilities", k: "abilities", type: "textarea" },
-  { group: "capabilities", k: "costs", type: "textarea" },
-  { group: "capabilities", k: "limits", type: "textarea" },
-  { group: "capabilities", k: "conditions", type: "input" },
-  { group: "capabilities", k: "whoKnows", type: "input" },
-];
-const CONTINUITY_FIELDS = [
-  { group: "continuity", k: "physicalConstants", type: "textarea" },
-  { group: "continuity", k: "health", type: "textarea" },
-  { group: "continuity", k: "timelineAnchors", type: "input" },
-  { group: "continuity", k: "knows", type: "textarea" },
-  { group: "continuity", k: "doesntKnow", type: "textarea" },
-  { group: "continuity", k: "believesWrongly", type: "textarea" },
-  { group: "continuity", k: "secrets", type: "textarea" },
-  { group: "continuity", k: "possessions", type: "textarea" },
-];
-const DEPTH_FIELDS = [
-  { group: "depth", k: "regrets", type: "textarea" },
-  { group: "depth", k: "family", type: "textarea" },
-  { group: "depth", k: "skills", type: "textarea" },
-  { group: "depth", k: "routines", type: "input" },
-  { group: "depth", k: "appearance", type: "textarea" },
-  { group: "depth", k: "tastes", type: "input" },
-];
-
-// Per-section filled-field counts — drive the header count chip + initial open
-// state. Include the bespoke fields (motivation/arc/voice/backstory) so the
-// count reflects the whole section, not just the new plain rows.
-const identityCount = computed(() => countExtras([
-  ["identity", "classOrigin"], ["identity", "education"],
-  ["motivation", "want"], ["motivation", "need"], ["motivation", "lie"], ["motivation", "truth"],
-  ...CORE_ENGINE_FIELDS.map((f) => [f.group, f.k]),
-]));
-const arcCount = computed(() => countExtras([["arc", "start"], ["arc", "midpoint"], ["arc", "end"]]));
-const voiceCount = computed(() => countExtras([
-  ["voice", "accent"], ["voice", "vocabulary"], ["voice", "tic"], ["voice", "sample"],
-  ...VOICE_FIELDS.map((f) => [f.group, f.k]),
-  ...PRESENCE_FIELDS.map((f) => [f.group, f.k]),
-]));
-const functionCount = computed(() => countExtras(FUNCTION_FIELDS.map((f) => [f.group, f.k])));
-const capabilitiesCount = computed(() => countExtras(CAPABILITY_FIELDS.map((f) => [f.group, f.k])));
-const continuityCount = computed(() => countExtras(CONTINUITY_FIELDS.map((f) => [f.group, f.k])));
-const depthCount = computed(() => countExtras([["_top", "backstory"], ...DEPTH_FIELDS.map((f) => [f.group, f.k])]));
+// v3 field descriptors — the sheet's sections and fields live in services/characterSheet.js
+// (one source with the AI drafting, 2026-10-11); the page renders them. Per-section
+// filled-field counts drive each header's count chip + its initial open state.
+const identityCount = computed(() => sectionCount(extras.value, "identity"));
+const arcCount = computed(() => sectionCount(extras.value, "arc"));
+const voiceCount = computed(() => sectionCount(extras.value, "voice"));
+const functionCount = computed(() => sectionCount(extras.value, "function"));
+const capabilitiesCount = computed(() => sectionCount(extras.value, "capabilities"));
+const continuityCount = computed(() => sectionCount(extras.value, "continuity"));
+const depthCount = computed(() => sectionCount(extras.value, "depth"));
 
 const tagPool = computed(() => {
   const out = [];
