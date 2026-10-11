@@ -114,7 +114,10 @@ with direction) and **Write dialogue** (the scene's characters, from their voice
   (`server/src/editor/markers.js`) — the editor schema is shared with sync's scene adapter, so a
   new mark is a sync schema change; its look and whether it survives edits get their own design
   pass.
-- **Gate:** a bench leg on your box with the full scene context, before building.
+- **Not gated on local models** (the user, 2026-10-11: "even local models dont it would still be
+  useful for online frontier models to use"). Its routing row can point at a cloud preset while
+  the rest stays local. A bench leg on your box with the full scene context decides only whether
+  the local presets are recommended for it, and what the feature says when they aren't.
 
 ## 7. Slice 5 — your own AI actions (the kit)
 
@@ -139,24 +142,80 @@ prompt store + Feature Workbench, shown in the editor's AI menu. Sized separatel
 
 Nothing is NOT STANDARD.
 
-## 9. Open — needs your word
+## 9. Open — needs your word (each with the recommendation and why)
 
-1. **Locations, objects, groups (and worldbuilding):** structured sheets — which fields? — or a
-   drafted description note?
-2. **Before or after the translation work** (TASKS: "THE NEXT BIG TASK")?
-3. **"Thin" for the describe box.** Proposal: a character is thin while none of the sheet's
-   sections has a filled field (a swept character with only a role and one-liner counts as thin);
-   another page while its description is empty.
-4. **The story-context budget** — the share of a feature's context window the story notes may
-   take (a seeded, editable number): your number.
-5. **Line edits and story context.** Proposal: no — they rework style, and the context costs tokens.
-6. **Save to sheet:** where a saved chat answer goes.
-7. **Scene drafting's switch:** its label and where it lives.
-8. **New labels:** Draft with AI · From a description · Describe this character · Draft · Draft
-   this section · Name ideas · Suggest characters… · Create selected · Save to sheet · Rewrite with
-   direction… · Write dialogue · Summary · Summarize this scene · Fill this template for my story ·
-   Suggest next beats · Draft the Fabula / Setting from the premise · Draft from plan · Context: —
-   confirm or change.
+1. **Locations, objects, groups: structured sheets or a drafted note?**
+   *Rec:* small sheets that collapse when empty, like the character sheet. Each keeps its
+   existing description; the added fields are:
+   - **Location:** Atmosphere & senses · History.
+   - **Object:** Properties · History · Where it is now.
+   - **Group:** Goals & beliefs · Leadership · History.
+   - **Worldbuilding** stays an article: drafting writes its body from the title and summary.
+
+   *Why:*
+   - The review window's "fill only empty fields" means nothing with one note.
+   - The composer gets facts it can use: atmosphere is what a scene set there needs, and where an
+     object is now is what the continuity checks need.
+   - Real columns, not text blobs, is the house rule.
+   - LocalProse, your reference, splits them the same way.
+   - Adding columns is a proven, safe path since `d55f8f5`.
+
+   The field names are labels: confirm or change them.
+2. **Before or after the translation work?**
+   *Rec:* the character half of slice 1 and slice 2 first; then the translation work; then the
+   location/object/group sheets and slices 3–5.
+   *Why:*
+   - Slices 1–2 for characters are mostly reuse (Fill from book's pipeline, the card builder), and
+     they are what you asked for now.
+   - Three of the translation work's asks are waiting on you (the `es.json`, the `--think` PR, the
+     Gemini key).
+   - The new sheets bring many field hints — exactly the text the single-source system exists to
+     stop duplicating between the page and the docs — so they cost less after it.
+3. **"Thin" for the describe box.**
+   *Rec:* a character is thin while none of the sheet's sections has a filled field, so a swept
+   character with only a role and a one-liner still counts; another page is thin while its sheet
+   fields are empty.
+   *Why:* there's no number to tune (nothing to hardcode or seed), it covers the case Entity sweep
+   creates, and you can predict it.
+4. **The story-context budget.**
+   *Rec:* a share of the routed model's context window, seeded at **25%** and editable in
+   Settings → AI.
+   *Why:*
+   - It works for both kinds of model. The writer's local 8k window gives about 2,000 tokens, two
+     or three full cards (chat measured one full character card at ~750 tokens). A frontier
+     model's large window takes most of the story bible.
+   - The other 75% is left for the instructions, the voice canon (~600 words), the passage and the
+     reply.
+   - Chat's own pin budget (1,200 tokens, a code constant, `src/services/rag/entityMatcher.js:86`)
+     is a retrieval balance, not a share, and stays as it is. Moving it into the database is a
+     separate small item.
+5. **Line edits and story context.**
+   *Rec:* no.
+   *Why:* they rework the style of the selected text, and the story doesn't change a passive-voice
+   fix. On a local model the context costs tokens and wait time, and it invites the model to
+   rewrite content instead of style.
+6. **Save to sheet.**
+   *Rec:* the chat answer goes through slice 1's describe-and-draft flow. The answer is the
+   description, the review window proposes field changes, and you tick what to keep.
+   *Why:* no new field or storage, slice 1 reused whole, and nothing saves without review.
+7. **Scene drafting's switch.**
+   *Rec:* per book, in Settings → Project beside Premise, off by default, labelled **AI scene
+   drafting**.
+   *Why:* the Authors Guild mark and publishers' disclosure rules apply per book, so one book can
+   stay human-written while another uses drafting. AI usage and the AI-text marking are per book
+   too.
+8. **New labels.**
+   *Rec:* keep the list below, with three changes:
+   - **Create selected** → the sweep's existing **Add {n} to story bible**: one name for one action.
+   - **Draft the Fabula / Setting from the premise** → **Draft from the premise**: the page already
+     names the document.
+   - **Write dialogue** → **Write dialogue…**: it asks for a direction first, and "…" marks that in
+     this app (Continue with direction…, Research feel…).
+
+   The list: Draft with AI · From a description · Describe this character · Draft · Draft this
+   section · Name ideas · Suggest characters… · Save to sheet · Rewrite with direction… · Summary ·
+   Summarize this scene · Fill this template for my story · Suggest next beats · Draft from plan ·
+   Context: · AI scene drafting.
 
 ## 10. Blast radius (greps, 2026-10-11)
 
