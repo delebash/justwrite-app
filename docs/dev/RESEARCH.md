@@ -185,10 +185,13 @@ against the page by an agent, not re-checked by the session.
   survey A42, A45, A47.)
 - **Sudowrite added Character Portraits (2026-09-25) and Worldbuilding Images (2026-10-07);**
   JustWrite's engine makes no images. (*web, agent 2026-10-11*; survey A35, B1.)
-- **JustWrite's writer actions send only the passage and the voice canon** — no story-bible
-  context (`src/services/writerAI.js:128,169,186`). (*code 2026-10-11*.)
-- **Brainstorm's results go only to the clipboard** (`src/pages/BrainstormPage.vue:165`), and its
-  categories are hardcoded English outside i18n (`:18-61`). (*code 2026-10-11*.)
+- **JustWrite's writer actions sent only the passage and the voice canon** — no story-bible
+  context (`src/services/writerAI.js:128,169,186`). (*code 2026-10-11*.) Since `ce350cb` (slice 2)
+  the six prose actions also send the scene's story context; the line edits still don't.
+- **Brainstorm's results went only to the clipboard** (`src/pages/BrainstormPage.vue:165`), and its
+  categories were hardcoded English outside i18n (`:18-61`). (*code 2026-10-11*.) Since `b347ace`
+  the categories are in the locale files (`src/services/brainstorm.js`) and Name ideas sets a
+  character's name from the same list.
 - **Entity sweep fills only role, kind, one-liner and note** on what it creates
   (`src/services/analysis/entitySweep.js:124`). (*code 2026-10-11*.)
 - **A scene has no summary field;** the card view shows its first 180 characters of prose
@@ -217,14 +220,26 @@ against the page by an agent, not re-checked by the session.
   (*web 2026-10-11*, both re-fetched by the session.)
 - **The sync engine skips a column the receiving device doesn't have**
   (`../just-sqlite-sync/src/engine.js:469`), and its README asks for a schema-version bump on a
-  shape change — JustWrite's is 2 since `d55f8f5`. (*code 2026-10-11*.)
+  shape change — JustWrite's was 2 since `d55f8f5`, and is 3 since `ff44e29`. (*code 2026-10-11*.)
 - **Status and Exclude from AI are lost on every save:** the server keeps no `status` for
   scenes, characters, locations, objects or groups, and no `excludeFromAi` for those or worldbuilding
   articles — both come back `undefined` after a save and reload. No AI code filters entities on
   `excludeFromAi` (only scenes, `src/services/rag/chunker.js:99`), though its tooltip promises
   "Hides this entity from any AI feature that pulls in story-world context." (*measured
   2026-10-11*, a scratch round-trip through `book_io` on a temp database; the pages' writes vs the
-  tables' columns.)
+  tables' columns.) Fixed in `ff44e29`: both are columns now, and every story-bible card reader
+  skips an excluded entity.
+- **A linked scene's story context on the sample book is ~2,100 tokens:** The Ninth Facet's chapter
+  1, scene 2 (five characters, a location, an object, pinned beats, no notes or POV) composed to
+  13 parts, 8,451 characters with its STORY CONTEXT heading — within the 15% share of a
+  32,768-token window (4,915 tokens), so nothing was cut. Scene 1 of the same chapter (one
+  character, a location, an object, no previous scene) was 3,344 characters. (*measured
+  2026-10-11*, the request bodies in a browser on a copy of `data/`, the model stubbed.)
+- **Accept all / Reject all map positions twice:** in a TipTap chain each command's `state.doc` is
+  the transaction's current doc, and `acceptChange` / `rejectChange` (`server/src/editor/aiDiff.js`)
+  find their ranges there and then map them through `tr.mapping`; with two or more pending
+  changes Reject all threw `RangeError: Position 3305 out of range`. (*measured 2026-10-11*, a
+  browser on a copy of `data/`; TASKS.)
 - **The kit's additive columns needed quoting** for a keyword column (`when`): fixed in the kit's
   `1ab9a69`, with a test. (*measured 2026-10-11*.)
 
