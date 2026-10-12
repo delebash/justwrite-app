@@ -34,6 +34,7 @@ function twoPendingChanges() {
 }
 
 const text = () => editor.state.doc.textContent;
+const paragraphs = () => { const out = []; editor.state.doc.forEach((n) => out.push(n.textContent)); return out; };
 
 describe("with two pending changes", () => {
   it("Reject all restores both originals", () => {
@@ -48,5 +49,44 @@ describe("with two pending changes", () => {
     expect(editor.commands.acceptAllChanges()).toBe(true);
     expect(hasPendingChanges(editor)).toBe(false);
     expect(text()).toBe("First, short.Second, now rewritten at length by the model.Third stays.");
+  });
+
+  it("keeps every other paragraph whole", () => {
+    twoPendingChanges();
+    editor.commands.rejectAllChanges();
+    expect(paragraphs()).toEqual(["First paragraph, the long original that will be rewritten.", "Second, also original.", "Third stays."]);
+  });
+});
+
+// The deleted block's range ended one past the paragraph (2026-10-11): a change whose inserted
+// paragraph is the scene's last asked for a position past the document's end — a continuation
+// at the end of a scene always is — and elsewhere the cut reached into the next paragraph.
+describe("a change at the end of the scene", () => {
+  const endOf = () => editor.state.doc.content.size;
+
+  it("Reject removes a continuation and nothing else", () => {
+    editor = new Editor({ extensions: editorExtensions(), content: "<p>One.</p><p>Two.</p>" });
+    editor.commands.proposeContinuation({ at: endOf(), newHtml: "Three, from the model.\n\nFour, from the model." });
+    expect(hasPendingChanges(editor)).toBe(true);
+    expect(() => editor.commands.rejectAllChanges()).not.toThrow();
+    expect(paragraphs()).toEqual(["One.", "Two."]);
+  });
+
+  it("Reject restores a rewritten last paragraph", () => {
+    editor = new Editor({ extensions: editorExtensions(), content: "<p>One.</p><p>Two, the original.</p>" });
+    let last = null;
+    editor.state.doc.forEach((n, off) => { last = { from: off + 1, to: off + n.nodeSize - 1 }; });
+    editor.commands.proposeReplacement({ ...last, originalHtml: "Two, the original.", newHtml: "Two, rewritten." });
+    expect(() => editor.commands.rejectAllChanges()).not.toThrow();
+    expect(paragraphs()).toEqual(["One.", "Two, the original."]);
+  });
+
+  it("Accept keeps a rewritten last paragraph and drops the original", () => {
+    editor = new Editor({ extensions: editorExtensions(), content: "<p>One.</p><p>Two, the original.</p>" });
+    let last = null;
+    editor.state.doc.forEach((n, off) => { last = { from: off + 1, to: off + n.nodeSize - 1 }; });
+    editor.commands.proposeReplacement({ ...last, originalHtml: "Two, the original.", newHtml: "Two, rewritten." });
+    expect(() => editor.commands.acceptAllChanges()).not.toThrow();
+    expect(paragraphs()).toEqual(["One.", "Two, rewritten."]);
   });
 });

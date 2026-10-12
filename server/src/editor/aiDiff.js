@@ -159,12 +159,14 @@ function expandRangeToContainingBlock(doc, range) {
   // Sit at the parent block's depth.
   if ($from.depth === 0 || $to.depth === 0) return range;
   const block = $from.node($from.depth);
-  const blockStart = $from.start($from.depth);
-  const blockEnd = blockStart + block.nodeSize - 1; // exclusive of closing token
-  // The "covers the whole block" check: the range spans from block start
-  // to block end. We use textBetween to inspect.
-  if (range.from <= blockStart + 1 && range.to >= blockEnd - 1) {
-    return { from: blockStart - 1, to: blockEnd + 1 };
+  const blockStart = $from.start($from.depth); // the content's start, after the opening token
+  const contentEnd = blockStart + block.content.size; // before the closing token
+  // The "covers the whole block" check: the range spans the block's content.
+  if (range.from <= blockStart + 1 && range.to >= contentEnd) {
+    // The whole node, both tokens — and no further. (Until 2026-10-11 this ended one past the
+    // node: a change in the scene's last paragraph asked for a position past the document's
+    // end, "Position … out of range", and elsewhere the cut reached into the next block.)
+    return { from: blockStart - 1, to: contentEnd + 1 };
   }
   return range;
 }

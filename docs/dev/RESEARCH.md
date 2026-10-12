@@ -241,6 +241,12 @@ against the page by an agent, not re-checked by the session.
   changes Reject all threw `RangeError: Position 3305 out of range`. (*measured 2026-10-11*, a
   browser on a copy of `data/`.) Fixed the same day: each command maps only through its own
   steps (`ownStepsMap`), with `src/services/aiDiff.test.js`.
+- **Rejecting a change in the scene's last paragraph threw:** `expandRangeToContainingBlock`
+  (`server/src/editor/aiDiff.js`) took the position after a paragraph's closing token for its
+  content end and returned one past it, so the block range ended one past the node — past the
+  document for the last paragraph (every Continue at a scene's end), into the next block
+  elsewhere. (*measured 2026-10-11*, Task 14's browser probe: one fresh change, Reject threw.)
+  Fixed the same day, with the last-paragraph and continuation cases in `aiDiff.test.js`.
 - **The kit's additive columns needed quoting** for a keyword column (`when`): fixed in the kit's
   `1ab9a69`, with a test. (*measured 2026-10-11*.)
 
