@@ -34,6 +34,7 @@ import {
 } from "../services/appearance.js";
 import { AVAILABLE_LOCALES, setLocale as setI18nLocale } from "../i18n/index.js";
 import { PHONE_HIDDEN_SECTIONS, SETTINGS_SECTION_IDS } from "../services/settingsSections.js";
+import { SETTINGS_SECTION_ORDER } from "@delebash/llm-ui";
 // The family Sync screen — by path, not the kit barrel (it needs `qrcode`; SyncPanel.vue's header).
 import SyncPanel from "@delebash/llm-ui/components/SyncPanel.vue";
 import { useSyncPanel } from "../composables/useSyncPanel.js";
@@ -71,8 +72,10 @@ const syncPanel = useSyncPanel();
 // The id list lives in services/settingsSections.js so the canon contract test asserts
 // EXACTLY what renders (slice 11).
 const SECTION_IDS = isPhone() ? SETTINGS_SECTION_IDS.filter((id) => !PHONE_HIDDEN_SECTIONS.includes(id)) : SETTINGS_SECTION_IDS;
+// The family's shared sections take the kit's words; JustWrite's own (Project, Sync) its own.
+const FAMILY_SECTIONS = new Set(SETTINGS_SECTION_ORDER);
 const SECTIONS = computed(() =>
-  SECTION_IDS.map((id) => ({ id, label: t(`settings.sections.${id}`) })),
+  SECTION_IDS.map((id) => ({ id, label: t(FAMILY_SECTIONS.has(id) ? `kit.settingsSections.${id}` : `settings.sections.${id}`) })),
 );
 
 // Pre-batch deep links said /settings/general — keep them landing on the row set
@@ -711,10 +714,10 @@ async function deleteCategory(c) {
       <i18n-t keypath="settings.intro" tag="p" class="set-desc" scope="global">
         <template #settings><strong>{{ $t("settings.title") }}</strong></template>
         <template #project><strong>{{ $t("settings.sections.project") }}</strong></template>
-        <template #appearance><strong>{{ $t("settings.sections.appearance") }}</strong></template>
-        <template #backups><strong>{{ $t("settings.sections.backups") }}</strong></template>
+        <template #appearance><strong>{{ $t("kit.settingsSections.appearance") }}</strong></template>
+        <template #backups><strong>{{ $t("kit.settingsSections.backups") }}</strong></template>
         <template #sync><strong>{{ $t("settings.sections.sync") }}</strong></template>
-        <template #server><strong>{{ $t("settings.sections.server") }}</strong></template>
+        <template #server><strong>{{ $t("kit.settingsSections.server") }}</strong></template>
         <template #ai><strong>{{ $t("settings.introTerms.ai") }}</strong></template>
       </i18n-t>
       <!-- The family Settings chrome (kit SettingsShell — the strip this page used
@@ -1433,7 +1436,7 @@ async function deleteCategory(c) {
               <span class="t-muted">{{ $t('settings.storage.modelsCacheLabel') }}</span>
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
                 <span>{{ diskSize(diskUsage?.modelsCache) }}</span>
-                <UiButton intent="secondary" size="small" :loading="diskBusy === 'models'" :disabled="!!diskBusy" @click="clearModelsCache">{{ $t('settings.storage.clearShort') }}</UiButton>
+                <UiButton intent="secondary" size="small" :loading="diskBusy === 'models'" :disabled="!!diskBusy" @click="clearModelsCache">{{ $t('kit.storage.clearShort') }}</UiButton>
               </div>
 
               <span class="t-muted">{{ $t('settings.storage.engineBuildsLabel') }}</span>
@@ -1442,7 +1445,7 @@ async function deleteCategory(c) {
                 <span class="t-muted" style="font-size:12px">{{ $t('settings.storage.managedOnAiPage') }}</span>
               </div>
 
-              <span class="t-muted">{{ $t('settings.storage.serverLogsLabel') }}</span>
+              <span class="t-muted">{{ $t('kit.storage.serverLogs') }}</span>
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
                 <span>{{ diskSize(diskUsage?.appLogs) }}</span>
                 <span class="t-muted" style="font-size:12px">{{ $t('settings.storage.managedInLogs') }}</span>
@@ -1451,17 +1454,17 @@ async function deleteCategory(c) {
               <span class="t-muted">{{ $t('settings.storage.spawnLogsLabel') }}</span>
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
                 <span>{{ diskSize(diskUsage?.spawnLogs) }}</span>
-                <UiButton intent="secondary" size="small" :loading="diskBusy === 'spawn'" :disabled="!!diskBusy" @click="clearSpawnLogs">{{ $t('settings.storage.clearShort') }}</UiButton>
+                <UiButton intent="secondary" size="small" :loading="diskBusy === 'spawn'" :disabled="!!diskBusy" @click="clearSpawnLogs">{{ $t('kit.storage.clearShort') }}</UiButton>
               </div>
 
               <span class="t-muted">{{ $t('settings.storage.databaseLabel') }}</span>
               <span>{{ diskSize(diskUsage?.database) }}</span>
 
               <!-- The Total row — docgen's invention, canon BOTH apps render (ruling R2). -->
-              <span class="t-muted">{{ $t('settings.storage.totalLabel') }}</span>
+              <span class="t-muted">{{ $t('kit.storage.total') }}</span>
               <span>{{ diskSize(diskUsage?.total) }}</span>
 
-              <span class="t-muted">{{ $t('settings.storage.freeSpaceLabel') }}</span>
+              <span class="t-muted">{{ $t('kit.storage.freeSpace') }}</span>
               <span>{{ diskSize(diskUsage?.diskFree) }}</span>
             </div>
             <p v-if="diskErr" style="font-size:12.5px;color:var(--danger,#b91c1c);margin:10px 0 0">{{ diskErr }}</p>

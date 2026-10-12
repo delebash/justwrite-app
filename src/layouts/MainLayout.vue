@@ -260,7 +260,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
     <!-- The once-ever AI offer — the kit component LIFTED FROM this app's
          AiSetupDialog (ruling R3); JW keeps its own moment (projectStart's
          once-flag opens it after the FIRST project) and routes on the emits.
-         Words come through the labels feed (family.aiOffer) so es stays es. -->
+         Its words are the kit's (kit.aiOffer), in the app's language. -->
     <AiSetupOffer v-if="ui.aiSetupPromptOpen" app-name="JustWrite"
       @close="ui.closeAiSetupPrompt()"
       @quick-setup="router.push('/ai?quicksetup=1')"

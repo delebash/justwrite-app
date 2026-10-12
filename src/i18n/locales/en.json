@@ -14,8 +14,7 @@
     "analysis": "Analysis",
     "import": "Import",
     "export": "Export",
-    "trash": "Trash",
-    "settings": "App Settings"
+    "trash": "Trash"
   },
   "common": {
     "save": "Save",
@@ -68,70 +67,6 @@
     "saveChanges": "Save changes",
     "gotIt": "Got it",
     "openInHelpDrawer": "Open in help drawer"
-  },
-  "dialog": {
-    "defaultTitle": "Are you sure?",
-    "confirmLabel": "Confirm",
-    "okLabel": "OK",
-    "cancelLabel": "Cancel",
-    "closeLabel": "Close"
-  },
-  "family": {
-    "aiTabs": {
-      "providers": "Providers & models",
-      "models": "Models",
-      "routing": "Routing by feature",
-      "usage": "Usage",
-      "console": "AI engine console"
-    },
-    "downloadBar": {
-      "cancel": "Cancel",
-      "retry": "Retry",
-      "dismiss": "Dismiss",
-      "ready": "Ready ✓"
-    },
-    "connectionError": {
-      "title": "Can't reach the {appName} server",
-      "retry": "Retry"
-    },
-    "lab": {
-      "generatedPrompt": "Generated prompt",
-      "generatedNote": "built by the app for every real run — test only; nothing here is saved or applied",
-      "refresh": "Refresh",
-      "editCopies": "Edit copies for this test",
-      "lockCopies": "Lock copies",
-      "restoreGenerated": "Restore generated",
-      "changeData": "Change what this prompt says:"
-    },
-    "aiOffer": {
-      "eyebrow": "Optional",
-      "title": "Set up AI features",
-      "body": "{appName}'s AI runs where you choose — on this PC, private and free, or through an online provider. You can set this up anytime from the AI page.",
-      "bodyOnline": "{appName}'s AI runs through an online provider you choose, with your own key. You can set this up anytime from the AI page.",
-      "quickSetup": "Run Quick Setup",
-      "quickSetupSub": "Local — uses this PC, private & free",
-      "connectProvider": "Connect an online provider",
-      "connectProviderSub": "OpenAI-compatible endpoint",
-      "skip": "Skip for now"
-    },
-    "quickSetup": {
-      "runButton": "Run Quick Setup",
-      "bandScope": "Sets up the built-in llama.cpp provider only",
-      "applyButton": "Apply setup",
-      "cancelButton": "Cancel",
-      "closeButton": "Close",
-      "engineBarTitle": "The engine",
-      "engineBarRole": "the program that runs models",
-      "configuredBand": "Local AI is set up — {model} is the default",
-      "rerunButton": "Re-run Quick Setup",
-      "alreadyTitle": "Already set up",
-      "changeModelButton": "Change model",
-      "checkTitle": "Check this PC's real AI speed?",
-      "checkRunButton": "Run the 1-minute check",
-      "checkSkipButton": "Skip — use estimates",
-      "checkRetryButton": "Try again",
-      "checkContinueButton": "Continue"
-    }
   },
   "tray": {
     "show": "📺 Show window",
@@ -1586,10 +1521,7 @@
       "brainstorm": "Brainstorm",
       "markers": "Markers",
       "relations": "Relations",
-      "readerKnowledge": "Reader knowledge",
-      "ai": "AI Settings",
-      "aiTasks": "AI tasks",
-      "help": "Help"
+      "readerKnowledge": "Reader knowledge"
     },
     "projectSwitcher": {
       "heading": "Projects",
@@ -1689,14 +1621,7 @@
     },
     "sections": {
       "project": "Project",
-      "appearance": "Appearance",
-      "server": "Server",
-      "backups": "Backups",
-      "sync": "Sync",
-      "storage": "Storage",
-      "logs": "Logs",
-      "updates": "Updates",
-      "about": "About"
+      "sync": "Sync"
     },
     "language": {
       "label": "Language",
@@ -1979,15 +1904,11 @@
       "diskUsageTitle": "Disk usage",
       "diskUsageHint": "Where your data folder's space goes. Downloaded models and engine logs can be cleared to reclaim space — your projects, settings and work are never touched.",
       "modelsCacheLabel": "Models cache",
-      "clearShort": "Clear…",
       "engineBuildsLabel": "Engine builds",
       "managedOnAiPage": "Managed on the AI page",
-      "serverLogsLabel": "Server logs",
       "managedInLogs": "Managed in the Logs section",
       "spawnLogsLabel": "Engine spawn logs",
-      "databaseLabel": "Database",
-      "totalLabel": "Total",
-      "freeSpaceLabel": "Free disk space"
+      "databaseLabel": "Database"
     },
     "about": {
       "appCardTitle": "JustWrite",

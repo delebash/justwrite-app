@@ -15,7 +15,6 @@ applyAppearance(DEFAULT_APPEARANCE);
 
 import { defineBoot } from "#q-app";
 import { phone } from "#phone";
-import { watch } from "vue";
 import { bootSettings, readSetting } from "../services/settings.js";
 import { hydrateProjects, useProjectStore } from "../stores/project.js";
 import { watchSync } from "../services/projectApi.js";
@@ -35,9 +34,8 @@ import { startWarmOnBoot } from "@delebash/llm-ui";
 // separate configure* calls here, the exact per-step wiring the installer
 // exists to make un-forgettable), wires the external opener, and registers
 // <LlmUiHosts /> (Toast + AppDialog, mounted once in layouts/MainLayout.vue).
-import { installLlmUi, checkServer, configureFamilyLabels, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, setUiLocale } from "@delebash/llm-ui";
+import { installLlmUi, checkServer, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal } from "@delebash/llm-ui";
 import { hasShell, openPath, openUrl, saveFile } from "../services/native.js";
-import { buildFamilyLabels } from "../i18n/familyLabelsFeed.js";
 import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "../services/helpDocs.js";
 import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "../services/labTestData.js";
 
@@ -55,6 +53,9 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
   if (phone) await phone.startInAppServer();
 
   installLlmUi(app, {
+    // The kit's words come from its `kit.*` keys in this instance's language (i18n/index.js
+    // starts it from the kit's catalogs), and follow every language switch.
+    i18n,
     // The KIT resolves the base now (2026-08-15) — services/serverApi.js is
     // deleted. It was one of three shapes for one job: JustWrite had this file,
     // JustVoice had src/config.js, docgen had nothing and let the installer do it.
@@ -146,18 +147,9 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
     applyAppearance(migrateAppearance(ui));
     const loc = ui.locale || detectLocale();
     setI18nLocale(loc);
-    setUiLocale(loc); // kit UiNumber follows the same locale for Intl formatting
   } catch {
-    const loc = detectLocale();
-    setI18nLocale(loc);
-    setUiLocale(loc);
+    setI18nLocale(detectLocale());
   }
-
-  // Feed the kit's ONE labels store (dialog verbs, AI tabs, download-bar actions,
-  // connection-error copy) from JustWrite's catalog — immediately, and again on
-  // every locale switch. (The old configureDialog call fed dialog verbs once at
-  // boot and went stale the day the runtime language switcher shipped.)
-  watch(i18n.global.locale, () => configureFamilyLabels(buildFamilyLabels()), { immediate: true });
 
   // QC-46 — the welcome screen owns two redirect rules:
   //

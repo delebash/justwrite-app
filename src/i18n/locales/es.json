@@ -14,8 +14,7 @@
     "analysis": "Análisis",
     "import": "Importar",
     "export": "Exportar",
-    "trash": "Papelera",
-    "settings": "Ajustes de la aplicación"
+    "trash": "Papelera"
   },
   "common": {
     "save": "Guardar",
@@ -68,70 +67,6 @@
     "saveChanges": "Guardar cambios",
     "gotIt": "Entendido",
     "openInHelpDrawer": "Abrir en el panel de ayuda"
-  },
-  "dialog": {
-    "defaultTitle": "¿Estás seguro?",
-    "confirmLabel": "Confirmar",
-    "okLabel": "OK",
-    "cancelLabel": "Cancelar",
-    "closeLabel": "Cerrar"
-  },
-  "family": {
-    "aiTabs": {
-      "providers": "Proveedores y modelos",
-      "models": "Modelos",
-      "routing": "Enrutamiento por función",
-      "usage": "Uso",
-      "console": "Consola del motor de IA"
-    },
-    "downloadBar": {
-      "cancel": "Cancelar",
-      "retry": "Reintentar",
-      "dismiss": "Descartar",
-      "ready": "Listo ✓"
-    },
-    "connectionError": {
-      "title": "No se puede conectar con el servidor de {appName}",
-      "retry": "Reintentar"
-    },
-    "lab": {
-      "generatedPrompt": "Prompt generado",
-      "generatedNote": "construido por la aplicación en cada ejecución real — solo prueba; nada de esto se guarda ni se aplica",
-      "refresh": "Actualizar",
-      "editCopies": "Editar copias para esta prueba",
-      "lockCopies": "Bloquear copias",
-      "restoreGenerated": "Restaurar generado",
-      "changeData": "Cambiar lo que dice este prompt:"
-    },
-    "aiOffer": {
-      "eyebrow": "Opcional",
-      "title": "Configurar funciones de IA",
-      "body": "La IA de {appName} se ejecuta donde tú elijas: en este PC, de forma privada y gratuita, o a través de un proveedor en línea. Puedes configurar esto en cualquier momento desde la página de IA.",
-      "bodyOnline": "La IA de {appName} funciona a través del proveedor en línea que tú elijas, con tu propia clave. Puedes configurar esto en cualquier momento desde la página de IA.",
-      "quickSetup": "Ejecutar configuración rápida",
-      "quickSetupSub": "Local: usa este PC, privado y gratuito",
-      "connectProvider": "Conectar un proveedor en línea",
-      "connectProviderSub": "Endpoint compatible con OpenAI",
-      "skip": "Omitir por ahora"
-    },
-    "quickSetup": {
-      "runButton": "Ejecutar configuración rápida",
-      "bandScope": "Configura solo el proveedor integrado llama.cpp",
-      "applyButton": "Aplicar configuración",
-      "cancelButton": "Cancelar",
-      "closeButton": "Cerrar",
-      "engineBarTitle": "El motor",
-      "engineBarRole": "el programa que ejecuta los modelos",
-      "configuredBand": "La IA local está configurada — {model} es el modelo predeterminado",
-      "rerunButton": "Volver a ejecutar la configuración rápida",
-      "alreadyTitle": "Ya está configurado",
-      "changeModelButton": "Cambiar modelo",
-      "checkTitle": "¿Comprobar la velocidad real de IA de este equipo?",
-      "checkRunButton": "Ejecutar la comprobación de 1 minuto",
-      "checkSkipButton": "Omitir — usar estimaciones",
-      "checkRetryButton": "Intentar de nuevo",
-      "checkContinueButton": "Continuar"
-    }
   },
   "tray": {
     "show": "📺 Mostrar ventana",
@@ -1586,10 +1521,7 @@
       "brainstorm": "Lluvia de ideas",
       "markers": "Marcadores",
       "relations": "Relaciones",
-      "readerKnowledge": "Conocimiento del lector",
-      "ai": "Ajustes de AI",
-      "aiTasks": "Tareas de AI",
-      "help": "Ayuda"
+      "readerKnowledge": "Conocimiento del lector"
     },
     "projectSwitcher": {
       "heading": "Proyectos",
@@ -1689,14 +1621,7 @@
     },
     "sections": {
       "project": "Proyecto",
-      "appearance": "Apariencia",
-      "server": "Servidor",
-      "backups": "Copias de seguridad",
-      "sync": "Sincronización",
-      "storage": "Almacenamiento",
-      "logs": "Registros",
-      "updates": "Actualizaciones",
-      "about": "Acerca de"
+      "sync": "Sincronización"
     },
     "language": {
       "label": "Idioma",
@@ -1979,15 +1904,11 @@
       "diskUsageTitle": "Uso de disco",
       "diskUsageHint": "Aquí se muestra el espacio ocupado por tu carpeta de datos. Puedes borrar los modelos descargados y los registros del motor para recuperar espacio; tus proyectos, ajustes y trabajo nunca se verán afectados.",
       "modelsCacheLabel": "Caché de modelos",
-      "clearShort": "Borrar…",
       "engineBuildsLabel": "Compilaciones del motor",
       "managedOnAiPage": "Gestionado en la página de AI",
-      "serverLogsLabel": "Registros del servidor",
       "managedInLogs": "Gestionado en la sección de Registros",
       "spawnLogsLabel": "Registros de spawn del motor",
-      "databaseLabel": "Base de datos",
-      "totalLabel": "Total",
-      "freeSpaceLabel": "Espacio libre en disco"
+      "databaseLabel": "Base de datos"
     },
     "about": {
       "appCardTitle": "JustWrite",

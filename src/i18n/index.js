@@ -11,26 +11,25 @@
 //
 // The active locale is sourced from `useUiStore().locale` and applied on boot (boot/jw.js; boot/i18n.js installs the instance);
 // the Settings → Project language picker writes back through ui.setLocale().
+//
+// The kit's words come first: the instance starts from the kit's catalogs (`kit.*`) and JustWrite's
+// own are merged over them, so a `kit.*` key here would reword the kit's (the vue-i18n standard;
+// just-llm-runner/docs/plans/2026-10-12-i18n-standard.md).
 
 import { createI18n } from "vue-i18n";
+import { catalogsFromFiles, kitMessages } from "@delebash/llm-ui/i18n/index.js";
 
 // Vite inlines every match at BUILD time, so this is a static import graph, not a runtime read
 // — the bundle is identical to hand-written imports.
 const modules = import.meta.glob("./locales/*.json", { eager: true });
 
-// A locale FILE is `<code>.json`, where code is `es` or `pt-BR`. The pattern deliberately
-// refuses anything else in this folder: tooling writes `es.accepted.json` and `es.notes.json`
-// beside translations, and those must never be mistaken for a language called "es.accepted".
-const LOCALE_FILE = /\/([a-z]{2}(?:-[A-Za-z]{2,4})?)\.json$/;
-
+// A locale FILE is `<code>.json`, where code is `es` or `pt-BR` — the kit's one rule
+// (catalogsFromFiles): tooling writes `es.accepted.json` and `es.notes.json` beside
+// translations, and those must never be mistaken for a language called "es.accepted".
 // `en` first — it is the fallback for a missing locale or a missing key, so it has to be the
 // first entry regardless of alphabetical order. The rest follow by their own name.
-const found = Object.entries(modules)
-  .map(([path, mod]) => [path.match(LOCALE_FILE)?.[1], mod.default ?? mod])
-  .filter(([code, msgs]) => code && msgs)
+const found = Object.entries(catalogsFromFiles(modules))
   .sort(([a], [b]) => (a === "en" ? -1 : b === "en" ? 1 : a.localeCompare(b)));
-
-const messages = Object.fromEntries(found);
 
 /**
  * A language's name in its OWN language — "Español", not "Spanish".
@@ -75,10 +74,11 @@ export const i18n = createI18n({
   globalInjection: true,    // $t available in templates without import
   locale: AVAILABLE_LOCALES[0].code, // overridden post-boot in main.js
   fallbackLocale: AVAILABLE_LOCALES[0].code,
-  messages,
+  messages: kitMessages(),
   missingWarn: false,       // chatty in dev otherwise
   fallbackWarn: false,
 });
+for (const [code, msgs] of found) i18n.global.mergeLocaleMessage(code, msgs);
 
 // Imperative helpers for non-component callers.
 export function t(key, params) { return i18n.global.t(key, params); }

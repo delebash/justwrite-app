@@ -146,14 +146,14 @@ const NAV = [
   { id: "reader-knowledge", label: "sidebar.nav.readerKnowledge", icon: "Eye", path: "/reader-knowledge", activeName: "readerknowledge" },
   { id: "export",    label: "nav.export",    icon: "Export" },
   { id: "trash",     label: "nav.trash",     icon: "Trash" },
-  { id: "settings",  label: "nav.settings",  icon: "Settings" },
-  { id: "ai", label: "sidebar.nav.ai", icon: "Sparkle", path: "/ai", activeName: "ai" },
+  { id: "settings",  label: "kit.nav.appSettings",  icon: "Settings" },
+  { id: "ai", label: "kit.nav.aiSettings", icon: "Sparkle", path: "/ai", activeName: "ai" },
   // QC-38: the AI queue's main-menu doorway — opens the shared AI-tasks panel
   // (the Ask-the-book nav→panel precedent) and carries the same live
   // running/error badge as the titlebar chip. Label default "AI tasks"
   // (FLAGGED — matches the panel's title; "AI queue" on the user's word).
-  { id: "ai-tasks", label: "sidebar.nav.aiTasks", icon: "Sparkle", action: "toggleAiTasksPanel" },
-  { id: "help",      label: "sidebar.nav.help",       icon: "Help",     path: "/help", activeName: "help" },
+  { id: "ai-tasks", label: "kit.nav.aiTasks", icon: "Sparkle", action: "toggleAiTasksPanel" },
+  { id: "help",      label: "kit.nav.help",       icon: "Help",     path: "/help", activeName: "help" },
 ].filter((n) => bookIndexOn || n.id !== "ask"); // Ask the book needs the search index
 
 // Resolve an entity's status id → { statusLabel, statusColor } for the

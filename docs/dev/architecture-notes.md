@@ -184,7 +184,12 @@ Rules when adding or converting a string:
 - **`v-for="t in …"` shadows the setup `t`.** Inside such a loop use `$t`, never the destructured `t` — `build:spa` will not catch the shadowing.
 - **Locale-dependent constant arrays must be `computed()`**, or they freeze at module load and never re-translate when the language changes (see `SECTIONS` in `SettingsView.vue`).
 - **Not translated:** thrown `Error` messages, console/debug strings, data values, ids, enum strings, and DB-seeded text (seeded defaults stay English in v1).
-- **Kit strings are a separate, later batch** — `@delebash/llm-ui` does not take vue-i18n as a peer dep yet. Don't convert kit components from here.
+- **The kit's words are the kit's catalog** (`kit.*` keys, `just-llm-runner/ui/src/i18n/locales/`; the
+  plan `just-llm-runner/docs/plans/2026-10-12-i18n-standard.md`). `i18n/index.js` starts the instance from
+  `kitMessages()` and merges `locales/*.json` over it, so the family's shared words — the sidebar trio,
+  the shared Settings sections, the storage rows — are `$t("kit.…")` here, never a second JustWrite key;
+  a `kit.*` key in `en.json` would reword the kit's. `i18n:report` reads both catalogs and leaves the
+  kit's unused keys to the kit (`--exclude kit.`). Kit components themselves are converted in the kit.
 
 **Adding a language is dropping `<code>.json` into `i18n/locales/`.** Nothing else — no import,
 no list, no label. `i18n/index.js` discovers files with `import.meta.glob` and names each one
