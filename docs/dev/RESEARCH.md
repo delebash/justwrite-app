@@ -239,7 +239,8 @@ against the page by an agent, not re-checked by the session.
   the transaction's current doc, and `acceptChange` / `rejectChange` (`server/src/editor/aiDiff.js`)
   find their ranges there and then map them through `tr.mapping`; with two or more pending
   changes Reject all threw `RangeError: Position 3305 out of range`. (*measured 2026-10-11*, a
-  browser on a copy of `data/`; TASKS.)
+  browser on a copy of `data/`.) Fixed the same day: each command maps only through its own
+  steps (`ownStepsMap`), with `src/services/aiDiff.test.js`.
 - **The kit's additive columns needed quoting** for a keyword column (`when`): fixed in the kit's
   `1ab9a69`, with a test. (*measured 2026-10-11*.)
 

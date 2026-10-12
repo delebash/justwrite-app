@@ -128,19 +128,6 @@ GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decis
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;
         "your rec go" for the third round (Task 0, Tasks 9b and 11b, Task 12 in the chat panel).
 
-## Accept all / Reject all can fail with two or more pending AI changes [2026-10-11]
-STATE:  FOUND, not fixed (no go). Seen driving the editor on a scratch copy (the AI drafting plan
-        Task 13's probe): after two AI runs left two pending changes, **Reject all** threw
-        `RangeError: Position 3305 out of range` (rejectAllChanges → rejectChange → tr.delete).
-WHY:    the code, `server/src/editor/aiDiff.js:236-246` and `:270-285`: the bulk commands chain one
-        `rejectChange` / `acceptChange` per change; in a TipTap chain each command's `state.doc` is
-        the transaction's current doc, yet each finds its ranges in that doc AND maps them through
-        `tr.mapping` (built for the original doc) — mapped twice once an earlier change has deleted
-        text. One pending change is fine; two or more can throw or cut the wrong range.
-FIX:    find the ranges in the doc they're mapped from (the original `state.doc`, or don't map
-        positions taken from `tr.doc`), for both accept and reject; a test with two pending changes.
-        aiDiff.js is the shared editor schema (sync's scene adapter imports it).
-
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's
         `docs/plans/2026-10-08-the-phone.md`, slice 5), as shown:

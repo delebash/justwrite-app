@@ -6,6 +6,10 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-11
 
+**Accept all and Reject all, with several AI changes waiting.** With two or more AI changes
+pending in a scene, **Reject all** could fail with an error and **Accept all** could leave some of
+them pending. Both now settle every change.
+
 **The AI knows the scene.** Rewrite, Expand, Tighten, Continue, Describe and Continue with
 direction… now also read the scene they work in — your premise and main cast, the characters,
 places and objects linked to the scene, its beats and notes, and how the previous scene ends — so

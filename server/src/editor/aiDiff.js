@@ -104,6 +104,16 @@ function buildDiffHtml(changeId, originalHtml, newHtml) {
   return out.join("");
 }
 
+// A command finds its ranges in `state.doc` and maps them only through the steps IT adds: in a
+// chain (Accept all / Reject all run one command per change) `state.doc` is already the
+// transaction's current doc, so the steps an earlier command added must not move them again.
+// (2026-10-11: mapped through the whole transaction, Reject all with two pending changes threw
+// "Position … out of range", and Accept all left changes pending.)
+function ownStepsMap(tr) {
+  const base = tr.steps.length;
+  return (pos) => tr.mapping.slice(base).map(pos);
+}
+
 // Walk the doc for every position covered by a mark of the given type
 // with a matching change-id. Returns an array of { from, to } ranges
 // (text-level, not block-level), sorted ascending. Resolved (kept-
@@ -201,6 +211,7 @@ export const AiDiff = Extension.create({
       acceptChange:
         (changeId, { keepOriginal = false } = {}) =>
         ({ tr, state, dispatch }) => {
+          const map = ownStepsMap(tr);
           const ins = mergeRanges(findRanges(state.doc, "aiIns", changeId));
           if (keepOriginal) {
             // Mark the original resolved in place — text-level ranges (a
@@ -218,13 +229,13 @@ export const AiDiff = Extension.create({
             // Delete <del> ranges from highest to lowest position so earlier
             // ones don't shift later ones.
             for (const r of [...del].sort((a, b) => b.from - a.from)) {
-              tr.delete(tr.mapping.map(r.from), tr.mapping.map(r.to));
+              tr.delete(map(r.from), map(r.to));
             }
           }
           // Unwrap surviving <ins> ranges (positions remapped through tr).
           const insType = state.schema.marks.aiIns;
           for (const r of ins) {
-            tr.removeMark(tr.mapping.map(r.from), tr.mapping.map(r.to), insType);
+            tr.removeMark(map(r.from), map(r.to), insType);
           }
           if (dispatch) dispatch(tr);
           return true;
@@ -235,14 +246,15 @@ export const AiDiff = Extension.create({
       rejectChange:
         (changeId) =>
         ({ tr, state, dispatch }) => {
+          const map = ownStepsMap(tr);
           const ins = mergeRanges(findRanges(state.doc, "aiIns", changeId)).map((r) => expandRangeToContainingBlock(state.doc, r));
           const del = mergeRanges(findRanges(state.doc, "aiDel", changeId));
           for (const r of [...ins].sort((a, b) => b.from - a.from)) {
-            tr.delete(tr.mapping.map(r.from), tr.mapping.map(r.to));
+            tr.delete(map(r.from), map(r.to));
           }
           const delType = state.schema.marks.aiDel;
           for (const r of del) {
-            tr.removeMark(tr.mapping.map(r.from), tr.mapping.map(r.to), delType);
+            tr.removeMark(map(r.from), map(r.to), delType);
           }
           if (dispatch) dispatch(tr);
           return true;
@@ -294,6 +306,7 @@ export const AiDiff = Extension.create({
       clearAllStrikethroughs:
         () =>
         ({ tr, state, dispatch }) => {
+          const map = ownStepsMap(tr);
           const del = mergeRanges([
             ...findRanges(state.doc, "aiDel", null, { includeResolved: true }),
             ...findRanges(state.doc, "strike", null),
@@ -313,11 +326,11 @@ export const AiDiff = Extension.create({
             if (m) insRanges.push({ from: pos, to: pos + node.nodeSize });
           });
           for (const r of [...del].sort((a, b) => b.from - a.from)) {
-            tr.delete(tr.mapping.map(r.from), tr.mapping.map(r.to));
+            tr.delete(map(r.from), map(r.to));
           }
           const insType = state.schema.marks.aiIns;
           for (const r of mergeRanges(insRanges)) {
-            tr.removeMark(tr.mapping.map(r.from), tr.mapping.map(r.to), insType);
+            tr.removeMark(map(r.from), map(r.to), insType);
           }
           if (dispatch) dispatch(tr);
           return true;
