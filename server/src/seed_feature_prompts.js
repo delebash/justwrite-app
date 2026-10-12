@@ -1105,6 +1105,35 @@ export const DEFAULT_FEATURE_PROMPTS = {
             "\n\n--- BEGIN PASSAGE ---\n{{passage}}\n--- END PASSAGE ---"
         ),
     },
+    // Rewrite with direction… and Write dialogue… (the AI drafting plan Task 14, 2026-10-11): the
+    // writer's {{direction}} on the selection, and dialogue from the cursor in the scene's
+    // characters' voices — their story-bible entries arrive in {{storyContext}}.
+    "writerAI.guided-rewrite": {
+        "feature": "writerAI",
+        "system": WRITER_PROSE_SYSTEM,
+        "user_template": (
+            "Rewrite the passage below. " +
+            "Follow this specific direction the writer has given you: " +
+            "\"{{direction}}\". " +
+            "Keep the meaning, voice, tense, and POV of the passage except where the direction changes them. " +
+            "Do not echo the direction back as a header." +
+            "\n\n--- BEGIN PASSAGE ---\n{{passage}}\n--- END PASSAGE ---"
+        ),
+    },
+    "writerAI.dialogue": {
+        "feature": "writerAI",
+        "system": WRITER_PROSE_SYSTEM,
+        "user_template": (
+            "Write a stretch of dialogue that continues from where the passage below ends. " +
+            "Follow this specific direction the writer has given you: " +
+            "\"{{direction}}\". " +
+            "The speakers are the scene's characters: give each the voice their entry in the story context " +
+            "describes — register, vocabulary, speech tics, sample lines — and never give one character " +
+            "another's habits. Mostly dialogue, with brief beats of action between lines. Match the tense " +
+            "and POV of the passage. Do not summarize what came before. Do not echo the direction back as a header." +
+            "\n\n--- BEGIN PASSAGE ---\n{{passage}}\n--- END PASSAGE ---"
+        ),
+    },
     // ── writerAI line-edit rules (temperature 0.6) ──
     "writerAI.rule.show-dont-tell": writer(
         "Revise the passage to show rather than tell. Replace statements about emotion or state " +
@@ -1208,6 +1237,8 @@ const ACTION_META = {
     "writerAI.continue": {"group": "Prose actions", "description": "Write 2–4 more paragraphs from where the passage ends, matching voice and POV."},
     "writerAI.describe": {"group": "Prose actions", "description": "Fresh sensory prose about the named subject, to insert after the passage."},
     "writerAI.guided-continue": {"group": "Prose actions", "description": "Continue the passage following a one-line direction you give."},
+    "writerAI.guided-rewrite": {"group": "Prose actions", "description": "Rewrite the selection following a one-line direction you give."},
+    "writerAI.dialogue": {"group": "Prose actions", "description": "Write dialogue at the cursor for the scene's characters, in their story-bible voices, following a direction you give."},
     "writerAI.rule.show-dont-tell": {"group": "Line edits", "description": "Trades told-emotion (\"she was nervous\") for the body language, behaviour, and dialogue that let the reader feel it firsthand."},
     "writerAI.rule.passive-voice": {"group": "Line edits", "description": "Switches to active voice when the actor matters. Leaves passive in place when the doer genuinely doesn't — crime scenes, mysteries, agentless states."},
     "writerAI.rule.filter-words": {"group": "Line edits", "description": "Strips the layer of \"she saw / he heard / I felt\" between the POV character and what they're perceiving. The reader gets the perception direct."},
@@ -1244,6 +1275,8 @@ const ACTION_LABELS = {
     "writerAI.continue": "Continue",
     "writerAI.describe": "Describe",
     "writerAI.guided-continue": "Guided continue",
+    "writerAI.guided-rewrite": "Rewrite with direction",
+    "writerAI.dialogue": "Write dialogue",
     "writerAI.rule.show-dont-tell": "Show don't tell",
     "writerAI.rule.passive-voice": "Passive voice",
     "writerAI.rule.filter-words": "Filter words",

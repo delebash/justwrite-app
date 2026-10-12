@@ -21,7 +21,7 @@ const e = (key, label, hint, group) => FeatureCatalogEntry({ key, label, hint, g
 // (seed_feature_prompts ACTION_META) under the group; single-action features show this label.
 export const FEATURE_CATALOG = [
   // ── Writing — the scene-editor AI menu (Rewrite / Expand / … + Line edits) ──
-  e("writerAI", "Writer actions", "The AI menu in each scene's strip — Rewrite, Expand, Tighten, Continue, Describe, plus all Line edits.", "Writing"),
+  e("writerAI", "Writer actions", "The AI menu in each scene's strip — Rewrite, Expand, Tighten, Continue, Describe, Rewrite with direction…, Continue with direction…, Write dialogue…, plus all Line edits.", "Writing"),
   // ── Drafting tools — get-unstuck / research / ideas ──
   e("sensory", "Research feel", "Structured sensory pack (smell / sound / touch / …) for a selected subject — the editor's “Research feel” modal.", "Drafting tools"),
   e("unstuck", "Unstuck", "Five ways to unblock the current scene — goal shift / interrupt / setting / reveal / time cut.", "Drafting tools"),

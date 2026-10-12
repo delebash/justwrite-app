@@ -150,15 +150,18 @@ export const DEFAULT_MODEL_CATALOG_EXTRA = [
 // ── the per-ACTION preset refs (action -> preset_id — the ONE source of what an action
 // runs) + the catch-all default. writerAI splits here (continue -> Generate prose,
 // tighten -> Edit prose); every writerAI.rule.* is listed EXPLICITLY (no prefix magic).
-// 43 refs across the 10 presets (+4 AI drafting actions, 2026-10-11). ──
+// 45 refs across the 10 presets (+4 AI drafting actions, +2 Rewrite with direction / Write
+// dialogue, 2026-10-11). ──
 export const DEFAULT_FEATURE_PRESETS = {
     // Generate prose
     "writerAI.continue": "p_prose_voiced",
     "writerAI.expand": "p_prose_voiced",
     "writerAI.describe": "p_prose_voiced",
     "writerAI.guided-continue": "p_prose_voiced",
+    "writerAI.dialogue": "p_prose_voiced",
     // Edit prose (rewrite + tighten + the 7 line-edit rules)
     "writerAI.rewrite": "p_prose_edit",
+    "writerAI.guided-rewrite": "p_prose_edit",
     "writerAI.tighten": "p_prose_edit",
     "writerAI.rule.show-dont-tell": "p_prose_edit",
     "writerAI.rule.passive-voice": "p_prose_edit",
@@ -258,10 +261,34 @@ export const DEFAULT_TEST_SAMPLES = [
                               "already unlatched.",
                    "direction": "Continue the scene: someone has been here first; keep it quiet and close.",
                    "voiceCanon": "Close third person, past tense; spare coastal imagery."}},
+    // ── Rewrite with direction… and Write dialogue… (the AI drafting plan Task 14, 2026-10-11):
+    // the selection with a direction; dialogue from the cursor, its speakers' voices in
+    // {{storyContext}} (the shape writerAI.js storyContextVar sends) ──
+    {"actions": ["writerAI.guided-rewrite"], "label": "Rewrite with a direction",
+     "variables": {"passage": "It was very really quite windy that day, and the wind, which " +
+                              "was blowing hard, made the trees move back and forth a lot in " +
+                              "the wind, which she could see happening as she watched it.",
+                   "direction": "Make it short and cold — one plain sentence of weather, no hedging.",
+                   "voiceCanon": "",
+                   "storyContext": ""}},
+    {"actions": ["writerAI.dialogue"], "label": "Dialogue at the lamp",
+     "variables": {"passage": "Ines keyed the radio twice before the harbor answered. Static, then " +
+                              "Brannock's voice, too awake for the hour.",
+                   "direction": "Ines asks about the supply boat; Brannock knows it sank and won't say so.",
+                   "voiceCanon": "Close third person, past tense; spare coastal imagery.",
+                   "storyContext": "\n\nSTORY CONTEXT\n" +
+                                   "## Premise\nA lighthouse keeper on a storm coast learns the supply boat " +
+                                   "she has been waiting for sank a week ago.\n\n" +
+                                   "## Ines Varga\nKeeper of the Harrow Point light for nine years. " +
+                                   "Voice: clipped; counts things aloud; never asks a question she can make a statement.\n" +
+                                   "Sample line: \"Twenty-one forty. No contact. Logging it.\"\n\n" +
+                                   "## Aldo Brannock\nHarbormaster. Kind, evasive, talks around bad news. " +
+                                   "Voice: warm, rambling; says \"now then\" before anything hard.\n" +
+                                   "Sample line: \"Now then — weather like this, a boat's got sense to wait it out.\""}},
     // ── the prose actions with the scene's story context (slice 2, 2026-10-11): {{storyContext}}
     // in the shape writerAI.js storyContextVar sends — the samples above leave it "", the
     // nothing-linked case ──
-    {"actions": ["writerAI.rewrite", "writerAI.expand", "writerAI.tighten", "writerAI.continue", "writerAI.describe", "writerAI.guided-continue"], "label": "With story context",
+    {"actions": ["writerAI.rewrite", "writerAI.expand", "writerAI.tighten", "writerAI.continue", "writerAI.describe", "writerAI.guided-continue", "writerAI.guided-rewrite", "writerAI.dialogue"], "label": "With story context",
      "variables": {"passage": "The lighthouse keeper counted the storm's breaths between " +
                               "each sweep of the lamp. The supply boat's light appeared " +
                               "where no boat should be.",

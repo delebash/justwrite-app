@@ -1173,44 +1173,84 @@ function onKeydown(e) {
   }
 }
 
-// Guided Continue — same shape as the cursor-anchored continue branch
-// of runWriterAction, but with a user-supplied instruction prepended.
-// Returned to ChaptersView via defineExpose so the Unstuck modal can
-// drive the editor without reaching into the writerAI service itself.
-async function runGuidedContinue(instruction, opts = {}) {
+// The direction actions — Continue with direction…, Write dialogue… (from the cursor) and
+// Rewrite with direction… (on the selection): the shape of Continue and Rewrite, with the
+// writer's one-line instruction. Returned to ChaptersView via defineExpose so its AI menu (and
+// the Unstuck modal) drive the editor without reaching into the writerAI service itself.
+const DIRECTED_AT_CURSOR = {
+  continue: { fn: writerAI.guidedContinue, action: "writerAI.guided-continue", label: "Continue (guided)", eyebrow: "Continue with direction", noDirection: "Guided Continue needs a one-line direction." },
+  dialogue: { fn: writerAI.writeDialogue, action: "writerAI.dialogue", label: "Write dialogue", eyebrow: "Write dialogue" },
+};
+
+async function runDirectedAtCursor(kind, instruction, opts = {}) {
   if (!editor.value || aiRunning.value) return;
+  const spec = DIRECTED_AT_CURSOR[kind];
   const text = String(instruction || "").trim();
-  if (!text) { aiError.value = "Guided Continue needs a one-line direction."; return; }
+  if (!text) { if (spec.noDirection) aiError.value = spec.noDirection; return; }
   const ctx = grabContextBeforeCursor(800);
   if (!ctx.trim()) { aiError.value = "Place the cursor at the end of some prose to continue from."; return; }
   const pos = editor.value.state.selection.from;
   proseMenuOpen.value = false;
-  const storyContext = await proseContext("writerAI.guided-continue");
+  const storyContext = await proseContext(spec.action);
   if (storyContext === null) return;
   if (shouldUseVariations(opts.shiftKey)) {
     startVariations({
-      runnerFactory: (temperature, signal, onDelta, taskMeta) => writerAI.guidedContinue({
+      runnerFactory: (temperature, signal, onDelta, taskMeta) => spec.fn({
         html: `<p>${ctx}</p>`, instruction: text, storyContext, signal, onDelta, temperature,
-        task: { label: "Writer assist · Continue (guided)", meta: { ...(taskMeta || {}), action: "guidedContinue" } },
+        task: { label: `Writer assist · ${spec.label}`, meta: { ...(taskMeta || {}), action: spec.action } },
       }),
       mode: "continue-at", from: pos, to: pos,
       originalHtml: "",
-      eyebrow: "Continue with direction — three variations",
+      eyebrow: `${spec.eyebrow} — three variations`,
       label: "Pick a continuation to insert",
     });
     return;
   }
   aiError.value = "";
   try {
-    const result = await writerAI.guidedContinue({
-      html: `<p>${ctx}</p>`,
-      instruction: text,
-      storyContext,
-    });
+    const result = await spec.fn({ html: `<p>${ctx}</p>`, instruction: text, storyContext });
     if (!result?.html?.trim()) {
       aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
     } else {
       editor.value.chain().focus().proposeContinuation({ at: pos, newHtml: result.html }).run();
+    }
+  } catch (err) {
+    if (!isAiAbort(err)) aiError.value = err?.message || String(err);
+  }
+}
+function runGuidedContinue(instruction, opts = {}) { return runDirectedAtCursor("continue", instruction, opts); }
+function runWriteDialogue(instruction, opts = {}) { return runDirectedAtCursor("dialogue", instruction, opts); }
+
+// Rewrite with direction… — Rewrite's shape (the selection, replaced through the accept/reject
+// diff), with the writer's instruction.
+async function runGuidedRewrite(instruction, opts = {}) {
+  if (!editor.value || aiRunning.value) return;
+  const text = String(instruction || "").trim();
+  if (!text) return;
+  const { from, to, html } = readSelectionHtml();
+  if (from === to) { aiError.value = "Select some text first."; return; }
+  proseMenuOpen.value = false;
+  const storyContext = await proseContext("writerAI.guided-rewrite");
+  if (storyContext === null) return;
+  if (shouldUseVariations(opts.shiftKey)) {
+    startVariations({
+      runnerFactory: (temperature, signal, onDelta, taskMeta) => writerAI.guidedRewrite({
+        html, instruction: text, storyContext, signal, onDelta, temperature,
+        task: { label: "Writer assist · Rewrite with direction", meta: { ...(taskMeta || {}), action: "writerAI.guided-rewrite" } },
+      }),
+      mode: "replace", from, to, originalHtml: html,
+      eyebrow: "Rewrite with direction — three variations",
+      label: "Pick a variation to apply",
+    });
+    return;
+  }
+  aiError.value = "";
+  try {
+    const result = await writerAI.guidedRewrite({ html, instruction: text, storyContext });
+    if (!result?.html?.trim()) {
+      aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
+    } else {
+      editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html }).run();
     }
   } catch (err) {
     if (!isAiAbort(err)) aiError.value = err?.message || String(err);
@@ -1259,6 +1299,8 @@ defineExpose({
   runWriterAction,
   runProsePass,
   runGuidedContinue,
+  runGuidedRewrite,
+  runWriteDialogue,
   clearAllStrikethroughs,
   strikeCount,
   grabUnstuckContext,

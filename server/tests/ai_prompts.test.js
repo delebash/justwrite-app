@@ -131,7 +131,9 @@ test("the drafting actions are seeded with their feature, their preset and a JSO
 });
 
 // ── slice 2: the prose actions know the story (2026-10-11, the AI drafting plan Task 13) ──
-const PROSE = ["writerAI.rewrite", "writerAI.expand", "writerAI.tighten", "writerAI.continue", "writerAI.describe", "writerAI.guided-continue"];
+// The six that existed before slice 2 (healed), and the two direction actions added with Task 14.
+const HEALED = ["writerAI.rewrite", "writerAI.expand", "writerAI.tighten", "writerAI.continue", "writerAI.describe", "writerAI.guided-continue"];
+const PROSE = [...HEALED, "writerAI.guided-rewrite", "writerAI.dialogue"];
 
 test("the prose actions' system ends in {{storyContext}}; the line edits' doesn't carry it", () => {
   for (const key of PROSE) expect(DEFAULT_FEATURE_PROMPTS[key].system, key).toMatch(/\{\{voiceCanon\}\}\{\{storyContext\}\}$/);
@@ -145,7 +147,20 @@ test("an unedited prose prompt heals: its heal entry is the system it had, byte 
   // The line edits keep the old writer system unchanged — so it IS what an existing row carries.
   const old = DEFAULT_FEATURE_PROMPTS["writerAI.rule.passive-voice"].system;
   expect(old.endsWith("Preserve dialogue formatting and proper nouns.{{voiceCanon}}")).toBe(true);
-  for (const key of PROSE) expect(FEATURE_PROMPT_HEALS[key], key).toEqual([old]);
+  for (const key of HEALED) expect(FEATURE_PROMPT_HEALS[key], key).toEqual([old]);
+  for (const key of ["writerAI.guided-rewrite", "writerAI.dialogue"]) expect(FEATURE_PROMPT_HEALS[key], key).toBeUndefined();
+});
+
+test("Rewrite with direction and Write dialogue: the writer's direction on the prose system, and their presets", async () => {
+  const SP = await import("../src/seed_presets.js");
+  for (const key of ["writerAI.guided-rewrite", "writerAI.dialogue"]) {
+    expect(DEFAULT_FEATURE_PROMPTS[key].feature, key).toBe("writerAI");
+    expect(DEFAULT_FEATURE_PROMPTS[key].user_template, key).toContain('"{{direction}}"');
+    expect(DEFAULT_FEATURE_PROMPTS[key].user_template, key).toContain("--- BEGIN PASSAGE ---\n{{passage}}\n--- END PASSAGE ---");
+  }
+  expect(DEFAULT_FEATURE_PROMPTS["writerAI.dialogue"].user_template).toContain("story context");
+  expect(SP.DEFAULT_FEATURE_PRESETS["writerAI.guided-rewrite"]).toBe("p_prose_edit");
+  expect(SP.DEFAULT_FEATURE_PRESETS["writerAI.dialogue"]).toBe("p_prose_voiced");
 });
 
 test("the prose actions share a story-context Lab sample, in the shape the client sends", async () => {

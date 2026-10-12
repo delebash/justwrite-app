@@ -947,7 +947,7 @@
     "clearAll": "Limpiar todo",
     "previewFingerprint": "Vista previa de la huella que se inyectará",
     "storyContextCardTitle": "Contexto de la historia",
-    "storyContextDesc": "Cuando la IA redacta un personaje, lee tu premisa, el género, las reglas del mundo, el Escenario y el reparto principal. Reescribir, Expandir, Ajustar, Continuar, Describir y Continuar con dirección… también leen la escena en la que trabajan: sus personajes, lugares y objetos vinculados, sus beats y notas, y cómo termina la escena anterior. Solo se envía lo relevante; este es el máximo de la ventana de contexto del modelo que pueden ocupar esas notas. En un modelo con una ventana pequeña, una proporción menor deja más espacio para la respuesta; en uno grande rara vez importa.",
+    "storyContextDesc": "Cuando la IA redacta un personaje, lee tu premisa, el género, las reglas del mundo, el Escenario y el reparto principal. Reescribir, Expandir, Ajustar, Continuar, Describir, Reescribir con dirección…, Continuar con dirección… y Escribir diálogo… también leen la escena en la que trabajan: sus personajes, lugares y objetos vinculados, sus beats y notas, y cómo termina la escena anterior. Solo se envía lo relevante; este es el máximo de la ventana de contexto del modelo que pueden ocupar esas notas. En un modelo con una ventana pequeña, una proporción menor deja más espacio para la respuesta; en uno grande rara vez importa.",
     "storyContextLabel": "Las notas de la historia pueden usar hasta"
   },
   "richEditor": {
@@ -2148,7 +2148,11 @@
       "lineEditsHint": "Selección, o escena completa si no hay ninguna",
       "groupCleanUp": "Limpiar",
       "clearStrikesLabel": "Borrar todos los tachados",
-      "clearStrikesDesc": "Elimina cada original tachado que haya quedado tras aceptar cambios de la IA (y los originales de aquellos aún pendientes — que los acepta). El nuevo texto permanece."
+      "clearStrikesDesc": "Elimina cada original tachado que haya quedado tras aceptar cambios de la IA (y los originales de aquellos aún pendientes — que los acepta). El nuevo texto permanece.",
+      "guidedRewriteLabel": "Reescribir con dirección…",
+      "guidedRewriteDesc": "Igual que Reescribir, pero primero dices cómo (\"hazla más fría\"). Mantiene el sentido, la voz y el tiempo verbal salvo que tu dirección los cambie.",
+      "dialogueLabel": "Escribir diálogo…",
+      "dialogueDesc": "Escribe un intercambio en el cursor entre los personajes de la escena, con las voces de la biblia de la historia. Primero dices de qué trata."
     },
     "dialogs": {
       "guidedTitle": "Continuar con una dirección",
@@ -2164,7 +2168,14 @@
       "deletePartTitle": "¿Eliminar \"{title}\"?",
       "deletePartMessage": "Su {n} capítulo se moverá a \"{into}\". | Sus {n} capítulos se moverán a \"{into}\".",
       "deletePartEmpty": "Esta parte no tiene capítulos.",
-      "deletePartConfirm": "Eliminar parte"
+      "deletePartConfirm": "Eliminar parte",
+      "guidedRewriteTitle": "Reescribir con una dirección",
+      "guidedRewriteMessage": "¿Cómo debería cambiar este pasaje? Una frase es suficiente.",
+      "guidedRewritePlaceholder": "p. ej. Hazla más fría: ya ha tomado una decisión.",
+      "guidedRewriteConfirm": "Reescribir esto",
+      "dialogueTitle": "Escribir diálogo",
+      "dialogueMessage": "¿De qué trata el intercambio? Di quién habla si importa.",
+      "dialoguePlaceholder": "p. ej. Nettle presiona a Cael sobre la ficha; Cael se escabulle."
     },
     "footer": {
       "words": "palabras",

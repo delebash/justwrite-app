@@ -224,7 +224,7 @@ By default every AI dropdown action returns one result. **Three-alternative stre
 
 There are two ways to turn it on:
 
-- **AI Settings page → Writing AI tab → Three-alternative streaming.** A single toggle: *"Show 3 variations on every AI action."* Off by default. When on, every Rewrite / Expand / Tighten / Continue / Describe / line edit / Continue-with-direction opens the three-column modal automatically.
+- **AI Settings page → Writing AI tab → Three-alternative streaming.** A single toggle: *"Show 3 variations on every AI action."* Off by default. When on, every Rewrite / Expand / Tighten / Continue / Describe / line edit / Continue-with-direction / Rewrite-with-direction / Write dialogue opens the three-column modal automatically.
 - **Shift-click any AI dropdown item.** Per-call opt-in regardless of the toggle. When you trust the prose for most actions but want to see the space on one tough paragraph, shift-click is the escape hatch.
 
 **Why the opt-in.** Variations mode triples the token cost on cloud providers. The toggle lets you choose cost vs. choice once and forget it; the shift-click lets you make the choice case by case. There's no surprise bills surface — the dashboard's Usage page records all three streams independently so the cost is honest.
@@ -237,7 +237,7 @@ The chosen column threads back into the existing accept/reject AI-diff machinery
 
 > *"Continue wrote three good paragraphs — about a character who died in chapter four, in a city the book has never been to."*
 
-**Rewrite, Expand, Tighten, Continue, Describe** and **Continue with direction…** read more than your passage. They're also sent the scene's story context: your premise, genre, world rules, Setting and main cast, then what the scene's **Links** panel ties to it — its point of view, the strand beats pinned to it, its notes, the story-bible entries of its characters, places and objects — and how the previous scene ends. Link a character to the scene and the AI knows who they are; leave a scene unlinked and it still runs, on the book's frame and your passage. In continuous-chapter mode it's the scene your cursor is in.
+**Rewrite, Expand, Tighten, Continue, Describe, Rewrite with direction…, Continue with direction…** and **Write dialogue…** read more than your passage. They're also sent the scene's story context: your premise, genre, world rules, Setting and main cast, then what the scene's **Links** panel ties to it — its point of view, the strand beats pinned to it, its notes, the story-bible entries of its characters, places and objects — and how the previous scene ends. Link a character to the scene and the AI knows who they are; leave a scene unlinked and it still runs, on the book's frame and your passage. In continuous-chapter mode it's the scene your cursor is in.
 
 While an action runs, the line under the progress strip names what was sent — **Context:** Premise · Genre · Main cast · Mira · Previous scene. Anything marked **Exclude from AI** is never sent.
 
@@ -259,20 +259,22 @@ Set it on the **AI Settings page → Writing AI tab → Voice canon**. The picke
 
 The dropdown groups actions by what they operate on, so you can tell at a glance whether you need to highlight text first:
 
-- **Selection only** — Rewrite, Expand, and Describe. Greyed out until you select text in the editor.
+- **Selection only** — Rewrite, Rewrite with direction…, Expand, and Describe. Greyed out until you select text in the editor.
 - **Selection or whole scene** — Tighten. Runs on the selection if you have one, on the entire scene otherwise.
-- **From the cursor** — Continue. Generates the next paragraphs from wherever the cursor sits.
+- **From the cursor** — Continue, Continue with direction…, and Write dialogue…. Generate the next paragraphs from wherever the cursor sits.
 - **Line edits** — surgical, single-issue revisions (Show don't tell, Filter words, Dialogue tags, Sensory grounding, etc.) that run on the selection, or on the whole scene if nothing is selected.
 
 ### Whole-passage actions
 
 - **Rewrite** — same meaning, different prose. Useful when you know the scene works but the wording feels stale. *Selection only* — select the whole scene to rewrite it wholesale, or shift-click any AI action for three side-by-side variations to compare.
+- **Rewrite with direction…** — same as Rewrite, but you say how first. See below.
 - **Expand** — adds sensory detail, interiority, small physical actions. Roughly doubles the length. *Selection only.*
 - **Describe** — additive. Treats the highlighted text as a *subject* (a place, person, object, or moment) and writes 1–2 paragraphs of fresh sensory prose **about** it, inserted right after the selection. The original passage stays untouched. Use it when you've named something but haven't brought it to life on the page — highlight "the old market" and get 200 words of sights, smells, and textures dropped in after. *Selection only.*
 - **Research feel…** — Describe's structured sibling. Returns a research pack of short concrete sensory phrases the writer browses and selectively drops in. See below.
 - **Tighten** — strips filler. Comes back shorter. *Selection or whole scene* — runs on the highlighted text, or the entire scene if nothing is selected.
 - **Continue** — generates the next 2–4 paragraphs from the cursor. Useful when you're stuck. *No selection needed.*
 - **Continue with direction…** — same as Continue, but you give it a one-line instruction first. See below.
+- **Write dialogue…** — an exchange at the cursor between the scene's characters, in their voices. See below.
 - **Unstuck — five ways out** — opens a diagnostic modal with five distinct moves the scene could take from here. See below.
 
 ### Research feel — sensory research pack
@@ -311,6 +313,20 @@ Click **Continue with direction…** in the AI dropdown. A small prompt asks for
 **Why a writer would use it.** This is the single most-used AI feature in working tools like Sudowrite and NovelCrafter because it sits in the sweet spot between dictation (too constrained) and improvisation (too unmoored). You stay the author — the instruction is yours — but you don't have to sit through the friction of actually typing the paragraph. Use it as a momentum tool: type a direction, accept what comes back as a starting point, revise on top of it.
 
 **Routes through the same engine as Unstuck's Write-this buttons** (guidedContinue under the hood). The model used is whichever provider you've pinned for **Writer actions** in Settings → AI.
+
+### Rewrite with direction
+
+> *"The paragraph is right, but she's too warm in it. I don't want it different — I want it colder."*
+
+Plain Rewrite decides for itself how to improve a passage. **Rewrite with direction…** asks you first. Select the text, choose it in the AI dropdown, and say in one sentence how it should change — "make her colder — she's already decided", "cut it to the bone", "let him lie in this paragraph". The rewrite keeps the meaning, voice, tense and point of view except where your direction changes them, and lands as an accept/reject diff. Shift-click it for three variations.
+
+### Write dialogue
+
+> *"I know what they argue about. I can't hear how they'd say it."*
+
+Put the cursor where the exchange should start, choose **Write dialogue…** in the AI dropdown, and say what it's about — "Nettle presses Cael about the token; Cael deflects". Name who speaks if it matters. JustWrite writes the exchange from the cursor: mostly dialogue, with brief beats of action between the lines, in the tense and point of view of what came before. It lands as an accept/reject diff like Continue.
+
+**Who speaks, and how.** The voices come from the story context: the characters linked to the scene in its **Links** panel, with what their sheets say about how they talk — register, vocabulary, speech tics, sample lines. The more of a character's **Voice** section you've filled, the more they sound like themselves; a character who isn't linked to the scene isn't in the context, so link them first. See [Story context](#story-context-the-ai-knows-the-scene).
 
 ### Unstuck — five ways out
 

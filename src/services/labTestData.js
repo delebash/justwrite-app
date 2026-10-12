@@ -254,14 +254,12 @@ function composeBriefing() {
 // ── the per-action affordance table (all 37 seeded actions) ──
 const chapterProse = { pickers: [{ source: "chapters", fill: fillChapterProse }], samples: ["Chapter for critique"] };
 const passageEdit = { pickers: [{ source: "chapters", fill: fillPassage }], samples: ["Flabby paragraph"] };
-const proseEdit = (action) => ({
+const proseFill = (action, samples) => ({
   pickers: [{ source: "chapters", fill: (id) => fillProsePassage(id, action) }],
-  samples: ["Flabby paragraph", "With story context"],
+  samples,
 });
-const proseGenerate = (action) => ({
-  pickers: [{ source: "chapters", fill: (id) => fillProsePassage(id, action) }],
-  samples: ["Storm at the lighthouse", "Guided continuation", "With story context"],
-});
+const proseEdit = (action) => proseFill(action, ["Flabby paragraph", "With story context"]);
+const proseGenerate = (action) => proseFill(action, ["Storm at the lighthouse", "Guided continuation", "With story context"]);
 
 export const LAB_TEST_ACTIONS = {
   // A — chapter-prose prompts ({{chapter_label}}/{{chapter_text}})
@@ -280,6 +278,8 @@ export const LAB_TEST_ACTIONS = {
   "writerAI.continue": proseGenerate("writerAI.continue"),
   "writerAI.describe": proseGenerate("writerAI.describe"),
   "writerAI.guided-continue": proseGenerate("writerAI.guided-continue"), // {{direction}} stays typed; the samples provide one
+  "writerAI.guided-rewrite": proseFill("writerAI.guided-rewrite", ["Rewrite with a direction", "With story context"]),
+  "writerAI.dialogue": proseFill("writerAI.dialogue", ["Dialogue at the lamp", "With story context"]),
   "writerAI.rule.show-dont-tell": passageEdit,
   "writerAI.rule.passive-voice": passageEdit,
   "writerAI.rule.filter-words": passageEdit,

@@ -947,7 +947,7 @@
     "clearAll": "Clear all",
     "previewFingerprint": "Preview the fingerprint that will be injected",
     "storyContextCardTitle": "Story context",
-    "storyContextDesc": "When the AI drafts a character, it reads your premise, genre, world rules, Setting and main cast. Rewrite, Expand, Tighten, Continue, Describe and Continue with direction… also read the scene they work in — its linked characters, places and objects, its beats and notes, and how the previous scene ends. Only what's relevant is sent; this is the most of the model's context window those notes may take. On a model with a small window, a lower share leaves more room for the reply; on a large one it rarely matters.",
+    "storyContextDesc": "When the AI drafts a character, it reads your premise, genre, world rules, Setting and main cast. Rewrite, Expand, Tighten, Continue, Describe, Rewrite with direction…, Continue with direction… and Write dialogue… also read the scene they work in — its linked characters, places and objects, its beats and notes, and how the previous scene ends. Only what's relevant is sent; this is the most of the model's context window those notes may take. On a model with a small window, a lower share leaves more room for the reply; on a large one it rarely matters.",
     "storyContextLabel": "Story notes may use up to"
   },
   "richEditor": {
@@ -2148,7 +2148,11 @@
       "lineEditsHint": "Selection, or whole scene if none",
       "groupCleanUp": "Clean up",
       "clearStrikesLabel": "Clear all strikethroughs",
-      "clearStrikesDesc": "Remove every struck-through original left behind by accepted AI changes (and the originals of still-pending ones — that accepts them). The new text stays."
+      "clearStrikesDesc": "Remove every struck-through original left behind by accepted AI changes (and the originals of still-pending ones — that accepts them). The new text stays.",
+      "guidedRewriteLabel": "Rewrite with direction…",
+      "guidedRewriteDesc": "Same as Rewrite, but you say how first (\"make her colder\"). Keeps meaning, voice and tense unless your direction changes them.",
+      "dialogueLabel": "Write dialogue…",
+      "dialogueDesc": "Writes an exchange at the cursor between the scene's characters, in their story-bible voices. You say what it's about first."
     },
     "dialogs": {
       "guidedTitle": "Continue with a direction",
@@ -2164,7 +2168,14 @@
       "deletePartTitle": "Delete \"{title}\"?",
       "deletePartMessage": "Its {n} chapter will move to \"{into}\". | Its {n} chapters will move to \"{into}\".",
       "deletePartEmpty": "This part has no chapters.",
-      "deletePartConfirm": "Delete part"
+      "deletePartConfirm": "Delete part",
+      "guidedRewriteTitle": "Rewrite with a direction",
+      "guidedRewriteMessage": "How should this passage change? One sentence is enough.",
+      "guidedRewritePlaceholder": "e.g. Make her colder — she's already decided.",
+      "guidedRewriteConfirm": "Rewrite this",
+      "dialogueTitle": "Write dialogue",
+      "dialogueMessage": "What's the exchange about? Name who speaks if it matters.",
+      "dialoguePlaceholder": "e.g. Nettle presses Cael about the token; Cael deflects."
     },
     "footer": {
       "words": "words",

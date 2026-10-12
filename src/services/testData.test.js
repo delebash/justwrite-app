@@ -100,11 +100,13 @@ describe("configureTestData + testDataAction", () => {
 
 // The QC-35 whole-job check: every seeded action key is declared with its
 // group's affordances. The key list mirrors DEFAULT_FEATURE_PROMPTS
-// (seed_feature_prompts.js — 43 keys: A=7, B=13, C=14, D=7, E=2; +6 on 2026-10-11 —
-// Fill from book's two passes, which had no entry, and the four AI drafting actions).
+// (seed_feature_prompts.js — 45 keys: A=7, B=15, C=14, D=7, E=2; +8 on 2026-10-11 —
+// Fill from book's two passes, which had no entry, the four AI drafting actions, and Rewrite
+// with direction / Write dialogue).
 const A_GROUP = ["critique", "critiqueStructure", "foreshadowing", "multiReaderGenre", "multiReaderLiterary", "multiReaderAgent", "multiReaderBookClub"];
 const B_GROUP = [
   "writerAI.rewrite", "writerAI.expand", "writerAI.tighten", "writerAI.continue", "writerAI.describe", "writerAI.guided-continue",
+  "writerAI.guided-rewrite", "writerAI.dialogue",
   "writerAI.rule.show-dont-tell", "writerAI.rule.passive-voice", "writerAI.rule.filter-words", "writerAI.rule.dialogue-tags",
   "writerAI.rule.sensory-grounding", "writerAI.rule.sentence-variety", "writerAI.rule.prose-tightening",
 ];
@@ -114,13 +116,13 @@ const SAMPLE_ONLY = ["relationshipArc", "brainstorm", "brainstormPlot", "sensory
 const ALL_SEEDED = [...A_GROUP, ...B_GROUP, ...C_PICKER, ...C_COMPOSE, ...SAMPLE_ONLY, "unstuck", "chat", "characterChat"];
 
 describe("LAB_TEST_ACTIONS (the QC-35 per-action table)", () => {
-  it("declares all 43 seeded actions, each with at least one sample label", () => {
-    expect(ALL_SEEDED).toHaveLength(43);
+  it("declares all 45 seeded actions, each with at least one sample label", () => {
+    expect(ALL_SEEDED).toHaveLength(45);
     for (const key of ALL_SEEDED) {
       expect(LAB_TEST_ACTIONS[key], `${key} declared`).toBeTruthy();
       expect(LAB_TEST_ACTIONS[key].samples?.length, `${key} has samples`).toBeGreaterThan(0);
     }
-    expect(Object.keys(LAB_TEST_ACTIONS)).toHaveLength(43);
+    expect(Object.keys(LAB_TEST_ACTIONS)).toHaveLength(45);
   });
 
   it("the location picker is gone (no source, no declaration references it)", () => {

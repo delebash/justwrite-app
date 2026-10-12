@@ -6,9 +6,15 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-11
 
-**Accept all and Reject all, with several AI changes waiting.** With two or more AI changes
-pending in a scene, **Reject all** could fail with an error and **Accept all** could leave some of
-them pending. Both now settle every change.
+**Rewrite with direction… and Write dialogue….** Two new items in the editor's AI dropdown.
+**Rewrite with direction…** rewrites the selection the way you say ("make her colder").
+**Write dialogue…** writes an exchange at the cursor between the scene's characters, in the voices
+their sheets describe — say what it's about first. See [Writing](writing.md#rewrite-with-direction).
+
+**Rejecting AI changes works every time.** **Reject all** (and Reject on one change) could fail
+with an error when the change ended the scene — a Continue at the end of a scene always does — and
+with two or more changes pending, **Reject all** could fail and **Accept all** could leave some
+pending. Both now settle every change.
 
 **The AI knows the scene.** Rewrite, Expand, Tighten, Continue, Describe and Continue with
 direction… now also read the scene they work in — your premise and main cast, the characters,

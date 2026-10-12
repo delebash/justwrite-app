@@ -169,20 +169,40 @@ export function describe(opts)  { return runAction("describe", opts); }
  * @param {object} [opts.provider]
  * @param {string} [opts.model]
  */
-export async function guidedContinue({ html, instruction, storyContext = "", signal, onDelta, meta, provider, model, temperature, task } = {}) {
-  const source = htmlToText(html, { stripSceneMarks: false, trim: false });
-  if (!source.trim()) throw new Error("There's nothing to continue from.");
-  const trimmed = String(instruction || "").trim();
-  if (!trimmed) throw new Error("Guided Continue needs a one-line direction.");
+export function guidedContinue(opts = {}) {
+  return runDirected("writerAI.guided-continue", "Continue (guided)", opts, {
+    empty: "There's nothing to continue from.",
+    noDirection: "Guided Continue needs a one-line direction.",
+  });
+}
 
-  // The directive (with the writer's {{direction}}) lives server-side in
-  // "writerAI.guided-continue"; we send the direction + passage as variables.
+/** Rewrite with direction… (the AI drafting plan Task 14): the selection rewritten the way the
+ *  writer's one-line `instruction` says. Same options as guidedContinue. */
+export function guidedRewrite(opts = {}) {
+  return runDirected("writerAI.guided-rewrite", "Rewrite with direction", opts);
+}
+
+/** Write dialogue… (Task 14): dialogue from the passage before the cursor, about what the
+ *  writer's `instruction` says, in the voices of the characters the story context carries. Same
+ *  options as guidedContinue. */
+export function writeDialogue(opts = {}) {
+  return runDirected("writerAI.dialogue", "Write dialogue", opts);
+}
+
+// The direction actions share one shape: the passage, the writer's {{direction}}, the voice canon
+// and the story context, rendered server-side from the action's seeded prompt.
+async function runDirected(action, label, { html, instruction, storyContext = "", signal, onDelta, meta, provider, model, temperature, task } = {}, messages = {}) {
+  const source = htmlToText(html, { stripSceneMarks: false, trim: false });
+  if (!source.trim()) throw new Error(messages.empty || "There's nothing to work on.");
+  const trimmed = String(instruction || "").trim();
+  if (!trimmed) throw new Error(messages.noDirection || "There's no direction to follow.");
+
   const result = await runAiFeatureStream({
-    action: "writerAI.guided-continue", feature: "writerAI",
+    action, feature: "writerAI",
     variables: { passage: source, direction: trimmed, voiceCanon: voiceCanonVar(), storyContext: storyContextVar(storyContext) },
     temperature: typeof temperature === "number" ? temperature : undefined,
     signal, onDelta, provider, model, meta,
-    task: editorTask(task, "Writer assist · Continue (guided)", meta),
+    task: editorTask(task, `Writer assist · ${label}`, meta),
   });
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
 }

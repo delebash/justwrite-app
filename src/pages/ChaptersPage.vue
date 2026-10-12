@@ -564,24 +564,33 @@ function onSensoryInsert(phrase) {
 // Same engine as Unstuck's "Write this" but driven by a one-line
 // direction the writer types in a prompt dialog. For when they
 // already know what should happen next and want a 200-word draft.
-async function openGuidedContinue() {
+// The direction actions: ask for the one-line direction, then the editor runs it. Continue with
+// direction… and Write dialogue… from the cursor, Rewrite with direction… on the selection (the AI
+// drafting plan Task 14). The field label and Continue's button are shared.
+const DIRECTED = {
+  continue: { run: "runGuidedContinue", title: "guidedTitle", message: "guidedMessage", placeholder: "guidedPlaceholder", confirm: "guidedConfirm" },
+  rewrite: { run: "runGuidedRewrite", title: "guidedRewriteTitle", message: "guidedRewriteMessage", placeholder: "guidedRewritePlaceholder", confirm: "guidedRewriteConfirm" },
+  dialogue: { run: "runWriteDialogue", title: "dialogueTitle", message: "dialogueMessage", placeholder: "dialoguePlaceholder", confirm: "guidedConfirm" },
+};
+async function openDirected(kind, e) {
   aiStripOpen.value = false;
   if (!editorRef.value) {
     ui.showToast({ message: t("chapters.ai.openChapterFirst") });
     return;
   }
+  const d = DIRECTED[kind];
   const instruction = await promptDialog({
-    title: t("chapters.dialogs.guidedTitle"),
-    message: t("chapters.dialogs.guidedMessage"),
+    title: t(`chapters.dialogs.${d.title}`),
+    message: t(`chapters.dialogs.${d.message}`),
     label: t("chapters.dialogs.guidedLabel"),
-    placeholder: t("chapters.dialogs.guidedPlaceholder"),
-    confirmLabel: t("chapters.dialogs.guidedConfirm"),
+    placeholder: t(`chapters.dialogs.${d.placeholder}`),
+    confirmLabel: t(`chapters.dialogs.${d.confirm}`),
   });
-  if (!instruction) return;
   const text = String(instruction || "").trim();
   if (!text) return;
-  editorRef.value?.runGuidedContinue?.(text);
+  editorRef.value?.[d.run]?.(text, { shiftKey: !!e?.shiftKey });
 }
+const openGuidedContinue = (e) => openDirected("continue", e);
 
 async function splitChapterHere() {
   if (!ch.value || !activeScene.value || !editorRef.value?.editor) return;
@@ -1203,6 +1212,10 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
                 <div class="ai-strip-label">{{ $t('chapters.ai.rewriteLabel') }}</div>
                 <div class="ai-strip-desc">{{ $t('chapters.ai.rewriteDesc') }}</div>
               </button>
+              <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="openDirected('rewrite', $event)">
+                <div class="ai-strip-label">{{ $t('chapters.ai.guidedRewriteLabel') }}</div>
+                <div class="ai-strip-desc">{{ $t('chapters.ai.guidedRewriteDesc') }}</div>
+              </button>
               <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('expand', $event)">
                 <div class="ai-strip-label">{{ $t('chapters.ai.expandLabel') }}</div>
                 <div class="ai-strip-desc">{{ $t('chapters.ai.expandDesc') }}</div>
@@ -1230,6 +1243,10 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
               <button class="ai-strip-item" :disabled="aiRunning" @click="openGuidedContinue">
                 <div class="ai-strip-label">{{ $t('chapters.ai.guidedLabel') }}</div>
                 <div class="ai-strip-desc">{{ $t('chapters.ai.guidedDesc') }}</div>
+              </button>
+              <button class="ai-strip-item" :disabled="aiRunning" @click="openDirected('dialogue', $event)">
+                <div class="ai-strip-label">{{ $t('chapters.ai.dialogueLabel') }}</div>
+                <div class="ai-strip-desc">{{ $t('chapters.ai.dialogueDesc') }}</div>
               </button>
               <button class="ai-strip-item" :disabled="aiRunning" @click="openStuck">
                 <div class="ai-strip-label">{{ $t('chapters.ai.unstuckLabel') }}</div>

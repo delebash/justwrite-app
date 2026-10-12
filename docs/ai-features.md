@@ -79,7 +79,8 @@ while quick ones stay local. How routing, presets and providers work is
 
 When the AI drafts a character it reads your book's frame: the premise, genre,
 world rules, the Setting document and the main cast. The editor's prose actions
-— Rewrite, Expand, Tighten, Continue, Describe, Continue with direction… — read
+— Rewrite, Expand, Tighten, Continue, Describe, Rewrite with direction…, Continue
+with direction…, Write dialogue… — read
 it too, plus the scene they work in: what its Links panel ties to it, its beats
 and notes, and how the previous scene ends (see
 [Writing](writing.md#story-context-the-ai-knows-the-scene)). Only what's relevant

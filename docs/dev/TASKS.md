@@ -107,6 +107,22 @@ STATE:  DECIDED + IMPLEMENTING 2026-10-11 — slice 1 (characters) and slice 2 b
         15, the three custom layouts included — Chapters keeps its centred switch as a layout on
         it, Markers and Reader knowledge are its "intro" variant), so no global copy is needed at
         all; every window's header, intro line and error box are AppModal's and UiBanner's.
+        Fourth round (after Tasks 10, 12, 13), asked as shown: "1. Task 14 wording. I propose:
+        Rewrite with direction… needs a selection and sits beside Rewrite. Menu description: "Same
+        as Rewrite, but you say how first ("make her colder"). Keeps meaning, voice and tense
+        unless your direction changes them." Dialog: title "Rewrite with a direction"; message
+        "How should this passage change? One sentence is enough."; field "Direction" (existing);
+        placeholder "e.g. Make her colder — she's already decided."; button "Rewrite this".
+        Write dialogue… writes at the cursor and sits after Continue with direction…. Menu
+        description: "Writes an exchange at the cursor between the scene's characters, in their
+        story-bible voices. You say what it's about first." Dialog: title "Write dialogue";
+        message "What's the exchange about? Name who speaks if it matters."; field "Direction";
+        placeholder "e.g. Nettle presses Cael about the token; Cael deflects."; button "Write
+        this" (existing). 2. Save to sheet's window currently says "From a description" above an
+        answer from a chat. Keep that, or change it to "From a chat answer"? 3. Fix Accept all /
+        Reject all now?"
+        The user: "your rec go" (2026-10-11). Applied: 1 as proposed; 2 kept as it is (no new
+        wording); 3 fixed (`87f0ca0`, and the last-paragraph case `c8914db`).
 WHY:    the user, 2026-10-11 — AI creation on each story-world page, not only on Brainstorm, and AI
         that writes the story or parts of it. Picks up IDEAS.md "Brainstorm → point-of-use
         generation" (2026-07-26).
@@ -122,11 +138,25 @@ BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV 
         Name ideas at a character's name, on Brainstorm's own categories, prompt, rounds and list.
         Task 12 — Save to sheet under a Talk to {name} answer, its review window in the chat panel.
         Task 13 — slice 2: the six prose actions send the scene's story context; the Context line.
-OPEN:   in the third round's order: the Lab check (the user); Tasks 14–15. After them, per decision 2: the translation work, then the sheets and
+        Task 14 — Rewrite with direction… and Write dialogue…, wording as asked in the fourth round.
+OPEN:   in the third round's order: the Lab check (the user); Task 15. After them, per decision 2: the translation work, then the sheets and
         slices 3–4.
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;
         "your rec go" for the third round (Task 0, Tasks 9b and 11b, Task 12 in the chat panel).
+
+## Two editor glitches found while building the AI drafting plan's Task 14 [2026-10-11]
+STATE:  FOUND, not fixed (no go). Both seen at 1280 px on a copy of `data/` (the Task 14 probe's
+        screenshots); both predate the plan.
+        1. The scene strip's AI menu is cut off on the left: `.ai-strip-menu` is a hand-rolled
+           380 px box anchored to the right of the AI button (`src/pages/ChaptersPage.vue`, style
+           `.ai-strip-menu`), and the pane card clips whatever lands left of its edge — with the
+           sidebar open, the first letters of every item ("ewrite", "xpand"). The kit's UiMenu
+           (Quasar's QMenu, teleported, kept on screen) is the family's menu.
+        2. The chapter footer flashes "… — done in NaNs" for the first 5 s after an AI action:
+           `aiNotice` reads the kit's lingering task first (`ChaptersPage.vue` aiNotice), and a
+           lingering task has no `durationMs` — the kit adds it only when the task moves to
+           history (`../just-llm-runner/ui/src/stores/aiTasks.js` _archiveAndRemove).
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's

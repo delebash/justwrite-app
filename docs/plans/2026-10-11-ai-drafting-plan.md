@@ -373,13 +373,24 @@ active scene with the routed window), `src/services/labTestData.js` (the passage
 
 ## Task 14 — Rewrite with direction… and Write dialogue…
 
+**Built** 2026-10-11 — the commit "Rewrite with direction… and Write dialogue…", wording as asked
+(TASKS) and approved ("your rec go"). Both on WRITER_PROSE_SYSTEM (so they carry the story context;
+new rows, no heal); Rewrite with direction on p_prose_edit, Write dialogue on p_prose_voiced; a Lab
+sample each ("Rewrite with a direction", "Dialogue at the lamp") plus "With story context". One
+direction path, not three copies: writerAI.js `runDirected` (guidedContinue, guidedRewrite,
+writeDialogue), RichEditor `runDirectedAtCursor` (Continue with direction, Write dialogue) beside
+`runGuidedRewrite`, ChaptersPage `openDirected` (the three dialogs; shift-click now asks for
+three variations on all three, as the docs said of every AI item). A character's voice fields
+reach Write dialogue in its first card part, after identity — unless its identity fields alone
+pass the card's 1,500-character split.
+
 **Files:** seeded prompts `writerAI.guided-rewrite` (selection + `{{direction}}`) and
 `writerAI.dialogue` (from the cursor + `{{direction}}`; the scene's characters' voice fields come
 in `storyContext`), preset refs (p_prose_edit, p_prose_voiced), samples, the Lab table, `writerAI.js`,
 the AI menu in `ChaptersPage.vue` (the Continue with direction… pattern: `promptDialog`), `en.json`,
 `docs/writing.md`.
 
-- [ ] Tests: seed counts 43 → 45; the menu items exist (smoke). Commit.
+- [x] Tests: seed counts 43 → 45; the menu items exist (smoke). Commit.
 
 ## Task 15 — Close out
 
