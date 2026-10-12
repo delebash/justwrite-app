@@ -224,6 +224,25 @@ describe("usePanelDismiss — Esc", () => {
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "a", bubbles: true }));
     expect(close).not.toHaveBeenCalled();
   });
+
+  // 2026-10-11 (Save to sheet hosts a review window in the chat panel): Esc inside a window
+  // or a list over the panel closes that, not the panel under it.
+  const escapeOn = (id) =>
+    document.getElementById(id).dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+
+  it("leaves the panel open on Escape inside a portaled [role=\"dialog\"] or select list", async () => {
+    const { close } = await mountPanel();
+    escapeOn("in-modal");
+    escapeOn("in-select");
+    expect(close).not.toHaveBeenCalled();
+  });
+
+  it("still closes on Escape inside the panel, even when the panel is itself a [role=\"dialog\"]", async () => {
+    const { close } = await mountPanel();
+    document.getElementById("panel").setAttribute("role", "dialog");
+    escapeOn("inside");
+    expect(close).toHaveBeenCalledTimes(1);
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

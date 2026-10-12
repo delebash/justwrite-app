@@ -47,6 +47,10 @@ it's your working memory for the character.
 character and your book; click one to use it. See
 [Brainstorm](brainstorm.md#name-ideas-at-the-name-itself).
 
+**Save to sheet** — under an answer in a **Talk to {Name}** chat, drafts sheet
+fields from what the character just said, reviewed the same way. See
+[Story bible](story-bible.md#talk-to-a-character-interview-them-in-their-voice).
+
 ---
 
 ## The hero row

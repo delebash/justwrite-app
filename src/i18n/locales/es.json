@@ -697,7 +697,8 @@
     "forNewline": "para salto de línea",
     "sendTooltip": "Envía tu pregunta",
     "sendDisabledTooltip": "Escribe una pregunta para consultar",
-    "ask": "Preguntar"
+    "ask": "Preguntar",
+    "saveToSheet": "Guardar en la ficha"
   },
   "homeShelf": {
     "eyebrow": "Manuscrito · Inicio (Estante de papel)",

@@ -6,6 +6,10 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-11
 
+**Save to sheet.** Under an answer in a **Talk to {Name}** chat, **Save to sheet** drafts the
+character's sheet from what they just said. You review every field before anything saves. See
+[Story bible](story-bible.md#talk-to-a-character-interview-them-in-their-voice).
+
 **Name ideas.** The ✨ beside a character's name lists names that fit the character and your
 book, and never one your cast already uses. Thumbs-up the ones you like and click **More like
 these**, as on Brainstorm; click a name to use it. See

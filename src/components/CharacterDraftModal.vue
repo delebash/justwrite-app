@@ -15,7 +15,7 @@
 // footer = count · spacer · Cancel · primary apply. Task progress + cancel
 // ride the shared AiTaskStrip (features "characterProfile" / "characterVoice").
 
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
 import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiButton, UiCheckbox, UiTextarea, UiBanner } from "@delebash/llm-ui";
@@ -139,11 +139,12 @@ const groupedRows = computed(() => {
   return out;
 });
 
-// The strip's Cancel kills the task entry; mirror it onto our controller.
+// The strip's Cancel aborts the call in flight through the task's own controller (the kit's
+// runAiFeature ORs it with ours), and the abort propagates, so a cancelled pass never reaches
+// the next. (Until 2026-10-11 a watcher here also aborted ours whenever no task was running
+// while loading — which is also the gap between the two passes: the description draft's voice
+// pass awaits its route before its task exists, so it was always cancelled before it began.)
 const running = computed(() => !!myTask.value);
-watch(running, (isRunning, was) => {
-  if (was && !isRunning && loading.value) abort?.abort();
-});
 
 const acceptCount = computed(() => rows.value.filter((r) => r.accept).length);
 // All / None over every proposed field (mirrors the sweep + entity-review

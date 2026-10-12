@@ -88,6 +88,8 @@ JustWrite builds the character's system prompt from everything you've put in the
 - **No fourth-wall breaks.** They won't refer to the manuscript, the writer, or themselves as an AI. They're a person who exists in the story.
 - **Reasonably short answers.** Usually 1–3 sentences. Sometimes a paragraph. No lectures.
 
+**Save to sheet.** When an answer tells you something worth keeping — a fear they admit, the way they talk about their father — click **Save to sheet** under it. The answer becomes the description for a draft of the character's sheet, in the same review window as **Describe this character** on their page: each proposed field beside what's there now, empty fields ticked, nothing saved until you apply (one Undo on the character's page takes it back). It works over any page, and closing the chat doesn't close the review window.
+
 **Each character has their own persisted thread.** Switch characters in the dropdown and the conversation switches with them. Switch back later and the thread is still there. The book-chat thread is also separate from any character thread — switching modes doesn't lose your place in either.
 
 **Why a writer would use it.** Character-as-oracle is genuinely useful when you can't think your way to a scene. Ask them what they'd do, why they hesitated, what they want from another character, what they'd never tell anyone. The answers reveal contradictions in your own characterisation as often as they unblock the next scene — the model patterns-matches against the profile you've built and surfaces psychological tensions you didn't see while drafting. Treat answers as discovery prompts, not gospel.

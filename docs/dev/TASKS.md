@@ -120,7 +120,8 @@ BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV 
         every card reader. Task 11b — Suggest characters in Entity sweep's shape. Task 9b — one page
         header, one window header / intro line / error banner (the kit's `5856019`). Task 10 —
         Name ideas at a character's name, on Brainstorm's own categories, prompt, rounds and list.
-OPEN:   in the third round's order: the Lab check (the user); Tasks 12–15. After them, per decision 2: the translation work, then the sheets and
+        Task 12 — Save to sheet under a Talk to {name} answer, its review window in the chat panel.
+OPEN:   in the third round's order: the Lab check (the user); Tasks 13–15. After them, per decision 2: the translation work, then the sheets and
         slices 3–4.
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;

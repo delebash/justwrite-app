@@ -326,13 +326,23 @@ does); `CharactersPage.vue` (the button opens it; the dialog and the page-held r
 
 ## Task 12 — Save to sheet from Talk to {name}
 
+**Built** 2026-10-11 — the commit "Save to sheet from a Talk to {name} answer" (and the kit's
+usePanelDismiss fix). Under a settled character-mode answer, **Save to sheet** opens
+CharacterDraftModal (`source: "description"`, the answer as the description). The window is
+hosted in ChatPanel.vue beside the panel, not inside its `<aside v-if>`, so closing the panel
+never unmounts a running draft; and the kit's panel Esc now leaves the panel open when the key
+comes from a window or a list layered over it (one Esc used to close both). Found driving it in a
+browser: a description draft never ran its voice pass (Task 8's window aborted its controller in
+the gap between the passes, while the voice pass awaited its route) — fixed, with a mounted
+regression test (`CharacterDraftModal.test.js`).
+
 **Files:** `src/components/ChatPanel.vue` (an action under a character-mode answer, and the review
 window hosted in the panel itself — it is mounted in the layout and open on every page: the third
 round, point 7), `en.json`, `docs/story-bible.md`.
 
 - The answer text becomes the description of a `source: "description"` draft for that character;
   the review window decides what lands.
-- [ ] Smoke + a look; docs. Commit.
+- [x] Smoke + a look; docs. Commit.
 
 ## Task 13 — Slice 2: the prose actions know the story
 

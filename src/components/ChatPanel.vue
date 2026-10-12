@@ -33,6 +33,7 @@ import {
 } from "../services/chatApi.js";
 import IndexBuildModal from "./IndexBuildModal.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
+import CharacterDraftModal from "./CharacterDraftModal.vue";
 
 // Cap persisted turns at the last 30 — long threads waste storage and the model
 // already truncates history to MAX_HISTORY_MESSAGES. (Enforced server-side too.)
@@ -395,6 +396,17 @@ async function ask() {
   }
 }
 
+// Save to sheet (the AI drafting spec §9.6; plan Task 12): a Talk to {name} answer becomes the
+// description of a draft for that character — the character page's describe-and-draft review
+// window, hosted here so it works on every page the panel opens over. Nothing saves until Apply.
+const sheetDraft = ref(null); // { characterId, description } while the review window is open
+function canSaveToSheet(m) {
+  return chatMode.value === "character" && !!selectedCharacter.value && !m.pending && !m.error && !!m.content?.trim();
+}
+function saveToSheet(m) {
+  sheetDraft.value = { characterId: selectedCharacterId.value, description: m.content.trim() };
+}
+
 function close() {
   ui.closeChatPanel();
 }
@@ -568,6 +580,10 @@ defineExpose({ open: () => { open.value = true; }, close });
                     </li>
                   </ol>
                 </div>
+                <UiButton v-if="canSaveToSheet(m)" intent="secondary" size="small" @click="saveToSheet(m)">
+                  <template #icon><Icon name="Sparkle" :size="12" /></template>
+                  {{ $t("chat.saveToSheet") }}
+                </UiButton>
               </template>
             </div>
           </template>
@@ -615,6 +631,11 @@ defineExpose({ open: () => { open.value = true; }, close });
         @built="onIndexBuilt" />
     </aside>
   </transition>
+
+  <!-- Save to sheet's review window: outside the panel, so closing the panel (Ctrl+J, its
+       toggle) never takes a running draft with it. -->
+  <CharacterDraftModal v-if="sheetDraft" :character-id="sheetDraft.characterId"
+    source="description" :description="sheetDraft.description" @close="sheetDraft = null" />
 </template>
 
 <style scoped>

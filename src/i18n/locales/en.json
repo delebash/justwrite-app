@@ -697,7 +697,8 @@
     "forNewline": "for newline",
     "sendTooltip": "Send your question",
     "sendDisabledTooltip": "Type a question to ask",
-    "ask": "Ask"
+    "ask": "Ask",
+    "saveToSheet": "Save to sheet"
   },
   "homeShelf": {
     "eyebrow": "Manuscript · Home (Paper Shelf)",
