@@ -88,7 +88,8 @@ composer filtered on the flag in memory (Task 4), which worked within a session 
 **Produces:** `GET /v1/ai/resolved-route` rows gain `context` — an integer (the local runner's
 `n_ctx` for the routed model, else its `--ctx-size` launch argument) or `null` (a cloud route, or
 the runner can't say). The reading moves into one helper, `localContextWindow(base, model)`,
-which `measureAction` also uses (one source).
+which `measureAction` also uses (one source). (Built as `routerContext(base, mdl, timeout)` —
+the code's name.)
 
 - [x] Test: a stubbed runner `/v1/models` listing → `context` from `meta.n_ctx`; from
   `status.args` `--ctx-size` when `meta` lacks it; `null` for a non-local provider; `null`
@@ -394,7 +395,17 @@ the AI menu in `ChaptersPage.vue` (the Continue with direction… pattern: `prom
 
 ## Task 15 — Close out
 
-- [ ] `npm run test:fast`, `npm run smoke`, `npm run i18n:report` (MISSING 0), the family guard.
-- [ ] The rendered surfaces measured at 1280 and 390 px.
-- [ ] TASKS: slices 1–2 BUILT with commits; RESEARCH.md facts (the context-window route, the
+**Done** 2026-10-11. Gates after the last code change: renderer 658, server 158, smoke, lint,
+i18n (MISSING 0 — the known `literal` row only), family guard. Every surface the plan added,
+measured at 1280 and 390 px on a copy of `data/` with the model stubbed: the describe box, Draft
+with AI, Name ideas (a dialog at 390), Suggest characters, the Context line — all inside the
+viewport, no horizontal scroll. The scene strip's AI menu, which now holds Rewrite with
+direction… and Write dialogue…, is not: it is cut off on the left at 1280 and almost wholly off
+screen at 390 (x −279 of 359 px) — the menu predates the plan; recorded in TASKS. RESEARCH: the
+resolved route's context window (the kit's register, `544dfd3`); a linked scene's story context
+measured on the sample book (~2,100 tokens) — no other book is loaded in `data/`.
+
+- [x] `npm run test:fast`, `npm run smoke`, `npm run i18n:report` (MISSING 0), the family guard.
+- [x] The rendered surfaces measured at 1280 and 390 px.
+- [x] TASKS: slices 1–2 BUILT with commits; RESEARCH.md facts (the context-window route, the
   composer's measured sizes on a real book once one is loaded).

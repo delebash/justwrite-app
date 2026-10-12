@@ -18,7 +18,7 @@
 
 
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
-STATE:  DECIDED + IMPLEMENTING 2026-10-11 — slice 1 (characters) and slice 2 being built, per the
+STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the
         plan `docs/plans/2026-10-11-ai-drafting-plan.md` (each task ticked there with its commit). First round, asked as shown (after Fable's review of the first design, whose changes were
         accepted: one context composer first; the describe box stays while a page is thin; keep
         the name "Fill from book"; locations/objects/groups need a fields decision; your own AI
@@ -139,7 +139,11 @@ BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV 
         Task 12 — Save to sheet under a Talk to {name} answer, its review window in the chat panel.
         Task 13 — slice 2: the six prose actions send the scene's story context; the Context line.
         Task 14 — Rewrite with direction… and Write dialogue…, wording as asked in the fourth round.
-OPEN:   in the third round's order: the Lab check (the user); Task 15. After them, per decision 2: the translation work, then the sheets and
+        Task 15 — closed out: the gates, every surface at 1280 and 390 px, RESEARCH (here and the
+        kit's `544dfd3`). Fixed on the way: the description draft's voice pass (`be35f4b`), Accept
+        all / Reject all (`87f0ca0`, `c8914db`).
+OPEN:   the Lab check (the user) — now also "With story context", "Rewrite with a direction" and
+        "Dialogue at the lamp". The scene strip's AI menu off screen at 390 px (the next entry). After them, per decision 2: the translation work, then the sheets and
         slices 3–4.
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;
@@ -151,7 +155,8 @@ STATE:  FOUND, not fixed (no go). Both seen at 1280 px on a copy of `data/` (the
         1. The scene strip's AI menu is cut off on the left: `.ai-strip-menu` is a hand-rolled
            380 px box anchored to the right of the AI button (`src/pages/ChaptersPage.vue`, style
            `.ai-strip-menu`), and the pane card clips whatever lands left of its edge — with the
-           sidebar open, the first letters of every item ("ewrite", "xpand"). The kit's UiMenu
+           sidebar open, the first letters of every item ("ewrite", "xpand"); at 390 px almost all
+           of it is off screen (x −279 of 359 px), so no AI writing action can be reached there. The kit's UiMenu
            (Quasar's QMenu, teleported, kept on screen) is the family's menu.
         2. The chapter footer flashes "… — done in NaNs" for the first 5 s after an AI action:
            `aiNotice` reads the kit's lingering task first (`ChaptersPage.vue` aiNotice), and a

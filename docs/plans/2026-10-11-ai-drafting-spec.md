@@ -3,7 +3,8 @@
 **Status:** decided 2026-10-11 — the design and every open question (§9) ("your rec all go", twice;
 the decisions as shown are in `docs/dev/TASKS.md`). Implementation approved the same day ("you
 have go for implementation"): slices 1 (characters) and 2 now, per §1.5; the plan is
-[`2026-10-11-ai-drafting-plan.md`](2026-10-11-ai-drafting-plan.md).
+[`2026-10-11-ai-drafting-plan.md`](2026-10-11-ai-drafting-plan.md). Slices 1 (characters) and 2
+built the same day — every plan task ticked there with its commit.
 
 **Why:** the user, 2026-10-11 — AI creation on each story-world page ("describe a character and
 have the ai create one like prosellm … i dont like it seperate like they are on brainstorm") and AI
