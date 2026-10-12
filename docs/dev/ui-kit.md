@@ -25,7 +25,7 @@ the kit.
 | `UiInput` / `UiTextarea` | On `QInput`; the root is the box, the native element's own events reach the caller; `:invalid`, v-model; Textarea `auto-resize`. |
 | `UiCheckbox` / `UiToggle` | On `QCheckbox` / `QToggle`. Binary v-model (checkbox = inline/multi-select; toggle = on/off setting). |
 | `UiSelect` | On `QSelect` — arrow-key nav, type-ahead, Esc-close, a11y; modal while open (the page behind takes no pointer). `:options` (`{label,value,hint?}` or strings), values keep their type (`""` included), `width` cap. |
-| `UiMenu` + `UiMenuItem` / `UiMenuSeparator` | On `QMenu` — a row's ⋯ action menu: `@select` per item (`preventDefault()` keeps it open), the menu keyboard (↓/Enter/Space open, arrows, Home/End, type-ahead), modal while open. Look from `trigger-class` / `content-class`. |
+| `UiMenu` + `UiMenuItem` / `UiMenuSeparator` | On `QMenu` — an action menu, from a row's ⋯ to the scene strip's AI menu: `@select` per item (`preventDefault()` keeps it open; `detail.originalEvent` is the click or key, for modifier keys such as shift-click), the menu keyboard (↓/Enter/Space open, arrows, Home/End, type-ahead — not inside a control the menu holds, such as a routing chip), modal while open. Look from `trigger-class` / `content-class`; a content class sets the kit's popup z-index, 999, so a popup opened inside it (the chip's) paints above it. |
 | `UiTag` / `UiChip` | On `QBadge` / `QChip`. Soft-tint status badge / interactive selection chip. |
 | `UiBanner` | On `QBanner`. A tinted message in a pane or window: icon + text + optional `#action` (Retry). `intent="danger"` is the error box every AI window uses (2026-10-11: replaced nineteen private copies). |
 | `UiField` | Labelled form row. |

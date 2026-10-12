@@ -6,6 +6,11 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-11
 
+**The editor's AI menu stays on screen.** With the sidebar open its left edge was cut off, and in a
+narrow window most of it was off the screen. It now always opens where it fits, and works from the
+keyboard: ↓ on the AI button opens it, the arrows move, Enter picks. The note under the editor no
+longer reads "done in NaNs" for the first seconds after an AI action.
+
 **Rewrite with direction… and Write dialogue….** Two new items in the editor's AI dropdown.
 **Rewrite with direction…** rewrites the selection the way you say ("make her colder").
 **Write dialogue…** writes an exchange at the cursor between the scene's characters, in the voices

@@ -247,6 +247,15 @@ against the page by an agent, not re-checked by the session.
   document for the last paragraph (every Continue at a scene's end), into the next block
   elsewhere. (*measured 2026-10-11*, Task 14's browser probe: one fresh change, Reject threw.)
   Fixed the same day, with the last-paragraph and continuation cases in `aiDiff.test.js`.
+- **The scene strip's AI menu was a hand-rolled box that left the screen:** 380 px, anchored to
+  the right of the AI button and clipped by the pane card — cut off on the left at 1280 px with the
+  sidebar open, almost wholly off screen at 390 (x −279 of 359). Moved onto the kit's UiMenu the
+  same day; inside a kit menu the routing chip's popover needed the kit's popup z-index (999, not
+  Quasar's 6000 on the menu) and `pointer-events: auto` (the menu sets `<body>` to none while
+  open). (*measured 2026-10-11*, browser probes on a copy of `data/`.)
+- **A finished AI task had no duration while it lingered** (the kit's `aiTasks.js` added
+  `durationMs` only on archiving), so the chapter footer read "done in NaNs" for 5 s; the store
+  now sets it when the task ends. (*measured 2026-10-11*.)
 - **The kit's additive columns needed quoting** for a keyword column (`when`): fixed in the kit's
   `1ab9a69`, with a test. (*measured 2026-10-11*.)
 

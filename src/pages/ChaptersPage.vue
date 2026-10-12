@@ -24,7 +24,7 @@ import { promptDialog, confirmDialog, useAiTasksStore } from "@delebash/llm-ui";
 import { stitchChapter, splitChapter } from "../services/chapterStitch.js";
 import { vSceneImages, withSceneImages } from "../services/imageStore.js";
 import { EDITOR_TOOLBAR_FULL } from "../services/editorToolbars.js";
-import { UiButton } from "@delebash/llm-ui";
+import { UiButton, UiMenu, UiMenuItem, UiMenuSeparator } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiSegmented } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
@@ -453,25 +453,22 @@ function updateTitle(id, v) { project.setChapterTitle(id, v); }
 const editorRef = ref(null);
 
 // ── Scene-strip AI dropdown ───────────────────────────────────────
-// One button in the scene strip that opens a popover of every writerAI
-// action. Talks to the active RichEditor via its defineExpose surface.
-const aiStripOpen = ref(false);
-const aiStripWrap = ref(null);
+// One button in the scene strip that opens a menu of every writerAI action — the kit's UiMenu
+// (Quasar's QMenu: kept on screen, closed by a pick, Esc or a click outside; since 2026-10-11 —
+// a hand-rolled absolute box before, cut off at 1280 px and off screen at 390). Talks to the
+// active RichEditor via its defineExpose surface.
 const aiRunning = computed(() => editorRef.value?.aiRunning || false);
 const hasSelection = computed(() => editorRef.value?.hasSelection || false);
 const proseRules = computed(() => editorRef.value?.PROSE_RULES_LIST || []);
-function toggleAiStrip() { aiStripOpen.value = !aiStripOpen.value; }
 // Shift-click on any AI dropdown item forces the three-variations
 // modal even when the global "Show variations" toggle is off. The
-// click event is forwarded into runWriterAction / runProsePass so
-// they can read the shiftKey flag without RichEditor needing to
-// observe the dropdown's DOM events.
+// click (UiMenuItem's select detail.originalEvent) is forwarded into
+// runWriterAction / runProsePass so they can read the shiftKey flag
+// without RichEditor needing to observe the dropdown's DOM events.
 function callAi(key, e) {
-  aiStripOpen.value = false;
   editorRef.value?.runWriterAction?.(key, { shiftKey: !!e?.shiftKey });
 }
 function callProse(key, e) {
-  aiStripOpen.value = false;
   editorRef.value?.runProsePass?.(key, { shiftKey: !!e?.shiftKey });
 }
 // #42: any AI strikethrough (pending original or kept history) enables the
@@ -495,14 +492,7 @@ const aiNotice = computed(() => {
   return h && h.id !== dismissedNoticeId.value ? h : null;
 });
 function callClearStrikethroughs() {
-  aiStripOpen.value = false;
   editorRef.value?.clearAllStrikethroughs?.();
-}
-function onAiStripDocMousedown(e) {
-  if (!aiStripOpen.value) return;
-  if (aiStripWrap.value && !aiStripWrap.value.contains(e.target)) {
-    aiStripOpen.value = false;
-  }
 }
 
 // ── Unstuck (stuck-on-this-chapter diagnostic) ───────────────────
@@ -514,7 +504,6 @@ const stuckContextText = ref("");
 const stuckChapterTitle = ref("");
 const stuckChapterNum = ref(null);
 function openStuck() {
-  aiStripOpen.value = false;
   if (!editorRef.value) {
     ui.showToast({ message: t("chapters.ai.openChapterFirst") });
     return;
@@ -542,7 +531,6 @@ function onStuckUseMove(move) {
 const sensoryOpen = ref(false);
 const sensorySubject = ref("");
 function openSensory() {
-  aiStripOpen.value = false;
   if (!editorRef.value) {
     ui.showToast({ message: t("chapters.ai.openChapterFirst") });
     return;
@@ -573,7 +561,6 @@ const DIRECTED = {
   dialogue: { run: "runWriteDialogue", title: "dialogueTitle", message: "dialogueMessage", placeholder: "dialoguePlaceholder", confirm: "guidedConfirm" },
 };
 async function openDirected(kind, e) {
-  aiStripOpen.value = false;
   if (!editorRef.value) {
     ui.showToast({ message: t("chapters.ai.openChapterFirst") });
     return;
@@ -728,11 +715,9 @@ function onKey(e) {
 }
 onMounted(() => {
   window.addEventListener("keydown", onKey);
-  document.addEventListener("mousedown", onAiStripDocMousedown);
 });
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", onKey);
-  document.removeEventListener("mousedown", onAiStripDocMousedown);
   teardownBookObserver();
   ui.scrolledSceneId = null;
 });
@@ -1186,91 +1171,86 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
                that used to live in the selection bubble. Grouped by what
                they operate on so users know whether to make a selection
                first. -->
-          <div class="ai-strip-wrap" ref="aiStripWrap">
-            <UiButton intent="ghost" size="small"
-              :class="['ai-strip-trigger', { 'is-open': aiStripOpen }]"
-              :disabled="aiRunning"
-              v-tooltip.bottom="$t('chapters.ai.triggerTooltip')"
-              @click="toggleAiStrip">
-              <span class="ai-strip-badge">{{ $t('chapters.ai.badge') }}</span>
-              <Icon name="ChevDown" :size="12" class="ai-strip-caret" />
-            </UiButton>
-            <div v-if="aiStripOpen" class="ai-strip-menu" role="menu">
-              <!-- Routing chip at the top of the menu: shows the current
-                   provider + model for every writerAI action below, with
-                   a click-to-edit popover for picking a different one. -->
-              <div class="ai-strip-routing">
-                <span class="ai-strip-routing-label">{{ $t('chapters.ai.runningOn') }}</span>
-                <AiFeatureChip feature="writerAI" :label="$t('chapters.ai.writerActions')" editable />
-              </div>
-              <div class="ai-strip-divider"></div>
-              <div class="ai-strip-section">
-                {{ $t('chapters.ai.groupSelectionOnly') }}
-                <span v-if="!hasSelection" class="ai-strip-section-hint">{{ $t('chapters.ai.highlightToEnable') }}</span>
-              </div>
-              <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('rewrite', $event)">
-                <div class="ai-strip-label">{{ $t('chapters.ai.rewriteLabel') }}</div>
-                <div class="ai-strip-desc">{{ $t('chapters.ai.rewriteDesc') }}</div>
-              </button>
-              <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="openDirected('rewrite', $event)">
-                <div class="ai-strip-label">{{ $t('chapters.ai.guidedRewriteLabel') }}</div>
-                <div class="ai-strip-desc">{{ $t('chapters.ai.guidedRewriteDesc') }}</div>
-              </button>
-              <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('expand', $event)">
-                <div class="ai-strip-label">{{ $t('chapters.ai.expandLabel') }}</div>
-                <div class="ai-strip-desc">{{ $t('chapters.ai.expandDesc') }}</div>
-              </button>
-              <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="callAi('describe', $event)">
-                <div class="ai-strip-label">{{ $t('chapters.ai.describeLabel') }}</div>
-                <div class="ai-strip-desc">{{ $t('chapters.ai.describeDesc') }}</div>
-              </button>
-              <button class="ai-strip-item" :disabled="aiRunning || !hasSelection" @click="openSensory">
-                <div class="ai-strip-label">{{ $t('chapters.ai.sensoryLabel') }}</div>
-                <div class="ai-strip-desc">{{ $t('chapters.ai.sensoryDesc') }}</div>
-              </button>
-              <div class="ai-strip-divider"></div>
-              <div class="ai-strip-section">{{ $t('chapters.ai.groupSelectionOrScene') }}</div>
-              <button class="ai-strip-item" :disabled="aiRunning" @click="callAi('tighten', $event)">
-                <div class="ai-strip-label">{{ $t('chapters.ai.tightenLabel') }}</div>
-                <div class="ai-strip-desc">{{ $t('chapters.ai.tightenDesc') }}</div>
-              </button>
-              <div class="ai-strip-divider"></div>
-              <div class="ai-strip-section">{{ $t('chapters.ai.groupFromCursor') }}</div>
-              <button class="ai-strip-item" :disabled="aiRunning" @click="callAi('continue', $event)">
-                <div class="ai-strip-label">{{ $t('chapters.ai.continueLabel') }}</div>
-                <div class="ai-strip-desc">{{ $t('chapters.ai.continueDesc') }}</div>
-              </button>
-              <button class="ai-strip-item" :disabled="aiRunning" @click="openGuidedContinue">
-                <div class="ai-strip-label">{{ $t('chapters.ai.guidedLabel') }}</div>
-                <div class="ai-strip-desc">{{ $t('chapters.ai.guidedDesc') }}</div>
-              </button>
-              <button class="ai-strip-item" :disabled="aiRunning" @click="openDirected('dialogue', $event)">
-                <div class="ai-strip-label">{{ $t('chapters.ai.dialogueLabel') }}</div>
-                <div class="ai-strip-desc">{{ $t('chapters.ai.dialogueDesc') }}</div>
-              </button>
-              <button class="ai-strip-item" :disabled="aiRunning" @click="openStuck">
-                <div class="ai-strip-label">{{ $t('chapters.ai.unstuckLabel') }}</div>
-                <div class="ai-strip-desc">{{ $t('chapters.ai.unstuckDesc') }}</div>
-              </button>
-              <template v-if="proseRules.length">
-                <div class="ai-strip-divider"></div>
-                <div class="ai-strip-section">
-                  {{ $t('chapters.ai.groupLineEdits') }}
-                  <span class="ai-strip-section-hint">{{ $t('chapters.ai.lineEditsHint') }}</span>
-                </div>
-                <button v-for="r in proseRules" :key="r.key" class="ai-strip-item" :disabled="aiRunning" @click="callProse(r.key, $event)">
-                  <div class="ai-strip-label">{{ r.label }}</div>
-                  <div class="ai-strip-desc">{{ r.description }}</div>
-                </button>
-              </template>
-              <div class="ai-strip-divider"></div>
-              <div class="ai-strip-section">{{ $t('chapters.ai.groupCleanUp') }}</div>
-              <button class="ai-strip-item" :disabled="!hasStrikes" @click="callClearStrikethroughs">
-                <div class="ai-strip-label">{{ $t('chapters.ai.clearStrikesLabel') }}</div>
-                <div class="ai-strip-desc">{{ $t('chapters.ai.clearStrikesDesc') }}</div>
-              </button>
+          <UiMenu trigger-class="ui-btn ui-btn--ghost ui-btn--small ai-strip-trigger" content-class="ai-strip-menu"
+            align="end" :disabled="aiRunning" v-tooltip.bottom="$t('chapters.ai.triggerTooltip')">
+            <template #trigger>
+            <span class="ai-strip-badge">{{ $t('chapters.ai.badge') }}</span>
+            <Icon name="ChevDown" :size="12" class="ai-strip-caret" />
+            </template>
+            <!-- Routing chip at the top of the menu: shows the current
+                 provider + model for every writerAI action below, with
+                 a click-to-edit popover for picking a different one. -->
+            <div class="ai-strip-routing">
+              <span class="ai-strip-routing-label">{{ $t('chapters.ai.runningOn') }}</span>
+              <AiFeatureChip feature="writerAI" :label="$t('chapters.ai.writerActions')" editable />
             </div>
-          </div>
+            <UiMenuSeparator class="ai-strip-divider" />
+            <div class="ai-strip-section">
+              {{ $t('chapters.ai.groupSelectionOnly') }}
+              <span v-if="!hasSelection" class="ai-strip-section-hint">{{ $t('chapters.ai.highlightToEnable') }}</span>
+            </div>
+            <UiMenuItem class="ai-strip-item" :disabled="aiRunning || !hasSelection" @select="(ev) => callAi('rewrite', ev.detail.originalEvent)">
+              <div class="ai-strip-label">{{ $t('chapters.ai.rewriteLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.rewriteDesc') }}</div>
+            </UiMenuItem>
+            <UiMenuItem class="ai-strip-item" :disabled="aiRunning || !hasSelection" @select="(ev) => openDirected('rewrite', ev.detail.originalEvent)">
+              <div class="ai-strip-label">{{ $t('chapters.ai.guidedRewriteLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.guidedRewriteDesc') }}</div>
+            </UiMenuItem>
+            <UiMenuItem class="ai-strip-item" :disabled="aiRunning || !hasSelection" @select="(ev) => callAi('expand', ev.detail.originalEvent)">
+              <div class="ai-strip-label">{{ $t('chapters.ai.expandLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.expandDesc') }}</div>
+            </UiMenuItem>
+            <UiMenuItem class="ai-strip-item" :disabled="aiRunning || !hasSelection" @select="(ev) => callAi('describe', ev.detail.originalEvent)">
+              <div class="ai-strip-label">{{ $t('chapters.ai.describeLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.describeDesc') }}</div>
+            </UiMenuItem>
+            <UiMenuItem class="ai-strip-item" :disabled="aiRunning || !hasSelection" @select="openSensory">
+              <div class="ai-strip-label">{{ $t('chapters.ai.sensoryLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.sensoryDesc') }}</div>
+            </UiMenuItem>
+            <UiMenuSeparator class="ai-strip-divider" />
+            <div class="ai-strip-section">{{ $t('chapters.ai.groupSelectionOrScene') }}</div>
+            <UiMenuItem class="ai-strip-item" :disabled="aiRunning" @select="(ev) => callAi('tighten', ev.detail.originalEvent)">
+              <div class="ai-strip-label">{{ $t('chapters.ai.tightenLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.tightenDesc') }}</div>
+            </UiMenuItem>
+            <UiMenuSeparator class="ai-strip-divider" />
+            <div class="ai-strip-section">{{ $t('chapters.ai.groupFromCursor') }}</div>
+            <UiMenuItem class="ai-strip-item" :disabled="aiRunning" @select="(ev) => callAi('continue', ev.detail.originalEvent)">
+              <div class="ai-strip-label">{{ $t('chapters.ai.continueLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.continueDesc') }}</div>
+            </UiMenuItem>
+            <UiMenuItem class="ai-strip-item" :disabled="aiRunning" @select="(ev) => openGuidedContinue(ev.detail.originalEvent)">
+              <div class="ai-strip-label">{{ $t('chapters.ai.guidedLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.guidedDesc') }}</div>
+            </UiMenuItem>
+            <UiMenuItem class="ai-strip-item" :disabled="aiRunning" @select="(ev) => openDirected('dialogue', ev.detail.originalEvent)">
+              <div class="ai-strip-label">{{ $t('chapters.ai.dialogueLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.dialogueDesc') }}</div>
+            </UiMenuItem>
+            <UiMenuItem class="ai-strip-item" :disabled="aiRunning" @select="openStuck">
+              <div class="ai-strip-label">{{ $t('chapters.ai.unstuckLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.unstuckDesc') }}</div>
+            </UiMenuItem>
+            <template v-if="proseRules.length">
+              <UiMenuSeparator class="ai-strip-divider" />
+              <div class="ai-strip-section">
+                {{ $t('chapters.ai.groupLineEdits') }}
+                <span class="ai-strip-section-hint">{{ $t('chapters.ai.lineEditsHint') }}</span>
+              </div>
+              <UiMenuItem v-for="r in proseRules" :key="r.key" class="ai-strip-item" :disabled="aiRunning" @select="(ev) => callProse(r.key, ev.detail.originalEvent)">
+                <div class="ai-strip-label">{{ r.label }}</div>
+                <div class="ai-strip-desc">{{ r.description }}</div>
+              </UiMenuItem>
+            </template>
+            <UiMenuSeparator class="ai-strip-divider" />
+            <div class="ai-strip-section">{{ $t('chapters.ai.groupCleanUp') }}</div>
+            <UiMenuItem class="ai-strip-item" :disabled="!hasStrikes" @select="callClearStrikethroughs">
+              <div class="ai-strip-label">{{ $t('chapters.ai.clearStrikesLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.clearStrikesDesc') }}</div>
+            </UiMenuItem>
+          </UiMenu>
           <StatusSelect
             :model-value="activeScene.status || ''"
             @update:model-value="(v) => project.updateScene(ch.id, activeScene.id, { status: v })" />
@@ -1874,12 +1854,11 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
 }
 
 /* ── AI dropdown (scene strip) ────────────────────────────── */
-.ai-strip-wrap { position: relative; display: inline-flex; }
 /* Sized to match the Status select pill (height: 30px, padding: 0 9px,
    border-radius: 8px in StatusSelect.vue) so the AI trigger sits flush
    with it. Width is bumped via padding 0 14px — wider than Status to
    read as the headline AI affordance — but the height matches. */
-.ai-strip-wrap :deep(.ai-strip-trigger) {
+.ai-strip-trigger {
   height: 30px;
   padding: 0 14px;
   gap: 7px;
@@ -1889,18 +1868,18 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   color: var(--ink);
   font-size: 12.5px;
 }
-.ai-strip-wrap :deep(.ai-strip-trigger):hover:not(:disabled) {
+.ai-strip-trigger:hover:not(:disabled) {
   border-color: var(--border-strong);
   background: var(--surface-2);
 }
-.ai-strip-wrap :deep(.ai-strip-trigger.is-open) {
+.ai-strip-trigger[data-state="open"] {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
-.ai-strip-wrap :deep(.ai-strip-trigger .ai-strip-caret) {
+.ai-strip-trigger .ai-strip-caret {
   transition: transform .15s ease;
 }
-.ai-strip-wrap :deep(.ai-strip-trigger.is-open .ai-strip-caret) {
+.ai-strip-trigger[data-state="open"] .ai-strip-caret {
   transform: rotate(180deg);
 }
 /* Small filled "AI" pill — the accent colour landing on the white
@@ -1912,13 +1891,16 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   font-family: var(--font-mono);
   font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
 }
-.ai-strip-menu {
-  position: absolute; top: calc(100% + 4px); right: 0;
-  width: 380px; max-width: 92vw;
-  max-height: 70vh; overflow-y: auto;
+/* The menu is UiMenu's QMenu (content-class), outside this component's scope. z-index 999 is the
+   kit's one value for a popup (.lu-mmenu, .ui-select-content, the routing chip's .afc-pop) —
+   Quasar's own 6000 painted the chip's popover behind this menu. */
+:global(.q-menu.ai-strip-menu) {
+  z-index: 999;
+  width: 380px; max-width: calc(100vw - 16px);
+  max-height: 70vh;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18);
-  padding: 6px; z-index: 60;
+  padding: 6px;
   display: flex; flex-direction: column;
 }
 /* Routing row at the top of the AI dropdown. The chip sits next to a
@@ -1950,15 +1932,15 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   text-align: left; background: none; border: 0; cursor: pointer;
   color: inherit; font: inherit;
 }
-.ai-strip-item:hover:not(:disabled) { background: var(--surface-2); }
+.ai-strip-item[data-highlighted]:not([data-disabled]) { background: var(--surface-2); outline: none; }
 /* Disabled items get a stronger greying treatment than a flat opacity so
    they read as "not available right now" instead of "loading". */
-.ai-strip-item:disabled {
+.ai-strip-item[data-disabled] {
   cursor: not-allowed;
   color: var(--muted);
 }
-.ai-strip-item:disabled .ai-strip-label { color: var(--muted); font-weight: 500; }
-.ai-strip-item:disabled .ai-strip-desc  { color: var(--subtle, var(--muted)); }
+.ai-strip-item[data-disabled] .ai-strip-label { color: var(--muted); font-weight: 500; }
+.ai-strip-item[data-disabled] .ai-strip-desc  { color: var(--subtle, var(--muted)); }
 .ai-strip-label { font-size: 14px; font-weight: 600; color: var(--ink); }
 .ai-strip-desc  { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
 .ai-strip-divider {

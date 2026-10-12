@@ -143,25 +143,11 @@ BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV 
         kit's `544dfd3`). Fixed on the way: the description draft's voice pass (`be35f4b`), Accept
         all / Reject all (`87f0ca0`, `c8914db`).
 OPEN:   the Lab check (the user) — now also "With story context", "Rewrite with a direction" and
-        "Dialogue at the lamp". The scene strip's AI menu off screen at 390 px (the next entry). After them, per decision 2: the translation work, then the sheets and
+        "Dialogue at the lamp". After them, per decision 2: the translation work, then the sheets and
         slices 3–4.
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;
         "your rec go" for the third round (Task 0, Tasks 9b and 11b, Task 12 in the chat panel).
-
-## Two editor glitches found while building the AI drafting plan's Task 14 [2026-10-11]
-STATE:  FOUND, not fixed (no go). Both seen at 1280 px on a copy of `data/` (the Task 14 probe's
-        screenshots); both predate the plan.
-        1. The scene strip's AI menu is cut off on the left: `.ai-strip-menu` is a hand-rolled
-           380 px box anchored to the right of the AI button (`src/pages/ChaptersPage.vue`, style
-           `.ai-strip-menu`), and the pane card clips whatever lands left of its edge — with the
-           sidebar open, the first letters of every item ("ewrite", "xpand"); at 390 px almost all
-           of it is off screen (x −279 of 359 px), so no AI writing action can be reached there. The kit's UiMenu
-           (Quasar's QMenu, teleported, kept on screen) is the family's menu.
-        2. The chapter footer flashes "… — done in NaNs" for the first 5 s after an AI action:
-           `aiNotice` reads the kit's lingering task first (`ChaptersPage.vue` aiNotice), and a
-           lingering task has no `durationMs` — the kit adds it only when the task moves to
-           history (`../just-llm-runner/ui/src/stores/aiTasks.js` _archiveAndRemove).
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's
