@@ -259,6 +259,42 @@ against the page by an agent, not re-checked by the session.
 - **The kit's additive columns needed quoting** for a keyword column (`when`): fixed in the kit's
   `1ab9a69`, with a test. (*measured 2026-10-11*.)
 
+## Translation: what still shows in English (2026-10-12)
+
+The July research and its seven decisions: [`../plans/2026-07-26-i18n-single-source-research.md`](../plans/2026-07-26-i18n-single-source-research.md)
+(decisions as blessed: in `../plans/archive/2026-07-26-i18n-phase1-coverage-plan.md`'s header).
+Measured 2026-10-12 by running the built app in the pseudo-locale (`scripts/i18n-pseudo.js`'s
+`walk`, switched in the page through the i18n instance) on a copy of `data/`, visiting every
+route at 1280 px (Settings' nine sections and the AI console's five tabs each), and listing the
+visible text and `placeholder`/`title`/`aria-label`/`alt` that stayed plain English, each
+attributed by searching the source trees for its literal. Bucketing-grade: windows, menus,
+toasts and hover tooltips were not opened; 147 strings matching book content were set aside.
+(*measured 2026-10-12*, scratch probe.)
+
+- **JustWrite's pages are translated; the gaps are elsewhere.** About 446 distinct English
+  strings remained, roughly: the kit's screens ~140, JustWrite code the lint can't see ~100,
+  Quasar's own text ~10, seeded database words ~10; the rest is not translatable or not chrome
+  (help pages, log lines, model ids, URLs, font names).
+- **The kit's screens are English.** Settings → Sync (24 strings), the AI console (providers,
+  usage, console, logs, pricing, Feature Lab, presets), Updates, Backups' reset, the model
+  catalog, and Appearance's theme, size, corner and accent names (53, `appearance.js`). Only the
+  labels feed's ~20 words (`src/i18n/familyLabelsFeed.js`: dialogs, AI tabs, download bar,
+  connection error) follow the app's language. The blessed decision 1 was vue-i18n as the kit's
+  peer dependency; what was built is the feed (`../../../just-llm-runner/docs/app-structure.md`
+  "Words relabel per app ONLY through the labels feed"). JustVoice depends on vue-i18n
+  (`^11.4.13`); docgen does not.
+- **Quasar's own text never changes language:** no `quasar/lang` pack is set anywhere, so the
+  table pager ("Rows per page", "Page 1 / 1"), the editor toolbar and the date picker stay English.
+- **What `no-raw-text` can't see:** bound attributes built in script (`PlotBoardPage.vue`'s
+  27 `aria-label`/`title` strings such as "Delete strand {name}"), and labels defined in
+  JavaScript (`voiceDrift.js`'s six metric names, `CommandPalette.vue`, `ExportPage.vue`'s format
+  descriptions, JustWrite's `appearance.js` theme presets, `AnalysisPage.vue`, `NotesPage.vue`).
+- **Dates follow the browser's language, not the app's:** 13 `toLocale…String(undefined)` /
+  `()` calls in 8 files (ChatPanel, DateTimePicker, Sidebar, VersionHistoryModal, AnalysisPage,
+  EventsTimelinePage, HomeShelfPage, TimelinePage), and `DateTimePicker.vue:20` lists the month
+  names in English.
+- **Seeded database words stay English by decision 4** (marker types, statuses, roles).
+
 ## Records not yet distilled
 
 Indexed by subject so they can be found; their facts move into a section above when work next
