@@ -219,7 +219,49 @@
     "moreLikeDisabledTooltip": "Pulsa el pulgar arriba en al menos un resultado para orientar el siguiente lote",
     "thumbHint": "Pulsa el pulgar arriba en los resultados para orientar el siguiente lote.",
     "emptyHint": "Elige una categoría, describe lo que necesitas y pulsa Generar.",
-    "generating": "Generando…"
+    "generating": "Generando…",
+    "like": "Me gusta",
+    "unlike": "Quitar me gusta",
+    "copied": "Se copió \"{text}\" al portapapeles.",
+    "copyFailed": "No se pudo acceder al portapapeles.",
+    "nameIdeas": "Ideas de nombres",
+    "categories": {
+      "character_name": {
+        "label": "Nombres de personajes",
+        "purpose": "Nombres propios para un personaje: nombres de pila, apellidos, nombres completos, apodos.",
+        "placeholder": "p. ej., nombres nórdicos de guerreras, consonantes marcadas, dos sílabas.\n\nO: un nombre afectado de académico para un profesor inglés de los años veinte, algo ridículo."
+      },
+      "place_name": {
+        "label": "Nombres de lugares",
+        "purpose": "Topónimos: ciudades, tabernas, barrios, montañas, barcos, reinos, planetas.",
+        "placeholder": "p. ej., nombres inquietantes de tiendas de un pueblo de Nueva Inglaterra, años veinte.\n\nO: nombres de tabernas de un pueblo fronterizo que sugieran a la vez refugio y problemas."
+      },
+      "item_name": {
+        "label": "Nombres de objetos",
+        "purpose": "Nombres para cosas: espadas, libros, organizaciones, hechizos, drogas, vehículos, objetos recurrentes.",
+        "placeholder": "p. ej., nombres para una espada legendaria que se transmiten reinas exiliadas, evocadores pero no recargados.\n\nO: nombres anticuados para un panfleto político prohibido que circuló en la década de 1840."
+      },
+      "title": {
+        "label": "Títulos (libro / capítulo / escena)",
+        "purpose": "Títulos de libros, de capítulos o de escenas: cortos, evocadores, atentos al registro.",
+        "placeholder": "p. ej., títulos para una novela de atracos en una nave generacional, una sola palabra, evocadora.\n\nO: títulos de capítulo para un romance a fuego lento: de tres a cinco palabras, melancólicos."
+      },
+      "next_beat": {
+        "label": "Siguientes beats de la trama",
+        "purpose": "Ideas sobre lo que podría pasar a continuación en la trama: movimientos, beats y escaladas desde donde está ahora la historia. Distinto de \"Continuar\" en el editor: esto te da un menú de opciones, no prosa terminada.",
+        "placeholder": "p. ej., Elena acaba de confirmar que Marcus miente. Tiene el relicario, pero ya no le quedan aliados. Genera 15–20 posibles beats siguientes: escaladas, complicaciones, revelaciones, giros, movimientos de escena.\n\nO: la tripulación ha llegado al templo. Tomas quiere entrar; Esme quiere esperar. Piensa hacia dónde va la escena."
+      },
+      "twist": {
+        "label": "Giros argumentales",
+        "purpose": "Giros, revelaciones y vueltas inesperadas que podría dar la historia, de lo plausible a lo disparatado. Excelente cuando el siguiente paso parece demasiado obvio, o para una lluvia de ideas aunque descartes la mayoría.",
+        "placeholder": "p. ej., thriller a mitad del segundo acto. El detective protagonista está cerca del asesino. Genera 15–20 giros argumentales (revelaciones, inversiones, cambios de identidad, traiciones), de lo plausible a lo disparatado.\n\nO: novela literaria tranquila sobre una hija que cuida de su padre anciano. ¿Qué podría dar un giro a la dinámica?"
+      },
+      "free": {
+        "label": "Cualquier cosa (prompt libre)",
+        "purpose": "Úsalo cuando la lista de categorías no encaje: frases, eslóganes, palabras alternativas, ideas.",
+        "placeholder": "p. ej., veinte frases cortas que un posadero cansado podría decirle a un forastero antes de dormir.\n\nO: veinte palabras sueltas que signifiquen a la vez «hogar» y «jaula»."
+      }
+    }
   },
   "worldbuilding": {
     "newArticle": "Nuevo artículo",

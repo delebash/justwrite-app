@@ -219,7 +219,49 @@
     "moreLikeDisabledTooltip": "Thumb-up at least one result to steer the next batch",
     "thumbHint": "Thumb-up results to steer the next batch.",
     "emptyHint": "Pick a category, describe what you need, and hit Generate.",
-    "generating": "Generating…"
+    "generating": "Generating…",
+    "like": "Like",
+    "unlike": "Unlike",
+    "copied": "Copied \"{text}\" to clipboard.",
+    "copyFailed": "Could not access clipboard.",
+    "nameIdeas": "Name ideas",
+    "categories": {
+      "character_name": {
+        "label": "Character names",
+        "purpose": "Personal names for a character — given names, surnames, full names, nicknames.",
+        "placeholder": "e.g. Norse-sounding female warrior names, sharp consonants, two syllables.\n\nOr: Reedy academic name for a 1920s English don, slightly ridiculous."
+      },
+      "place_name": {
+        "label": "Place names",
+        "purpose": "Toponyms — cities, taverns, neighbourhoods, mountains, ships, kingdoms, planets.",
+        "placeholder": "e.g. Creepy New England small-town shop names, 1920s setting.\n\nOr: Frontier-town tavern names that suggest both refuge and trouble."
+      },
+      "item_name": {
+        "label": "Item / object names",
+        "purpose": "Names for things — swords, books, organisations, spells, drugs, vehicles, recurring objects.",
+        "placeholder": "e.g. Names for a legendary sword passed down by exiled queens, evocative not ornate.\n\nOr: Old-fashioned names for a banned political pamphlet circulated in the 1840s."
+      },
+      "title": {
+        "label": "Titles (book / chapter / scene)",
+        "purpose": "Book titles, chapter titles, or scene titles — short, evocative, register-aware.",
+        "placeholder": "e.g. Titles for a heist novel set on a generation ship, single word, evocative.\n\nOr: Chapter titles for a slow-burn romance — three-to-five words, melancholy."
+      },
+      "next_beat": {
+        "label": "Next plot beats",
+        "purpose": "Brainstorm what could happen next at the plot level — moves, beats, escalations from where the story currently sits. Different from \"Continue\" in the editor: this gives you a menu of options, not finished prose.",
+        "placeholder": "e.g. Elena has just confirmed Marcus is lying. She has the locket but no allies left. Generate 15–20 possible next plot beats — escalations, complications, reveals, twists, scene moves.\n\nOr: The crew has reached the temple. Tomas wants to enter; Esme wants to wait. Brainstorm where the scene goes next."
+      },
+      "twist": {
+        "label": "Plot twists",
+        "purpose": "Twists, reveals, and unexpected turns the story could take — from plausible to wild. Excellent for when the next move feels too obvious, or for a brainstorm even when you reject most options.",
+        "placeholder": "e.g. Mid-second-act thriller. Detective protagonist is closing in on the killer. Brainstorm 15–20 plot twists — revelations, reversals, identity shifts, betrayals — from plausible to wild.\n\nOr: Quiet literary novel about a daughter caring for an aging father. What could twist the dynamic?"
+      },
+      "free": {
+        "label": "Anything (free prompt)",
+        "purpose": "Use this when the category list doesn't fit — phrases, taglines, alternate words, ideas.",
+        "placeholder": "e.g. Twenty short phrases a tired innkeeper might say to a stranger before bed.\n\nOr: Twenty single words that mean both 'home' and 'cage'."
+      }
+    }
   },
   "worldbuilding": {
     "newArticle": "New article",

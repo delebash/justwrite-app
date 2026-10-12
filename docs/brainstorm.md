@@ -2,7 +2,7 @@
 
 > *"I need twenty names for this frontier tavern and I don't want any of them cluttering my project — I just need something to pick from so I can get back to the scene."*
 
-Brainstorm is the panel you open when you're stuck on "what should I *call* this thing." Give it a category (Character names, Place names, Item names, Titles, or a free prompt), a seed describing the vibe you're after, and it produces 15–20 short candidates. Thumbs-up the ones you like, click **More like these**, and the next batch drifts in that direction. Copy the winners into your story bible (or your manuscript) and close the panel — nothing here is saved.
+Brainstorm is the panel you open when you're stuck on "what should I *call* this thing." Give it a category (Character names, Place names, Item names, Titles, or a free prompt), a seed describing the vibe you're after, and it produces 15–20 short candidates. Thumbs-up the ones you like, click **More like these**, and the next batch drifts in that direction. Copy the winners into your story bible (or your manuscript) and close the panel — nothing here is saved. For a character's name you don't need the panel at all: **Name ideas** sits beside the name on the character's page (see [below](#name-ideas-at-the-name-itself)).
 
 It's a transient generator, not a note-taking surface. The Notes view is where you write your thinking down to keep; Brainstorm is for the moment when you want twenty options for a tavern's name and you don't want any of them to live in your project permanently.
 
@@ -44,13 +44,23 @@ The flow is the same regardless of category:
 
 1. **Pick a category** (see above). The panel updates with a one-line description of what the category is for and an example seed in the input placeholder.
 2. **Write a seed.** This is the description the model uses to decide *what kind* of suggestions to make. Be specific — "Norse-sounding female warrior names, sharp consonants, two syllables" gives you much more useful output than "warrior names". The more flavour you give about era, register, sound, mood, language, the less generic the result.
-3. **Hit Generate.** The model streams 15–20 suggestions into the panel, one per row. Each row has a 👍 button and a **Use** (copy) button.
+3. **Hit Generate.** The model streams 15–20 suggestions into the panel, one per row. Each row has a 👍 button and a copy button.
 4. **Thumbs-up the ones you like.** The thumbs-up is a preference signal, not a save — it tells the model which direction you want it to lean next. You can thumb as many as you like.
 5. **Click "More like these".** The model gets your liked items as a steering signal and a list of everything you've already seen, then generates 15–20 fresh suggestions that don't repeat any of them. The new results append to the panel (the old ones stay) so you can keep thumbing across rounds.
-6. **Use the winners.** Click the **Use** button on a row to copy that text to the clipboard. Paste it into your character's name field, your location title, your manuscript — wherever it belongs.
+6. **Use the winners.** Click the copy button on a row to copy that text to the clipboard. Paste it into your character's name field, your location title, your manuscript — wherever it belongs.
 7. **Clear** when you're done. The panel returns to empty so the next session starts fresh.
 
 You can also start a completely new run at any time — typing a new seed and hitting **Generate** clears the previous results and the seen list, so the model isn't constrained by an unrelated thread.
+
+---
+
+## Name ideas — at the name itself
+
+On a character's page, the ✨ button beside the name opens **Name ideas**: Brainstorm's list for that character, right there. You don't write a seed — it asks for character names that fit the character as the sheet describes them (role, one-liner, whatever you've filled in) and your book (premise, genre, world rules, Setting, main cast). It never offers a name someone in your cast already uses, aliases included.
+
+It opens with a list. Thumbs-up and **More like these** work as they do on this page; **Generate** starts a fresh list. **Click a name to make it the character's name** — Undo takes it back. On a phone it opens as a window instead of a dropdown.
+
+It uses the same model as Brainstorm (below), and like the panel it keeps nothing: close it and reopen it on the same character and the list is still there; leave the page and it's gone.
 
 ---
 
@@ -59,7 +69,7 @@ You can also start a completely new run at any time — typing a new seed and hi
 > *"I thumbed up six names I liked, navigated away to check a character's notes, and came back to an empty panel."*
 
 - **It's not a notes feature.** Nothing persists between sessions; close the panel and the suggestions are gone. If you want to keep a brainstorm session for later, copy the suggestions you care about into a Note (or directly into a character/location/etc.).
-- **It's not a name *committer*.** Brainstorm doesn't write to your project. Clicking **Use** copies to the clipboard — you decide where the result lands.
+- **It's not a name *committer*.** Brainstorm doesn't write to your project. The copy button copies to the clipboard — you decide where the result lands. (Name ideas on a character's page is the one place a click sets a name.)
 - **It's not deterministic.** Temperature is high (0.9) — generating the same seed twice will give different results, and that's the point. You're after divergent options, not the "right" answer.
 
 ---

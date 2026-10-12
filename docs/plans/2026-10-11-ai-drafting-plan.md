@@ -270,6 +270,15 @@ name; the actions wrap below the title whenever they don't fit, at every width �
 
 ## Task 10 — Name ideas at the name box
 
+**Built** 2026-10-11 — the commit "Name ideas at a character's name" (and the kit's PaneHeader
+`after-title` slot and `ThumbUp` icon). Reuse, not a second copy of Brainstorm: the categories
+and the one prompt shape are `services/brainstorm.js` (the page's prompt kept byte for byte),
+the rounds `composables/useBrainstorm.js`, the list `components/BrainstormResults.vue` — the
+Brainstorm page and `components/NameIdeas.vue` both run on them. The round's input is
+`characterDraft.js` `composeNameIdeasInput` (BOOK CONTEXT · CHARACTER PROFILE · ALREADY IN THE
+CAST · Brainstorm's request); the cast's names and aliases are never shown. Driven in a browser on a
+copy of the user's data with the model stubbed, at 1280 and 390 px (the phone opens a dialog).
+
 **Files:** create `src/services/brainstormCategories.js` (the seven categories, labels and
 placeholders through i18n — out of `BrainstormPage.vue:18-61`); `BrainstormPage.vue` imports it;
 create `src/components/NameIdeas.vue` (Quasar `QPopupProxy`: a menu on the desktop, a dialog on the
@@ -279,7 +288,7 @@ phone); `CharactersPage.vue` (✨ in the name box); `en.json`; `docs/brainstorm.
 - The list runs the existing `brainstorm` action (category character names), seeded from the
   page's role, one-liner and description + `composeBookContext`; likes and **More like these** as
   on Brainstorm; a click sets the name.
-- [ ] Tests: the seed composition; Brainstorm still renders its categories (smoke). Commit.
+- [x] Tests: the seed composition; Brainstorm still renders its categories (smoke). Commit.
 
 ## Task 11 — Suggest characters…
 

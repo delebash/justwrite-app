@@ -167,6 +167,15 @@ Only worth building if the in-modal notice proves insufficient.
 
 ---
 
+### Brainstorm's prompt text lives in code (noted 2026-10-11)
+
+Moving Brainstorm onto one service for Name ideas (`src/services/brainstorm.js`) kept the text the
+model is sent where it was: in code, in English — each category's `promptLabel` and plot `kind`,
+and the round's scaffolding ("The user liked these suggestions…", "Avoid repeating…", "Output 15–20
+fresh suggestions…"). The system prompts are seeded and editable in the Lab; these lines aren't.
+The house rule (nothing hardcoded) would put them in the seeded prompts — a template change for the
+`brainstorm` / `brainstormPlot` actions, its heal entry and the Lab sample. Not started.
+
 ## UI / UX
 
 ### Customizable editor / context menus (was ledger §J1; big-batch #52a)

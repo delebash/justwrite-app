@@ -25,6 +25,8 @@ import GroupsModal from "../components/GroupsModal.vue";
 import CharacterDraftModal from "../components/CharacterDraftModal.vue";
 import CharacterBatchFillModal from "../components/CharacterBatchFillModal.vue";
 import CharacterSheetSection from "../components/CharacterSheetSection.vue";
+import NameIdeas from "../components/NameIdeas.vue";
+import { nameIdeasRequest } from "../services/analysis/characterDraft.js";
 import TagEditor from "../components/TagEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
@@ -430,6 +432,11 @@ function onRowClick(event) {
         editable :title="ch.name" :placeholder="$t('characters.detail.namePlaceholder')"
         @update:title="(v) => updateField('name', v)"
         help-key="character-sheet" :help-label="$t('characters.detail.helpLabel')">
+        <template #after-title>
+          <NameIdeas :key="ch.id" :meta="{ kind: 'name-ideas', characterId: ch.id }"
+            :request="(round) => nameIdeasRequest({ project, characterId: ch.id, ...round })"
+            @pick="(name) => updateField('name', name)" />
+        </template>
         <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="talkToCharacter"
           v-tooltip.bottom="$t('characters.detail.talkToTooltip', { name: ch.name })">
           <Icon name="Sparkle" :size="14" /> {{ $t("characters.detail.talkTo", { name: ch.name?.split(/\s+/)[0] || $t("characters.detail.talkToFallback") }) }}

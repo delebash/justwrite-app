@@ -10,11 +10,14 @@
 //   THE WRITER'S DESCRIPTION
 //   FIELDS TO DRAFT (a section draft)  ·  ALREADY IN THE CAST / WHAT THE WRITER IS LOOKING FOR (suggestions)
 // The prompts live server-side (seed_feature_prompts.js: characterProfileDraft,
-// characterVoiceDraft, characterSection, suggestCharacters).
+// characterVoiceDraft, characterSection, suggestCharacters). Name ideas (Task 10) runs Brainstorm's
+// own `brainstorm` action: the book, the profile and the cast, then Brainstorm's round
+// (services/brainstorm.js).
 
 import { useResolvedRoute } from "@delebash/llm-ui";
 import { useAiStore } from "../../stores/ai.js";
 import { fieldKey, fieldLabelKeys, SHEET_SECTIONS } from "../characterSheet.js";
+import { brainstormAction, brainstormPrompt } from "../brainstorm.js";
 import { runJsonAnalysis } from "../runJson.js";
 import { composeBookContext, storyBudgetTokens } from "../storyContext.js";
 import { buildProfileText } from "./characterAudit.js";
@@ -72,15 +75,37 @@ export function composeSectionInput(project, characterId, sectionKey, { descript
   return { variables: { user_content }, keys: section.fields.map(fieldKey) };
 }
 
+function castBlock(project) {
+  const names = (project.characters || []).map((c) => c.name).filter(Boolean);
+  return block("ALREADY IN THE CAST", names.map((n) => `- ${n}`).join("\n"));
+}
+
 /** The input for suggestions: the book, the names already taken, what the writer wants. */
 export function composeSuggestInput(project, { lookingFor = "", budgetTokens = null } = {}) {
-  const names = (project.characters || []).map((c) => c.name).filter(Boolean);
   const user_content = join(
     bookBlock(project, budgetTokens),
-    block("ALREADY IN THE CAST", names.map((n) => `- ${n}`).join("\n")),
+    castBlock(project),
     block("WHAT THE WRITER IS LOOKING FOR", lookingFor),
   );
   return { variables: { user_content } };
+}
+
+/** Name ideas' round: the book, the character's profile and the cast, then Brainstorm's own
+ *  request (category Character names), its seed pointing at the blocks above it. `liked` / `seen`
+ *  as on the Brainstorm page. */
+export function composeNameIdeasInput(project, characterId, { liked = [], seen = [], budgetTokens = null } = {}) {
+  const { action, variables } = brainstormAction("character_name");
+  const book = bookBlock(project, budgetTokens);
+  const seed = book
+    ? "names for the character in CHARACTER PROFILE, fitting the book in BOOK CONTEXT"
+    : "names for the character in CHARACTER PROFILE";
+  const user_content = join(
+    book,
+    profileBlock(project, characterId),
+    castBlock(project),
+    brainstormPrompt({ category: "character_name", seed, liked, seen }),
+  );
+  return { action, variables: { ...variables, user_content } };
 }
 
 // ── sanitizers ────────────────────────────────────────────────────────────
@@ -110,14 +135,15 @@ export function nestFields(flat) {
 
 const norm = (s) => String(s || "").trim().toLowerCase();
 
+/** Every name the cast already uses — names and aliases. */
+export function castNames(cast) {
+  return (cast || []).flatMap((c) => [c.name, ...(c.aliases || [])]).filter(Boolean);
+}
+
 /** Suggested characters → `{ name, role, oneLiner }`, dropping a name the cast already uses (a
  *  name or an alias) and any repeat within the reply. */
 export function sanitizeSuggestions(parsed, cast) {
-  const taken = new Set();
-  for (const c of cast || []) {
-    taken.add(norm(c.name));
-    for (const a of c.aliases || []) taken.add(norm(a));
-  }
+  const taken = new Set(castNames(cast).map(norm));
   const out = [];
   for (const c of Array.isArray(parsed?.characters) ? parsed.characters : []) {
     const name = clamp(c?.name, 80);
@@ -178,4 +204,12 @@ export async function suggestCharacters({ project, lookingFor = "", signal, budg
     task: { label: "Suggest characters", meta },
   });
   return sanitizeSuggestions(parsed, project.characters);
+}
+
+/** Name ideas' request for useBrainstorm: the composed round, with the cast's names (and aliases)
+ *  never shown as ideas. */
+export async function nameIdeasRequest({ project, characterId, liked = [], seen = [], budgetTokens } = {}) {
+  const budget = await budgetFor("brainstorm", "brainstorm", budgetTokens);
+  const request = composeNameIdeasInput(project, characterId, { liked, seen, budgetTokens: budget });
+  return { ...request, exclude: castNames(project.characters) };
 }

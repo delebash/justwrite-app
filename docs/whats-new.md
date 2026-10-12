@@ -6,6 +6,12 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-11
 
+**Name ideas.** The ✨ beside a character's name lists names that fit the character and your
+book, and never one your cast already uses. Thumbs-up the ones you like and click **More like
+these**, as on Brainstorm; click a name to use it. See
+[Brainstorm](brainstorm.md#name-ideas-at-the-name-itself). Brainstorm's categories are now
+translated too.
+
 **Draft a character with AI.** On a character's page, describe them in the
 **Describe this character** box and click **Draft**: the AI drafts the sheet —
 identity, motivation, arc, voice, backstory — from your description and your

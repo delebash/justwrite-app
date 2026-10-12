@@ -43,6 +43,10 @@ it's your working memory for the character.
 > optional auto-apply that fills only *empty* fields (it never overwrites
 > anything you've written).
 
+**Name ideas** — the ✨ beside the character's name lists names that fit the
+character and your book; click one to use it. See
+[Brainstorm](brainstorm.md#name-ideas-at-the-name-itself).
+
 ---
 
 ## The hero row

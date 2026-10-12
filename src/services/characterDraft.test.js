@@ -9,8 +9,8 @@ const runJsonAnalysis = vi.fn();
 vi.mock("./runJson.js", () => ({ runJsonAnalysis: (...a) => runJsonAnalysis(...a) }));
 
 const {
-  composeDescriptionInput, composeSectionInput, composeSuggestInput,
-  draftSection, nestFields, profileFromDescription, sanitizeSection, sanitizeSuggestions,
+  composeDescriptionInput, composeNameIdeasInput, composeSectionInput, composeSuggestInput,
+  draftSection, nameIdeasRequest, nestFields, profileFromDescription, sanitizeSection, sanitizeSuggestions,
   suggestCharacters, voiceFromDescription,
 } = await import("./analysis/characterDraft.js");
 
@@ -63,6 +63,36 @@ describe("the composed input", () => {
     const { user_content } = composeSuggestInput(project(), { lookingFor: "a rival", budgetTokens: null }).variables;
     expect(user_content).toContain("ALREADY IN THE CAST\n- Mira\n- Untitled character");
     expect(user_content).toContain("WHAT THE WRITER IS LOOKING FOR\na rival");
+  });
+
+  it("asks Brainstorm for character names after the book, the profile and the cast (Name ideas)", () => {
+    const r = composeNameIdeasInput(project(), "c2", { budgetTokens: null });
+    expect(r.action).toBe("brainstorm");
+    expect(r.variables.label).toBe("Character names");
+    const u = r.variables.user_content;
+    const at = (s) => u.indexOf(s);
+    expect(at("BOOK CONTEXT")).toBe(0);
+    expect(at("CHARACTER PROFILE")).toBeGreaterThan(at("BOOK CONTEXT"));
+    expect(at("ALREADY IN THE CAST\n- Mira")).toBeGreaterThan(at("CHARACTER PROFILE"));
+    expect(at("Category: Character names\nSeed: ")).toBeGreaterThan(at("ALREADY IN THE CAST"));
+    expect(u.endsWith("Output 15–20 fresh suggestions, one per line.")).toBe(true);
+  });
+
+  it("sends no book context for an empty book, and a More like these round carries the likes", () => {
+    const p = project();
+    p.project = {};
+    p.characters[0].main = false;
+    const u = composeNameIdeasInput(p, "c2", { liked: ["Odo"], seen: ["Odo", "Ren"], budgetTokens: 0 }).variables.user_content;
+    expect(u).not.toContain("BOOK CONTEXT");
+    expect(u.startsWith("CHARACTER PROFILE")).toBe(true);
+    expect(u).not.toMatch(/\{\{/);
+    expect(u).toContain("DO NOT repeat any of these:\n- Odo");
+    expect(u).toContain("already-seen suggestions:\n- Odo\n- Ren");
+  });
+
+  it("never offers a name the cast already uses, an alias included", async () => {
+    const r = await nameIdeasRequest({ project: project(), characterId: "c2", budgetTokens: null });
+    expect(r.exclude).toEqual(["Mira", "Mir", "Untitled character"]);
   });
 });
 
