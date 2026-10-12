@@ -21,6 +21,8 @@ import { nextTick } from "vue";
 import LogsPanel from "@delebash/llm-ui/components/LogsPanel.vue";
 // Quasar installed as in the real app — the kit's controls are Quasar components
 import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
+// JustWrite's real vue-i18n instance (the kit's catalog plus JustWrite's), installed as the app does.
+import { i18n } from "../i18n/index.js";
 
 // Two INFO lines and an ERROR with a continuation, exactly as the server writes
 // them since logs_api.py `_FMT` went strict-ISO.
@@ -68,6 +70,7 @@ afterEach(() => {
 
 async function mountPanel() {
   app = createTestApp(LogsPanel);
+  app.use(i18n);
   app.mount(host);
   // let onMounted's loadDays + refresh resolve
   for (let i = 0; i < 6; i++) await nextTick();

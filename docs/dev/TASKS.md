@@ -18,13 +18,12 @@
 
 
 ## Every app and the kit on vue-i18n [2026-10-12]
-STATE:  DECIDED 2026-10-12, family-wide; plan written, awaiting go — the decision with the user's
-        words is the kit's TASKS, "Every app and the kit on vue-i18n"; the plan is
-        `just-llm-runner/docs/plans/2026-10-12-i18n-standard.md`.
+STATE:  DECIDED 2026-10-12, family-wide; building — the decision with the user's words is the kit's
+        TASKS, "Every app and the kit on vue-i18n"; the plan is
+        `just-llm-runner/docs/plans/2026-10-12-i18n-standard.md` (Task 1 done 2026-10-12).
 WHY:    JustWrite is the one app on vue-i18n, but the kit's screens inside it stay English except
         the labels feed's ~20 words, Quasar's own words never switch, and dates follow the browser.
-HERE:   Task 1 (take the kit's catalog; the feed, setUiLocale and the label contract test go) and
-        Task 3 (the last English: bound attributes, labels in JavaScript, dates and numbers, the
+HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates and numbers, the
         pseudo-locale check in the smoke), then Task 6 (Spanish through docgen, your review).
 
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
@@ -594,9 +593,9 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
 
 ## Now / near-term (JustWrite)
 
-- **`family.*` es values are HAND-TRANSLATED (2026-08-04)** — the new catalog block
-  behind the kit's labels feed (`src/i18n/familyLabelsFeed.js`: AI tabs, download-bar
-  actions, connection-error copy, the `family.lab` group) got hand-es'd values; run them through the docgen
+- **The kit's es values are HAND-TRANSLATED (2026-08-04)** — the words that were JustWrite's
+  `family.*` block (AI tabs, download-bar actions, connection-error copy, the lab group) and now
+  sit in the kit's `ui/src/i18n/locales/es.json` (the i18n plan's step A); run them through the docgen
   translator + review workspace when that pipeline goes live, like the rest of es.json.
   Same for the AI drafting's keys (2026-10-11): `characterDraft.*`, `characters.draft.*`,
   `writingAi.storyContext*`, `characterProfile.nothingGrounded`.

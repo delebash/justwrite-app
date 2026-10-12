@@ -30,6 +30,8 @@ import { fileURLToPath } from "node:url";
 import { usePanelDismiss } from "@delebash/llm-ui";
 // Quasar installed as in the real app — the kit's controls are Quasar components
 import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
+// JustWrite's real vue-i18n instance (the kit's catalog plus JustWrite's), installed as the app does.
+import { i18n } from "../i18n/index.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // …/justwrite-app/src/components → …/Web, then into the kit.
@@ -147,6 +149,7 @@ async function mountPanel() {
       ]);
     },
   });
+  app.use(i18n);
   app.mount(host);
   await nextTick();
   return { open, close };

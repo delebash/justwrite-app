@@ -20,6 +20,8 @@ import { h, nextTick } from "vue";
 import LuFeatureChip from "@delebash/llm-ui/components/LuFeatureChip.vue";
 // Quasar installed as in the real app — the kit's controls are Quasar components
 import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
+// JustWrite's real vue-i18n instance (the kit's catalog plus JustWrite's), installed as the app does.
+import { i18n } from "../i18n/index.js";
 
 const CLASS_KEY = "vram8|ram32";
 const LOCAL_ROUTE = {
@@ -103,6 +105,7 @@ async function openPopover(route = LOCAL_ROUTE) {
     }),
   });
   app.directive("tooltip", {}); // host-registered in the real apps; a no-op here
+  app.use(i18n);
   app.mount(host);
   await flush();
   document.querySelector(".afc-chip").click();

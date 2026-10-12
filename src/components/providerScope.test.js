@@ -15,6 +15,8 @@ import AiModelsArea from "@delebash/llm-ui/views/AiModelsArea.vue";
 import ProviderForm from "@delebash/llm-ui/views/ProviderForm.vue";
 // Quasar installed as in the real app — the kit's controls are Quasar components
 import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
+// JustWrite's real vue-i18n instance (the kit's catalog plus JustWrite's), installed as the app does.
+import { i18n } from "../i18n/index.js";
 
 const BUILTIN = {
   id: "builtin", name: "Built-in provider — llama.cpp", providerType: "local-llamacpp",
@@ -72,6 +74,7 @@ async function flush(times = 24) {
 async function mountArea(props = {}) {
   app = createTestApp({ render: () => h(AiModelsArea, props) });
   app.directive("tooltip", {}); // host-registered in the real app; a no-op here
+  app.use(i18n);
   app.mount(host);
   await flush();
 }
@@ -200,6 +203,7 @@ function whereActive() {
 async function mountForm(props) {
   app = createTestApp({ render: () => h(ProviderForm, props) });
   app.directive("tooltip", {});
+  app.use(i18n);
   app.mount(host);
   await flush();
 }

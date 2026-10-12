@@ -284,9 +284,11 @@ toasts and hover tooltips were not opened; 147 strings matching book content wer
   connection error) follow the app's language. The blessed decision 1 was vue-i18n as the kit's
   peer dependency; what was built is the feed (`../../../just-llm-runner/docs/app-structure.md`
   "Words relabel per app ONLY through the labels feed"). JustVoice depends on vue-i18n
-  (`^11.4.13`); docgen does not.
+  (`^11.4.13`); docgen does not. — *pseudo-locale run, 2026-10-12, before the i18n plan's Task 1*;
+  since its step C the kit's screens render through vue-i18n in JustWrite's language.
 - **Quasar's own text never changes language:** no `quasar/lang` pack is set anywhere, so the
   table pager ("Rows per page", "Page 1 / 1"), the editor toolbar and the date picker stay English.
+  — *before Task 1*; since its step B `src/boot/i18n.js` sets Quasar's pack with the language.
 - **What `no-raw-text` can't see:** bound attributes built in script (`PlotBoardPage.vue`'s
   27 `aria-label`/`title` strings such as "Delete strand {name}"), and labels defined in
   JavaScript (`voiceDrift.js`'s six metric names, `CommandPalette.vue`, `ExportPage.vue`'s format

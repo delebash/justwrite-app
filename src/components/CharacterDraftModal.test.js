@@ -9,9 +9,9 @@
 // that awaits before its task exists, as the real one does.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { h, nextTick, reactive } from "vue";
-import { createI18n } from "vue-i18n";
 import { createPinia } from "pinia";
 import en from "../i18n/locales/en.json";
+import { i18n } from "../i18n/index.js";
 
 const tasks = reactive({ runningTasks: [] });
 vi.mock("@delebash/llm-ui", async (importOriginal) => ({
@@ -57,7 +57,7 @@ describe("a description draft", () => {
     document.body.appendChild(host);
     app = createTestApp({ render: () => h(CharacterDraftModal, { characterId: "c1", source: "description", description: "a clerk" }) });
     app.use(createPinia());
-    app.use(createI18n({ legacy: false, locale: "en", messages: { en } }));
+    app.use(i18n);
     app.mount(host);
     for (let i = 0; i < 20; i++) { await tick(); await nextTick(); }
 

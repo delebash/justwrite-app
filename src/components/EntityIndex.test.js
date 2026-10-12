@@ -18,10 +18,10 @@
 // (no @vue/test-utils dependency).
 import { afterEach, describe, expect, it } from "vitest";
 import { h, nextTick } from "vue";
-import { createI18n } from "vue-i18n";
 
 import EntityIndex from "./EntityIndex.vue";
 import en from "../i18n/locales/en.json";
+import { i18n } from "../i18n/index.js";
 // Quasar installed as in the real app — the kit's controls are Quasar components
 import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
 
@@ -36,7 +36,7 @@ function mount(props, slots) {
   // REAL catalog — a stub would hide a renamed key. (Spelling a translate call
   // out longhand in a comment here makes vue-i18n-extract report it as a missing
   // key: it scans .js files too.)
-  app.use(createI18n({ legacy: false, locale: "en", messages: { en } }));
+  app.use(i18n);
   app.mount(host);
   return host;
 }

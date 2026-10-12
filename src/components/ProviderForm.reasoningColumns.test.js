@@ -19,6 +19,8 @@ import { h, nextTick } from "vue";
 import ProviderForm from "@delebash/llm-ui/views/ProviderForm.vue";
 // Quasar installed as in the real app — the kit's controls are Quasar components
 import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
+// JustWrite's real vue-i18n instance (the kit's catalog plus JustWrite's), installed as the app does.
+import { i18n } from "../i18n/index.js";
 
 const REASON_ROWS = [
   { level: "low", word: "", tokens: 1024 }, { level: "medium", word: "", tokens: 4096 },
@@ -66,6 +68,7 @@ async function openReasoning(providerType) {
   };
   app = createTestApp({ render: () => h(ProviderForm, { provider }) });
   app.directive("tooltip", {});
+  app.use(i18n);
   app.mount(host);
   await flush();
   const btn = [...document.querySelectorAll("button")].find((b) => b.textContent.includes("Reasoning levels"));

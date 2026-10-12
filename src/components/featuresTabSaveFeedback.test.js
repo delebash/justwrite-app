@@ -47,18 +47,24 @@ function fnBody(src, name) {
 
 const FEATURE_LAB = readKit("components/FeatureLab.vue");
 const PROVIDER_FORM = readKit("views/ProviderForm.vue");
+// The toast's words live in the kit's catalog (vue-i18n, 2026-10-12): the source names the key.
+const KIT_EN = JSON.parse(readKit("i18n/locales/en.json"));
 
 describe("features tab — saving a preset confirms with a toast", () => {
   it("Save-as a new preset pushes a success toast", () => {
     const body = fnBody(FEATURE_LAB, "saveAs");
     expect(body).toContain("pushToast");
-    expect(body).toContain("Preset saved.");
+    expect(body).toContain("kit.lab.presetSaved");
   });
 
   it("Update-in-place pushes a success toast", () => {
     const body = fnBody(FEATURE_LAB, "updatePreset");
     expect(body).toContain("pushToast");
-    expect(body).toContain("Preset saved.");
+    expect(body).toContain("kit.lab.presetSaved");
+  });
+
+  it("the saved toast reads \"Preset saved.\" in English", () => {
+    expect(KIT_EN.kit.lab.presetSaved).toBe("Preset saved.");
   });
 
   it("delete stays toast-less (the QC-37 toast law — the row leaves visibly)", () => {

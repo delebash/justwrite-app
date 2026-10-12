@@ -4,6 +4,13 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## 2026-10-12
+
+**Spanish reaches a few more buttons.** With Spanish as the interface language, the AI task bar's
+Cancel, Retry and Dismiss, the AI chip's Cancel and the Updates heading now show in Spanish. The
+rest of the AI and settings screens now follow the language too; their words stay English until
+their Spanish is reviewed.
+
 ## 2026-10-11
 
 **The editor's AI menu stays on screen.** With the sidebar open its left edge was cut off, and in a

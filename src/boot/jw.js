@@ -67,7 +67,7 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
     // desktop window); no app repeats that reasoning. `openPath` is what the model
     // catalog's "Open folder" rides.
     external: { open: openUrl, openPath },
-    // No catalogCopy / quickSetupCopy: the kit defaults ARE JustWrite's words.
+    // JustWrite rewords none of the kit's keys: the kit's words ARE JustWrite's words.
     // The phone runs online providers only, and has no search index (the kit's phone plan §1):
     // the kit's AI surfaces leave out the local engine's and the embeddings' parts.
     ...(phone ? { capabilities: { localEngine: false, embeddings: false } } : {}),

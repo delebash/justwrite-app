@@ -37,6 +37,8 @@ import { fileURLToPath } from "node:url";
 import AppModal from "@delebash/llm-ui/common/components/AppModal.vue";
 // Quasar installed as in the real app — the kit's controls are Quasar components
 import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
+// JustWrite's real vue-i18n instance (the kit's catalog plus JustWrite's), installed as the app does.
+import { i18n } from "../i18n/index.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // …/justwrite-app/src/components → …/Web, then into the kit.
@@ -91,6 +93,7 @@ async function mountModal(props = {}) {
   host = document.createElement("div");
   document.body.appendChild(host);
   app = createTestApp({ render: () => h(AppModal, { title: "T", ...props }, { default: () => "body" }) });
+  app.use(i18n);
   app.mount(host);
   // QDialog opens its portal on mount and renders it on the next pass
   for (let i = 0; i < 4; i++) await nextTick();

@@ -22,6 +22,8 @@ import { h, nextTick } from "vue";
 import ProviderForm from "@delebash/llm-ui/views/ProviderForm.vue";
 // Quasar installed as in the real app — the kit's controls are Quasar components
 import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
+// JustWrite's real vue-i18n instance (the kit's catalog plus JustWrite's), installed as the app does.
+import { i18n } from "../i18n/index.js";
 
 const SAVED = {
   id: "claude", name: "Claude", providerType: "anthropic",
@@ -77,6 +79,7 @@ async function flush(times = 16) {
 async function mountForm() {
   app = createTestApp({ render: () => h(ProviderForm, { provider: SAVED }) });
   app.directive("tooltip", {}); // host-registered in the real app; a no-op here
+  app.use(i18n);
   app.mount(host);
   await flush();
 }
