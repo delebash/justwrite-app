@@ -389,13 +389,18 @@ const EDITOR_PARA_OPTIONS = [0, 0.3, 0.5, 0.8, 1];
 // ── Segmented-control option arrays ───────────────────────────────────
 // Each maps existing constants to { value, label, sublabel? } so UiSegmented
 // can consume them without needing to know internal key shapes.
-const UI_SCALE_OPTIONS = UI_SCALES.map((s) => ({
-  value: s.value, label: s.label, sublabel: `${Math.round(s.value * 100)}%`,
-}));
-const SH_STYLE_OPTIONS = SIDEBAR_HEADING_STYLE_LIST.map((s) => ({ value: s.key, label: s.label }));
-const SH_SIZE_OPTIONS  = SIDEBAR_HEADING_SIZES.map((s) => ({ value: s.value, label: s.label }));
-const NAV_STYLE_OPTIONS = NAV_ITEM_STYLE_LIST.map((s) => ({ value: s.key, label: s.label }));
-const NAV_SIZE_OPTIONS  = NAV_ITEM_SIZES.map((s) => ({ value: s.value, label: s.label }));
+// The kit's tables name their words' keys (labelKey); the options translate them, so they follow
+// a language switch.
+const UI_SCALE_OPTIONS = computed(() => UI_SCALES.map((s) => ({
+  value: s.value, label: t(s.labelKey), sublabel: `${Math.round(s.value * 100)}%`,
+})));
+const SH_STYLE_OPTIONS = computed(() => SIDEBAR_HEADING_STYLE_LIST.map((s) => ({ value: s.key, label: t(s.labelKey) })));
+const SH_SIZE_OPTIONS  = computed(() => SIDEBAR_HEADING_SIZES.map((s) => ({ value: s.value, label: t(s.labelKey) })));
+const NAV_STYLE_OPTIONS = computed(() => NAV_ITEM_STYLE_LIST.map((s) => ({ value: s.key, label: t(s.labelKey) })));
+const NAV_SIZE_OPTIONS  = computed(() => NAV_ITEM_SIZES.map((s) => ({ value: s.value, label: t(s.labelKey) })));
+const BTN_RADIUS_OPTIONS = computed(() => BUTTON_RADIUS_OPTIONS.map((o) => ({ value: o.value, label: t(o.labelKey) })));
+const BTN_DENSITY_OPTIONS = computed(() => BUTTON_DENSITY_OPTIONS.map((o) => ({ value: o.value, label: t(o.labelKey) })));
+const BTN_LABEL_CASE_OPTIONS = computed(() => BUTTON_LABEL_CASE_OPTIONS.map((o) => ({ value: o.value, label: t(o.labelKey) })));
 const FONT_SIZE_OPTIONS = computed(() => EDITOR_FONT_SIZES.value.map((s) => ({ value: s.value, label: s.label, sublabel: s.px })));
 const LINE_OPTIONS  = EDITOR_LINE_OPTIONS.map((v) => ({ value: v, label: String(v) }));
 const PARA_OPTIONS  = EDITOR_PARA_OPTIONS.map((v) => ({ value: v, label: v === 0 ? "0" : `${v}em` }));
@@ -1039,7 +1044,7 @@ async function deleteCategory(c) {
                 @click="setAp({ fontPairing: p.id, uiFont: p.ui, displayFont: p.display, editorBodyFont: p.display })">
                 <span class="pairing-sample" :style="{ fontFamily: dispStack(p.display) }">{{ $t("settings.appearance.fontSpecimen") }}</span>
                 <div style="display:flex;flex-direction:column;min-width:0">
-                  <b style="font-size:12.5px">{{ p.name }}</b>
+                  <b style="font-size:12.5px">{{ $t(p.labelKey) }}</b>
                   <span class="t-muted" style="font-size:10.5px">{{ p.display }} · {{ p.ui }}</span>
                 </div>
                 <Icon v-if="ap.fontPairing === p.id" name="Check" :size="13" style="margin-left:auto;color:var(--accent)" />
@@ -1126,9 +1131,9 @@ async function deleteCategory(c) {
             <div class="swatch-row" role="radiogroup" :aria-label="$t('settings.appearance.accentLabel')">
               <span class="swatch-label">{{ $t('settings.appearance.accentLabel') }}</span>
               <button v-for="p in ACCENT_PRESETS" :key="p.hue"
-                role="radio" :aria-checked="ap.accentHue === p.hue" :aria-label="p.name"
+                role="radio" :aria-checked="ap.accentHue === p.hue" :aria-label="$t(p.labelKey)"
                 class="accent-swatch" :class="{ active: ap.accentHue === p.hue }"
-                :title="p.name" :style="`background: oklch(0.55 0.13 ${p.hue})`"
+                :title="$t(p.labelKey)" :style="`background: oklch(0.55 0.13 ${p.hue})`"
                 @click="setAp({ accentHue: p.hue })">
                 <Icon v-if="ap.accentHue === p.hue" name="Check" :size="12" />
               </button>
@@ -1138,9 +1143,9 @@ async function deleteCategory(c) {
             <div class="swatch-row" style="margin-top:8px" role="radiogroup" :aria-label="$t('settings.appearance.accent2Label')">
               <span class="swatch-label">{{ $t('settings.appearance.accent2Label') }}</span>
               <button v-for="p in GOLD_PRESETS" :key="p.hue"
-                role="radio" :aria-checked="ap.goldHue === p.hue" :aria-label="p.name"
+                role="radio" :aria-checked="ap.goldHue === p.hue" :aria-label="$t(p.labelKey)"
                 class="accent-swatch" :class="{ active: ap.goldHue === p.hue }"
-                :title="p.name" :style="`background: oklch(0.62 0.1 ${p.hue})`"
+                :title="$t(p.labelKey)" :style="`background: oklch(0.62 0.1 ${p.hue})`"
                 @click="setAp({ goldHue: p.hue })">
                 <Icon v-if="ap.goldHue === p.hue" name="Check" :size="12" />
               </button>
@@ -1161,9 +1166,9 @@ async function deleteCategory(c) {
             <div class="swatch-row" role="radiogroup" :aria-label="$t('settings.appearance.successLabel')">
               <span class="swatch-label">{{ $t('settings.appearance.successLabel') }}</span>
               <button v-for="p in FUNCTIONAL_PRESETS.success" :key="p.hue"
-                role="radio" :aria-checked="ap.successHue === p.hue" :aria-label="p.name"
+                role="radio" :aria-checked="ap.successHue === p.hue" :aria-label="$t(p.labelKey)"
                 class="accent-swatch" :class="{ active: ap.successHue === p.hue }"
-                v-tooltip.bottom="p.name" :style="`background: oklch(0.6 0.13 ${p.hue})`"
+                v-tooltip.bottom="$t(p.labelKey)" :style="`background: oklch(0.6 0.13 ${p.hue})`"
                 @click="setAp({ successHue: p.hue })">
                 <Icon v-if="ap.successHue === p.hue" name="Check" :size="12" />
               </button>
@@ -1173,9 +1178,9 @@ async function deleteCategory(c) {
             <div class="swatch-row" style="margin-top:8px" role="radiogroup" :aria-label="$t('settings.appearance.dangerLabel')">
               <span class="swatch-label">{{ $t('settings.appearance.dangerLabel') }}</span>
               <button v-for="p in FUNCTIONAL_PRESETS.danger" :key="p.hue"
-                role="radio" :aria-checked="ap.dangerHue === p.hue" :aria-label="p.name"
+                role="radio" :aria-checked="ap.dangerHue === p.hue" :aria-label="$t(p.labelKey)"
                 class="accent-swatch" :class="{ active: ap.dangerHue === p.hue }"
-                v-tooltip.bottom="p.name" :style="`background: oklch(0.62 0.17 ${p.hue})`"
+                v-tooltip.bottom="$t(p.labelKey)" :style="`background: oklch(0.62 0.17 ${p.hue})`"
                 @click="setAp({ dangerHue: p.hue })">
                 <Icon v-if="ap.dangerHue === p.hue" name="Check" :size="12" />
               </button>
@@ -1185,9 +1190,9 @@ async function deleteCategory(c) {
             <div class="swatch-row" style="margin-top:8px" role="radiogroup" :aria-label="$t('settings.appearance.infoLabel')">
               <span class="swatch-label">{{ $t('settings.appearance.infoLabel') }}</span>
               <button v-for="p in FUNCTIONAL_PRESETS.info" :key="p.hue"
-                role="radio" :aria-checked="ap.infoHue === p.hue" :aria-label="p.name"
+                role="radio" :aria-checked="ap.infoHue === p.hue" :aria-label="$t(p.labelKey)"
                 class="accent-swatch" :class="{ active: ap.infoHue === p.hue }"
-                v-tooltip.bottom="p.name" :style="`background: oklch(0.55 0.1 ${p.hue})`"
+                v-tooltip.bottom="$t(p.labelKey)" :style="`background: oklch(0.55 0.1 ${p.hue})`"
                 @click="setAp({ infoHue: p.hue })">
                 <Icon v-if="ap.infoHue === p.hue" name="Check" :size="12" />
               </button>
@@ -1239,9 +1244,9 @@ async function deleteCategory(c) {
             <div class="swatch-row" role="radiogroup" :aria-label="$t('settings.appearance.bgAppLabel')">
               <span class="swatch-label">{{ $t('settings.appearance.bgAppLabel') }}</span>
               <button v-for="t in SURFACE_TINT_LIST" :key="t.key"
-                role="radio" :aria-checked="ap.appBg === t.key" :aria-label="t.label"
+                role="radio" :aria-checked="ap.appBg === t.key" :aria-label="$t(t.labelKey)"
                 class="tint-swatch" :class="{ active: ap.appBg === t.key }"
-                :title="t.label" :style="{ background: tintColor(t) }"
+                :title="$t(t.labelKey)" :style="{ background: tintColor(t) }"
                 @click="setAp({ appBg: t.key })">
                 <Icon v-if="ap.appBg === t.key" name="Check" :size="12" />
               </button>
@@ -1254,9 +1259,9 @@ async function deleteCategory(c) {
             <div class="swatch-row" style="margin-top:8px" role="radiogroup" :aria-label="$t('settings.appearance.bgSidebarLabel')">
               <span class="swatch-label">{{ $t('settings.appearance.bgSidebarLabel') }}</span>
               <button v-for="t in SURFACE_TINT_LIST" :key="t.key"
-                role="radio" :aria-checked="ap.sidebarBg === t.key" :aria-label="t.label"
+                role="radio" :aria-checked="ap.sidebarBg === t.key" :aria-label="$t(t.labelKey)"
                 class="tint-swatch" :class="{ active: ap.sidebarBg === t.key }"
-                :title="t.label" :style="{ background: tintColor(t) }"
+                :title="$t(t.labelKey)" :style="{ background: tintColor(t) }"
                 @click="setAp({ sidebarBg: t.key })">
                 <Icon v-if="ap.sidebarBg === t.key" name="Check" :size="12" />
               </button>
@@ -1284,9 +1289,9 @@ async function deleteCategory(c) {
             <div class="swatch-row" style="margin-top:14px" role="radiogroup" :aria-label="$t('settings.appearance.bgTextColourLabel')">
               <span class="swatch-label">{{ $t('settings.appearance.bgTextColourLabel') }}</span>
               <button v-for="t in INK_PALETTE_LIST" :key="t.key"
-                role="radio" :aria-checked="ap.inkPalette === t.key" :aria-label="t.label"
+                role="radio" :aria-checked="ap.inkPalette === t.key" :aria-label="$t(t.labelKey)"
                 class="tint-swatch" :class="{ active: ap.inkPalette === t.key }"
-                :title="t.label" :style="{ background: inkSwatch(t) }"
+                :title="$t(t.labelKey)" :style="{ background: inkSwatch(t) }"
                 @click="setAp({ inkPalette: t.key })">
                 <Icon v-if="ap.inkPalette === t.key" name="Check" :size="12" style="color:#fff" />
               </button>
@@ -1369,7 +1374,7 @@ async function deleteCategory(c) {
               <UiSegmented
                 class="size-seg" variant="connected"
                 :model-value="ap.btnRadius"
-                :options="BUTTON_RADIUS_OPTIONS"
+                :options="BTN_RADIUS_OPTIONS"
                 :aria-label="$t('settings.appearance.btnCornerRadiusLabel')"
                 @update:model-value="setAp({ btnRadius: $event })" />
             </div>
@@ -1378,7 +1383,7 @@ async function deleteCategory(c) {
               <UiSegmented
                 class="size-seg" variant="connected"
                 :model-value="ap.btnDensity"
-                :options="BUTTON_DENSITY_OPTIONS"
+                :options="BTN_DENSITY_OPTIONS"
                 :aria-label="$t('settings.appearance.btnDensityLabel')"
                 @update:model-value="setAp({ btnDensity: $event })" />
             </div>
@@ -1387,7 +1392,7 @@ async function deleteCategory(c) {
               <UiSegmented
                 class="size-seg" variant="connected"
                 :model-value="ap.btnLabelCase"
-                :options="BUTTON_LABEL_CASE_OPTIONS"
+                :options="BTN_LABEL_CASE_OPTIONS"
                 :aria-label="$t('settings.appearance.btnLabelCasingLabel')"
                 @update:model-value="setAp({ btnLabelCase: $event })" />
             </div>

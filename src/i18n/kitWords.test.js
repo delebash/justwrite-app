@@ -3,8 +3,9 @@
 // a kit component reads its `kit.*` keys from the app's instance in the app's language and follows
 // a switch live; an app's own `kit.*` key rewords the kit's; a language the kit has no catalog for
 // falls back to English, never a raw key; kit code outside a component (kitT) answers in English
-// until the app hands its instance over, and in the app's language after.
-import { afterEach, describe, expect, it } from "vitest";
+// until the app hands its instance over — saying so once in the console — and in the app's
+// language after.
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { h, nextTick } from "vue";
 import { createI18n } from "vue-i18n";
 
@@ -12,6 +13,7 @@ import { kitLocale, kitT, setKitI18n } from "../../../just-llm-runner/ui/src/com
 import { kitMessages } from "../../../just-llm-runner/ui/src/i18n/index.js";
 import DownloadBar from "@delebash/llm-ui/common/components/DownloadBar.vue";
 import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
+import { i18n as jwI18n } from "./index.js";
 
 const KIT = kitMessages();
 let app;
@@ -36,37 +38,43 @@ afterEach(() => {
   app?.unmount();
   host?.remove();
   app = null;
-  setKitI18n(null);
+  setKitI18n(jwI18n); // back to what the setup file hands over
+  vi.restoreAllMocks();
 });
 
 describe("the kit's words from its vue-i18n catalog", () => {
   it("a kit component speaks the app's language and follows a switch live", async () => {
     const i18n = appI18n();
     const el = mountBar(i18n);
-    expect(el.textContent).toContain(KIT.en.kit.downloadBar.retry);
+    expect(el.textContent).toContain(KIT.en.kit.common.retry);
     i18n.global.locale.value = "es";
     await nextTick();
-    expect(el.textContent).toContain(KIT.es.kit.downloadBar.retry);
-    expect(el.textContent).not.toContain(KIT.en.kit.downloadBar.retry);
+    expect(el.textContent).toContain(KIT.es.kit.common.retry);
+    expect(el.textContent).not.toContain(KIT.en.kit.common.retry);
   });
 
   it("an app's own kit.* key rewords the kit's, and the kit's catalog stays its own", () => {
-    const el = mountBar(appI18n({ en: { kit: { downloadBar: { retry: "Try again" } } } }));
+    const el = mountBar(appI18n({ en: { kit: { common: { retry: "Try again" } } } }));
     expect(el.textContent).toContain("Try again");
-    expect(kitMessages().en.kit.downloadBar.retry).toBe(KIT.en.kit.downloadBar.retry);
+    expect(kitMessages().en.kit.common.retry).toBe(KIT.en.kit.common.retry);
   });
 
   it("a language the kit has no catalog for falls back to English, never a raw key", () => {
     const el = mountBar(appI18n({}, "fr"));
-    expect(el.textContent).toContain(KIT.en.kit.downloadBar.retry);
-    expect(el.textContent).not.toContain("kit.downloadBar");
+    expect(el.textContent).toContain(KIT.en.kit.common.retry);
+    expect(el.textContent).not.toContain("kit.common");
   });
 
   it("kit code outside a component answers in English until the app hands its instance over", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    setKitI18n(null);
     expect(kitT("kit.fit.no")).toBe(KIT.en.kit.fit.no);
+    expect(kitT("kit.fit.no")).toBe(KIT.en.kit.fit.no);
+    expect(warn).toHaveBeenCalledTimes(1); // once, not per word
+    expect(warn.mock.calls[0][0]).toMatch(/before installLlmUi/);
     setKitI18n(appI18n({}, "es"));
     expect(kitLocale()).toBe("es");
-    expect(kitT("kit.dialog.cancel")).toBe(KIT.es.kit.dialog.cancel);
+    expect(kitT("kit.common.cancel")).toBe(KIT.es.kit.common.cancel);
   });
 
   it("a linked message keeps one name for the class layer", () => {

@@ -58,5 +58,7 @@ export default defineConfig({
     // llama-bench output parsing, summary rendering, restore round-trip) — the
     // parts of the harness that can be gated without models or a box.
     include: ["src/**/*.test.js", "bench/harness/**/*.test.js", "scripts/**/*.test.js"],
+    // JustWrite's vue-i18n instance handed to the kit, as the boot does (src/i18n/vitest.setup.js).
+    setupFiles: ["src/i18n/vitest.setup.js"],
   },
 });

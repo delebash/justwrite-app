@@ -25,6 +25,17 @@ WHY:    JustWrite is the one app on vue-i18n, but the kit's screens inside it st
         the labels feed's ~20 words, Quasar's own words never switch, and dates follow the browser.
 HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates and numbers, the
         pseudo-locale check in the smoke), then Task 6 (Spanish through docgen, your review).
+        Task 1 follow-ups, asked as shown (2026-10-12, after a review of Task 1 by Fable and the
+        user's "opus what do you think about fable recs"): "1. Key cleanup (common words, clearer
+        group names) and an empty `doneBody` default. 2. The getter tables onto `labelKey`. The
+        appearance tables are imported by the apps, so tell the JustVoice session first. 3. A test
+        setup file that installs `i18n`, then a one-time warning in `kitT`. 4. An English
+        screenshot pass of the restructured surfaces. 5. Task 2." The user: "your rec go"
+        (2026-10-12). Items 1–4 done (the plan's "Task 1 follow-ups"); in 2 only JustWrite imports
+        the appearance tables, so JustVoice was told when it landed, not before.
+FOUND:  by the screenshot pass, both older than this work and not changed by it — the AI engine
+        console's level and source selects stretch to the full width on rows of their own; the
+        model catalog's Fit chip ("Fits · slow") runs into the Status column at 1280 px.
 
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
 STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the

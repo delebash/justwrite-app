@@ -5,7 +5,7 @@
 // task.arm()/task.apply() from the ONE poll. These pin: idle for loaded/disk, a spawn-LOAD fed
 // from /status with the friendly words + cancel, a standalone DOWNLOAD fed from the per-model
 // /download/status map, stopping shows NO bar (a pill), a download error carries a retry, and
-// the no-local-PHASE_WORDS source pin on QuickSetup.
+// the no-local-PHASE_KEYS source pin on QuickSetup.
 //
 // The kit modules are imported REAL (subpath alias); fetch is stubbed so refresh() populates the
 // singleton from crafted /models + /status + /download/status bodies.
@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { refresh, taskFor } from "@delebash/llm-ui/composables/useRunnerModels.js";
-import { PHASE_WORDS, friendlyPhase } from "@delebash/llm-ui/common/services/loadPhases.js";
+import { PHASE_KEYS, friendlyPhase } from "@delebash/llm-ui/common/services/loadPhases.js";
 
 function jsonOk(obj) {
   return {
@@ -116,7 +116,7 @@ describe("the ONE vocabulary (loadPhases.js)", () => {
     expect(friendlyPhase("preparing")).toBe("Getting ready");
     expect(friendlyPhase("", "stopping")).toBe("Unloading…");   // T2b: empty detail + status
     expect(friendlyPhase("", "starting")).toBe("Starting the engine");
-    expect(PHASE_WORDS.stopping).toBe("Unloading…");
+    expect(PHASE_KEYS.stopping).toBe("unloading");
   });
 
   it("SOURCE PIN: QuickSetup rides the shared vocabulary — no local copy regrows", () => {
@@ -127,7 +127,7 @@ describe("the ONE vocabulary (loadPhases.js)", () => {
     const HERE = dirname(fileURLToPath(import.meta.url));
     const KIT = resolve(HERE, "../../../just-llm-runner/ui/src");
     const qs = readFileSync(resolve(KIT, "views/QuickSetup.vue"), "utf8");
-    expect(qs).not.toMatch(/const\s+PHASE_WORDS/);
+    expect(qs).not.toMatch(/const\s+PHASE_KEYS/);
     expect(qs).not.toMatch(/function\s+friendlyPhase/);
     expect(qs).toContain('from "../composables/useDownloadTask.js"');
     const dt = readFileSync(resolve(KIT, "composables/useDownloadTask.js"), "utf8");
