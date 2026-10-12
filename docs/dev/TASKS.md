@@ -17,6 +17,16 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
+## Every app and the kit on vue-i18n [2026-10-12]
+STATE:  DECIDED 2026-10-12, family-wide; plan written, awaiting go — the decision with the user's
+        words is the kit's TASKS, "Every app and the kit on vue-i18n"; the plan is
+        `just-llm-runner/docs/plans/2026-10-12-i18n-standard.md`.
+WHY:    JustWrite is the one app on vue-i18n, but the kit's screens inside it stay English except
+        the labels feed's ~20 words, Quasar's own words never switch, and dates follow the browser.
+HERE:   Task 1 (take the kit's catalog; the feed, setUiLocale and the label contract test go) and
+        Task 3 (the last English: bound attributes, labels in JavaScript, dates and numbers, the
+        pseudo-locale check in the smoke), then Task 6 (Spanish through docgen, your review).
+
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
 STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the
         plan `docs/plans/2026-10-11-ai-drafting-plan.md` (each task ticked there with its commit). First round, asked as shown (after Fable's review of the first design, whose changes were
@@ -625,7 +635,8 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
     reuse polish.
   - Trap to remember: `@` is vue-i18n's linked-message syntax — write `{'@'}` in messages;
     nothing in the toolchain catches it, so render-check any message containing `@ | {`.
-- **Single-source text system + translation — THE NEXT BIG TASK** (your roadmap ruling
+- **Single-source text system + translation — THE NEXT BIG TASK** (now planned as "Every app and
+  the kit on vue-i18n", above; the docs half stays here) (your roadmap ruling
   2026-07-26; detail: IDEAS.md's single-source entry + 
   `docs/plans/2026-07-26-i18n-single-source-research.md`). All seven decisions blessed; shape
   ruled GENERIC (any Vue app). **The translation tool is now `just_ai_i18n_docgen`** — the

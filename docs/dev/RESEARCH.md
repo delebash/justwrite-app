@@ -263,6 +263,8 @@ against the page by an agent, not re-checked by the session.
 
 The July research and its seven decisions: [`../plans/2026-07-26-i18n-single-source-research.md`](../plans/2026-07-26-i18n-single-source-research.md)
 (decisions as blessed: in `../plans/archive/2026-07-26-i18n-phase1-coverage-plan.md`'s header).
+The plan that follows from it, every app and the kit on vue-i18n, is the kit's
+`docs/plans/2026-10-12-i18n-standard.md`; the counts for the other repos are in the kit's register §8.
 Measured 2026-10-12 by running the built app in the pseudo-locale (`scripts/i18n-pseudo.js`'s
 `walk`, switched in the page through the i18n instance) on a copy of `data/`, visiting every
 route at 1280 px (Settings' nine sections and the AI console's five tabs each), and listing the
