@@ -32,7 +32,8 @@ HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates 
         setup file that installs `i18n`, then a one-time warning in `kitT`. 4. An English
         screenshot pass of the restructured surfaces. 5. Task 2." The user: "your rec go"
         (2026-10-12). Items 1–4 done (the plan's "Task 1 follow-ups"); in 2 only JustWrite imports
-        the appearance tables, so JustVoice was told when it landed, not before.
+        the appearance tables, so JustVoice was told when it landed, not before. Item 5, Task 2
+        (the template, app-structure §Q.11, the guard's check 16), done 2026-10-12.
 FOUND:  by the screenshot pass, both older than this work and not changed by it — the AI engine
         console's level and source selects stretch to the full width on rows of their own; the
         model catalog's Fit chip ("Fits · slow") runs into the Status column at 1280 px.

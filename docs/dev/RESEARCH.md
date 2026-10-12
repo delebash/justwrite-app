@@ -298,6 +298,13 @@ toasts and hover tooltips were not opened; 147 strings matching book content wer
   EventsTimelinePage, HomeShelfPage, TimelinePage), and `DateTimePicker.vue:20` lists the month
   names in English.
 - **Seeded database words stay English by decision 4** (marker types, statuses, roles).
+- **How the i18n lint's settings came about** (JustWrite's `eslint.i18n.config.js`, now the family's
+  one file): `code` joined `ignoreNodes` 2026-07-26, when the HTML-in-message hints moved to
+  `<i18n-t>` slots (a `<code>` holds identifiers like `.zip`, `accent2`); `\p{S}` joined
+  `ignorePattern` 2026-07-29, after 23 warnings turned out to be glyph-only nodes (`× − ✕ ✓ ↑ ⏎`);
+  `kbd` joined 2026-07-29, because Settings' shortcut table had `⌘F` flagged while `⌘\` passed;
+  the rule went from warn to error 2026-07-30, when the sweep reached zero in all 81 renderer `.vue`
+  files. — *the config's own comments until 2026-10-12, when they moved here*.
 
 ## Records not yet distilled
 
