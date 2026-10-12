@@ -129,3 +129,29 @@ test("the drafting actions are seeded with their feature, their preset and a JSO
   expect(DEFAULT_FEATURE_PROMPTS.characterVoiceDraft.system).toContain('"sampleCalm"');
   expect(DEFAULT_FEATURE_PROMPTS.suggestCharacters.system).toContain('"characters"');
 });
+
+// ── slice 2: the prose actions know the story (2026-10-11, the AI drafting plan Task 13) ──
+const PROSE = ["writerAI.rewrite", "writerAI.expand", "writerAI.tighten", "writerAI.continue", "writerAI.describe", "writerAI.guided-continue"];
+
+test("the prose actions' system ends in {{storyContext}}; the line edits' doesn't carry it", () => {
+  for (const key of PROSE) expect(DEFAULT_FEATURE_PROMPTS[key].system, key).toMatch(/\{\{voiceCanon\}\}\{\{storyContext\}\}$/);
+  const rules = Object.keys(DEFAULT_FEATURE_PROMPTS).filter((k) => k.startsWith("writerAI.rule."));
+  expect(rules).toHaveLength(7);
+  for (const key of rules) expect(DEFAULT_FEATURE_PROMPTS[key].system, key).not.toContain("storyContext");
+});
+
+test("an unedited prose prompt heals: its heal entry is the system it had, byte for byte", async () => {
+  const { FEATURE_PROMPT_HEALS } = await import("../src/seed_feature_prompts.js");
+  // The line edits keep the old writer system unchanged — so it IS what an existing row carries.
+  const old = DEFAULT_FEATURE_PROMPTS["writerAI.rule.passive-voice"].system;
+  expect(old.endsWith("Preserve dialogue formatting and proper nouns.{{voiceCanon}}")).toBe(true);
+  for (const key of PROSE) expect(FEATURE_PROMPT_HEALS[key], key).toEqual([old]);
+});
+
+test("the prose actions share a story-context Lab sample, in the shape the client sends", async () => {
+  const SP = await import("../src/seed_presets.js");
+  const sample = SP.DEFAULT_TEST_SAMPLES.find((s) => s.label === "With story context");
+  expect([...sample.actions].sort()).toEqual([...PROSE].sort());
+  expect(sample.variables.storyContext.startsWith("\n\nSTORY CONTEXT\n## ")).toBe(true);
+  expect(sample.variables.direction).toBeTruthy(); // guided continue's {{direction}}
+});

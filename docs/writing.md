@@ -233,9 +233,17 @@ There are two ways to turn it on:
 
 The chosen column threads back into the existing accept/reject AI-diff machinery — same UX you use for single-stream results.
 
-### Story context
+### Story context — the AI knows the scene
 
-**AI Settings page → Writing AI tab → Story context** sets how much of the model's context window the story notes may take when the AI drafts — your premise, genre, world rules, Setting and main cast. See [The AI features](ai-features.md#story-context).
+> *"Continue wrote three good paragraphs — about a character who died in chapter four, in a city the book has never been to."*
+
+**Rewrite, Expand, Tighten, Continue, Describe** and **Continue with direction…** read more than your passage. They're also sent the scene's story context: your premise, genre, world rules, Setting and main cast, then what the scene's **Links** panel ties to it — its point of view, the strand beats pinned to it, its notes, the story-bible entries of its characters, places and objects — and how the previous scene ends. Link a character to the scene and the AI knows who they are; leave a scene unlinked and it still runs, on the book's frame and your passage. In continuous-chapter mode it's the scene your cursor is in.
+
+While an action runs, the line under the progress strip names what was sent — **Context:** Premise · Genre · Main cast · Mira · Previous scene. Anything marked **Exclude from AI** is never sent.
+
+**Line edits don't get it.** They rework the style of the text you give them, and the story doesn't change a passive-voice fix — on a local model the extra notes would only cost time.
+
+**AI Settings page → Writing AI tab → Story context** sets how much of the model's context window those notes may take; a crowded scene sends its first pieces — the book's frame first — until that share is used. See [The AI features](ai-features.md#story-context).
 
 ### Match my voice — the voice canon
 

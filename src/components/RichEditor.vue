@@ -16,7 +16,9 @@ import * as writerAI from "@renderer/services/writerAI";
 import VariationsModal from "./VariationsModal.vue";
 import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
 import { useAiTasksStore, Icon, UiButton, AiTaskStrip } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
 import { useUiStore } from "../stores/ui.js";
+import { CONTEXT_PART_KEYS } from "../services/storyContext.js";
 import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
 import EditorSettingsModal from "./EditorSettingsModal.vue";
 
@@ -48,6 +50,11 @@ const props = defineProps({
   // Show the built-in word/char count footer (manuscript variant only).
   // Callers that surface their own counts can turn this off.
   countFooter: { type: Boolean, default: true },
+  // The story context for the prose actions (slice 2): ({ sceneId, action }) → Promise<{ text,
+  // parts }> (storyContext.js proseStoryContext). `sceneId` is the scene at the cursor in a
+  // stitched chapter, else null — the page knows its own scene. Unset (the inline editors): no
+  // story context and no Context line.
+  storyContext: { type: Function, default: null },
 });
 
 const emit = defineEmits(["update:modelValue", "change"]);
@@ -211,6 +218,41 @@ const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "wr
 const aiRunning = computed(() => !!myTask.value);
 function isAiAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 const aiError = ref("");
+
+// Slice 2 (the AI drafting spec §4): the prose actions — Rewrite, Expand, Tighten, Continue,
+// Describe, Continue with direction — send the story context of the scene they run in, and the
+// AI strip's Context line names what was sent. Line edits never get it (spec §9.5).
+const { t } = useI18n();
+const contextParts = ref(null); // the parts the running action was sent; null = no Context line
+function sceneIdAtCursor() {
+  const ed = editor.value;
+  if (!ed) return null;
+  let id = null;
+  // Top-level blocks only: a stitched chapter's scene boundaries sit between scenes.
+  ed.state.doc.nodesBetween(0, ed.state.selection.from, (node) => {
+    if (node.type.name === "sceneBoundary") id = node.attrs.sceneId || null;
+    return false;
+  });
+  return id;
+}
+/** The story context for `action` ("" without the prop); null when composing it failed (the
+ *  error is shown and the action doesn't run). */
+async function proseContext(action) {
+  if (!props.storyContext) { contextParts.value = null; return ""; }
+  try {
+    const c = await props.storyContext({ sceneId: sceneIdAtCursor(), action });
+    contextParts.value = c?.parts || [];
+    return c?.text || "";
+  } catch (err) {
+    aiError.value = err?.message || String(err);
+    return null;
+  }
+}
+const contextLine = computed(() => {
+  if (!contextParts.value) return "";
+  const names = contextParts.value.map((p) => (p.id ? t(CONTEXT_PART_KEYS[p.id]) : p.name));
+  return t("storyContext.line", { parts: names.length ? names.join(" · ") : t("common.none") });
+});
 const proseMenuOpen = ref(false);
 const proseMenuWrap = ref(null);
 const PROSE_RULES_LIST = PROSE_RULE_ORDER.map((k) => ({ key: k, ...PROSE_RULES[k] }));
@@ -339,10 +381,12 @@ async function runWriterAction(actionKey, opts = {}) {
   // cursor, so the original passage is preserved verbatim.
   if (actionKey === "describe") {
     if (from === to) { aiError.value = "Highlight the subject to describe (a place, person, object, or moment)."; return; }
+    const storyContext = await proseContext("writerAI.describe");
+    if (storyContext === null) return;
     if (useVariations) {
       startVariations({
         runnerFactory: (temperature, signal, onDelta, taskMeta) => writerAI.describe({
-          html, signal, onDelta, temperature,
+          html, storyContext, signal, onDelta, temperature,
           task: { label: "Writer assist · Describe", meta: { ...(taskMeta || {}), action: "describe" } },
         }),
         mode: "continue-at", from: to, to,
@@ -354,7 +398,7 @@ async function runWriterAction(actionKey, opts = {}) {
     }
     aiError.value = "";
     try {
-      const result = await writerAI.describe({ html });
+      const result = await writerAI.describe({ html, storyContext });
       if (!result?.html?.trim()) {
         aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
       } else {
@@ -370,10 +414,12 @@ async function runWriterAction(actionKey, opts = {}) {
   if (actionKey === "continue" && from === to) {
     const ctx = grabContextBeforeCursor(800);
     if (!ctx.trim()) { aiError.value = "Place the cursor at the end of some prose to continue from."; return; }
+    const storyContext = await proseContext("writerAI.continue");
+    if (storyContext === null) return;
     if (useVariations) {
       startVariations({
         runnerFactory: (temperature, signal, onDelta, taskMeta) => writerAI.continueFrom({
-          html: `<p>${ctx}</p>`, signal, onDelta, temperature,
+          html: `<p>${ctx}</p>`, storyContext, signal, onDelta, temperature,
           task: { label: "Writer assist · Continue", meta: { ...(taskMeta || {}), action: "continue" } },
         }),
         mode: "continue-at", from, to: from,
@@ -385,7 +431,7 @@ async function runWriterAction(actionKey, opts = {}) {
     }
     aiError.value = "";
     try {
-      const result = await writerAI.continueFrom({ html: `<p>${ctx}</p>` });
+      const result = await writerAI.continueFrom({ html: `<p>${ctx}</p>`, storyContext });
       // Guard empty/whitespace-only responses — otherwise proposeContinuation
       // inserts nothing visible and the user sees the progress bar vanish
       // with no result and no error.
@@ -410,6 +456,8 @@ async function runWriterAction(actionKey, opts = {}) {
       return;
     }
   }
+  const storyContext = await proseContext(`writerAI.${actionKey}`);
+  if (storyContext === null) return;
   if (useVariations) {
     const fnVariation = actionKey === "rewrite" ? writerAI.rewrite
                       : actionKey === "expand"  ? writerAI.expand
@@ -419,7 +467,7 @@ async function runWriterAction(actionKey, opts = {}) {
     const labelText = typeof labelMap === "object" ? (labelMap[scope] || labelMap.selection) : (labelMap || "Variations");
     startVariations({
       runnerFactory: (temperature, signal, onDelta, taskMeta) => fnVariation({
-        html, signal, onDelta, temperature,
+        html, storyContext, signal, onDelta, temperature,
         task: { label: `Writer assist · ${labelText.replace(/[….]+$/, "")}`, meta: { ...(taskMeta || {}), action: actionKey } },
       }),
       mode: "replace", from, to, originalHtml: html,
@@ -434,7 +482,7 @@ async function runWriterAction(actionKey, opts = {}) {
              : actionKey === "expand" ? writerAI.expand
              : actionKey === "tighten" ? writerAI.tighten
              : writerAI.continueFrom;
-    const result = await fn({ html });
+    const result = await fn({ html, storyContext });
     // Guard empty/whitespace-only responses — proposeReplacement would
     // deleteRange()+insertContentAt("") and silently nuke the selection
     // without surfacing an error.
@@ -1137,10 +1185,12 @@ async function runGuidedContinue(instruction, opts = {}) {
   if (!ctx.trim()) { aiError.value = "Place the cursor at the end of some prose to continue from."; return; }
   const pos = editor.value.state.selection.from;
   proseMenuOpen.value = false;
+  const storyContext = await proseContext("writerAI.guided-continue");
+  if (storyContext === null) return;
   if (shouldUseVariations(opts.shiftKey)) {
     startVariations({
       runnerFactory: (temperature, signal, onDelta, taskMeta) => writerAI.guidedContinue({
-        html: `<p>${ctx}</p>`, instruction: text, signal, onDelta, temperature,
+        html: `<p>${ctx}</p>`, instruction: text, storyContext, signal, onDelta, temperature,
         task: { label: "Writer assist · Continue (guided)", meta: { ...(taskMeta || {}), action: "guidedContinue" } },
       }),
       mode: "continue-at", from: pos, to: pos,
@@ -1155,6 +1205,7 @@ async function runGuidedContinue(instruction, opts = {}) {
     const result = await writerAI.guidedContinue({
       html: `<p>${ctx}</p>`,
       instruction: text,
+      storyContext,
     });
     if (!result?.html?.trim()) {
       aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
@@ -1362,6 +1413,7 @@ defineExpose({
     <!-- AI progress strip — shown while a writerAI call is running. -->
     <div v-if="aiRunning" class="ai-progress-wrap">
       <AiTaskStrip :task="myTask" />
+      <div v-if="contextLine" class="ai-context">{{ contextLine }}</div>
     </div>
 
     <!-- Pending changes / error bar — silent when nothing's going on. -->
@@ -1908,6 +1960,8 @@ defineExpose({
 /* Wrap AiTaskStrip so it gets the same edge margin as the pending-changes
    bar — the strip itself draws its own border/background. */
 .ai-progress-wrap { padding: 7px 12px; border-bottom: 1px solid var(--border); background: var(--surface); }
+/* What the prose action was sent (slice 2) — one muted line under the strip. */
+.ai-context { margin-top: 4px; font-size: 11.5px; color: var(--muted); line-height: 1.4; }
 
 /* AI status bar above the editor body. Slim, single-row when possible. */
 .ai-bar {

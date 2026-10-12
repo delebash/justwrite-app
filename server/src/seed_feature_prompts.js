@@ -866,22 +866,36 @@ const BRAINSTORM_PLOT_SYSTEM = "You are a story-craft brainstorming partner for 
 // when present, "" otherwise) so the rendered system matches the old client prompt
 // byte-for-byte. The action instruction is baked into the user template; the
 // selected text arrives as `{{passage}}`.
-const WRITER_SYSTEM = (
+const WRITER_BASE = (
     "You are an experienced fiction editor helping a novelist revise prose.\n" +
     "You return revisions in the same voice and tense as the source.\n" +
     "Do not add commentary, do not explain your choices, do not greet the user.\n" +
     "Return only the revised prose as plain paragraphs (blank line between paragraphs).\n" +
-    "Preserve dialogue formatting and proper nouns." +
-    "{{voiceCanon}}"
+    "Preserve dialogue formatting and proper nouns."
+);
+const WRITER_SYSTEM = WRITER_BASE + "{{voiceCanon}}";
+
+// The prose actions' system (slice 2, the AI drafting spec §4, 2026-10-11): rewrite, expand,
+// tighten, continue, describe and guided continue also know the story — `{{storyContext}}` is ""
+// or "\n\nSTORY CONTEXT\n<the scene's composed context>" (the client's writerAI.js
+// storyContextVar), and one line says how to use it. Line edits keep WRITER_SYSTEM: they rework
+// style, and the story doesn't change a passive-voice fix (spec §9.5).
+const WRITER_PROSE_SYSTEM = (
+    WRITER_BASE + "\n" +
+    "When a STORY CONTEXT section follows, keep the prose consistent with it — names, facts, " +
+    "who is where — and never summarize it or copy it into the prose." +
+    "{{voiceCanon}}" +
+    "{{storyContext}}"
 );
 
-function writer(instruction) {
+function writer(instruction, system = WRITER_SYSTEM) {
   return {
     feature: "writerAI",
-    system: WRITER_SYSTEM,
+    system,
     user_template: `${instruction}\n\n--- BEGIN PASSAGE ---\n{{passage}}\n--- END PASSAGE ---`,
   };
 }
+const prose = (instruction) => writer(instruction, WRITER_PROSE_SYSTEM);
 
 export const DEFAULT_FEATURE_PROMPTS = {
     "critique": {
@@ -1059,19 +1073,19 @@ export const DEFAULT_FEATURE_PROMPTS = {
         "user_template": "{{user_content}}",
     },
     // ── writerAI (selection-level editor actions) ──
-    "writerAI.rewrite": writer(
+    "writerAI.rewrite": prose(
         "Rewrite the passage below to be more vivid and specific while preserving meaning, tense, and voice."
     ),
-    "writerAI.expand": writer(
+    "writerAI.expand": prose(
         "Expand the passage below with sensory detail, interiority, and small actions. Roughly double its length. Keep the same voice and tense.",
     ),
-    "writerAI.tighten": writer(
+    "writerAI.tighten": prose(
         "Tighten the passage below. Remove filler words, hedges, and redundant phrases. Keep the meaning, voice, and tense intact. The result should be noticeably shorter.",
     ),
-    "writerAI.continue": writer(
+    "writerAI.continue": prose(
         "Continue writing from where the passage below ends. Match the voice, tense, and POV. Write 2–4 more paragraphs of prose. Do not summarize or repeat what came before.",
     ),
-    "writerAI.describe": writer(
+    "writerAI.describe": prose(
         "The passage below names a subject — a place, person, object, or moment — that the writer wants " +
         "to bring to life on the page. Write 1–2 paragraphs of fresh sensory prose ABOUT that subject: " +
         "sights, sounds, smells, textures, the feel of the air, small specific details that anchor it " +
@@ -1081,7 +1095,7 @@ export const DEFAULT_FEATURE_PROMPTS = {
     ),
     "writerAI.guided-continue": {
         "feature": "writerAI",
-        "system": WRITER_SYSTEM,
+        "system": WRITER_PROSE_SYSTEM,
         "user_template": (
             "Continue writing from where the passage below ends. " +
             "Follow this specific direction the writer has given you: " +
@@ -1273,7 +1287,25 @@ for (const [key, meta] of Object.entries(ACTION_META)) {
 // spec ONLY when the row still carries one of these byte-exact — a user-edited
 // prompt is never touched. HOST data, passed via install_llm (the old strings
 // never enter the shared runner seed).
+// The prose actions' system before slice 2 (2026-10-11) — WRITER_SYSTEM as it stood, frozen here
+// as text: an unedited row still carrying it gains {{storyContext}} at boot.
+const PRE_STORY_WRITER_SYSTEM = (
+    "You are an experienced fiction editor helping a novelist revise prose.\n" +
+    "You return revisions in the same voice and tense as the source.\n" +
+    "Do not add commentary, do not explain your choices, do not greet the user.\n" +
+    "Return only the revised prose as plain paragraphs (blank line between paragraphs).\n" +
+    "Preserve dialogue formatting and proper nouns." +
+    "{{voiceCanon}}"
+);
+
 export const FEATURE_PROMPT_HEALS = {
+    // Pre-slice-2 prose actions: before they carried the story context.
+    "writerAI.rewrite": [PRE_STORY_WRITER_SYSTEM],
+    "writerAI.expand": [PRE_STORY_WRITER_SYSTEM],
+    "writerAI.tighten": [PRE_STORY_WRITER_SYSTEM],
+    "writerAI.continue": [PRE_STORY_WRITER_SYSTEM],
+    "writerAI.describe": [PRE_STORY_WRITER_SYSTEM],
+    "writerAI.guided-continue": [PRE_STORY_WRITER_SYSTEM],
     // Pre-Move-1 "chat": before the excerpts could contain Story Bible cards.
     "chat": [
         "You are an assistant answering questions about a novel manuscript. " +

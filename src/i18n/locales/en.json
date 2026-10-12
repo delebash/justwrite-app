@@ -947,7 +947,7 @@
     "clearAll": "Clear all",
     "previewFingerprint": "Preview the fingerprint that will be injected",
     "storyContextCardTitle": "Story context",
-    "storyContextDesc": "When the AI drafts a character, it reads your premise, genre, world rules, Setting and main cast. Only what's relevant is sent; this is the most of the model's context window those notes may take. On a model with a small window, a lower share leaves more room for the reply; on a large one it rarely matters.",
+    "storyContextDesc": "When the AI drafts a character, it reads your premise, genre, world rules, Setting and main cast. Rewrite, Expand, Tighten, Continue, Describe and Continue with direction… also read the scene they work in — its linked characters, places and objects, its beats and notes, and how the previous scene ends. Only what's relevant is sent; this is the most of the model's context window those notes may take. On a model with a small window, a lower share leaves more room for the reply; on a large one it rarely matters.",
     "storyContextLabel": "Story notes may use up to"
   },
   "richEditor": {
@@ -1467,6 +1467,14 @@
       "setting": "Move the scene to a different place, or have the setting itself shift.",
       "reveal": "Reveal something the POV character doesn't yet know.",
       "timeframe": "Cut to a different moment — later, earlier, or somewhere else entirely."
+    }
+  },
+  "storyContext": {
+    "line": "Context: {parts}",
+    "parts": {
+      "worldRules": "World rules",
+      "mainCast": "Main cast",
+      "previousScene": "Previous scene"
     }
   },
   "sceneNotes": {

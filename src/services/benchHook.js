@@ -21,6 +21,7 @@ import { askAsCharacter } from "./rag/characterChat.js";
 import { askManuscript } from "./rag/chat.js";
 import { buildOrUpdateIndex, indexStatus } from "./rag/indexer.js";
 import { useProjectStore } from "../stores/project.js";
+import { proseStoryContext } from "./storyContext.js";
 import { htmlToText } from "./text.js";
 import { continueFrom, rewrite } from "./writerAI.js";
 
@@ -170,17 +171,22 @@ function chapterPassage(project, chapterId, passageChars) {
 /** One writerAI action: chapter tail → streamed reply. `fn` is the exported
  *  service function (continueFrom / rewrite / expand / …), which all share the
  *  `{html, signal, onDelta} → {html, raw, usage}` contract (writerAI.js:117-140). */
-function writerAction(label, fn) {
+// Since slice 2 (2026-10-11) the run also carries the story context a real run sends — for the
+// scene the passage tail is in, the chapter's last — so a leg measures the prompt the writer's
+// Continue sends; `storyContextTokens` reports its size.
+function writerAction(label, fn, action) {
   return {
     label,
     async run(args, ctx) {
       const project = useProjectStore();
       const p = chapterPassage(project, args.chapterId, args.passageChars);
-      const r = await fn({ html: p.html, signal: ctx.signal, onDelta: ctx.onFirstToken });
+      const scene = (project.scenesFor?.(p.chapter.id) || []).at(-1);
+      const context = await proseStoryContext(project, { chapterId: p.chapter.id, sceneId: scene?.id, action });
+      const r = await fn({ html: p.html, storyContext: context.text, signal: ctx.signal, onDelta: ctx.onFirstToken });
       return {
         output: r.raw || "",
         usage: r.usage || null,
-        extra: { chapterId: p.chapter.id, passageChars: p.chars },
+        extra: { chapterId: p.chapter.id, passageChars: p.chars, storyContextTokens: context.tokens },
       };
     },
   };
@@ -382,8 +388,8 @@ const FEATURES = {
   // chapter, stream one reply, return {html, raw, usage} — so they share ONE
   // parameterized entry rather than a near-copy each. Adding `expand`/`tighten`/
   // a prose rule is one line here.
-  "writerAI.continue": writerAction("Continue", continueFrom),
-  "writerAI.rewrite": writerAction("Rewrite", rewrite),
+  "writerAI.continue": writerAction("Continue", continueFrom, "writerAI.continue"),
+  "writerAI.rewrite": writerAction("Rewrite", rewrite, "writerAI.rewrite"),
 };
 
 export function installBenchHook() {

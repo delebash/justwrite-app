@@ -14,25 +14,12 @@
 // own `brainstorm` action: the book, the profile and the cast, then Brainstorm's round
 // (services/brainstorm.js).
 
-import { useResolvedRoute } from "@delebash/llm-ui";
-import { useAiStore } from "../../stores/ai.js";
 import { fieldKey, fieldLabelKeys, SHEET_SECTIONS } from "../characterSheet.js";
 import { brainstormAction, brainstormPrompt } from "../brainstorm.js";
 import { runJsonAnalysis } from "../runJson.js";
-import { composeBookContext, storyBudgetTokens } from "../storyContext.js";
+import { composeBookContext, storyBudgetFor } from "../storyContext.js";
 import { buildProfileText } from "./characterAudit.js";
 import { sanitizeProfile, sanitizeVoice } from "./characterProfile.js";
-
-/**
- * The story-context budget for an action: the seeded share of the window of the model it's
- * routed to, read fresh (one local request) so a window cached before the engine started
- * can't leave a draft without a ceiling. A caller (a test, the Lab) may pass its own.
- */
-async function budgetFor(feature, action, budgetTokens) {
-  if (budgetTokens !== undefined) return budgetTokens;
-  const row = await useResolvedRoute().refreshRoute(feature, action);
-  return storyBudgetTokens(useAiStore().storyContextShare, row?.context ?? null);
-}
 
 const block = (heading, body) => (String(body || "").trim() ? `${heading}\n${String(body).trim()}` : "");
 const join = (...blocks) => blocks.filter(Boolean).join("\n\n");
@@ -158,7 +145,7 @@ export function sanitizeSuggestions(parsed, cast) {
 
 /** Profile fields from the writer's description — Fill from book's field shape. */
 export async function profileFromDescription({ project, characterId, description, signal, budgetTokens } = {}) {
-  const budget = await budgetFor("characterProfile", "characterProfileDraft", budgetTokens);
+  const budget = await storyBudgetFor("characterProfile", "characterProfileDraft", budgetTokens);
   const { variables } = composeDescriptionInput(project, characterId, description, { budgetTokens: budget });
   const meta = { characterId, kind: "character-profile-draft" };
   const { result, parsed } = await runJsonAnalysis({
@@ -171,7 +158,7 @@ export async function profileFromDescription({ project, characterId, description
 /** Voice fields from the writer's description — Fill from book's field shape (the sample lines
  *  are composed, which the prompt tells the model and the review tells the writer). */
 export async function voiceFromDescription({ project, characterId, description, signal, budgetTokens } = {}) {
-  const budget = await budgetFor("characterVoice", "characterVoiceDraft", budgetTokens);
+  const budget = await storyBudgetFor("characterVoice", "characterVoiceDraft", budgetTokens);
   const { variables } = composeDescriptionInput(project, characterId, description, { budgetTokens: budget });
   const meta = { characterId, kind: "character-voice-draft" };
   const { result, parsed } = await runJsonAnalysis({
@@ -184,7 +171,7 @@ export async function voiceFromDescription({ project, characterId, description, 
 /** One sheet section, every field it shows. @returns {{ fields: object, model: string }} —
  *  `fields` nested for the review rows. */
 export async function draftSection({ project, characterId, sectionKey, description = "", t, signal, budgetTokens } = {}) {
-  const budget = await budgetFor("characterProfile", "characterSection", budgetTokens);
+  const budget = await storyBudgetFor("characterProfile", "characterSection", budgetTokens);
   const { variables, keys } = composeSectionInput(project, characterId, sectionKey, { description, t, budgetTokens: budget });
   const meta = { characterId, sectionKey, kind: "character-section" };
   const { result, parsed } = await runJsonAnalysis({
@@ -196,7 +183,7 @@ export async function draftSection({ project, characterId, sectionKey, descripti
 
 /** Characters the book doesn't have yet. @returns {Promise<Array<{name, role, oneLiner}>>} */
 export async function suggestCharacters({ project, lookingFor = "", signal, budgetTokens } = {}) {
-  const budget = await budgetFor("brainstorm", "suggestCharacters", budgetTokens);
+  const budget = await storyBudgetFor("brainstorm", "suggestCharacters", budgetTokens);
   const { variables } = composeSuggestInput(project, { lookingFor, budgetTokens: budget });
   const meta = { kind: "suggest-characters" };
   const { parsed } = await runJsonAnalysis({
@@ -209,7 +196,7 @@ export async function suggestCharacters({ project, lookingFor = "", signal, budg
 /** Name ideas' request for useBrainstorm: the composed round, with the cast's names (and aliases)
  *  never shown as ideas. */
 export async function nameIdeasRequest({ project, characterId, liked = [], seen = [], budgetTokens } = {}) {
-  const budget = await budgetFor("brainstorm", "brainstorm", budgetTokens);
+  const budget = await storyBudgetFor("brainstorm", "brainstorm", budgetTokens);
   const request = composeNameIdeasInput(project, characterId, { liked, seen, budgetTokens: budget });
   return { ...request, exclude: castNames(project.characters) };
 }

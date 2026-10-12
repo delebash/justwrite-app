@@ -4,7 +4,8 @@
 // the story-bible cards, honouring Exclude from AI, cut to a token budget by whole pieces.
 // jsdom: the card builder strips HTML via document.createElement.
 import { describe, expect, it } from "vitest";
-import { composeBookContext, composeSceneContext, storyBudgetTokens } from "./storyContext.js";
+import { CONTEXT_PART_KEYS, composeBookContext, composeSceneContext, proseStoryContext, storyBudgetTokens } from "./storyContext.js";
+import en from "../i18n/locales/en.json";
 
 function project(overrides = {}) {
   const scenes = {
@@ -69,7 +70,7 @@ describe("composeBookContext", () => {
 
   it("is empty for an empty book — no headings with nothing under them", () => {
     const r = composeBookContext({ project: {}, characters: [], allChapters: [], scenesFor: () => [] }, { budgetTokens: null });
-    expect(r).toEqual({ text: "", names: [], tokens: 0 });
+    expect(r).toEqual({ text: "", names: [], parts: [], tokens: 0 });
   });
 
   it("sends nothing when the budget is 0", () => {
@@ -114,5 +115,28 @@ describe("composeSceneContext", () => {
 
   it("is empty for an unknown scene", () => {
     expect(composeSceneContext(project(), { chapterId: "ch1", sceneId: "nope", budgetTokens: null }).text).toBe("");
+  });
+});
+
+// Slice 2 (plan Task 13): the parts the editor's Context line names, and a prose action's context.
+describe("the Context line's parts", () => {
+  it("give each fixed piece an id with a translation, and an entity its own name", () => {
+    const r = composeSceneContext(project(), { chapterId: "ch1", sceneId: "s1", budgetTokens: null });
+    expect(r.parts.map((p) => p.id || p.name)).toEqual(
+      ["premise", "genre", "worldRules", "setting", "mainCast", "pov", "beats", "sceneNotes", "Aria", "Bren", "Customs House", "The Ledger", "previousScene"]);
+    const lookup = (path) => path.split(".").reduce((o, k) => o?.[k], en);
+    for (const p of r.parts.filter((x) => x.id)) expect(lookup(CONTEXT_PART_KEYS[p.id]), p.id).toBeTruthy();
+  });
+});
+
+describe("proseStoryContext", () => {
+  it("is the scene's context within the given budget", async () => {
+    const r = await proseStoryContext(project(), { chapterId: "ch1", sceneId: "s1", action: "writerAI.continue", budgetTokens: null });
+    expect(r.text).toBe(composeSceneContext(project(), { chapterId: "ch1", sceneId: "s1", budgetTokens: null }).text);
+  });
+
+  it("is nothing without a scene — the action runs on its passage alone", async () => {
+    const r = await proseStoryContext(project(), { chapterId: "ch1", sceneId: null, action: "writerAI.continue", budgetTokens: null });
+    expect(r).toEqual({ text: "", names: [], parts: [], tokens: 0 });
   });
 });

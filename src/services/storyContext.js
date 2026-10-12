@@ -9,7 +9,13 @@
 // split card; backstory and appearances fall to later parts). An entity or note marked
 // Exclude from AI is never sent. Over the budget, whole pieces drop from the end — the book's
 // frame goes in first and comes out last.
+//
+// Each piece the composer keeps is also returned as a part — { id, name }: `id` names a fixed
+// piece (premise, genre, worldRules, setting, mainCast, pov, beats, sceneNotes, previousScene)
+// for the editor's Context line to translate; a linked entity has no id and shows its own name.
 
+import { useResolvedRoute } from "@delebash/llm-ui";
+import { useAiStore } from "../stores/ai.js";
 import { povLabel } from "./povOptions.js";
 import { buildEntityCards } from "./rag/cards.js";
 import { CHARS_PER_TOKEN } from "./rag/entityMatcher.js";
@@ -32,8 +38,22 @@ export function storyBudgetTokens(share, contextWindow) {
   return Math.floor(share * contextWindow);
 }
 
-/** A piece of context: `name` (the Context line's word for it) + its text. */
-const piece = (name, text) => ({ name, text: String(text || "").trim() });
+/** The Context line's word for each fixed piece (an existing key where one means the same). */
+export const CONTEXT_PART_KEYS = {
+  premise: "settings.project.fieldPremise",
+  genre: "settings.project.fieldGenre",
+  worldRules: "storyContext.parts.worldRules",
+  setting: "events.kinds.setting",
+  mainCast: "storyContext.parts.mainCast",
+  pov: "readerKnowledge.povLabel",
+  beats: "strands.beatsHeading",
+  sceneNotes: "sceneNotes.ariaLabel",
+  previousScene: "storyContext.parts.previousScene",
+};
+
+/** A piece of context: `name` (its heading for the model), its text, and `id` for a fixed piece
+ *  (the Context line translates it; an entity's piece has none and shows its name). */
+const piece = (name, text, id = null) => ({ id, name, text: String(text || "").trim() });
 
 const excluded = (entity) => !!entity?.excludeFromAi;
 
@@ -53,11 +73,11 @@ function bookPieces(project, cards) {
   const setting = cards.get("architecture:setting");
   const cast = cards.get("cast:main");
   return [
-    piece("Premise", premise),
-    piece("Genre", meta.genre),
-    piece("World rules", project.worldRules),
-    piece("Setting", setting?.text),
-    piece("Main cast", cast?.text),
+    piece("Premise", premise, "premise"),
+    piece("Genre", meta.genre, "genre"),
+    piece("World rules", project.worldRules, "worldRules"),
+    piece("Setting", setting?.text, "setting"),
+    piece("Main cast", cast?.text, "mainCast"),
   ].filter((p) => p.text);
 }
 
@@ -86,7 +106,7 @@ function scenePieces(project, cards, chapterId, sceneId) {
   const out = [];
 
   const pov = povLabel(scene.pov);
-  if (pov) out.push(piece("POV", `Narration: ${pov}`));
+  if (pov) out.push(piece("POV", `Narration: ${pov}`, "pov"));
 
   const beats = [];
   for (const strand of project.strands || []) {
@@ -96,13 +116,13 @@ function scenePieces(project, cards, chapterId, sceneId) {
       beats.push(`- ${strand.name}: ${b.label}${b.note ? ` — ${b.note}` : ""}`);
     }
   }
-  if (beats.length) out.push(piece("Beats", ["Story beats pinned to this scene:", ...beats].join("\n")));
+  if (beats.length) out.push(piece("Beats", ["Story beats pinned to this scene:", ...beats].join("\n"), "beats"));
 
   const notes = (project.notes || [])
     .filter((n) => n.anchor?.sceneId === sceneId && !excluded(n))
     .map((n) => htmlToText(n.body || "", { blockNewlines: true }))
     .filter(Boolean);
-  if (notes.length) out.push(piece("Scene notes", ["The writer's notes for this scene:", ...notes].join("\n")));
+  if (notes.length) out.push(piece("Scene notes", ["The writer's notes for this scene:", ...notes].join("\n"), "sceneNotes"));
 
   const lists = [
     ["character", project.characters, scene.characters],
@@ -123,7 +143,7 @@ function scenePieces(project, cards, chapterId, sceneId) {
     const text = htmlToText(prev.body || "");
     if (text) {
       const tail = text.length > PREVIOUS_SCENE_TAIL_CHARS ? `…${text.slice(-PREVIOUS_SCENE_TAIL_CHARS)}` : text;
-      out.push(piece("Previous scene", `How the previous scene ends:\n${tail}`));
+      out.push(piece("Previous scene", `How the previous scene ends:\n${tail}`, "previousScene"));
     }
   }
   return out;
@@ -131,7 +151,7 @@ function scenePieces(project, cards, chapterId, sceneId) {
 
 /** Join pieces under their names, keeping whole pieces while they fit the budget. */
 function assemble(pieces, budgetTokens) {
-  if (budgetTokens === 0) return { text: "", names: [], tokens: 0 };
+  if (budgetTokens === 0) return { text: "", names: [], parts: [], tokens: 0 };
   const kept = [];
   let text = "";
   for (const p of pieces) {
@@ -139,22 +159,41 @@ function assemble(pieces, budgetTokens) {
     const next = text ? `${text}\n\n${block}` : block;
     if (budgetTokens != null && tokensOf(next) > budgetTokens) break;
     text = next;
-    kept.push(p.name);
+    kept.push(p);
   }
-  return { text, names: kept, tokens: tokensOf(text) };
+  return { text, names: kept.map((p) => p.name), parts: kept.map(({ id, name }) => ({ id, name })), tokens: tokensOf(text) };
 }
 
-/** The book's frame. @returns {{ text: string, names: string[], tokens: number }} */
+/** The book's frame. @returns {{ text: string, names: string[], parts: Array<{id, name}>, tokens: number }} */
 export function composeBookContext(project, { budgetTokens = null } = {}) {
   const cards = firstCardIndex(buildEntityCards(project));
   return assemble(bookPieces(project, cards), budgetTokens);
 }
 
 /** The book's frame plus the scene's links. An unknown scene → empty.
- *  @returns {{ text: string, names: string[], tokens: number }} */
+ *  @returns {{ text: string, names: string[], parts: Array<{id, name}>, tokens: number }} */
 export function composeSceneContext(project, { chapterId, sceneId, budgetTokens = null } = {}) {
   const cards = firstCardIndex(buildEntityCards(project));
   const scene = scenePieces(project, cards, chapterId, sceneId);
-  if (!scene) return { text: "", names: [], tokens: 0 };
+  if (!scene) return { text: "", names: [], parts: [], tokens: 0 };
   return assemble([...bookPieces(project, cards), ...scene], budgetTokens);
+}
+
+/**
+ * The story-context budget for an action: the seeded share of the window of the model it's
+ * routed to, read fresh (one local request) so a window cached before the engine started can't
+ * leave a call without a ceiling. A caller (a test, the Lab) may pass its own `budgetTokens`.
+ */
+export async function storyBudgetFor(feature, action, budgetTokens) {
+  if (budgetTokens !== undefined) return budgetTokens;
+  const row = await useResolvedRoute().refreshRoute(feature, action);
+  return storyBudgetTokens(useAiStore().storyContextShare, row?.context ?? null);
+}
+
+/** A prose action's story context (slice 2): its scene's, within the budget of the model the
+ *  action is routed to. No scene → nothing (the action runs on its passage alone). */
+export async function proseStoryContext(project, { chapterId, sceneId, action, budgetTokens } = {}) {
+  if (!chapterId || !sceneId) return { text: "", names: [], parts: [], tokens: 0 };
+  const budget = await storyBudgetFor("writerAI", action, budgetTokens);
+  return composeSceneContext(project, { chapterId, sceneId, budgetTokens: budget });
 }

@@ -21,7 +21,10 @@ vi.mock("@delebash/llm-ui", () => ({
   embedTexts: vi.fn(),
   friendlyAiError: (e) => e,
   useAiTasksStore: () => ({ start: () => ({ setProgress() {}, finish() {}, cancel() {}, signal: { aborted: false } }) }),
+  // the prose fills compose the scene's story context within the routed model's window
+  useResolvedRoute: () => ({ refreshRoute: async () => ({ context: 32768 }) }),
 }));
+vi.mock("../stores/ai.js", () => ({ useAiStore: () => ({ storyContextShare: 0.15 }) }));
 
 const CH1_BODY = "<p>Mira found the torn page in her father's coat.</p>";
 const CH1_SCENE2 = "<p>The brass key turned, but the door was already unlatched.</p>";
@@ -35,7 +38,7 @@ vi.mock("../stores/project", () => ({
     chapterBody: { ch1: CH1_BODY, ch2: CH1_SCENE2 },
     scenesFor: (id) =>
       id === "ch1"
-        ? [{ title: "The Torn Page", body: CH1_BODY, characters: ["c1"] }, { title: "", body: CH1_SCENE2, characters: [] }]
+        ? [{ id: "s1", title: "The Torn Page", body: CH1_BODY, characters: ["c1"] }, { id: "s2", title: "", body: CH1_SCENE2, characters: [] }]
         : [{ title: "", body: CH1_SCENE2, characters: ["c1"] }],
     scenes: {},
     characters: [{ id: "c1", name: "Mira", role: "archivist", main: true }],
@@ -134,11 +137,20 @@ describe("LAB_TEST_ACTIONS (the QC-35 per-action table)", () => {
     expect(fill.chapter_text).toContain("brass key"); // whole chapter, both scenes
   });
 
-  it("B-group fills are PASSAGE grain — the first non-empty scene, not the whole chapter", () => {
-    const fill = LAB_TEST_ACTIONS["writerAI.continue"].pickers[0].fill("ch1");
+  it("B-group fills are PASSAGE grain — the first non-empty scene, not the whole chapter", async () => {
+    const fill = await LAB_TEST_ACTIONS["writerAI.continue"].pickers[0].fill("ch1");
     expect(fill.passage).toContain("torn page");
     expect(fill.passage).not.toContain("brass key"); // scene 2 stays out
     expect(fill).toHaveProperty("voiceCanon"); // the same variable a real run sends
+  });
+
+  it("a prose action's fill carries that scene's story context; a line edit's doesn't (slice 2)", async () => {
+    const fill = await LAB_TEST_ACTIONS["writerAI.rewrite"].pickers[0].fill("ch1");
+    expect(fill.storyContext.startsWith("\n\nSTORY CONTEXT\n## ")).toBe(true);
+    expect(fill.storyContext).toContain("Mystery"); // the book's genre
+    expect(fill.storyContext).toContain("## Mira"); // the scene's linked character
+    const rule = LAB_TEST_ACTIONS["writerAI.rule.passive-voice"].pickers[0].fill("ch1");
+    expect("storyContext" in rule).toBe(false);
   });
 
   it("unstuck fills the chapter tail in the run's BEGIN/END PROSE frame", () => {

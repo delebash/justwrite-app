@@ -258,6 +258,24 @@ export const DEFAULT_TEST_SAMPLES = [
                               "already unlatched.",
                    "direction": "Continue the scene: someone has been here first; keep it quiet and close.",
                    "voiceCanon": "Close third person, past tense; spare coastal imagery."}},
+    // ── the prose actions with the scene's story context (slice 2, 2026-10-11): {{storyContext}}
+    // in the shape writerAI.js storyContextVar sends — the samples above leave it "", the
+    // nothing-linked case ──
+    {"actions": ["writerAI.rewrite", "writerAI.expand", "writerAI.tighten", "writerAI.continue", "writerAI.describe", "writerAI.guided-continue"], "label": "With story context",
+     "variables": {"passage": "The lighthouse keeper counted the storm's breaths between " +
+                              "each sweep of the lamp. The supply boat's light appeared " +
+                              "where no boat should be.",
+                   "voiceCanon": "Close third person, past tense; spare coastal imagery.",
+                   "direction": "Continue the scene as the light draws closer; keep the dread quiet.",
+                   "storyContext": "\n\nSTORY CONTEXT\n" +
+                                   "## Premise\nA lighthouse keeper on a storm coast learns the supply boat " +
+                                   "she has been waiting for sank a week ago.\n\n" +
+                                   "## Main cast\n- Ines Varga — keeper of the Harrow Point light; methodical, counts everything\n" +
+                                   "- Tobin Ash — the supply boat's pilot\n\n" +
+                                   "## Ines Varga\nKeeper of the Harrow Point light for nine years. Talks to the lamp. " +
+                                   "Afraid of the sea at night, and would never say so.\n\n" +
+                                   "## Previous scene\nHow the previous scene ends:\n…the radio gave her nothing but " +
+                                   "static, and she logged it anyway: 21:40, no contact."}},
     // ── prose.edit (writerAI rewrite/tighten + the 7 line-edit rules:
     // {{passage}} + {{voiceCanon}}) ──
     {"actions": ["writerAI.rewrite", "writerAI.tighten", "writerAI.rule.show-dont-tell", "writerAI.rule.passive-voice", "writerAI.rule.filter-words", "writerAI.rule.dialogue-tags", "writerAI.rule.sensory-grounding", "writerAI.rule.sentence-variety", "writerAI.rule.prose-tightening"], "label": "Flabby paragraph",

@@ -6,6 +6,12 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-11
 
+**The AI knows the scene.** Rewrite, Expand, Tighten, Continue, Describe and Continue with
+direction… now also read the scene they work in — your premise and main cast, the characters,
+places and objects linked to the scene, its beats and notes, and how the previous scene ends — so
+Continue stops inventing who's in the room. A line under the progress strip names what was sent.
+Line edits don't change. See [Writing](writing.md#story-context-the-ai-knows-the-scene).
+
 **Save to sheet.** Under an answer in a **Talk to {Name}** chat, **Save to sheet** drafts the
 character's sheet from what they just said. You review every field before anything saves. See
 [Story bible](story-bible.md#talk-to-a-character-interview-them-in-their-voice).

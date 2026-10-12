@@ -121,11 +121,25 @@ BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV 
         header, one window header / intro line / error banner (the kit's `5856019`). Task 10 —
         Name ideas at a character's name, on Brainstorm's own categories, prompt, rounds and list.
         Task 12 — Save to sheet under a Talk to {name} answer, its review window in the chat panel.
-OPEN:   in the third round's order: the Lab check (the user); Tasks 13–15. After them, per decision 2: the translation work, then the sheets and
+        Task 13 — slice 2: the six prose actions send the scene's story context; the Context line.
+OPEN:   in the third round's order: the Lab check (the user); Tasks 14–15. After them, per decision 2: the translation work, then the sheets and
         slices 3–4.
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;
         "your rec go" for the third round (Task 0, Tasks 9b and 11b, Task 12 in the chat panel).
+
+## Accept all / Reject all can fail with two or more pending AI changes [2026-10-11]
+STATE:  FOUND, not fixed (no go). Seen driving the editor on a scratch copy (the AI drafting plan
+        Task 13's probe): after two AI runs left two pending changes, **Reject all** threw
+        `RangeError: Position 3305 out of range` (rejectAllChanges → rejectChange → tr.delete).
+WHY:    the code, `server/src/editor/aiDiff.js:236-246` and `:270-285`: the bulk commands chain one
+        `rejectChange` / `acceptChange` per change; in a TipTap chain each command's `state.doc` is
+        the transaction's current doc, yet each finds its ranges in that doc AND maps them through
+        `tr.mapping` (built for the original doc) — mapped twice once an earlier change has deleted
+        text. One pending change is fine; two or more can throw or cut the wrong range.
+FIX:    find the ranges in the doc they're mapped from (the original `state.doc`, or don't map
+        positions taken from `tr.doc`), for both accept and reject; a test with two pending changes.
+        aiDiff.js is the shared editor schema (sync's scene adapter imports it).
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's

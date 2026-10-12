@@ -26,6 +26,16 @@ export function voiceCanonVar() {
   return "";
 }
 
+// The story context as a server-prompt variable (slice 2, the AI drafting spec §4): "" or the
+// composed context (services/storyContext.js) under its STORY CONTEXT heading, prefixed with a
+// blank line — the prose actions' seeded system ends "{{voiceCanon}}{{storyContext}}" and says
+// how to use the block when it's there. Line edits don't get it (spec §9.5). Exported: the Lab
+// sends the SAME block a real run sends.
+export function storyContextVar(text) {
+  const t = String(text || "").trim();
+  return t ? `\n\nSTORY CONTEXT\n${t}` : "";
+}
+
 // htmlToText/textToHtml come from the shared services/text.js. The calls
 // below pass { stripSceneMarks: false, trim: false } to preserve writerAI's
 // prior behavior; the shared htmlToText additionally strips pending AI-diff
@@ -114,7 +124,9 @@ function editorTask(task, fallbackLabel, meta) {
   return { ...base, meta: { ...(base.meta || meta || {}), silentToast: true } };
 }
 
-async function runAction(actionKey, { html, signal, onDelta, meta, provider, model, temperature, task } = {}) {
+// `storyContext` (the prose actions): the composed text for the scene the passage is in
+// (storyContext.js proseStoryContext), "" when there is none — the variable is always sent.
+async function runAction(actionKey, { html, storyContext = "", signal, onDelta, meta, provider, model, temperature, task } = {}) {
   const action = ACTIONS[actionKey];
   if (!action) throw new Error(`Unknown action: ${actionKey}`);
   const source = htmlToText(html, { stripSceneMarks: false, trim: false });
@@ -125,7 +137,7 @@ async function runAction(actionKey, { html, signal, onDelta, meta, provider, mod
   // as variables. Server resolves the writerAI provider/model + records usage.
   const result = await runAiFeatureStream({
     action: `writerAI.${actionKey}`, feature: "writerAI",
-    variables: { passage: source, voiceCanon: voiceCanonVar() },
+    variables: { passage: source, voiceCanon: voiceCanonVar(), storyContext: storyContextVar(storyContext) },
     temperature: typeof temperature === "number" ? temperature : undefined,
     signal, onDelta, provider, model, meta,
     task: editorTask(task, `Writer assist · ${action.label}`, meta),
@@ -150,13 +162,14 @@ export function describe(opts)  { return runAction("describe", opts); }
  * @param {string} opts.instruction  — short user direction, e.g.
  *                                     "Elena confronts Marcus but he
  *                                     deflects with charm."
+ * @param {string} [opts.storyContext] — the scene's composed story context ("" = none)
  * @param {AbortSignal} [opts.signal]
  * @param {(d,c)=>void} [opts.onDelta]
  * @param {object} [opts.meta]
  * @param {object} [opts.provider]
  * @param {string} [opts.model]
  */
-export async function guidedContinue({ html, instruction, signal, onDelta, meta, provider, model, temperature, task } = {}) {
+export async function guidedContinue({ html, instruction, storyContext = "", signal, onDelta, meta, provider, model, temperature, task } = {}) {
   const source = htmlToText(html, { stripSceneMarks: false, trim: false });
   if (!source.trim()) throw new Error("There's nothing to continue from.");
   const trimmed = String(instruction || "").trim();
@@ -166,7 +179,7 @@ export async function guidedContinue({ html, instruction, signal, onDelta, meta,
   // "writerAI.guided-continue"; we send the direction + passage as variables.
   const result = await runAiFeatureStream({
     action: "writerAI.guided-continue", feature: "writerAI",
-    variables: { passage: source, direction: trimmed, voiceCanon: voiceCanonVar() },
+    variables: { passage: source, direction: trimmed, voiceCanon: voiceCanonVar(), storyContext: storyContextVar(storyContext) },
     temperature: typeof temperature === "number" ? temperature : undefined,
     signal, onDelta, provider, model, meta,
     task: editorTask(task, "Writer assist · Continue (guided)", meta),

@@ -947,7 +947,7 @@
     "clearAll": "Limpiar todo",
     "previewFingerprint": "Vista previa de la huella que se inyectará",
     "storyContextCardTitle": "Contexto de la historia",
-    "storyContextDesc": "Cuando la IA redacta un personaje, lee tu premisa, el género, las reglas del mundo, el Escenario y el reparto principal. Solo se envía lo relevante; este es el máximo de la ventana de contexto del modelo que pueden ocupar esas notas. En un modelo con una ventana pequeña, una proporción menor deja más espacio para la respuesta; en uno grande rara vez importa.",
+    "storyContextDesc": "Cuando la IA redacta un personaje, lee tu premisa, el género, las reglas del mundo, el Escenario y el reparto principal. Reescribir, Expandir, Ajustar, Continuar, Describir y Continuar con dirección… también leen la escena en la que trabajan: sus personajes, lugares y objetos vinculados, sus beats y notas, y cómo termina la escena anterior. Solo se envía lo relevante; este es el máximo de la ventana de contexto del modelo que pueden ocupar esas notas. En un modelo con una ventana pequeña, una proporción menor deja más espacio para la respuesta; en uno grande rara vez importa.",
     "storyContextLabel": "Las notas de la historia pueden usar hasta"
   },
   "richEditor": {
@@ -1467,6 +1467,14 @@
       "setting": "Mueve la escena a un lugar diferente, o haz que el propio escenario cambie.",
       "reveal": "Revela algo que el personaje del POV aún no sabe.",
       "timeframe": "Corta a un momento diferente: más tarde, antes o en otro lugar completamente."
+    }
+  },
+  "storyContext": {
+    "line": "Contexto: {parts}",
+    "parts": {
+      "worldRules": "Reglas del mundo",
+      "mainCast": "Reparto principal",
+      "previousScene": "Escena anterior"
     }
   },
   "sceneNotes": {

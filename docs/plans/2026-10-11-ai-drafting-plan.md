@@ -346,6 +346,18 @@ round, point 7), `en.json`, `docs/story-bible.md`.
 
 ## Task 13 — Slice 2: the prose actions know the story
 
+**Built** 2026-10-11 — the commit "The prose actions know the scene". `WRITER_PROSE_SYSTEM` (the
+writer base + one line on using a STORY CONTEXT section + `{{voiceCanon}}{{storyContext}}`) for the
+six prose actions, healed from the old system (frozen as text in `FEATURE_PROMPT_HEALS`); the line
+edits keep `WRITER_SYSTEM`, byte-identical. `storyContext.js` gains `storyBudgetFor` (moved from
+characterDraft.js — one source), `proseStoryContext` and the parts' ids (`CONTEXT_PART_KEYS`);
+`writerAI.js` `storyContextVar` (always sent, "" for nothing). RichEditor's `storyContext` prop
+— the scene at the cursor in a stitched chapter, else the page's — and the **Context:** line;
+ChaptersPage supplies it for both editors. The Lab's prose fills compose it per action (the routed
+model's budget); a new sample, "With story context", reaches existing databases by its label. The
+bench's writer legs send it and report `storyContextTokens`. The story-context setting's text now
+names the prose actions.
+
 **Files:** `server/src/seed_feature_prompts.js` (a `WRITER_PROSE_SYSTEM` = `WRITER_SYSTEM` +
 `{{storyContext}}` for rewrite, expand, tighten, continue, describe, guided-continue; heal entries
 listing the old exact system for each), `server/src/seed_presets.js` (samples gain `storyContext`),
@@ -355,7 +367,7 @@ line in the AI strip), `src/pages/ChaptersPage.vue` (supplies it from `composeSc
 active scene with the routed window), `src/services/labTestData.js` (the passage fill sends it),
 `src/services/benchHook.js`, `docs/writing.md`.
 
-- [ ] Tests: the seeded prose systems carry `{{storyContext}}` and the rules don't; the heal list
+- [x] Tests: the seeded prose systems carry `{{storyContext}}` and the rules don't; the heal list
   matches the old system byte for byte; a prose run with nothing linked sends `""` (no 400); the
   Lab fill carries `storyContext`. Smoke; docs. Commit.
 

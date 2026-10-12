@@ -30,6 +30,7 @@ import { UiSegmented } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { useSelectNewName } from "../composables/useSelectNewName.js";
+import { proseStoryContext } from "../services/storyContext.js";
 
 const props = defineProps({
   id: { type: String, default: "" },
@@ -177,6 +178,12 @@ const activeSceneIdx = computed(() =>
   activeScene.value ? scenes.value.findIndex((s) => s.id === activeScene.value.id) : -1);
 const prevScene = computed(() => activeSceneIdx.value > 0 ? scenes.value[activeSceneIdx.value - 1] : null);
 const nextScene = computed(() => activeSceneIdx.value >= 0 && activeSceneIdx.value < scenes.value.length - 1 ? scenes.value[activeSceneIdx.value + 1] : null);
+
+// The editor's prose actions send their scene's story context (slice 2): the scene at the cursor
+// in the stitched chapter, else the scene being edited.
+function storyContextFor({ sceneId, action } = {}) {
+  return proseStoryContext(project, { chapterId: ch.value?.id, sceneId: sceneId || activeScene.value?.id, action });
+}
 
 // Live word/char counts for the active scene, shown in the editor card's
 // footer. Driven off the scene body (updated on every keystroke via the
@@ -1293,6 +1300,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
         :placeholder="$t('chapters.edit.continuousPlaceholder')"
         :count-footer="false"
         :running-head="project.project.title"
+        :story-context="storyContextFor"
         :folio-label="`Ch. ${ch.num}`"
         @change="onStitchedChange" />
 
@@ -1304,6 +1312,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
         :placeholder="$t('chapters.edit.scenePlaceholder', { n: activeSceneIdx + 1 })"
         :count-footer="false"
         :running-head="project.project.title"
+        :story-context="storyContextFor"
         :folio-label="`Ch. ${ch.num}`"
         @change="(html) => onSceneBodyChange(activeScene.id, html)" />
 

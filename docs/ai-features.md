@@ -78,8 +78,12 @@ while quick ones stay local. How routing, presets and providers work is
 ## Story context
 
 When the AI drafts a character it reads your book's frame: the premise, genre,
-world rules, the Setting document and the main cast. Only what's relevant is
-sent, and never anything marked **Exclude from AI**. **Settings → AI → Writing
+world rules, the Setting document and the main cast. The editor's prose actions
+— Rewrite, Expand, Tighten, Continue, Describe, Continue with direction… — read
+it too, plus the scene they work in: what its Links panel ties to it, its beats
+and notes, and how the previous scene ends (see
+[Writing](writing.md#story-context-the-ai-knows-the-scene)). Only what's relevant
+is sent, and never anything marked **Exclude from AI**. **Settings → AI → Writing
 AI → Story context** sets the most of the model's context window those notes may
 take (15% to start). On a model with a small window a lower share leaves more
 room for the reply; on a large one it rarely matters.
