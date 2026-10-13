@@ -14,7 +14,11 @@ follow the language too; their words stay English until their Spanish is reviewe
 **Dates and numbers follow the interface language.** Word counts, goals, percentages, backup and
 version times, the timeline's days, the date picker's months and weekdays, and the day letters on
 Home's and Analysis's charts now come out the interface language's way: with Spanish chosen,
-"105.000 palabras", "13 oct", "15,7", "lunes". A note's date keeps the way it was written.
+"105.000 palabras", "13 oct", "15,7", "lunes".
+
+**The Notes list sorts by date.** A note now keeps the moment it was last saved, so the Updated
+column sorts by date, and its dates follow the interface language ("Oct 13", "13 oct").
+A note saved before today shows its date as it was written until you next edit it.
 
 ## 2026-10-12
 

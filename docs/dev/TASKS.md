@@ -47,12 +47,17 @@ HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates 
         done 2026-10-13 (step 3: named formats in src/i18n/index.js, every date and displayed
         number through d()/n(), the calendar's and charts' day and month names from Intl). The
         language picker (D5) done 2026-10-13: the kit's LanguagePicker in the Appearance card.
-        Next: step 6's gates (its pseudo-locale check is D3, which waits), then Task 4 (docgen).
+        Ruled 2026-10-13, third round ("your rec think on them again go"; the six items as asked
+        are in the kit's TASKS): a note's date stored as the moment (ISO) and shown through d()
+        — done (`noteDate()` in stores/project.js; notes saved before keep their stored words and
+        show them as stored; the sample book's four notes carry June 2026 dates, the month their
+        text was written in); the picker sized to its choice — done (the kit's `width="fit"`,
+        87–91 px, measured at 1280 and 390); the Tauri leftovers — the kit's, and here the
+        smoke's stale e2e comment; Task 4 (docgen) — in progress in docgen; JustVoice's
+        restore fix — when JustVoice pushes. D3 still waits for its own word.
+        Next: step 6's gates (its pseudo-locale check is D3).
 FOUND:  2026-10-13, at 1024 px, older than this work — the model catalog's License chip breaks
         mid-word ("Apac|he-2.0"), the Bench header is clipped, the row actions stack.
-        2026-10-13, older than this work — a note's date is stored as display text ("Oct 13", the
-        notes table's `updated` column, written when the note changes): old notes keep the
-        language they were written in, and the Notes list sorts that column as text, not by date.
 
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
 STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the
@@ -595,7 +600,20 @@ FOUND:  2026-10-13, reported by the JustVoice session (its review P16; the user'
         `afterRestoreCopy(h)` and the engine's `afterRestore()`; the kit's `makeDataRouter` takes
         `beforeCopy` / `afterCopy`. JustWrite's part: `server/src/data_admin.js` (`onReplaced`,
         ~86-91) passes the two hooks and calls `afterRestore()` instead of `flushSync()`;
-        `docs/sync.md`'s "Restoring a backup" bullet changes. Waits for JustVoice's push and a go.
+        `docs/sync.md`'s "Restoring a backup" bullet changes. GO given 2026-10-13 ("your rec think
+        on them again go" — the rec was "go once they push"); waits for JustVoice's push. The
+        wiring grew since (JustVoice, 2026-10-13): `makeDataRouter` also takes `afterTables`, run
+        after the table copy commits and before the asset folders — JustWrite passes
+        `afterTables: () => sync.afterRestore()` with `beforeCopy: beforeRestoreCopy, afterCopy:
+        afterRestoreCopy`, and no afterRestore in `onReplaced`.
+FOUND:  2026-10-13, from JustVoice's session — its coming kit push changes what JustWrite runs on;
+        no go yet for JustWrite's side: CORS on hono/cors (JustWrite's
+        `server/tests/csrf.test.js` `settings_driven_cors_matches_starlette` fails until updated:
+        a refused preflight is 204 without Allow-Origin, allowed answers carry `Vary: Origin`);
+        the shell stops a stale server only when its /v1/health `product` matches —
+        `src-electron/electron-main.js` needs `serverProduct: "JustWrite Server"`; `runServer`
+        takes an optional `resolvePort(args)`; the kit's new `watchSync` and `safeTitle` are copies
+        of JustWrite's, which could switch to them.
 GO:     given 2026-10-08 — the tests and research ("your rec on all go do the testing"), then
         the build ("just-sqlite-sync you have a go on it all your recs complete the whole
         project without stopping unless you need to").

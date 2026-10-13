@@ -341,6 +341,13 @@ const EMPTY_TRASH = {
 
 export const TRASH_KINDS = Object.keys(EMPTY_TRASH);
 
+// A note's `updated` is the moment it was last saved (ISO), shown in the interface language.
+// Notes saved before 2026-10-13 hold the words they were shown in ("Jun 14"): shown as stored.
+const ISO_MOMENT = /^\d{4}-\d{2}-\d{2}T/;
+export function noteDate(updated) {
+  return ISO_MOMENT.test(updated || "") ? fmtDate(new Date(updated), "monthDay") : updated || "";
+}
+
 // ── Undo/redo ────────────────────────────────────────────────────────
 // PAGE-RELATED history (#235, the user's law: "undo should always be page
 // related, not global"). Snapshot-based like before, but partitioned into
@@ -1660,11 +1667,11 @@ export const useProjectStore = defineStore("project", {
     addNote(input = {}) {
       this._record("addNote");
       const id = uid("n");
-      const today = fmtDate(new Date(), "monthDay");
+      const now = new Date().toISOString();
       // anchor = null     → story-wide note (default)
       // anchor = { chapterId }            → pinned to a chapter
       // anchor = { chapterId, sceneId }   → pinned to a specific scene
-      this.notes.push({ id, title: t("sceneNotes.untitledNote"), body: "", tag: "note", updated: today, anchor: null, ...input });
+      this.notes.push({ id, title: t("sceneNotes.untitledNote"), body: "", tag: "note", updated: now, anchor: null, ...input });
       this._persist();
       return id;
     },
@@ -1678,8 +1685,8 @@ export const useProjectStore = defineStore("project", {
     },
     updateNote(id, patch) {
       this._record("updateNote");
-      const today = fmtDate(new Date(), "monthDay");
-      this.notes = this.notes.map((n) => n.id === id ? { ...n, ...patch, updated: today } : n);
+      const now = new Date().toISOString();
+      this.notes = this.notes.map((n) => n.id === id ? { ...n, ...patch, updated: now } : n);
       this._persist();
     },
 
@@ -1693,7 +1700,7 @@ export const useProjectStore = defineStore("project", {
       const list = (notes || []).filter((n) => n && (n.html || n.title));
       if (!list.length) return { noteIds: [] };
       this._record("importNotes");
-      const today = fmtDate(new Date(), "monthDay");
+      const now = new Date().toISOString();
       const noteIds = [];
       // Snapshot the anchor so every imported note holds an independent copy
       // — otherwise undo / per-note re-anchor would mutate shared state.
@@ -1706,7 +1713,7 @@ export const useProjectStore = defineStore("project", {
           title: n.title || t("sceneNotes.untitledNote"),
           body: n.html || "",
           tag: tag || "note",
-          updated: today,
+          updated: now,
           anchor: cloneAnchor(),
         });
       }

@@ -5,7 +5,7 @@ import { UiButton } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
 import EntityIndex from "../components/EntityIndex.vue";
-import { useProjectStore } from "../stores/project.js";
+import { noteDate, useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import { Icon } from "@delebash/llm-ui";
@@ -268,7 +268,7 @@ function onRowClick(event) {
         </template>
 
         <template #updated="{ row }">
-          <span>{{ row.updated }}</span>
+          <span>{{ noteDate(row.updated) }}</span>
         </template>
       </EntityIndex>
     </template>
@@ -305,7 +305,7 @@ function onRowClick(event) {
             </li>
           </ul>
         </div>
-        <span class="t-muted" style="font-size:12px;padding:0 8px">{{ $t("notes.updated", { when: n.updated }) }}</span>
+        <span class="t-muted" style="font-size:12px;padding:0 8px">{{ $t("notes.updated", { when: noteDate(n.updated) }) }}</span>
         <UiButton intent="ghost" size="small" @click="deleteNote">{{ $t("common.delete") }}</UiButton>
         <UiButton intent="primary" size="small" @click="addNote"><Icon name="Plus" :size="14" /> {{ $t("notes.newNote") }}</UiButton>
       </PaneHeader>

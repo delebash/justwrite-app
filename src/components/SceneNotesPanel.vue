@@ -20,7 +20,7 @@
 import { computed, nextTick, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { htmlToText, textToHtml } from "../services/text.js";
-import { useProjectStore } from "../stores/project.js";
+import { noteDate, useProjectStore } from "../stores/project.js";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
@@ -247,7 +247,7 @@ function manageAll() {
           <template v-else>
             <button type="button" class="sp-note-body" @click="startEdit(n)">{{ bodyText(n) }}</button>
             <div class="sp-note-meta">
-              <span class="sp-note-date">{{ n.updated }}</span>
+              <span class="sp-note-date">{{ noteDate(n.updated) }}</span>
               <span class="sp-note-acts">
                 <button type="button" class="sp-note-act"
                   v-tooltip.bottom="$t('sceneNotes.editNote')" :aria-label="$t('sceneNotes.editNote')"

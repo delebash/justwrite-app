@@ -4,8 +4,8 @@
 // the whole run produces ZERO JS errors. A bootStorage failure logs a console
 // error, so a clean run also proves storage.js reached /v1/kv.
 //
-// Complements e2e/ (desktop WebDriver via tauri-driver — needs Windows + a
-// built .exe). This one runs headless anywhere Node + a Chromium build exist.
+// Complements e2e/ (the real desktop app through Playwright's Electron driver — needs a
+// built app). This one runs headless anywhere Node + a Chromium build exist.
 //
 // Assumes both are already running (the orchestrator / a local run starts them):
 //   server: justwrite-server serve --port 17495
