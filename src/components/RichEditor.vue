@@ -1357,7 +1357,7 @@ defineExpose({
         </div>
         <button v-if="show('fontDec')" class="tb-btn tb-glyph" @click="bumpFont(-1)" :data-tip="$t('richEditor.fontDecTip')">{{ $t("richEditor.fontDecGlyph") }}</button>
         <button v-if="show('fontInc')" class="tb-btn tb-glyph" @click="bumpFont(1)" :data-tip="$t('richEditor.fontIncTip')">{{ $t("richEditor.fontIncGlyph") }}</button>
-        <button v-if="show('clearFormat')" class="tb-btn" @click="clearFormat" data-tip="Clear formatting"><Icon name="Eraser" :size="14" /></button>
+        <button v-if="show('clearFormat')" class="tb-btn" @click="clearFormat" :data-tip="t('richEditor.tip.clearFormat')"><Icon name="Eraser" :size="14" /></button>
       </div>
 
       <div class="group" v-if="show('quote') || show('list') || show('orderedList') || show('taskList') || show('align')">
@@ -1379,28 +1379,28 @@ defineExpose({
 
       <div class="group" v-if="show('link') || show('image') || show('table') || show('newScene')">
         <button v-if="show('link')" class="tb-btn" :class="{ active: isActive('link') }" @click="setLink" :data-tip="TIP.link"><Icon name="Link" :size="14" /></button>
-        <button v-if="show('image')" class="tb-btn" @click="pickImage" data-tip="Insert image"><Icon name="Image" :size="14" /></button>
-        <button v-if="show('table')" class="tb-btn" @click="insertTable" data-tip="Insert table"><Icon name="Table" :size="14" /></button>
+        <button v-if="show('image')" class="tb-btn" @click="pickImage" :data-tip="t('richEditor.tip.insertImage')"><Icon name="Image" :size="14" /></button>
+        <button v-if="show('table')" class="tb-btn" @click="insertTable" :data-tip="t('richEditor.tip.insertTable')"><Icon name="Table" :size="14" /></button>
         <button v-if="show('newScene')" class="tb-btn" @click="run('setSceneBoundary')" :data-tip="TIP.newScene"><Icon name="Strands" :size="14" /></button>
       </div>
 
       <div class="group" v-if="show('comment')">
         <button class="tb-btn" :class="{ active: isActive('comment') }" :disabled="editor.state.selection.empty" @click="openCommentEditor" :data-tip="$t('richEditor.addCommentTip')"><Icon name="Comment" :size="14" /></button>
-        <button class="tb-btn" :disabled="!hasComments" @click="gotoComment(-1)" data-tip="Previous comment"><Icon name="ChevRight" :size="13" style="transform:rotate(180deg)" /></button>
-        <button class="tb-btn" :disabled="!hasComments" @click="gotoComment(1)" data-tip="Next comment"><Icon name="ChevRight" :size="13" /></button>
+        <button class="tb-btn" :disabled="!hasComments" @click="gotoComment(-1)" :data-tip="t('richEditor.tip.previousComment')"><Icon name="ChevRight" :size="13" style="transform:rotate(180deg)" /></button>
+        <button class="tb-btn" :disabled="!hasComments" @click="gotoComment(1)" :data-tip="t('richEditor.tip.nextComment')"><Icon name="ChevRight" :size="13" /></button>
       </div>
 
       <div class="group" v-if="show('marker')">
-        <button class="tb-btn" :class="{ active: isActive('marker') }" @click="openMarkerEditor" :data-tip="`Drop a marker · ${sc('alt+M')}`"><Icon name="Pin" :size="14" /></button>
-        <button class="tb-btn" :disabled="!hasMarkers" @click="gotoMarker(-1)" data-tip="Previous marker"><Icon name="ChevRight" :size="13" style="transform:rotate(180deg)" /></button>
-        <button class="tb-btn" :disabled="!hasMarkers" @click="gotoMarker(1)" data-tip="Next marker"><Icon name="ChevRight" :size="13" /></button>
+        <button class="tb-btn" :class="{ active: isActive('marker') }" @click="openMarkerEditor" :data-tip="t('richEditor.tip.dropMarker', { keys: sc('alt+M') })"><Icon name="Pin" :size="14" /></button>
+        <button class="tb-btn" :disabled="!hasMarkers" @click="gotoMarker(-1)" :data-tip="t('richEditor.tip.previousMarker')"><Icon name="ChevRight" :size="13" style="transform:rotate(180deg)" /></button>
+        <button class="tb-btn" :disabled="!hasMarkers" @click="gotoMarker(1)" :data-tip="t('richEditor.tip.nextMarker')"><Icon name="ChevRight" :size="13" /></button>
       </div>
 
       <div class="group" v-if="show('find') || show('focus') || show('settings') || show('print')">
         <button v-if="show('find')" class="tb-btn" :class="{ active: findOpen }" @click="toggleFind" :data-tip="TIP.find"><Icon name="Search" :size="14" /></button>
-        <button v-if="show('focus')" class="tb-btn" :class="{ active: focusMode }" @click="toggleFocus" data-tip="Focus mode"><Icon name="Focus" :size="14" /></button>
-        <button v-if="show('settings')" class="tb-btn" @click="settingsOpen = true" data-tip="Writing settings"><Icon name="Settings" :size="14" /></button>
-        <button v-if="show('print')" class="tb-btn" @click="doPrint" data-tip="Print"><Icon name="Print" :size="14" /></button>
+        <button v-if="show('focus')" class="tb-btn" :class="{ active: focusMode }" @click="toggleFocus" :data-tip="t('richEditor.tip.focusMode')"><Icon name="Focus" :size="14" /></button>
+        <button v-if="show('settings')" class="tb-btn" @click="settingsOpen = true" :data-tip="t('richEditor.tip.writingSettings')"><Icon name="Settings" :size="14" /></button>
+        <button v-if="show('print')" class="tb-btn" @click="doPrint" :data-tip="t('richEditor.tip.print')"><Icon name="Print" :size="14" /></button>
       </div>
 
       <div style="flex:1" />
@@ -1412,15 +1412,15 @@ defineExpose({
       <input ref="findInput" v-model="findTerm" class="find-input" type="text" :placeholder="$t('richEditor.findPlaceholder')"
         @keydown.enter.prevent="findNext" @keydown.shift.enter.prevent="findPrev" />
       <span class="find-count">{{ searchInfo.count ? `${searchInfo.current}/${searchInfo.count}` : "0/0" }}</span>
-      <button class="tb-btn" @click="findPrev" data-tip="Previous"><Icon name="ArrowUp" :size="14" /></button>
-      <button class="tb-btn" @click="findNext" data-tip="Next"><Icon name="ArrowDown" :size="14" /></button>
+      <button class="tb-btn" @click="findPrev" :data-tip="t('richEditor.tip.previous')"><Icon name="ArrowUp" :size="14" /></button>
+      <button class="tb-btn" @click="findNext" :data-tip="t('richEditor.tip.next')"><Icon name="ArrowDown" :size="14" /></button>
       <label class="find-case" :title="$t('richEditor.matchCase')">
         <input type="checkbox" v-model="caseSensitive" /> {{ $t("richEditor.matchCaseGlyph") }}
       </label>
       <input v-model="replaceTerm" class="find-input" type="text" :placeholder="$t('richEditor.replacePlaceholder')" />
       <button class="tb-btn tb-text" @click="doReplace">{{ $t("richEditor.replace") }}</button>
       <button class="tb-btn tb-text" @click="doReplaceAll">{{ $t("common.all") }}</button>
-      <button class="tb-btn" @click="closeFind" data-tip="Close"><Icon name="Close" :size="14" /></button>
+      <button class="tb-btn" @click="closeFind" :data-tip="t('richEditor.tip.close')"><Icon name="Close" :size="14" /></button>
     </div>
 
     <!-- Focus-mode floating controls -->
@@ -1429,7 +1429,7 @@ defineExpose({
         :data-tip="TIP.newScene"><Icon name="Strands" :size="14" /></button>
       <button class="tb-btn tb-text" :class="{ active: typewriter }" @click="toggleTypewriter"
         :data-tip="$t('richEditor.typewriterTip')">{{ $t("richEditor.typewriter") }}</button>
-      <button class="tb-btn" @click="toggleFocus" data-tip="Exit focus mode (Esc)"><Icon name="Close" :size="14" /></button>
+      <button class="tb-btn" @click="toggleFocus" :data-tip="t('richEditor.tip.exitFocus')"><Icon name="Close" :size="14" /></button>
     </div>
 
     <!-- Selection bubble menu (manuscript only) -->

@@ -7,6 +7,9 @@ import { Icon } from "@delebash/llm-ui";
 import { buildIndex, searchIndex, renderSnippet, KIND_META } from "../services/search.js";
 import { useUiStore } from "../stores/ui.js";
 import { UiButton } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -181,7 +184,7 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
             <span style="flex:1;height:1px;background:var(--border-soft);margin-left:8px" />
           </div>
           <div style="display:flex;flex-direction:column">
-            <button v-for="hit in g.list" :key="hit.doc.id" class="result-row" :aria-label="`Open ${hit.doc.title}`" @click="openHit(hit)">
+            <button v-for="hit in g.list" :key="hit.doc.id" class="result-row" :aria-label="t('common.openItem', { name: hit.doc.title })" @click="openHit(hit)">
               <div class="result-title">
                 <template v-if="hit.doc.crumbs">
                   <span class="result-crumbs">

@@ -1298,7 +1298,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
         :count-footer="false"
         :running-head="project.project.title"
         :story-context="storyContextFor"
-        :folio-label="`Ch. ${ch.num}`"
+        :folio-label="t('common.chapterShort', { num: ch.num })"
         @change="onStitchedChange" />
 
       <RichEditor v-else-if="activeScene"
@@ -1310,7 +1310,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
         :count-footer="false"
         :running-head="project.project.title"
         :story-context="storyContextFor"
-        :folio-label="`Ch. ${ch.num}`"
+        :folio-label="t('common.chapterShort', { num: ch.num })"
         @change="(html) => onSceneBodyChange(activeScene.id, html)" />
 
       <!-- Chapter overview: shown when no scene is picked yet. Lists
@@ -1429,7 +1429,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
          open regardless of edit/outline/cards/read mode. -->
     <VersionHistoryModal v-if="versionsOpen && ch"
       :chapter-id="ch.id"
-      :chapter-title="`Ch. ${ch.num} · ${ch.title}`"
+      :chapter-title="t('common.chapterRefTitled', { num: ch.num, title: ch.title })"
       @close="versionsOpen = false" />
 
     <CritiqueModal v-if="critiqueOpen && ch"

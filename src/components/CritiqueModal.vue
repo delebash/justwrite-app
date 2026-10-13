@@ -14,7 +14,7 @@
 import { ref, computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
-import { runCritique, runStructuralAnalysis, PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
+import { runCritique, runStructuralAnalysis, PACING_LABEL_KEYS, ENDING_LABEL_KEYS } from "../services/analysis/critique.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
 import { relativeTime } from "@delebash/llm-ui";
@@ -184,11 +184,11 @@ const SEVERITY_META = {
           <div class="sm-meter"><div class="sm-meter-fill" :style="`width:${structure.hookQuality * 10}%`" /></div>
         </div>
         <div class="struct-metric">
-          <div class="sm-num sm-text">{{ PACING_LABELS[structure.pacing] }}</div>
+          <div class="sm-num sm-text">{{ PACING_LABEL_KEYS[structure.pacing] ? t(PACING_LABEL_KEYS[structure.pacing]) : structure.pacing }}</div>
           <div class="sm-lbl">{{ $t("critique.pacing") }}</div>
         </div>
         <div class="struct-metric">
-          <div class="sm-num sm-text">{{ ENDING_LABELS[structure.endingClass] }}</div>
+          <div class="sm-num sm-text">{{ ENDING_LABEL_KEYS[structure.endingClass] ? t(ENDING_LABEL_KEYS[structure.endingClass]) : structure.endingClass }}</div>
           <div class="sm-lbl">{{ $t("critique.ending") }}</div>
         </div>
       </div>

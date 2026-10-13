@@ -505,7 +505,7 @@ function sceneBadge(beat) {
                   class="beat-card"
                   tabindex="0"
                   role="button"
-                  :aria-label="`Edit beat: ${beat.label}`"
+                  :aria-label="t('plotBoard.editBeatAria', { label: beat.label })"
                   :style="`border-left-color:${strand.color || 'var(--accent)'}`"
                   draggable="true"
                   v-tooltip.bottom="beat.note || beat.label"
@@ -515,7 +515,7 @@ function sceneBadge(beat) {
                   @keydown="onCardKey($event, strand.id, beat)"
                 >
                   <span class="beat-label">{{ beat.label }}</span>
-                  <span v-if="sceneBadge(beat)" class="beat-scene" :title="`Pinned to ${sceneBadge(beat)}`">{{ sceneBadge(beat) }}</span>
+                  <span v-if="sceneBadge(beat)" class="beat-scene" :title="t('plotBoard.pinnedTo', { scene: sceneBadge(beat) })">{{ sceneBadge(beat) }}</span>
                   <UiButton
                     intent="ghost"
                     size="small"
@@ -549,7 +549,7 @@ function sceneBadge(beat) {
                 }"
                 :tabindex="beatsInCell(strand, ch.id).length === 0 ? 0 : -1"
                 :role="beatsInCell(strand, ch.id).length === 0 ? 'button' : undefined"
-                :aria-label="beatsInCell(strand, ch.id).length === 0 ? `Add beat in chapter ${ch.num}` : undefined"
+                :aria-label="beatsInCell(strand, ch.id).length === 0 ? t('plotBoard.addBeatInChapter', { num: ch.num }) : undefined"
                 @click="beatsInCell(strand, ch.id).length === 0 && handleAddBeat(strand.id, ch.id)"
                 @keydown="onCellKey($event, () => handleAddBeat(strand.id, ch.id), beatsInCell(strand, ch.id).length === 0)"
                 @dragover="onDragOver($event, strand.id, ch.id)"
@@ -562,7 +562,7 @@ function sceneBadge(beat) {
                   class="beat-card"
                   tabindex="0"
                   role="button"
-                  :aria-label="`Edit beat: ${beat.label}`"
+                  :aria-label="t('plotBoard.editBeatAria', { label: beat.label })"
                   :style="`border-left-color:${strand.color || 'var(--accent)'}`"
                   draggable="true"
                   v-tooltip.bottom="beat.note || beat.label"
@@ -572,7 +572,7 @@ function sceneBadge(beat) {
                   @keydown="onCardKey($event, strand.id, beat)"
                 >
                   <span class="beat-label">{{ beat.label }}</span>
-                  <span v-if="sceneBadge(beat)" class="beat-scene" :title="`Pinned to ${sceneBadge(beat)}`">{{ sceneBadge(beat) }}</span>
+                  <span v-if="sceneBadge(beat)" class="beat-scene" :title="t('plotBoard.pinnedTo', { scene: sceneBadge(beat) })">{{ sceneBadge(beat) }}</span>
                   <UiButton
                     intent="ghost"
                     size="small"

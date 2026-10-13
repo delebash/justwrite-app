@@ -219,7 +219,7 @@ function onRowClick(event) {
               <div class="member-grid">
                 <div v-for="(m, mi) in grp.members" :key="`${m.kind}-${m.id}-${mi}`"
                   class="card tight" style="display:flex;align-items:center;gap:10px;padding:12px">
-                  <UiButton intent="ghost" size="small" class="member-open" :title="`Open ${m.name}`" @click="goMember(m)">
+                  <UiButton intent="ghost" size="small" class="member-open" :title="t('common.openItem', { name: m.name })" @click="goMember(m)">
                     <template #icon><Icon :name="KIND_ICON[m.kind] || 'Star'" :size="15" /></template>
                     {{ m.name }}
                   </UiButton>

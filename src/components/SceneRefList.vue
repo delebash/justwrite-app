@@ -58,7 +58,7 @@ function goScene(chapterId, sceneId) {
   <div v-if="rows.length" class="scene-ref-list">
     <button v-for="row in rows" :key="`${row.chapterId}:${row.sceneId}`"
       class="scene-ref-chip"
-      v-tooltip.bottom="`Ch. ${row.chapterNum} · ${row.chapterTitle} — ${row.sceneTitle}`"
+      v-tooltip.bottom="t('common.sceneRefLong', { num: row.chapterNum, chapter: row.chapterTitle, scene: row.sceneTitle })"
       @click="goScene(row.chapterId, row.sceneId)">
       <span class="status-dot" :class="row.sceneStatus" />
       <span class="scene-ref-num">{{ row.chapterNum }}.{{ row.sceneIdx }}</span>

@@ -108,7 +108,7 @@ function toggleChat() {
            Undo, Redo, AI status and Search (the kit's phone plan, slice 5); Settings → Appearance
            has the theme and light/dark pickers. -->
       <div class="theme-switcher gt-xs" ref="themeWrap">
-        <button @click="toggleTheme" v-tooltip.bottom="`Theme · ${activePresetLabel}`">
+        <button @click="toggleTheme" v-tooltip.bottom="t('titleBar.themeTooltip', { theme: activePresetLabel })">
           <Icon name="Palette" :size="13" />
         </button>
         <div v-if="themeOpen" class="theme-menu">

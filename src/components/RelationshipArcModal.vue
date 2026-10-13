@@ -293,7 +293,7 @@ const TRAJECTORY_COLOURS = {
                       class="ra-cell"
                       :style="{ background: warmthColour(r.warmth) }"
                       :class="{ selected: selectedChapter?.chapterNum === r.chapterNum }"
-                      v-tooltip.bottom="`Ch.${r.chapterNum} warmth ${r.warmth}/10`"
+                      v-tooltip.bottom="t('relationshipArc.tipWarmth', { num: r.chapterNum, value: r.warmth })"
                       @click="selectChapter(r)">
                 <span class="ra-cell-num">{{ r.chapterNum }}</span>
               </button>
@@ -306,7 +306,7 @@ const TRAJECTORY_COLOURS = {
                       class="ra-cell"
                       :style="{ background: tensionColour(r.tension) }"
                       :class="{ selected: selectedChapter?.chapterNum === r.chapterNum }"
-                      v-tooltip.bottom="`Ch.${r.chapterNum} tension ${r.tension}/10`"
+                      v-tooltip.bottom="t('relationshipArc.tipTension', { num: r.chapterNum, value: r.tension })"
                       @click="selectChapter(r)">
                 <span class="ra-cell-num">{{ r.chapterNum }}</span>
               </button>
@@ -319,7 +319,7 @@ const TRAJECTORY_COLOURS = {
                       class="ra-cell"
                       :style="{ background: powerColour(r.power) }"
                       :class="{ selected: selectedChapter?.chapterNum === r.chapterNum }"
-                      v-tooltip.bottom="`Ch.${r.chapterNum}: ${powerLabel(r.power, arc.characterAName, arc.characterBName)}`"
+                      v-tooltip.bottom="t('relationshipArc.tipPower', { num: r.chapterNum, power: powerLabel(r.power, arc.characterAName, arc.characterBName) })"
                       @click="selectChapter(r)">
                 <span class="ra-cell-num">{{ r.chapterNum }}</span>
               </button>

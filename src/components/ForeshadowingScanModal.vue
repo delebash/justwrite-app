@@ -282,7 +282,7 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
                 <span class="fs-kind-badge" :data-kind="t.kind">{{ KIND_I18N[t.kind] ? $t(KIND_I18N[t.kind]) : t.kind }}</span>
                 <span v-if="t.status === 'dangling'" class="fs-status-badge dangling">{{ $t("foreshadowing.statusDangling") }}</span>
                 <span v-else class="fs-status-badge mentioned"
-                      v-tooltip.bottom="t.laterMentions.map(m => `Ch. ${m.chapterNum}${m.chapterTitle ? ' — ' + m.chapterTitle : ''}`).join('\n')">
+                      v-tooltip.bottom="t.laterMentions.map(m => m.chapterTitle ? $t('common.chapterRefDash', { num: m.chapterNum, title: m.chapterTitle }) : $t('common.chapterShort', { num: m.chapterNum })).join('\n')">
                   {{ $t("foreshadowing.mentionedIn") }}
                   <template v-for="(m, i) in t.laterMentions.slice(0, 3)" :key="m.chapterId">
                     {{ $t("common.chapterShort", { num: m.chapterNum }) }}<span v-if="i < Math.min(t.laterMentions.length, 3) - 1">, </span>

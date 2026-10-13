@@ -85,7 +85,10 @@
     "cannotUndo": "This can't be undone.",
     "sceneN": "Scene {n}",
     "quoted": "“{text}”",
-    "chapter": "Chapter"
+    "chapter": "Chapter",
+    "chapterRefDash": "Ch. {num} — {title}",
+    "sceneRefLong": "Ch. {num} · {chapter} — {scene}",
+    "openItem": "Open {name}"
   },
   "tray": {
     "show": "📺 Show window",
@@ -175,7 +178,10 @@
     "deleteStrandTooltip": "Delete this strand and all its beats",
     "addBeatUnassignedShort": "Add beat (unassigned)",
     "addBeatHere": "Add beat here",
-    "addBeatToChapter": "Add beat to Chapter {num}"
+    "addBeatToChapter": "Add beat to Chapter {num}",
+    "editBeatAria": "Edit beat: {label}",
+    "pinnedTo": "Pinned to {scene}",
+    "addBeatInChapter": "Add beat in chapter {num}"
   },
   "brainstorm": {
     "title": "Brainstorm",
@@ -526,7 +532,18 @@
       "parse": "Couldn't parse notes from the model's reply. Try re-running, or switch the critique model in Settings."
     },
     "taskNotesShort": "Chapter critique notes",
-    "taskStructureShort": "Chapter structure"
+    "taskStructureShort": "Chapter structure",
+    "pacingLabel": {
+      "slow": "Slow",
+      "balanced": "Balanced",
+      "fast": "Fast"
+    },
+    "endingLabel": {
+      "cliffhanger": "Cliffhanger",
+      "soft": "Soft hook",
+      "closed": "Closed",
+      "deadEnd": "Dead end"
+    }
   },
   "relations": {
     "zoomOut": "Zoom out",
@@ -1052,7 +1069,13 @@
       "noProvider": "Configure an AI provider in Settings → AI to run this analysis.",
       "failed": "Couldn't complete the analysis."
     },
-    "taskLabel": "Reader knowledge"
+    "taskLabel": "Reader knowledge",
+    "status": {
+      "aligned": "Aligned",
+      "irony": "Dramatic irony",
+      "confused": "Reader confused",
+      "neutral": "Neutral"
+    }
   },
   "relationshipArc": {
     "eyebrow": "Relationship arc",
@@ -1089,7 +1112,10 @@
       "sameCharacter": "Pick two different characters."
     },
     "taskLabel": "Relationship arc",
-    "powerEqual": "Equal"
+    "powerEqual": "Equal",
+    "tipWarmth": "Ch.{num} warmth {value}/10",
+    "tipTension": "Ch.{num} tension {value}/10",
+    "tipPower": "Ch.{num}: {power}"
   },
   "writingAi": {
     "embeddingsEyebrow": "Embeddings & RAG",
@@ -1254,7 +1280,24 @@
       "alt": "Alt"
     },
     "linkUrl": "Link URL",
-    "printTitle": "Print"
+    "printTitle": "Print",
+    "tip": {
+      "dropMarker": "Drop a marker · {keys}",
+      "clearFormat": "Clear formatting",
+      "insertImage": "Insert image",
+      "insertTable": "Insert table",
+      "previousComment": "Previous comment",
+      "nextComment": "Next comment",
+      "previousMarker": "Previous marker",
+      "nextMarker": "Next marker",
+      "focusMode": "Focus mode",
+      "writingSettings": "Writing settings",
+      "print": "Print",
+      "previous": "Previous",
+      "next": "Next",
+      "close": "Close",
+      "exitFocus": "Exit focus mode (Esc)"
+    }
   },
   "home": {
     "eyebrow": "Manuscript",
@@ -1485,7 +1528,19 @@
       "pov": "POV"
     },
     "driftTaskShort": "Voice drift",
-    "unattributed": "Unattributed"
+    "unattributed": "Unattributed",
+    "trend": {
+      "rising": "Rising",
+      "falling": "Falling",
+      "flat": "Flat"
+    },
+    "tipChapter": "Ch.{num}",
+    "tipChapterTitled": "Ch.{num} — {title}",
+    "tipNotAnalysed": "Ch.{num} — not analysed",
+    "tipScores": "Tension {tension}/10 · Hook {hook}/10\nPacing: {pacing} · Ending: {ending}",
+    "mentions": "{n} mention | {n} mentions",
+    "trendTip": "Early third mean {early} → late third mean {late}",
+    "dayTip": "{date} · {words} words"
   },
   "search": {
     "resultCount": "{n} result | {n} results",
@@ -1881,7 +1936,8 @@
     "askBook": "Ask the book · ⌘J",
     "expandSidebar": "Expand sidebar · ⌘\\",
     "collapseSidebar": "Collapse sidebar · ⌘\\",
-    "search": "Search · ⌘F"
+    "search": "Search · ⌘F",
+    "themeTooltip": "Theme · {theme}"
   },
   "timeline": {
     "intro": "The {timeline} is a merged, read-only view of every event across every character, location, object, group, and the world Setting — sorted chronologically. Click any event title to edit it; click the entity badge on the right to jump to that entity's page. You add events from each entity's {events} button; the Timeline collects them automatically.",

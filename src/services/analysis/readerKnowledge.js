@@ -29,11 +29,11 @@ import { t } from "../../i18n/index.js";
 
 export const STATUS_OPTIONS = ["aligned", "dramatic-irony", "reader-confused", "neutral"];
 
-export const STATUS_LABELS = {
-  aligned: "Aligned",
-  "dramatic-irony": "Dramatic irony",
-  "reader-confused": "Reader confused",
-  neutral: "Neutral",
+export const STATUS_LABEL_KEYS = {
+  aligned: "readerKnowledge.status.aligned",
+  "dramatic-irony": "readerKnowledge.status.irony",
+  "reader-confused": "readerKnowledge.status.confused",
+  neutral: "readerKnowledge.status.neutral",
 };
 
 // Colour tokens (mapped in CSS — see ReaderKnowledgeView). Names match

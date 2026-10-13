@@ -101,10 +101,10 @@ function clamp1to10(v) {
 }
 
 // Friendly labels for the structure values — used by the UI badges.
-export const PACING_LABELS = { slow: "Slow", balanced: "Balanced", fast: "Fast" };
-export const ENDING_LABELS = {
-  cliffhanger: "Cliffhanger",
-  soft:        "Soft hook",
-  closed:      "Closed",
-  "dead-end":  "Dead end",
+export const PACING_LABEL_KEYS = { slow: "critique.pacingLabel.slow", balanced: "critique.pacingLabel.balanced", fast: "critique.pacingLabel.fast" };
+export const ENDING_LABEL_KEYS = {
+  cliffhanger: "critique.endingLabel.cliffhanger",
+  soft:        "critique.endingLabel.soft",
+  closed:      "critique.endingLabel.closed",
+  "dead-end":  "critique.endingLabel.deadEnd",
 };

@@ -146,7 +146,7 @@ const headerStats = computed(() => {
   if (r) {
     return {
       words: r.totalWords ?? sessions.todayWords,
-      chapter: r.chapterNum == null ? "" : r.chapterTitle ? t("trash.chapterRef", { num: r.chapterNum, title: r.chapterTitle }) : t("common.chapterShort", { num: r.chapterNum }),
+      chapter: r.chapterNum == null ? "" : r.chapterTitle ? t("common.chapterRefDash", { num: r.chapterNum, title: r.chapterTitle }) : t("common.chapterShort", { num: r.chapterNum }),
     };
   }
   return {
@@ -155,7 +155,7 @@ const headerStats = computed(() => {
       ? (() => {
           const c = project.chapterById(sessions.todayChapterId);
           if (!c) return "";
-          return c.title ? t("trash.chapterRef", { num: c.num, title: c.title }) : t("common.chapterShort", { num: c.num });
+          return c.title ? t("common.chapterRefDash", { num: c.num, title: c.title }) : t("common.chapterShort", { num: c.num });
         })()
       : "",
   };

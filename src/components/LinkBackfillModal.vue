@@ -67,7 +67,7 @@ function setGroup(group, on) {
 
 function sceneLabel(r) {
   const scene = r.sceneTitle ? t("common.quoted", { text: r.sceneTitle }) : t("common.sceneN", { n: r.sceneIdx + 1 });
-  const chapter = r.chapterTitle ? t("trash.chapterRef", { num: r.chapterNum, title: r.chapterTitle }) : t("common.chapterShort", { num: r.chapterNum });
+  const chapter = r.chapterTitle ? t("common.chapterRefDash", { num: r.chapterNum, title: r.chapterTitle }) : t("common.chapterShort", { num: r.chapterNum });
   return `${chapter} · ${scene}`;
 }
 

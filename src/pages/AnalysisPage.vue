@@ -13,7 +13,7 @@ import {
 import { bookMetrics, POV_LABELS } from "../services/analysis/styleMetrics.js";
 import { computeVoiceDrift, deriveVoiceDriftContext, explainVoiceDrift } from "../services/analysis/voiceDrift.js";
 import { sweepStoryTension } from "../services/analysis/tensionSweep.js";
-import { PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
+import { PACING_LABEL_KEYS, ENDING_LABEL_KEYS } from "../services/analysis/critique.js";
 import ReverseOutlineModal from "../components/ReverseOutlineModal.vue";
 import BeatSheetModal from "../components/BeatSheetModal.vue";
 import PlotHoleScanModal from "../components/PlotHoleScanModal.vue";
@@ -232,7 +232,24 @@ async function explainHot(chapterId) {
   }
 }
 
-const TREND_LABELS = { rising: "Rising", falling: "Falling", flat: "Flat" };
+const TREND_LABEL_KEYS = { rising: "analysisView.trend.rising", falling: "analysisView.trend.falling", flat: "analysisView.trend.flat" };
+
+// A tension-strip cell's tooltip: the chapter, then its scores once analysed.
+function tensionTip(r) {
+  const ch = r.chapter.title
+    ? t("analysisView.tipChapterTitled", { num: r.chapter.num, title: r.chapter.title })
+    : t("analysisView.tipChapter", { num: r.chapter.num });
+  if (!r.s) return t("analysisView.tipNotAnalysed", { num: r.chapter.num });
+  const pacing = PACING_LABEL_KEYS[r.s.pacing] ? t(PACING_LABEL_KEYS[r.s.pacing]) : r.s.pacing;
+  const ending = ENDING_LABEL_KEYS[r.s.endingClass] ? t(ENDING_LABEL_KEYS[r.s.endingClass]) : r.s.endingClass;
+  return `${ch}\n${t("analysisView.tipScores", { tension: r.s.tension, hook: r.s.hookQuality, pacing, ending })}`;
+}
+// A presence-heatmap cell's tooltip.
+function presenceTip(row, cell) {
+  const where = t("common.chapterRefDash", { num: cell.chapter.num, title: cell.chapter.title });
+  const base = `${row.character.name} · ${where}`;
+  return cell.mentions ? `${base} · ${t("analysisView.mentions", { n: cell.mentions }, cell.mentions)}` : base;
+}
 const TREND_COLOURS = {
   rising: "var(--status-revise)",
   falling: "var(--accent)",
@@ -548,7 +565,7 @@ const milestoneState = computed(() => {
                 <div v-for="(week, wi) in heatmap.weeks" :key="wi" class="hm-col">
                   <div v-for="(cell, ci) in week" :key="ci"
                     class="hm-cell" :class="cell ? `hm-t${cell.tier}` : 'hm-t0'"
-                    :title="cell ? `${cell.date} · ${cell.words.toLocaleString()} words` : ''" />
+                    :title="cell ? t('analysisView.dayTip', { date: cell.date, words: cell.words.toLocaleString() }) : ''" />
                 </div>
               </div>
             </div>
@@ -831,7 +848,7 @@ const milestoneState = computed(() => {
                     class="st-cell"
                     :class="{ unscanned: !r.s, running: tensionRunningChapterId === r.chapter.id }"
                     :style="{ background: r.s ? PACING_BG[r.s.pacing] || 'var(--surface-3)' : 'var(--surface-3)' }"
-                    v-tooltip.bottom="r.s ? `Ch.${r.chapter.num}${r.chapter.title ? ' — ' + r.chapter.title : ''}\nTension ${r.s.tension}/10 · Hook ${r.s.hookQuality}/10\nPacing: ${PACING_LABELS[r.s.pacing] || r.s.pacing} · Ending: ${ENDING_LABELS[r.s.endingClass] || r.s.endingClass}` : `Ch.${r.chapter.num} — not analysed`"
+                    v-tooltip.bottom="tensionTip(r)"
                     @click="jumpChapter(r.chapter.id)">
               <span class="st-cell-num">{{ r.chapter.num }}</span>
               <span v-if="r.s" class="st-cell-end"
@@ -881,8 +898,8 @@ const milestoneState = computed(() => {
             </div>
             <div class="vd-row-trend"
                  :style="{ color: TREND_COLOURS[m.trend.direction] }"
-                 v-tooltip.bottom="`Early third mean ${m.format(m.display ? m.trend.earlyMean : m.trend.earlyMean)} → late third mean ${m.format(m.display ? m.trend.lateMean : m.trend.lateMean)}`">
-              {{ TREND_LABELS[m.trend.direction] }}
+                 v-tooltip.bottom="t('analysisView.trendTip', { early: m.format(m.display ? m.trend.earlyMean : m.trend.earlyMean), late: m.format(m.display ? m.trend.lateMean : m.trend.lateMean) })">
+              {{ t(TREND_LABEL_KEYS[m.trend.direction]) }}
             </div>
             <svg v-if="sparklineGeom(m)" class="vd-spark"
                  :viewBox="`0 0 ${sparklineGeom(m).w} ${sparklineGeom(m).h}`"
@@ -976,7 +993,7 @@ const milestoneState = computed(() => {
             <button v-for="cell in row.cells" :key="cell.chapter.id" type="button"
               class="heatmap-cell"
               :style="cellStyle(cell.weight)"
-              :title="`${row.character.name} · Ch. ${cell.chapter.num} — ${cell.chapter.title}${cell.mentions ? ` · ${cell.mentions} mentions` : ''}`"
+              :title="presenceTip(row, cell)"
               @click="jumpChapter(cell.chapter.id)" />
           </div>
         </div>

@@ -23,7 +23,7 @@ import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore, Icon, AiTaskStrip, PaneHeader, EmptyState, UiButton, pageFill, UiBanner } from "@delebash/llm-ui";
 import {
   scanReaderKnowledge,
-  STATUS_LABELS,
+  STATUS_LABEL_KEYS,
   STATUS_COLOURS,
 } from "../services/analysis/readerKnowledge.js";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
@@ -112,6 +112,14 @@ const lastRunAt = computed(() => {
     .sort((a, b) => b - a);
   return stamps[0] || null;
 });
+
+// A chapter cell's tooltip: the chapter, then its reader-knowledge status when analysed.
+function stripTip(e) {
+  const ch = e.chapter.title
+    ? t("common.chapterRefDash", { num: e.chapter.num, title: e.chapter.title })
+    : t("common.chapterShort", { num: e.chapter.num });
+  return e.rk ? `${ch}\n${t(STATUS_LABEL_KEYS[e.rk.status])}` : ch;
+}
 
 const error = ref("");
 
@@ -216,19 +224,19 @@ function jumpToChapter(chapterId) {
         <div class="rk-stats">
           <span class="rk-stat-chip dramatic-irony">
             <span class="rk-stat-dot" :style="{ background: STATUS_COLOURS['dramatic-irony'] }" />
-            {{ counts['dramatic-irony'] }} {{ STATUS_LABELS['dramatic-irony'] }}
+            {{ counts['dramatic-irony'] }} {{ t(STATUS_LABEL_KEYS['dramatic-irony']) }}
           </span>
           <span class="rk-stat-chip aligned">
             <span class="rk-stat-dot" :style="{ background: STATUS_COLOURS.aligned }" />
-            {{ counts.aligned }} {{ STATUS_LABELS.aligned }}
+            {{ counts.aligned }} {{ t(STATUS_LABEL_KEYS.aligned) }}
           </span>
           <span class="rk-stat-chip reader-confused">
             <span class="rk-stat-dot" :style="{ background: STATUS_COLOURS['reader-confused'] }" />
-            {{ counts['reader-confused'] }} {{ STATUS_LABELS['reader-confused'] }}
+            {{ counts['reader-confused'] }} {{ t(STATUS_LABEL_KEYS['reader-confused']) }}
           </span>
           <span class="rk-stat-chip neutral">
             <span class="rk-stat-dot" :style="{ background: STATUS_COLOURS.neutral }" />
-            {{ counts.neutral }} {{ STATUS_LABELS.neutral }}
+            {{ counts.neutral }} {{ t(STATUS_LABEL_KEYS.neutral) }}
           </span>
           <span class="rk-stat-chip muted">{{ $t("readerKnowledge.chaptersAnalysed", { analysed: analysedCount, total: totalCount }) }}</span>
         </div>
@@ -246,7 +254,7 @@ function jumpToChapter(chapterId) {
                       unscanned: !e.rk,
                     }"
                     :style="{ background: e.rk ? STATUS_COLOURS[e.rk.status] : 'var(--surface-3)' }"
-                    v-tooltip.bottom="`Ch. ${e.chapter.num}${e.chapter.title ? ' — ' + e.chapter.title : ''}${e.rk ? '\n' + STATUS_LABELS[e.rk.status] : ''}`"
+                    v-tooltip.bottom="stripTip(e)"
                     @click="e.rk && selectChapter(e.chapter.id)">
               <span class="rk-cell-num">{{ e.chapter.num }}</span>
             </button>
@@ -284,7 +292,7 @@ function jumpToChapter(chapterId) {
             </button>
             <span class="rk-card-h-spacer" />
             <span class="rk-status-chip" :style="{ background: STATUS_COLOURS[selected.rk.status] }">
-              {{ STATUS_LABELS[selected.rk.status] }}
+              {{ t(STATUS_LABEL_KEYS[selected.rk.status]) }}
             </span>
           </div>
           <p v-if="selected.rk.rationale" class="rk-rationale">{{ selected.rk.rationale }}</p>
