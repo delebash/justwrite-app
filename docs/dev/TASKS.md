@@ -45,8 +45,9 @@ HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates 
         questions as asked are in the kit's TASKS) and built; the script-string rule is on here
         (i18n:lint reads src/**/*.{js,vue}, zero). D6's tables done 2026-10-13; dates and numbers
         done 2026-10-13 (step 3: named formats in src/i18n/index.js, every date and displayed
-        number through d()/n(), the calendar's and charts' day and month names from Intl). Next:
-        the language picker (D5).
+        number through d()/n(), the calendar's and charts' day and month names from Intl). The
+        language picker (D5) done 2026-10-13: the kit's LanguagePicker in the Appearance card.
+        Next: step 6's gates (its pseudo-locale check is D3, which waits), then Task 4 (docgen).
 FOUND:  2026-10-13, at 1024 px, older than this work — the model catalog's License chip breaks
         mid-word ("Apac|he-2.0"), the Bench header is clipped, the row actions stack.
         2026-10-13, older than this work — a note's date is stored as display text ("Oct 13", the
@@ -585,6 +586,16 @@ OPEN:   the phone (the Quasar item, OPEN 3) · "Use the server directly" (the th
         the by-hand file's extension `.jwsync`; by-hand files unencrypted unless asked (the cloud
         folder's always are); the screen's words not quoted in the design (its labels, hints and
         messages — `SyncPanel.vue`).
+FOUND:  2026-10-13, reported by the JustVoice session (its review P16; the user's choice there,
+        "(b)": the other computers' newer work wins) — restoring an old backup on a synced
+        computer overwrites, on every paired or cloud-folder computer, the edits made since that
+        backup, and deletes there what was made since: the restore's table copy fires the sync
+        triggers, and the flush stamps every restored row as the newest change. Fixed on
+        JustVoice's side, not yet pushed: just-sqlite-sync's `beforeRestoreCopy(h)` /
+        `afterRestoreCopy(h)` and the engine's `afterRestore()`; the kit's `makeDataRouter` takes
+        `beforeCopy` / `afterCopy`. JustWrite's part: `server/src/data_admin.js` (`onReplaced`,
+        ~86-91) passes the two hooks and calls `afterRestore()` instead of `flushSync()`;
+        `docs/sync.md`'s "Restoring a backup" bullet changes. Waits for JustVoice's push and a go.
 GO:     given 2026-10-08 — the tests and research ("your rec on all go do the testing"), then
         the build ("just-sqlite-sync you have a go on it all your recs complete the whole
         project without stopping unless you need to").

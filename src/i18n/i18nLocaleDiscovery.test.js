@@ -6,7 +6,7 @@
 // "NOTHING hardcoded" invariant exists to prevent, and it rots silently: add the file, forget
 // one of the three, and the language is missing or half-registered with no error anywhere.
 //
-// It is now derived from `import.meta.glob` plus `Intl.DisplayNames`. This test reads index.js
+// It is now derived from `import.meta.glob` plus `Intl.DisplayNames` (the kit's languageName). This test reads index.js
 // as TEXT to assert nobody quietly puts a list back — the same technique as the sibling i18n
 // tests, and for the same reason: what ships is the source, so the source is what to check.
 
@@ -46,7 +46,7 @@ describe("locale discovery", () => {
 
   it("BITES: no label is hardcoded either — names come from the runtime", () => {
     expect(SOURCE).not.toMatch(/label:\s*["'][^"']+["']/);
-    expect(SOURCE).toMatch(/Intl\.DisplayNames/);
+    expect(SOURCE).toMatch(/languageName\(code\)/);
   });
 
   it("names each language in its own language, capitalised for a picker", () => {

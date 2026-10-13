@@ -2851,7 +2851,6 @@
       "sync": "Sync"
     },
     "language": {
-      "label": "Language",
       "hint": "User-interface language. Date and number formatting follow the same locale."
     },
     "server": {

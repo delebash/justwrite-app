@@ -17,7 +17,7 @@
 // just-llm-runner/docs/plans/2026-10-12-i18n-standard.md).
 
 import { createI18n } from "vue-i18n";
-import { catalogsFromFiles, kitMessages } from "@delebash/llm-ui/i18n/index.js";
+import { catalogsFromFiles, kitMessages, languageName } from "@delebash/llm-ui/i18n/index.js";
 
 // Vite inlines every match at BUILD time, so this is a static import graph, not a runtime read
 // — the bundle is identical to hand-written imports.
@@ -31,28 +31,8 @@ const modules = import.meta.glob("./locales/*.json", { eager: true });
 const found = Object.entries(catalogsFromFiles(modules))
   .sort(([a], [b]) => (a === "en" ? -1 : b === "en" ? 1 : a.localeCompare(b)));
 
-/**
- * A language's name in its OWN language — "Español", not "Spanish".
- *
- * Someone hunting for their language is looking for the word they would use for it, not for
- * whatever the current UI happens to call it. `Intl.DisplayNames` ships this for every locale
- * the runtime knows, which is why there is no table of labels here and no seed row either.
- *
- * Spanish and French write their language names lowercase; a picker item reads better
- * capitalised, so only the first character is raised — the rest of the string is left exactly
- * as the runtime produced it, because casing rules are the runtime's business, not ours.
- */
-function labelFor(code) {
-  let name = code;
-  try {
-    name = new Intl.DisplayNames([code], { type: "language" }).of(code) || code;
-  } catch {
-    // An unknown or malformed tag falls back to the code itself, which is still selectable.
-  }
-  return name.charAt(0).toLocaleUpperCase(code) + name.slice(1);
-}
-
-export const AVAILABLE_LOCALES = found.map(([code]) => ({ code, label: labelFor(code) }));
+// Each language is named in itself ("Español") by the kit's languageName — Intl.DisplayNames.
+export const AVAILABLE_LOCALES = found.map(([code]) => ({ code, label: languageName(code) }));
 
 // Resolve the browser's preferred locale to one we ship, falling back to the first entry.
 // Called by main.js when there is no persisted user choice.

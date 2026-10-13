@@ -1624,7 +1624,6 @@
       "sync": "Sincronización"
     },
     "language": {
-      "label": "Idioma",
       "hint": "Idioma de la interfaz de usuario. El formato de fecha y número sigue la misma configuración regional."
     },
     "server": {

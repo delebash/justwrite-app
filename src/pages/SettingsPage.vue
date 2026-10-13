@@ -21,6 +21,7 @@ import { UiTextarea } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
 import { UiNumber } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
+import { LanguagePicker } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiToggle } from "@delebash/llm-ui";
 import { UiColorPicker } from "@delebash/llm-ui";
@@ -32,7 +33,7 @@ import {
   NAV_ITEM_STYLES, NAV_ITEM_SIZES,
   BUTTON_RADIUS_OPTIONS, BUTTON_DENSITY_OPTIONS, BUTTON_LABEL_CASE_OPTIONS,
 } from "../services/appearance.js";
-import { AVAILABLE_LOCALES, setLocale as setI18nLocale } from "../i18n/index.js";
+import { AVAILABLE_LOCALES } from "../i18n/index.js";
 import { PHONE_HIDDEN_SECTIONS, SETTINGS_SECTION_IDS } from "../services/settingsSections.js";
 import { SETTINGS_SECTION_ORDER } from "@delebash/llm-ui";
 // The family Sync screen — by path, not the kit barrel (it needs `qrcode`; SyncPanel.vue's header).
@@ -50,16 +51,10 @@ const ai = useAiStore();
 const project = useProjectStore();
 const ui = useUiStore();
 
-// i18n locale picker — list comes from AVAILABLE_LOCALES; the active
-// value mirrors vue-i18n's reactive `locale` ref so the select reflects
-// the live UI language even if it was set elsewhere.
-const { locale: activeI18nLocale, t, d: fmtDate } = useI18n({ useScope: "global" });
-const LOCALE_OPTIONS = AVAILABLE_LOCALES.map((l) => ({ label: l.label, value: l.code }));
-function onLocaleChange(code) {
-  const next = code || AVAILABLE_LOCALES[0].code;
-  ui.setLocale(next);
-  setI18nLocale(next);
-}
+const { t, d: fmtDate } = useI18n({ useScope: "global" });
+// The language picker's list: the app's catalogs (the kit's LanguagePicker names each language
+// and switches vue-i18n; the ui store keeps the choice).
+const LOCALE_CODES = AVAILABLE_LOCALES.map((l) => l.code);
 
 // ── Sync: what the kit's SyncPanel gets (composables/useSyncPanel.js — shared with the
 // project-less Sync page) ──
@@ -933,15 +928,9 @@ async function deleteCategory(c) {
 
           <!-- Language (UI locale — lives with Appearance, matching JustVoice) -->
           <div class="card">
-            <div class="card-title">{{ $t("settings.language.label") }}</div>
+            <div class="card-title">{{ $t("kit.settings.language.label") }}</div>
             <div style="display:flex;flex-direction:column;gap:6px;min-width:0;max-width:300px;margin-top:8px">
-              <UiSelect
-                :model-value="ui.locale || activeI18nLocale"
-                @update:model-value="onLocaleChange"
-                :options="LOCALE_OPTIONS"
-                option-label="label"
-                option-value="value"
-              />
+              <LanguagePicker :locales="LOCALE_CODES" @change="(code) => ui.setLocale(code)" />
               <span class="t-muted" style="font-size:11.5px">{{ $t("settings.language.hint") }}</span>
             </div>
           </div>
