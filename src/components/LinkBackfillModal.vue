@@ -28,9 +28,9 @@ const ui = useUiStore();
 const found = proposeSceneLinks(project, collectEntities(project));
 
 const SECTIONS = [
-  { key: "characters", label: "Characters", icon: "Users" },
-  { key: "locations",  label: "Locations",  icon: "Pin" },
-  { key: "objects",    label: "Objects",    icon: "Cube" },
+  { key: "characters", labelKey: "nav.characters", icon: "Users" },
+  { key: "locations",  labelKey: "nav.locations",  icon: "Pin" },
+  { key: "objects",    labelKey: "nav.objects",    icon: "Cube" },
 ];
 
 // field → [{ key, field, id, entityName, rows: [{...proposal, accept}] }]
@@ -104,7 +104,7 @@ function apply() {
       <section v-for="sec in SECTIONS" :key="sec.key" v-show="groups[sec.key].length" class="lb-section">
         <header class="lb-section-h">
           <Icon :name="sec.icon" :size="13" />
-          <h3>{{ sec.label }}</h3>
+          <h3>{{ t(sec.labelKey) }}</h3>
           <span class="t-muted">{{ $t("linkBackfill.proposedCount", { n: sectionCount(sec.key) }) }}</span>
         </header>
         <div v-for="g in groups[sec.key]" :key="g.key" class="lb-group">

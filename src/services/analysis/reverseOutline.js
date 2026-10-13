@@ -30,10 +30,10 @@ function firstParagraph(text, maxWords = 60) {
   return `${words.slice(0, maxWords).join(" ")}…`;
 }
 
-export const STRUCTURE_LABELS = {
-  "3-act":  "Three-act",
-  "5-act":  "Five-act",
-  "loose":  "Loose / episodic",
+export const STRUCTURE_LABEL_KEYS = {
+  "3-act":  "reverseOutline.structure.threeAct",
+  "5-act":  "reverseOutline.structure.fiveAct",
+  "loose":  "reverseOutline.structure.loose",
 };
 
 // The prompt lives server-side (features.py, action "reverseOutline").

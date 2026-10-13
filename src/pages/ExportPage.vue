@@ -31,11 +31,14 @@ const stripSceneStructure = ref(false);
 // one `exportProject()`. It lives here too because this is where a writer looks
 // for "get my book out".
 const FORMATS = [
-  { id: "pdf",  name: "PDF",            sub: "Print-ready manuscript with TOC.",       icon: "Export",     ext: "pdf",  mime: "application/pdf" },
-  { id: "docx", name: "DOCX",           sub: "Word-compatible.",                       icon: "Book",       ext: "docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
-  { id: "epub", name: "EPUB",           sub: "Reflowable e-book.",                     icon: "Book",       ext: "epub", mime: "application/epub+zip" },
-  { id: "zip",  name: "JustWrite book", sub: "The whole book, to move or share.",      icon: "Cube",       ext: "zip",  mime: "application/zip" },
+  { id: "pdf",  name: "PDF",            subKey: "export.formatSub.pdf",       icon: "Export",     ext: "pdf",  mime: "application/pdf" },
+  { id: "docx", name: "DOCX",           subKey: "export.formatSub.docx",                       icon: "Book",       ext: "docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+  { id: "epub", name: "EPUB",           subKey: "export.formatSub.epub",                     icon: "Book",       ext: "epub", mime: "application/epub+zip" },
+  { id: "zip",  nameKey: "bookTransfer.bookFilter", subKey: "export.formatSub.zip",      icon: "Cube",       ext: "zip",  mime: "application/zip" },
 ];
+
+// A format's name: its file type ("PDF"), or the words for the book .zip.
+const formatName = (f) => (f?.nameKey ? t(f.nameKey) : f?.name);
 
 // ── Shared state ─────────────────────────────────────────────────────
 const exporting = ref(false);
@@ -168,8 +171,8 @@ async function exportBookZip() {
               <span style="width:32px;height:32px;border-radius:7px;background:var(--surface);display:grid;place-items:center;color:var(--muted)">
                 <Icon :name="f.icon" :size="16" />
               </span>
-              <div style="font-weight:600;font-size:14px;margin-top:10px">{{ f.name }}</div>
-              <div class="t-muted" style="font-size:11.5px;margin-top:2px">{{ f.sub }}</div>
+              <div style="font-weight:600;font-size:14px;margin-top:10px">{{ formatName(f) }}</div>
+              <div class="t-muted" style="font-size:11.5px;margin-top:2px">{{ t(f.subKey) }}</div>
             </button>
           </div>
         </div>
@@ -270,9 +273,9 @@ async function exportBookZip() {
                  while it is actually happening. -->
             <div style="display:flex;gap:10px;align-items:center">
               <UiButton class="ex-go" intent="primary" :disabled="exporting || manuscriptStats.chapters === 0"
-                v-tooltip.bottom="manuscriptStats.chapters === 0 ? $t('export.addChapterFirst') : $t('export.exportAsTooltip', { format: FORMATS.find(f => f.id === fmt)?.name })"
+                v-tooltip.bottom="manuscriptStats.chapters === 0 ? $t('export.addChapterFirst') : $t('export.exportAsTooltip', { format: formatName(FORMATS.find(f => f.id === fmt)) })"
                 @click="exportManuscript(fmt)">
-                <Icon name="Download" :size="13" /> {{ $t("export.exportAction", { format: FORMATS.find(f => f.id === fmt)?.name }) }}
+                <Icon name="Download" :size="13" /> {{ $t("export.exportAction", { format: formatName(FORMATS.find(f => f.id === fmt)) }) }}
               </UiButton>
               <span class="t-muted" style="font-size:11.5px">
                 <template v-if="manuscriptStats.chapters === 0">{{ $t("export.noChapters") }}</template>

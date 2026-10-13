@@ -130,8 +130,8 @@ const totalCount = computed(() =>
       <div class="sr-grid">
         <section v-for="c in categories" :key="c.key" class="sr-section">
           <header class="sr-section-h">
-            <span class="sr-section-label">{{ c.label }}</span>
-            <span class="sr-section-blurb">{{ c.blurb }}</span>
+            <span class="sr-section-label">{{ t(c.labelKey) }}</span>
+            <span class="sr-section-blurb">{{ t(c.blurbKey) }}</span>
           </header>
           <ul class="sr-list">
             <li v-for="(p, i) in c.items" :key="i" class="sr-item">

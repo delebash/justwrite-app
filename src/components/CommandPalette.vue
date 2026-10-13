@@ -21,6 +21,9 @@ import { promptDialog, openHelp } from "@delebash/llm-ui";
 import { HELP_TOC } from "../services/helpDocs.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { Icon } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const router = useRouter();
 const project = useProjectStore();
@@ -46,48 +49,53 @@ defineExpose({ open: openPalette, close: closePalette });
 
 // ─── Item sources ───────────────────────────────────────────────────
 const NAV_ITEMS = [
-  { id: "nav:home",     label: "Home",                 sublabel: "Manuscript overview", icon: "Home",       to: "/" },
-  { id: "nav:ask",      label: "Ask the book",         sublabel: "Manuscript chat · ⌘J",icon: "Sparkle",    run: () => ui.openChatPanel() },
-  { id: "nav:chapters", label: "Chapters",             sublabel: "Outline + editor",    icon: "Book",       to: "/chapters" },
-  { id: "nav:search",   label: "Search",               sublabel: "Find across project", icon: "Search",     to: "/search" },
-  { id: "nav:plot",     label: "Plot board",           sublabel: "Strands + beats",     icon: "Grid",       to: "/plot" },
-  { id: "nav:strands",  label: "Narrative strands",    sublabel: "Storylines",          icon: "Strands",    to: "/strands" },
-  { id: "nav:timeline", label: "Timeline",             sublabel: "Events",              icon: "Timeline",   to: "/timeline" },
-  { id: "nav:notes",    label: "Notes",                sublabel: "Free-form notes",     icon: "Note",       to: "/notes" },
-  { id: "nav:relations",label: "Relations",            sublabel: "Network view",        icon: "Network",    to: "/relations" },
-  { id: "nav:characters",label: "Characters",          sublabel: "Cast list",           icon: "Users",      to: "/characters" },
-  { id: "nav:locations",label: "Locations",            sublabel: "Places",              icon: "Pin",        to: "/locations" },
-  { id: "nav:objects",  label: "Objects",              sublabel: "Items",               icon: "Cube",       to: "/objects" },
-  { id: "nav:groups",   label: "Groups",               sublabel: "Factions",            icon: "GroupIcon",  to: "/groups" },
-  { id: "nav:world",    label: "Worldbuilding",        sublabel: "Articles",            icon: "Sparkle",    to: "/worldbuilding" },
-  { id: "nav:arch",     label: "Architecture",         sublabel: "Setting docs",        icon: "Building",   to: "/architecture" },
-  { id: "nav:analysis", label: "Analysis",             sublabel: "Pace, style, heatmap",icon: "Chart",      to: "/analysis" },
-  { id: "nav:import",   label: "Import",               sublabel: "DOCX / EPUB / TXT",   icon: "Plus",       to: "/import" },
-  { id: "nav:export",   label: "Export",               sublabel: "PDF / DOCX / EPUB",   icon: "Export",     to: "/export" },
-  { id: "nav:ai",       label: "AI Settings",          sublabel: "Providers · features · usage", icon: "Sparkle", to: "/ai" },
-  { id: "nav:trash",    label: "Trash",                sublabel: "Restore deleted",     icon: "Trash",      to: "/trash" },
-  { id: "nav:settings", label: "Settings",             sublabel: "Preferences",         icon: "Settings",   to: "/settings" },
-  { id: "nav:usage",    label: "AI usage",             sublabel: "Tokens + cost ledger",icon: "Chart",      to: "/ai?tab=usage" },
+  { id: "nav:home",     labelKey: "nav.home",                 sublabelKey: "commandPalette.sub.home", icon: "Home",       to: "/" },
+  { id: "nav:ask",      labelKey: "sidebar.nav.askTheBook",         sublabelKey: "commandPalette.sub.ask",icon: "Sparkle",    run: () => ui.openChatPanel() },
+  { id: "nav:chapters", labelKey: "nav.chapters",             sublabelKey: "commandPalette.sub.chapters",    icon: "Book",       to: "/chapters" },
+  { id: "nav:search",   labelKey: "nav.search",               sublabelKey: "commandPalette.sub.search", icon: "Search",     to: "/search" },
+  { id: "nav:plot",     labelKey: "sidebar.nav.plotBoard",           sublabelKey: "commandPalette.sub.plot",     icon: "Grid",       to: "/plot" },
+  { id: "nav:strands",  labelKey: "common.narrativeStrands",    sublabelKey: "commandPalette.sub.strands",          icon: "Strands",    to: "/strands" },
+  { id: "nav:timeline", labelKey: "sidebar.nav.timeline",             sublabelKey: "commandPalette.sub.timeline",              icon: "Timeline",   to: "/timeline" },
+  { id: "nav:notes",    labelKey: "nav.notes",                sublabelKey: "commandPalette.sub.notes",     icon: "Note",       to: "/notes" },
+  { id: "nav:relations",labelKey: "sidebar.nav.relations",            sublabelKey: "commandPalette.sub.relations",        icon: "Network",    to: "/relations" },
+  { id: "nav:characters",labelKey: "nav.characters",          sublabelKey: "commandPalette.sub.characters",           icon: "Users",      to: "/characters" },
+  { id: "nav:locations",labelKey: "nav.locations",            sublabelKey: "commandPalette.sub.locations",              icon: "Pin",        to: "/locations" },
+  { id: "nav:objects",  labelKey: "nav.objects",              sublabelKey: "commandPalette.sub.objects",               icon: "Cube",       to: "/objects" },
+  { id: "nav:groups",   labelKey: "nav.groups",               sublabelKey: "commandPalette.sub.groups",            icon: "GroupIcon",  to: "/groups" },
+  { id: "nav:world",    labelKey: "nav.worldbuilding",        sublabelKey: "commandPalette.sub.world",            icon: "Sparkle",    to: "/worldbuilding" },
+  { id: "nav:arch",     labelKey: "nav.architecture",         sublabelKey: "commandPalette.sub.arch",        icon: "Building",   to: "/architecture" },
+  { id: "nav:analysis", labelKey: "nav.analysis",             sublabelKey: "commandPalette.sub.analysis",icon: "Chart",      to: "/analysis" },
+  { id: "nav:import",   labelKey: "nav.import",               sublabelKey: "commandPalette.sub.import",   icon: "Plus",       to: "/import" },
+  { id: "nav:export",   labelKey: "nav.export",               sublabelKey: "commandPalette.sub.export",   icon: "Export",     to: "/export" },
+  { id: "nav:ai",       labelKey: "commandPalette.nav.ai",          sublabelKey: "commandPalette.sub.ai", icon: "Sparkle", to: "/ai" },
+  { id: "nav:trash",    labelKey: "nav.trash",                sublabelKey: "commandPalette.sub.trash",     icon: "Trash",      to: "/trash" },
+  { id: "nav:settings", labelKey: "commandPalette.nav.settings",             sublabelKey: "commandPalette.sub.settings",         icon: "Settings",   to: "/settings" },
+  { id: "nav:usage",    labelKey: "commandPalette.nav.usage",             sublabelKey: "commandPalette.sub.usage",icon: "Chart",      to: "/ai?tab=usage" },
 ].filter((n) => bookIndexOn || n.id !== "nav:ask"); // Ask the book needs the search index
+// …in the interface language, so the list (and its search) follows a language change
+const navItems = computed(() => NAV_ITEMS.map((n) => ({ ...n, label: t(n.labelKey), sublabel: t(n.sublabelKey) })));
+
+// "Character · Protagonist" — an entity's kind, then its role or kind when it has one.
+const kindLine = (kind, detail) => [t(`commandPalette.kind.${kind}`), detail].filter(Boolean).join(" · ");
 
 const ENTITY_ITEMS = computed(() => {
   const out = [];
   for (const c of project.allChapters) {
     out.push({
       id: `ch:${c.id}`,
-      label: c.title || `Chapter ${c.num}`,
-      sublabel: `Chapter ${c.num} · ${c.partTitle || ""}`,
+      label: c.title || t("home.chapterN", { num: c.num }),
+      sublabel: `${t("home.chapterN", { num: c.num })} · ${c.partTitle || ""}`,
       icon: "Book",
       to: `/chapters/${c.id}`,
     });
   }
-  for (const x of project.characters) out.push({ id: `c:${x.id}`,  label: x.name, sublabel: `Character${x.role ? ` · ${x.role}` : ""}`, icon: "Users",     to: `/characters/${x.id}` });
-  for (const x of project.locations)  out.push({ id: `l:${x.id}`,  label: x.name, sublabel: `Location${x.kind ? ` · ${x.kind}` : ""}`,  icon: "Pin",       to: `/locations/${x.id}` });
-  for (const x of project.objects)    out.push({ id: `o:${x.id}`,  label: x.name, sublabel: `Object${x.kind ? ` · ${x.kind}` : ""}`,    icon: "Cube",      to: `/objects/${x.id}` });
-  for (const x of project.groups)     out.push({ id: `g:${x.id}`,  label: x.name, sublabel: "Group",                                    icon: "GroupIcon", to: `/groups/${x.id}` });
-  for (const x of project.notes)      out.push({ id: `n:${x.id}`,  label: x.title, sublabel: `Note · ${x.tag || ""}`,                   icon: "Note",      to: `/notes/${x.id}` });
-  for (const x of project.worldbuilding) out.push({ id: `w:${x.id}`, label: x.title, sublabel: `Worldbuilding · ${x.category || ""}`,   icon: "Sparkle",   to: `/worldbuilding/${x.id}` });
-  for (const x of project.strands)    out.push({ id: `s:${x.id}`,  label: x.name, sublabel: "Strand",                                   icon: "Strands",   to: `/strands/${x.id}` });
+  for (const x of project.characters) out.push({ id: `c:${x.id}`,  label: x.name, sublabel: kindLine("character", x.role), icon: "Users",     to: `/characters/${x.id}` });
+  for (const x of project.locations)  out.push({ id: `l:${x.id}`,  label: x.name, sublabel: kindLine("location", x.kind),  icon: "Pin",       to: `/locations/${x.id}` });
+  for (const x of project.objects)    out.push({ id: `o:${x.id}`,  label: x.name, sublabel: kindLine("object", x.kind),    icon: "Cube",      to: `/objects/${x.id}` });
+  for (const x of project.groups)     out.push({ id: `g:${x.id}`,  label: x.name, sublabel: kindLine("group"),                                    icon: "GroupIcon", to: `/groups/${x.id}` });
+  for (const x of project.notes)      out.push({ id: `n:${x.id}`,  label: x.title, sublabel: `${t("commandPalette.kind.note")} · ${x.tag || ""}`,                   icon: "Note",      to: `/notes/${x.id}` });
+  for (const x of project.worldbuilding) out.push({ id: `w:${x.id}`, label: x.title, sublabel: `${t("nav.worldbuilding")} · ${x.category || ""}`,   icon: "Sparkle",   to: `/worldbuilding/${x.id}` });
+  for (const x of project.strands)    out.push({ id: `s:${x.id}`,  label: x.name, sublabel: kindLine("strand"),                                   icon: "Strands",   to: `/strands/${x.id}` });
   return out;
 });
 
@@ -96,55 +104,55 @@ const ENTITY_ITEMS = computed(() => {
 // own dialog without competing for focus with the palette input.
 const ACTION_ITEMS = computed(() => {
   const list = [
-    { id: "act:newChapter", label: "New chapter",      sublabel: "Action",       icon: "Plus", keywords: "create add",
+    { id: "act:newChapter", label: t("commandPalette.act.newChapter"), sublabel: t("commandPalette.action"), icon: "Plus", keywords: t("commandPalette.keywords.create"),
       run: () => {
         const id = project.addChapter({});
         ui.select("chapters", id);
         router.push(`/chapters/${id}?new=1`);
       } },
-    { id: "act:newPart", label: "New part…",           sublabel: "Action",       icon: "Plus",
+    { id: "act:newPart", label: t("import.newPart"), sublabel: t("commandPalette.action"), icon: "Plus",
       run: async () => {
-        const title = await promptDialog({ title: "New part", label: "Part title", confirmLabel: "Create part" });
+        const title = await promptDialog({ title: t("commandPalette.dialog.newPartTitle"), label: t("commandPalette.dialog.partTitle"), confirmLabel: t("commandPalette.dialog.createPart") });
         if (title) project.addPart({ title });
       } },
-    { id: "act:newCharacter", label: "New character",  sublabel: "Action",       icon: "Plus",
+    { id: "act:newCharacter", label: t("commandPalette.act.newCharacter"), sublabel: t("commandPalette.action"),       icon: "Plus",
       run: () => { const id = project.addCharacter(); router.push(`/characters/${id}?new=1`); } },
-    { id: "act:newLocation", label: "New location",    sublabel: "Action",       icon: "Plus",
+    { id: "act:newLocation", label: t("commandPalette.act.newLocation"), sublabel: t("commandPalette.action"),       icon: "Plus",
       run: () => { const id = project.addLocation(); router.push(`/locations/${id}?new=1`); } },
-    { id: "act:newObject", label: "New object",        sublabel: "Action",       icon: "Plus",
+    { id: "act:newObject", label: t("commandPalette.act.newObject"), sublabel: t("commandPalette.action"),       icon: "Plus",
       run: () => { const id = project.addObject(); router.push(`/objects/${id}?new=1`); } },
-    { id: "act:newNote", label: "New note",            sublabel: "Action",       icon: "Plus",
+    { id: "act:newNote", label: t("commandPalette.act.newNote"), sublabel: t("commandPalette.action"),       icon: "Plus",
       run: () => { const id = project.addNote(); router.push(`/notes/${id}?new=1`); } },
-    { id: "act:newStrand", label: "New strand",        sublabel: "Action",       icon: "Plus",
+    { id: "act:newStrand", label: t("commandPalette.act.newStrand"), sublabel: t("commandPalette.action"),       icon: "Plus",
       run: () => { const id = project.addStrand(); router.push(`/strands/${id}?new=1`); } },
-    { id: "act:newWorldbuilding", label: "New worldbuilding article", sublabel: "Action", icon: "Plus",
+    { id: "act:newWorldbuilding", label: t("commandPalette.act.newArticle"), sublabel: t("commandPalette.action"), icon: "Plus",
       run: () => { const id = project.addWorldbuilding(); router.push(`/worldbuilding/${id}`); } },
-    { id: "act:findReplace", label: "Find & replace in prose…", sublabel: "Action · ⌘⇧F", icon: "Replace", keywords: "search substitute",
+    { id: "act:findReplace", label: t("commandPalette.act.findReplace"), sublabel: t("commandPalette.actionKeys", { keys: "⌘⇧F" }), icon: "Replace", keywords: t("commandPalette.keywords.replace"),
       run: () => ui.openProjectReplace() },
-    { id: "act:saveVersion", label: "Save chapter version…", sublabel: "Action", icon: "History",
+    { id: "act:saveVersion", label: t("commandPalette.act.saveVersion"), sublabel: t("commandPalette.action"), icon: "History",
       run: async () => {
         const chId = ui.selections.chapters;
-        if (!chId) { ui.showToast({ message: "Open a chapter first to save its version." }); return; }
-        const label = await promptDialog({ title: "Save version", label: "Version label (optional)", confirmLabel: "Save" });
+        if (!chId) { ui.showToast({ message: t("commandPalette.toast.openChapterFirst") }); return; }
+        const label = await promptDialog({ title: t("versionHistory.saveVersion"), label: t("commandPalette.dialog.versionLabel"), confirmLabel: t("common.save") });
         if (label === null) return;
         versions.saveVersion(chId, label || "");
         const title = (project.chapterById(chId)?.title || "").trim();
         const clip = (s, n = 30) => s.length > n ? `${s.slice(0, n - 1)}…` : s;
-        const chapter = title ? clip(title) : "this chapter";
+        const chapter = title ? clip(title) : t("sceneNotes.thisChapter");
         const message = label
-          ? `Saved “${clip(label.trim())}” — ${chapter}`
-          : `Saved version of ${chapter}`;
+          ? t("commandPalette.toast.savedNamed", { label: clip(label.trim()), chapter })
+          : t("commandPalette.toast.saved", { chapter });
         ui.showToast({ message });
       } },
-    { id: "act:toggleSidebar", label: "Toggle sidebar", sublabel: "Action · ⌘\\", icon: "SidebarToggle",
+    { id: "act:toggleSidebar", label: t("commandPalette.act.toggleSidebar"), sublabel: t("commandPalette.actionKeys", { keys: "⌘\\" }), icon: "SidebarToggle",
       run: () => ui.toggleSidebar() },
-    { id: "act:undo", label: "Undo",                   sublabel: "Action · ⌘Z",  icon: "Refresh",
+    { id: "act:undo", label: t("common.undo"), sublabel: t("commandPalette.actionKeys", { keys: "⌘Z" }),  icon: "Refresh",
       run: () => project.undoFor(router.currentRoute.value.meta.undoDomains || []) },
-    { id: "act:redo", label: "Redo",                   sublabel: "Action · ⌘Y",  icon: "Refresh",
+    { id: "act:redo", label: t("commandPalette.act.redo"), sublabel: t("commandPalette.actionKeys", { keys: "⌘Y" }),  icon: "Refresh",
       run: () => project.redoFor(router.currentRoute.value.meta.undoDomains || []) },
-    { id: "act:shortcuts", label: "Keyboard shortcuts", sublabel: "Action · ⌘/",  icon: "Help", keywords: "cheatsheet keys hotkeys",
+    { id: "act:shortcuts", label: t("commandPalette.act.shortcuts"), sublabel: t("commandPalette.actionKeys", { keys: "⌘/" }), icon: "Help", keywords: t("commandPalette.keywords.shortcuts"),
       run: () => ui.openShortcuts() },
-    { id: "act:help", label: "Help — open drawer",     sublabel: "Action",       icon: "Help", keywords: "docs guide manual",
+    { id: "act:help", label: t("commandPalette.act.help"), sublabel: t("commandPalette.action"), icon: "Help", keywords: t("commandPalette.keywords.help"),
       run: () => openHelp("") },
   ];
   return list;
@@ -159,9 +167,9 @@ const HELP_ITEMS = computed(() => {
       out.push({
         id: `help:${item.slug}`,
         label: item.title,
-        sublabel: `Help · ${item.hint}`,
+        sublabel: t("commandPalette.helpSub", { hint: item.hint }),
         icon: "Help",
-        keywords: `${group.section} docs guide help ${item.hint}`,
+        keywords: `${group.section} ${t("commandPalette.keywords.helpDoc")} ${item.hint}`,
         run: () => openHelp(item.slug),
       });
     }
@@ -188,7 +196,7 @@ function scoreItem(item, words) {
 }
 
 const allItems = computed(() => [
-  ...NAV_ITEMS,
+  ...navItems.value,
   ...ENTITY_ITEMS.value,
   ...ACTION_ITEMS.value,
   ...HELP_ITEMS.value,
@@ -198,7 +206,7 @@ const results = computed(() => {
   const q = query.value.trim().toLowerCase();
   if (!q) {
     // Empty query — show nav + actions only, hide the long entity list.
-    return [...NAV_ITEMS, ...ACTION_ITEMS.value].slice(0, 30);
+    return [...navItems.value, ...ACTION_ITEMS.value].slice(0, 30);
   }
   const words = q.split(/\s+/).filter(Boolean);
   const scored = [];

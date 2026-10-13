@@ -305,9 +305,9 @@ function emptySummary() {
 
 // Friendly labels for the POV hint badge, kept here so callers don't
 // need to map enums themselves.
-export const POV_LABELS = {
-  first: "First person",
-  second: "Second person",
-  third: "Third person",
-  mixed: "Mixed POV",
+export const POV_LABEL_KEYS = {
+  first: "analysisView.pov.first",
+  second: "analysisView.pov.second",
+  third: "analysisView.pov.third",
+  mixed: "analysisView.pov.mixed",
 };

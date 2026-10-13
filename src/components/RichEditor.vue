@@ -563,12 +563,12 @@ const ctxNativeOnce = ref(false); // armed by the "Show browser menu" row
 // selection-only (a whole-scene rewrite is too transformative for one click);
 // Tighten runs on the selection or the whole scene.
 const CTX_AI_SELECTION = [
-  { key: "rewrite",  label: "Rewrite" },
-  { key: "expand",   label: "Expand" },
-  { key: "describe", label: "Describe" },
+  { key: "rewrite",  labelKey: "richEditor.actionName.rewrite" },
+  { key: "expand",   labelKey: "richEditor.actionName.expand" },
+  { key: "describe", labelKey: "richEditor.actionName.describe" },
 ];
 const CTX_AI_ANY = [
-  { key: "tighten",  label: "Tighten" },
+  { key: "tighten",  labelKey: "richEditor.actionName.tighten" },
 ];
 
 function onEditorContextMenu(e) {
@@ -657,34 +657,38 @@ function sc(combo) {
           : k
   ).join(isMac ? "" : "+");
 }
-const TIP = {
-  bold: `Bold · ${sc("mod+B")}`,
-  italic: `Italic · ${sc("mod+I")}`,
-  underline: `Underline · ${sc("mod+U")}`,
-  strike: `Strikethrough · ${sc("mod+shift+S")}`,
-  superscript: `Superscript · ${sc("mod+.")}`,
-  subscript: `Subscript · ${sc("mod+,")}`,
-  h1: `Heading 1 · ${sc("mod+alt+1")}`,
-  h2: `Heading 2 · ${sc("mod+alt+2")}`,
-  h3: `Heading 3 · ${sc("mod+alt+3")}`,
-  quote: `Block quote · ${sc("mod+shift+B")}`,
-  bullet: `Bullet list · ${sc("mod+shift+8")}`,
-  ordered: `Numbered list · ${sc("mod+shift+7")}`,
-  task: `Checklist · ${sc("mod+shift+9")}`,
-  highlight: `Highlight · ${sc("mod+shift+H")}`,
-  alignLeft: `Align left · ${sc("mod+shift+L")}`,
-  alignCenter: `Align center · ${sc("mod+shift+E")}`,
-  alignRight: `Align right · ${sc("mod+shift+R")}`,
-  justify: `Justify · ${sc("mod+shift+J")}`,
-  link: `Link · ${sc("mod+K")}`,
-  undo: `Undo · ${sc("mod+Z")}`,
-  redo: `Redo · ${sc("mod+Y")}`,
-  find: `Find & replace · ${sc("mod+F")}`,
-  copy: `Copy · ${sc("mod+C")}`,
-  cut: `Cut · ${sc("mod+X")}`,
-  paste: `Paste · ${sc("mod+V")}`,
-  newScene: `New scene — splits chapter here · ${sc("mod+shift+Enter")}`,
+// The toolbar's tooltips — the action's name and its shortcut — in the interface language.
+const TIP_KEYS = {
+  bold: ["richEditor.tip.bold", "mod+B"],
+  italic: ["richEditor.tip.italic", "mod+I"],
+  underline: ["richEditor.tip.underline", "mod+U"],
+  strike: ["richEditor.tip.strike", "mod+shift+S"],
+  superscript: ["richEditor.tip.superscript", "mod+."],
+  subscript: ["richEditor.tip.subscript", "mod+,"],
+  h1: ["richEditor.tip.h1", "mod+alt+1"],
+  h2: ["richEditor.tip.h2", "mod+alt+2"],
+  h3: ["richEditor.tip.h3", "mod+alt+3"],
+  quote: ["richEditor.tip.quote", "mod+shift+B"],
+  bullet: ["richEditor.tip.bullet", "mod+shift+8"],
+  ordered: ["richEditor.tip.ordered", "mod+shift+7"],
+  task: ["richEditor.tip.task", "mod+shift+9"],
+  highlight: ["richEditor.tip.highlight", "mod+shift+H"],
+  alignLeft: ["richEditor.tip.alignLeft", "mod+shift+L"],
+  alignCenter: ["richEditor.tip.alignCenter", "mod+shift+E"],
+  alignRight: ["richEditor.tip.alignRight", "mod+shift+R"],
+  justify: ["richEditor.tip.justify", "mod+shift+J"],
+  link: ["richEditor.tip.link", "mod+K"],
+  undo: ["richEditor.tip.undo", "mod+Z"],
+  redo: ["richEditor.tip.redo", "mod+Y"],
+  find: ["richEditor.tip.find", "mod+F"],
+  copy: ["richEditor.tip.copy", "mod+C"],
+  cut: ["richEditor.tip.cut", "mod+X"],
+  paste: ["richEditor.tip.paste", "mod+V"],
+  newScene: ["richEditor.tip.newScene", "mod+shift+Enter"],
 };
+const tip = computed(() => Object.fromEntries(
+  Object.entries(TIP_KEYS).map(([k, [key, combo]]) => [k, t("richEditor.tipWithKeys", { name: t(key), keys: sc(combo) })]),
+));
 
 function setHeading(level) {
   editor.value?.chain().focus().toggleHeading({ level }).run();
@@ -705,12 +709,12 @@ function insertTable() {
 
 // --- highlight color dropdown -----------------------------------------
 const HIGHLIGHT_COLORS = [
-  { label: "Yellow", color: "#ffe8a3" },
-  { label: "Green",  color: "#bdf0c4" },
-  { label: "Blue",   color: "#bfe1ff" },
-  { label: "Pink",   color: "#ffc9de" },
-  { label: "Purple", color: "#e2ccff" },
-  { label: "Orange", color: "#ffd2a6" },
+  { labelKey: "richEditor.color.yellow", color: "#ffe8a3" },
+  { labelKey: "richEditor.color.green",  color: "#bdf0c4" },
+  { labelKey: "richEditor.color.blue",   color: "#bfe1ff" },
+  { labelKey: "richEditor.color.pink",   color: "#ffc9de" },
+  { labelKey: "richEditor.color.purple", color: "#e2ccff" },
+  { labelKey: "richEditor.color.orange", color: "#ffd2a6" },
 ];
 const highlightOpen = ref(false);
 const highlightWrap = ref(null);
@@ -1319,30 +1323,30 @@ defineExpose({
   <div class="rich-editor" :class="[`rich-editor--${variant}`, { 'rich-editor--fill': fill, 'focus-on': focusMode, 'typewriter-on': focusMode && typewriter }]" @keydown="onKeydown">
     <div class="editor-toolbar" v-if="editor && !focusMode">
       <div class="group" v-if="show('undo') || show('redo')">
-        <button v-if="show('undo')" class="tb-btn" :disabled="!editor.can().undo()" @click="run('undo')" :data-tip="TIP.undo"><Icon name="Refresh" :size="14" style="transform:scaleX(-1)" /></button>
-        <button v-if="show('redo')" class="tb-btn" :disabled="!editor.can().redo()" @click="run('redo')" :data-tip="TIP.redo"><Icon name="Refresh" :size="14" /></button>
+        <button v-if="show('undo')" class="tb-btn" :disabled="!editor.can().undo()" @click="run('undo')" :data-tip="tip.undo"><Icon name="Refresh" :size="14" style="transform:scaleX(-1)" /></button>
+        <button v-if="show('redo')" class="tb-btn" :disabled="!editor.can().redo()" @click="run('redo')" :data-tip="tip.redo"><Icon name="Refresh" :size="14" /></button>
       </div>
       <div class="group" v-if="show('copy') || show('cut') || show('paste')">
-        <button v-if="show('copy')" class="tb-btn" @click="doCopy" :data-tip="TIP.copy"><Icon name="Copy" :size="14" /></button>
-        <button v-if="show('cut')" class="tb-btn" @click="doCut" :data-tip="TIP.cut"><Icon name="Cut" :size="14" /></button>
-        <button v-if="show('paste')" class="tb-btn" @click="doPaste" :data-tip="TIP.paste"><Icon name="Paste" :size="14" /></button>
+        <button v-if="show('copy')" class="tb-btn" @click="doCopy" :data-tip="tip.copy"><Icon name="Copy" :size="14" /></button>
+        <button v-if="show('cut')" class="tb-btn" @click="doCut" :data-tip="tip.cut"><Icon name="Cut" :size="14" /></button>
+        <button v-if="show('paste')" class="tb-btn" @click="doPaste" :data-tip="tip.paste"><Icon name="Paste" :size="14" /></button>
       </div>
       <div class="group" v-if="show('bold') || show('italic') || show('underline') || show('strike') || show('subscript') || show('superscript')">
-        <button v-if="show('bold')" class="tb-btn" :class="{ active: isActive('bold') }" @click="run('toggleBold')" :data-tip="TIP.bold"><Icon name="Bold" :size="14" /></button>
-        <button v-if="show('italic')" class="tb-btn" :class="{ active: isActive('italic') }" @click="run('toggleItalic')" :data-tip="TIP.italic"><Icon name="Italic" :size="14" /></button>
-        <button v-if="show('underline')" class="tb-btn" :class="{ active: isActive('underline') }" @click="run('toggleUnderline')" :data-tip="TIP.underline"><Icon name="Underline" :size="14" /></button>
-        <button v-if="show('strike')" class="tb-btn" :class="{ active: isActive('strike') }" @click="run('toggleStrike')" :data-tip="TIP.strike"><Icon name="Strike" :size="14" /></button>
-        <button v-if="show('superscript')" class="tb-btn tb-glyph" :class="{ active: isActive('superscript') }" @click="run('toggleSuperscript')" :data-tip="TIP.superscript">{{ $t("richEditor.superscriptGlyph") }}</button>
-        <button v-if="show('subscript')" class="tb-btn tb-glyph" :class="{ active: isActive('subscript') }" @click="run('toggleSubscript')" :data-tip="TIP.subscript">{{ $t("richEditor.subscriptGlyph") }}</button>
+        <button v-if="show('bold')" class="tb-btn" :class="{ active: isActive('bold') }" @click="run('toggleBold')" :data-tip="tip.bold"><Icon name="Bold" :size="14" /></button>
+        <button v-if="show('italic')" class="tb-btn" :class="{ active: isActive('italic') }" @click="run('toggleItalic')" :data-tip="tip.italic"><Icon name="Italic" :size="14" /></button>
+        <button v-if="show('underline')" class="tb-btn" :class="{ active: isActive('underline') }" @click="run('toggleUnderline')" :data-tip="tip.underline"><Icon name="Underline" :size="14" /></button>
+        <button v-if="show('strike')" class="tb-btn" :class="{ active: isActive('strike') }" @click="run('toggleStrike')" :data-tip="tip.strike"><Icon name="Strike" :size="14" /></button>
+        <button v-if="show('superscript')" class="tb-btn tb-glyph" :class="{ active: isActive('superscript') }" @click="run('toggleSuperscript')" :data-tip="tip.superscript">{{ $t("richEditor.superscriptGlyph") }}</button>
+        <button v-if="show('subscript')" class="tb-btn tb-glyph" :class="{ active: isActive('subscript') }" @click="run('toggleSubscript')" :data-tip="tip.subscript">{{ $t("richEditor.subscriptGlyph") }}</button>
       </div>
 
       <div class="group" v-if="show('highlight') || show('textColor') || show('fontDec') || show('fontInc') || show('clearFormat')">
         <div v-if="show('highlight')" class="tb-highlight" ref="highlightWrap">
-          <button class="tb-btn tb-btn-split" :class="{ active: isActive('highlight') || highlightOpen }" @click="toggleHighlightMenu" :data-tip="TIP.highlight">
+          <button class="tb-btn tb-btn-split" :class="{ active: isActive('highlight') || highlightOpen }" @click="toggleHighlightMenu" :data-tip="tip.highlight">
             <Icon name="Highlight" :size="14" /><Icon name="ChevDown" :size="9" class="tb-caret" />
           </button>
           <div v-if="highlightOpen" class="tb-highlight-menu">
-            <button v-for="c in HIGHLIGHT_COLORS" :key="c.color" type="button" class="tb-swatch" :style="{ background: c.color }" :title="c.label" @click="setHighlightColor(c.color)" />
+            <button v-for="c in HIGHLIGHT_COLORS" :key="c.color" type="button" class="tb-swatch" :style="{ background: c.color }" :title="t(c.labelKey)" @click="setHighlightColor(c.color)" />
             <button type="button" class="tb-swatch tb-swatch-none" :title="$t('richEditor.removeHighlight')" @click="clearHighlight"><Icon name="Close" :size="11" /></button>
           </div>
         </div>
@@ -1361,27 +1365,27 @@ defineExpose({
       </div>
 
       <div class="group" v-if="show('quote') || show('list') || show('orderedList') || show('taskList') || show('align')">
-        <button v-if="show('quote')" class="tb-btn" :class="{ active: isActive('blockquote') }" @click="run('toggleBlockquote')" :data-tip="TIP.quote"><Icon name="Quote" :size="14" /></button>
-        <button v-if="show('list')" class="tb-btn" :class="{ active: isActive('bulletList') }" @click="run('toggleBulletList')" :data-tip="TIP.bullet"><Icon name="List" :size="14" /></button>
-        <button v-if="show('orderedList')" class="tb-btn" :class="{ active: isActive('orderedList') }" @click="run('toggleOrderedList')" :data-tip="TIP.ordered"><Icon name="ListOrdered" :size="14" /></button>
-        <button v-if="show('taskList')" class="tb-btn" :class="{ active: isActive('taskList') }" @click="run('toggleTaskList')" :data-tip="TIP.task"><Icon name="CheckSquare" :size="14" /></button>
-        <button v-if="show('align')" class="tb-btn" :class="{ active: isActive({ textAlign: 'left' }) }" @click="setAlign('left')" :data-tip="TIP.alignLeft"><Icon name="AlignLeft" :size="14" /></button>
-        <button v-if="show('align')" class="tb-btn" :class="{ active: isActive({ textAlign: 'center' }) }" @click="setAlign('center')" :data-tip="TIP.alignCenter"><Icon name="AlignCenter" :size="14" /></button>
-        <button v-if="show('align')" class="tb-btn" :class="{ active: isActive({ textAlign: 'right' }) }" @click="setAlign('right')" :data-tip="TIP.alignRight"><Icon name="AlignRight" :size="14" /></button>
-        <button v-if="show('align')" class="tb-btn" :class="{ active: isActive({ textAlign: 'justify' }) }" @click="setAlign('justify')" :data-tip="TIP.justify"><Icon name="AlignJustify" :size="14" /></button>
+        <button v-if="show('quote')" class="tb-btn" :class="{ active: isActive('blockquote') }" @click="run('toggleBlockquote')" :data-tip="tip.quote"><Icon name="Quote" :size="14" /></button>
+        <button v-if="show('list')" class="tb-btn" :class="{ active: isActive('bulletList') }" @click="run('toggleBulletList')" :data-tip="tip.bullet"><Icon name="List" :size="14" /></button>
+        <button v-if="show('orderedList')" class="tb-btn" :class="{ active: isActive('orderedList') }" @click="run('toggleOrderedList')" :data-tip="tip.ordered"><Icon name="ListOrdered" :size="14" /></button>
+        <button v-if="show('taskList')" class="tb-btn" :class="{ active: isActive('taskList') }" @click="run('toggleTaskList')" :data-tip="tip.task"><Icon name="CheckSquare" :size="14" /></button>
+        <button v-if="show('align')" class="tb-btn" :class="{ active: isActive({ textAlign: 'left' }) }" @click="setAlign('left')" :data-tip="tip.alignLeft"><Icon name="AlignLeft" :size="14" /></button>
+        <button v-if="show('align')" class="tb-btn" :class="{ active: isActive({ textAlign: 'center' }) }" @click="setAlign('center')" :data-tip="tip.alignCenter"><Icon name="AlignCenter" :size="14" /></button>
+        <button v-if="show('align')" class="tb-btn" :class="{ active: isActive({ textAlign: 'right' }) }" @click="setAlign('right')" :data-tip="tip.alignRight"><Icon name="AlignRight" :size="14" /></button>
+        <button v-if="show('align')" class="tb-btn" :class="{ active: isActive({ textAlign: 'justify' }) }" @click="setAlign('justify')" :data-tip="tip.justify"><Icon name="AlignJustify" :size="14" /></button>
       </div>
 
       <div class="group" v-if="show('h1') || show('h2') || show('h3')">
-        <button v-if="show('h1')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 1 }) }" @click="setHeading(1)" :data-tip="TIP.h1">{{ $t("richEditor.h1Glyph") }}</button>
-        <button v-if="show('h2')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 2 }) }" @click="setHeading(2)" :data-tip="TIP.h2">{{ $t("richEditor.h2Glyph") }}</button>
-        <button v-if="show('h3')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 3 }) }" @click="setHeading(3)" :data-tip="TIP.h3">{{ $t("richEditor.h3Glyph") }}</button>
+        <button v-if="show('h1')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 1 }) }" @click="setHeading(1)" :data-tip="tip.h1">{{ $t("richEditor.h1Glyph") }}</button>
+        <button v-if="show('h2')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 2 }) }" @click="setHeading(2)" :data-tip="tip.h2">{{ $t("richEditor.h2Glyph") }}</button>
+        <button v-if="show('h3')" class="tb-btn tb-glyph" :class="{ active: isActive('heading', { level: 3 }) }" @click="setHeading(3)" :data-tip="tip.h3">{{ $t("richEditor.h3Glyph") }}</button>
       </div>
 
       <div class="group" v-if="show('link') || show('image') || show('table') || show('newScene')">
-        <button v-if="show('link')" class="tb-btn" :class="{ active: isActive('link') }" @click="setLink" :data-tip="TIP.link"><Icon name="Link" :size="14" /></button>
+        <button v-if="show('link')" class="tb-btn" :class="{ active: isActive('link') }" @click="setLink" :data-tip="tip.link"><Icon name="Link" :size="14" /></button>
         <button v-if="show('image')" class="tb-btn" @click="pickImage" :data-tip="t('richEditor.tip.insertImage')"><Icon name="Image" :size="14" /></button>
         <button v-if="show('table')" class="tb-btn" @click="insertTable" :data-tip="t('richEditor.tip.insertTable')"><Icon name="Table" :size="14" /></button>
-        <button v-if="show('newScene')" class="tb-btn" @click="run('setSceneBoundary')" :data-tip="TIP.newScene"><Icon name="Strands" :size="14" /></button>
+        <button v-if="show('newScene')" class="tb-btn" @click="run('setSceneBoundary')" :data-tip="tip.newScene"><Icon name="Strands" :size="14" /></button>
       </div>
 
       <div class="group" v-if="show('comment')">
@@ -1397,7 +1401,7 @@ defineExpose({
       </div>
 
       <div class="group" v-if="show('find') || show('focus') || show('settings') || show('print')">
-        <button v-if="show('find')" class="tb-btn" :class="{ active: findOpen }" @click="toggleFind" :data-tip="TIP.find"><Icon name="Search" :size="14" /></button>
+        <button v-if="show('find')" class="tb-btn" :class="{ active: findOpen }" @click="toggleFind" :data-tip="tip.find"><Icon name="Search" :size="14" /></button>
         <button v-if="show('focus')" class="tb-btn" :class="{ active: focusMode }" @click="toggleFocus" :data-tip="t('richEditor.tip.focusMode')"><Icon name="Focus" :size="14" /></button>
         <button v-if="show('settings')" class="tb-btn" @click="settingsOpen = true" :data-tip="t('richEditor.tip.writingSettings')"><Icon name="Settings" :size="14" /></button>
         <button v-if="show('print')" class="tb-btn" @click="doPrint" :data-tip="t('richEditor.tip.print')"><Icon name="Print" :size="14" /></button>
@@ -1426,7 +1430,7 @@ defineExpose({
     <!-- Focus-mode floating controls -->
     <div v-if="editor && focusMode" class="focus-controls">
       <button v-if="show('newScene')" class="tb-btn" @click="run('setSceneBoundary')"
-        :data-tip="TIP.newScene"><Icon name="Strands" :size="14" /></button>
+        :data-tip="tip.newScene"><Icon name="Strands" :size="14" /></button>
       <button class="tb-btn tb-text" :class="{ active: typewriter }" @click="toggleTypewriter"
         :data-tip="$t('richEditor.typewriterTip')">{{ $t("richEditor.typewriter") }}</button>
       <button class="tb-btn" @click="toggleFocus" :data-tip="t('richEditor.tip.exitFocus')"><Icon name="Close" :size="14" /></button>
@@ -1434,9 +1438,9 @@ defineExpose({
 
     <!-- Selection bubble menu (manuscript only) -->
     <bubble-menu v-if="editor && useBubble" :editor="editor" :tippy-options="{ duration: 100 }" :should-show="bubbleShouldShow" class="bubble-menu">
-      <button class="tb-btn" :class="{ active: isActive('bold') }" @click="run('toggleBold')" :data-tip="TIP.bold"><Icon name="Bold" :size="14" /></button>
-      <button class="tb-btn" :class="{ active: isActive('italic') }" @click="run('toggleItalic')" :data-tip="TIP.italic"><Icon name="Italic" :size="14" /></button>
-      <button class="tb-btn" :class="{ active: isActive('underline') }" @click="run('toggleUnderline')" :data-tip="TIP.underline"><Icon name="Underline" :size="14" /></button>
+      <button class="tb-btn" :class="{ active: isActive('bold') }" @click="run('toggleBold')" :data-tip="tip.bold"><Icon name="Bold" :size="14" /></button>
+      <button class="tb-btn" :class="{ active: isActive('italic') }" @click="run('toggleItalic')" :data-tip="tip.italic"><Icon name="Italic" :size="14" /></button>
+      <button class="tb-btn" :class="{ active: isActive('underline') }" @click="run('toggleUnderline')" :data-tip="tip.underline"><Icon name="Underline" :size="14" /></button>
       <div class="tb-highlight" ref="textColorWrapBubble">
         <button class="tb-btn tb-btn-split" :class="{ active: textColorBubbleOpen }" @click="toggleTextColorBubble" :data-tip="$t('richEditor.textColorTip')">
           <span class="tb-A" :style="textColorValue() ? { color: textColorValue() } : null">{{ $t("richEditor.textColorGlyph") }}</span><Icon name="ChevDown" :size="9" class="tb-caret" />
@@ -1448,7 +1452,7 @@ defineExpose({
       </div>
       <button class="tb-btn tb-glyph" @click="bumpFont(-1)" :data-tip="$t('richEditor.fontDecTip')">{{ $t("richEditor.fontDecGlyph") }}</button>
       <button class="tb-btn tb-glyph" @click="bumpFont(1)" :data-tip="$t('richEditor.fontIncTip')">{{ $t("richEditor.fontIncGlyph") }}</button>
-      <button class="tb-btn" :class="{ active: isActive('link') }" @click="setLink" :data-tip="TIP.link"><Icon name="Link" :size="14" /></button>
+      <button class="tb-btn" :class="{ active: isActive('link') }" @click="setLink" :data-tip="tip.link"><Icon name="Link" :size="14" /></button>
       <button class="tb-btn" :class="{ active: isActive('comment') }" @click="openCommentEditor" :data-tip="$t('richEditor.addCommentTip')"><Icon name="Comment" :size="14" /></button>
       <!-- AI assist actions (Rewrite/Expand/Tighten/Continue/Line edits)
            moved to the scene strip's AI dropdown so they're always one
@@ -1519,12 +1523,12 @@ defineExpose({
       </div>
       <button v-for="a in CTX_AI_SELECTION" :key="a.key" class="ctx-item" role="menuitem"
         :disabled="aiRunning || !hasSelection" @click="ctxRun(runWriterAction, a.key)">
-        <Icon name="Sparkle" :size="13" class="ctx-ic" /><span class="ctx-label">{{ a.label }}</span>
+        <Icon name="Sparkle" :size="13" class="ctx-ic" /><span class="ctx-label">{{ t(a.labelKey) }}</span>
       </button>
       <div class="ctx-section">{{ $t("richEditor.ctxSelectionOrScene") }}</div>
       <button v-for="a in CTX_AI_ANY" :key="a.key" class="ctx-item" role="menuitem"
         :disabled="aiRunning" @click="ctxRun(runWriterAction, a.key)">
-        <Icon name="Sparkle" :size="13" class="ctx-ic" /><span class="ctx-label">{{ a.label }}</span>
+        <Icon name="Sparkle" :size="13" class="ctx-ic" /><span class="ctx-label">{{ t(a.labelKey) }}</span>
       </button>
       <div class="ctx-divider" />
       <div class="ctx-section">{{ $t("richEditor.ctxLineEdits") }} <span class="ctx-section-hint">{{ $t("richEditor.ctxLineEditsHint") }}</span></div>

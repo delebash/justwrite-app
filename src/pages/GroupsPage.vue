@@ -31,7 +31,7 @@ const router = useRouter();
 const g = computed(() => props.id ? project.groupById(props.id) : null);
 const modal = ref(null);
 const KIND_ICON = { character: "Users", location: "Pin", object: "Cube", strand: "Strands" };
-const KIND_HEADING = { character: "Characters", location: "Locations", object: "Objects", strand: "Narrative strands" };
+const KIND_HEADING_KEYS = { character: "nav.characters", location: "nav.locations", object: "nav.objects", strand: "common.narrativeStrands" };
 const KIND_ORDER = ["character", "location", "object", "strand"];
 const KIND_ROUTE = { character: "characters", location: "locations", object: "objects", strand: "strands" };
 
@@ -52,7 +52,7 @@ const memberGroups = computed(() => {
     ...KIND_ORDER.filter((k) => byKind.has(k)),
     ...[...byKind.keys()].filter((k) => !KIND_ORDER.includes(k)),
   ];
-  return kinds.map((kind) => ({ kind, label: KIND_HEADING[kind] || kind, members: byKind.get(kind) }));
+  return kinds.map((kind) => ({ kind, label: KIND_HEADING_KEYS[kind] ? t(KIND_HEADING_KEYS[kind]) : kind, members: byKind.get(kind) }));
 });
 
 function update(k, v) { project.updateGroup(g.value.id, { [k]: v }); }

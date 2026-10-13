@@ -18,7 +18,7 @@ import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
 import {
   generateReverseOutline,
-  STRUCTURE_LABELS,
+  STRUCTURE_LABEL_KEYS,
 } from "../services/analysis/reverseOutline.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
@@ -146,7 +146,7 @@ const stripRows = computed(() => {
     <template v-else-if="outline">
       <div class="ro-head">
         <span class="ro-structure-chip" :data-structure="outline.structureName">
-          {{ STRUCTURE_LABELS[outline.structureName] || outline.structureName }}
+          {{ STRUCTURE_LABEL_KEYS[outline.structureName] ? t(STRUCTURE_LABEL_KEYS[outline.structureName]) : outline.structureName }}
         </span>
         <span class="ro-meta">
           {{ $t("reverseOutline.meta", { n: outline.totalChapters, when: relativeTime(outline.generatedAt) }, outline.totalChapters) }}

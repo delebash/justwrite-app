@@ -10,7 +10,7 @@ import {
   statusCounts, strandDistribution, characterPresence,
   scenesPerChapter, projectKpis, paceSeries,
 } from "../services/analysis.js";
-import { bookMetrics, POV_LABELS } from "../services/analysis/styleMetrics.js";
+import { bookMetrics, POV_LABEL_KEYS } from "../services/analysis/styleMetrics.js";
 import { computeVoiceDrift, deriveVoiceDriftContext, explainVoiceDrift } from "../services/analysis/voiceDrift.js";
 import { sweepStoryTension } from "../services/analysis/tensionSweep.js";
 import { PACING_LABEL_KEYS, ENDING_LABEL_KEYS } from "../services/analysis/critique.js";
@@ -668,7 +668,7 @@ const milestoneState = computed(() => {
       <div class="card" style="margin-bottom:18px" v-if="style.summary.words > 0">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
           <div class="card-title" style="margin:0">{{ $t("analysisView.stylePacing") }}</div>
-          <span class="t-muted" style="font-size:11.5px">{{ $t("analysisView.styleSub", { pov: POV_LABELS[style.summary.dominantPov] }) }}</span>
+          <span class="t-muted" style="font-size:11.5px">{{ $t("analysisView.styleSub", { pov: POV_LABEL_KEYS[style.summary.dominantPov] ? t(POV_LABEL_KEYS[style.summary.dominantPov]) : style.summary.dominantPov }) }}</span>
         </div>
 
         <!-- Book-level rollup pills -->
@@ -714,7 +714,7 @@ const milestoneState = computed(() => {
             <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.passivePer1k / Math.max(styleMaxes.passive, 1)) * 100}%`" /></span>{{ row.passivePer1k.toFixed(1) }}
           </template>
           <template #povHint="{ value }">
-            <span style="color:var(--muted);font-family:var(--font-mono);font-size:10.5px">{{ POV_LABELS[value] || "—" }}</span>
+            <span style="color:var(--muted);font-family:var(--font-mono);font-size:10.5px">{{ POV_LABEL_KEYS[value] ? t(POV_LABEL_KEYS[value]) : "—" }}</span>
           </template>
         </UiTable>
       </div>

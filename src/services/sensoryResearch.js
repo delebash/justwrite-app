@@ -22,14 +22,14 @@ import { t } from "../i18n/index.js";
 // the phrases will contain. Kept in one place so the modal and prompt
 // stay in lockstep.
 export const SENSORY_CATEGORIES = [
-  { key: "smell",       label: "Smell",        blurb: "What it smells of — distinct, specific, sometimes unpleasant." },
-  { key: "sound",       label: "Sound",        blurb: "Background and foreground noise; what the ear actually catches." },
-  { key: "touch",       label: "Touch",        blurb: "Surfaces against skin, weight in the hand, fabric and air." },
-  { key: "temperature", label: "Temperature",  blurb: "Heat, cold, drafts, the body's response." },
-  { key: "taste",       label: "Taste",        blurb: "The mouth as a sense organ — what lingers, what's swallowed." },
-  { key: "movement",    label: "Movement",     blurb: "Bodies in motion, how the space is navigated, what's happening." },
-  { key: "social",      label: "Social",       blurb: "Who is here, what they're doing, the codes they speak in." },
-  { key: "period",      label: "Period detail", blurb: "Period- or setting-specific texture a modern reader wouldn't know." },
+  { key: "smell",       labelKey: "sensory.category.smell.label", blurbKey: "sensory.category.smell.blurb" },
+  { key: "sound",       labelKey: "sensory.category.sound.label", blurbKey: "sensory.category.sound.blurb" },
+  { key: "touch",       labelKey: "sensory.category.touch.label", blurbKey: "sensory.category.touch.blurb" },
+  { key: "temperature", labelKey: "sensory.category.temperature.label", blurbKey: "sensory.category.temperature.blurb" },
+  { key: "taste",       labelKey: "sensory.category.taste.label", blurbKey: "sensory.category.taste.blurb" },
+  { key: "movement",    labelKey: "sensory.category.movement.label", blurbKey: "sensory.category.movement.blurb" },
+  { key: "social",      labelKey: "sensory.category.social.label", blurbKey: "sensory.category.social.blurb" },
+  { key: "period",      labelKey: "sensory.category.period.label", blurbKey: "sensory.category.period.blurb" },
 ];
 
 const CATEGORY_KEYS = SENSORY_CATEGORIES.map((c) => c.key);

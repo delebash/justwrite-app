@@ -70,10 +70,10 @@ const selectedCharacterId = ref(null);
 
 // The in-panel provider+model PICKER is gone (B5-1, §7.2). The header
 // AiFeatureChip is a read-only "runs on" provenance chip.
-const MODE_OPTIONS = [
-  { value: "book", label: "Ask the book" },
-  { value: "character", label: "Talk to a character" },
-];
+const modeOptions = computed(() => [
+  { value: "book", label: t("chat.taskBook") },
+  { value: "character", label: t("chat.talkToCharacter") },
+]);
 const characterOptions = computed(() => {
   const main = (project.characters || []).filter((c) => c.main);
   const rest = (project.characters || []).filter((c) => !c.main);
@@ -474,7 +474,7 @@ defineExpose({ open: () => { open.value = true; }, close });
       <!-- Mode + character picker. Switching either resumes that scope's most
            recent session (or an empty unsaved thread if none). -->
       <div class="cp-mode-row">
-        <UiSelect v-model="chatMode" :options="MODE_OPTIONS" />
+        <UiSelect v-model="chatMode" :options="modeOptions" />
         <UiSelect v-if="chatMode === 'character'"
                   v-model="selectedCharacterId"
                   :options="characterOptions"

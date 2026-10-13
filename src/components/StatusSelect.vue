@@ -33,9 +33,9 @@ const NEW_SENTINEL = "__status_new__";
 
 // "Unset" is a synthetic, non-editable status: items with no status id still
 // display a real value ("Unset") in the pill rather than a placeholder hint.
-const UNSET = { label: "Status Unset", color: "var(--muted)" };
+const unsetStatus = computed(() => ({ label: t("status.unset"), color: "var(--muted)" }));
 const real = computed(() => project.statusById(props.modelValue));
-const current = computed(() => real.value || UNSET);
+const current = computed(() => real.value || unsetStatus.value);
 
 const options = computed(() => [
   { value: "", label: t("status.unset"), unset: true },

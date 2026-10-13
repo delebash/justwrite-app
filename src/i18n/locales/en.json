@@ -88,7 +88,8 @@
     "chapter": "Chapter",
     "chapterRefDash": "Ch. {num} — {title}",
     "sceneRefLong": "Ch. {num} · {chapter} — {scene}",
-    "openItem": "Open {name}"
+    "openItem": "Open {name}",
+    "narrativeStrands": "Narrative strands"
   },
   "tray": {
     "show": "📺 Show window",
@@ -705,6 +706,12 @@
     "err": {
       "noChapters": "Project has no chapters to export.",
       "saveFailed": "Save failed."
+    },
+    "formatSub": {
+      "pdf": "Print-ready manuscript with TOC.",
+      "docx": "Word-compatible.",
+      "epub": "Reflowable e-book.",
+      "zip": "The whole book, to move or share."
     }
   },
   "versionHistory": {
@@ -1296,7 +1303,42 @@
       "previous": "Previous",
       "next": "Next",
       "close": "Close",
-      "exitFocus": "Exit focus mode (Esc)"
+      "exitFocus": "Exit focus mode (Esc)",
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "strike": "Strikethrough",
+      "superscript": "Superscript",
+      "subscript": "Subscript",
+      "h1": "Heading 1",
+      "h2": "Heading 2",
+      "h3": "Heading 3",
+      "quote": "Block quote",
+      "bullet": "Bullet list",
+      "ordered": "Numbered list",
+      "task": "Checklist",
+      "highlight": "Highlight",
+      "alignLeft": "Align left",
+      "alignCenter": "Align center",
+      "alignRight": "Align right",
+      "justify": "Justify",
+      "link": "Link",
+      "undo": "Undo",
+      "redo": "Redo",
+      "find": "Find & replace",
+      "copy": "Copy",
+      "cut": "Cut",
+      "paste": "Paste",
+      "newScene": "New scene — splits chapter here"
+    },
+    "tipWithKeys": "{name} · {keys}",
+    "color": {
+      "yellow": "Yellow",
+      "green": "Green",
+      "blue": "Blue",
+      "pink": "Pink",
+      "purple": "Purple",
+      "orange": "Orange"
     }
   },
   "home": {
@@ -1540,7 +1582,13 @@
     "tipScores": "Tension {tension}/10 · Hook {hook}/10\nPacing: {pacing} · Ending: {ending}",
     "mentions": "{n} mention | {n} mentions",
     "trendTip": "Early third mean {early} → late third mean {late}",
-    "dayTip": "{date} · {words} words"
+    "dayTip": "{date} · {words} words",
+    "pov": {
+      "first": "First person",
+      "second": "Second person",
+      "third": "Third person",
+      "mixed": "Mixed POV"
+    }
   },
   "search": {
     "resultCount": "{n} result | {n} results",
@@ -1586,7 +1634,12 @@
       "noProvider": "Configure an AI provider in Settings → AI to generate the reverse outline.",
       "failed": "Couldn't build the outline."
     },
-    "taskLabel": "Reverse outline"
+    "taskLabel": "Reverse outline",
+    "structure": {
+      "threeAct": "Three-act",
+      "fiveAct": "Five-act",
+      "loose": "Loose / episodic"
+    }
   },
   "projectReplace": {
     "title": "Find & replace in prose",
@@ -1645,7 +1698,80 @@
     "noMatches": "No matches.",
     "navigate": "navigate",
     "open": "open",
-    "close": "close"
+    "close": "close",
+    "sub": {
+      "home": "Manuscript overview",
+      "ask": "Manuscript chat · ⌘J",
+      "chapters": "Outline + editor",
+      "search": "Find across project",
+      "plot": "Strands + beats",
+      "strands": "Storylines",
+      "timeline": "Events",
+      "notes": "Free-form notes",
+      "relations": "Network view",
+      "characters": "Cast list",
+      "locations": "Places",
+      "objects": "Items",
+      "groups": "Factions",
+      "world": "Articles",
+      "arch": "Setting docs",
+      "analysis": "Pace, style, heatmap",
+      "import": "DOCX / EPUB / TXT",
+      "export": "PDF / DOCX / EPUB",
+      "ai": "Providers · features · usage",
+      "trash": "Restore deleted",
+      "settings": "Preferences",
+      "usage": "Tokens + cost ledger"
+    },
+    "nav": {
+      "ai": "AI Settings",
+      "settings": "Settings",
+      "usage": "AI usage"
+    },
+    "kind": {
+      "character": "Character",
+      "location": "Location",
+      "object": "Object",
+      "group": "Group",
+      "strand": "Strand",
+      "note": "Note"
+    },
+    "action": "Action",
+    "actionKeys": "Action · {keys}",
+    "act": {
+      "newChapter": "New chapter",
+      "newCharacter": "New character",
+      "newLocation": "New location",
+      "newObject": "New object",
+      "newNote": "New note",
+      "newStrand": "New strand",
+      "newArticle": "New worldbuilding article",
+      "findReplace": "Find & replace in prose…",
+      "saveVersion": "Save chapter version…",
+      "toggleSidebar": "Toggle sidebar",
+      "redo": "Redo",
+      "shortcuts": "Keyboard shortcuts",
+      "help": "Help — open drawer"
+    },
+    "keywords": {
+      "create": "create add",
+      "replace": "search substitute",
+      "shortcuts": "cheatsheet keys hotkeys",
+      "help": "docs guide manual",
+      "helpDoc": "docs guide help"
+    },
+    "helpSub": "Help · {hint}",
+    "dialog": {
+      "newPartTitle": "New part",
+      "partTitle": "Part title",
+      "createPart": "Create part",
+      "versionLabel": "Version label (optional)"
+    },
+    "toast": {
+      "openChapterFirst": "Open a chapter first to save its version.",
+      "savedNamed": "Saved “{label}” — {chapter}",
+      "saved": "Saved version of {chapter}"
+    }
   },
   "trash": {
     "itemCount": "{n} item | {n} items",
@@ -1847,7 +1973,41 @@
       "empty": "The model returned no usable phrases. Try regenerating with a more specific subject."
     },
     "taskLabel": "Sensory research pack",
-    "taskShort": "Sensory research"
+    "taskShort": "Sensory research",
+    "category": {
+      "smell": {
+        "label": "Smell",
+        "blurb": "What it smells of — distinct, specific, sometimes unpleasant."
+      },
+      "sound": {
+        "label": "Sound",
+        "blurb": "Background and foreground noise; what the ear actually catches."
+      },
+      "touch": {
+        "label": "Touch",
+        "blurb": "Surfaces against skin, weight in the hand, fabric and air."
+      },
+      "temperature": {
+        "label": "Temperature",
+        "blurb": "Heat, cold, drafts, the body's response."
+      },
+      "taste": {
+        "label": "Taste",
+        "blurb": "The mouth as a sense organ — what lingers, what's swallowed."
+      },
+      "movement": {
+        "label": "Movement",
+        "blurb": "Bodies in motion, how the space is navigated, what's happening."
+      },
+      "social": {
+        "label": "Social",
+        "blurb": "Who is here, what they're doing, the codes they speak in."
+      },
+      "period": {
+        "label": "Period detail",
+        "blurb": "Period- or setting-specific texture a modern reader wouldn't know."
+      }
+    }
   },
   "stuck": {
     "eyebrow": "Stuck?",
