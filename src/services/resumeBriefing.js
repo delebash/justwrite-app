@@ -66,6 +66,7 @@ function priorRecap(project) {
 // Build the structured context the prompt is grounded in. Pure data —
 // no model calls. Returned as both a `meta` summary (for the UI) and a
 // `prompt` string (for the LLM).
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export function buildBriefingContext({ project, sessions, maxTailWords = 500 }) {
   const lastChapterId = sessions.lastWrite?.chapterId || null;
   const lastDay = sessions.lastWrite?.day || null;
@@ -231,6 +232,7 @@ export function buildBriefingContext({ project, sessions, maxTailWords = 500 }) 
 
   return { meta, prompt: lines.join("\n") };
 }
+/* eslint-enable i18next/no-literal-string */
 
 // ─── The briefing call ─────────────────────────────────────────────────
 

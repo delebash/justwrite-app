@@ -57,10 +57,12 @@ function chapterText(project, chapterId) {
 // "Chapter N — Title\n\n" — the seeded templates concatenate
 // "{{chapter_label}}--- BEGIN CHAPTER ---", so the trailing blank line is
 // part of the contract (the old bare-title fill rendered them fused).
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 function chapterHeader(chapter) {
   if (!chapter?.title) return "";
   return `Chapter ${chapter.num != null ? `${chapter.num} — ` : ""}${chapter.title}\n\n`;
 }
+/* eslint-enable i18next/no-literal-string */
 
 // ── the two listable sources ──
 export const LAB_TEST_SOURCES = [
@@ -252,14 +254,18 @@ function composeBriefing() {
 }
 
 // ── the per-action affordance table (all 37 seeded actions) ──
+/* eslint-disable i18next/no-literal-string -- names of the seeded Lab samples, matched exactly */
 const chapterProse = { pickers: [{ source: "chapters", fill: fillChapterProse }], samples: ["Chapter for critique"] };
 const passageEdit = { pickers: [{ source: "chapters", fill: fillPassage }], samples: ["Flabby paragraph"] };
+/* eslint-enable i18next/no-literal-string */
 const proseFill = (action, samples) => ({
   pickers: [{ source: "chapters", fill: (id) => fillProsePassage(id, action) }],
   samples,
 });
+/* eslint-disable i18next/no-literal-string -- names of the seeded Lab samples, matched exactly */
 const proseEdit = (action) => proseFill(action, ["Flabby paragraph", "With story context"]);
 const proseGenerate = (action) => proseFill(action, ["Storm at the lighthouse", "Guided continuation", "With story context"]);
+/* eslint-enable i18next/no-literal-string */
 
 export const LAB_TEST_ACTIONS = {
   // A — chapter-prose prompts ({{chapter_label}}/{{chapter_text}})

@@ -649,7 +649,7 @@ const STATUS_SWATCHES = [
 const editingColorId = ref(null);
 function addStatus() {
   const color = STATUS_SWATCHES[project.statuses.length % STATUS_SWATCHES.length];
-  editingColorId.value = project.addStatusDef({ label: "New status", color });
+  editingColorId.value = project.addStatusDef({ label: t("defaults.status"), color });
 }
 function renameStatus(id, label) { project.updateStatusDef(id, { label }); }
 function recolorStatus(id, color) { project.updateStatusDef(id, { color }); editingColorId.value = null; }
@@ -677,7 +677,7 @@ const TAG_VOCAB_KINDS = [
 // renders it), but the icon picker UI was removed — new categories
 // default to "Sparkle" since we can't know what the user wants.
 function addCategory() {
-  project.addWorldbuildingCategory({ label: "New category" });
+  project.addWorldbuildingCategory({ label: t("defaults.category") });
 }
 function renameCategory(id, label) { project.updateWorldbuildingCategory(id, { label }); }
 function recolorCategory(id, hue) { project.updateWorldbuildingCategory(id, { hue }); }

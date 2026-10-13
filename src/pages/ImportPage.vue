@@ -236,7 +236,7 @@ function ingest() {
   }
 
   if (intent.value === "new") {
-    const title = newBookTitle.value.trim() || fileName.value.replace(/\.[^.]+$/, "") || "Imported book";
+    const title = newBookTitle.value.trim() || fileName.value.replace(/\.[^.]+$/, "") || t("defaults.importedBook");
     project.createProject({ title, author: newBookAuthor.value.trim() });
     chapterIds = project.importChapters({ chapters: list, status: "draft" }).chapterIds;
     nav = chapterIds[0] ? `/chapters/${chapterIds[0]}` : "/chapters";
@@ -246,7 +246,7 @@ function ingest() {
     chapterIds = project.importChapters({
       chapters: list,
       partId: makeNewPart ? "" : partChoice.value,
-      partTitle: makeNewPart ? (partTitle.value || fileName.value || "Imported") : "",
+      partTitle: makeNewPart ? (partTitle.value || fileName.value || t("defaults.importedPart")) : "",
       status: "draft",
     }).chapterIds;
     nav = chapterIds[0] ? `/chapters/${chapterIds[0]}` : "/chapters";

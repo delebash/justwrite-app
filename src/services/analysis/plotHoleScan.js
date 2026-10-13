@@ -39,6 +39,7 @@ const KIND_LIST = ["contradiction", "timeline", "continuity", "character-knowled
 // The base prompt lives server-side (features.py, action "plotHoles"). The
 // optional world-rules enforcement section is dynamic per-project, so it's
 // composed here and sent as the world_rules_section variable.
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 function worldRulesSection(rules) {
   const trimmed = String(rules || "").trim();
   if (!trimmed) return "";
@@ -55,6 +56,7 @@ ${trimmed.slice(0, 4000)}
 
 End of world rules.`;
 }
+/* eslint-enable i18next/no-literal-string */
 
 /**
  * Compose the plotHoles input from the live project — the whole-book digest
@@ -65,6 +67,7 @@ End of world rules.`;
  *
  * @returns {{ variables: {user_content, world_rules_section}, totalChapters: number }}
  */
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export function composePlotHolesInput(project) {
   if (!project) throw new Error("composePlotHolesInput: project store is required.");
 
@@ -109,6 +112,7 @@ export function composePlotHolesInput(project) {
     totalChapters: chapters.length,
   };
 }
+/* eslint-enable i18next/no-literal-string */
 
 export async function scanPlotHoles({
   project,

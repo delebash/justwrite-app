@@ -47,6 +47,7 @@ async function getPdfMake() {
  *   manuscript : output of buildManuscript()
  *   onProgress : optional cb({ stage }) for UI status
  */
+/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
 export async function exportPdf({ manuscript, onProgress } = {}) {
   onProgress?.({ stage: "loading-pdfmake" });
   const pdfMake = await getPdfMake();
@@ -178,3 +179,4 @@ export async function exportPdf({ manuscript, onProgress } = {}) {
   onProgress?.({ stage: "done" });
   return blob;
 }
+/* eslint-enable i18next/no-literal-string */

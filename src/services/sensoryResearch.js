@@ -45,6 +45,7 @@ const CATEGORY_KEYS = SENSORY_CATEGORIES.map((c) => c.key);
  * @param {AbortSignal} [opts.signal]
  * @param {(d,c)=>void} [opts.onDelta]
  */
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export async function generateSensoryPack({
   subject,
   contextHint = "",
@@ -95,3 +96,4 @@ export async function generateSensoryPack({
     raw: result.content,
   };
 }
+/* eslint-enable i18next/no-literal-string */

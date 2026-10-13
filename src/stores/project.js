@@ -18,6 +18,7 @@ import * as autosaveApi from "../services/autosaveApi.js";
 import { replaceInHtml } from "../services/projectReplace.js";
 import { splitHtmlIntoScenes } from "../services/sceneSplit.js";
 import { nextColor, nextHue } from "../services/categoricalColors.js";
+import { t } from "../i18n/index.js";
 
 // Multi-project storage (all server-side SQL — no kv, no IndexedDB):
 //   projects table (/v1/projects) — book snapshots; the registry is DERIVED
@@ -35,7 +36,7 @@ const uid = (p) => {
 
 // A new character record — ONE shape for addCharacter and addCharacters.
 function newCharacter(input = {}) {
-  return { id: uid("c"), main: false, age: null, gender: "", pronouns: "", aliases: [], lifeStatus: "", oneLiner: "", role: "", name: "Untitled character", tags: [], ...input };
+  return { id: uid("c"), main: false, age: null, gender: "", pronouns: "", aliases: [], lifeStatus: "", oneLiner: "", role: "", name: t("defaults.character"), tags: [], ...input };
 }
 
 function wordCountFromHtml(html) {
@@ -526,8 +527,11 @@ const BLANK_PROJECT_META = {
 // Fresh copy each call so callers never share nested doc objects.
 function blankArchitecture() {
   return {
+    // eslint-disable-next-line i18next/no-literal-string -- a new project's starter content stays English (ruled 2026-10-13)
     premise: { id: "premise", title: "Premise", status: "todo", words: 0, body: "" },
+    // eslint-disable-next-line i18next/no-literal-string -- a new project's starter content stays English (ruled 2026-10-13)
     fabula:  { id: "fabula",  title: "Fabula",  status: "todo", words: 0, body: "" },
+    // eslint-disable-next-line i18next/no-literal-string -- a new project's starter content stays English (ruled 2026-10-13)
     setting: { id: "setting", title: "Setting", status: "todo", words: 0, body: "" },
   };
 }
@@ -549,6 +553,7 @@ function blankSnapshot({ title = "Untitled", author = "" } = {}) {
     project: { ...BLANK_PROJECT_META, title, author, coverImage: null, wordsWritten: 0 },
     strands: [], characters: [], characterExtras: {},
     locations: [], objects: [], groups: [], notes: [],
+    // eslint-disable-next-line i18next/no-literal-string -- a new project's starter content stays English (ruled 2026-10-13)
     parts: [{ id: uid("p"), title: "Part One", chapters: [] }],
     architecture: blankArchitecture(),
     worldbuilding: [],
@@ -951,6 +956,7 @@ export const useProjectStore = defineStore("project", {
         this.parts = [...this.parts, { id: partId, title: partTitle, chapters: [] }];
       } else if (this.parts.length === 0) {
         partId = uid("p");
+        // eslint-disable-next-line i18next/no-literal-string -- a new project's starter content stays English (ruled 2026-10-13)
         this.parts = [{ id: partId, title: "Part One", chapters: [] }];
       } else {
         partId = this.parts[this.parts.length - 1].id;
@@ -961,7 +967,7 @@ export const useProjectStore = defineStore("project", {
       const newChapters = list.map((c, i) => {
         const id = uid("ch");
         chapterIds.push(id);
-        const title = c.title || `Chapter ${i + 1}`;
+        const title = c.title || t("home.chapterN", { num: i + 1 });
         // E5 (RAG build): split imported HTML into real scenes on the
         // standard break markers ("* * *", "#", <hr>…) — an unmarked
         // chapter keeps today's exact single-scene shape, with the chapter
@@ -1241,7 +1247,7 @@ export const useProjectStore = defineStore("project", {
     addPart({ title } = {}) {
       this._record("addPart");
       const id = uid("p");
-      const next = title?.trim() || `Part ${this.parts.length + 1}`;
+      const next = title?.trim() || t("defaults.partN", { n: this.parts.length + 1 });
       this.parts = [...this.parts, { id, title: next, chapters: [] }];
       this._persist();
       return id;
@@ -1627,7 +1633,7 @@ export const useProjectStore = defineStore("project", {
     },
 
     // ── Locations ───────────────────────────────────────────
-    addLocation(input = {}) { this._record("addLocation"); const id = uid("l"); this.locations.push({ id, name: "Untitled location", kind: "", note: "", tags: [], ...input }); this._persist(); return id; },
+    addLocation(input = {}) { this._record("addLocation"); const id = uid("l"); this.locations.push({ id, name: t("defaults.location"), kind: "", note: "", tags: [], ...input }); this._persist(); return id; },
     removeLocation(id) {
       this._record("removeLocation");
       const l = this.locations.find((x) => x.id === id);
@@ -1639,7 +1645,7 @@ export const useProjectStore = defineStore("project", {
     updateLocation(id, patch) { this._record("updateLocation"); this.locations = this.locations.map((l) => l.id === id ? { ...l, ...patch } : l); this._persist(); },
 
     // ── Objects ─────────────────────────────────────────────
-    addObject(input = {}) { this._record("addObject"); const id = uid("o"); this.objects.push({ id, name: "Untitled object", kind: "", note: "", tags: [], ...input }); this._persist(); return id; },
+    addObject(input = {}) { this._record("addObject"); const id = uid("o"); this.objects.push({ id, name: t("defaults.object"), kind: "", note: "", tags: [], ...input }); this._persist(); return id; },
     removeObject(id) {
       this._record("removeObject");
       const o = this.objects.find((x) => x.id === id);
@@ -1658,7 +1664,7 @@ export const useProjectStore = defineStore("project", {
       // anchor = null     → story-wide note (default)
       // anchor = { chapterId }            → pinned to a chapter
       // anchor = { chapterId, sceneId }   → pinned to a specific scene
-      this.notes.push({ id, title: "Untitled note", body: "", tag: "note", updated: today, anchor: null, ...input });
+      this.notes.push({ id, title: t("sceneNotes.untitledNote"), body: "", tag: "note", updated: today, anchor: null, ...input });
       this._persist();
       return id;
     },
@@ -1697,7 +1703,7 @@ export const useProjectStore = defineStore("project", {
         noteIds.push(id);
         this.notes.push({
           id,
-          title: n.title || "Untitled note",
+          title: n.title || t("sceneNotes.untitledNote"),
           body: n.html || "",
           tag: tag || "note",
           updated: today,
@@ -1712,7 +1718,7 @@ export const useProjectStore = defineStore("project", {
     addWorldbuilding(input = {}) {
       this._record("addWorldbuilding");
       const id = uid("wb");
-      this.worldbuilding.push({ id, title: "Untitled article", category: this.worldbuildingCategories[0]?.id || "geography", tags: [], status: "", words: 0, summary: "", body: "", related: [], ...input });
+      this.worldbuilding.push({ id, title: t("defaults.article"), category: this.worldbuildingCategories[0]?.id || "geography", tags: [], status: "", words: 0, summary: "", body: "", related: [], ...input });
       this._persist();
       return id;
     },
@@ -1811,7 +1817,7 @@ export const useProjectStore = defineStore("project", {
       const id = uid("strand");
       this.strands.push({
         id,
-        name: "Untitled narrative strand",
+        name: t("defaults.strand"),
         color: nextColor(this.strands.length),
         blurb: "",
         body: "",
@@ -1896,7 +1902,7 @@ export const useProjectStore = defineStore("project", {
     },
 
     // ── Groups ──────────────────────────────────────────────
-    addGroup(input = {}) { this._record("addGroup"); const id = uid("g"); this.groups.push({ id, name: "Untitled group", blurb: "", color: nextColor(this.groups.length), members: [], ...input }); this._persist(); return id; },
+    addGroup(input = {}) { this._record("addGroup"); const id = uid("g"); this.groups.push({ id, name: t("defaults.group"), blurb: "", color: nextColor(this.groups.length), members: [], ...input }); this._persist(); return id; },
     removeGroup(id) {
       this._record("removeGroup");
       const g = this.groups.find((x) => x.id === id);
@@ -1970,7 +1976,7 @@ export const useProjectStore = defineStore("project", {
       this.images = { ...this.images, [entityId]: list.filter((i) => i.id !== imageId) };
       this._persist();
     },
-    addEvent(entityId, event) { this._record("addEvent"); const id = uid("ev"); this.events = { ...this.events, [entityId]: [...(this.events[entityId] || []), { id, when: "", title: "Untitled event", note: "", ...event }] }; this._persist(); },
+    addEvent(entityId, event) { this._record("addEvent"); const id = uid("ev"); this.events = { ...this.events, [entityId]: [...(this.events[entityId] || []), { id, when: "", title: t("defaults.event"), note: "", ...event }] }; this._persist(); },
     updateEvent(entityId, eventId, patch) { this._record("updateEvent"); this.events = { ...this.events, [entityId]: (this.events[entityId] || []).map((e) => e.id === eventId ? { ...e, ...patch } : e) }; this._persist(); },
     removeEvent(entityId, eventId) {
       this._record("removeEvent");
@@ -2061,7 +2067,7 @@ export const useProjectStore = defineStore("project", {
             // are orphaned without the parent.
             this.trash = { ...this.trash, scenes: [...(this.trash.scenes || []), item] };
             const ui = useUiStore();
-            ui.showToast({ message: `Restore the parent chapter first — then this scene.` });
+            ui.showToast({ message: t("trash.restoreParentFirst") });
             return;
           }
           const insertAt = Math.max(0, Math.min(index ?? list.length, list.length));
@@ -2241,7 +2247,7 @@ export const useProjectStore = defineStore("project", {
       // sidebar dropdown reflects renames the moment the user types.
       const entry = {
         id,
-        title:  this.project.title  || "Untitled",
+        title:  this.project.title  || t("common.untitled"),
         author: this.project.author || "",
         savedAt: snap.savedAt,
       };
@@ -2264,7 +2270,7 @@ export const useProjectStore = defineStore("project", {
       if (!meta?.id) return null;
       if (!this._projects.some((p) => p.id === meta.id)) {
         this._writeRegistry([
-          { id: meta.id, title: meta.title || "Untitled", author: meta.author || "", savedAt: new Date().toISOString() },
+          { id: meta.id, title: meta.title || t("common.untitled"), author: meta.author || "", savedAt: new Date().toISOString() },
           ...this._projects,
         ]);
       }
@@ -2313,7 +2319,7 @@ export const useProjectStore = defineStore("project", {
       // API (fetchSnapshot returns the cached copy when present).
       const snap = normalizeSnapshot(await projectApi.fetchSnapshot(id));
       if (!snap) {
-        useUiStore().showToast({ message: "That project couldn't be loaded." });
+        useUiStore().showToast({ message: t("defaults.projectLoadFailed") });
         return;
       }
       // Persist the outgoing project before swapping — unless there is none

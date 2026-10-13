@@ -45,6 +45,7 @@ function findSceneForSnippet(project, chapterId, snippet) {
 
 // ─── Context composition ─────────────────────────────────────────────
 
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export function buildRecapContext({ project, sessions, maxTailWords = 1200 }) {
   const chapterId = sessions.todayChapterId || sessions.lastWrite?.chapterId || null;
   if (!chapterId) {
@@ -144,6 +145,7 @@ export function buildRecapContext({ project, sessions, maxTailWords = 1200 }) {
 
   return { meta, prompt: lines.join("\n") };
 }
+/* eslint-enable i18next/no-literal-string */
 
 // ─── The recap call ──────────────────────────────────────────────────
 

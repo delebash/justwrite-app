@@ -25,15 +25,19 @@ import { t } from "../../i18n/index.js";
 const block = (heading, body) => (String(body || "").trim() ? `${heading}\n${String(body).trim()}` : "");
 const join = (...blocks) => blocks.filter(Boolean).join("\n\n");
 
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 function bookBlock(project, budgetTokens) {
   return block("BOOK CONTEXT", composeBookContext(project, { budgetTokens }).text);
 }
+/* eslint-enable i18next/no-literal-string */
 
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 function profileBlock(project, characterId) {
   const character = (project.characters || []).find((c) => c.id === characterId);
   if (!character) throw new Error("Character not found.");
   return block("CHARACTER PROFILE", buildProfileText(character, project.characterExtras?.[characterId] || null));
 }
+/* eslint-enable i18next/no-literal-string */
 
 /** The input for a draft from a description (profile and voice share it). */
 export function composeDescriptionInput(project, characterId, description, { budgetTokens = null } = {}) {
@@ -63,10 +67,12 @@ export function composeSectionInput(project, characterId, sectionKey, { descript
   return { variables: { user_content }, keys: section.fields.map(fieldKey) };
 }
 
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 function castBlock(project) {
   const names = (project.characters || []).map((c) => c.name).filter(Boolean);
   return block("ALREADY IN THE CAST", names.map((n) => `- ${n}`).join("\n"));
 }
+/* eslint-enable i18next/no-literal-string */
 
 /** The input for suggestions: the book, the names already taken, what the writer wants. */
 export function composeSuggestInput(project, { lookingFor = "", budgetTokens = null } = {}) {
@@ -81,6 +87,7 @@ export function composeSuggestInput(project, { lookingFor = "", budgetTokens = n
 /** Name ideas' round: the book, the character's profile and the cast, then Brainstorm's own
  *  request (category Character names), its seed pointing at the blocks above it. `liked` / `seen`
  *  as on the Brainstorm page. */
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export function composeNameIdeasInput(project, characterId, { liked = [], seen = [], budgetTokens = null } = {}) {
   const { action, variables } = brainstormAction("character_name");
   const book = bookBlock(project, budgetTokens);
@@ -95,6 +102,7 @@ export function composeNameIdeasInput(project, characterId, { liked = [], seen =
   );
   return { action, variables: { ...variables, user_content } };
 }
+/* eslint-enable i18next/no-literal-string */
 
 // ── sanitizers ────────────────────────────────────────────────────────────
 

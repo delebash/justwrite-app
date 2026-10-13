@@ -32,9 +32,11 @@ const SEVERITY_LIST = ["flag", "suggest", "info"];
  * persona name separately); the third-person voice reads as reference prose.
  */
 // Exported: the AI drafting composes the SAME profile text (characterDraft.js — one source).
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export function buildProfileText(character, extras) {
   return `Name: ${character.name || ""}${buildCharacterProfile(character, extras, { voice: "third" })}`;
 }
+/* eslint-enable i18next/no-literal-string */
 
 /**
  * Cheap count of the scenes that feature a character — NO text extraction.
@@ -99,6 +101,7 @@ function buildSceneDigest(project, characterId) {
  *
  * @returns {{ variables: {user_content}, sceneCount: number, character: object } | null}
  */
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export function composeCharacterAuditInput(project, characterId) {
   if (!project) throw new Error("composeCharacterAuditInput: project store is required.");
   const character = (project.characters || []).find((c) => c.id === characterId);
@@ -121,6 +124,7 @@ export function composeCharacterAuditInput(project, characterId) {
 
   return { variables: { user_content: userBody }, sceneCount: scenes.length, character };
 }
+/* eslint-enable i18next/no-literal-string */
 
 export async function auditCharacter({
   project,

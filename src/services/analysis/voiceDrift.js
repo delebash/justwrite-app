@@ -211,6 +211,7 @@ export function deriveVoiceDriftContext(drift, outlierChapterId) {
  *
  * @returns {{ variables: {user_content} }}
  */
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export function composeVoiceDriftBody({
   project,
   outlierChapterId,
@@ -260,6 +261,7 @@ export function composeVoiceDriftBody({
 
   return { variables: { user_content: body.join("\n") } };
 }
+/* eslint-enable i18next/no-literal-string */
 
 /**
  * Compose the voiceDrift input for one chapter straight from the project —

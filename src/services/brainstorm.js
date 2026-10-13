@@ -9,6 +9,7 @@
 // the plot system's {{kind}} (server/src/seed_feature_prompts.js BRAINSTORM_SYSTEM /
 // BRAINSTORM_PLOT_SYSTEM; the Lab's "Brainstorm seed" sample sends this same shape).
 
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export const BRAINSTORM_CATEGORIES = [
   { value: "character_name", promptLabel: "Character names" },
   { value: "place_name", promptLabel: "Place names" },

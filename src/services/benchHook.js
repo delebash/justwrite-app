@@ -392,6 +392,7 @@ const FEATURES = {
   "writerAI.rewrite": writerAction("Rewrite", rewrite, "writerAI.rewrite"),
 };
 
+/* eslint-disable i18next/no-literal-string -- the bench harness's own message, never shown */
 export function installBenchHook() {
   const api = {
     version: VERSION,
@@ -519,3 +520,4 @@ export function installBenchHook() {
   window.__jwBench = api;
   return api;
 }
+/* eslint-enable i18next/no-literal-string */

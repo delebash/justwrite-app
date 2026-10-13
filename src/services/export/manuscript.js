@@ -15,6 +15,7 @@
 // so downstream renderers always have at least a heading to lay out.
 // ============================================================
 
+/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
 export function buildManuscript(project, { stripSceneStructure = false } = {}) {
   return {
     title:    project.project.title || "Untitled",
@@ -36,6 +37,7 @@ export function buildManuscript(project, { stripSceneStructure = false } = {}) {
     })),
   };
 }
+/* eslint-enable i18next/no-literal-string */
 
 /**
  * Walk a chapter's HTML body and emit a flat list of blocks. We don't

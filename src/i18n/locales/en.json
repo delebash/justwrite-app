@@ -1895,7 +1895,8 @@
     "emptyConfirmBody": "Permanently delete all {n} items in trash. This can't be undone.",
     "colDetails": "Details",
     "colDeleted": "Deleted",
-    "colActions": "Actions"
+    "colActions": "Actions",
+    "restoreParentFirst": "Restore the parent chapter first — then this scene."
   },
   "dateTime": {
     "time": "Time",
@@ -3374,5 +3375,20 @@
     "importTitle": "Import book",
     "backupTitle": "Export backup",
     "backupFilter": "Backup"
+  },
+  "defaults": {
+    "character": "Untitled character",
+    "partN": "Part {n}",
+    "location": "Untitled location",
+    "object": "Untitled object",
+    "article": "Untitled article",
+    "strand": "Untitled narrative strand",
+    "group": "Untitled group",
+    "event": "Untitled event",
+    "projectLoadFailed": "That project couldn't be loaded.",
+    "status": "New status",
+    "category": "New category",
+    "importedBook": "Imported book",
+    "importedPart": "Imported"
   }
 }

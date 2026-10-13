@@ -55,6 +55,7 @@ export const PERSONAS = [
 
 // ─── Run a single persona ───────────────────────────────────────────
 
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 async function runPersona({ persona, html, chapterTitle, chapterNum, signal, provider, model, meta, task }) {
   const text = htmlToText(html).trim();
   if (!text) throw new Error("Chapter has no prose to read.");
@@ -87,6 +88,7 @@ async function runPersona({ persona, html, chapterTitle, chapterNum, signal, pro
     generatedAt: Date.now(),
   };
 }
+/* eslint-enable i18next/no-literal-string */
 
 // ─── Run all four in parallel ───────────────────────────────────────
 

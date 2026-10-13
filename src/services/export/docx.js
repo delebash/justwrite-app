@@ -12,6 +12,7 @@ async function getDocx() {
   return docxPromise;
 }
 
+/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
 export async function exportDocx({ manuscript, onProgress } = {}) {
   onProgress?.({ stage: "loading-docx" });
   const lib = await getDocx();
@@ -152,3 +153,4 @@ export async function exportDocx({ manuscript, onProgress } = {}) {
   onProgress?.({ stage: "done" });
   return blob;
 }
+/* eslint-enable i18next/no-literal-string */

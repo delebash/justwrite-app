@@ -168,6 +168,7 @@ function partPageHtml(part) {
 </section>`);
 }
 
+/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
 function coverPageHtml(m, coverHref) {
   // Full-bleed cover image. The wrapping <section> uses
   // epub:type="cover" so EPUB 3 readers handle navigation correctly.
@@ -176,7 +177,9 @@ function coverPageHtml(m, coverHref) {
   <img src="${xmlEscape(coverHref)}" alt="${xmlEscape(m.title)} cover" />
 </section>`);
 }
+/* eslint-enable i18next/no-literal-string */
 
+/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
 function chapterHtml(ch) {
   const body = [];
   body.push(`<section epub:type="chapter">`);
@@ -194,7 +197,9 @@ function chapterHtml(ch) {
   body.push(`</section>`);
   return htmlShell(`Ch. ${ch.num} — ${ch.title}`, body.join("\n"));
 }
+/* eslint-enable i18next/no-literal-string */
 
+/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
 function navHtml(m) {
   const items = [];
   for (const part of m.parts) {
@@ -217,7 +222,9 @@ function navHtml(m) {
 </nav>`;
   return htmlShell("Contents", body);
 }
+/* eslint-enable i18next/no-literal-string */
 
+/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
 function stylesheet() {
   return `body { font-family: Georgia, "Times New Roman", serif; line-height: 1.6; }
 .cover { margin: 0; padding: 0; text-align: center; }
@@ -240,6 +247,7 @@ nav > ol { padding-left: 0; }
 nav a { text-decoration: none; color: inherit; }
 `;
 }
+/* eslint-enable i18next/no-literal-string */
 
 // ── EPUB metadata files ──────────────────────────────────────────────
 
@@ -252,6 +260,7 @@ function containerXml() {
 </container>`;
 }
 
+/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
 function contentOpf({ title, author, language, identifier, coverItemId, manifest, spine }) {
   const manifestXml = manifest
     .map((m) => `<item id="${m.id}" href="${m.href}" media-type="${m.type}"${m.properties ? ` properties="${m.properties}"` : ""} />`)
@@ -286,3 +295,4 @@ function contentOpf({ title, author, language, identifier, coverItemId, manifest
   </spine>
 </package>`;
 }
+/* eslint-enable i18next/no-literal-string */

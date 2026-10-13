@@ -16,6 +16,7 @@ import { t } from "../../i18n/index.js";
 // The prompt lives server-side now (seeded via server/src/seed_feature_prompts.js, action
 // "critique"); we send the chapter label + text and parse the JSON result.
 
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export async function runCritique({ html, chapterTitle = "", chapterNum = null, meta = {}, signal, provider, model, task } = {}) {
   const text = htmlToText(html, { stripSceneMarks: false, trim: false }).trim();
   if (!text) throw new Error("This chapter has no prose to critique yet.");
@@ -53,6 +54,7 @@ export async function runCritique({ html, chapterTitle = "", chapterNum = null, 
     raw: result.content,
   };
 }
+/* eslint-enable i18next/no-literal-string */
 
 // ─── Structural analysis ────────────────────────────────────────────
 // One LLM call returns a JSON object with the four headline metrics plus a
@@ -63,6 +65,7 @@ export async function runCritique({ html, chapterTitle = "", chapterNum = null, 
 const PACING_OPTIONS = ["slow", "balanced", "fast"];
 const ENDING_OPTIONS = ["cliffhanger", "soft", "closed", "dead-end"];
 
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export async function runStructuralAnalysis({ html, chapterTitle = "", chapterNum = null, meta = {}, signal, provider, model, task } = {}) {
   const text = htmlToText(html, { stripSceneMarks: false, trim: false }).trim();
   if (!text) throw new Error("This chapter has no prose to analyze yet.");
@@ -93,6 +96,7 @@ export async function runStructuralAnalysis({ html, chapterTitle = "", chapterNu
     summary,
   };
 }
+/* eslint-enable i18next/no-literal-string */
 
 function clamp1to10(v) {
   const n = typeof v === "number" ? v : parseInt(v, 10);

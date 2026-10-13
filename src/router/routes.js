@@ -5,6 +5,7 @@
 // The layout is imported, not lazy-loaded: every screen needs it, so a chunk of its own would only
 // delay the first paint, and its components' styles stay in the entry stylesheet — ahead of the
 // app's, where the app's rules have always won a tie with them. The pages are lazy.
+/* eslint-disable i18next/no-literal-string -- route names are ids, not words */
 import MainLayout from "../layouts/MainLayout.vue";
 
 // Generic event-page route factory. Every entity with an Events button

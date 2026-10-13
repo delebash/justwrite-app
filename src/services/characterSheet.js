@@ -122,7 +122,8 @@ export function fieldKey(f) {
 /** A field's catalog keys for its label and hint. */
 export function fieldLabelKeys(f) {
   return f.group === "_top"
-    ? { label: `characters.detail.${f.k}`, hint: `characters.detail.${f.k}Hint` }
+    ? // eslint-disable-next-line i18next/no-literal-string -- builds a key, not a word
+      { label: `characters.detail.${f.k}`, hint: `characters.detail.${f.k}Hint` }
     : { label: `characters.fields.${f.group}.${f.k}.label`, hint: `characters.fields.${f.group}.${f.k}.hint` };
 }
 

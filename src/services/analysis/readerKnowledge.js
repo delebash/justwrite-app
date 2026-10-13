@@ -82,6 +82,7 @@ function condenseFacts(facts, maxItems = 14, maxChars = 140) {
  *
  * @returns {{ variables: {user_content} } | null}
  */
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export function composeReaderKnowledgeInput({
   html,
   chapterTitle = "",
@@ -120,6 +121,7 @@ export function composeReaderKnowledgeInput({
 
   return { variables: { user_content: userParts.join("\n") } };
 }
+/* eslint-enable i18next/no-literal-string */
 
 export async function analyseChapterKnowledge({
   html,

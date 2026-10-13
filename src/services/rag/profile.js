@@ -15,6 +15,7 @@
 // addressed as "you"; byte-identical to the pre-Move-1 output) or "third" —
 // the story-bible index card reads as reference prose about the character.
 // ONE builder, two label tables; never fork this into a copy.
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 const PROFILE_LABELS = {
   second: {
     oneLiner: "Self-image (one line)",

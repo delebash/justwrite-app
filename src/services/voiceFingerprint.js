@@ -13,6 +13,7 @@
 // Pure deterministic — no LLM call. Cheap to recompute on every
 // writer action.
 
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 import { chapterMetrics } from "./analysis/styleMetrics.js";
 
 function htmlToText(html) {

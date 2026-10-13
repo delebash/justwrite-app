@@ -65,6 +65,7 @@ export const MOVE_BLURB_I18N = {
  *
  * @returns {{ variables: {user_content} }}
  */
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export function composeUnstuckInput({ contextText, chapterTitle = "", chapterNum = null } = {}) {
   const text = String(contextText || "").trim();
   if (!text) throw new Error("There's no prose to brainstorm from yet — write a few lines first.");
@@ -79,6 +80,7 @@ export function composeUnstuckInput({ contextText, chapterTitle = "", chapterNum
     },
   };
 }
+/* eslint-enable i18next/no-literal-string */
 
 export async function generateUnstuckMoves({
   contextText,

@@ -165,9 +165,11 @@ and disabled inside the rich editor, where TipTap owns its own history.
 Coverage is being brought up view by view, so expect raw strings still in unconverted files.
 
 ```bash
-npm run i18n:lint      # @intlify no-raw-text over src/**/*.vue — finds English still
-                       # hard-coded in templates, at "error". Config: eslint.i18n.config.js, the
-                       # family's one file (i18n rules ONLY — Biome remains the style linter).
+npm run i18n:lint      # src/**/*.{js,vue}: @intlify no-raw-text (template text) and i18next
+                       # no-literal-string (strings code builds), both at "error". Config:
+                       # eslint.i18n.config.js, the family's one file (i18n rules ONLY — Biome
+                       # remains the style linter). English kept on purpose carries an
+                       # eslint-disable comment with the ruling as its reason.
 npm run i18n:report    # vue-i18n-extract: keys referenced but missing from the English catalogs
                        # (ours and the kit's), and keys nobody references. MISSING must always be
                        # zero. Other languages are docgen's to fill; a key they lack shows English.

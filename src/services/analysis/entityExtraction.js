@@ -35,6 +35,7 @@ import { t } from "../../i18n/index.js";
  *
  * @returns {{ variables: {user_content} }}
  */
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export function composeEntitySweepInput({
   html,
   chapterTitle = "",
@@ -59,6 +60,7 @@ export function composeEntitySweepInput({
 
   return { variables: { user_content: `${existing}\n\n${header}--- BEGIN CHAPTER ---\n${text}\n--- END CHAPTER ---` } };
 }
+/* eslint-enable i18next/no-literal-string */
 
 export async function extractEntities({
   html,

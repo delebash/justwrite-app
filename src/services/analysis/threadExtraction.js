@@ -33,6 +33,7 @@ const ALLOWED_KINDS = new Set([
 
 // The prompt lives server-side (features.py, action "foreshadowing").
 
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export async function extractThreads({
   html,
   chapterTitle = "",
@@ -86,3 +87,4 @@ export async function extractThreads({
     providerId: result.providerId,
   };
 }
+/* eslint-enable i18next/no-literal-string */

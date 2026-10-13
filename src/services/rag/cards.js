@@ -15,6 +15,7 @@
 // Scene chunks carry chapter/scene fields instead of kind/entityId — the
 // `kind` field is what excerpts.js/ChatPanel key their card branches on.
 
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 import { TRAJECTORY_LABEL_KEYS } from "../analysis/relationshipArc.js";
 import { tEnglish } from "../../i18n/index.js";
 import { povLabel } from "../povOptions.js";

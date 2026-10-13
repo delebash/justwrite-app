@@ -32,10 +32,12 @@ export function voiceCanonVar() {
 // blank line — the prose actions' seeded system ends "{{voiceCanon}}{{storyContext}}" and says
 // how to use the block when it's there. Line edits don't get it (spec §9.5). Exported: the Lab
 // sends the SAME block a real run sends.
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export function storyContextVar(text) {
   const t = String(text || "").trim();
   return t ? `\n\nSTORY CONTEXT\n${t}` : "";
 }
+/* eslint-enable i18next/no-literal-string */
 
 // htmlToText/textToHtml come from the shared services/text.js. The calls
 // below pass { stripSceneMarks: false, trim: false } to preserve writerAI's

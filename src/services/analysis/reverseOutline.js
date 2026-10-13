@@ -73,6 +73,7 @@ function buildChapterDigest(project) {
  *
  * @returns {{ variables: {user_content}, totalChapters: number }}
  */
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export function composeReverseOutlineInput(project) {
   if (!project) throw new Error("composeReverseOutlineInput: project store is required.");
   const chapters = buildChapterDigest(project);
@@ -99,6 +100,7 @@ export function composeReverseOutlineInput(project) {
 
   return { variables: { user_content: body.join("\n") }, totalChapters: chapters.length };
 }
+/* eslint-enable i18next/no-literal-string */
 
 export async function generateReverseOutline({
   project,

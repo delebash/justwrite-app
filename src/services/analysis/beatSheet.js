@@ -123,6 +123,7 @@ function buildChapterDigest(project) {
  *
  * @returns {{ variables: {user_content}, totalChapters: number, template: object }}
  */
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export function composeBeatSheetInput(project, templateKey = TEMPLATE_OPTIONS[0].value) {
   if (!project) throw new Error("composeBeatSheetInput: project store is required.");
   const template = BEAT_TEMPLATES[templateKey];
@@ -155,6 +156,7 @@ export function composeBeatSheetInput(project, templateKey = TEMPLATE_OPTIONS[0]
 
   return { variables: { user_content: userBody }, totalChapters: chapters.length, template };
 }
+/* eslint-enable i18next/no-literal-string */
 
 export async function mapToBeatSheet({
   project,

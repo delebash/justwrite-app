@@ -33,6 +33,7 @@ export function pairKey(idA, idB) {
   return idA < idB ? `${idA}::${idB}` : `${idB}::${idA}`;
 }
 
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 function buildProfile(character, extras) {
   const parts = [];
   parts.push(character.name || "");
@@ -48,6 +49,7 @@ function buildProfile(character, extras) {
   if (extras?.arc?.end) parts.push(`Ends: ${extras.arc.end}`);
   return parts.join("\n");
 }
+/* eslint-enable i18next/no-literal-string */
 
 function buildSharedSceneDigest(project, idA, idB) {
   const digest = [];
@@ -75,6 +77,7 @@ function buildSharedSceneDigest(project, idA, idB) {
 const VALID_TRAJECTORIES = new Set(["warming", "cooling", "escalating", "defusing", "flipping", "static"]);
 const VALID_POWERS = new Set(["A", "B", "eq"]);
 
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export async function analyseRelationship({
   project,
   characterAId,
@@ -171,6 +174,7 @@ export async function analyseRelationship({
     generatedAt: Date.now(),
   };
 }
+/* eslint-enable i18next/no-literal-string */
 
 function clamp1to10(v) {
   const n = typeof v === "number" ? v : parseInt(v, 10);

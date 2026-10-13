@@ -42,11 +42,11 @@ HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates 
         onto the kit's relativeTime. Open, and asked 2026-10-13: text sent to the AI model, words
         in exported books, default names stored as data; then the UPPER_CASE tables and data-tip
         tooltips. All five ruled 2026-10-13 ("your rec go there is no tauri app anymore!"; the
-        questions as asked are in the kit's TASKS); the data-tip tooltips and most UI tables done
-        (a5cc244, 231cc5d).
-FOUND:  by the screenshot pass, both older than this work and not changed by it — the AI engine
-        console's level and source selects stretch to the full width on rows of their own; the
-        model catalog's Fit chip ("Fits · slow") runs into the Status column at 1280 px.
+        questions as asked are in the kit's TASKS) and built; the script-string rule is on here
+        (i18n:lint reads src/**/*.{js,vue}, zero). Next: the D6 tables, dates and numbers, the
+        language picker.
+FOUND:  2026-10-13, at 1024 px, older than this work — the model catalog's License chip breaks
+        mid-word ("Apac|he-2.0"), the Bench header is clipped, the row actions stack.
 
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
 STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the

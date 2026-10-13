@@ -9,6 +9,7 @@ import { readSetting, writeSetting } from "../services/settings.js";
 import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
 import { DEFAULT_APPEARANCE, migrateAppearance } from "../services/appearance.js";
 import { pushToast, clearToasts } from "@delebash/llm-ui";
+import { t } from "../i18n/index.js";
 
 const SECTION = "ui";
 
@@ -291,7 +292,7 @@ export const useUiStore = defineStore("ui", {
     // Save the current look as a named custom preset and make it active.
     saveCustomPreset(name) {
       const id = `cp_${Date.now().toString(36)}`;
-      const preset = { id, name: String(name || "").trim() || "Custom", patch: presetPatchFrom(this.appearance) };
+      const preset = { id, name: String(name || "").trim() || t("titleBar.customTheme"), patch: presetPatchFrom(this.appearance) };
       this.customPresets = [...this.customPresets, preset];
       this.appearance = { ...this.appearance, preset: id };
       this._persist();

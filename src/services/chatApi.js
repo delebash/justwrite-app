@@ -7,6 +7,7 @@
 // retrieval per ask). HTTP via the shared kit transport.
 
 import { get, put, del } from "@delebash/llm-ui";
+import { t } from "../i18n/index.js";
 
 // Session ids mint in the app's `<prefix>_<base36 time>_<rand>` style — the same
 // shape as project entities (stores/project.js `uid()`), so a chat id reads like
@@ -19,7 +20,7 @@ export function mintSessionId() {
 // rename overrides this and is never auto-regenerated.
 export function deriveSessionTitle(messages) {
   const firstUser = (messages || []).find((m) => m?.role === "user" && (m.content || "").trim());
-  if (!firstUser) return "New chat";
+  if (!firstUser) return t("chat.newChat");
   return firstUser.content.replace(/\s+/g, " ").trim().slice(0, 60);
 }
 
