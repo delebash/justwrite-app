@@ -16,6 +16,8 @@
 // (the kit's docs/dev/RESEARCH.md §8). Text that stays English on purpose — what the AI model
 // reads, the words inside an exported book, ids — carries an eslint-disable comment saying why.
 
+import { fileURLToPath } from "node:url";
+import { includeIgnoreFile } from "@eslint/compat";
 import vueI18n from "@intlify/eslint-plugin-vue-i18n";
 import i18next from "eslint-plugin-i18next";
 import vueParser from "vue-eslint-parser";
@@ -49,6 +51,9 @@ const WORDLESS = [
 ];
 
 export default [
+  // What git ignores is not ours to lint — generated bundles (a phone build's worker bundle) —
+  // ESLint's documented way: the .gitignore beside this file.
+  includeIgnoreFile(fileURLToPath(new URL(".gitignore", import.meta.url))),
   {
     files: ["src/**/*.vue"],
     languageOptions: {
