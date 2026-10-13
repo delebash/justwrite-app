@@ -25,11 +25,14 @@ const router = useRouter();
 // line are not per-book data (they never change), so both are hardcoded here rather
 // than stored/edited. The body (the rich editor) is the only thing the user writes.
 const ARCH_DOCS = {
-  premise: { title: "Premise", description: "The whole novel in one sentence — the core conflict and its resolution." },
-  fabula:  { title: "Fabula",  description: "The events of the story in logical, chronological order — cause and effect." },
-  setting: { title: "Setting", description: "The place, time, and social context the story unfolds in." },
+  premise: { titleKey: "architecture.doc.premise.title", descriptionKey: "architecture.doc.premise.description" },
+  fabula:  { titleKey: "architecture.doc.fabula.title",  descriptionKey: "architecture.doc.fabula.description" },
+  setting: { titleKey: "architecture.doc.setting.title", descriptionKey: "architecture.doc.setting.description" },
 };
-function docMeta(id) { return ARCH_DOCS[id] || { title: id, description: "" }; }
+function docMeta(id) {
+  const d = ARCH_DOCS[id];
+  return d ? { title: t(d.titleKey), description: t(d.descriptionKey) } : { title: id, description: "" };
+}
 
 const doc = computed(() => props.id ? project.architecture[props.id] : null);
 

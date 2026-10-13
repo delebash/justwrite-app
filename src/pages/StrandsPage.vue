@@ -33,10 +33,18 @@ const modal = ref(null);
 
 const s = computed(() => props.id ? project.strandById(props.id) : null);
 
-const BEAT_PRESETS = [
-  "Inciting", "First turn", "Midpoint",
-  "Crisis", "Climax", "Resolution",
-  "Setup", "Reveal", "Setback", "Refusal",
+// Beat-name suggestions, in the interface language (ruled 2026-10-13).
+const BEAT_PRESET_KEYS = [
+  "strands.beatPreset.inciting",
+  "strands.beatPreset.firstTurn",
+  "strands.beatPreset.midpoint",
+  "strands.beatPreset.crisis",
+  "strands.beatPreset.climax",
+  "strands.beatPreset.resolution",
+  "strands.beatPreset.setup",
+  "strands.beatPreset.reveal",
+  "strands.beatPreset.setback",
+  "strands.beatPreset.refusal",
 ];
 
 const scenesInStrand = computed(() => {
@@ -398,7 +406,7 @@ const tableRows = computed(() =>
             </div>
 
         <datalist id="beat-presets">
-          <option v-for="preset in BEAT_PRESETS" :key="preset" :value="preset" />
+          <option v-for="key in BEAT_PRESET_KEYS" :key="key" :value="t(key)" />
         </datalist>
       </div>
 

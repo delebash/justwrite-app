@@ -3,15 +3,17 @@
 // document root (like the theme service) so every RichEditor reflects
 // them; spell-check and capitalize are wired per-editor in RichEditor.
 
+// `label` is the stored value (editor settings keep it) and, for a named font, what the menu
+// shows; a font described in words names its key (`labelKey`) for the menu.
 export const EDITOR_FONTS = [
-  { label: "Theme default",   stack: null /* sentinel — see applyEditorSettings */ },
+  { label: "Theme default",   labelKey: "editorSettings.fontThemeDefault", stack: null /* sentinel — see applyEditorSettings */ },
   { label: "Garamond",        stack: "Garamond, 'EB Garamond', 'Times New Roman', serif" },
   { label: "Georgia",         stack: "Georgia, 'Times New Roman', serif" },
   { label: "Times New Roman", stack: "'Times New Roman', Times, serif" },
   { label: "Palatino",        stack: "'Palatino Linotype', Palatino, 'Book Antiqua', serif" },
-  { label: "System serif",    stack: "var(--font-serif)" },
-  { label: "Sans-serif",      stack: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" },
-  { label: "Monospace",       stack: "var(--font-mono)" },
+  { label: "System serif",    labelKey: "editorSettings.fontSystemSerif", stack: "var(--font-serif)" },
+  { label: "Sans-serif",      labelKey: "editorSettings.fontSans", stack: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" },
+  { label: "Monospace",       labelKey: "editorSettings.fontMono", stack: "var(--font-mono)" },
 ];
 
 const FONT_SIZE_PX = { small: 15, medium: 18, big: 21 };

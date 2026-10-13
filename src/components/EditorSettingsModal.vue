@@ -11,6 +11,9 @@ import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiSegmented } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 // Options for the segmented controls below. `null` means "follow the
 // project's theme default" for the three tri-state fields (font size,
@@ -47,7 +50,7 @@ function back() { emit("close"); }
       <div class="es-row">
         <span class="es-label">{{ $t("editorSettings.font") }}</span>
         <UiSelect class="es-select" v-model="draft.font"
-          :options="EDITOR_FONTS.map(f => ({ label: f.label, value: f.label }))" />
+          :options="EDITOR_FONTS.map(f => ({ label: f.labelKey ? t(f.labelKey) : f.label, value: f.label }))" />
       </div>
 
       <div class="es-row">

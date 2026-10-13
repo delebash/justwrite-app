@@ -364,8 +364,8 @@ function sceneBadge(beat) {
                   class="tmpl-item"
                   @click="handleApplyTemplate(id)"
                 >
-                  <span class="tmpl-label">{{ PLOT_TEMPLATES[id].label }}</span>
-                  <span class="tmpl-blurb">{{ PLOT_TEMPLATES[id].blurb }}</span>
+                  <span class="tmpl-label">{{ t(PLOT_TEMPLATES[id].labelKey) }}</span>
+                  <span class="tmpl-blurb">{{ t(PLOT_TEMPLATES[id].blurbKey) }}</span>
                 </button>
               </div>
             </div>
@@ -399,8 +399,8 @@ function sceneBadge(beat) {
                 class="tmpl-item"
                 @click="handleApplyTemplate(id)"
               >
-                <span class="tmpl-label">{{ PLOT_TEMPLATES[id].label }}</span>
-                <span class="tmpl-blurb">{{ PLOT_TEMPLATES[id].blurb }}</span>
+                <span class="tmpl-label">{{ t(PLOT_TEMPLATES[id].labelKey) }}</span>
+                <span class="tmpl-blurb">{{ t(PLOT_TEMPLATES[id].blurbKey) }}</span>
               </button>
             </div>
           </div>

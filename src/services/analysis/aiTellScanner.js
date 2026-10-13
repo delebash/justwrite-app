@@ -18,78 +18,79 @@ import { htmlToText } from "../text.js";
 
 // ─── Phrase library ─────────────────────────────────────────────────
 // Each entry: { pattern: RegExp (case-insensitive, global flag added
-// automatically), kind, blurb }. `kind` groups findings in the UI.
+// automatically), kind, blurbKey }. The patterns are English prose and stay English (ruled
+// 2026-10-13); the note shown with a finding is a key, translated where it renders. `kind` groups findings in the UI.
 
 const RAW_PHRASES = [
   // ── Catalog tells (stock AI verbs / nouns) ─────────────────────
-  { p: "delve(s|d|ing)? into", kind: "catalog", blurb: "Stock verb. \"Explore\" / \"investigate\" / \"unpack\" all read more human." },
-  { p: "navigate(s|d|ing)? the complexities", kind: "catalog", blurb: "Press-release diction. Cut or rewrite concretely." },
-  { p: "a testament to", kind: "catalog", blurb: "Greeting-card phrase. Replace with the specific thing that demonstrates it." },
-  { p: "stand(s|ing)? as a testament", kind: "catalog", blurb: "As above, in the marble-statue register." },
-  { p: "embark(s|ed|ing)? on", kind: "catalog", blurb: "Travel-brochure verb. Often just \"start\" or \"set out\"." },
-  { p: "tapestry of", kind: "catalog", blurb: "Cliché metaphor. Almost always cuttable." },
-  { p: "the world of", kind: "catalog", blurb: "Especially fatal as an opener." },
-  { p: "in a world where", kind: "catalog", blurb: "Movie-trailer voice. Almost never the right register for prose." },
-  { p: "ever-evolving", kind: "catalog", blurb: "Hedged adjective; describes nothing specific." },
-  { p: "ever-changing", kind: "catalog", blurb: "Same as above." },
-  { p: "intricate (web|dance|tapestry|interplay) of", kind: "catalog", blurb: "Stock metaphor chain. Be concrete." },
-  { p: "rich (tapestry|history|culture|tradition) of", kind: "catalog", blurb: "Stock travel-blog adjective." },
-  { p: "shed light on", kind: "catalog", blurb: "Press-release verb. Show what was illuminated, not that something was \"shed\"." },
-  { p: "paint(s|ed|ing)? a (picture|portrait) of", kind: "catalog", blurb: "Tell, not show. Show the picture itself." },
-  { p: "labyrinth(ine)? (of|world)", kind: "catalog", blurb: "Overworked metaphor." },
-  { p: "kaleidoscope of", kind: "catalog", blurb: "Stock metaphor for variety. Almost always cuttable." },
-  { p: "symphony of", kind: "catalog", blurb: "Stock metaphor for combined elements. Be specific." },
-  { p: "myriad of", kind: "catalog", blurb: "Even strict usage prefers \"myriad\" without \"of\"; AI uses it as flavour text." },
-  { p: "plethora of", kind: "catalog", blurb: "Status-signalling synonym for \"many\"." },
-  { p: "the very fabric of", kind: "catalog", blurb: "Cliché." },
+  { p: "delve(s|d|ing)? into", kind: "catalog", blurbKey: "aiTell.note.delveInto" },
+  { p: "navigate(s|d|ing)? the complexities", kind: "catalog", blurbKey: "aiTell.note.navigateTheComplexities" },
+  { p: "a testament to", kind: "catalog", blurbKey: "aiTell.note.aTestamentTo" },
+  { p: "stand(s|ing)? as a testament", kind: "catalog", blurbKey: "aiTell.note.standAsATestament" },
+  { p: "embark(s|ed|ing)? on", kind: "catalog", blurbKey: "aiTell.note.embarkOn" },
+  { p: "tapestry of", kind: "catalog", blurbKey: "aiTell.note.tapestryOf" },
+  { p: "the world of", kind: "catalog", blurbKey: "aiTell.note.theWorldOf" },
+  { p: "in a world where", kind: "catalog", blurbKey: "aiTell.note.inAWorldWhere" },
+  { p: "ever-evolving", kind: "catalog", blurbKey: "aiTell.note.everEvolving" },
+  { p: "ever-changing", kind: "catalog", blurbKey: "aiTell.note.everChanging" },
+  { p: "intricate (web|dance|tapestry|interplay) of", kind: "catalog", blurbKey: "aiTell.note.intricateOf" },
+  { p: "rich (tapestry|history|culture|tradition) of", kind: "catalog", blurbKey: "aiTell.note.richOf" },
+  { p: "shed light on", kind: "catalog", blurbKey: "aiTell.note.shedLightOn" },
+  { p: "paint(s|ed|ing)? a (picture|portrait) of", kind: "catalog", blurbKey: "aiTell.note.paintAOf" },
+  { p: "labyrinth(ine)? (of|world)", kind: "catalog", blurbKey: "aiTell.note.labyrinth" },
+  { p: "kaleidoscope of", kind: "catalog", blurbKey: "aiTell.note.kaleidoscopeOf" },
+  { p: "symphony of", kind: "catalog", blurbKey: "aiTell.note.symphonyOf" },
+  { p: "myriad of", kind: "catalog", blurbKey: "aiTell.note.myriadOf" },
+  { p: "plethora of", kind: "catalog", blurbKey: "aiTell.note.plethoraOf" },
+  { p: "the very fabric of", kind: "catalog", blurbKey: "aiTell.note.theVeryFabricOf" },
 
   // ── Body-language tells (clichéd physical descriptions) ────────
-  { p: "her eyes (twinkled|sparkled|glittered|danced)", kind: "body", blurb: "Cliché. Bodies don't sparkle. Find the actual visible thing." },
-  { p: "his eyes (twinkled|sparkled|glittered|danced)", kind: "body", blurb: "As above." },
-  { p: "(?:a |an )?(small|slight|sad|wry|gentle|knowing|tight) smile (played|crept|tugged) (at|across)", kind: "body", blurb: "Stock smile-as-emotion-indicator. Replace with the cause, not the smile." },
-  { p: "heart (raced|pounded|hammered|skipped a beat)", kind: "body", blurb: "Stock fear/excitement tell. Almost always tellier than what could replace it." },
-  { p: "stomach (churned|knotted|clenched|dropped|sank)", kind: "body", blurb: "Stock anxiety tell." },
-  { p: "(blood )?ran (cold|hot)", kind: "body", blurb: "Stock fear/anger phrase." },
-  { p: "shiver (ran|went) down (?:his|her|their|my) spine", kind: "body", blurb: "Industrial-grade cliché." },
-  { p: "let out a (?:long )?(?:slow )?(?:shaky )?breath", kind: "body", blurb: "Often replaces a real reaction." },
-  { p: "took a deep breath", kind: "body", blurb: "Over-used emotional transition." },
-  { p: "exchanged (a )?(knowing )?(glance|look)", kind: "body", blurb: "Soap-opera shorthand." },
-  { p: "couldn't help but", kind: "body", blurb: "Hedged emotional reveal. The character either did or didn't; commit." },
-  { p: "felt (a|an) (chill|warmth|pang|wave|shiver|stir(ring)?)", kind: "body", blurb: "Filter word + stock physical metaphor." },
+  { p: "her eyes (twinkled|sparkled|glittered|danced)", kind: "body", blurbKey: "aiTell.note.herEyes" },
+  { p: "his eyes (twinkled|sparkled|glittered|danced)", kind: "body", blurbKey: "aiTell.note.hisEyes" },
+  { p: "(?:a |an )?(small|slight|sad|wry|gentle|knowing|tight) smile (played|crept|tugged) (at|across)", kind: "body", blurbKey: "aiTell.note.smile" },
+  { p: "heart (raced|pounded|hammered|skipped a beat)", kind: "body", blurbKey: "aiTell.note.heart" },
+  { p: "stomach (churned|knotted|clenched|dropped|sank)", kind: "body", blurbKey: "aiTell.note.stomach" },
+  { p: "(blood )?ran (cold|hot)", kind: "body", blurbKey: "aiTell.note.ran" },
+  { p: "shiver (ran|went) down (?:his|her|their|my) spine", kind: "body", blurbKey: "aiTell.note.shiverDownSpine" },
+  { p: "let out a (?:long )?(?:slow )?(?:shaky )?breath", kind: "body", blurbKey: "aiTell.note.letOutABreath" },
+  { p: "took a deep breath", kind: "body", blurbKey: "aiTell.note.tookADeepBreath" },
+  { p: "exchanged (a )?(knowing )?(glance|look)", kind: "body", blurbKey: "aiTell.note.exchanged" },
+  { p: "couldn't help but", kind: "body", blurbKey: "aiTell.note.couldnTHelpBut" },
+  { p: "felt (a|an) (chill|warmth|pang|wave|shiver|stir(ring)?)", kind: "body", blurbKey: "aiTell.note.felt" },
 
   // ── Hedging / qualifier tells ──────────────────────────────────
-  { p: "(?:somehow|somewhat|quite|rather|very|really|just|simply) (?:an? |the )?(?:\\w+ ){0,2}(?:knew|felt|seemed|appeared|noticed|realized|sensed)", kind: "hedge", blurb: "Hedge + filter word; both layers distance the reader." },
-  { p: "in (?:a sense|some sense|some way|a way)", kind: "hedge", blurb: "Hedging phrase. Cut or commit." },
-  { p: "(?:perhaps|maybe) (?:it was|she was|he was|they were)", kind: "hedge", blurb: "Hedge introducing a half-claim. Pick a side." },
-  { p: "a (?:certain|sort of|kind of)", kind: "hedge", blurb: "Vagueness flag." },
+  { p: "(?:somehow|somewhat|quite|rather|very|really|just|simply) (?:an? |the )?(?:\\w+ ){0,2}(?:knew|felt|seemed|appeared|noticed|realized|sensed)", kind: "hedge", blurbKey: "aiTell.note.02" },
+  { p: "in (?:a sense|some sense|some way|a way)", kind: "hedge", blurbKey: "aiTell.note.in" },
+  { p: "(?:perhaps|maybe) (?:it was|she was|he was|they were)", kind: "hedge", blurbKey: "aiTell.note.tell" },
+  { p: "a (?:certain|sort of|kind of)", kind: "hedge", blurbKey: "aiTell.note.a" },
 
   // ── Cadence tells (LLM rhythm signatures) ──────────────────────
-  { p: "not (?:just|only) [\\w\\s]{1,30}, but [\\w\\s]{1,30}", kind: "cadence", blurb: "\"Not only X, but Y\" — over-balanced AI cadence." },
-  { p: "more than (?:just |merely )?[\\w\\s]{1,30}; (?:it|she|he|they) (?:was|were|is|are)", kind: "cadence", blurb: "Press-release cadence." },
-  { p: "what (?:had )?(?:begun|started) as [\\w\\s]{1,30} (?:had )?(?:become|turned into)", kind: "cadence", blurb: "Stock arc-summary sentence." },
+  { p: "not (?:just|only) [\\w\\s]{1,30}, but [\\w\\s]{1,30}", kind: "cadence", blurbKey: "aiTell.note.not130But130" },
+  { p: "more than (?:just |merely )?[\\w\\s]{1,30}; (?:it|she|he|they) (?:was|were|is|are)", kind: "cadence", blurbKey: "aiTell.note.moreThan130" },
+  { p: "what (?:had )?(?:begun|started) as [\\w\\s]{1,30} (?:had )?(?:become|turned into)", kind: "cadence", blurbKey: "aiTell.note.whatAs130" },
 
   // ── Register tells (out-of-genre diction) ──────────────────────
-  { p: "in conclusion", kind: "register", blurb: "Essay register. Never in fiction." },
-  { p: "ultimately, [a-z]", kind: "register", blurb: "Essay transition. Cut." },
-  { p: "as we (have )?seen", kind: "register", blurb: "Essay register." },
-  { p: "it is important to (note|remember|consider)", kind: "register", blurb: "Essay register. Cut." },
-  { p: "(?:above all|at the heart of|cornerstone|bedrock) (?:it is|of)?", kind: "register", blurb: "Editorial register, almost always tellier than what it replaces." },
+  { p: "in conclusion", kind: "register", blurbKey: "aiTell.note.inConclusion" },
+  { p: "ultimately, [a-z]", kind: "register", blurbKey: "aiTell.note.ultimatelyAZ" },
+  { p: "as we (have )?seen", kind: "register", blurbKey: "aiTell.note.asWeSeen" },
+  { p: "it is important to (note|remember|consider)", kind: "register", blurbKey: "aiTell.note.itIsImportantTo" },
+  { p: "(?:above all|at the heart of|cornerstone|bedrock) (?:it is|of)?", kind: "register", blurbKey: "aiTell.note.tellX" },
 ];
 
 // Build a single compiled regex set once.
 const COMPILED = RAW_PHRASES.map((entry) => ({
   re: new RegExp(entry.p, "gi"),
   kind: entry.kind,
-  blurb: entry.blurb,
+  blurbKey: entry.blurbKey,
   source: entry.p,
 }));
 
 export const TELL_KINDS = {
-  catalog:  { label: "Stock catalog phrase", colour: "var(--accent-ink)" },
-  body:     { label: "Body-language cliché", colour: "var(--gold)" },
-  hedge:    { label: "Hedge / qualifier",    colour: "var(--muted)" },
-  cadence:  { label: "AI cadence",           colour: "var(--danger)" },
-  register: { label: "Out-of-genre register", colour: "var(--status-revise)" },
+  catalog:  { labelKey: "aiTell.kind.catalog", colour: "var(--accent-ink)" },
+  body:     { labelKey: "aiTell.kind.body", colour: "var(--gold)" },
+  hedge:    { labelKey: "aiTell.kind.hedge",    colour: "var(--muted)" },
+  cadence:  { labelKey: "aiTell.kind.cadence",           colour: "var(--danger)" },
+  register: { labelKey: "aiTell.kind.register", colour: "var(--status-revise)" },
 };
 
 // ─── Helpers ────────────────────────────────────────────────────────
@@ -154,7 +155,7 @@ export function scanAiTells(project) {
           findings.push({
             id: `tell_${ch.id}_${scn.id}_${entry.source}_${at}`,
             kind: entry.kind,
-            blurb: entry.blurb,
+            blurbKey: entry.blurbKey,
             phrase,
             snippet,
             chapterId: ch.id,

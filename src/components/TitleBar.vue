@@ -46,7 +46,12 @@ const activePreset = computed(() => {
     || (ui.customPresets || []).find((p) => p.id === pid)
     || null;
 });
-const activePresetLabel = computed(() => activePreset.value?.name || t("titleBar.customTheme"));
+// a built-in look names its key; a saved one keeps the name its writer gave it
+const activePresetLabel = computed(() => {
+  const p = activePreset.value;
+  if (p?.nameKey) return t(p.nameKey);
+  return p?.name || t("titleBar.customTheme");
+});
 function toggleTheme() {
   themeOpen.value = !themeOpen.value;
   if (themeOpen.value) modeOpen.value = false;
@@ -116,7 +121,7 @@ function toggleChat() {
           <button v-for="p in THEME_PRESETS" :key="p.id" @click="pickPreset(p)"
             :class="{ active: ui.appearance?.preset === p.id }">
             <span class="theme-dot" :style="`background: oklch(0.55 0.13 ${p.patch.accentHue})`" />
-            <span class="theme-name">{{ p.name }}</span>
+            <span class="theme-name">{{ t(p.nameKey) }}</span>
             <Icon v-if="ui.appearance?.preset === p.id" name="Check" :size="11" class="theme-check" />
           </button>
           <template v-if="ui.customPresets && ui.customPresets.length">

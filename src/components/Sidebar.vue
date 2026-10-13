@@ -724,7 +724,7 @@ async function addWbCategory() {
 async function addArticleInCat(catId) {
   const M = NEW_ENTITY_META.worldbuilding;
   const title = await promptDialog({
-    title: M.title, label: M.label, placeholder: M.placeholder, confirmLabel: M.confirmLabel,
+    title: t(M.titleKey), label: t(M.labelKey), placeholder: t(M.placeholderKey), confirmLabel: t(M.confirmLabelKey),
   });
   if (!title) return;
   const id = project.addWorldbuilding({ title, category: catId });

@@ -19,6 +19,9 @@ import { Icon } from "@delebash/llm-ui";
 import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { EmptyState } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const emit = defineEmits(["close"]);
 
@@ -111,7 +114,7 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
               @click="(result.countsByKind[key] || 0) && (activeKind = activeKind === key ? null : key)"
               role="button" tabindex="0">
           <span class="at-dot" :style="{ background: TELL_KINDS[key].colour }" />
-          {{ TELL_KINDS[key].label }}
+          {{ t(TELL_KINDS[key].labelKey) }}
           <span class="at-count">{{ result.countsByKind[key] || 0 }}</span>
         </span>
         <span class="at-spacer" />
@@ -143,7 +146,7 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
             <li v-for="f in g.items" :key="f.id" class="at-item">
               <div class="at-item-head">
                 <span class="at-kind-chip" :style="{ background: TELL_KINDS[f.kind].colour }">
-                  {{ TELL_KINDS[f.kind].label }}
+                  {{ t(TELL_KINDS[f.kind].labelKey) }}
                 </span>
                 <span class="at-phrase">"{{ f.phrase }}"</span>
                 <button class="at-jump" @click="jumpToScene(f.chapterId, f.sceneId)"
@@ -152,7 +155,7 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
                 </button>
               </div>
               <p class="at-snippet" v-html="highlight(f.snippet, f.phrase).replace(/__HL_START__/g, '<mark>').replace(/__HL_END__/g, '</mark>')"></p>
-              <p class="at-blurb-line">{{ f.blurb }}</p>
+              <p class="at-blurb-line">{{ f.blurbKey ? t(f.blurbKey) : f.blurb }}</p>
             </li>
           </ul>
         </section>

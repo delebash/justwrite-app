@@ -17,69 +17,71 @@
 
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
-import { t } from "../../i18n/index.js";
+import { t, tEnglish } from "../../i18n/index.js";
 
 // ─── Templates ───────────────────────────────────────────────────────
 
 export const BEAT_TEMPLATES = {
   "save-the-cat": {
-    name: "Save the Cat",
-    blurb: "Blake Snyder's 15-beat sheet. Built for commercial film, widely used in genre novels.",
+    nameKey: "beatSheet.framework.saveTheCat.name",
+    blurbKey: "beatSheet.framework.saveTheCat.blurb",
     beats: [
-      { key: "opening-image",      name: "Opening Image",        desc: "A snapshot of the protagonist's status quo. The thing the story will change." },
-      { key: "theme-stated",       name: "Theme Stated",         desc: "Someone, usually not the protagonist, states the story's thematic premise — often without realising its weight." },
-      { key: "setup",              name: "Setup",                desc: "The protagonist's world, their want, their flaw, and the people who pull on them." },
-      { key: "catalyst",           name: "Catalyst",             desc: "The inciting event that disrupts the status quo." },
-      { key: "debate",             name: "Debate",               desc: "The protagonist resists or hesitates. Should they engage with the catalyst?" },
-      { key: "break-into-two",     name: "Break Into Two",       desc: "The protagonist commits. The world of Act II begins." },
-      { key: "b-story",            name: "B Story",              desc: "A second storyline (often relational or thematic) opens, usually with a new character." },
-      { key: "fun-and-games",      name: "Fun and Games",        desc: "The promise of the premise — the scenes the reader came for." },
-      { key: "midpoint",           name: "Midpoint",             desc: "A false victory or false defeat that raises the stakes." },
-      { key: "bad-guys-close-in",  name: "Bad Guys Close In",    desc: "External pressure mounts; the protagonist's flaws start to undermine them." },
-      { key: "all-is-lost",        name: "All Is Lost",          desc: "The lowest point. Often involves a death (literal or figurative)." },
-      { key: "dark-night-of-soul", name: "Dark Night of the Soul", desc: "The protagonist faces themselves. The internal turn that enables the external turn." },
-      { key: "break-into-three",   name: "Break Into Three",     desc: "A new understanding (often catalysed by the B Story) enables a new plan." },
-      { key: "finale",             name: "Finale",               desc: "The protagonist executes the plan. The story's external and internal arcs converge." },
-      { key: "final-image",        name: "Final Image",          desc: "A mirror of the Opening Image showing how the world has changed." },
+      { key: "opening-image", nameKey: "beatSheet.framework.saveTheCat.beat.openingImage.name", descKey: "beatSheet.framework.saveTheCat.beat.openingImage.desc" },
+      { key: "theme-stated", nameKey: "beatSheet.framework.saveTheCat.beat.themeStated.name", descKey: "beatSheet.framework.saveTheCat.beat.themeStated.desc" },
+      { key: "setup", nameKey: "beatSheet.framework.saveTheCat.beat.setup.name", descKey: "beatSheet.framework.saveTheCat.beat.setup.desc" },
+      { key: "catalyst", nameKey: "beatSheet.framework.saveTheCat.beat.catalyst.name", descKey: "beatSheet.framework.saveTheCat.beat.catalyst.desc" },
+      { key: "debate", nameKey: "beatSheet.framework.saveTheCat.beat.debate.name", descKey: "beatSheet.framework.saveTheCat.beat.debate.desc" },
+      { key: "break-into-two", nameKey: "beatSheet.framework.saveTheCat.beat.breakIntoTwo.name", descKey: "beatSheet.framework.saveTheCat.beat.breakIntoTwo.desc" },
+      { key: "b-story", nameKey: "beatSheet.framework.saveTheCat.beat.bStory.name", descKey: "beatSheet.framework.saveTheCat.beat.bStory.desc" },
+      { key: "fun-and-games", nameKey: "beatSheet.framework.saveTheCat.beat.funAndGames.name", descKey: "beatSheet.framework.saveTheCat.beat.funAndGames.desc" },
+      { key: "midpoint", nameKey: "beatSheet.framework.saveTheCat.beat.midpoint.name", descKey: "beatSheet.framework.saveTheCat.beat.midpoint.desc" },
+      { key: "bad-guys-close-in", nameKey: "beatSheet.framework.saveTheCat.beat.badGuysCloseIn.name", descKey: "beatSheet.framework.saveTheCat.beat.badGuysCloseIn.desc" },
+      { key: "all-is-lost", nameKey: "beatSheet.framework.saveTheCat.beat.allIsLost.name", descKey: "beatSheet.framework.saveTheCat.beat.allIsLost.desc" },
+      { key: "dark-night-of-soul", nameKey: "beatSheet.framework.saveTheCat.beat.darkNightOfSoul.name", descKey: "beatSheet.framework.saveTheCat.beat.darkNightOfSoul.desc" },
+      { key: "break-into-three", nameKey: "beatSheet.framework.saveTheCat.beat.breakIntoThree.name", descKey: "beatSheet.framework.saveTheCat.beat.breakIntoThree.desc" },
+      { key: "finale", nameKey: "beatSheet.framework.saveTheCat.beat.finale.name", descKey: "beatSheet.framework.saveTheCat.beat.finale.desc" },
+      { key: "final-image", nameKey: "beatSheet.framework.saveTheCat.beat.finalImage.name", descKey: "beatSheet.framework.saveTheCat.beat.finalImage.desc" },
     ],
   },
   "heros-journey": {
-    name: "Hero's Journey",
-    blurb: "Christopher Vogler's 12-stage adaptation of Joseph Campbell's monomyth. Strong for fantasy, sci-fi, and mythic structure.",
+    nameKey: "beatSheet.framework.herosJourney.name",
+    blurbKey: "beatSheet.framework.herosJourney.blurb",
     beats: [
-      { key: "ordinary-world",       name: "Ordinary World",          desc: "The hero's life before transformation." },
-      { key: "call-to-adventure",    name: "Call to Adventure",       desc: "An invitation, a problem, or a wound that pulls them toward change." },
-      { key: "refusal-of-call",      name: "Refusal of the Call",     desc: "The hero hesitates, doubts, or refuses outright." },
-      { key: "meeting-mentor",       name: "Meeting the Mentor",      desc: "Wisdom, training, or a gift that enables the journey." },
-      { key: "crossing-threshold",   name: "Crossing the Threshold",  desc: "The hero leaves the ordinary world and enters a new one." },
-      { key: "tests-allies-enemies", name: "Tests, Allies, Enemies",  desc: "The hero learns the new world's rules and gathers a cast." },
-      { key: "approach-inmost-cave", name: "Approach to the Inmost Cave", desc: "Preparation for the central ordeal. Plans, fears, last conversations." },
-      { key: "ordeal",               name: "Ordeal",                  desc: "The central life-or-death confrontation. The hero touches death and finds something." },
-      { key: "reward",               name: "Reward (Seizing the Sword)", desc: "The hero claims what the ordeal made possible." },
-      { key: "road-back",            name: "The Road Back",           desc: "The hero starts the return. New dangers and the pull of the old world." },
-      { key: "resurrection",         name: "Resurrection",            desc: "A final, harder test that proves the change is real." },
-      { key: "return-with-elixir",   name: "Return with the Elixir",  desc: "The hero returns home, transformed, bringing something the ordinary world needed." },
+      { key: "ordinary-world", nameKey: "beatSheet.framework.herosJourney.beat.ordinaryWorld.name", descKey: "beatSheet.framework.herosJourney.beat.ordinaryWorld.desc" },
+      { key: "call-to-adventure", nameKey: "beatSheet.framework.herosJourney.beat.callToAdventure.name", descKey: "beatSheet.framework.herosJourney.beat.callToAdventure.desc" },
+      { key: "refusal-of-call", nameKey: "beatSheet.framework.herosJourney.beat.refusalOfCall.name", descKey: "beatSheet.framework.herosJourney.beat.refusalOfCall.desc" },
+      { key: "meeting-mentor", nameKey: "beatSheet.framework.herosJourney.beat.meetingMentor.name", descKey: "beatSheet.framework.herosJourney.beat.meetingMentor.desc" },
+      { key: "crossing-threshold", nameKey: "beatSheet.framework.herosJourney.beat.crossingThreshold.name", descKey: "beatSheet.framework.herosJourney.beat.crossingThreshold.desc" },
+      { key: "tests-allies-enemies", nameKey: "beatSheet.framework.herosJourney.beat.testsAlliesEnemies.name", descKey: "beatSheet.framework.herosJourney.beat.testsAlliesEnemies.desc" },
+      { key: "approach-inmost-cave", nameKey: "beatSheet.framework.herosJourney.beat.approachInmostCave.name", descKey: "beatSheet.framework.herosJourney.beat.approachInmostCave.desc" },
+      { key: "ordeal", nameKey: "beatSheet.framework.herosJourney.beat.ordeal.name", descKey: "beatSheet.framework.herosJourney.beat.ordeal.desc" },
+      { key: "reward", nameKey: "beatSheet.framework.herosJourney.beat.reward.name", descKey: "beatSheet.framework.herosJourney.beat.reward.desc" },
+      { key: "road-back", nameKey: "beatSheet.framework.herosJourney.beat.roadBack.name", descKey: "beatSheet.framework.herosJourney.beat.roadBack.desc" },
+      { key: "resurrection", nameKey: "beatSheet.framework.herosJourney.beat.resurrection.name", descKey: "beatSheet.framework.herosJourney.beat.resurrection.desc" },
+      { key: "return-with-elixir", nameKey: "beatSheet.framework.herosJourney.beat.returnWithElixir.name", descKey: "beatSheet.framework.herosJourney.beat.returnWithElixir.desc" },
     ],
   },
   "seven-point": {
-    name: "7-Point Story Structure",
-    blurb: "Dan Wells's compressed framework. Easy to apply, especially good for short novels and series planning.",
+    nameKey: "beatSheet.framework.sevenPoint.name",
+    blurbKey: "beatSheet.framework.sevenPoint.blurb",
     beats: [
-      { key: "hook",         name: "Hook",         desc: "The protagonist's starting state — the inverse of their ending state." },
-      { key: "plot-turn-1",  name: "Plot Turn 1",  desc: "The event that calls the protagonist out of the ordinary world." },
-      { key: "pinch-1",      name: "Pinch 1",      desc: "First major pressure from the antagonistic force. Often raises stakes." },
-      { key: "midpoint",     name: "Midpoint",     desc: "The protagonist shifts from reactive to active." },
-      { key: "pinch-2",      name: "Pinch 2",      desc: "Second major pressure. The plan falls apart; the mentor often dies here." },
-      { key: "plot-turn-2",  name: "Plot Turn 2",  desc: "The protagonist gets what they need to resolve the story." },
-      { key: "resolution",   name: "Resolution",   desc: "The protagonist executes; the story's questions are answered." },
+      { key: "hook", nameKey: "beatSheet.framework.sevenPoint.beat.hook.name", descKey: "beatSheet.framework.sevenPoint.beat.hook.desc" },
+      { key: "plot-turn-1", nameKey: "beatSheet.framework.sevenPoint.beat.plotTurn1.name", descKey: "beatSheet.framework.sevenPoint.beat.plotTurn1.desc" },
+      { key: "pinch-1", nameKey: "beatSheet.framework.sevenPoint.beat.pinch1.name", descKey: "beatSheet.framework.sevenPoint.beat.pinch1.desc" },
+      { key: "midpoint", nameKey: "beatSheet.framework.sevenPoint.beat.midpoint.name", descKey: "beatSheet.framework.sevenPoint.beat.midpoint.desc" },
+      { key: "pinch-2", nameKey: "beatSheet.framework.sevenPoint.beat.pinch2.name", descKey: "beatSheet.framework.sevenPoint.beat.pinch2.desc" },
+      { key: "plot-turn-2", nameKey: "beatSheet.framework.sevenPoint.beat.plotTurn2.name", descKey: "beatSheet.framework.sevenPoint.beat.plotTurn2.desc" },
+      { key: "resolution", nameKey: "beatSheet.framework.sevenPoint.beat.resolution.name", descKey: "beatSheet.framework.sevenPoint.beat.resolution.desc" },
     ],
   },
 };
 
-export const TEMPLATE_OPTIONS = Object.entries(BEAT_TEMPLATES).map(([key, t]) => ({
+// The picker's options name their keys; BeatSheetModal translates them (a list built here would
+// keep the language it was built in).
+export const TEMPLATE_OPTIONS = Object.entries(BEAT_TEMPLATES).map(([key, tpl]) => ({
   value: key,
-  label: t.name,
-  blurb: t.blurb,
+  labelKey: tpl.nameKey,
+  blurbKey: tpl.blurbKey,
 }));
 
 // ─── helpers ─────────────────────────────────────────────────────────
@@ -137,15 +139,15 @@ export function composeBeatSheetInput(project, templateKey = TEMPLATE_OPTIONS[0]
     throw err;
   }
 
-  const beatLines = template.beats.map((b) => `- "${b.key}" — ${b.name}: ${b.desc}`).join("\n");
+  const beatLines = template.beats.map((b) => `- "${b.key}" — ${tEnglish(b.nameKey)}: ${tEnglish(b.descKey)}`).join("\n");
   const chapterLines = chapters.map((c) => {
     const header = `Ch. ${c.num}${c.title ? ` — ${c.title}` : ""} (${c.words.toLocaleString()} words)`;
     return `${header}\n${c.summary || "(no summary)"}`;
   }).join("\n\n");
 
   const userBody = [
-    `FRAMEWORK: ${template.name}`,
-    template.blurb,
+    `FRAMEWORK: ${tEnglish(template.nameKey)}`,
+    tEnglish(template.blurbKey),
     "",
     "BEATS (in canonical order):",
     beatLines,
@@ -196,8 +198,6 @@ export async function mapToBeatSheet({
     if (!hit) {
       mapping.push({
         beatKey: beat.key,
-        beatName: beat.name,
-        beatDesc: beat.desc,
         chapterNum: null,
         justification: "",
         missing: true,
@@ -208,8 +208,6 @@ export async function mapToBeatSheet({
     const justification = typeof hit.justification === "string" ? hit.justification.trim().slice(0, 400) : "";
     mapping.push({
       beatKey: beat.key,
-      beatName: beat.name,
-      beatDesc: beat.desc,
       chapterNum,
       justification,
       missing: chapterNum == null,
@@ -221,7 +219,6 @@ export async function mapToBeatSheet({
 
   return {
     templateKey,
-    templateName: template.name,
     summary,
     mapping,
     missingCount,

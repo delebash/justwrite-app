@@ -44,6 +44,13 @@ function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.messag
 const selectedTemplate = ref(TEMPLATE_OPTIONS[0].value);
 const mapping = computed(() => project.beatSheets?.[selectedTemplate.value] || null);
 const currentTemplate = computed(() => BEAT_TEMPLATES[selectedTemplate.value]);
+const templateOptions = computed(() => TEMPLATE_OPTIONS.map((o) => ({ value: o.value, label: t(o.labelKey) })));
+// A mapped beat's name or description in the interface language, by its key (a mapping saved
+// before 2026-10-13 also carries an English copy, the fallback).
+function beatWord(b, field, saved) {
+  const beat = currentTemplate.value?.beats.find((x) => x.key === b.beatKey);
+  return beat ? t(beat[field]) : saved || "";
+}
 
 async function run() {
   error.value = "";
@@ -115,12 +122,12 @@ if (!mapping.value) run();
         <label class="bs-label">{{ $t("beatSheet.frameworkLabel") }}</label>
         <UiSelect
           v-model="selectedTemplate"
-          :options="TEMPLATE_OPTIONS"
+          :options="templateOptions"
           option-label="label"
           option-value="value"
         />
       </div>
-      <p v-if="currentTemplate?.blurb" class="bs-blurb-template">{{ currentTemplate.blurb }}</p>
+      <p v-if="currentTemplate" class="bs-blurb-template">{{ t(currentTemplate.blurbKey) }}</p>
     </div>
 
     <UiBanner v-if="error">
@@ -159,7 +166,7 @@ if (!mapping.value) run();
         <li v-for="b in mapping.mapping" :key="b.beatKey"
             class="bs-beat" :class="{ missing: b.missing }">
           <div class="bs-beat-head">
-            <span class="bs-beat-name">{{ b.beatName }}</span>
+            <span class="bs-beat-name">{{ beatWord(b, 'nameKey', b.beatName) }}</span>
             <span v-if="b.missing" class="bs-missing-tag">
               <Icon name="Alert" :size="11" /> {{ $t("beatSheet.missingTag") }}
             </span>
@@ -169,7 +176,7 @@ if (!mapping.value) run();
               {{ $t("common.chapterShort", { num: b.chapterNum }) }}
             </button>
           </div>
-          <p class="bs-beat-desc">{{ b.beatDesc }}</p>
+          <p class="bs-beat-desc">{{ beatWord(b, 'descKey', b.beatDesc) }}</p>
           <p v-if="b.justification" class="bs-beat-just">
             <span class="bs-just-label">{{ b.missing ? $t('beatSheet.whyMissing') : $t('beatSheet.onThePage') }}</span>
             {{ b.justification }}

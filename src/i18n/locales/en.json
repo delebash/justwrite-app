@@ -182,7 +182,235 @@
     "addBeatToChapter": "Add beat to Chapter {num}",
     "editBeatAria": "Edit beat: {label}",
     "pinnedTo": "Pinned to {scene}",
-    "addBeatInChapter": "Add beat in chapter {num}"
+    "addBeatInChapter": "Add beat in chapter {num}",
+    "template": {
+      "threeAct": {
+        "label": "Three-Act Structure",
+        "blurb": "The classic backbone: setup, confrontation, resolution. Six beats marking the major turning points.",
+        "beat": {
+          "hook": {
+            "label": "Hook",
+            "note": "Open with something that demands attention."
+          },
+          "incitingIncident": {
+            "label": "Inciting incident",
+            "note": "The event that disrupts ordinary life and starts the story."
+          },
+          "firstPlotPoint": {
+            "label": "First plot point",
+            "note": "End of Act I — the protagonist commits to the journey."
+          },
+          "midpoint": {
+            "label": "Midpoint",
+            "note": "A revelation or shift that recenters the stakes."
+          },
+          "secondPlotPoint": {
+            "label": "Second plot point",
+            "note": "Darkest moment. Everything seems lost."
+          },
+          "climax": {
+            "label": "Climax",
+            "note": "Final confrontation — the question of the story gets answered."
+          },
+          "resolution": {
+            "label": "Resolution",
+            "note": "The new normal."
+          }
+        }
+      },
+      "fiveAct": {
+        "label": "Five-Act Structure",
+        "blurb": "Freytag's pyramid: exposition, rising action, climax, falling action, dénouement. Useful for tragedies and ensemble dramas.",
+        "beat": {
+          "exposition": {
+            "label": "Exposition",
+            "note": "Establish the world, characters, and status quo."
+          },
+          "incitingMoment": {
+            "label": "Inciting moment",
+            "note": "The first disturbance that pulls characters toward conflict."
+          },
+          "risingAction": {
+            "label": "Rising action",
+            "note": "Stakes escalate; alliances and obstacles emerge."
+          },
+          "turn": {
+            "label": "Turn",
+            "note": "A crucial decision or revelation that changes trajectory."
+          },
+          "climax": {
+            "label": "Climax",
+            "note": "Peak intensity — irreversible action."
+          },
+          "fallingAction": {
+            "label": "Falling action",
+            "note": "Consequences ripple outward."
+          },
+          "denouement": {
+            "label": "Dénouement",
+            "note": "Tie up loose threads. Show the new equilibrium (or its absence)."
+          }
+        }
+      },
+      "saveTheCat": {
+        "label": "Save the Cat",
+        "blurb": "Blake Snyder's 15-beat sheet. Tight scaffolding popular for genre fiction and screenplays.",
+        "beat": {
+          "openingImage": {
+            "label": "Opening Image",
+            "note": "A single image that captures the protagonist's status quo."
+          },
+          "themeStated": {
+            "label": "Theme Stated",
+            "note": "Someone (not the hero) states the moral question of the story."
+          },
+          "setUp": {
+            "label": "Set-Up",
+            "note": "Hero's flaw is shown. Stakes hinted at. Around 10% of the book."
+          },
+          "catalyst": {
+            "label": "Catalyst",
+            "note": "Inciting incident — the disrupting event."
+          },
+          "debate": {
+            "label": "Debate",
+            "note": "Hero hesitates. Asks the central question."
+          },
+          "breakIntoTwo": {
+            "label": "Break Into Two",
+            "note": "Hero commits and crosses into the new world (~25%)."
+          },
+          "bStory": {
+            "label": "B Story",
+            "note": "Subplot begins — usually love or mentor. Carries the theme."
+          },
+          "funAndGames": {
+            "label": "Fun and Games",
+            "note": "The promise of the premise. Spectacle, set pieces, joy."
+          },
+          "midpoint": {
+            "label": "Midpoint",
+            "note": "False victory or false defeat. Stakes raised (~50%)."
+          },
+          "badGuysCloseIn": {
+            "label": "Bad Guys Close In",
+            "note": "Antagonists tighten. Internal cracks show."
+          },
+          "allIsLost": {
+            "label": "All Is Lost",
+            "note": "Whiff of death. The opposite of the opening image (~75%)."
+          },
+          "darkNightOfTheSoul": {
+            "label": "Dark Night of the Soul",
+            "note": "Hero hits rock bottom. Reflects."
+          },
+          "breakIntoThree": {
+            "label": "Break Into Three",
+            "note": "A and B stories converge. Hero finds the answer."
+          },
+          "finale": {
+            "label": "Finale",
+            "note": "Hero storms the castle. Old world dismantled, new world built."
+          },
+          "finalImage": {
+            "label": "Final Image",
+            "note": "Mirror of the opening image — shows transformation."
+          }
+        }
+      },
+      "herosJourney": {
+        "label": "Hero's Journey",
+        "blurb": "Campbell's monomyth via Vogler. Twelve stages mapping the archetypal transformation arc.",
+        "beat": {
+          "ordinaryWorld": {
+            "label": "Ordinary World",
+            "note": "Hero in their familiar environment, before the call."
+          },
+          "callToAdventure": {
+            "label": "Call to Adventure",
+            "note": "A challenge, problem, or opportunity appears."
+          },
+          "refusalOfTheCall": {
+            "label": "Refusal of the Call",
+            "note": "Reluctance, fear, hesitation."
+          },
+          "meetingTheMentor": {
+            "label": "Meeting the Mentor",
+            "note": "Guidance, gift, or wisdom from a wiser figure."
+          },
+          "crossingTheThreshold": {
+            "label": "Crossing the Threshold",
+            "note": "Hero commits and enters the special world."
+          },
+          "testsAlliesEnemies": {
+            "label": "Tests, Allies, Enemies",
+            "note": "First trials. Hero learns the rules of the new world."
+          },
+          "approachToTheInmostCave": {
+            "label": "Approach to the Inmost Cave",
+            "note": "Preparation for the central ordeal."
+          },
+          "ordeal": {
+            "label": "Ordeal",
+            "note": "The crisis at the heart of the journey. Symbolic death."
+          },
+          "reward": {
+            "label": "Reward",
+            "note": "Hero seizes the prize and survives the ordeal."
+          },
+          "theRoadBack": {
+            "label": "The Road Back",
+            "note": "Hero leaves the special world. Pursuit begins."
+          },
+          "resurrection": {
+            "label": "Resurrection",
+            "note": "A final test that completes the transformation."
+          },
+          "returnWithTheElixir": {
+            "label": "Return with the Elixir",
+            "note": "Hero returns home changed, bringing something that heals the ordinary world."
+          }
+        }
+      },
+      "storyCircle": {
+        "label": "Story Circle",
+        "blurb": "Dan Harmon's eight-step distillation of the monomyth. Compact and recursive — works at chapter or arc level.",
+        "beat": {
+          "you": {
+            "label": "You",
+            "note": "A character in a zone of comfort."
+          },
+          "need": {
+            "label": "Need",
+            "note": "But they want something."
+          },
+          "go": {
+            "label": "Go",
+            "note": "They enter an unfamiliar situation."
+          },
+          "search": {
+            "label": "Search",
+            "note": "Adapt to it."
+          },
+          "find": {
+            "label": "Find",
+            "note": "Find what they wanted."
+          },
+          "take": {
+            "label": "Take",
+            "note": "Pay a heavy price for it."
+          },
+          "return": {
+            "label": "Return",
+            "note": "Then return to their familiar situation."
+          },
+          "change": {
+            "label": "Change",
+            "note": "Having changed."
+          }
+        }
+      }
+    }
   },
   "brainstorm": {
     "title": "Brainstorm",
@@ -255,7 +483,13 @@
     "summaryLabel": "Summary",
     "bodyPlaceholder": "Write the article…",
     "searchPlaceholder": "Search articles…",
-    "searchEmpty": "No articles match your search."
+    "searchEmpty": "No articles match your search.",
+    "dialog": {
+      "title": "New article",
+      "label": "Article title",
+      "placeholder": "e.g. The North Coast",
+      "confirm": "Create article"
+    }
   },
   "beatSheet": {
     "eyebrow": "Beat sheet",
@@ -276,7 +510,163 @@
       "failed": "Couldn't map to beat sheet."
     },
     "taskLabel": "Beat sheet mapping",
-    "taskShort": "Beat sheet"
+    "taskShort": "Beat sheet",
+    "framework": {
+      "saveTheCat": {
+        "name": "Save the Cat",
+        "blurb": "Blake Snyder's 15-beat sheet. Built for commercial film, widely used in genre novels.",
+        "beat": {
+          "openingImage": {
+            "name": "Opening Image",
+            "desc": "A snapshot of the protagonist's status quo. The thing the story will change."
+          },
+          "themeStated": {
+            "name": "Theme Stated",
+            "desc": "Someone, usually not the protagonist, states the story's thematic premise — often without realising its weight."
+          },
+          "setup": {
+            "name": "Setup",
+            "desc": "The protagonist's world, their want, their flaw, and the people who pull on them."
+          },
+          "catalyst": {
+            "name": "Catalyst",
+            "desc": "The inciting event that disrupts the status quo."
+          },
+          "debate": {
+            "name": "Debate",
+            "desc": "The protagonist resists or hesitates. Should they engage with the catalyst?"
+          },
+          "breakIntoTwo": {
+            "name": "Break Into Two",
+            "desc": "The protagonist commits. The world of Act II begins."
+          },
+          "bStory": {
+            "name": "B Story",
+            "desc": "A second storyline (often relational or thematic) opens, usually with a new character."
+          },
+          "funAndGames": {
+            "name": "Fun and Games",
+            "desc": "The promise of the premise — the scenes the reader came for."
+          },
+          "midpoint": {
+            "name": "Midpoint",
+            "desc": "A false victory or false defeat that raises the stakes."
+          },
+          "badGuysCloseIn": {
+            "name": "Bad Guys Close In",
+            "desc": "External pressure mounts; the protagonist's flaws start to undermine them."
+          },
+          "allIsLost": {
+            "name": "All Is Lost",
+            "desc": "The lowest point. Often involves a death (literal or figurative)."
+          },
+          "darkNightOfSoul": {
+            "name": "Dark Night of the Soul",
+            "desc": "The protagonist faces themselves. The internal turn that enables the external turn."
+          },
+          "breakIntoThree": {
+            "name": "Break Into Three",
+            "desc": "A new understanding (often catalysed by the B Story) enables a new plan."
+          },
+          "finale": {
+            "name": "Finale",
+            "desc": "The protagonist executes the plan. The story's external and internal arcs converge."
+          },
+          "finalImage": {
+            "name": "Final Image",
+            "desc": "A mirror of the Opening Image showing how the world has changed."
+          }
+        }
+      },
+      "herosJourney": {
+        "name": "Hero's Journey",
+        "blurb": "Christopher Vogler's 12-stage adaptation of Joseph Campbell's monomyth. Strong for fantasy, sci-fi, and mythic structure.",
+        "beat": {
+          "ordinaryWorld": {
+            "name": "Ordinary World",
+            "desc": "The hero's life before transformation."
+          },
+          "callToAdventure": {
+            "name": "Call to Adventure",
+            "desc": "An invitation, a problem, or a wound that pulls them toward change."
+          },
+          "refusalOfCall": {
+            "name": "Refusal of the Call",
+            "desc": "The hero hesitates, doubts, or refuses outright."
+          },
+          "meetingMentor": {
+            "name": "Meeting the Mentor",
+            "desc": "Wisdom, training, or a gift that enables the journey."
+          },
+          "crossingThreshold": {
+            "name": "Crossing the Threshold",
+            "desc": "The hero leaves the ordinary world and enters a new one."
+          },
+          "testsAlliesEnemies": {
+            "name": "Tests, Allies, Enemies",
+            "desc": "The hero learns the new world's rules and gathers a cast."
+          },
+          "approachInmostCave": {
+            "name": "Approach to the Inmost Cave",
+            "desc": "Preparation for the central ordeal. Plans, fears, last conversations."
+          },
+          "ordeal": {
+            "name": "Ordeal",
+            "desc": "The central life-or-death confrontation. The hero touches death and finds something."
+          },
+          "reward": {
+            "name": "Reward (Seizing the Sword)",
+            "desc": "The hero claims what the ordeal made possible."
+          },
+          "roadBack": {
+            "name": "The Road Back",
+            "desc": "The hero starts the return. New dangers and the pull of the old world."
+          },
+          "resurrection": {
+            "name": "Resurrection",
+            "desc": "A final, harder test that proves the change is real."
+          },
+          "returnWithElixir": {
+            "name": "Return with the Elixir",
+            "desc": "The hero returns home, transformed, bringing something the ordinary world needed."
+          }
+        }
+      },
+      "sevenPoint": {
+        "name": "7-Point Story Structure",
+        "blurb": "Dan Wells's compressed framework. Easy to apply, especially good for short novels and series planning.",
+        "beat": {
+          "hook": {
+            "name": "Hook",
+            "desc": "The protagonist's starting state — the inverse of their ending state."
+          },
+          "plotTurn1": {
+            "name": "Plot Turn 1",
+            "desc": "The event that calls the protagonist out of the ordinary world."
+          },
+          "pinch1": {
+            "name": "Pinch 1",
+            "desc": "First major pressure from the antagonistic force. Often raises stakes."
+          },
+          "midpoint": {
+            "name": "Midpoint",
+            "desc": "The protagonist shifts from reactive to active."
+          },
+          "pinch2": {
+            "name": "Pinch 2",
+            "desc": "Second major pressure. The plan falls apart; the mentor often dies here."
+          },
+          "plotTurn2": {
+            "name": "Plot Turn 2",
+            "desc": "The protagonist gets what they need to resolve the story."
+          },
+          "resolution": {
+            "name": "Resolution",
+            "desc": "The protagonist executes; the story's questions are answered."
+          }
+        }
+      }
+    }
   },
   "editorSettings": {
     "title": "Settings",
@@ -289,7 +679,11 @@
     "spellCheck": "Spell check",
     "keepStrikethrough": "Keep original as strikethrough when accepting an AI change",
     "save": "save",
-    "back": "back"
+    "back": "back",
+    "fontThemeDefault": "Theme default",
+    "fontSystemSerif": "System serif",
+    "fontSans": "Sans-serif",
+    "fontMono": "Monospace"
   },
   "notes": {
     "importing": "Importing…",
@@ -459,7 +853,19 @@
     "searchEmpty": "No narrative strands match your search.",
     "reassignBeat": "Reassign to a different scene",
     "noScene": "(no scene)",
-    "noScenes": "No scenes linked to this narrative strand yet. Open a scene → Links → Narrative strands to add one."
+    "noScenes": "No scenes linked to this narrative strand yet. Open a scene → Links → Narrative strands to add one.",
+    "beatPreset": {
+      "inciting": "Inciting",
+      "firstTurn": "First turn",
+      "midpoint": "Midpoint",
+      "crisis": "Crisis",
+      "climax": "Climax",
+      "resolution": "Resolution",
+      "setup": "Setup",
+      "reveal": "Reveal",
+      "setback": "Setback",
+      "refusal": "Refusal"
+    }
   },
   "sceneLinks": {
     "title": "Links",
@@ -1758,7 +2164,60 @@
     "emptyCategoryMessage": "Click another chip above to filter, or 'All' to see everything.",
     "openScene": "Open this scene",
     "sceneChip": "Scene {n}",
-    "rescan": "Re-scan"
+    "rescan": "Re-scan",
+    "note": {
+      "delveInto": "Stock verb. \"Explore\" / \"investigate\" / \"unpack\" all read more human.",
+      "navigateTheComplexities": "Press-release diction. Cut or rewrite concretely.",
+      "aTestamentTo": "Greeting-card phrase. Replace with the specific thing that demonstrates it.",
+      "standAsATestament": "As above, in the marble-statue register.",
+      "embarkOn": "Travel-brochure verb. Often just \"start\" or \"set out\".",
+      "tapestryOf": "Cliché metaphor. Almost always cuttable.",
+      "theWorldOf": "Especially fatal as an opener.",
+      "inAWorldWhere": "Movie-trailer voice. Almost never the right register for prose.",
+      "everEvolving": "Hedged adjective; describes nothing specific.",
+      "everChanging": "Same as above.",
+      "intricateOf": "Stock metaphor chain. Be concrete.",
+      "richOf": "Stock travel-blog adjective.",
+      "shedLightOn": "Press-release verb. Show what was illuminated, not that something was \"shed\".",
+      "paintAOf": "Tell, not show. Show the picture itself.",
+      "labyrinth": "Overworked metaphor.",
+      "kaleidoscopeOf": "Stock metaphor for variety. Almost always cuttable.",
+      "symphonyOf": "Stock metaphor for combined elements. Be specific.",
+      "myriadOf": "Even strict usage prefers \"myriad\" without \"of\"; AI uses it as flavour text.",
+      "plethoraOf": "Status-signalling synonym for \"many\".",
+      "theVeryFabricOf": "Cliché.",
+      "herEyes": "Cliché. Bodies don't sparkle. Find the actual visible thing.",
+      "hisEyes": "As above.",
+      "smile": "Stock smile-as-emotion-indicator. Replace with the cause, not the smile.",
+      "heart": "Stock fear/excitement tell. Almost always tellier than what could replace it.",
+      "stomach": "Stock anxiety tell.",
+      "ran": "Stock fear/anger phrase.",
+      "shiverDownSpine": "Industrial-grade cliché.",
+      "letOutABreath": "Often replaces a real reaction.",
+      "tookADeepBreath": "Over-used emotional transition.",
+      "exchanged": "Soap-opera shorthand.",
+      "couldnTHelpBut": "Hedged emotional reveal. The character either did or didn't; commit.",
+      "felt": "Filter word + stock physical metaphor.",
+      "02": "Hedge + filter word; both layers distance the reader.",
+      "in": "Hedging phrase. Cut or commit.",
+      "tell": "Hedge introducing a half-claim. Pick a side.",
+      "a": "Vagueness flag.",
+      "not130But130": "\"Not only X, but Y\" — over-balanced AI cadence.",
+      "moreThan130": "Press-release cadence.",
+      "whatAs130": "Stock arc-summary sentence.",
+      "inConclusion": "Essay register. Never in fiction.",
+      "ultimatelyAZ": "Essay transition. Cut.",
+      "asWeSeen": "Essay register.",
+      "itIsImportantTo": "Essay register. Cut.",
+      "tellX": "Editorial register, almost always tellier than what it replaces."
+    },
+    "kind": {
+      "catalog": "Stock catalog phrase",
+      "body": "Body-language cliché",
+      "hedge": "Hedge / qualifier",
+      "cadence": "AI cadence",
+      "register": "Out-of-genre register"
+    }
   },
   "variations": {
     "chipLabel": "Variations",
@@ -1917,7 +2376,21 @@
     "notFoundTitle": "Document not found",
     "notFoundBody": "This architecture document no longer exists.",
     "backToList": "Back to architecture",
-    "askAbout": "Tell me about the {doc} document"
+    "askAbout": "Tell me about the {doc} document",
+    "doc": {
+      "premise": {
+        "title": "Premise",
+        "description": "The whole novel in one sentence — the core conflict and its resolution."
+      },
+      "fabula": {
+        "title": "Fabula",
+        "description": "The events of the story in logical, chronological order — cause and effect."
+      },
+      "setting": {
+        "title": "Setting",
+        "description": "The place, time, and social context the story unfolds in."
+      }
+    }
   },
   "events": {
     "newTitle": "New event",
@@ -2530,7 +3003,36 @@
       "fontSizeMedium": "Medium",
       "fontSizeBig": "Big",
       "indentOn": "Indent",
-      "indentOff": "No indent"
+      "indentOff": "No indent",
+      "paper": {
+        "match": "Match app",
+        "cream": "Cream",
+        "white": "White",
+        "sepia": "Sepia",
+        "grey": "Grey"
+      },
+      "preset": {
+        "studio": {
+          "name": "Studio",
+          "hint": "Geist + teal, white surfaces — the original clean look."
+        },
+        "finePress": {
+          "name": "Fine Press",
+          "hint": "Fraunces + oxblood, full-width editor."
+        },
+        "ivoryPress": {
+          "name": "Ivory Press",
+          "hint": "Ivory surfaces, cream paper, italic headings."
+        },
+        "calmModern": {
+          "name": "Calm Modern",
+          "hint": "Geist + teal, clean defaults."
+        },
+        "editorial": {
+          "name": "Editorial",
+          "hint": "Newsreader + indigo, cool surfaces, mono headings."
+        }
+      }
     },
     "backups": {
       "autosaveCardTitle": "Auto-save to disk",

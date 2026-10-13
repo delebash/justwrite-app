@@ -45,10 +45,10 @@ const tagPool = computed(() => {
 async function addArticle() {
   const M = NEW_ENTITY_META.worldbuilding;
   const values = await promptDialog({
-    title: M.title,
-    confirmLabel: M.confirmLabel,
+    title: t(M.titleKey),
+    confirmLabel: t(M.confirmLabelKey),
     fields: [
-      { key: "title", label: M.label, placeholder: M.placeholder },
+      { key: "title", label: t(M.labelKey), placeholder: t(M.placeholderKey) },
       {
         key: "category",
         label: t("common.category"),

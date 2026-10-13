@@ -960,8 +960,8 @@ async function deleteCategory(c) {
                 class="preset-tile" :class="{ active: ap.preset === p.id }"
                 :data-testid="`theme-preset-${p.id}`"
                 @click="applyPreset(p)">
-                <b>{{ p.name }}</b>
-                <span class="t-muted">{{ p.hint }}</span>
+                <b>{{ $t(p.nameKey) }}</b>
+                <span class="t-muted">{{ $t(p.hintKey) }}</span>
                 <Icon v-if="ap.preset === p.id" name="Check" :size="13" class="preset-check" />
               </button>
 
@@ -1274,9 +1274,9 @@ async function deleteCategory(c) {
             <div class="swatch-row" style="margin-top:8px" role="radiogroup" :aria-label="$t('settings.appearance.bgEditorPaperLabel')">
               <span class="swatch-label">{{ $t('settings.appearance.bgEditorPaperLabel') }}</span>
               <button v-for="t in PAPER_TINT_LIST" :key="t.key"
-                role="radio" :aria-checked="ap.editorPaper === t.key" :aria-label="t.label"
+                role="radio" :aria-checked="ap.editorPaper === t.key" :aria-label="$t(t.labelKey)"
                 class="tint-swatch" :class="{ active: ap.editorPaper === t.key }"
-                :title="t.label" :style="{ background: tintColor(t) }"
+                :title="$t(t.labelKey)" :style="{ background: tintColor(t) }"
                 @click="setAp({ editorPaper: t.key })">
                 <Icon v-if="ap.editorPaper === t.key" name="Check" :size="12" />
               </button>

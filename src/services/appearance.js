@@ -27,11 +27,11 @@ export {
 
 // ── JustWrite-specific: manuscript editor paper tints ────────────────
 export const PAPER_TINTS = {
-  match: { label: "Match app", var: "var(--paper)" },
-  cream: { label: "Cream",     light: "#fdf8ec", dark: "#221f17" },
-  white: { label: "White",     light: "#ffffff", dark: "#242120" },
-  sepia: { label: "Sepia",     light: "#f4ead3", dark: "#241f16" },
-  grey:  { label: "Grey",      light: "#eceae6", dark: "#1d1e1f" },
+  match: { labelKey: "settings.appearance.paper.match", var: "var(--paper)" },
+  cream: { labelKey: "settings.appearance.paper.cream", light: "#fdf8ec", dark: "#221f17" },
+  white: { labelKey: "settings.appearance.paper.white", light: "#ffffff", dark: "#242120" },
+  sepia: { labelKey: "settings.appearance.paper.sepia", light: "#f4ead3", dark: "#241f16" },
+  grey:  { labelKey: "settings.appearance.paper.grey",  light: "#eceae6", dark: "#1d1e1f" },
 };
 
 const EDITOR_FONT_SIZE_PX = { small: 15, medium: 18, big: 21 };
@@ -60,7 +60,7 @@ export const DEFAULT_APPEARANCE = {
 // ── Whole-look presets (full configurations incl. editor fields) ─────
 export const THEME_PRESETS = [
   {
-    id: "studio", name: "Studio", hint: "Geist + teal, white surfaces — the original clean look.",
+    id: "studio", nameKey: "settings.appearance.preset.studio.name", hintKey: "settings.appearance.preset.studio.hint",
     patch: {
       mode: "system",
       fontPairing: "calm", uiFont: "Geist", displayFont: "Source Serif 4", editorBodyFont: "Source Serif 4",
@@ -75,7 +75,7 @@ export const THEME_PRESETS = [
     },
   },
   {
-    id: "fine-press", name: "Fine Press", hint: "Fraunces + oxblood, full-width editor.",
+    id: "fine-press", nameKey: "settings.appearance.preset.finePress.name", hintKey: "settings.appearance.preset.finePress.hint",
     patch: {
       mode: "system",
       fontPairing: "fine-press", uiFont: "Spline Sans", displayFont: "Fraunces", editorBodyFont: "Fraunces",
@@ -90,7 +90,7 @@ export const THEME_PRESETS = [
     },
   },
   {
-    id: "ivory-press", name: "Ivory Press", hint: "Ivory surfaces, cream paper, italic headings.",
+    id: "ivory-press", nameKey: "settings.appearance.preset.ivoryPress.name", hintKey: "settings.appearance.preset.ivoryPress.hint",
     patch: {
       mode: "system",
       fontPairing: "fine-press", uiFont: "Spline Sans", displayFont: "Fraunces", editorBodyFont: "Fraunces",
@@ -105,7 +105,7 @@ export const THEME_PRESETS = [
     },
   },
   {
-    id: "calm-modern", name: "Calm Modern", hint: "Geist + teal, clean defaults.",
+    id: "calm-modern", nameKey: "settings.appearance.preset.calmModern.name", hintKey: "settings.appearance.preset.calmModern.hint",
     patch: {
       mode: "system",
       fontPairing: "calm", uiFont: "Geist", displayFont: "Source Serif 4", editorBodyFont: "Source Serif 4",
@@ -120,7 +120,7 @@ export const THEME_PRESETS = [
     },
   },
   {
-    id: "editorial", name: "Editorial", hint: "Newsreader + indigo, cool surfaces, mono headings.",
+    id: "editorial", nameKey: "settings.appearance.preset.editorial.name", hintKey: "settings.appearance.preset.editorial.hint",
     patch: {
       mode: "system",
       fontPairing: "editorial", uiFont: "Hanken Grotesk", displayFont: "Newsreader", editorBodyFont: "Newsreader",

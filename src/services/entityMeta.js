@@ -10,5 +10,5 @@
 // action; only the prompt's title/label/placeholder/confirmLabel live here.
 
 export const NEW_ENTITY_META = {
-  worldbuilding: { title: "New article", label: "Article title", placeholder: "e.g. The North Coast", confirmLabel: "Create article" },
+  worldbuilding: { titleKey: "worldbuilding.dialog.title", labelKey: "worldbuilding.dialog.label", placeholderKey: "worldbuilding.dialog.placeholder", confirmLabelKey: "worldbuilding.dialog.confirm" },
 };
