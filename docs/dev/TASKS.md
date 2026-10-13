@@ -41,7 +41,9 @@ HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates 
         Task 3 step 2 in part (2026-10-13): the UI words in 98 files onto keys, the time-ago labels
         onto the kit's relativeTime. Open, and asked 2026-10-13: text sent to the AI model, words
         in exported books, default names stored as data; then the UPPER_CASE tables and data-tip
-        tooltips.
+        tooltips. All five ruled 2026-10-13 ("your rec go there is no tauri app anymore!"; the
+        questions as asked are in the kit's TASKS); the data-tip tooltips and most UI tables done
+        (a5cc244, 231cc5d).
 FOUND:  by the screenshot pass, both older than this work and not changed by it — the AI engine
         console's level and source selects stretch to the full width on rows of their own; the
         model catalog's Fit chip ("Fits · slow") runs into the Status column at 1280 px.

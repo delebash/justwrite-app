@@ -178,6 +178,15 @@ The house rule (nothing hardcoded) would put them in the seeded prompts — a te
 
 ## UI / UX
 
+### A book language, for the words JustWrite writes into an export (2026-10-13)
+
+An exported book's own words — "Contents", "Chapter 3", the cover page's title — and its EPUB
+language tag (hardcoded `en` today) should follow the language the book is written in, not the
+interface's: an English novel exported from a Spanish screen must not get "Capítulo 3". Shape: a
+"Book language" field in the book's details; the exporters translate their words in that language
+(vue-i18n takes a locale per call) and write it as the EPUB's `dc:language`. Ruled 2026-10-13 that
+these words stay English until then (the i18n plan, kit TASKS).
+
 ### Customizable editor / context menus (was ledger §J1; big-batch #52a)
 
 Let the user customize the scene editor's right-click context menu + the header AI
