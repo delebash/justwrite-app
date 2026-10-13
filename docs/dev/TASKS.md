@@ -38,6 +38,10 @@ HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates 
         icon — the family lint ignores marks (`\p{M}`); the script-string guard —
         `eslint-plugin-i18next`'s `no-literal-string`; Spanish for new keys — MISSING 0 is for
         English, other languages wait for docgen (`i18n:report` reads the English catalogs).
+        Task 3 step 2 in part (2026-10-13): the UI words in 98 files onto keys, the time-ago labels
+        onto the kit's relativeTime. Open, and asked 2026-10-13: text sent to the AI model, words
+        in exported books, default names stored as data; then the UPPER_CASE tables and data-tip
+        tooltips.
 FOUND:  by the screenshot pass, both older than this work and not changed by it — the AI engine
         console's level and source selects stretch to the full width on rows of their own; the
         model catalog's Fit chip ("Fits · slow") runs into the Status column at 1280 px.

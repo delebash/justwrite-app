@@ -8,6 +8,7 @@
 
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText, normalizeName as norm } from "../text.js";
+import { t } from "../../i18n/index.js";
 // norm(): "The Old Lighthouse" and "Old Lighthouse" still differ — we don't
 // try to be clever; the writer can edit names in the review list before
 // accepting. (The normalizer body converged into services/text.js, 2026-07-11.)
@@ -81,7 +82,7 @@ export async function extractEntities({
     feature: "entitySweep",
     variables,
     signal, provider, model, meta,
-    task: task || { label: "Entity sweep", meta },
+    task: task || { label: t("entitySweep.taskLabel"), meta },
   });
 
   const knownChar = new Set(existingCharacters.map((c) => norm(c.name)));

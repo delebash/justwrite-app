@@ -9,6 +9,7 @@ import { Icon } from "@delebash/llm-ui";
 import { confirmDialog } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiTable } from "@delebash/llm-ui";
+import { relativeTime } from "@delebash/llm-ui";
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -82,18 +83,6 @@ function subOf(kind, item) {
   if (kind === "tagVocab")   return t("trash.forKind", { kind: item.kind });
   return null;
 }
-function ago(ts) {
-  if (!ts) return "";
-  const diff = Date.now() - ts;
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  const d = Math.floor(h / 24);
-  return `${d}d ago`;
-}
-
 function restore(kind, id) {
   // QC-37 (toast law): the row leaves the Trash list in place — the outcome
   // is visible right here, so no toast.
@@ -101,9 +90,9 @@ function restore(kind, id) {
 }
 async function purge(kind, id, name) {
   const yes = await confirmDialog({
-    title: `Permanently delete "${name}"?`,
-    message: "This can't be undone.",
-    confirmLabel: "Delete forever",
+    title: t("trash.deleteOneTitle", { name }),
+    message: t("common.cannotUndo"),
+    confirmLabel: t("trash.deleteForever"),
     danger: true,
   });
   if (!yes) return;
@@ -111,21 +100,21 @@ async function purge(kind, id, name) {
 }
 async function emptyAll() {
   const yes = await confirmDialog({
-    title: "Empty trash?",
-    message: `Permanently delete all ${totalCount.value} items in trash. This can't be undone.`,
-    confirmLabel: "Empty trash",
+    title: t("trash.emptyConfirmTitle"),
+    message: t("trash.emptyConfirmBody", { n: totalCount.value }),
+    confirmLabel: t("trash.emptyTrash"),
     danger: true,
   });
   if (!yes) return;
   project.emptyTrash();  // the whole list empties — visible (QC-37)
 }
 
-const trashColumns = [
-  { accessorKey: "title",     header: "Title",   headerStyle: "min-width:200px", cellStyle: "min-width:200px" },
-  { accessorKey: "sub",       header: "Details", headerStyle: "min-width:140px", cellStyle: "min-width:140px" },
-  { accessorKey: "deletedAt", header: "Deleted", sortable: true, headerStyle: "width:130px", cellStyle: "width:130px" },
-  { id: "actions",            header: "Actions", headerStyle: "width:130px;text-align:right", cellStyle: "width:130px;text-align:right" },
-];
+const trashColumns = computed(() => [
+  { accessorKey: "title",     header: t("common.title"),   headerStyle: "min-width:200px", cellStyle: "min-width:200px" },
+  { accessorKey: "sub",       header: t("trash.colDetails"), headerStyle: "min-width:140px", cellStyle: "min-width:140px" },
+  { accessorKey: "deletedAt", header: t("trash.colDeleted"), sortable: true, headerStyle: "width:130px", cellStyle: "width:130px" },
+  { id: "actions",            header: t("trash.colActions"), headerStyle: "width:130px;text-align:right", cellStyle: "width:130px;text-align:right" },
+]);
 </script>
 
 <template>
@@ -182,7 +171,7 @@ const trashColumns = [
               <span class="t-muted" style="font-size:11.5px">{{ subOf(s.kind, row) || "—" }}</span>
             </template>
             <template #deletedAt="{ row }">
-              <span class="t-muted" style="font-size:11.5px">{{ ago(row.deletedAt) }}</span>
+              <span class="t-muted" style="font-size:11.5px">{{ relativeTime(row.deletedAt) }}</span>
             </template>
             <template #actions="{ row }">
               <div style="display:flex;gap:6px;justify-content:flex-end">

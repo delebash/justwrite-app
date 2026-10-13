@@ -15,6 +15,7 @@
 
 import { downloadBlob as kitDownloadBlob, saveBlob as kitSaveBlob } from "@delebash/llm-ui";
 import { chooserDir, rememberDir } from "./chooserDirs.js";
+import { t } from "../i18n/index.js";
 
 /** Download `blob` as `filename`. Returns nothing; the browser owns the rest. */
 export const downloadBlob = kitDownloadBlob;
@@ -41,7 +42,7 @@ export async function saveBlob(blob, filename, { chooser = "export", title, filt
       defaultDir: await chooserDir(chooser),
     });
   } catch (e) {
-    return { ok: false, error: String(e || "Save failed.") };
+    return { ok: false, error: String(e || t("export.err.saveFailed")) };
   }
   if (res.path) rememberDir(chooser, res.path.replace(/[/\\][^/\\]*$/, "")); // the folder it saved to
   return res;

@@ -17,6 +17,7 @@
 
 import { runJsonAnalysis } from "./runJson.js";
 import { htmlToText, tailWords } from "./text.js";
+import { t } from "../i18n/index.js";
 
 export const MOVE_KINDS = [
   "goal-shift", "interrupt", "setting", "reveal", "timeframe",
@@ -100,7 +101,7 @@ export async function generateUnstuckMoves({
     provider,
     model,
     meta: stuckMeta,
-    task: task || { label: "Stuck diagnostic", meta: stuckMeta },
+    task: task || { label: t("stuck.taskShort"), meta: stuckMeta },
   });
 
   const raw = Array.isArray(parsed.moves) ? parsed.moves : Array.isArray(parsed) ? parsed : [];

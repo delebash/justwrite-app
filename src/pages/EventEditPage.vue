@@ -27,7 +27,7 @@ const name   = computed(() => meta.value?.entityName(entity.value) || (meta.valu
 const crumbs = computed(() => [
   { label: meta.value?.label, to: meta.value?.sectionUrl() },
   { label: name.value, to: meta.value?.detailUrl(props.entityId) },
-  { label: "Events", to: meta.value?.eventsUrl(props.entityId) },
+  { label: t("common.events"), to: meta.value?.eventsUrl(props.entityId) },
 ]);
 
 const ev = computed(() =>

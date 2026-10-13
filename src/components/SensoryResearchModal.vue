@@ -12,6 +12,9 @@ import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
 import { generateSensoryPack, SENSORY_CATEGORIES } from "../services/sensoryResearch.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   subject:     { type: String, required: true },
@@ -33,7 +36,7 @@ const insertedKeys = ref(new Set()); // category:index
 async function run() {
   error.value = "";
   if (!ai.providerForFeature("sensory")) {
-    error.value = "Configure an AI provider in Settings → AI to generate a sensory pack.";
+    error.value = t("sensory.err.noProvider");
     return;
   }
   pack.value = null;
@@ -42,18 +45,18 @@ async function run() {
     const result = await generateSensoryPack({
       subject: props.subject,
       contextHint: props.contextHint,
-      task: { label: "Sensory research pack", meta: { subject: props.subject } },
+      task: { label: t("sensory.taskLabel"), meta: { subject: props.subject } },
     });
     pack.value = result;
     if (Object.values(result.pack).every((arr) => !arr.length)) {
-      error.value = "The model returned no usable phrases. Try regenerating with a more specific subject.";
+      error.value = t("sensory.err.empty");
     }
   } catch (e) {
     if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
-        ? "Configure an AI provider in Settings → AI to generate a sensory pack."
-        : msg || "Couldn't generate the sensory pack.";
+        ? t("sensory.err.noProvider")
+        : msg || t("sensory.err.failed");
     }
   }
 }

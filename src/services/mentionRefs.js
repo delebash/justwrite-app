@@ -1,4 +1,5 @@
-// ============================================================
+
+import { t } from "../i18n/index.js";// ============================================================
 // mentionRefs.js — the inverse of an @-mention chip. Each chip in a
 // scene body links prose → bible entity; this scans every saved scene
 // body and returns the scenes that mention a given entity, so the
@@ -45,7 +46,7 @@ export function findMentionRefs(project, entityId) {
         chapterTitle: ch.title,
         sceneId: scn.id,
         sceneIdx: idx + 1,
-        sceneTitle: scn.title || `Scene ${idx + 1}`,
+        sceneTitle: scn.title || t("common.sceneN", { n: idx + 1 }),
         sceneStatus: scn.status,
         count: chips.length,
         snippet: snippetAround(chips[0]),

@@ -10,6 +10,9 @@ import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const NEW_PART = "__new__";
 
@@ -40,13 +43,13 @@ const notesTag = ref("note");
 //   "scn:<chId>:<sceneId>"   → { chapterId, sceneId }
 const notesAnchor = ref("");
 const notesAnchorOptions = computed(() => {
-  const opts = [{ label: "Story-wide (no anchor)", value: "" }];
+  const opts = [{ label: t("common.storyWideNoAnchor"), value: "" }];
   for (const c of project.allChapters || []) {
-    opts.push({ label: `Ch. ${c.num} · ${c.title || "Untitled"}`, value: `ch:${c.id}` });
+    opts.push({ label: t("common.chapterRefTitled", { num: c.num, title: c.title || t("common.untitled") }), value: `ch:${c.id}` });
     const scenes = project.scenesFor(c.id) || [];
     scenes.forEach((s, i) => {
       opts.push({
-        label: `   Ch. ${c.num} · Scene ${i + 1}${s.title ? ` — ${s.title}` : ""}`,
+        label: `   ${s.title ? t("common.sceneRefTitled", { num: c.num, scene: i + 1, title: s.title }) : t("common.sceneRef", { num: c.num, scene: i + 1 })}`,
         value: `scn:${c.id}:${s.id}`,
       });
     });
@@ -75,10 +78,10 @@ function anchorFromKey(key) {
 // current project has no parts yet).
 const partOptions = computed(() => {
   const opts = (project.parts || []).map((p) => ({
-    label: p.title || "Untitled part",
+    label: p.title || t("import.untitledPart"),
     value: p.id,
   }));
-  opts.push({ label: "New part…", value: NEW_PART });
+  opts.push({ label: t("import.newPart"), value: NEW_PART });
   return opts;
 });
 const partChoice = ref(
@@ -165,11 +168,11 @@ async function loadFiles(files) {
         if (normalize.value) {
           parsed = parsed.map((c) => ({ ...c, html: normalizeHtml(c.html || "") }));
         }
-        const stemForUntitled = file.name.replace(/\.[^.]+$/, "") || "Untitled";
+        const stemForUntitled = file.name.replace(/\.[^.]+$/, "") || t("common.untitled");
         const mapped = parsed.map((c, i) => ({
           title: c.title || (intent.value === "notes"
             ? (parsed.length === 1 ? stemForUntitled : `${stemForUntitled} ${i + 1}`)
-            : `Chapter ${i + 1}`),
+            : t("home.chapterN", { num: i + 1 })),
           html: c.html || "",
           drop: false,
         }));
@@ -184,7 +187,7 @@ async function loadFiles(files) {
       parseError.value = errors.join(" · ");
     }
     if (!chapters.value.length) {
-      if (!errors.length) parseError.value = "No content found.";
+      if (!errors.length) parseError.value = t("import.err.noContent");
     } else {
       // Seed the title fields from the first file so the wizard isn't a
       // blank box. The user can edit before confirming.

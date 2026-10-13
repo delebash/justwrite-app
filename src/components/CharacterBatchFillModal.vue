@@ -30,6 +30,9 @@ import {
 import { characterSceneCount } from "../services/analysis/characterAudit.js";
 import { watchdogTimeoutMs } from "../services/analysis/entitySweep.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   // When set (from the sweep-accept chain), pre-check exactly these ids.
@@ -50,7 +53,7 @@ function buildPickRows() {
   chars.sort((a, b) => (Number(!!b.main) - Number(!!a.main)) || (a.name || "").localeCompare(b.name || ""));
   pickRows.value = chars.map((c) => {
     const scenes = characterSceneCount(project, c.id);
-    return { id: c.id, name: c.name || "Unnamed", role: c.role || "", scenes, checked: false, disabled: scenes === 0 };
+    return { id: c.id, name: c.name || t("batchFill.unnamed"), role: c.role || "", scenes, checked: false, disabled: scenes === 0 };
   });
   const pre = props.preCheckedIds;
   const mainOf = new Map((project.characters || []).map((c) => [c.id, !!c.main]));
@@ -109,7 +112,7 @@ async function runBatch() {
       if (cancelled.value) { row.status = "cancelled"; break; }
       row.status = "failed"; row.error = friendlyAiError(e); continue; // no profile → skip voice
     }
-    if (!profile) { row.status = "failed"; row.error = "No linked scenes to draft from."; continue; }
+    if (!profile) { row.status = "failed"; row.error = t("batchFill.err.noScenes"); continue; }
 
     row.status = "voice";
     let voice = null;
@@ -163,17 +166,20 @@ function retryFailed() {
   runBatch();
 }
 
+// A done row whose voice pass failed says so after its status.
+const withVoiceNote = (row, status) => (row.voiceFailed ? t("batchFill.status.voiceSkipped", { status }) : status);
+
 function statusText(row) {
   switch (row.status) {
-    case "pending": return "Waiting…";
-    case "profile": return "Drafting profile…";
-    case "voice": return "Drafting voice…";
-    case "cancelled": return "Cancelled";
-    case "skipped": return "Skipped";
-    case "failed": return row.error || "Failed";
+    case "pending": return t("batchFill.status.pending");
+    case "profile": return t("batchFill.status.profile");
+    case "voice": return t("batchFill.status.voice");
+    case "cancelled": return t("batchFill.status.cancelled");
+    case "skipped": return t("batchFill.status.skipped");
+    case "failed": return row.error || t("batchFill.status.failed");
     case "done": return autoApply.value
-      ? `${row.fieldsFilled} field${row.fieldsFilled === 1 ? "" : "s"} filled${row.voiceFailed ? " · voice skipped" : ""}`
-      : `drafted${row.voiceFailed ? " · voice skipped" : ""}`;
+      ? withVoiceNote(row, t("batchFill.status.filled", { n: row.fieldsFilled }, row.fieldsFilled))
+      : withVoiceNote(row, t("batchFill.status.drafted"));
     default: return "";
   }
 }
@@ -188,8 +194,8 @@ function buildReview() {
     const c = (project.characters || []).find((x) => x.id === row.id) || {};
     const x = project.characterExtras?.[row.id] || {};
     const rr = [
-      ...draftRows(profileFieldDefs(c, x), row.draft.profile).map((r) => ({ ...r, section: "Profile" })),
-      ...(row.draft.voice ? draftRows(voiceFieldDefs(x), row.draft.voice).map((r) => ({ ...r, section: "Voice" })) : []),
+      ...draftRows(profileFieldDefs(c, x), row.draft.profile).map((r) => ({ ...r, section: t("characterDraft.groupProfile") })),
+      ...(row.draft.voice ? draftRows(voiceFieldDefs(x), row.draft.voice).map((r) => ({ ...r, section: t("characterDraft.groupVoice") })) : []),
     ];
     if (rr.length) out.push({ id: row.id, name: row.name, rows: rr });
   }

@@ -1,4 +1,5 @@
-// ============================================================
+
+import { t } from "../i18n/index.js";// ============================================================
 // projectReplace.js — project-wide find & replace across scene PROSE.
 //
 // Operates on stored scene-body HTML, but only ever touches TEXT nodes
@@ -92,7 +93,7 @@ export function scanScenes(project, term, caseSensitive = false) {
         chapterTitle: ch.title,
         sceneId: scn.id,
         sceneIdx: idx + 1,
-        sceneTitle: scn.title || `Scene ${idx + 1}`,
+        sceneTitle: scn.title || t("common.sceneN", { n: idx + 1 }),
         sceneStatus: scn.status,
         count,
         snippet,

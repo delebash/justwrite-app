@@ -1,4 +1,5 @@
-const XLINK_NS = 'http://www.w3.org/1999/xlink';
+
+import { t } from "../../i18n/index.js";const XLINK_NS = 'http://www.w3.org/1999/xlink';
 const DRAW_NS = 'urn:oasis:names:tc:opendocument:xmlns:drawing:1.0';
 const TEXT_NS = 'urn:oasis:names:tc:opendocument:xmlns:text:1.0';
 const STYLE_NS = 'urn:oasis:names:tc:opendocument:xmlns:style:1.0';
@@ -125,7 +126,7 @@ export async function parseOdt(arrayBuffer) {
     doc.getElementsByTagNameNS('urn:oasis:names:tc:opendocument:xmlns:office:1.0', 'text')[0];
 
   if (!officeText) {
-    return { chapters: [{ title: '', html: '' }], warnings: ['Could not parse ODT content.xml'], images: [] };
+    return { chapters: [{ title: '', html: '' }], warnings: [t("import.warn.odt")], images: [] };
   }
 
   const children = Array.from(officeText.children);

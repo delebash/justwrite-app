@@ -21,6 +21,9 @@ import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { useSelectNewName } from "../composables/useSelectNewName.js";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -45,7 +48,7 @@ const scenesInStrand = computed(() => {
       if ((scn.strands || []).includes(s.value.id)) {
         out.push({
           sceneId: scn.id,
-          sceneTitle: scn.title || `Scene ${idx + 1}`,
+          sceneTitle: scn.title || t("common.sceneN", { n: idx + 1 }),
           sceneIdx: idx + 1,
           chapterId: ch.id,
           chapterTitle: ch.title,
@@ -76,7 +79,7 @@ const sceneOptions = computed(() => {
     scenes.forEach((scn, i) => {
       out.push({
         value: `${c.id}::${scn.id}`,
-        label: `Ch. ${c.num} · Scene ${i + 1}${scn.title ? ` — ${scn.title}` : ""}`,
+        label: scn.title ? t("common.sceneRefTitled", { num: c.num, scene: i + 1, title: scn.title }) : t("common.sceneRef", { num: c.num, scene: i + 1 }),
       });
     });
   }
@@ -84,12 +87,12 @@ const sceneOptions = computed(() => {
 });
 function sceneRefLabel(b) {
   const ch = chapterById(b.chapterId);
-  if (!ch) return "(no chapter)";
+  if (!ch) return t("strands.noChapter");
   const scenes = project.scenesFor(b.chapterId);
   const idx = scenes.findIndex((s) => s.id === b.sceneId);
-  if (idx < 0) return `Ch. ${ch.num} · ${ch.title}`;
+  if (idx < 0) return t("common.chapterRefTitled", { num: ch.num, title: ch.title });
   const scn = scenes[idx];
-  return `Ch. ${ch.num} · Scene ${idx + 1}${scn.title ? ` — ${scn.title}` : ""}`;
+  return scn.title ? t("common.sceneRefTitled", { num: ch.num, scene: idx + 1, title: scn.title }) : t("common.sceneRef", { num: ch.num, scene: idx + 1 });
 }
 function beatRefValue(b) {
   return b.chapterId && b.sceneId ? `${b.chapterId}::${b.sceneId}` : "";
@@ -122,7 +125,7 @@ function askTheBook() {
   if (!s.value) return;
   ui.openChatPanelFor({
     mode: "book",
-    question: `Tell me about the narrative strand "${s.value.name}"`,
+    question: t("strands.askAbout", { name: s.value.name }),
     sourceKey: `ask:strand:${s.value.id}`,
   });
 }
@@ -137,25 +140,25 @@ function deleteStrand() {
 async function addBeat() {
   const opts = sceneOptions.value;
   const values = await promptDialog({
-    title: `New beat — ${s.value.name}`,
-    confirmLabel: "Add beat",
+    title: t("strands.newBeatTitle", { name: s.value.name }),
+    confirmLabel: t("strands.addBeat"),
     fields: [
       {
         key: "label",
-        label: "Beat",
-        placeholder: "e.g. Inciting, Midpoint, Climax",
+        label: t("strands.beatField"),
+        placeholder: t("strands.beatFieldPlaceholder"),
       },
       {
         key: "ref",
-        label: "Scene",
+        label: t("common.scene"),
         type: "select",
         defaultValue: opts[0]?.value || "",
         options: opts,
       },
       {
         key: "note",
-        label: "Note (optional)",
-        placeholder: "What happens at this beat?",
+        label: t("strands.beatNotePlaceholder"),
+        placeholder: t("strands.beatNoteFieldPlaceholder"),
         optional: true,
       },
     ],
@@ -198,7 +201,7 @@ const statusOptions = computed(() =>
 // and the clear-all now live there (components/EntityIndex.vue), not in a private
 // copy per view.
 const facets = computed(() => [
-  { key: "status", label: "Status", options: statusOptions.value },
+  { key: "status", label: t("common.status"), options: statusOptions.value },
 ]);
 
 function scenesCountFor(strandId) {
@@ -211,12 +214,12 @@ function scenesCountFor(strandId) {
   return count;
 }
 
-const columns = [
-  { accessorKey: "name",   header: "Name",   sortable: true, headerStyle: "min-width: 200px" },
-  { accessorKey: "beats",  header: "Beats",  sortable: true, headerStyle: "min-width: 80px" },
-  { accessorKey: "scenes", header: "Scenes", sortable: true, headerStyle: "min-width: 80px" },
-  { accessorKey: "status", header: "Status", sortable: true, headerStyle: "min-width: 120px" },
-];
+const columns = computed(() => [
+  { accessorKey: "name",   header: t("common.name"),   sortable: true, headerStyle: "min-width: 200px" },
+  { accessorKey: "beats",  header: t("strands.beatsHeading"),  sortable: true, headerStyle: "min-width: 80px" },
+  { accessorKey: "scenes", header: t("common.scenes"), sortable: true, headerStyle: "min-width: 80px" },
+  { accessorKey: "status", header: t("common.status"), sortable: true, headerStyle: "min-width: 120px" },
+]);
 
 function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
 function statusSeverity(id) {
@@ -264,8 +267,8 @@ const tableRows = computed(() =>
         :columns="columns"
         :facets="facets"
         :search-fields="['name', 'blurb']"
-        search-placeholder="Search narrative strands…"
-        empty-text="No narrative strands match your search."
+        :search-placeholder="t('strands.searchPlaceholder')"
+        :empty-text="t('strands.searchEmpty')"
         @row-click="onRowClick">
         <template #name="{ row }">
           <div class="entity-cell-inline">
@@ -376,10 +379,10 @@ const tableRows = computed(() =>
                     </div>
                     <UiSelect class="beat-rechapter"
                       :model-value="beatRefValue(b)"
-                      v-tooltip.bottom="'Reassign to a different scene'"
+                      v-tooltip.bottom="t('strands.reassignBeat')"
                       @update:model-value="(v) => setBeatRef(b.id, v)"
-                      :options="[{ label: '(no scene)', value: '' }, ...sceneOptions]" />
-                    <UiButton intent="ghost" size="small" class="beat-delete" :aria-label="$t('strands.removeBeat')" v-tooltip.bottom="'Remove beat'" @click="removeBeat(b.id)">
+                      :options="[{ label: t('strands.noScene'), value: '' }, ...sceneOptions]" />
+                    <UiButton intent="ghost" size="small" class="beat-delete" :aria-label="$t('strands.removeBeat')" v-tooltip.bottom="t('strands.removeBeat')" @click="removeBeat(b.id)">
                       <Icon name="Trash" :size="14" />
                     </UiButton>
                   </div>
@@ -389,7 +392,7 @@ const tableRows = computed(() =>
               <div style="margin-top:22px">
                 <div class="t-eyebrow" style="margin-bottom:10px">{{ $t("common.appearsInScenes") }}</div>
                 <SceneRefList field="strands" :entity-id="s.id"
-                  empty-text="No scenes linked to this narrative strand yet. Open a scene → Links → Narrative strands to add one." />
+                  :empty-text="t('strands.noScenes')" />
               </div>
               </div>
             </div>

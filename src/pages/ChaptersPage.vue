@@ -245,12 +245,12 @@ function readBody(chId) {
 // route); the chapter drops the scene param to show the chapter overview.
 const crumbs = computed(() => {
   if (!ch.value) return [];
-  const segs = [{ label: ch.value.partTitle || "Manuscript", onClick: () => { mode.value = "outline"; } }];
+  const segs = [{ label: ch.value.partTitle || t("home.manuscript"), onClick: () => { mode.value = "outline"; } }];
   if (activeScene.value) {
-    segs.push({ label: `Ch. ${ch.value.num} · ${ch.value.title}`, to: `/chapters/${ch.value.id}` });
-    segs.push({ label: `Scene ${activeSceneIdx.value + 1}` });
+    segs.push({ label: t("common.chapterRefTitled", { num: ch.value.num, title: ch.value.title }), to: `/chapters/${ch.value.id}` });
+    segs.push({ label: t("common.sceneN", { n: activeSceneIdx.value + 1 }) });
   } else {
-    segs.push({ label: `Ch. ${ch.value.num}` });
+    segs.push({ label: t("common.chapterShort", { num: ch.value.num }) });
   }
   return segs;
 });

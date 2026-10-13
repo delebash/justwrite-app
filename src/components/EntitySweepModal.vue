@@ -22,6 +22,9 @@ import {
 import EntityReviewModal from "./EntityReviewModal.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import StatusRow from "./StatusRow.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   // Optional: limit the sweep to specific chapter ids (Set or array).
@@ -140,9 +143,9 @@ function setAllPicks(v) {
 
 async function startOver() {
   const ok = await confirmDialog({
-    title: "Start over?",
-    message: `Discard the saved scan results (${resume.value.done} chapter${resume.value.done === 1 ? "" : "s"} of findings)? The next sweep starts from scratch.`,
-    confirmLabel: "Discard results",
+    title: t("entitySweep.startOverTitle"),
+    message: t("entitySweep.startOverBody", { n: resume.value.done }, resume.value.done),
+    confirmLabel: t("entitySweep.discardResults"),
     danger: true,
   });
   if (!ok) return;
@@ -177,7 +180,7 @@ async function runSweep() {
   if (running.value) return;
   initRows();
   if (!rows.value.length) {
-    error.value = "No chapters selected.";
+    error.value = t("entitySweep.noChapters");
     return;
   }
   try {
@@ -195,7 +198,7 @@ async function runSweep() {
           else if (ph === "done") {
             row.status = "done";
             const n = (fresh?.characters?.length || 0) + (fresh?.locations?.length || 0) + (fresh?.objects?.length || 0);
-            row.note = `done · ${n} found`;
+            row.note = t("entitySweep.rowDone", { n });
             // A: persist this chapter's raw result the moment it lands — a
             // crash/cancel from here on can't lose it.
             recordChapterDone(draft.value, chapter, fresh, hashFor(chapter.id));
@@ -359,7 +362,7 @@ function onReviewCommitted(payload) {
       <StatusRow v-for="row in rows" :key="row.id"
         :status="row.status"
         :left="row.num"
-        :main="row.title || 'Untitled'"
+        :main="row.title || t('entitySweep.untitled')"
         :right="row.note || (row.reason ? `${row.status} · ${row.reason}` : row.status)" />
     </div>
 

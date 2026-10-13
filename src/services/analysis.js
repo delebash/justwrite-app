@@ -7,6 +7,7 @@
 // ============================================================
 
 import { tokenize } from "./search.js";
+import { t } from "../i18n/index.js";
 
 /**
  * Status counts across all chapters.
@@ -29,7 +30,7 @@ export function statusCounts(allChapters) {
  */
 export function strandDistribution(strands, allChapters) {
   const byId = new Map(strands.map((s) => [s.id, { ...s, chapters: 0, words: 0 }]));
-  const unassigned = { strandId: null, name: "Unattributed", color: "var(--border-strong)", chapters: 0, words: 0 };
+  const unassigned = { strandId: null, name: t("analysisView.unattributed"), color: "var(--border-strong)", chapters: 0, words: 0 };
   for (const c of allChapters) {
     const list = Array.isArray(c.strands) ? c.strands : [];
     if (list.length === 0) {

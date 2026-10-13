@@ -25,6 +25,7 @@ import { buildEntityCards } from "./cards.js";
 import { combinePinsAndHits, pickPinnedCards } from "./entityMatcher.js";
 import { formatExcerpts } from "./excerpts.js";
 import { search, status } from "./vectorStore.js";
+import { t } from "../../i18n/index.js";
 
 // ─── Prompt ──────────────────────────────────────────────────────────────
 // The system + outer user template live server-side ("chat" feature_prompts,
@@ -196,7 +197,7 @@ export async function askManuscript({
     history: recentHistory, temperature: 0.3,
     signal, onDelta,
     meta: ragMeta,
-    task: task || { label: "Ask the book", meta: ragMeta },
+    task: task || { label: t("chat.taskBook"), meta: ragMeta },
   });
 
   // ── 8. Return ────────────────────────────────────────────────────────────

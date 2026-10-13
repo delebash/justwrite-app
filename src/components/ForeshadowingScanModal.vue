@@ -20,6 +20,9 @@ import { scanForDanglingThreads } from "../services/analysis/foreshadowingScan.j
 import { addMarkerToSceneHtml } from "justwrite-server/editor/markers.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import StatusRow from "./StatusRow.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const emit = defineEmits(["close"]);
 
@@ -110,7 +113,7 @@ async function runScan() {
   result.value = null;
   pinStatus.value = {};
   if (!rows.value.length) {
-    error.value = "No chapters to scan.";
+    error.value = t("foreshadowing.err.noChapters");
     return;
   }
   try {
@@ -153,8 +156,8 @@ async function runScan() {
   } catch (e) {
     const msg = String(e?.message || e || "");
     error.value = /provider|api key|configure/i.test(msg)
-      ? "Configure an AI provider in Settings → AI to run the scan."
-      : msg || "Couldn't run scan.";
+      ? t("foreshadowing.err.noProvider")
+      : msg || t("foreshadowing.err.failed");
   }
 }
 
@@ -193,7 +196,7 @@ function pinAllDangling() {
     pinThread(p);
   }
   const added = Object.values(pinStatus.value).filter((v) => v === "added").length;
-  if (added) ui.showToast({ message: `Pinned ${added} loose thread${added === 1 ? "" : "s"}.` });
+  if (added) ui.showToast({ message: t("foreshadowing.pinnedToast", { n: added }, added) });
 }
 
 const danglingCount = computed(() => dangling.value.length);
@@ -355,7 +358,7 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
       <StatusRow v-for="row in rows" :key="row.id"
         :status="row.status"
         :left="row.num"
-        :main="row.title || 'Untitled'"
+        :main="row.title || t('foreshadowing.untitled')"
         :right="row.reason ? `${row.status} · ${row.reason}` : row.status" />
     </div>
     </template>

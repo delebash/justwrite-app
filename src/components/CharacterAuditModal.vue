@@ -19,6 +19,9 @@ import { useAiTasksStore, Icon, AppModal, AiTaskStrip, EmptyState, UiButton, UiB
 import { auditAllCharacters } from "../services/analysis/characterAudit.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import StatusRow from "./StatusRow.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const emit = defineEmits(["close"]);
 
@@ -75,19 +78,19 @@ async function runSweep(force = false) {
   error.value = "";
   if (running.value) return;
   if (!ai.providerForFeature("characterAudit")) {
-    error.value = "Configure an AI provider in Settings → AI to run the audit.";
+    error.value = t("characterAudit.err.noProvider");
     return;
   }
   if (force) project.clearAllCharacterAudits();
   initRows();
   if (!rows.value.length) {
-    error.value = "No main characters to audit. Mark a character as 'main' in their detail page first.";
+    error.value = t("characterAudit.err.noMain");
     return;
   }
   try {
     await auditAllCharacters({
       project,
-      task: { label: "Character consistency audit", meta: { feature: "characterAudit" } },
+      task: { label: t("characterAudit.taskLabel"), meta: { feature: "characterAudit" } },
       onProgress: ({ phase: ph, character, completed, result, reason }) => {
         const row = rowById.value.get(character.id);
         if (row) {
@@ -109,8 +112,8 @@ async function runSweep(force = false) {
     if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
-        ? "Configure an AI provider in Settings → AI to run the audit."
-        : msg || "Couldn't complete the audit.";
+        ? t("characterAudit.err.noProvider")
+        : msg || t("characterAudit.err.failed");
     } else {
       for (const r of rows.value) {
         if (r.status === "scanning") { r.status = "skipped"; r.reason = "cancelled"; }
@@ -250,7 +253,7 @@ onMounted(() => {
         <li v-for="c in reviewCharacters" :key="c.id" class="ca-card">
           <header class="ca-card-h" @click="toggleExpand(c.id)">
             <span class="ca-name">
-              <button class="ca-name-jump" @click.stop="jumpToCharacter(c.id)" v-tooltip.bottom="'Open character page'">
+              <button class="ca-name-jump" @click.stop="jumpToCharacter(c.id)" v-tooltip.bottom="t('characterAudit.openCharacterPage')">
                 {{ c.name }}
               </button>
               <span class="ca-role">{{ c.role }}</span>

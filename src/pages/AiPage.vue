@@ -10,6 +10,9 @@ import { PaneHeader, pageFill } from "@delebash/llm-ui";
 import { AiModelsArea, runAiFeatureStream } from "@delebash/llm-ui";
 import WritingAiSettings from "../components/WritingAiSettings.vue";
 import { useAiStore } from "../stores/ai.js";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 // QC-46 — the welcome screen's "Run Quick Setup" deep-links /ai?quicksetup=1;
 // pass the flag to the shared area so it opens the wizard once after loading.
@@ -33,7 +36,7 @@ onUnmounted(() => {
 // JW's task system so a test shows live progress + Cancel in the AI tasks strip
 // (the batch list) and reports token usage. Returns { content, usage }.
 function runStream(opts) {
-  return runAiFeatureStream({ ...opts, feature: opts.action, task: { label: `Test · ${opts.action}` } });
+  return runAiFeatureStream({ ...opts, feature: opts.action, task: { label: t("writingAi.testTask", { action: opts.action }) } });
 }
 </script>
 
@@ -50,7 +53,7 @@ function runStream(opts) {
         <!-- ?providers=online deep-links the Online tab (the first-run AI setup dialog's
              "Connect an online provider"). @quick-setup-closed fires ONLY for a wizard the
              deep link auto-opened — a first-run local setup ends on Home, not on this page. -->
-        <AiModelsArea app-tab-label="Writing AI" :run-stream="runStream"
+        <AiModelsArea :app-tab-label="t('writingAi.tabLabel')" :run-stream="runStream"
           :auto-open-quick-setup="route.query.quicksetup === '1'"
           :initial-provider-scope="route.query.providers === 'online' ? 'online' : ''"
           :initial-tab="String(route.query.tab || '')"

@@ -17,6 +17,7 @@
 
 import { runJsonAnalysis } from "./runJson.js";
 import { htmlToText, tailWords } from "./text.js";
+import { t } from "../i18n/index.js";
 
 // ─── helpers ─────────────────────────────────────────────────────────
 
@@ -179,7 +180,7 @@ export async function generateSessionRecap({
     provider,
     model,
     meta: recapMeta,
-    task: task || { label: "Session recap", meta: recapMeta },
+    task: task || { label: t("sessionRecap.taskLabel"), meta: recapMeta },
   });
 
   const text = typeof parsed.recap === "string" ? parsed.recap.trim() : "";

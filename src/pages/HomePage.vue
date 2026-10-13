@@ -11,6 +11,9 @@ import { generateResumeBriefing, buildBriefingContext } from "../services/resume
 import { useWritingNav } from "../composables/useWritingNav.js";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import SessionRecapModal from "../components/SessionRecapModal.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const router = useRouter();
 const project = useProjectStore();
@@ -157,7 +160,7 @@ const briefingMetaLine = computed(() => {
   const gap = c?.gapLabel || live?.gapLabel || "";
   const num = c?.chapterNum ?? live?.lastChapter?.num;
   const title = c?.chapterTitle ?? live?.lastChapter?.title;
-  const chapterPart = num != null ? `Chapter ${num}${title ? ` — ${title}` : ""}` : "";
+  const chapterPart = num == null ? "" : title ? t("home.chapterTitled", { num, title }) : t("home.chapterN", { num });
   return [gap, chapterPart].filter(Boolean).join(" · ");
 });
 
@@ -172,7 +175,7 @@ async function runBriefing() {
   try {
     const result = await generateResumeBriefing({
       project, sessions,
-      task: { label: "Previously on your novel", meta: {} },
+      task: { label: t("home.briefingTaskLabel"), meta: {} },
     });
     ui.setBriefing({
       day: todayKey(),
@@ -191,8 +194,8 @@ async function runBriefing() {
       const msg = String(err?.message || err || "");
       briefingError.value =
         /provider|api key|configure/i.test(msg)
-          ? "Configure an AI provider in Settings → AI to generate this briefing."
-          : msg || "Couldn't generate briefing.";
+          ? t("home.err.briefingNoProvider")
+          : msg || t("home.err.briefingFailed");
     }
   }
 }
@@ -224,7 +227,7 @@ onMounted(() => {
   if (briefingCacheValid.value) return;
   if (!briefingEligible.value) return;
   if (!ai.providerForFeature("briefing")) {
-    briefingError.value = "Configure an AI provider in Settings → AI to generate this briefing.";
+    briefingError.value = t("home.err.briefingNoProvider");
     return;
   }
   runBriefing();
@@ -277,7 +280,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
         <div class="card hero-card" style="grid-column:1/-1">
           <div class="hero-main">
             <div class="hero-text">
-              <div class="t-eyebrow">{{ P.genre || 'Manuscript' }}</div>
+              <div class="t-eyebrow">{{ P.genre || t('home.manuscript') }}</div>
               <div v-if="P.subtitle" class="hero-sub">{{ P.subtitle }}</div>
               <p class="hero-premise">{{ P.premise }}</p>
             </div>
@@ -356,7 +359,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
           </div>
           <div v-if="briefingMetaLine" class="briefing-meta">
             <button v-if="briefingChapterId" class="briefing-jump" @click="jumpToLastChapter"
-                    v-tooltip.bottom="'Open this chapter'">{{ briefingMetaLine }}</button>
+                    v-tooltip.bottom="t('common.openThisChapter')">{{ briefingMetaLine }}</button>
             <span v-else>{{ briefingMetaLine }}</span>
           </div>
 
@@ -380,7 +383,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
               <UiButton intent="ghost" size="small"
                         :disabled="briefingRunning"
                         @click="regenerateBriefing"
-                        v-tooltip.bottom="'Generate a fresh briefing'">
+                        v-tooltip.bottom="t('home.regenerateBriefing')">
                 <Icon name="Refresh" :size="12" /> {{ $t("common.regenerate") }}
               </UiButton>
             </span>

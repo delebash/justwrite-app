@@ -3,6 +3,7 @@ import { parseEpub } from './epub.js';
 import { parseOdt }  from './odt.js';
 import { parseText } from './text.js';
 import { saveImage, storedSrcFor } from '../imageStore.js';
+import { t } from "../../i18n/index.js";
 
 async function rewriteImageSrcs(parsed) {
   const { images = [] } = parsed;
@@ -52,7 +53,7 @@ async function rewriteImageSrcs(parsed) {
     warnings.push(`${savedCount} image${savedCount === 1 ? '' : 's'} imported`);
   }
   if (skippedCount > 0) {
-    warnings.push(`${skippedCount} image${skippedCount === 1 ? '' : 's'} skipped — unsupported format`);
+    warnings.push(t("import.warn.imagesSkipped", { n: skippedCount }, skippedCount));
   }
 
   // Drop the transport-only `images` field from the result

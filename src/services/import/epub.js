@@ -1,4 +1,5 @@
 import { splitHtmlByHeadings } from './detectChapters.js';
+import { t } from "../../i18n/index.js";
 
 function resolveHref(base, href) {
   // base is like 'OEBPS/content.opf', href is relative to that directory
@@ -223,7 +224,7 @@ export async function parseEpub(arrayBuffer) {
       const ncxDoc = parseXml(ncxText);
       navEntries = parseNcx(ncxDoc, ncxEntry.href);
     } catch {
-      warnings.push('NCX parse failed; falling back to heading detection');
+      warnings.push(t("import.warn.ncx"));
     }
   }
   if (!navEntries.length && navManifest && zip.file(navManifest.href)) {
@@ -232,7 +233,7 @@ export async function parseEpub(arrayBuffer) {
       const navDoc = new DOMParser().parseFromString(navText, 'text/html');
       navEntries = parseNav(navDoc, navManifest.href);
     } catch {
-      warnings.push('Nav doc parse failed; falling back to heading detection');
+      warnings.push(t("import.warn.nav"));
     }
   }
 

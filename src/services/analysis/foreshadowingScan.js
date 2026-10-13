@@ -22,6 +22,7 @@ import { withAiTask } from "@delebash/llm-ui";
 import { normalizeName as norm, textMentionsTerm } from "../text.js";
 import { extractThreads } from "./threadExtraction.js";
 import { scanProjectMarkers } from "justwrite-server/editor/markers.js";
+import { t } from "../../i18n/index.js";
 
 const DEFAULT_CONCURRENCY = 4;
 
@@ -94,7 +95,7 @@ export async function scanForDanglingThreads({
   // The kit runner owns the entry's lifecycle (AI-call convention 2026-08-08).
   return withAiTask({
     feature: "foreshadowing",
-    label: "Foreshadowing scan",
+    label: t("foreshadowing.taskLabel"),
     meta: { kind: "foreshadowing" },
     signal,
   }, async (handle) => {

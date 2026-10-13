@@ -11,6 +11,7 @@
 
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
+import { t } from "../../i18n/index.js";
 
 function firstParagraph(text, maxWords = 60) {
   if (!text) return "";
@@ -101,7 +102,7 @@ export async function generateMarketingPack({
     provider,
     model,
     meta: packMeta,
-    task: task || { label: "Marketing pack", meta: packMeta },
+    task: task || { label: t("marketingPack.taskLabel"), meta: packMeta },
   });
 
   const logline = typeof parsed.logline === "string" ? parsed.logline.trim().slice(0, 400) : "";

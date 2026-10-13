@@ -25,6 +25,7 @@
 
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
+import { t } from "../../i18n/index.js";
 
 const ALLOWED_KINDS = new Set([
   "promise", "object", "question", "ability", "secret", "threat", "debt",
@@ -59,7 +60,7 @@ export async function extractThreads({
     provider,
     model,
     meta,
-    task: task || { label: "Thread extraction", meta },
+    task: task || { label: t("sessionRecap.threadTaskLabel"), meta },
   });
 
   const rawSetups = Array.isArray(parsed.setups) ? parsed.setups : Array.isArray(parsed) ? parsed : [];

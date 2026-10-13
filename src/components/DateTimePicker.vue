@@ -7,10 +7,13 @@
 import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import { computePosition, autoUpdate, offset, flip, shift, size } from "@floating-ui/dom";
 import { Icon, usePanelDismiss } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
-  placeholder: { type: String, default: "Set date & time" },
+  placeholder: { type: String, default: "" },
   // Optional id applied to the trigger <button>, so a parent <label for>
   // can associate with the picker for screen readers and click-to-focus.
   inputId: { type: String, default: null },
@@ -134,7 +137,7 @@ const triggerLabel = computed(() => {
     return { text: `${date}  ·  ${time}`, raw: false };
   }
   if (props.modelValue?.trim()) return { text: props.modelValue.trim(), raw: true };
-  return { text: props.placeholder, raw: true, empty: true };
+  return { text: props.placeholder || t("dateTime.placeholder"), raw: true, empty: true };
 });
 
 function emitValue() {
@@ -215,22 +218,22 @@ onBeforeUnmount(tearDownPos);
     <Teleport to="body">
     <div v-if="open" ref="popEl" class="dtp-pop">
       <div class="dtp-nav">
-        <button type="button" class="dtp-ico-btn" v-tooltip.bottom="'Previous month'" @click="stepMonth(-1)">
+        <button type="button" class="dtp-ico-btn" v-tooltip.bottom="t('dateTime.prevMonth')" @click="stepMonth(-1)">
           <Icon name="ChevLeft" :size="15" />
         </button>
         <select class="dtp-month" :value="month" @change="setMonth">
           <option v-for="(m, i) in MONTHS" :key="i" :value="i">{{ m }}</option>
         </select>
         <div class="dtp-year">
-          <button type="button" class="dtp-ico-btn sm" v-tooltip.bottom="'Previous year'" @click="stepYear(-1)">
+          <button type="button" class="dtp-ico-btn sm" v-tooltip.bottom="t('dateTime.prevYear')" @click="stepYear(-1)">
             <Icon name="ChevLeft" :size="13" />
           </button>
           <input class="dtp-year-input" type="number" :value="year" @input="setYear" @change="setYear" />
-          <button type="button" class="dtp-ico-btn sm" v-tooltip.bottom="'Next year'" @click="stepYear(1)">
+          <button type="button" class="dtp-ico-btn sm" v-tooltip.bottom="t('dateTime.nextYear')" @click="stepYear(1)">
             <Icon name="ChevRight" :size="13" />
           </button>
         </div>
-        <button type="button" class="dtp-ico-btn" v-tooltip.bottom="'Next month'" @click="stepMonth(1)">
+        <button type="button" class="dtp-ico-btn" v-tooltip.bottom="t('dateTime.nextMonth')" @click="stepMonth(1)">
           <Icon name="ChevRight" :size="15" />
         </button>
       </div>

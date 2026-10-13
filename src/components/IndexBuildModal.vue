@@ -14,6 +14,9 @@ import { useProjectStore } from "../stores/project.js";
 import { useAiTasksStore, withAiTask, AiTaskStrip, Icon, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
 import { buildOrUpdateIndex, rebuildIndex, indexStatus, clearIndex } from "../services/rag/indexer.js";
 import StatusRow from "./StatusRow.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   // "build" — incremental (only embed new/changed scenes)
@@ -55,7 +58,7 @@ function requestClose() { appModal.value?.close(); }
 function rowForChunk(c) {
   return {
     id: c.id,
-    label: `Ch. ${c.chapterNum} — ${c.chapterTitle || "Untitled"}${c.sceneTitle ? ` · ${c.sceneTitle}` : ` · Scene ${c.sceneIdx + 1}`}`,
+    label: t("indexBuild.rowLabel", { num: c.chapterNum, chapter: c.chapterTitle || t("common.untitled"), scene: c.sceneTitle || t("common.sceneN", { n: c.sceneIdx + 1 }) }),
     status: "pending",
   };
 }
@@ -72,11 +75,11 @@ async function run() {
   // model set" even though the server's routing was fine.
   const provider = await ai.ensureEmbeddingDefaults();
   if (!provider) {
-    error.value = "No embedding provider configured. Set one in AI Settings.";
+    error.value = t("indexBuild.err.noProvider");
     return;
   }
   if (!ai.embeddingModelFor(provider)) {
-    error.value = `Provider "${provider.name || provider.id}" has no embedding model set. Set one in AI → Default embedding (or on the provider).`;
+    error.value = t("indexBuild.err.noModel", { name: provider.name || provider.id });
     return;
   }
   try {
@@ -84,7 +87,7 @@ async function run() {
     // the callback keeps the row bookkeeping and the freshness ticks.
     await withAiTask({
       feature: "ragIndex",
-      label: props.mode === "rebuild" ? "Rebuild manuscript index" : "Build manuscript index",
+      label: props.mode === "rebuild" ? t("indexBuild.taskRebuild") : t("indexBuild.taskBuild"),
       meta: { mode: props.mode },
     }, async (handle) => {
       taskHandle = handle;
@@ -114,7 +117,7 @@ async function run() {
             // "stalled" while a long embedding queue is processing.
             handle.onDelta("", null);
           } else if (action === "removed" && chunk) {
-            rows.value.push({ id: chunk.id, label: `(stale) ${chunk.id}`, status: "removed" });
+            rows.value.push({ id: chunk.id, label: t("indexBuild.staleRow", { id: chunk.id }), status: "removed" });
           }
         },
       });

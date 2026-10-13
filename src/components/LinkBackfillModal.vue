@@ -14,6 +14,9 @@ import { AppModal, EmptyState, Icon, UiButton, UiCheckbox } from "@delebash/llm-
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { collectEntities, proposeSceneLinks } from "../services/rag/entityMatcher.js";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const emit = defineEmits(["close", "applied"]);
 
@@ -63,8 +66,9 @@ function setGroup(group, on) {
 }
 
 function sceneLabel(r) {
-  const scene = r.sceneTitle ? `“${r.sceneTitle}”` : `Scene ${r.sceneIdx + 1}`;
-  return `Ch. ${r.chapterNum}${r.chapterTitle ? ` — ${r.chapterTitle}` : ""} · ${scene}`;
+  const scene = r.sceneTitle ? t("common.quoted", { text: r.sceneTitle }) : t("common.sceneN", { n: r.sceneIdx + 1 });
+  const chapter = r.chapterTitle ? t("trash.chapterRef", { num: r.chapterNum, title: r.chapterTitle }) : t("common.chapterShort", { num: r.chapterNum });
+  return `${chapter} · ${scene}`;
 }
 
 function apply() {
@@ -77,7 +81,7 @@ function apply() {
     }
   }
   const applied = project.applyScenePresenceLinks(entries);
-  ui.showToast({ message: `Linked ${applied} scene${applied === 1 ? "" : "s"} to the story bible.` });
+  ui.showToast({ message: t("linkBackfill.linkedToast", { n: applied }, applied) });
   emit("applied", { applied });
   emit("close");
 }

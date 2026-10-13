@@ -13,6 +13,9 @@ import RichEditor from "../components/RichEditor.vue";
 import { PaneHeader } from "@delebash/llm-ui";
 import { parseFile } from "../services/import/index.js";
 import { useSelectNewName } from "../composables/useSelectNewName.js";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -86,10 +89,10 @@ async function onFileChange(event) {
     for (const file of files) {
       try {
         const parsed = await parseFile(file);
-        const baseName = file.name.replace(/\.[^.]+$/, "") || "Imported note";
+        const baseName = file.name.replace(/\.[^.]+$/, "") || t("notes.importedFallback");
         const sections = (parsed.chapters || []).filter((c) => c && (c.html || c.title));
         if (!sections.length) {
-          failures.push(`${file.name} — empty`);
+          failures.push(t("notes.importEmptyFile", { file: file.name }));
           continue;
         }
         for (let i = 0; i < sections.length; i++) {
@@ -105,16 +108,16 @@ async function onFileChange(event) {
       }
     }
     if (!noteInputs.length) {
-      ui.showToast({ message: failures.length ? `Couldn't import: ${failures[0]}` : "Nothing to import." });
+      ui.showToast({ message: failures.length ? t("notes.importFailed", { reason: failures[0] }) : t("notes.nothingToImport") });
       return;
     }
     const { noteIds } = project.importNotes({ notes: noteInputs });
     if (!noteIds.length) {
-      ui.showToast({ message: "Nothing to import." });
+      ui.showToast({ message: t("notes.nothingToImport") });
       return;
     }
     for (const w of warnings.slice(0, 2)) ui.showToast({ message: w });
-    for (const f of failures.slice(0, 2)) ui.showToast({ message: `Skipped ${f}` });
+    for (const f of failures.slice(0, 2)) ui.showToast({ message: t("notes.importSkipped", { reason: f }) });
     ui.select("notes", noteIds[0]);
     router.push(`/notes/${noteIds[0]}`);
   } finally {
@@ -124,13 +127,13 @@ async function onFileChange(event) {
 
 // ── Anchor ───────────────────────────────────────────────────────────
 const anchorOptions = computed(() => {
-  const opts = [{ label: "Story-wide (no anchor)", value: "" }];
+  const opts = [{ label: t("common.storyWideNoAnchor"), value: "" }];
   for (const c of project.allChapters) {
-    opts.push({ label: `Ch. ${c.num} · ${c.title || "Untitled"}`, value: `ch:${c.id}` });
+    opts.push({ label: t("common.chapterRefTitled", { num: c.num, title: c.title || t("common.untitled") }), value: `ch:${c.id}` });
     const scenes = project.scenesFor(c.id);
     scenes.forEach((s, i) => {
       opts.push({
-        label: `   Ch. ${c.num} · Scene ${i + 1}${s.title ? ` — ${s.title}` : ""}`,
+        label: `   ${s.title ? t("common.sceneRefTitled", { num: c.num, scene: i + 1, title: s.title }) : t("common.sceneRef", { num: c.num, scene: i + 1 })}`,
         value: `scn:${c.id}:${s.id}`,
       });
     });
@@ -159,13 +162,13 @@ const anchorValue = computed({
 
 function anchorLabelFor(note) {
   const a = note?.anchor;
-  if (!a) return "Story-wide";
+  if (!a) return t("notes.storyWide");
   const c = project.chapterById(a.chapterId);
-  if (!c) return "Stale anchor";
-  if (!a.sceneId) return `Ch. ${c.num}`;
+  if (!c) return t("notes.staleAnchor");
+  if (!a.sceneId) return t("common.chapterShort", { num: c.num });
   const scenes = project.scenesFor(c.id);
   const idx = scenes.findIndex((s) => s.id === a.sceneId);
-  return idx >= 0 ? `Ch. ${c.num} · Scene ${idx + 1}` : `Ch. ${c.num}`;
+  return idx >= 0 ? t("common.sceneRef", { num: c.num, scene: idx + 1 }) : t("common.chapterShort", { num: c.num });
 }
 
 function deleteNote() {
@@ -189,26 +192,26 @@ const rows = computed(() => project.notes);
 // carries ONE `tag`, so the multi-select tests equality, not array membership.
 const facets = computed(() => [
   {
-    key: "anchor", label: "Anchor",
+    key: "anchor", label: t("notes.anchor"),
     options: [
-      { value: "storywide", label: "Story-wide" },
-      { value: "anchored", label: "Anchored" },
+      { value: "storywide", label: t("notes.storyWide") },
+      { value: "anchored", label: t("notes.anchored") },
     ],
     match: (row, v) => (v === "storywide" ? !row.anchor : !!row.anchor),
   },
   {
-    key: "tags", label: "Tags", multi: true,
+    key: "tags", label: t("common.tags"), multi: true,
     options: allTags.value.map((t) => ({ value: t, label: t })),
     match: (row, tag) => row.tag === tag,
   },
 ]);
 
-const columns = [
-  { accessorKey: "title",   header: "Title",   sortable: true,  headerStyle: "min-width: 200px" },
-  { accessorKey: "tag",     header: "Tag",     sortable: true,  headerStyle: "min-width: 120px" },
-  { accessorKey: "anchor",  header: "Anchor",  sortable: false, headerStyle: "min-width: 140px" },
-  { accessorKey: "updated", header: "Updated", sortable: true,  headerStyle: "min-width: 110px" },
-];
+const columns = computed(() => [
+  { accessorKey: "title",   header: t("common.title"),   sortable: true,  headerStyle: "min-width: 200px" },
+  { accessorKey: "tag",     header: t("notes.colTag"),     sortable: true,  headerStyle: "min-width: 120px" },
+  { accessorKey: "anchor",  header: t("notes.anchor"),  sortable: false, headerStyle: "min-width: 140px" },
+  { accessorKey: "updated", header: t("notes.colUpdated"), sortable: true,  headerStyle: "min-width: 110px" },
+]);
 
 function onRowClick(event) {
   const id = event?.data?.id;
@@ -246,8 +249,8 @@ function onRowClick(event) {
         :columns="columns"
         :facets="facets"
         :search-fields="['title', 'tag']"
-        search-placeholder="Search notes…"
-        empty-text="No notes match your search."
+        :search-placeholder="t('notes.searchPlaceholder')"
+        :empty-text="t('notes.searchEmpty')"
         @row-click="onRowClick">
         <template #title="{ row }">
           <div class="entity-cell-title">

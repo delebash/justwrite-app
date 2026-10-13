@@ -12,6 +12,7 @@ import { useProjectStore } from "../../stores/project.js";
 import { friendlyAiError, embedTexts, ensureEmbeddingReady } from "@delebash/llm-ui";
 import { chunkProjectAsync } from "./chunker.js";
 import { clear, diff, putVectors, removeIds, shas, status } from "./vectorStore.js";
+import { t } from "../../i18n/index.js";
 
 // How many chunks to embed per API call.
 const EMBED_BATCH_SIZE = 16;
@@ -22,10 +23,10 @@ const EMBED_BATCH_SIZE = 16;
 export class IndexModelMismatchError extends Error {
   constructor(currentModel, targetModel) {
     super(
-      `The index was built with "${currentModel || "(unknown)"}" but the embedding ` +
-      `provider is now set to "${targetModel || "(unknown)"}". Hit Rebuild to ` +
-      `re-embed everything against the new model, or switch the embedding ` +
-      `provider back to keep the existing index.`,
+      t("indexBuild.err.modelChanged", {
+        built: currentModel || t("indexBuild.unknownModel"),
+        now: targetModel || t("indexBuild.unknownModel"),
+      }),
     );
     this.name = "IndexModelMismatchError";
     this.currentModel = currentModel;

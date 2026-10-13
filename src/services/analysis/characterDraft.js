@@ -20,6 +20,7 @@ import { runJsonAnalysis } from "../runJson.js";
 import { composeBookContext, storyBudgetFor } from "../storyContext.js";
 import { buildProfileText } from "./characterAudit.js";
 import { sanitizeProfile, sanitizeVoice } from "./characterProfile.js";
+import { t } from "../../i18n/index.js";
 
 const block = (heading, body) => (String(body || "").trim() ? `${heading}\n${String(body).trim()}` : "");
 const join = (...blocks) => blocks.filter(Boolean).join("\n\n");
@@ -150,7 +151,7 @@ export async function profileFromDescription({ project, characterId, description
   const meta = { characterId, kind: "character-profile-draft" };
   const { result, parsed } = await runJsonAnalysis({
     action: "characterProfileDraft", feature: "characterProfile", variables, signal, meta,
-    task: { label: "Draft: profile", meta },
+    task: { label: t("characterDraft.taskProfile"), meta },
   });
   return { fields: sanitizeProfile(parsed), model: result.model };
 }
@@ -163,7 +164,7 @@ export async function voiceFromDescription({ project, characterId, description, 
   const meta = { characterId, kind: "character-voice-draft" };
   const { result, parsed } = await runJsonAnalysis({
     action: "characterVoiceDraft", feature: "characterVoice", variables, signal, meta,
-    task: { label: "Draft: voice", meta },
+    task: { label: t("characterDraft.taskVoice"), meta },
   });
   return { fields: sanitizeVoice(parsed), model: result.model };
 }
@@ -176,7 +177,7 @@ export async function draftSection({ project, characterId, sectionKey, descripti
   const meta = { characterId, sectionKey, kind: "character-section" };
   const { result, parsed } = await runJsonAnalysis({
     action: "characterSection", feature: "characterProfile", variables, signal, meta,
-    task: { label: "Draft: section", meta },
+    task: { label: t("characterDraft.taskSection"), meta },
   });
   return { fields: nestFields(sanitizeSection(parsed, keys)), model: result.model };
 }
@@ -188,7 +189,7 @@ export async function suggestCharacters({ project, lookingFor = "", signal, budg
   const meta = { kind: "suggest-characters" };
   const { parsed } = await runJsonAnalysis({
     action: "suggestCharacters", feature: "brainstorm", variables, signal, meta,
-    task: { label: "Suggest characters", meta },
+    task: { label: t("characterDraft.taskSuggest"), meta },
   });
   return sanitizeSuggestions(parsed, project.characters);
 }

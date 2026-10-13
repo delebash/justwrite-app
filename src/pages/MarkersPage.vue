@@ -21,6 +21,9 @@ import { UiButton } from "@delebash/llm-ui";
 import ForeshadowingScanModal from "../components/ForeshadowingScanModal.vue";
 import AiTellScanModal from "../components/AiTellScanModal.vue";
 import { PaneHeader } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const project = useProjectStore();
 const router = useRouter();
@@ -54,9 +57,9 @@ function resolve(marker) {
 }
 
 function locationLabel(m) {
-  let s = `Ch. ${m.chapterNum}`;
+  let s = t("common.chapterShort", { num: m.chapterNum });
   if (m.chapterTitle) s += ` · ${m.chapterTitle}`;
-  s += ` · Scene ${m.sceneIdx + 1}`;
+  s += ` · ${t("common.sceneN", { n: m.sceneIdx + 1 })}`;
   if (m.sceneTitle) s += ` — ${m.sceneTitle}`;
   return s;
 }

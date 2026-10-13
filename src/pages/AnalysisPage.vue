@@ -22,6 +22,9 @@ import EntitySweepModal from "../components/EntitySweepModal.vue";
 import LinkBackfillModal from "../components/LinkBackfillModal.vue";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import { useAiStore } from "../stores/ai.js";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const project = useProjectStore();
 const sessions = useSessionsStore();
@@ -176,7 +179,7 @@ async function explainHot(chapterId) {
   if (!ai.providerForFeature("voiceDrift")) {
     driftExplanations.value = {
       ...driftExplanations.value,
-      [chapterId]: { error: "Configure an AI provider in Settings → AI to explain voice drift." },
+      [chapterId]: { error: t("analysisView.err.driftNoProvider") },
     };
     return;
   }
@@ -194,7 +197,7 @@ async function explainHot(chapterId) {
       outlierChapterId: chapterId,
       baselineChapterIds,
       divergentMetrics,
-      task: { label: "Voice drift explanation", meta: { chapterId } },
+      task: { label: t("analysisView.driftTaskLabel"), meta: { chapterId } },
       onDelta: (_delta, content) => {
         driftExplanations.value = {
           ...driftExplanations.value,
@@ -214,8 +217,8 @@ async function explainHot(chapterId) {
         [chapterId]: {
           running: false, text: "",
           error: /provider|api key|configure/i.test(msg)
-            ? "Configure an AI provider in Settings → AI to explain voice drift."
-            : msg || "Couldn't generate explanation.",
+            ? t("analysisView.err.driftNoProvider")
+            : msg || t("analysisView.err.driftFailed"),
         },
       };
     } else {
@@ -307,7 +310,7 @@ const ENDING_BG = {
 async function runTensionSweep(force = false) {
   tensionError.value = "";
   if (!ai.providerForFeature("critique")) {
-    tensionError.value = "Configure an AI provider in Settings → AI to run the tension sweep.";
+    tensionError.value = t("analysisView.err.tensionNoProvider");
     return;
   }
   try {
@@ -325,8 +328,8 @@ async function runTensionSweep(force = false) {
     if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       tensionError.value = /provider|api key|configure/i.test(msg)
-        ? "Configure an AI provider in Settings → AI to run the tension sweep."
-        : msg || "Tension sweep failed.";
+        ? t("analysisView.err.tensionNoProvider")
+        : msg || t("analysisView.err.tensionFailed");
     }
   }
 }
@@ -426,17 +429,17 @@ const heatmap = computed(() => {
 
 const DOW_LABELS_HEATMAP = ["S", "M", "T", "W", "T", "F", "S"];
 
-const styleColumns = [
-  { accessorKey: "title",              header: "Chapter", sortable: true, headerStyle: "min-width:200px", cellStyle: "min-width:200px" },
-  { accessorKey: "words",              header: "W",       sortable: true, headerStyle: "text-align:right;width:80px",  cellStyle: "text-align:right;width:80px" },
-  { accessorKey: "avgSentenceLength",  header: "Sent",    sortable: true, headerStyle: "text-align:right;width:90px",  cellStyle: "text-align:right;width:90px" },
-  { accessorKey: "avgParagraphLength", header: "Para",    sortable: true, headerStyle: "text-align:right;width:90px",  cellStyle: "text-align:right;width:90px" },
-  { accessorKey: "dialogueRatio",      header: "Dial",    sortable: true, headerStyle: "text-align:right;width:85px",  cellStyle: "text-align:right;width:85px" },
-  { accessorKey: "filterWordsPer1k",   header: "Filter",  sortable: true, headerStyle: "text-align:right;width:85px",  cellStyle: "text-align:right;width:85px" },
-  { accessorKey: "adverbsPer1k",       header: "Adv",     sortable: true, headerStyle: "text-align:right;width:80px",  cellStyle: "text-align:right;width:80px" },
-  { accessorKey: "passivePer1k",       header: "Pass",    sortable: true, headerStyle: "text-align:right;width:80px",  cellStyle: "text-align:right;width:80px" },
-  { accessorKey: "povHint",            header: "POV",     sortable: true, headerStyle: "width:80px",                   cellStyle: "width:80px" },
-];
+const styleColumns = computed(() => [
+  { accessorKey: "title",              header: t("common.chapter"), sortable: true, headerStyle: "min-width:200px", cellStyle: "min-width:200px" },
+  { accessorKey: "words",              header: t("analysisView.cols.words"), sortable: true, headerStyle: "text-align:right;width:80px",  cellStyle: "text-align:right;width:80px" },
+  { accessorKey: "avgSentenceLength",  header: t("analysisView.cols.sentence"), sortable: true, headerStyle: "text-align:right;width:90px",  cellStyle: "text-align:right;width:90px" },
+  { accessorKey: "avgParagraphLength", header: t("analysisView.cols.paragraph"), sortable: true, headerStyle: "text-align:right;width:90px",  cellStyle: "text-align:right;width:90px" },
+  { accessorKey: "dialogueRatio",      header: t("analysisView.cols.dialogue"), sortable: true, headerStyle: "text-align:right;width:85px",  cellStyle: "text-align:right;width:85px" },
+  { accessorKey: "filterWordsPer1k",   header: t("analysisView.cols.filter"), sortable: true, headerStyle: "text-align:right;width:85px",  cellStyle: "text-align:right;width:85px" },
+  { accessorKey: "adverbsPer1k",       header: t("analysisView.cols.adverbs"), sortable: true, headerStyle: "text-align:right;width:80px",  cellStyle: "text-align:right;width:80px" },
+  { accessorKey: "passivePer1k",       header: t("analysisView.cols.passive"), sortable: true, headerStyle: "text-align:right;width:80px",  cellStyle: "text-align:right;width:80px" },
+  { accessorKey: "povHint",            header: t("analysisView.cols.pov"), sortable: true, headerStyle: "width:80px",                   cellStyle: "width:80px" },
+]);
 
 // Milestone celebration — show the next milestone the user is heading
 // toward. Plain whole-thousand thresholds match how writers think about
@@ -783,14 +786,14 @@ const milestoneState = computed(() => {
             </div>
             <div class="st-stat st-stat-wide">
               <button class="st-stat-jump" @click="jumpChapter(tensionStats.peakChapter.id)"
-                      v-tooltip.bottom="'Open this chapter'">
+                      v-tooltip.bottom="t('common.openThisChapter')">
                 {{ $t("analysisView.chapterScore", { num: tensionStats.peakChapter.num, title: tensionStats.peakChapter.title || $t("analysisView.untitled"), value: tensionStats.peakValue }) }}
               </button>
               <div class="st-stat-k">{{ $t("analysisView.peakTension") }}</div>
             </div>
             <div class="st-stat st-stat-wide">
               <button class="st-stat-jump" @click="jumpChapter(tensionStats.lowChapter.id)"
-                      v-tooltip.bottom="'Open this chapter'">
+                      v-tooltip.bottom="t('common.openThisChapter')">
                 {{ $t("analysisView.chapterScore", { num: tensionStats.lowChapter.num, title: tensionStats.lowChapter.title || $t("analysisView.untitled"), value: tensionStats.lowValue }) }}
               </button>
               <div class="st-stat-k">{{ $t("analysisView.lowestTension") }}</div>

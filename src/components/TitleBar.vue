@@ -19,6 +19,9 @@ import { useProjectStore } from "../stores/project.js";
 import { THEME_PRESETS } from "../services/appearance.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { Icon, AiStatusButton, TitleBar } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 // `menu`: the layout is in its phone shape (the sidebar is a drawer that slides in) — the bar shows
 // the ☰ that opens it, and says so with `menu`.
@@ -43,7 +46,7 @@ const activePreset = computed(() => {
     || (ui.customPresets || []).find((p) => p.id === pid)
     || null;
 });
-const activePresetLabel = computed(() => activePreset.value?.name || "Custom");
+const activePresetLabel = computed(() => activePreset.value?.name || t("titleBar.customTheme"));
 function toggleTheme() {
   themeOpen.value = !themeOpen.value;
   if (themeOpen.value) modeOpen.value = false;
@@ -55,17 +58,20 @@ function pickPreset(p) {
 
 // ── Mode (light/dark/system) dropdown ───────────────────────────────
 const MODE_OPTIONS = [
-  { id: "light",  label: "Light",  icon: "Sun" },
-  { id: "dark",   label: "Dark",   icon: "Moon" },
-  { id: "system", label: "System", icon: "Monitor" },
+  { id: "light",  labelKey: "settings.appearance.themeLight", icon: "Sun" },
+  { id: "dark",   labelKey: "settings.appearance.themeDark",  icon: "Moon" },
+  { id: "system", labelKey: "titleBar.modeSystem",           icon: "Monitor" },
 ];
 const modeOpen = ref(false);
 const modeWrap = ref(null);
 const modeIcon = computed(() => {
-  const m = ui.appearance?.mode;
-  return m === "light" ? "Sun" : m === "dark" ? "Moon" : "Monitor";
+  return modeOption(ui.appearance?.mode).icon;
 });
-const modeLabel = computed(() => ({ light: "Light", dark: "Dark", system: "System" })[ui.appearance?.mode] || "System");
+const modeLabel = computed(() => t(modeOption(ui.appearance?.mode).labelKey));
+// the current mode's row; an unknown mode reads as "system"
+function modeOption(mode) {
+  return MODE_OPTIONS.find((o) => o.id === mode) || MODE_OPTIONS.find((o) => o.id === "system");
+}
 function toggleMode() {
   modeOpen.value = !modeOpen.value;
   if (modeOpen.value) themeOpen.value = false;
@@ -138,31 +144,31 @@ function toggleChat() {
           <button v-for="m in MODE_OPTIONS" :key="m.id" @click="pickMode(m.id)"
             :class="{ active: ui.appearance?.mode === m.id }">
             <Icon :name="m.icon" :size="13" />
-            <span class="theme-name">{{ m.label }}</span>
+            <span class="theme-name">{{ t(m.labelKey) }}</span>
             <Icon v-if="ui.appearance?.mode === m.id" name="Check" :size="11" class="theme-check" />
           </button>
         </div>
       </div>
       <span class="titlebar-divider gt-xs" />
       <button data-undo @click="project.undoFor(undoDomains)" :disabled="!project.canUndoFor(undoDomains)"
-        v-tooltip.bottom="project.canUndoFor(undoDomains) ? 'Undo · ⌘Z' : 'Nothing to undo on this page'">
+        v-tooltip.bottom="project.canUndoFor(undoDomains) ? t('titleBar.undo') : t('titleBar.nothingToUndo')">
         <Icon name="Refresh" :size="13" style="transform:scaleX(-1)" />
       </button>
       <button data-redo @click="project.redoFor(undoDomains)" :disabled="!project.canRedoFor(undoDomains)"
-        v-tooltip.bottom="project.canRedoFor(undoDomains) ? 'Redo · ⌘⇧Z' : 'Nothing to redo on this page'">
+        v-tooltip.bottom="project.canRedoFor(undoDomains) ? t('titleBar.redo') : t('titleBar.nothingToRedo')">
         <Icon name="Refresh" :size="13" />
       </button>
       <span class="titlebar-divider" />
       <AiStatusButton />
       <span class="titlebar-divider gt-xs" />
-      <button v-if="bookIndexOn" data-panel-toggle @click="toggleChat" :class="{ active: ui.chatPanelOpen }" v-tooltip.bottom="'Ask the book · ⌘J'">
+      <button v-if="bookIndexOn" data-panel-toggle @click="toggleChat" :class="{ active: ui.chatPanelOpen }" v-tooltip.bottom="t('titleBar.askBook')">
         <Icon name="Chat" :size="13" />
       </button>
-      <button class="gt-xs" @click="ui.toggleSidebar" v-tooltip.bottom="ui.sidebarCollapsed ? 'Expand sidebar · ⌘\\' : 'Collapse sidebar · ⌘\\'">
+      <button class="gt-xs" @click="ui.toggleSidebar" v-tooltip.bottom="ui.sidebarCollapsed ? t('titleBar.expandSidebar') : t('titleBar.collapseSidebar')">
         <Icon name="SidebarToggle" :size="14" />
       </button>
       <router-link to="/search" custom v-slot="{ navigate }">
-        <button @click="navigate" v-tooltip.bottom="'Search · ⌘F'"><Icon name="Search" :size="13" /></button>
+        <button @click="navigate" v-tooltip.bottom="t('titleBar.search')"><Icon name="Search" :size="13" /></button>
       </router-link>
     </div>
   </TitleBar>

@@ -12,6 +12,9 @@ import { UiTable } from "@delebash/llm-ui";
 import StatusSelect from "../components/StatusSelect.vue";
 import { PaneHeader } from "@delebash/llm-ui";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -36,18 +39,18 @@ function askTheBook() {
   if (!doc.value) return;
   ui.openChatPanelFor({
     mode: "book",
-    question: `Tell me about the ${doc.value.id} document`,
+    question: t("architecture.askAbout", { doc: doc.value.id }),
     sourceKey: `ask:arch:${doc.value.id}`,
   });
 }
 
 const rows = computed(() => Object.values(project.architecture).filter(Boolean));
 
-const columns = [
-  { accessorKey: "title",       header: "Title",       sortable: true,  headerStyle: "min-width: 180px" },
-  { accessorKey: "description",  header: "Description", sortable: false, headerStyle: "min-width: 260px" },
-  { accessorKey: "status",      header: "Status",      sortable: true,  headerStyle: "min-width: 120px" },
-];
+const columns = computed(() => [
+  { accessorKey: "title",       header: t("common.title"),       sortable: true,  headerStyle: "min-width: 180px" },
+  { accessorKey: "description",  header: t("common.description"), sortable: false, headerStyle: "min-width: 260px" },
+  { accessorKey: "status",      header: t("common.status"),      sortable: true,  headerStyle: "min-width: 120px" },
+]);
 
 function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
 function statusSeverity(id) {

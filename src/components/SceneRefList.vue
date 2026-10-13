@@ -7,6 +7,9 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   // The scene array field that holds the entity's id when linked.
@@ -15,7 +18,7 @@ const props = defineProps({
   entityId: { type: String, required: true },
   emptyText: {
     type: String,
-    default: "No scenes linked yet. Open a scene → Links to add one.",
+    default: "",
   },
 });
 
@@ -32,7 +35,7 @@ const rows = computed(() => {
       if ((scn[props.field] || []).includes(props.entityId)) {
         out.push({
           sceneId: scn.id,
-          sceneTitle: scn.title || `Scene ${idx + 1}`,
+          sceneTitle: scn.title || t("common.sceneN", { n: idx + 1 }),
           sceneIdx: idx + 1,
           chapterId: ch.id,
           chapterTitle: ch.title,
@@ -62,7 +65,7 @@ function goScene(chapterId, sceneId) {
       <span class="scene-ref-title">{{ row.sceneTitle }}</span>
     </button>
   </div>
-  <div v-else class="scene-ref-empty">{{ emptyText }}</div>
+  <div v-else class="scene-ref-empty">{{ emptyText || t("sceneRefs.empty") }}</div>
 </template>
 
 <style scoped>

@@ -21,6 +21,10 @@ import {
   TEMPLATE_OPTIONS,
 } from "../services/analysis/beatSheet.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
+import { useI18n } from "vue-i18n";
+import { relativeTime } from "@delebash/llm-ui";
+
+const { t } = useI18n();
 
 const emit = defineEmits(["close"]);
 
@@ -45,22 +49,22 @@ async function run() {
   error.value = "";
   if (running.value) return;
   if (!ai.providerForFeature("beatSheet")) {
-    error.value = "Configure an AI provider in Settings → AI to map to a beat sheet.";
+    error.value = t("beatSheet.err.noProvider");
     return;
   }
   try {
     const result = await mapToBeatSheet({
       project,
       templateKey: selectedTemplate.value,
-      task: { label: "Beat sheet mapping", meta: { templateKey: selectedTemplate.value } },
+      task: { label: t("beatSheet.taskLabel"), meta: { templateKey: selectedTemplate.value } },
     });
     project.setBeatSheet(selectedTemplate.value, result);
   } catch (e) {
     if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
-        ? "Configure an AI provider in Settings → AI to map to a beat sheet."
-        : msg || "Couldn't map to beat sheet.";
+        ? t("beatSheet.err.noProvider")
+        : msg || t("beatSheet.err.failed");
     }
   }
 }
@@ -85,16 +89,6 @@ watch(selectedTemplate, () => {
   error.value = "";
   if (!mapping.value && !running.value) run();
 });
-
-const ago = (ts) => {
-  if (!ts) return "";
-  const m = Math.floor((Date.now() - ts) / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-};
 
 // First open should fetch if nothing cached yet.
 if (!mapping.value) run();
@@ -154,7 +148,7 @@ if (!mapping.value) run();
           {{ $t("beatSheet.missingCount", { n: mapping.missingCount }) }}
         </span>
         <span class="bs-meta">
-          {{ $t("beatSheet.generatedAgo", { when: ago(mapping.generatedAt) }) }}
+          {{ $t("beatSheet.generatedAgo", { when: relativeTime(mapping.generatedAt) }) }}
           <template v-if="mapping.model"> {{ $t("beatSheet.viaModel", { model: mapping.model }) }}</template>
         </span>
       </div>

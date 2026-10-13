@@ -16,6 +16,9 @@ import { ref, onMounted, onBeforeUnmount, computed } from "vue";
 import { VARIATION_TEMPERATURES } from "../services/writerAI.js";
 import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/llm-ui";
 import AiFeatureChip from "./AiFeatureChip.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   // Runner contract:
@@ -25,8 +28,8 @@ const props = defineProps({
   // so each column's call gets a unique identifier — that's how this
   // modal locates each column's task in the global aiTasks store.
   runner: { type: Function, required: true },
-  label:  { type: String, default: "Three variations" },
-  eyebrow: { type: String, default: "Compare variations" },
+  label:  { type: String, default: "" },
+  eyebrow: { type: String, default: "" },
   // Optional override of the temperature spread.
   temperatures: { type: Array, default: () => VARIATION_TEMPERATURES },
 });
@@ -130,7 +133,7 @@ onBeforeUnmount(cancelAll);
 </script>
 
 <template>
-  <AppModal :eyebrow="eyebrow" :title="label"
+  <AppModal :eyebrow="eyebrow || t('variations.defaultEyebrow')" :title="label || t('variations.defaultLabel')"
     wide
     :closable="!anyRunning"
     @close="close"

@@ -150,7 +150,7 @@ function askTheBook() {
   if (!ch.value) return;
   ui.openChatPanelFor({
     mode: "book",
-    question: `Tell me about ${ch.value.name}`,
+    question: t("common.tellMeAbout", { name: ch.value.name }),
     sourceKey: `ask:character:${ch.value.id}`,
   });
 }

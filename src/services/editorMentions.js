@@ -15,13 +15,14 @@ import { MENTION_OPTIONS, mentionAttributes } from "justwrite-server/editor/edit
 import { VueRenderer } from "@tiptap/vue-3";
 import MentionList from "@renderer/components/MentionList.vue";
 import { useProjectStore } from "@renderer/stores/project";
+import { t } from "../i18n/index.js";
 
 // Pull every bible entity, tagged with its kind. Lazy store access so
 // this works whether called at module load or later.
 function getItems(query) {
   const p = useProjectStore();
   const map = (arr, kind) =>
-    (arr || []).map((e) => ({ id: e.id, label: e.name || e.title || "Untitled", kind }));
+    (arr || []).map((e) => ({ id: e.id, label: e.name || e.title || t("common.untitled"), kind }));
   const all = [
     ...map(p.characters, "character"),
     ...map(p.locations, "location"),

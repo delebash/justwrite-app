@@ -10,6 +10,7 @@ import { runAiFeatureStream } from "@delebash/llm-ui";
 import { useProjectStore } from "../stores/project.js";
 import { htmlToText, textToHtml } from "./text.js";
 import { buildVoiceFingerprint } from "./voiceFingerprint.js";
+import { t } from "../i18n/index.js";
 
 // The voice-canon fingerprint as a server-prompt variable: the project's
 // measured voice block (prefixed with a blank line) when canonical chapters are
@@ -52,11 +53,11 @@ export function storyContextVar(text) {
 // rendered by /v1/ai/stream — so they're Lab-editable and headless-capable.
 
 const ACTIONS = {
-  rewrite: { label: "Rewrite", description: "Make the passage more vivid and specific while keeping meaning, tense, and voice." },
-  expand: { label: "Expand", description: "Add sensory detail, interiority, and small actions — roughly double the length." },
-  tighten: { label: "Tighten", description: "Cut filler, hedges, and redundancy; keep meaning and voice. Noticeably shorter." },
-  continue: { label: "Continue", description: "Write 2–4 more paragraphs from where the passage ends, matching voice and POV." },
-  describe: { label: "Describe", description: "Fresh sensory prose about the named subject, to insert after the passage." },
+  rewrite: { labelKey: "richEditor.actionName.rewrite", description: "Make the passage more vivid and specific while keeping meaning, tense, and voice." },
+  expand: { labelKey: "richEditor.actionName.expand", description: "Add sensory detail, interiority, and small actions — roughly double the length." },
+  tighten: { labelKey: "richEditor.actionName.tighten", description: "Cut filler, hedges, and redundancy; keep meaning and voice. Noticeably shorter." },
+  continue: { labelKey: "richEditor.actionName.continue", description: "Write 2–4 more paragraphs from where the passage ends, matching voice and POV." },
+  describe: { labelKey: "richEditor.actionName.describe", description: "Fresh sensory prose about the named subject, to insert after the passage." },
 };
 
 // ─── Line edits ─────────────────────────────────────────────────────────
@@ -67,32 +68,32 @@ const ACTIONS = {
 
 export const PROSE_RULES = {
   "show-dont-tell": {
-    label: "Show don't tell",
-    description: "Trades told-emotion (\"she was nervous\") for the body language, behaviour, and dialogue that let the reader feel it firsthand.",
+    labelKey: "richEditor.rules.showDontTell.label",
+    descriptionKey: "richEditor.rules.showDontTell.description",
   },
   "passive-voice": {
-    label: "Passive voice",
-    description: "Switches to active voice when the actor matters. Leaves passive in place when the doer genuinely doesn't — crime scenes, mysteries, agentless states.",
+    labelKey: "richEditor.rules.passiveVoice.label",
+    descriptionKey: "richEditor.rules.passiveVoice.description",
   },
   "filter-words": {
-    label: "Filter words",
-    description: "Strips the layer of \"she saw / he heard / I felt\" between the POV character and what they're perceiving. The reader gets the perception direct.",
+    labelKey: "richEditor.rules.filterWords.label",
+    descriptionKey: "richEditor.rules.filterWords.description",
   },
   "dialogue-tags": {
-    label: "Dialogue tags",
-    description: "Plainer tags (\"exclaimed\", \"retorted\" → \"said\") and action beats that show how a line lands. Pulls out adverb-glued tags (\"said angrily\") the same way.",
+    labelKey: "richEditor.rules.dialogueTags.label",
+    descriptionKey: "richEditor.rules.dialogueTags.description",
   },
   "sensory-grounding": {
-    label: "Sensory grounding",
-    description: "Anchors abstract or interior prose in the body — sight, sound, smell, the feel of the air. Pulls a scene out of pure thought and back into the world.",
+    labelKey: "richEditor.rules.sensoryGrounding.label",
+    descriptionKey: "richEditor.rules.sensoryGrounding.description",
   },
   "sentence-variety": {
-    label: "Sentence variety",
-    description: "When sentences start marching in lockstep, breaks long ones up or joins short ones together. Lets the rhythm breathe.",
+    labelKey: "richEditor.rules.sentenceVariety.label",
+    descriptionKey: "richEditor.rules.sentenceVariety.description",
   },
   "prose-tightening": {
-    label: "Prose tightening",
-    description: "Cuts hedges (just, really, somewhat), filler phrases, and lines that don't move the scene. The result is shorter and usually sharper.",
+    labelKey: "richEditor.rules.proseTightening.label",
+    descriptionKey: "richEditor.rules.proseTightening.description",
   },
 };
 
@@ -130,7 +131,7 @@ async function runAction(actionKey, { html, storyContext = "", signal, onDelta, 
   const action = ACTIONS[actionKey];
   if (!action) throw new Error(`Unknown action: ${actionKey}`);
   const source = htmlToText(html, { stripSceneMarks: false, trim: false });
-  if (!source.trim()) throw new Error("There's nothing to work on.");
+  if (!source.trim()) throw new Error(t("richEditor.err.nothingToWorkOn"));
 
   // The prompt (system + instruction) is rendered server-side from the
   // "writerAI.<action>" feature_prompts row; we send the live editor context
@@ -140,7 +141,7 @@ async function runAction(actionKey, { html, storyContext = "", signal, onDelta, 
     variables: { passage: source, voiceCanon: voiceCanonVar(), storyContext: storyContextVar(storyContext) },
     temperature: typeof temperature === "number" ? temperature : undefined,
     signal, onDelta, provider, model, meta,
-    task: editorTask(task, `Writer assist · ${action.label}`, meta),
+    task: editorTask(task, t("richEditor.taskLabel", { action: t(action.labelKey) }), meta),
   });
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
 }
@@ -170,39 +171,39 @@ export function describe(opts)  { return runAction("describe", opts); }
  * @param {string} [opts.model]
  */
 export function guidedContinue(opts = {}) {
-  return runDirected("writerAI.guided-continue", "Continue (guided)", opts, {
-    empty: "There's nothing to continue from.",
-    noDirection: "Guided Continue needs a one-line direction.",
+  return runDirected("writerAI.guided-continue", "richEditor.actionName.continueGuided", opts, {
+    empty: t("richEditor.err.nothingToContinue"),
+    noDirection: t("richEditor.err.guidedNeedsDirection"),
   });
 }
 
 /** Rewrite with direction… (the AI drafting plan Task 14): the selection rewritten the way the
  *  writer's one-line `instruction` says. Same options as guidedContinue. */
 export function guidedRewrite(opts = {}) {
-  return runDirected("writerAI.guided-rewrite", "Rewrite with direction", opts);
+  return runDirected("writerAI.guided-rewrite", "richEditor.actionName.rewriteDirected", opts);
 }
 
 /** Write dialogue… (Task 14): dialogue from the passage before the cursor, about what the
  *  writer's `instruction` says, in the voices of the characters the story context carries. Same
  *  options as guidedContinue. */
 export function writeDialogue(opts = {}) {
-  return runDirected("writerAI.dialogue", "Write dialogue", opts);
+  return runDirected("writerAI.dialogue", "richEditor.actionName.dialogue", opts);
 }
 
 // The direction actions share one shape: the passage, the writer's {{direction}}, the voice canon
 // and the story context, rendered server-side from the action's seeded prompt.
-async function runDirected(action, label, { html, instruction, storyContext = "", signal, onDelta, meta, provider, model, temperature, task } = {}, messages = {}) {
+async function runDirected(action, labelKey, { html, instruction, storyContext = "", signal, onDelta, meta, provider, model, temperature, task } = {}, messages = {}) {
   const source = htmlToText(html, { stripSceneMarks: false, trim: false });
-  if (!source.trim()) throw new Error(messages.empty || "There's nothing to work on.");
+  if (!source.trim()) throw new Error(messages.empty || t("richEditor.err.nothingToWorkOn"));
   const trimmed = String(instruction || "").trim();
-  if (!trimmed) throw new Error(messages.noDirection || "There's no direction to follow.");
+  if (!trimmed) throw new Error(messages.noDirection || t("richEditor.err.noDirection"));
 
   const result = await runAiFeatureStream({
     action, feature: "writerAI",
     variables: { passage: source, direction: trimmed, voiceCanon: voiceCanonVar(), storyContext: storyContextVar(storyContext) },
     temperature: typeof temperature === "number" ? temperature : undefined,
     signal, onDelta, provider, model, meta,
-    task: editorTask(task, `Writer assist · ${label}`, meta),
+    task: editorTask(task, t("richEditor.taskLabel", { action: t(labelKey) }), meta),
   });
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
 }
@@ -211,7 +212,7 @@ export async function applyRule(ruleKey, { html, signal, onDelta, meta, provider
   const rule = PROSE_RULES[ruleKey];
   if (!rule) throw new Error(`Unknown rule: ${ruleKey}`);
   const source = htmlToText(html, { stripSceneMarks: false, trim: false });
-  if (!source.trim()) throw new Error("There's nothing to work on.");
+  if (!source.trim()) throw new Error(t("richEditor.err.nothingToWorkOn"));
 
   // Instruction lives server-side in "writerAI.rule.<key>" (seeded at 0.6).
   const result = await runAiFeatureStream({
@@ -219,7 +220,7 @@ export async function applyRule(ruleKey, { html, signal, onDelta, meta, provider
     variables: { passage: source, voiceCanon: voiceCanonVar() },
     temperature: typeof temperature === "number" ? temperature : undefined,
     signal, onDelta, provider, model, meta,
-    task: editorTask(task, `Writer assist · ${rule.label}`, meta),
+    task: editorTask(task, t("richEditor.taskLabel", { action: t(rule.labelKey) }), meta),
   });
   return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
 }

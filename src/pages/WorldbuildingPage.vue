@@ -18,8 +18,13 @@ import { UiButton } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({ id: { type: String, default: "" } });
+// A category saved without an icon of its own shows this one.
+const FALLBACK_CATEGORY_ICON = "Sparkle";
 const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
@@ -46,7 +51,7 @@ async function addArticle() {
       { key: "title", label: M.label, placeholder: M.placeholder },
       {
         key: "category",
-        label: "Category",
+        label: t("common.category"),
         type: "select",
         defaultValue: "geography",
         options: project.worldbuildingCategories.map((c) => ({ value: c.id, label: c.label })),
@@ -62,7 +67,7 @@ function askTheBook() {
   if (!article.value) return;
   ui.openChatPanelFor({
     mode: "book",
-    question: `Tell me about ${article.value.title}`,
+    question: t("common.tellMeAbout", { name: article.value.title }),
     sourceKey: `ask:wb:${article.value.id}`,
   });
 }
@@ -80,7 +85,7 @@ const rows = computed(() =>
     return {
       ...a,
       categoryLabel: c?.label || a.category,
-      categoryIcon:  c?.icon  || "Sparkle",
+      categoryIcon:  c?.icon  || FALLBACK_CATEGORY_ICON,
       categoryHue:   c?.hue   || 200,
     };
   }),
@@ -104,10 +109,10 @@ const allTags = computed(() => {
 // in a private copy per view; global text search stays in UiTable's hands so its
 // filteredRowModel still works.
 const facets = computed(() => [
-  { key: "category", label: "Category", options: categoryOptions.value },
-  { key: "status", label: "Status", options: statusOptions.value },
+  { key: "category", label: t("common.category"), options: categoryOptions.value },
+  { key: "status", label: t("common.status"), options: statusOptions.value },
   {
-    key: "tags", label: "Tags", multi: true,
+    key: "tags", label: t("common.tags"), multi: true,
     options: allTags.value.map((t) => ({ value: t, label: t })),
     match: (row, tag) => (row.tags || []).includes(tag),
   },
@@ -115,13 +120,13 @@ const facets = computed(() => [
 
 // UiTable column definitions. Each column's accessorKey ties into the
 // matching slot below (#title, #category, #tags, #status, #words).
-const columns = [
-  { accessorKey: "title",     header: "Title",    sortable: true, headerStyle: "min-width: 220px" },
-  { accessorKey: "category",  header: "Category", sortable: true, headerStyle: "min-width: 160px" },
-  { accessorKey: "tags",      header: "Tags",     sortable: false, headerStyle: "min-width: 160px", enableGlobalFilter: true },
-  { accessorKey: "status",    header: "Status",   sortable: true, headerStyle: "min-width: 120px" },
-  { accessorKey: "words",     header: "Words",    sortable: true, headerStyle: "min-width: 90px; text-align: right", cellStyle: "text-align: right" },
-];
+const columns = computed(() => [
+  { accessorKey: "title",     header: t("common.title"),    sortable: true, headerStyle: "min-width: 220px" },
+  { accessorKey: "category",  header: t("common.category"), sortable: true, headerStyle: "min-width: 160px" },
+  { accessorKey: "tags",      header: t("common.tags"),     sortable: false, headerStyle: "min-width: 160px", enableGlobalFilter: true },
+  { accessorKey: "status",    header: t("common.status"),   sortable: true, headerStyle: "min-width: 120px" },
+  { accessorKey: "words",     header: t("common.words"),    sortable: true, headerStyle: "min-width: 90px; text-align: right", cellStyle: "text-align: right" },
+]);
 
 function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
 function statusSeverity(id) {
@@ -161,8 +166,8 @@ function onRowClick(event) {
         :columns="columns"
         :facets="facets"
         :search-fields="['title', 'summary', 'tags']"
-        search-placeholder="Search articles…"
-        empty-text="No articles match your search."
+        :search-placeholder="t('worldbuilding.searchPlaceholder')"
+        :empty-text="t('worldbuilding.searchEmpty')"
         @row-click="onRowClick">
         <template #intro>
           <p class="entity-desc wb-desc" style="padding: 0; margin: 0 0 18px">

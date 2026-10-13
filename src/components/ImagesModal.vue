@@ -5,13 +5,16 @@ import { saveImage, urlFor, removeImage } from "../services/imageStore.js";
 import { Icon } from "@delebash/llm-ui";
 import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   // The owning entity's undo domain ("characters" | "locations" | "objects"
   // | "groups") — image edits are undone on the owner's page (#235).
   kind: { type: String, required: true },
   entityId: { type: String, required: true },
-  entityName: { type: String, default: "Item" },
+  entityName: { type: String, required: true },
 });
 const emit = defineEmits(["close"]);
 
@@ -62,7 +65,7 @@ async function remove(img) {
 </script>
 
 <template>
-  <AppModal eyebrow="Images" :title="entityName" @close="emit('close')">
+  <AppModal :eyebrow="t('common.images')" :title="entityName" @close="emit('close')">
     <div v-if="error" class="image-error">{{ error }}</div>
     <div class="image-grid">
       <div v-for="img in images" :key="img.id" class="image-tile">

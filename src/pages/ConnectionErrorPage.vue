@@ -4,13 +4,16 @@
 // data of its own, so nothing else loads without the server; Retry reloads the window, and the boot
 // then returns to the page the user was on (the route's `from`).
 import { ConnectionError, serverUrl } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 </script>
 
 <template>
   <ConnectionError
     app-name="JustWrite"
     :server-url="serverUrl('')"
-    need="load and save your work"
-    dev-hint="Dev: start it with `npm run server` in the project root, then retry."
+    :need="t('connectionError.need')"
+    :dev-hint="t('connectionError.devHint')"
   />
 </template>

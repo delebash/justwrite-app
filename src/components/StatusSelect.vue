@@ -60,10 +60,10 @@ const PALETTE = [
 
 async function addNew() {
   const label = await promptDialog({
-    title: "New status",
-    label: "Status name",
-    placeholder: "e.g. Polishing",
-    confirmLabel: "Add status",
+    title: t("status.dialogTitle"),
+    label: t("status.nameLabel"),
+    placeholder: t("status.namePlaceholder"),
+    confirmLabel: t("status.addConfirm"),
   });
   if (!label) return;
   const color = PALETTE[project.statuses.length % PALETTE.length];

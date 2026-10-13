@@ -19,6 +19,7 @@
 import { withAiTask } from "@delebash/llm-ui";
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
+import { t } from "../../i18n/index.js";
 
 // ─── Personas ────────────────────────────────────────────────────────
 // Four deliberately distinct reader lenses. The persona's system prompt + the
@@ -68,7 +69,7 @@ async function runPersona({ persona, html, chapterTitle, chapterNum, signal, pro
     signal,
     provider, model,
     meta: { ...meta, personaKey: persona.key },
-    task: task || { label: "Multi-reader critique", meta: { ...meta, personaKey: persona.key } },
+    task: task || { label: t("multiReader.taskLabel"), meta: { ...meta, personaKey: persona.key } },
   });
 
   const reaction = typeof parsed.reaction === "string" ? parsed.reaction.trim().slice(0, 2000) : "";
@@ -121,7 +122,7 @@ export async function runMultiReaderPanel({
   // (AI-call convention 2026-08-08).
   return withAiTask({
     feature: "multiReader",
-    label: "Multi-reader critique",
+    label: t("multiReader.taskLabel"),
     meta: { ...meta, kind: "multiReader" },
     signal,
   }, async (handle) => {

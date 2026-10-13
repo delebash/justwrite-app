@@ -4,7 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
-import { promptDialog, confirmDialog, useAiTasksNav } from "@delebash/llm-ui";
+import { promptDialog, confirmDialog, relativeTime, useAiTasksNav } from "@delebash/llm-ui";
 import { promptNewProject, openTutorialProject } from "../services/projectStart.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
@@ -60,10 +60,7 @@ const savedAtLabel = computed(() => {
   if (!ts) return t("sidebar.footer.savedNever");
   const diff = nowTick.value - ts;
   if (diff < 5_000) return t("sidebar.footer.savedJustNow");
-  if (diff < 60_000) return `${Math.floor(diff / 1000)}s ago`;
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
-  return new Date(ts).toLocaleDateString();
+  return relativeTime(ts, { seconds: true, dateAfterDays: 1, now: nowTick.value });
 });
 const savedAtTitle = computed(() => {
   const ts = project._lastSavedAt;
@@ -162,7 +159,7 @@ function navStatus(id) {
   const s = project.statusById(id);
   return s
     ? { statusLabel: s.label, statusColor: s.color }
-    : { statusLabel: "Unset", statusColor: "var(--muted)" };
+    : { statusLabel: t("sidebar.statusUnset"), statusColor: "var(--muted)" };
 }
 
 // Sidebar sub-text for a note row: "Ch. 3 · Scene 2 · my-tag" when the
@@ -172,10 +169,10 @@ function noteSub(n) {
   if (!a) return n.tag;
   const c = project.chapterById(a.chapterId);
   if (!c) return n.tag;
-  let label = `Ch. ${c.num}`;
+  let label = t("common.chapterShort", { num: c.num });
   if (a.sceneId) {
     const idx = project.scenesFor(c.id).findIndex((s) => s.id === a.sceneId);
-    if (idx >= 0) label += ` · Scene ${idx + 1}`;
+    if (idx >= 0) label += ` · ${t("common.sceneN", { n: idx + 1 })}`;
   }
   return n.tag ? `${label} · ${n.tag}` : label;
 }
@@ -187,8 +184,8 @@ const expandableChildren = computed(() => ({
     items: (p.chapters || []).filter((c) => c?.id).map((c) => ({ id: c.id, label: c.title, num: c.num, ...navStatus(c.status), words: c.words, partId: p.id })),
   })),
   characters: [
-    { subgroupId: "main",      group: "Main",      items: project.characters.filter((c) => c.main).map((c) => ({ id: c.id, label: c.name, ...navStatus(c.status), subgroupId: "main" })) },
-    { subgroupId: "secondary", group: "Secondary", items: project.characters.filter((c) => !c.main).map((c) => ({ id: c.id, label: c.name, ...navStatus(c.status), subgroupId: "secondary" })) },
+    { subgroupId: "main",      group: t("sidebar.groupMain"),      items: project.characters.filter((c) => c.main).map((c) => ({ id: c.id, label: c.name, ...navStatus(c.status), subgroupId: "main" })) },
+    { subgroupId: "secondary", group: t("sidebar.groupSecondary"), items: project.characters.filter((c) => !c.main).map((c) => ({ id: c.id, label: c.name, ...navStatus(c.status), subgroupId: "secondary" })) },
   ],
   locations: [{ subgroupId: "all", items: project.locations.map((l) => ({ id: l.id, label: l.name, ...navStatus(l.status), subgroupId: "all" })) }],
   objects:   [{ subgroupId: "all", items: project.objects.map((o) => ({ id: o.id, label: o.name, ...navStatus(o.status), subgroupId: "all" })) }],
@@ -739,7 +736,7 @@ async function deleteWbCat(catId, label) {
   const count = project.worldbuilding.filter((a) => a.category === catId).length;
   const fallback = project.worldbuildingCategories.find((c) => c.id !== catId);
   const message = count
-    ? `Its ${count} article${count === 1 ? "" : "s"} will move to "${fallback.label}".`
+    ? t("sidebar.actions.deleteWbCategoryMoves", { n: count, category: fallback.label }, count)
     : t("sidebar.actions.deleteWbCategoryEmpty");
   const yes = await confirmDialog({
     title: t("sidebar.actions.deleteWbCategoryTitle", { label }), message, confirmLabel: t("sidebar.actions.deleteWbCategoryConfirm"), danger: true,

@@ -34,6 +34,10 @@ import {
 import IndexBuildModal from "./IndexBuildModal.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import CharacterDraftModal from "./CharacterDraftModal.vue";
+import { useI18n } from "vue-i18n";
+import { relativeTime } from "@delebash/llm-ui";
+
+const { t } = useI18n();
 
 // Cap persisted turns at the last 30 — long threads waste storage and the model
 // already truncates history to MAX_HISTORY_MESSAGES. (Enforced server-side too.)
@@ -121,27 +125,14 @@ function latestSessionForScope() {
   return sortedSessions.value.find((s) => s.mode === mode && (s.characterId || "") === cid) || null;
 }
 function scopeLabel(s) {
-  if (s.mode !== "character") return "Book";
+  if (s.mode !== "character") return t("chat.scopeBook");
   const c = (project.characters || []).find((x) => x.id === s.characterId);
-  return c ? c.name : "removed character";
+  return c ? c.name : t("chat.removedCharacter");
 }
 
-// Relative time, Intl-based (matches the app's toLocale* formatting elsewhere):
-// recent items read "3h ago", older ones fall back to an absolute date.
-const RELATIVE = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
-function relativeTime(iso) {
-  if (!iso) return "";
-  const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return "";
-  const diff = then - Date.now(); // negative = past
-  const abs = Math.abs(diff);
-  const MIN = 60_000, HOUR = 60 * MIN, DAY = 24 * HOUR;
-  if (abs < MIN) return "just now";
-  if (abs < HOUR) return RELATIVE.format(Math.round(diff / MIN), "minute");
-  if (abs < DAY) return RELATIVE.format(Math.round(diff / HOUR), "hour");
-  if (abs < 7 * DAY) return RELATIVE.format(Math.round(diff / DAY), "day");
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-}
+// The history list's times (the kit's relativeTime, in the app's language): "3 minutes ago",
+// "yesterday", and from a week on the date itself.
+const HISTORY_TIME = { style: "long", numeric: "auto", dateAfterDays: 7, dateOptions: { month: "short", day: "numeric", year: "numeric" } };
 
 // ── Async load guards ──────────────────────────────────────────────────────
 // A monotonic token guards message hydration: the user can switch sessions /
@@ -212,10 +203,10 @@ function toggleHistory() {
 
 async function renameSession(s) {
   const title = await promptDialog({
-    title: "Rename chat",
-    label: "Chat name",
+    title: t("chat.renameChat"),
+    label: t("chat.chatName"),
     defaultValue: s.title,
-    confirmLabel: "Rename",
+    confirmLabel: t("chat.rename"),
   });
   if (title == null) return;
   const trimmed = title.trim();
@@ -232,9 +223,9 @@ async function renameSession(s) {
 
 async function deleteSessionRow(s) {
   const yes = await confirmDialog({
-    title: "Delete this chat?",
-    message: `Delete "${s.title || "this chat"}"? This can't be undone.`,
-    confirmLabel: "Delete chat",
+    title: t("chat.deleteTitle"),
+    message: t("chat.deleteBody", { title: s.title || t("chat.thisChat") }),
+    confirmLabel: t("chat.deleteChat"),
     danger: true,
   });
   if (!yes) return;
@@ -343,7 +334,7 @@ async function ask() {
   if (chatMode.value === "character" && !selectedCharacterId.value) {
     // Defensive: shouldn't happen (the dropdown auto-selects), but surface a
     // clear hint if it does rather than failing silently.
-    thread.value.push({ role: "assistant", content: "", error: "Pick a character first.", pending: false });
+    thread.value.push({ role: "assistant", content: "", error: t("chat.pickCharacterFirst"), pending: false });
     return;
   }
 
@@ -355,7 +346,7 @@ async function ask() {
   const cid = selectedCharacterId.value;
   const sessionId = currentSessionId.value || mintSessionId();
   if (!currentSessionId.value) currentSessionId.value = sessionId;
-  const charName = (project.characters || []).find((c) => c.id === cid)?.name || "Character";
+  const charName = (project.characters || []).find((c) => c.id === cid)?.name || t("chat.characterFallback");
 
   // The array this turn is pushed into — captured so a mid-stream switch (which
   // reassigns thread.value) still persists THIS session's turns.
@@ -378,7 +369,7 @@ async function ask() {
       k: 6,
       onDelta: (_delta, content) => { assistantMsg.content = content; },
       task: {
-        label: mode === "character" ? `Character chat · ${charName}` : "Ask the book",
+        label: mode === "character" ? t("chat.taskCharacter", { name: charName }) : t("chat.taskBook"),
         meta: { mode, characterId: cid },
       },
     };
@@ -487,7 +478,7 @@ defineExpose({ open: () => { open.value = true; }, close });
         <UiSelect v-if="chatMode === 'character'"
                   v-model="selectedCharacterId"
                   :options="characterOptions"
-                  :placeholder="characterOptions.length ? 'Pick a character' : 'No characters yet'"
+                  :placeholder="characterOptions.length ? t('chat.pickCharacter') : t('chat.noCharacters')"
                   :disabled="!characterOptions.length" />
       </div>
 
@@ -535,8 +526,8 @@ defineExpose({ open: () => { open.value = true; }, close });
             :aria-current="s.id === currentSessionId ? 'true' : undefined"
             @click="openFromHistory(s)">
             <span class="cp-hist-badge" :class="{ char: s.mode === 'character' }">{{ scopeLabel(s) }}</span>
-            <span class="cp-hist-title">{{ s.title || "Untitled chat" }}</span>
-            <span class="cp-hist-time">{{ relativeTime(s.updatedAt) }}</span>
+            <span class="cp-hist-title">{{ s.title || t("chat.untitled") }}</span>
+            <span class="cp-hist-time">{{ relativeTime(s.updatedAt, HISTORY_TIME) }}</span>
             <span class="cp-hist-actions">
               <UiButton intent="info" size="small" :aria-label="$t('chat.renameChat')"
                 v-tooltip.bottom="$t('chat.rename')" @click.stop="renameSession(s)">
@@ -602,7 +593,7 @@ defineExpose({ open: () => { open.value = true; }, close });
             class="cp-textarea"
             :rows="2"
             :disabled="inputDisabled"
-            :placeholder="hasThread ? 'Ask a follow-up…' : 'Ask anything about your book — characters, scenes, threads…'"
+            :placeholder="hasThread ? t('chat.followUpPlaceholder') : t('chat.askPlaceholder')"
             auto-resize
             @keydown.enter.exact.prevent="ask"
             @keydown.escape="close"

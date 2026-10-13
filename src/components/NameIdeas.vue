@@ -15,6 +15,9 @@ import { QPopupProxy } from "quasar";
 import { AiTaskStrip, Icon, UiBanner, UiButton, useModalPopup } from "@delebash/llm-ui";
 import { useBrainstorm } from "../composables/useBrainstorm.js";
 import BrainstormResults from "./BrainstormResults.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   request: { type: Function, required: true },
@@ -27,7 +30,7 @@ useModalPopup(open);
 const { results, error, myTask, running, generate, moreLikeThese, toggleLike } = useBrainstorm({
   request: (round) => props.request(round),
   meta: () => props.meta,
-  label: "Name ideas",
+  label: t("brainstorm.nameIdeas"),
 });
 
 function onShow() {

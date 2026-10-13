@@ -11,6 +11,9 @@ import { Icon } from "@delebash/llm-ui";
 import DateTimePicker from "./DateTimePicker.vue";
 import { UiButton } from "@delebash/llm-ui";
 import { POV_OPTIONS } from "../services/povOptions.js";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -51,10 +54,10 @@ function toggle(field, id) {
 // ── Inline entity creation ───────────────────────────────
 async function newCharacter(main) {
   const name = await promptDialog({
-    title: main ? "New main character" : "New secondary character",
-    label: "Character name",
-    placeholder: "e.g. Mira Halden",
-    confirmLabel: "Create",
+    title: main ? t("sceneLinks.dialog.newMainTitle") : t("sceneLinks.dialog.newSecondaryTitle"),
+    label: t("sceneLinks.dialog.characterName"),
+    placeholder: t("sceneLinks.dialog.characterPlaceholder"),
+    confirmLabel: t("common.create"),
   });
   if (!name) return;
   const id = project.addCharacter({ name, main: !!main });
@@ -62,10 +65,10 @@ async function newCharacter(main) {
 }
 async function newLocation() {
   const name = await promptDialog({
-    title: "New location",
-    label: "Location name",
-    placeholder: "e.g. Brackish Cove",
-    confirmLabel: "Create",
+    title: t("sceneLinks.dialog.newLocationTitle"),
+    label: t("sceneLinks.dialog.locationName"),
+    placeholder: t("sceneLinks.dialog.locationPlaceholder"),
+    confirmLabel: t("common.create"),
   });
   if (!name) return;
   const id = project.addLocation({ name });
@@ -73,10 +76,10 @@ async function newLocation() {
 }
 async function newObject() {
   const name = await promptDialog({
-    title: "New object",
-    label: "Object name",
-    placeholder: "e.g. The Ledger",
-    confirmLabel: "Create",
+    title: t("sceneLinks.dialog.newObjectTitle"),
+    label: t("sceneLinks.dialog.objectName"),
+    placeholder: t("sceneLinks.dialog.objectPlaceholder"),
+    confirmLabel: t("common.create"),
   });
   if (!name) return;
   const id = project.addObject({ name });
@@ -84,10 +87,10 @@ async function newObject() {
 }
 async function newStrand() {
   const name = await promptDialog({
-    title: "New narrative strand",
-    label: "Narrative strand name",
-    placeholder: "e.g. The Map Plot",
-    confirmLabel: "Create",
+    title: t("sceneLinks.dialog.newStrandTitle"),
+    label: t("sceneLinks.dialog.strandName"),
+    placeholder: t("sceneLinks.dialog.strandPlaceholder"),
+    confirmLabel: t("common.create"),
   });
   if (!name) return;
   const id = project.addStrand({ name });

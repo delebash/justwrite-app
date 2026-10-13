@@ -21,6 +21,10 @@ import {
   STRUCTURE_LABELS,
 } from "../services/analysis/reverseOutline.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
+import { useI18n } from "vue-i18n";
+import { relativeTime } from "@delebash/llm-ui";
+
+const { t } = useI18n();
 
 const emit = defineEmits(["close"]);
 
@@ -40,21 +44,21 @@ const outline = computed(() => project.reverseOutline);
 async function run() {
   error.value = "";
   if (!ai.providerForFeature("reverseOutline")) {
-    error.value = "Configure an AI provider in Settings → AI to generate the reverse outline.";
+    error.value = t("reverseOutline.err.noProvider");
     return;
   }
   try {
     const result = await generateReverseOutline({
       project,
-      task: { label: "Reverse outline", meta: {} },
+      task: { label: t("reverseOutline.taskLabel"), meta: {} },
     });
     project.setReverseOutline(result);
   } catch (e) {
     if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
-        ? "Configure an AI provider in Settings → AI to generate the reverse outline."
-        : msg || "Couldn't build the outline.";
+        ? t("reverseOutline.err.noProvider")
+        : msg || t("reverseOutline.err.failed");
     }
   }
 }
@@ -99,16 +103,6 @@ const stripRows = computed(() => {
   }
   return out;
 });
-
-const ago = (ts) => {
-  if (!ts) return "";
-  const m = Math.floor((Date.now() - ts) / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-};
 
 // Deliberately no auto-run on mount: the user should see the AI
 // routing chip in the header and have the option to change provider
@@ -155,7 +149,7 @@ const ago = (ts) => {
           {{ STRUCTURE_LABELS[outline.structureName] || outline.structureName }}
         </span>
         <span class="ro-meta">
-          {{ $t("reverseOutline.meta", { n: outline.totalChapters, when: ago(outline.generatedAt) }, outline.totalChapters) }}
+          {{ $t("reverseOutline.meta", { n: outline.totalChapters, when: relativeTime(outline.generatedAt) }, outline.totalChapters) }}
           <template v-if="outline.model"> {{ $t("reverseOutline.viaModel", { model: outline.model }) }}</template>
         </span>
       </div>

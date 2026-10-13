@@ -13,6 +13,7 @@
 import { SHEET_SECTIONS } from "../characterSheet.js";
 import { runJsonAnalysis } from "../runJson.js";
 import { composeCharacterAuditInput } from "./characterAudit.js";
+import { t } from "../../i18n/index.js";
 
 // The prompt lives server-side (seed_feature_prompts.py, action "characterProfile").
 
@@ -94,7 +95,7 @@ export async function voiceFromBook({ project, characterId, signal, provider, mo
     feature: "characterVoice",
     variables: composed.variables,
     signal, provider, model, meta,
-    task: task || { label: `Voice: ${composed.character?.name || "character"}`, meta },
+    task: task || { label: t("characterProfile.taskVoice", { name: composed.character?.name || t("characterProfile.characterFallback") }), meta },
   });
 
   return {
@@ -122,7 +123,7 @@ export async function profileFromBook({ project, characterId, signal, provider, 
     feature: "characterProfile",
     variables: composed.variables,
     signal, provider, model, meta,
-    task: task || { label: `Profile: ${composed.character?.name || "character"}`, meta },
+    task: task || { label: t("characterProfile.taskProfile", { name: composed.character?.name || t("characterProfile.characterFallback") }), meta },
   });
 
   return {
@@ -146,23 +147,23 @@ export function profileFieldDefs(character, extras) {
   const c = character || {};
   const x = extras || {};
   return [
-    { key: "identity.role",       label: "Role",              current: c.role || "" },
-    { key: "identity.gender",     label: "Gender",            current: c.gender || "" },
-    { key: "identity.pronouns",   label: "Pronouns",          current: c.pronouns || "" },
-    { key: "identity.age",        label: "Age",               current: c.age != null ? String(c.age) : "" },
-    { key: "oneLiner",            label: "Description",       current: c.oneLiner || "" },
-    { key: "motivation.want",     label: "Wants",             current: x.motivation?.want || "" },
-    { key: "motivation.need",     label: "Needs",             current: x.motivation?.need || "" },
-    { key: "motivation.lie",      label: "Lie they believe",  current: x.motivation?.lie || "" },
-    { key: "motivation.truth",    label: "Truth they meet",   current: x.motivation?.truth || "" },
-    { key: "motivation.fear",          label: "Core fear",             current: x.motivation?.fear || "" },
-    { key: "motivation.contradiction", label: "Central contradiction", current: x.motivation?.contradiction || "" },
-    { key: "motivation.stakes",        label: "Stakes",                current: x.motivation?.stakes || "" },
-    { key: "arc.start",           label: "Arc — Beginning",   current: x.arc?.start || "" },
-    { key: "arc.midpoint",        label: "Arc — Midpoint",    current: x.arc?.midpoint || "" },
-    { key: "arc.end",             label: "Arc — End",         current: x.arc?.end || "" },
-    { key: "continuity.physicalConstants", label: "Physical constants", current: x.continuity?.physicalConstants || "" },
-    { key: "backstory",           label: "Backstory",         current: x.backstory || "" },
+    { key: "identity.role",       label: t("characters.detail.role"), current: c.role || "" },
+    { key: "identity.gender",     label: t("characters.detail.gender"), current: c.gender || "" },
+    { key: "identity.pronouns",   label: t("characters.detail.pronouns"), current: c.pronouns || "" },
+    { key: "identity.age",        label: t("characters.detail.age"), current: c.age != null ? String(c.age) : "" },
+    { key: "oneLiner",            label: t("common.description"), current: c.oneLiner || "" },
+    { key: "motivation.want",     label: t("characters.fields.motivation.want.label"), current: x.motivation?.want || "" },
+    { key: "motivation.need",     label: t("characters.fields.motivation.need.label"), current: x.motivation?.need || "" },
+    { key: "motivation.lie",      label: t("characters.fields.motivation.lie.label"), current: x.motivation?.lie || "" },
+    { key: "motivation.truth",    label: t("characters.fields.motivation.truth.label"), current: x.motivation?.truth || "" },
+    { key: "motivation.fear",          label: t("characters.fields.motivation.fear.label"), current: x.motivation?.fear || "" },
+    { key: "motivation.contradiction", label: t("characters.fields.motivation.contradiction.label"), current: x.motivation?.contradiction || "" },
+    { key: "motivation.stakes",        label: t("characters.fields.motivation.stakes.label"), current: x.motivation?.stakes || "" },
+    { key: "arc.start",           label: t("characterDraft.field.arcStart"), current: x.arc?.start || "" },
+    { key: "arc.midpoint",        label: t("characterDraft.field.arcMidpoint"), current: x.arc?.midpoint || "" },
+    { key: "arc.end",             label: t("characterDraft.field.arcEnd"), current: x.arc?.end || "" },
+    { key: "continuity.physicalConstants", label: t("characters.fields.continuity.physicalConstants.label"), current: x.continuity?.physicalConstants || "" },
+    { key: "backstory",           label: t("characters.detail.backstory"), current: x.backstory || "" },
   ];
 }
 
@@ -171,17 +172,17 @@ export function voiceFieldDefs(extras) {
   const x = extras || {};
   const v = x.voice || {};
   return [
-    { key: "voice.register",       label: "Register",                current: v.register || "" },
-    { key: "voice.rhythm",         label: "Rhythm",                  current: v.rhythm || "" },
-    { key: "voice.vocabulary",     label: "Vocabulary",              current: v.vocabulary || "" },
-    { key: "voice.subtext",        label: "Subtext habit",           current: v.subtext || "" },
-    { key: "voice.humor",          label: "Humor style",             current: v.humor || "" },
-    { key: "voice.languages",      label: "Languages",               current: v.languages || "" },
-    { key: "voice.tic",            label: "Speech tic",              current: v.tic || "" },
-    { key: "voice.sample",         label: "Sample line — calm",      current: v.sample || "" },
-    { key: "voice.sampleAngry",    label: "Sample line — angry",     current: v.sampleAngry || "" },
-    { key: "voice.sampleLying",    label: "Sample line — lying",     current: v.sampleLying || "" },
-    { key: "presence.stressTells", label: "Baseline & stress tells", current: x.presence?.stressTells || "" },
+    { key: "voice.register",       label: t("characters.fields.voice.register.label"), current: v.register || "" },
+    { key: "voice.rhythm",         label: t("characters.fields.voice.rhythm.label"), current: v.rhythm || "" },
+    { key: "voice.vocabulary",     label: t("characters.fields.voice.vocabulary.label"), current: v.vocabulary || "" },
+    { key: "voice.subtext",        label: t("characters.fields.voice.subtext.label"), current: v.subtext || "" },
+    { key: "voice.humor",          label: t("characters.fields.voice.humor.label"), current: v.humor || "" },
+    { key: "voice.languages",      label: t("characters.fields.voice.languages.label"), current: v.languages || "" },
+    { key: "voice.tic",            label: t("characters.fields.voice.tic.label"), current: v.tic || "" },
+    { key: "voice.sample",         label: t("characters.fields.voice.sample.label"), current: v.sample || "" },
+    { key: "voice.sampleAngry",    label: t("characters.fields.voice.sampleAngry.label"), current: v.sampleAngry || "" },
+    { key: "voice.sampleLying",    label: t("characters.fields.voice.sampleLying.label"), current: v.sampleLying || "" },
+    { key: "presence.stressTells", label: t("characters.fields.presence.stressTells.label"), current: x.presence?.stressTells || "" },
   ];
 }
 

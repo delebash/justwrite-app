@@ -19,6 +19,7 @@
 
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText, tailWords } from "../text.js";
+import { t } from "../../i18n/index.js";
 
 function firstParagraph(text, maxWords = 60) {
   if (!text) return "";
@@ -129,7 +130,7 @@ export async function scanPlotHoles({
     provider,
     model,
     meta: chaptersMeta,
-    task: task || { label: "Plot hole scan", meta: chaptersMeta },
+    task: task || { label: t("plotHoles.taskShort"), meta: chaptersMeta },
   });
 
   const summary = typeof parsed.summary === "string" ? parsed.summary.trim().slice(0, 600) : "";

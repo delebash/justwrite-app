@@ -20,6 +20,7 @@
 
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
+import { t } from "../../i18n/index.js";
 
 function firstParagraph(text, maxWords = 60) {
   if (!text) return "";
@@ -119,7 +120,7 @@ export async function generateReverseOutline({
     provider,
     model,
     meta: outlineMeta,
-    task: task || { label: "Reverse outline", meta: outlineMeta },
+    task: task || { label: t("reverseOutline.taskLabel"), meta: outlineMeta },
   });
 
   const structureName = ["3-act", "5-act", "loose"].includes(parsed.structureName)

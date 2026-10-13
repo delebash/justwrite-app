@@ -7,6 +7,9 @@ import { promptDialog, confirmDialog, pageFill } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const project = useProjectStore();
 const router = useRouter();
@@ -72,10 +75,10 @@ async function handleApplyTemplate(templateId) {
 // ── New strand ───────────────────────────────────────────────────────
 async function handleNewStrand() {
   const result = await promptDialog({
-    title: "New strand",
-    label: "Strand name",
-    placeholder: "e.g. Romance subplot",
-    confirmLabel: "Create",
+    title: t("plotBoard.newStrand"),
+    label: t("plotBoard.dialog.strandName"),
+    placeholder: t("plotBoard.dialog.strandPlaceholder"),
+    confirmLabel: t("common.create"),
   });
   if (!result) return;
   const name = typeof result === "string" ? result : result.name || result;
@@ -101,9 +104,9 @@ function onStrandNameKeydown(e) {
 
 async function handleRemoveStrand(strand) {
   const yes = await confirmDialog({
-    title: "Delete strand?",
-    message: `Delete "${strand.name}" and all its beats? You can restore it from Trash.`,
-    confirmLabel: "Delete",
+    title: t("plotBoard.dialog.deleteTitle"),
+    message: t("plotBoard.dialog.deleteBody", { name: strand.name }),
+    confirmLabel: t("common.delete"),
     danger: true,
   });
   if (yes) project.removeStrand(strand.id);
@@ -113,10 +116,10 @@ async function handleRemoveStrand(strand) {
 async function handleAddBeat(strandId, chapterId) {
   // chapterId may be null (Unassigned column)
   const result = await promptDialog({
-    title: "New beat",
-    label: "Beat label",
-    placeholder: "e.g. Midpoint revelation",
-    confirmLabel: "Add",
+    title: t("plotBoard.dialog.newBeatTitle"),
+    label: t("plotBoard.dialog.beatLabel"),
+    placeholder: t("plotBoard.dialog.beatPlaceholder"),
+    confirmLabel: t("common.add"),
   });
   if (!result) return;
   const label = typeof result === "string" ? result : result.label || result;
@@ -133,23 +136,23 @@ async function handleEditBeat(strandId, beat, e) {
   // dialog's canSubmit gate would otherwise disable Save when the beat
   // has no note. Label stays required.
   const fields = [
-    { key: "label", label: "Label", defaultValue: beat.label },
-    { key: "note",  label: "Note",  defaultValue: beat.note || "", optional: true },
+    { key: "label", label: t("plotBoard.dialog.fieldLabel"), defaultValue: beat.label },
+    { key: "note",  label: t("plotBoard.dialog.fieldNote"),  defaultValue: beat.note || "", optional: true },
   ];
   const scenes = beat.chapterId ? project.scenesFor(beat.chapterId) : [];
   if (scenes.length) {
     fields.push({
       key: "sceneId",
-      label: "Scene",
+      label: t("common.scene"),
       type: "select",
       defaultValue: beat.sceneId || "",
       options: [
-        { value: "", label: "Any scene" },
-        ...scenes.map((s, i) => ({ value: s.id, label: s.title || `Scene ${i + 1}` })),
+        { value: "", label: t("plotBoard.dialog.anyScene") },
+        ...scenes.map((s, i) => ({ value: s.id, label: s.title || t("common.sceneN", { n: i + 1 }) })),
       ],
     });
   }
-  const result = await promptDialog({ title: "Edit beat", fields, confirmLabel: "Save" });
+  const result = await promptDialog({ title: t("plotBoard.dialog.editBeatTitle"), fields, confirmLabel: t("common.save") });
   if (!result) return;
   const patch = {};
   if (typeof result === "object") {
@@ -328,7 +331,7 @@ function sceneBadge(beat) {
   const scenes = project.scenesFor(beat.chapterId);
   const idx = scenes.findIndex((s) => s.id === beat.sceneId);
   if (idx < 0) return null;
-  return scenes[idx].title || `Scene ${idx + 1}`;
+  return scenes[idx].title || t("common.sceneN", { n: idx + 1 });
 }
 </script>
 
@@ -449,7 +452,7 @@ function sceneBadge(beat) {
                   <span
                     class="strand-drag-handle"
                     draggable="true"
-                    v-tooltip.bottom="'Drag to reorder'"
+                    v-tooltip.bottom="t('plotBoard.dragToReorder')"
                     @dragstart="onStrandDragStart($event, strand.id)"
                     @dragend="onStrandDragEnd"
                   >
@@ -470,8 +473,8 @@ function sceneBadge(beat) {
                     intent="ghost"
                     size="small"
                     class="strand-trash-btn"
-                    :aria-label="`Delete strand ${strand.name}`"
-                    v-tooltip.bottom="'Delete this strand and all its beats'"
+                    :aria-label="t('plotBoard.deleteStrandAria', { name: strand.name })"
+                    v-tooltip.bottom="t('plotBoard.deleteStrandTooltip')"
                     @click="handleRemoveStrand(strand)"
                   >
                     <Icon name="Trash" :size="13" />
@@ -489,7 +492,7 @@ function sceneBadge(beat) {
                 }"
                 :tabindex="beatsInCell(strand, null).length === 0 ? 0 : -1"
                 :role="beatsInCell(strand, null).length === 0 ? 'button' : undefined"
-                :aria-label="beatsInCell(strand, null).length === 0 ? 'Add beat (unassigned)' : undefined"
+                :aria-label="beatsInCell(strand, null).length === 0 ? t('plotBoard.addBeatUnassignedShort') : undefined"
                 @click="beatsInCell(strand, null).length === 0 && handleAddBeat(strand.id, null)"
                 @keydown="onCellKey($event, () => handleAddBeat(strand.id, null), beatsInCell(strand, null).length === 0)"
                 @dragover="onDragOver($event, strand.id, null)"
@@ -528,7 +531,7 @@ function sceneBadge(beat) {
                   v-if="beatsInCell(strand, null).length > 0"
                   class="cell-add-btn"
                   :aria-label="$t('plotBoard.addBeatUnassigned')"
-                  v-tooltip.bottom="'Add beat here'"
+                  v-tooltip.bottom="t('plotBoard.addBeatHere')"
                   @click.stop="handleAddBeat(strand.id, null)"
                 >
                   <Icon name="Plus" :size="11" />
@@ -584,8 +587,8 @@ function sceneBadge(beat) {
                 <button
                   v-if="beatsInCell(strand, ch.id).length > 0"
                   class="cell-add-btn"
-                  :aria-label="`Add beat to Chapter ${ch.num}`"
-                  v-tooltip.bottom="'Add beat here'"
+                  :aria-label="t('plotBoard.addBeatToChapter', { num: ch.num })"
+                  v-tooltip.bottom="t('plotBoard.addBeatHere')"
                   @click.stop="handleAddBeat(strand.id, ch.id)"
                 >
                   <Icon name="Plus" :size="11" />

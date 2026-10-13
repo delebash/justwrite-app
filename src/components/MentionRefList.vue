@@ -10,12 +10,15 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { findMentionRefs } from "../services/mentionRefs.js";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   entityId: { type: String, required: true },
   emptyText: {
     type: String,
-    default: "Not mentioned in any scene yet. Type @ in a scene to mention it.",
+    default: "",
   },
 });
 
@@ -46,7 +49,7 @@ function goScene(chapterId, sceneId) {
       <span v-if="row.snippet" class="mref-snippet">{{ row.snippet }}</span>
     </button>
   </div>
-  <div v-else class="mref-empty">{{ emptyText }}</div>
+  <div v-else class="mref-empty">{{ emptyText || t("mentionRefs.empty") }}</div>
 </template>
 
 <style scoped>

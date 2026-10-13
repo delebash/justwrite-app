@@ -21,6 +21,7 @@
 import { runAiFeature } from "@delebash/llm-ui";
 import { htmlToText, tailWords } from "../text.js";
 import { bookMetrics } from "./styleMetrics.js";
+import { t } from "../../i18n/index.js";
 
 // Which metrics from bookMetrics rows are worth tracking for drift.
 // Each entry: { key, label, unit, format }. `format` is a function that
@@ -312,7 +313,7 @@ export async function explainVoiceDrift({
     provider,
     model,
     meta: driftMeta,
-    task: task || { label: "Voice drift", meta: driftMeta },
+    task: task || { label: t("analysisView.driftTaskShort"), meta: driftMeta },
   });
 
   return {

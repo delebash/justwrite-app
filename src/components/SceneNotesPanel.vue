@@ -24,6 +24,9 @@ import { useProjectStore } from "../stores/project.js";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -50,15 +53,17 @@ const activeSceneIdx = computed(() =>
   activeScene.value ? scenes.value.indexOf(activeScene.value) : -1,
 );
 
-const panelTitle = computed(() => (isScene.value ? "Scene notes" : "Chapter notes"));
+const panelTitle = computed(() => (isScene.value ? t("sceneNotes.panelScene") : t("sceneNotes.panelChapter")));
 const scopeLine = computed(() => {
   if (isScene.value) {
-    if (!activeScene.value) return "Scene";
-    return `Scene ${activeSceneIdx.value + 1}${activeScene.value.title ? ` · ${activeScene.value.title}` : ""}`;
+    if (!activeScene.value) return t("common.scene");
+    const n = activeSceneIdx.value + 1;
+    return activeScene.value.title ? t("sceneNotes.sceneTitled", { n, title: activeScene.value.title }) : t("common.sceneN", { n });
   }
-  return ch.value ? `Ch. ${ch.value.num}${ch.value.title ? ` · ${ch.value.title}` : ""}` : "";
+  if (!ch.value) return "";
+  return ch.value.title ? t("common.chapterRefTitled", { num: ch.value.num, title: ch.value.title }) : t("common.chapterShort", { num: ch.value.num });
 });
-const footerScopeWord = computed(() => (isScene.value ? "this scene" : "this chapter"));
+const footerScopeWord = computed(() => (isScene.value ? t("sceneNotes.thisScene") : t("sceneNotes.thisChapter")));
 
 // Chapter-level notes = chapter-anchored but NOT scene-anchored (scenes own
 // their own section below).
@@ -73,28 +78,28 @@ const sections = computed(() => {
     if (!activeScene.value) return [];
     return [{
       key: activeScene.value.id,
-      label: `Scene ${activeSceneIdx.value + 1}`,
+      label: t("common.sceneN", { n: activeSceneIdx.value + 1 }),
       sub: activeScene.value.title || "",
       anchor: { chapterId: props.chapterId, sceneId: activeScene.value.id },
-      placeholder: "Jot a note on this scene…",
+      placeholder: t("sceneNotes.placeholderScene"),
       notes: project.notesForScene(activeScene.value.id),
     }];
   }
   const out = [{
     key: "__chapter__",
-    label: "Chapter-level",
+    label: t("sceneNotes.chapterLevel"),
     sub: "",
     anchor: { chapterId: props.chapterId },
-    placeholder: "Jot a chapter-level note…",
+    placeholder: t("sceneNotes.placeholderChapter"),
     notes: chapterLevelNotes.value,
   }];
   scenes.value.forEach((s, i) => {
     out.push({
       key: s.id,
-      label: `Scene ${i + 1}`,
+      label: t("common.sceneN", { n: i + 1 }),
       sub: s.title || "",
       anchor: { chapterId: props.chapterId, sceneId: s.id },
-      placeholder: "Jot a note on this scene…",
+      placeholder: t("sceneNotes.placeholderScene"),
       notes: project.notesForScene(s.id),
     });
   });
@@ -120,10 +125,10 @@ const noteHtml = (text) => textToHtml(text, { lineAsParagraph: true });
 function deriveTitle(text) {
   const first = (text || "").split(/\n/).map((l) => l.trim()).find(Boolean) || "";
   const words = first.split(/\s+/).filter(Boolean).slice(0, 8);
-  return words.join(" ") || "Untitled note";
+  return words.join(" ") || t("sceneNotes.untitledNote");
 }
 function bodyText(n) {
-  return noteText(n.body) || "Empty note.";
+  return noteText(n.body) || t("sceneNotes.emptyNote");
 }
 
 // ── Add (one composer per section) ───────────────────────────────────

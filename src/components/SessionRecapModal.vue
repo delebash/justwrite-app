@@ -21,6 +21,9 @@ import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebas
 import { generateSessionRecap } from "../services/sessionRecap.js";
 import { addMarkerToSceneHtml } from "justwrite-server/editor/markers.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const emit = defineEmits(["close"]);
 
@@ -52,7 +55,7 @@ const threads = computed(() => recap.value?.threads || []);
 
 const eligibilityText = computed(() => {
   if (!sessions.todayChapterId && !sessions.lastWrite?.chapterId) {
-    return "No writing recorded today yet — open a chapter and write a bit first.";
+    return t("sessionRecap.err.nothingToday");
   }
   return "";
 });
@@ -60,7 +63,7 @@ const eligibilityText = computed(() => {
 async function runRecap() {
   err.value = "";
   if (!ai.providerForFeature("recap")) {
-    err.value = "Configure an AI provider in Settings → AI to generate the recap.";
+    err.value = t("sessionRecap.err.noProvider");
     return;
   }
   liveResult.value = null;
@@ -68,7 +71,7 @@ async function runRecap() {
   try {
     const result = await generateSessionRecap({
       project, sessions,
-      task: { label: "Session recap", meta: {} },
+      task: { label: t("sessionRecap.taskLabel"), meta: {} },
     });
     liveResult.value = result;
     // Persist immediately so closing without "Save" still keeps it —
@@ -89,8 +92,8 @@ async function runRecap() {
     if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       err.value = /provider|api key|configure/i.test(msg)
-        ? "Configure an AI provider in Settings → AI to generate the recap."
-        : msg || "Couldn't generate recap.";
+        ? t("sessionRecap.err.noProvider")
+        : msg || t("sessionRecap.err.failed");
     }
   }
 }
@@ -118,7 +121,7 @@ function addThreadMarker(thread) {
   }
   project.setSceneBody(thread.chapterId, thread.sceneId, nextHtml);
   threadStatus.value = { ...threadStatus.value, [thread.id]: "added" };
-  ui.showToast({ message: "Loose thread pinned in chapter." });
+  ui.showToast({ message: t("sessionRecap.pinnedToast") });
 }
 
 function addAllMarkers() {
@@ -143,7 +146,7 @@ const headerStats = computed(() => {
   if (r) {
     return {
       words: r.totalWords ?? sessions.todayWords,
-      chapter: r.chapterNum != null ? `Ch. ${r.chapterNum}${r.chapterTitle ? ` — ${r.chapterTitle}` : ""}` : "",
+      chapter: r.chapterNum == null ? "" : r.chapterTitle ? t("trash.chapterRef", { num: r.chapterNum, title: r.chapterTitle }) : t("common.chapterShort", { num: r.chapterNum }),
     };
   }
   return {
@@ -151,7 +154,8 @@ const headerStats = computed(() => {
     chapter: sessions.todayChapterId
       ? (() => {
           const c = project.chapterById(sessions.todayChapterId);
-          return c ? `Ch. ${c.num}${c.title ? ` — ${c.title}` : ""}` : "";
+          if (!c) return "";
+          return c.title ? t("trash.chapterRef", { num: c.num, title: c.title }) : t("common.chapterShort", { num: c.num });
         })()
       : "",
   };

@@ -24,7 +24,7 @@ import EditorSettingsModal from "./EditorSettingsModal.vue";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
-  placeholder: { type: String, default: "Start writing…" },
+  placeholder: { type: String, default: "" },
   autofocus: { type: Boolean, default: false },
   // Running head (book title) + folio (chapter label) shown only in the
   // "page" editor layout (Settings → Appearance); ignored when full-width.
@@ -100,7 +100,8 @@ const toHtml = bodyToHtml;
 // sync (which parses and renders scene HTML with the same schema). The editor adds its Vue node
 // view for scene boundaries and the @-mention popup.
 const extensions = editorExtensions({
-  placeholder: props.placeholder,
+  // a function, so the empty editor's hint follows a language change
+  placeholder: () => props.placeholder || t("richEditor.placeholder"),
   sceneBoundaryView: () => VueNodeViewRenderer(SceneBoundaryView),
   // a server image is stored by its path and shown through this window's address for it
   imageView,
@@ -353,12 +354,12 @@ function readWholeDocHtml() {
   return { from: 0, to, html: (div.textContent || "").trim() ? html : "" };
 }
 
-const ACTION_LABELS = {
-  rewrite: "Rewriting selection…",
-  expand: "Expanding selection…",
-  tighten: { selection: "Tightening selection…", scene: "Tightening scene…" },
-  continue: "Continuing from cursor…",
-  describe: "Describing selection…",
+const ACTION_LABEL_KEYS = {
+  rewrite: "richEditor.action.rewrite",
+  expand: "richEditor.action.expand",
+  tighten: { selection: "richEditor.action.tightenSelection", scene: "richEditor.action.tightenScene" },
+  continue: "richEditor.action.continue",
+  describe: "richEditor.action.describe",
 };
 
 // Actions that can fall back to the whole document when nothing is
@@ -380,19 +381,19 @@ async function runWriterAction(actionKey, opts = {}) {
   // to "continue", but anchored at the selection end rather than the
   // cursor, so the original passage is preserved verbatim.
   if (actionKey === "describe") {
-    if (from === to) { aiError.value = "Highlight the subject to describe (a place, person, object, or moment)."; return; }
+    if (from === to) { aiError.value = t("richEditor.err.describeNeedsSelection"); return; }
     const storyContext = await proseContext("writerAI.describe");
     if (storyContext === null) return;
     if (useVariations) {
       startVariations({
         runnerFactory: (temperature, signal, onDelta, taskMeta) => writerAI.describe({
           html, storyContext, signal, onDelta, temperature,
-          task: { label: "Writer assist · Describe", meta: { ...(taskMeta || {}), action: "describe" } },
+          task: { label: t("richEditor.taskLabel", { action: t("richEditor.actionName.describe") }), meta: { ...(taskMeta || {}), action: "describe" } },
         }),
         mode: "continue-at", from: to, to,
         originalHtml: "",
-        eyebrow: "Describe — three variations",
-        label: "Pick a description to insert",
+        eyebrow: t("richEditor.variationsEyebrow", { action: t("richEditor.actionName.describe") }),
+        label: t("richEditor.pickDescription"),
       });
       return;
     }
@@ -400,7 +401,7 @@ async function runWriterAction(actionKey, opts = {}) {
     try {
       const result = await writerAI.describe({ html, storyContext });
       if (!result?.html?.trim()) {
-        aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
+        aiError.value = t("richEditor.err.emptyResponse");
       } else {
         editor.value.chain().focus().proposeContinuation({ at: to, newHtml: result.html }).run();
       }
@@ -413,19 +414,19 @@ async function runWriterAction(actionKey, opts = {}) {
   // last paragraph as context.
   if (actionKey === "continue" && from === to) {
     const ctx = grabContextBeforeCursor(800);
-    if (!ctx.trim()) { aiError.value = "Place the cursor at the end of some prose to continue from."; return; }
+    if (!ctx.trim()) { aiError.value = t("richEditor.err.continueNeedsCursor"); return; }
     const storyContext = await proseContext("writerAI.continue");
     if (storyContext === null) return;
     if (useVariations) {
       startVariations({
         runnerFactory: (temperature, signal, onDelta, taskMeta) => writerAI.continueFrom({
           html: `<p>${ctx}</p>`, storyContext, signal, onDelta, temperature,
-          task: { label: "Writer assist · Continue", meta: { ...(taskMeta || {}), action: "continue" } },
+          task: { label: t("richEditor.taskLabel", { action: t("richEditor.actionName.continue") }), meta: { ...(taskMeta || {}), action: "continue" } },
         }),
         mode: "continue-at", from, to: from,
         originalHtml: "",
-        eyebrow: "Continue — three variations",
-        label: "Pick a continuation to insert",
+        eyebrow: t("richEditor.variationsEyebrow", { action: t("richEditor.actionName.continue") }),
+        label: t("richEditor.pickContinuation"),
       });
       return;
     }
@@ -436,7 +437,7 @@ async function runWriterAction(actionKey, opts = {}) {
       // inserts nothing visible and the user sees the progress bar vanish
       // with no result and no error.
       if (!result?.html?.trim()) {
-        aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
+        aiError.value = t("richEditor.err.emptyResponse");
       } else {
         editor.value.chain().focus().proposeContinuation({ at: from, newHtml: result.html }).run();
       }
@@ -450,9 +451,9 @@ async function runWriterAction(actionKey, opts = {}) {
     // supports it. Otherwise tell the user to make a selection.
     if (ACTIONS_WHOLE_SCENE_FALLBACK.has(actionKey)) {
       ({ from, to, html } = readWholeDocHtml());
-      if (!html) { aiError.value = "Nothing to work with — the scene is empty."; return; }
+      if (!html) { aiError.value = t("richEditor.err.sceneEmpty"); return; }
     } else {
-      aiError.value = "Select some text first.";
+      aiError.value = t("richEditor.err.selectFirst");
       return;
     }
   }
@@ -463,16 +464,18 @@ async function runWriterAction(actionKey, opts = {}) {
                       : actionKey === "expand"  ? writerAI.expand
                       : actionKey === "tighten" ? writerAI.tighten
                       : writerAI.continueFrom;
-    const labelMap = ACTION_LABELS[actionKey];
-    const labelText = typeof labelMap === "object" ? (labelMap[scope] || labelMap.selection) : (labelMap || "Variations");
+    const labelKey = ACTION_LABEL_KEYS[actionKey];
+    const labelText = labelKey
+      ? t(typeof labelKey === "object" ? (labelKey[scope] || labelKey.selection) : labelKey)
+      : t("richEditor.variations");
     startVariations({
       runnerFactory: (temperature, signal, onDelta, taskMeta) => fnVariation({
         html, storyContext, signal, onDelta, temperature,
-        task: { label: `Writer assist · ${labelText.replace(/[….]+$/, "")}`, meta: { ...(taskMeta || {}), action: actionKey } },
+        task: { label: t("richEditor.taskLabel", { action: labelText.replace(/[….]+$/, "") }), meta: { ...(taskMeta || {}), action: actionKey } },
       }),
       mode: "replace", from, to, originalHtml: html,
-      eyebrow: `${labelText.replace(/[….]+$/, "")} — three variations`,
-      label: "Pick a variation to apply",
+      eyebrow: t("richEditor.variationsEyebrow", { action: labelText.replace(/[….]+$/, "") }),
+      label: t("richEditor.pickVariation"),
     });
     return;
   }
@@ -487,7 +490,7 @@ async function runWriterAction(actionKey, opts = {}) {
     // deleteRange()+insertContentAt("") and silently nuke the selection
     // without surfacing an error.
     if (!result?.html?.trim()) {
-      aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
+      aiError.value = t("richEditor.err.emptyResponse");
     } else {
       editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html }).run();
     }
@@ -506,18 +509,18 @@ async function runProsePass(ruleKey, opts = {}) {
   // is the primary use case, so no selection → operate on the whole doc.
   if (from === to) {
     ({ from, to, html } = readWholeDocHtml());
-    if (!html) { aiError.value = "Nothing to work with — the scene is empty."; return; }
+    if (!html) { aiError.value = t("richEditor.err.sceneEmpty"); return; }
   }
   if (useVariations) {
-    const ruleLabel = PROSE_RULES[ruleKey]?.label || ruleKey;
+    const ruleLabel = PROSE_RULES[ruleKey] ? t(PROSE_RULES[ruleKey].labelKey) : ruleKey;
     startVariations({
       runnerFactory: (temperature, signal, onDelta, taskMeta) => writerAI.applyRule(ruleKey, {
         html, signal, onDelta, temperature,
-        task: { label: `Writer assist · ${ruleLabel}`, meta: { ...(taskMeta || {}), rule: ruleKey } },
+        task: { label: t("richEditor.taskLabel", { action: ruleLabel }), meta: { ...(taskMeta || {}), rule: ruleKey } },
       }),
       mode: "replace", from, to, originalHtml: html,
-      eyebrow: `${ruleLabel} — three variations (${scope})`,
-      label: "Pick a line-edit pass to apply",
+      eyebrow: t("richEditor.variationsEyebrowScoped", { action: ruleLabel, scope: t(`richEditor.scope.${scope}`) }),
+      label: t("richEditor.pickLineEdit"),
     });
     return;
   }
@@ -525,7 +528,7 @@ async function runProsePass(ruleKey, opts = {}) {
   try {
     const result = await writerAI.applyRule(ruleKey, { html });
     if (!result?.html?.trim()) {
-      aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
+      aiError.value = t("richEditor.err.emptyResponse");
     } else {
       editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html }).run();
     }
@@ -648,9 +651,9 @@ function toggleProseMenu() { proseMenuOpen.value = !proseMenuOpen.value; }
 const isMac = typeof navigator !== "undefined" && /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent || "");
 function sc(combo) {
   return combo.split("+").map((k) =>
-    k === "mod" ? (isMac ? "⌘" : "Ctrl")
-      : k === "shift" ? (isMac ? "⇧" : "Shift")
-        : k === "alt" ? (isMac ? "⌥" : "Alt")
+    k === "mod" ? (isMac ? "⌘" : t("richEditor.keys.ctrl"))
+      : k === "shift" ? (isMac ? "⇧" : t("richEditor.keys.shift"))
+        : k === "alt" ? (isMac ? "⌥" : t("richEditor.keys.alt"))
           : k
   ).join(isMac ? "" : "+");
 }
@@ -691,7 +694,7 @@ function setAlign(align) {
 }
 function setLink() {
   const prev = editor.value?.getAttributes("link").href;
-  const url = window.prompt("Link URL", prev || "https://");
+  const url = window.prompt(t("richEditor.linkUrl"), prev || "https://");
   if (url === null) return;
   if (url === "") { editor.value?.chain().focus().extendMarkRange("link").unsetLink().run(); return; }
   editor.value?.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
@@ -1024,7 +1027,7 @@ function doPrint() {
   const doc = frame.contentWindow?.document;
   if (!doc) { frame.remove(); return; }
   doc.open();
-  doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>Print</title><style>
+  doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>${t("richEditor.printTitle")}</title><style>
     body{font-family:Georgia,'Times New Roman',serif;font-size:12.5pt;line-height:1.7;color:#111;max-width:680px;margin:0 auto;padding:48px}
     h1,h2,h3{font-weight:600;line-height:1.3}h1{text-align:center}
     blockquote{border-left:3px solid #bbb;padding-left:16px;color:#444;margin:14px 0}
@@ -1053,7 +1056,7 @@ async function onImagePicked(e) {
     if (src) editor.value?.chain().focus().setImage({ src, alt: rec.name }).run();
   } catch (err) {
     console.error("onImagePicked failed:", err);
-    ui.showToast({ message: `Couldn't insert image — ${err?.message || err}` });
+    ui.showToast({ message: t("richEditor.err.insertImage", { error: err?.message || err }) });
   }
 }
 
@@ -1178,17 +1181,17 @@ function onKeydown(e) {
 // writer's one-line instruction. Returned to ChaptersView via defineExpose so its AI menu (and
 // the Unstuck modal) drive the editor without reaching into the writerAI service itself.
 const DIRECTED_AT_CURSOR = {
-  continue: { fn: writerAI.guidedContinue, action: "writerAI.guided-continue", label: "Continue (guided)", eyebrow: "Continue with direction", noDirection: "Guided Continue needs a one-line direction." },
-  dialogue: { fn: writerAI.writeDialogue, action: "writerAI.dialogue", label: "Write dialogue", eyebrow: "Write dialogue" },
+  continue: { fn: writerAI.guidedContinue, action: "writerAI.guided-continue", labelKey: "richEditor.actionName.continueGuided", eyebrowKey: "richEditor.actionName.continueDirected", noDirectionKey: "richEditor.err.guidedNeedsDirection" },
+  dialogue: { fn: writerAI.writeDialogue, action: "writerAI.dialogue", labelKey: "richEditor.actionName.dialogue", eyebrowKey: "richEditor.actionName.dialogue" },
 };
 
 async function runDirectedAtCursor(kind, instruction, opts = {}) {
   if (!editor.value || aiRunning.value) return;
   const spec = DIRECTED_AT_CURSOR[kind];
   const text = String(instruction || "").trim();
-  if (!text) { if (spec.noDirection) aiError.value = spec.noDirection; return; }
+  if (!text) { if (spec.noDirectionKey) aiError.value = t(spec.noDirectionKey); return; }
   const ctx = grabContextBeforeCursor(800);
-  if (!ctx.trim()) { aiError.value = "Place the cursor at the end of some prose to continue from."; return; }
+  if (!ctx.trim()) { aiError.value = t("richEditor.err.continueNeedsCursor"); return; }
   const pos = editor.value.state.selection.from;
   proseMenuOpen.value = false;
   const storyContext = await proseContext(spec.action);
@@ -1197,12 +1200,12 @@ async function runDirectedAtCursor(kind, instruction, opts = {}) {
     startVariations({
       runnerFactory: (temperature, signal, onDelta, taskMeta) => spec.fn({
         html: `<p>${ctx}</p>`, instruction: text, storyContext, signal, onDelta, temperature,
-        task: { label: `Writer assist · ${spec.label}`, meta: { ...(taskMeta || {}), action: spec.action } },
+        task: { label: t("richEditor.taskLabel", { action: t(spec.labelKey) }), meta: { ...(taskMeta || {}), action: spec.action } },
       }),
       mode: "continue-at", from: pos, to: pos,
       originalHtml: "",
-      eyebrow: `${spec.eyebrow} — three variations`,
-      label: "Pick a continuation to insert",
+      eyebrow: t("richEditor.variationsEyebrow", { action: t(spec.eyebrowKey) }),
+      label: t("richEditor.pickContinuation"),
     });
     return;
   }
@@ -1210,7 +1213,7 @@ async function runDirectedAtCursor(kind, instruction, opts = {}) {
   try {
     const result = await spec.fn({ html: `<p>${ctx}</p>`, instruction: text, storyContext });
     if (!result?.html?.trim()) {
-      aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
+      aiError.value = t("richEditor.err.emptyResponse");
     } else {
       editor.value.chain().focus().proposeContinuation({ at: pos, newHtml: result.html }).run();
     }
@@ -1228,7 +1231,7 @@ async function runGuidedRewrite(instruction, opts = {}) {
   const text = String(instruction || "").trim();
   if (!text) return;
   const { from, to, html } = readSelectionHtml();
-  if (from === to) { aiError.value = "Select some text first."; return; }
+  if (from === to) { aiError.value = t("richEditor.err.selectFirst"); return; }
   proseMenuOpen.value = false;
   const storyContext = await proseContext("writerAI.guided-rewrite");
   if (storyContext === null) return;
@@ -1236,11 +1239,11 @@ async function runGuidedRewrite(instruction, opts = {}) {
     startVariations({
       runnerFactory: (temperature, signal, onDelta, taskMeta) => writerAI.guidedRewrite({
         html, instruction: text, storyContext, signal, onDelta, temperature,
-        task: { label: "Writer assist · Rewrite with direction", meta: { ...(taskMeta || {}), action: "writerAI.guided-rewrite" } },
+        task: { label: t("richEditor.taskLabel", { action: t("richEditor.actionName.rewriteDirected") }), meta: { ...(taskMeta || {}), action: "writerAI.guided-rewrite" } },
       }),
       mode: "replace", from, to, originalHtml: html,
-      eyebrow: "Rewrite with direction — three variations",
-      label: "Pick a variation to apply",
+      eyebrow: t("richEditor.variationsEyebrow", { action: t("richEditor.actionName.rewriteDirected") }),
+      label: t("richEditor.pickVariation"),
     });
     return;
   }
@@ -1248,7 +1251,7 @@ async function runGuidedRewrite(instruction, opts = {}) {
   try {
     const result = await writerAI.guidedRewrite({ html, instruction: text, storyContext });
     if (!result?.html?.trim()) {
-      aiError.value = "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.";
+      aiError.value = t("richEditor.err.emptyResponse");
     } else {
       editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html }).run();
     }
@@ -1527,7 +1530,7 @@ defineExpose({
       <div class="ctx-section">{{ $t("richEditor.ctxLineEdits") }} <span class="ctx-section-hint">{{ $t("richEditor.ctxLineEditsHint") }}</span></div>
       <button v-for="r in PROSE_RULES_LIST" :key="r.key" class="ctx-item" role="menuitem"
         :disabled="aiRunning" @click="ctxRun(runProsePass, r.key)">
-        <Icon name="Pencil" :size="13" class="ctx-ic" /><span class="ctx-label">{{ r.label }}</span>
+        <Icon name="Pencil" :size="13" class="ctx-ic" /><span class="ctx-label">{{ t(r.labelKey) }}</span>
       </button>
       <div class="ctx-divider" />
       <button class="ctx-item" role="menuitem" :disabled="!hasSelection" @click="ctxRun(doCut)">

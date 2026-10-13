@@ -6,6 +6,9 @@ import { PaneHeader, pageFill } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const project = useProjectStore();
 const router = useRouter();
@@ -144,7 +147,7 @@ function buildEdges(known) {
     const ids = (g.members || [])
       .filter((m) => m.kind === "character" || m.kind === "location" || m.kind === "object")
       .map((m) => m.id);
-    addAllPairs(ids, `Group: ${g.name}`);
+    addAllPairs(ids, t("relations.edgeGroup", { name: g.name }));
   }
 
   // 2. Scene co-occurrence — the scene's Links page captures characters,
@@ -163,7 +166,7 @@ function buildEdges(known) {
           ...(Array.isArray(scn.locations)  ? scn.locations  : []),
           ...(Array.isArray(scn.objects)    ? scn.objects    : []),
         ];
-        addAllPairs(ids, `Scene: ${scn.title || `Ch.${ch.num}`}`);
+        addAllPairs(ids, t("relations.edgeScene", { name: scn.title || t("common.chapterShort", { num: ch.num }) }));
         for (const strandId of (scn.strands || [])) {
           let set = strandMembers.get(strandId);
           if (!set) { set = new Set(); strandMembers.set(strandId, set); }
@@ -180,7 +183,7 @@ function buildEdges(known) {
   for (const [strandId, set] of strandMembers) {
     if (set.size < 2) continue;
     const strand = strandsById.get(strandId);
-    addAllPairs([...set], `Narrative strand: ${strand?.name || strandId}`);
+    addAllPairs([...set], t("relations.edgeStrand", { name: strand?.name || strandId }));
   }
 
   return [...map.values()].map((e) => ({
@@ -469,7 +472,7 @@ onBeforeUnmount(() => {
         preserveAspectRatio="xMidYMid meet"
         width="100%" height="100%"
         role="img"
-        :aria-label="focusedNode ? `Relationship graph — ${focusedNode.label} selected` : 'Relationship graph'"
+        :aria-label="focusedNode ? t('relations.graphFocused', { name: focusedNode.label }) : t('relations.graph')"
         @wheel.prevent="onWheel"
         @pointerdown="onPointerDown"
         @pointermove="onPointerMove"
@@ -495,7 +498,7 @@ onBeforeUnmount(() => {
             :transform="`translate(${n.x} ${n.y})`"
             role="button"
             tabindex="0"
-            :aria-label="`${n.label}${n.sub ? `, ${n.sub}` : ''} — ${n.cls}${pinnedId === n.id ? '. Click again to open' : '. Click to pin'}`"
+            :aria-label="t(pinnedId === n.id ? 'relations.nodeOpen' : 'relations.nodePin', { name: n.sub ? `${n.label}, ${n.sub}` : n.label, kind: t(`relations.${n.cls}`) })"
             :aria-pressed="pinnedId === n.id ? 'true' : 'false'"
             @click.stop="onNodeClick(n)"
             @keydown.enter.stop="onNodeClick(n)"

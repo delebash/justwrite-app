@@ -17,6 +17,7 @@
 import { runAiFeature } from "@delebash/llm-ui";
 import { scanProjectMarkers } from "justwrite-server/editor/markers.js";
 import { htmlToText, tailWords } from "./text.js";
+import { t } from "../i18n/index.js";
 
 // ─── Context composition ───────────────────────────────────────────────
 
@@ -258,7 +259,7 @@ export async function generateResumeBriefing({
     provider,
     model,
     meta: briefingMeta,
-    task: task || { label: "Previously on…", meta: briefingMeta },
+    task: task || { label: t("home.briefingTaskShort"), meta: briefingMeta },
   });
 
   const text = (result.content || "").trim();

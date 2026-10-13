@@ -16,6 +16,10 @@ import { useProjectStore } from "../stores/project.js";
 import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
 import { runCritique, runStructuralAnalysis, PACING_LABELS, ENDING_LABELS } from "../services/analysis/critique.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
+import { useI18n } from "vue-i18n";
+import { relativeTime } from "@delebash/llm-ui";
+
+const { t } = useI18n();
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -44,16 +48,6 @@ const structTask = computed(() => aiTasks.runningTasks.find(
 ));
 const runningNotes  = computed(() => !!notesTask.value);
 const runningStruct = computed(() => !!structTask.value);
-
-const ago = (ts) => {
-  if (!ts) return "";
-  const m = Math.floor((Date.now() - ts) / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-};
 
 // Group notes by severity so the user reads the flags first, then the
 // suggestions, then the observations.
@@ -85,7 +79,7 @@ async function runNotes() {
       chapterTitle: ch.value.title,
       chapterNum: ch.value.num,
       meta: { chapterId, kind: "notes" },
-      task: { label: `Chapter critique notes · Ch. ${ch.value.num ?? "?"}`, meta: { chapterId, kind: "notes" } },
+      task: { label: t("critique.taskNotes", { num: ch.value.num ?? "?" }), meta: { chapterId, kind: "notes" } },
     });
     // A non-empty completion that yielded zero notes is a parse miss —
     // surface it instead of falling back to the empty-state placeholder
@@ -93,7 +87,7 @@ async function runNotes() {
     // result.raw if we ever want to expose a "show raw" toggle.
     if (!result.notes.length && (result.raw || "").trim().length > 0) {
       console.warn("[critique] notes parse returned 0 items. Raw model output:", result.raw);
-      err.value = "Couldn't parse notes from the model's reply. Try re-running, or switch the critique model in Settings.";
+      err.value = t("critique.err.parse");
     }
     // Merge with existing structure if present.
     project.setChapterCritique(chapterId, {
@@ -118,7 +112,7 @@ async function runStruct() {
       chapterTitle: ch.value.title,
       chapterNum: ch.value.num,
       meta: { chapterId, kind: "structure" },
-      task: { label: `Chapter structure · Ch. ${ch.value.num ?? "?"}`, meta: { chapterId, kind: "structure" } },
+      task: { label: t("critique.taskStructure", { num: ch.value.num ?? "?" }), meta: { chapterId, kind: "structure" } },
     });
     const next = { ...(critique.value || {}), structure: result };
     // Stamp generatedAt at the topmost level too so the panel header has
@@ -158,7 +152,7 @@ const SEVERITY_META = {
 
     <div v-if="critique?.generatedAt" class="ck-stamp">
       <Icon name="Sparkle" :size="11" />
-      {{ $t("critique.generatedStamp", { when: ago(critique.generatedAt), model: critique.model || $t("critique.unknownModel") }) }}
+      {{ $t("critique.generatedStamp", { when: relativeTime(critique.generatedAt), model: critique.model || $t("critique.unknownModel") }) }}
     </div>
 
     <UiBanner v-if="err">{{ err }}</UiBanner>

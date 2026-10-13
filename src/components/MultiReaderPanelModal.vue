@@ -19,6 +19,10 @@ import {
   PERSONAS,
 } from "../services/analysis/multiReaderCritique.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
+import { useI18n } from "vue-i18n";
+import { relativeTime } from "@delebash/llm-ui";
+
+const { t } = useI18n();
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -55,12 +59,12 @@ async function run() {
   error.value = "";
   if (running.value) return;
   if (!ai.providerForFeature("multiReader")) {
-    error.value = "Configure an AI provider in Settings → AI to run the multi-reader panel.";
+    error.value = t("multiReader.err.noProvider");
     return;
   }
   const html = project.chapterBody[props.chapterId];
   if (!html?.trim()) {
-    error.value = "This chapter has no prose to read yet.";
+    error.value = t("multiReader.err.noProse");
     return;
   }
   liveColumns.value = Object.fromEntries(PERSONAS.map((p) => [p.key, "pending"]));
@@ -79,8 +83,8 @@ async function run() {
     if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
-        ? "Configure an AI provider in Settings → AI to run the multi-reader panel."
-        : msg || "Couldn't run the panel.";
+        ? t("multiReader.err.noProvider")
+        : msg || t("multiReader.err.failed");
     }
   } finally {
     liveColumns.value = null;
@@ -102,16 +106,6 @@ function cancel() {
   for (const id of ids) aiTasks.cancel(id);
   liveColumns.value = null;
 }
-
-const ago = (ts) => {
-  if (!ts) return "";
-  const m = Math.floor((Date.now() - ts) / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-};
 
 // Deliberately no auto-run on mount: the user should see the chip and
 // have the option to change the AI provider/model before spending tokens
@@ -201,7 +195,7 @@ const ago = (ts) => {
     </div>
 
     <div v-if="cached" class="mr-meta-line">
-      {{ $t("multiReader.generatedAgo", { when: ago(cached.generatedAt) }) }}
+      {{ $t("multiReader.generatedAgo", { when: relativeTime(cached.generatedAt) }) }}
     </div>
 
     <template #footer>

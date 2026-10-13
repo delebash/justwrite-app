@@ -24,6 +24,7 @@ import { LOCAL_RUNNER_ID } from "@delebash/llm-ui/services/modelApply.js";
 
 import { normalizeName as normName } from "../text.js";
 import { extractEntities } from "./entityExtraction.js";
+import { t } from "../../i18n/index.js";
 
 const DEFAULT_CONCURRENCY = 4;
 
@@ -204,7 +205,7 @@ export async function scanAllChapters({
   // this callback IS the sweep, and it reports n/m through the handle.
   return withAiTask({
     feature: "entitySweep",
-    label: "Entity sweep",
+    label: t("entitySweep.taskLabel"),
     meta: { kind: "sweep" },
     signal,
   }, async (handle) => {
@@ -305,7 +306,7 @@ export async function scanAllChapters({
       // before the /abort/ belt (the timeout's own error message says "cancelled").
       const msg = String(err?.message || err || "");
       const reason = timedOut && !runSignal.aborted
-        ? `timed out after ${Math.round(timeoutMs / 1000)}s`
+        ? t("entitySweep.timedOut", { s: Math.round(timeoutMs / 1000) })
         : msg.slice(0, 200);
       if (runSignal.aborted || (!timedOut && /abort/i.test(msg))) {
         // Bubble so workers exit; caller already has partial proposals.

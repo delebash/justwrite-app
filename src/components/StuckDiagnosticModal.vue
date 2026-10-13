@@ -15,6 +15,9 @@ import {
   MOVE_KIND_I18N,
 } from "../services/stuckDiagnostic.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   // Plain-text prose tail leading up to the writer's cursor.
@@ -38,7 +41,7 @@ function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.messag
 async function run() {
   error.value = "";
   if (!ai.providerForFeature("unstuck")) {
-    error.value = "Configure an AI provider in Settings → AI to generate Unstuck moves.";
+    error.value = t("stuck.err.noProvider");
     return;
   }
   moves.value = [];
@@ -47,18 +50,18 @@ async function run() {
       contextText: props.contextText,
       chapterTitle: props.chapterTitle,
       chapterNum: props.chapterNum,
-      task: { label: "Unstuck moves", meta: {} },
+      task: { label: t("stuck.taskLabel"), meta: {} },
     });
     moves.value = result.moves;
     if (!moves.value.length) {
-      error.value = "The model didn't return any usable moves. Try regenerating.";
+      error.value = t("stuck.err.empty");
     }
   } catch (e) {
     if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
-        ? "Configure an AI provider in Settings → AI to generate Unstuck moves."
-        : msg || "Couldn't generate moves.";
+        ? t("stuck.err.noProvider")
+        : msg || t("stuck.err.failed");
     }
   }
 }

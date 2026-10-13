@@ -16,6 +16,10 @@ import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, EmptyState, UiBanner } from "@delebash/llm-ui";
 import { scanPlotHoles } from "../services/analysis/plotHoleScan.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
+import { useI18n } from "vue-i18n";
+import { relativeTime } from "@delebash/llm-ui";
+
+const { t } = useI18n();
 
 const emit = defineEmits(["close"]);
 
@@ -68,21 +72,21 @@ async function run() {
   error.value = "";
   if (running.value) return;
   if (!ai.providerForFeature("plotHoles")) {
-    error.value = "Configure an AI provider in Settings → AI to run the audit.";
+    error.value = t("plotHoles.err.noProvider");
     return;
   }
   try {
     const result = await scanPlotHoles({
       project,
-      task: { label: "Plot-hole / continuity audit", meta: {} },
+      task: { label: t("plotHoles.taskLabel"), meta: {} },
     });
     project.setPlotHoles(result);
   } catch (e) {
     if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
-        ? "Configure an AI provider in Settings → AI to run the audit."
-        : msg || "Couldn't run the audit.";
+        ? t("plotHoles.err.noProvider")
+        : msg || t("plotHoles.err.failed");
     }
   }
 }
@@ -123,16 +127,6 @@ const KIND_I18N = {
   "character-knowledge": "plotHoles.kinds.characterKnowledge",
   object:                "plotHoles.kinds.object",
   other:                 "plotHoles.kinds.other",
-};
-
-const ago = (ts) => {
-  if (!ts) return "";
-  const m = Math.floor((Date.now() - ts) / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
 };
 
 // Deliberately no auto-run on mount: the user should see the AI
@@ -208,7 +202,7 @@ const ago = (ts) => {
           {{ $t("plotHoles.dismissedCount", { n: dismissedCount }) }}
         </span>
         <span class="ph-meta">
-          {{ $t("plotHoles.generatedAgo", { when: ago(audit.generatedAt) }) }}
+          {{ $t("plotHoles.generatedAgo", { when: relativeTime(audit.generatedAt) }) }}
           <template v-if="audit.model"> {{ $t("plotHoles.viaModel", { model: audit.model }) }}</template>
         </span>
         <UiButton v-if="dismissedCount" intent="ghost" size="small"

@@ -28,7 +28,7 @@ const owners = computed(() => {
     ...project.groups.map((e) => ({ kind: "group", id: e.id, name: e.name })),
   ];
   const setting = project.architecture?.setting;
-  if (setting) list.push({ kind: "setting", id: "setting", name: setting.title || "Setting" });
+  if (setting) list.push({ kind: "setting", id: "setting", name: setting.title || t("events.kinds.setting") });
   return list;
 });
 

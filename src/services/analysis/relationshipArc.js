@@ -16,6 +16,7 @@
 
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText, tailWords } from "../text.js";
+import { t } from "../../i18n/index.js";
 
 export const TRAJECTORY_LABELS = {
   warming:    "Warming",
@@ -127,7 +128,7 @@ export async function analyseRelationship({
     provider,
     model,
     meta: arcMeta,
-    task: task || { label: "Relationship arc", meta: arcMeta },
+    task: task || { label: t("relationshipArc.taskLabel"), meta: arcMeta },
   });
 
   const summary = typeof parsed.summary === "string" ? parsed.summary.trim().slice(0, 600) : "";

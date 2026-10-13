@@ -4,6 +4,13 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## 2026-10-13
+
+**Times follow the interface language.** "5m ago", "2h ago" and the like — in the AI panels, the
+chat history, Trash and the sidebar's saved time — now come out in the interface language: with
+Spanish chosen, "hace 5 min". The dialogs, lists, errors and AI task names across the app now
+follow the language too; their words stay English until their Spanish is reviewed.
+
 ## 2026-10-12
 
 **Spanish reaches a few more buttons.** With Spanish as the interface language, the AI task bar's

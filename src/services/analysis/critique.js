@@ -10,6 +10,7 @@
 
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
+import { t } from "../../i18n/index.js";
 
 // ─── Text critique ──────────────────────────────────────────────────
 // The prompt lives server-side now (seeded via server/src/seed_feature_prompts.js, action
@@ -26,7 +27,7 @@ export async function runCritique({ html, chapterTitle = "", chapterNum = null, 
     action: "critique", feature: "critique",
     variables: { chapter_label: header, chapter_text: text },
     signal, provider, model, meta,
-    task: task || { label: "Chapter critique notes", meta },
+    task: task || { label: t("critique.taskNotesShort"), meta },
   });
 
   // Tolerate both shapes: {"notes":[…]} (the prompt asks for this) AND a
@@ -73,7 +74,7 @@ export async function runStructuralAnalysis({ html, chapterTitle = "", chapterNu
     action: "critiqueStructure", feature: "critique",
     variables: { chapter_label: header, chapter_text: text },
     signal, provider, model, meta,
-    task: task || { label: "Chapter structure", meta },
+    task: task || { label: t("critique.taskStructureShort"), meta },
   });
 
   const tension = clamp1to10(parsed.tension);

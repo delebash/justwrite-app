@@ -27,6 +27,10 @@ import {
   STATUS_COLOURS,
 } from "../services/analysis/readerKnowledge.js";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
+import { useI18n } from "vue-i18n";
+import { relativeTime } from "@delebash/llm-ui";
+
+const { t } = useI18n();
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -108,22 +112,13 @@ const lastRunAt = computed(() => {
     .sort((a, b) => b - a);
   return stamps[0] || null;
 });
-function ago(ts) {
-  if (!ts) return "";
-  const m = Math.floor((Date.now() - ts) / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
 
 const error = ref("");
 
 async function runScan() {
   error.value = "";
   if (!ai.providerForFeature("readerKnowledge")) {
-    error.value = "Configure an AI provider in Settings → AI to run this analysis.";
+    error.value = t("readerKnowledge.err.noProvider");
     return;
   }
   // Clear prior partial state so the strip shows the new sweep cleanly.
@@ -159,8 +154,8 @@ async function runScan() {
     if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
-        ? "Configure an AI provider in Settings → AI to run this analysis."
-        : msg || "Couldn't complete the analysis.";
+        ? t("readerKnowledge.err.noProvider")
+        : msg || t("readerKnowledge.err.failed");
     }
   }
 }
@@ -182,7 +177,7 @@ function jumpToChapter(chapterId) {
     <div class="rk-pane scrollarea">
       <PaneHeader variant="intro" :title="$t('readerKnowledge.title')" :sub="$t('readerKnowledge.sub')" help-key="reader-knowledge">
         <AiFeatureChip feature="readerKnowledge" :label="$t('readerKnowledge.title')" editable />
-        <span v-if="lastRunAt && !running" class="rk-stamp">{{ $t("readerKnowledge.lastRun", { when: ago(lastRunAt) }) }}</span>
+        <span v-if="lastRunAt && !running" class="rk-stamp">{{ $t("readerKnowledge.lastRun", { when: relativeTime(lastRunAt) }) }}</span>
         <UiButton v-if="hasAny && !running" intent="ghost" @click="clearAll"
                   v-tooltip.bottom="$t('readerKnowledge.clearTooltip')">
           {{ $t("common.clear") }}

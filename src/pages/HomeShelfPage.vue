@@ -18,6 +18,9 @@ import { scanProjectMarkers } from "justwrite-server/editor/markers.js";
 import { UiButton, pageFill } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -77,31 +80,33 @@ function daysBetween(yyyyMmDd, refDate = new Date()) {
   return Math.max(0, Math.round((today - past) / 86400000));
 }
 
-const lastSessionGap = computed(() => {
+// Whole days since the last writing session (0 = today), or null before the first one.
+const lastSessionDays = computed(() => {
   const day = sessions.lastWrite?.day;
-  if (!day) return null;
-  const n = daysBetween(day);
-  if (n === 0) return "today";
-  if (n === 1) return "yesterday";
-  return `${n} days ago`;
+  return day ? daysBetween(day) : null;
+});
+// The same gap as a phrase — "today", "yesterday", "3 days ago".
+const lastSessionGap = computed(() => {
+  const n = lastSessionDays.value;
+  return n == null ? null : t("homeShelf.gap", { n }, n);
 });
 
 const chRange = computed(() => {
-  if (!allCh.value.length) return "no chapters yet";
+  if (!allCh.value.length) return t("homeShelf.range.none");
   const first = allCh.value[0]?.num ?? 1;
   const last = allCh.value[allCh.value.length - 1]?.num ?? allCh.value.length;
-  return first === last ? `Chapter ${first}` : `Chapters ${first}–${last}`;
+  return first === last ? t("homeShelf.range.one", { num: first }) : t("homeShelf.range.many", { first, last });
 });
 
 const centredLabel = computed(() => {
   if (!resumeCh.value) return null;
-  const gap = lastSessionGap.value;
+  const n = lastSessionDays.value;
   let sub;
-  if (gap === "today") sub = "today's chapter";
-  else if (gap === "yesterday") sub = "yesterday's session";
-  else if (gap) sub = `your last session — ${gap}`;
-  else sub = "your last open chapter";
-  return `centred on ch. ${resumeCh.value.num} — ${sub}`;
+  if (n === 0) sub = t("homeShelf.centredSub.today");
+  else if (n === 1) sub = t("homeShelf.centredSub.yesterday");
+  else if (n != null) sub = t("homeShelf.centredSub.gap", { gap: lastSessionGap.value });
+  else sub = t("homeShelf.centredSub.none");
+  return t("homeShelf.centred", { num: resumeCh.value.num, sub });
 });
 
 function kindFor(status) {
@@ -111,7 +116,7 @@ function kindFor(status) {
 
 function statusLabelFor(ch) {
   const s = project.statusById(ch.status);
-  return s?.label || "To do";
+  return s?.label || t("homeShelf.statusTodo");
 }
 
 function pad(n) { return String(n).padStart(2, "0"); }
@@ -174,7 +179,9 @@ const summaryStrip = computed(() => {
   const totalCh = allCh.value.length;
   const doneCh = allCh.value.filter((c) => c.status === "done").length;
   const cur = resumeCh.value?.num;
-  return `${totalCh} chapter${totalCh === 1 ? "" : "s"} · ${doneCh} done${cur ? ` · centred on ${cur}` : ""}`;
+  const parts = [t("count.chapter", { n: totalCh }, totalCh), t("homeShelf.doneCount", { n: doneCh })];
+  if (cur) parts.push(t("homeShelf.centredOn", { num: cur }));
+  return parts.join(" · ");
 });
 
 // Centre the active card on mount (and again on the next frame after layout settles).
@@ -195,18 +202,18 @@ const todayLabel = computed(() =>
 );
 
 const gapTail = computed(() => {
+  const n = lastSessionDays.value;
+  if (n == null) return t("homeShelf.tail.first");
+  if (n === 0) return t("homeShelf.tail.today");
   const gap = lastSessionGap.value;
-  if (!gap) return "Your first session awaits.";
-  if (gap === "today") return "You've already written today.";
-  const c = gap.charAt(0).toUpperCase() + gap.slice(1);
-  return `${c} since your last session.`;
+  return t("homeShelf.tail.since", { gap: gap.charAt(0).toUpperCase() + gap.slice(1) });
 });
 
 const formLine = computed(() => {
   const parts = [];
   if (P.genre) parts.push(P.genre);
   if (P.subtitle) parts.push(P.subtitle);
-  return parts.join(" · ") || "manuscript in progress";
+  return parts.join(" · ") || t("homeShelf.formFallback");
 });
 </script>
 
@@ -258,8 +265,8 @@ const formLine = computed(() => {
                   </span>
                 </div>
                 <h2 class="ch-title">
-                  <em v-if="ch.id === resumeId">{{ ch.title || "Untitled" }}</em>
-                  <template v-else>{{ ch.title || "Untitled" }}</template>
+                  <em v-if="ch.id === resumeId">{{ ch.title || t("common.untitled") }}</em>
+                  <template v-else>{{ ch.title || t("common.untitled") }}</template>
                 </h2>
                 <p v-if="openersByChapter.get(ch.id)" class="ch-opener">{{ openersByChapter.get(ch.id) }}</p>
                 <p v-else class="ch-opener ch-opener-empty">{{ $t("homeShelf.blankPage") }}</p>

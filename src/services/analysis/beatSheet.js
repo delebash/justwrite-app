@@ -17,6 +17,7 @@
 
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
+import { t } from "../../i18n/index.js";
 
 // ─── Templates ───────────────────────────────────────────────────────
 
@@ -176,7 +177,7 @@ export async function mapToBeatSheet({
     provider,
     model,
     meta: beatMeta,
-    task: task || { label: "Beat sheet", meta: beatMeta },
+    task: task || { label: t("beatSheet.taskShort"), meta: beatMeta },
   });
 
   const summary = typeof parsed.summary === "string" ? parsed.summary.trim().slice(0, 600) : "";

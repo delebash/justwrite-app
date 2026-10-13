@@ -15,6 +15,10 @@ import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
 import { generateMarketingPack } from "../services/analysis/marketingPack.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
+import { useI18n } from "vue-i18n";
+import { relativeTime } from "@delebash/llm-ui";
+
+const { t } = useI18n();
 
 const emit = defineEmits(["close"]);
 
@@ -37,21 +41,21 @@ async function run() {
   error.value = "";
   if (running.value) return;
   if (!ai.providerForFeature("marketingPack")) {
-    error.value = "Configure an AI provider in Settings → AI to generate the marketing pack.";
+    error.value = t("marketingPack.err.noProvider");
     return;
   }
   try {
     const result = await generateMarketingPack({
       project,
-      task: { label: "Marketing pack", meta: {} },
+      task: { label: t("marketingPack.taskLabel"), meta: {} },
     });
     project.setMarketingPack(result);
   } catch (e) {
     if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
-        ? "Configure an AI provider in Settings → AI to generate the marketing pack."
-        : msg || "Couldn't generate the marketing pack.";
+        ? t("marketingPack.err.noProvider")
+        : msg || t("marketingPack.err.failed");
     }
   }
 }
@@ -66,21 +70,11 @@ function clearAll() {
 async function copyText(text, label) {
   try {
     await navigator.clipboard.writeText(text);
-    ui.showToast({ message: `${label} copied to clipboard.` });
+    ui.showToast({ message: t("marketingPack.copiedToast", { label }) });
   } catch {
-    ui.showToast({ message: "Couldn't copy — your browser may have blocked the clipboard." });
+    ui.showToast({ message: t("marketingPack.err.copy") });
   }
 }
-
-const ago = (ts) => {
-  if (!ts) return "";
-  const m = Math.floor((Date.now() - ts) / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-};
 
 function wordCount(text) {
   if (!text) return 0;
@@ -144,7 +138,7 @@ function formatComps(comps) {
     <template v-else-if="pack">
       <div class="mp-head">
         <span class="mp-meta">
-          {{ $t("marketingPack.meta", { chapters: pack.totalChapters, when: ago(pack.generatedAt) }) }}
+          {{ $t("marketingPack.meta", { chapters: pack.totalChapters, when: relativeTime(pack.generatedAt) }) }}
           <template v-if="pack.model"> {{ $t("marketingPack.viaModel", { model: pack.model }) }}</template>
         </span>
       </div>
@@ -155,7 +149,7 @@ function formatComps(comps) {
           <span>{{ $t("marketingPack.loglineHeading") }}</span>
           <span class="mp-section-meta">{{ $t("marketingPack.wordsMeta", { n: wordCount(pack.logline) }) }}</span>
           <span class="mp-spacer" />
-          <UiButton intent="ghost" size="small" @click="copyText(pack.logline, 'Logline')">
+          <UiButton intent="ghost" size="small" @click="copyText(pack.logline, t('marketingPack.loglineHeading'))">
             <Icon name="Plus" :size="12" /> {{ $t("marketingPack.copy") }}
           </UiButton>
         </div>
@@ -190,7 +184,7 @@ function formatComps(comps) {
           <span>{{ $t("marketingPack.synopsisHeading") }}</span>
           <span class="mp-section-meta">{{ $t("marketingPack.synopsisMeta", { n: wordCount(pack.synopsis) }) }}</span>
           <span class="mp-spacer" />
-          <UiButton intent="ghost" size="small" @click="copyText(pack.synopsis, 'Synopsis')">
+          <UiButton intent="ghost" size="small" @click="copyText(pack.synopsis, t('marketingPack.synopsisLabel'))">
             <Icon name="Plus" :size="12" /> {{ $t("marketingPack.copy") }}
           </UiButton>
         </div>
@@ -203,11 +197,11 @@ function formatComps(comps) {
           <span>{{ $t("marketingPack.pitchHeading") }}</span>
           <span class="mp-section-meta">{{ $t("marketingPack.pitchMeta", { n: wordCount(pack.pitch), paragraphs: 3 }) }}</span>
           <span class="mp-spacer" />
-          <UiButton intent="ghost" size="small" @click="copyText(pack.pitch, 'Elevator pitch')">
+          <UiButton intent="ghost" size="small" @click="copyText(pack.pitch, t('marketingPack.pitchHeading'))">
             <Icon name="Plus" :size="12" /> {{ $t("marketingPack.copy") }}
           </UiButton>
         </div>
-        <p class="mp-prose">{{ pack.pitch || "(no pitch returned)" }}</p>
+        <p class="mp-prose">{{ pack.pitch || t("marketingPack.noPitch") }}</p>
       </section>
 
       <!-- Comp titles -->
@@ -216,7 +210,7 @@ function formatComps(comps) {
           <span>{{ $t("marketingPack.compsHeading") }}</span>
           <span class="mp-section-meta">{{ $t("marketingPack.compsSuggested", { n: pack.comps.length }) }}</span>
           <span class="mp-spacer" />
-          <UiButton intent="ghost" size="small" @click="copyText(formatComps(pack.comps), 'Comp titles')">
+          <UiButton intent="ghost" size="small" @click="copyText(formatComps(pack.comps), t('marketingPack.compsHeading'))">
             <Icon name="Plus" :size="12" /> {{ $t("marketingPack.copyAsList") }}
           </UiButton>
         </div>

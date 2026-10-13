@@ -27,7 +27,7 @@ const { results, error, myTask, running, generate, moreLikeThese, toggleLike, cl
     return { action, variables: { ...variables, user_content: brainstormPrompt({ category: category.value, seed: seed.value, liked, seen }) } };
   },
   meta: () => ({ category: category.value }),
-  label: "Brainstorm",
+  label: t("brainstorm.title"),
 });
 const canGenerate = computed(() => seed.value.trim().length > 0 && !running.value);
 

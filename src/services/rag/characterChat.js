@@ -24,6 +24,7 @@ const MAX_HISTORY_MESSAGES = 8;
 // re-exported here so the QC-35 Lab test-data import site keeps working.
 export { buildCharacterProfile } from "./profile.js";
 import { buildCharacterProfile } from "./profile.js";
+import { t } from "../../i18n/index.js";
 
 // formatExcerpts lives in ./excerpts.js — shared with manuscript chat and the
 // Lab's test-input picker (QC-35: one formatter, no copies).
@@ -146,7 +147,7 @@ export async function askAsCharacter({
     history: recentHistory, temperature: 0.7,
     signal, onDelta,
     meta: chatMeta,
-    task: task || { label: "Character chat", meta: chatMeta },
+    task: task || { label: t("chat.taskCharacterShort"), meta: chatMeta },
   });
 
   const citations = combined.map((h, i) => ({

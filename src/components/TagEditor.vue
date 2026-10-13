@@ -24,13 +24,16 @@
 
 import { ref, computed, nextTick } from "vue";
 import { Icon } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   modelValue:  { type: Array,  default: () => [] },
   pool:        { type: Array,  default: () => [] },
   curated:     { type: Array,  default: () => [] },
-  label:       { type: String, default: "Tags" },
-  placeholder: { type: String, default: "Add tag…" },
+  label:       { type: String, default: "" },
+  placeholder: { type: String, default: "" },
 });
 const emit = defineEmits(["update:modelValue"]);
 
@@ -135,7 +138,7 @@ function onKeydown(e) {
 
 <template>
   <div class="tag-editor">
-    <span v-if="label" class="tag-editor-label">{{ label }}</span>
+    <span class="tag-editor-label">{{ label || t("common.tags") }}</span>
     <div class="tag-chip" v-for="(t, i) in (modelValue || [])" :key="t + i"
       :class="{ 'is-curated': isChipCurated(t) }">
       <span>{{ t }}</span>
@@ -146,7 +149,7 @@ function onKeydown(e) {
     <div class="tag-input-wrap">
       <input ref="inputRef" class="tag-input"
         v-model="draft"
-        :placeholder="placeholder"
+        :placeholder="placeholder || t('tagEditor.placeholder')"
         @input="onInput"
         @focus="onFocus"
         @blur="onBlur"

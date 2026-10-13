@@ -183,7 +183,10 @@ Rules when adding or converting a string:
 - **Runtime values are interpolations**, never concatenation: `$t('k', { n })` with `{n}` in the value.
 - **`v-for="t in …"` shadows the setup `t`.** Inside such a loop use `$t`, never the destructured `t` — `build:spa` will not catch the shadowing.
 - **Locale-dependent constant arrays must be `computed()`**, or they freeze at module load and never re-translate when the language changes (see `SECTIONS` in `SettingsView.vue`).
-- **Not translated:** thrown `Error` messages, console/debug strings, data values, ids, enum strings, and DB-seeded text (seeded defaults stay English in v1).
+- **Not translated:** thrown `Error` messages nobody sees (a thrown message the screen shows takes a key — `writerAI.js`'s), console/debug strings, data values, ids, enum strings, and DB-seeded text (seeded defaults stay English in v1).
+- **A table of shown words names its keys** (`labelKey`), translated where it renders: an UPPER_CASE table (`MODE_OPTIONS`, `PROSE_RULES`) is invisible to the script-string lint, so English left in one is never flagged.
+- **An English prop default is a key fallback inside the component** (`placeholder || t("…")`), never a literal default.
+- **Time-ago labels are the kit's `relativeTime`** (`Intl.RelativeTimeFormat` in the app's language), never a hand-built "5m ago".
 - **The kit's words are the kit's catalog** (`kit.*` keys, `just-llm-runner/ui/src/i18n/locales/`; the
   plan `just-llm-runner/docs/plans/2026-10-12-i18n-standard.md`). `i18n/index.js` starts the instance from
   `kitMessages()` and merges `locales/*.json` over it, so the family's shared words — the sidebar trio,

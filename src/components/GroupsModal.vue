@@ -4,10 +4,13 @@ import { useProjectStore } from "../stores/project.js";
 import { promptDialog } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { AppModal } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   entityId: { type: String, required: true },
-  entityName: { type: String, default: "Item" },
+  entityName: { type: String, required: true },
   entityKind: { type: String, default: "character" },
 });
 const emit = defineEmits(["close"]);
@@ -24,10 +27,10 @@ function toggle(group) {
 // whole reason you'd reach for "New group" from this popup.
 async function createGroup() {
   const name = await promptDialog({
-    title: "New group",
-    label: "Group name",
-    placeholder: "e.g. The Cartographers' Guild",
-    confirmLabel: "Create group",
+    title: t("groups.newGroup"),
+    label: t("groups.namePlaceholder"),
+    placeholder: t("groups.newGroupPlaceholder"),
+    confirmLabel: t("groups.createGroup"),
   });
   if (!name) return;
   const id = project.addGroup({ name });

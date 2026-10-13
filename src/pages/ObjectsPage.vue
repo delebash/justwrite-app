@@ -21,6 +21,9 @@ import MentionRefList from "../components/MentionRefList.vue";
 import { PaneHeader } from "@delebash/llm-ui";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { useSelectNewName } from "../composables/useSelectNewName.js";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -51,7 +54,7 @@ function askTheBook() {
   if (!obj.value) return;
   ui.openChatPanelFor({
     mode: "book",
-    question: `Tell me about ${obj.value.name}`,
+    question: t("common.tellMeAbout", { name: obj.value.name }),
     sourceKey: `ask:object:${obj.value.id}`,
   });
 }
@@ -83,21 +86,21 @@ const allTags = computed(() => {
 // and the clear-all now live there (components/EntityIndex.vue), not in a private
 // copy per view. `match` is only needed where the test isn't `row[key] === value`.
 const facets = computed(() => [
-  { key: "kind", label: "Kind", options: allKinds.value.map((k) => ({ value: k, label: k })) },
-  { key: "status", label: "Status", options: statusOptions.value },
+  { key: "kind", label: t("common.kind"), options: allKinds.value.map((k) => ({ value: k, label: k })) },
+  { key: "status", label: t("common.status"), options: statusOptions.value },
   {
-    key: "tags", label: "Tags", multi: true,
+    key: "tags", label: t("common.tags"), multi: true,
     options: allTags.value.map((t) => ({ value: t, label: t })),
     match: (row, tag) => (row.tags || []).includes(tag),
   },
 ]);
 
-const columns = [
-  { accessorKey: "name",   header: "Name",   sortable: true,  headerStyle: "min-width: 200px" },
-  { accessorKey: "kind",   header: "Kind",   sortable: true,  headerStyle: "min-width: 140px" },
-  { accessorKey: "tags",   header: "Tags",   sortable: false, headerStyle: "min-width: 160px", enableGlobalFilter: true },
-  { accessorKey: "status", header: "Status", sortable: true,  headerStyle: "min-width: 120px" },
-];
+const columns = computed(() => [
+  { accessorKey: "name",   header: t("common.name"),   sortable: true,  headerStyle: "min-width: 200px" },
+  { accessorKey: "kind",   header: t("common.kind"),   sortable: true,  headerStyle: "min-width: 140px" },
+  { accessorKey: "tags",   header: t("common.tags"),   sortable: false, headerStyle: "min-width: 160px", enableGlobalFilter: true },
+  { accessorKey: "status", header: t("common.status"), sortable: true,  headerStyle: "min-width: 120px" },
+]);
 
 function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
 function statusSeverity(id) {
@@ -141,8 +144,8 @@ function onRowClick(event) {
         :columns="columns"
         :facets="facets"
         :search-fields="['name', 'tags']"
-        search-placeholder="Search objects…"
-        empty-text="No objects match your search."
+        :search-placeholder="t('objects.searchPlaceholder')"
+        :empty-text="t('objects.searchEmpty')"
         @row-click="onRowClick">
         <template #intro>
           <p class="entity-desc" style="margin: 0 0 18px">
@@ -220,7 +223,7 @@ function onRowClick(event) {
             <div style="margin-top:22px">
               <div class="t-eyebrow" style="margin-bottom:10px">{{ $t("common.appearsInScenes") }}</div>
               <SceneRefList field="objects" :entity-id="obj.id"
-                empty-text="No scenes feature this object yet. Open a scene → Links → Objects to add one." />
+                :empty-text="t('objects.noScenes')" />
             </div>
 
             <div style="margin-top:22px">

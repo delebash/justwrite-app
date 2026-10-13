@@ -23,6 +23,7 @@ import { post, requestBlob } from "@delebash/llm-ui";
 import { chooserDir, rememberDir } from "./chooserDirs.js";
 import { saveBlob } from "./download.js";
 import { hasShell, pickFile } from "./native.js";
+import { t } from "../i18n/index.js";
 
 // Both gates are the same question — "is a desktop shell there?" — and the kit
 // owns the one test (2026-08-14). They were two probes of the old
@@ -52,8 +53,8 @@ export async function exportProject(projectId, title) {
     // Keeps the existing "export" folder memory; manuscripts use their own key
     // so a submissions folder and a backup folder don't fight over one slot.
     chooser: "export",
-    title: "Export book",
-    filterName: "JustWrite book",
+    title: t("bookTransfer.exportTitle"),
+    filterName: t("bookTransfer.bookFilter"),
     filterExt: "zip",
   });
 }
@@ -64,8 +65,8 @@ export async function exportProject(projectId, title) {
  */
 export async function importProject() {
   const picked = await pickFile({
-    title: "Import book",
-    filterName: "JustWrite book",
+    title: t("bookTransfer.importTitle"),
+    filterName: t("bookTransfer.bookFilter"),
     filterExt: "zip",
     defaultDir: await chooserDir("import"),
   });
@@ -82,8 +83,8 @@ export async function importProject() {
 export async function saveBackupBlob(blob, suggestedName) {
   return saveBlob(blob, suggestedName, {
     chooser: "backup",
-    title: "Export backup",
-    filterName: "Backup",
+    title: t("bookTransfer.backupTitle"),
+    filterName: t("bookTransfer.backupFilter"),
     filterExt: "zip",
   });
 }

@@ -1,4 +1,5 @@
-// Diff between two chapter versions.
+
+import { t } from "../i18n/index.js";// Diff between two chapter versions.
 //
 // Versions in the versions store are arrays of scenes:
 //   [{ id, title, body }, ...]
@@ -348,8 +349,8 @@ export function renderDiffHtml(diff) {
     parts.push(`<section class="${wrapClass}">`);
     if (scene.titleChange) {
       parts.push(`<h2 class="vdiff-scene-title">`);
-      parts.push(`<del class="vdiff-del">${escapeHtml(scene.titleChange.from || "(untitled)")}</del> `);
-      parts.push(`<ins class="vdiff-ins">${escapeHtml(scene.titleChange.to || "(untitled)")}</ins>`);
+      parts.push(`<del class="vdiff-del">${escapeHtml(scene.titleChange.from || t("versionHistory.untitledScene"))}</del> `);
+      parts.push(`<ins class="vdiff-ins">${escapeHtml(scene.titleChange.to || t("versionHistory.untitledScene"))}</ins>`);
       parts.push(`</h2>`);
     } else if (scene.title) {
       parts.push(`<h2 class="vdiff-scene-title">${escapeHtml(scene.title)}</h2>`);

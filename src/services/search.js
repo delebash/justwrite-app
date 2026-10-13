@@ -1,4 +1,5 @@
-// ============================================================
+
+import { t } from "../i18n/index.js";// ============================================================
 // search.js — full-text search across every entity in the project.
 //
 // Builds a lightweight inverted index (Map<token, Set<docId>>)
@@ -89,7 +90,7 @@ export function buildIndex(project) {
   for (const part of project.parts) {
     for (const ch of part.chapters) {
       const scenes = project.scenes[ch.id] || [];
-      const chapterCrumb = `Ch. ${ch.num} ${ch.title}`;
+      const chapterCrumb = t("search.chapterCrumb", { num: ch.num, title: ch.title });
       // A brand-new chapter starts with NO scenes (addChapter seeds []); index it by
       // title/number so it stays findable, routed to its overview (nothing to open yet).
       if (scenes.length === 0) {
@@ -112,7 +113,7 @@ export function buildIndex(project) {
         const bodyText = stripHtml(scn.body);
         const names = (scn.characters || [])
           .map((id) => charNameById.get(id)).filter(Boolean).join(" ");
-        const sceneCrumb = sceneTitle ? `Scene ${num} · ${sceneTitle}` : `Scene ${num}`;
+        const sceneCrumb = sceneTitle ? t("sceneNotes.sceneTitled", { n: num, title: sceneTitle }) : t("common.sceneN", { n: num });
         indexDoc({
           id: `scene:${ch.id}:${scn.id}`,
           kind: "chapter",
@@ -175,7 +176,7 @@ export function buildIndex(project) {
   // Strands — name + blurb + body (for subplot search).
   for (const s of project.strands) {
     const body = stripHtml([s.blurb || "", s.body || ""].filter(Boolean).join("\n"));
-    indexDoc({ id: `strand:${s.id}`, kind: "strand", title: s.name, sub: "Narrative strand", body, route: `/strands` });
+    indexDoc({ id: `strand:${s.id}`, kind: "strand", title: s.name, sub: t("search.kindStrand"), body, route: `/strands` });
   }
 
   // Worldbuilding — title + summary + body, grouped by category in UI.

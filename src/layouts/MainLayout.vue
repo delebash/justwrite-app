@@ -70,7 +70,7 @@ watch(() => route.fullPath, () => {
 // was a dead constant pinned to the demo book's name. With zero projects
 // (fresh install / post-reset — /welcome is home) show the app name instead.
 const barTitle = computed(() =>
-  project.projectsList.length ? (project.project.title || "Untitled") : "JustWrite",
+  project.projectsList.length ? (project.project.title || t("common.untitled")) : "JustWrite",
 );
 
 // True when the focused element belongs to the rich editor (TipTap puts

@@ -13,6 +13,9 @@ import { computed, unref, watchEffect } from "vue";
 import { useRouter } from "vue-router";
 import { LuFeatureChip, useResolvedRoute } from "@delebash/llm-ui";
 import { useAiStore } from "../stores/ai.js";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   feature: { type: String, required: true },
@@ -37,13 +40,13 @@ const providerName = computed(() => {
   // Not-configured copy is provider-NEUTRAL (user, 2026-07-10, pick "b"):
   // the old "run Quick Setup" pushed the local-only wizard at users who
   // want an online provider. Clicking already opens the AI settings page.
-  if (!r.configured) return "No model set";
+  if (!r.configured) return t("aiChip.noModel");
   return ai.providerById(r.providerId)?.name || r.providerId || "—";
 });
 const model = computed(() => {
   const r = route.value;
   if (!r) return "…";
-  return r.configured ? (r.model || "—") : "open AI settings";
+  return r.configured ? (r.model || "—") : t("aiChip.openSettings");
 });
 
 function goToTasks() {

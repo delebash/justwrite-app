@@ -28,7 +28,7 @@ const STATUS_ICON = {
   error:    "Alert",
   removed:  "Close",
 };
-const iconName = computed(() => props.icon || STATUS_ICON[props.status] || "Calendar");
+const iconName = computed(() => props.icon || STATUS_ICON[props.status] || STATUS_ICON.pending);
 const isSpinning = computed(() => props.status === "working" || props.status === "scanning");
 </script>
 

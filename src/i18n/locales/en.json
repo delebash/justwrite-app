@@ -66,7 +66,26 @@
     "regenerate": "Regenerate",
     "saveChanges": "Save changes",
     "gotIt": "Got it",
-    "openInHelpDrawer": "Open in help drawer"
+    "openInHelpDrawer": "Open in help drawer",
+    "name": "Name",
+    "kind": "Kind",
+    "tags": "Tags",
+    "status": "Status",
+    "title": "Title",
+    "category": "Category",
+    "words": "Words",
+    "scene": "Scene",
+    "scenes": "Scenes",
+    "untitled": "Untitled",
+    "tellMeAbout": "Tell me about {name}",
+    "chapterRefTitled": "Ch. {num} · {title}",
+    "sceneRef": "Ch. {num} · Scene {scene}",
+    "sceneRefTitled": "Ch. {num} · Scene {scene} — {title}",
+    "storyWideNoAnchor": "Story-wide (no anchor)",
+    "cannotUndo": "This can't be undone.",
+    "sceneN": "Scene {n}",
+    "quoted": "“{text}”",
+    "chapter": "Chapter"
   },
   "tray": {
     "show": "📺 Show window",
@@ -86,7 +105,8 @@
     "mentions": {
       "ariaLabel": "Entity suggestions",
       "noMatches": "No matches"
-    }
+    },
+    "sceneUntitled": "Scene {n} — untitled"
   },
   "shortcuts": {
     "eyebrow": "Cheatsheet",
@@ -136,7 +156,26 @@
     "chapterAbbrev": "Ch {num}",
     "removeBeat": "Remove beat",
     "removeBeatTooltip": "Remove this beat from the strand",
-    "addBeatUnassigned": "Add beat to unassigned column"
+    "addBeatUnassigned": "Add beat to unassigned column",
+    "dialog": {
+      "strandName": "Strand name",
+      "strandPlaceholder": "e.g. Romance subplot",
+      "deleteTitle": "Delete strand?",
+      "deleteBody": "Delete \"{name}\" and all its beats? You can restore it from Trash.",
+      "newBeatTitle": "New beat",
+      "beatLabel": "Beat label",
+      "beatPlaceholder": "e.g. Midpoint revelation",
+      "fieldLabel": "Label",
+      "fieldNote": "Note",
+      "anyScene": "Any scene",
+      "editBeatTitle": "Edit beat"
+    },
+    "dragToReorder": "Drag to reorder",
+    "deleteStrandAria": "Delete strand {name}",
+    "deleteStrandTooltip": "Delete this strand and all its beats",
+    "addBeatUnassignedShort": "Add beat (unassigned)",
+    "addBeatHere": "Add beat here",
+    "addBeatToChapter": "Add beat to Chapter {num}"
   },
   "brainstorm": {
     "title": "Brainstorm",
@@ -207,7 +246,9 @@
     "intro": "A {articleTerm} is long-form reference that doesn't belong on a character, location, or object sheet — a magic system, a kingdom's history, an invented language, a calendar, a religion. Organise articles by category, tag them freely; AI features that draw on story-world context will reach for the article when it's relevant.",
     "titlePlaceholder": "Article title",
     "summaryLabel": "Summary",
-    "bodyPlaceholder": "Write the article…"
+    "bodyPlaceholder": "Write the article…",
+    "searchPlaceholder": "Search articles…",
+    "searchEmpty": "No articles match your search."
   },
   "beatSheet": {
     "eyebrow": "Beat sheet",
@@ -222,7 +263,13 @@
     "viaModel": "· via {model}",
     "whyMissing": "Why missing:",
     "onThePage": "On the page:",
-    "clearMapping": "Clear this mapping"
+    "clearMapping": "Clear this mapping",
+    "err": {
+      "noProvider": "Configure an AI provider in Settings → AI to map to a beat sheet.",
+      "failed": "Couldn't map to beat sheet."
+    },
+    "taskLabel": "Beat sheet mapping",
+    "taskShort": "Beat sheet"
   },
   "editorSettings": {
     "title": "Settings",
@@ -257,7 +304,20 @@
     "notFound": "Note not found",
     "notFoundBody": "This note no longer exists.",
     "backToNotes": "Back to notes",
-    "breadcrumb": "Note"
+    "breadcrumb": "Note",
+    "importedFallback": "Imported note",
+    "importEmptyFile": "{file} — empty",
+    "importFailed": "Couldn't import: {reason}",
+    "nothingToImport": "Nothing to import.",
+    "importSkipped": "Skipped {reason}",
+    "staleAnchor": "Stale anchor",
+    "anchor": "Anchor",
+    "storyWide": "Story-wide",
+    "anchored": "Anchored",
+    "colTag": "Tag",
+    "colUpdated": "Updated",
+    "searchPlaceholder": "Search notes…",
+    "searchEmpty": "No notes match your search."
   },
   "characterAudit": {
     "eyebrow": "Character audit",
@@ -285,7 +345,15 @@
       "minorDrift": "Minor drift",
       "significantDrift": "Significant drift",
       "noScenes": "No scenes yet"
-    }
+    },
+    "err": {
+      "noProvider": "Configure an AI provider in Settings → AI to run the audit.",
+      "failed": "Couldn't complete the audit.",
+      "noMain": "No main characters to audit. Mark a character as 'main' in their detail page first."
+    },
+    "taskLabel": "Character consistency audit",
+    "openCharacterPage": "Open character page",
+    "taskShort": "Character audit"
   },
   "sessionRecap": {
     "eyebrow": "End of session",
@@ -307,7 +375,15 @@
     "pinDisabledTooltip": "Snippet not found in current prose — cannot pin",
     "pinned": "Pinned",
     "notFound": "Not found",
-    "discardRecap": "Discard recap"
+    "discardRecap": "Discard recap",
+    "err": {
+      "nothingToday": "No writing recorded today yet — open a chapter and write a bit first.",
+      "noProvider": "Configure an AI provider in Settings → AI to generate the recap.",
+      "failed": "Couldn't generate recap."
+    },
+    "taskLabel": "Session recap",
+    "pinnedToast": "Loose thread pinned in chapter.",
+    "threadTaskLabel": "Thread extraction"
   },
   "locations": {
     "newLocation": "New location",
@@ -320,7 +396,10 @@
     "kindPlaceholder": "Kind",
     "notFound": "Location not found",
     "notFoundBody": "This location no longer exists.",
-    "backToLocations": "Back to locations"
+    "backToLocations": "Back to locations",
+    "searchPlaceholder": "Search locations…",
+    "searchEmpty": "No locations match your search.",
+    "noScenes": "No scenes set in this location yet. Open a scene → Links → Locations to add one."
   },
   "objects": {
     "newObject": "New object",
@@ -333,7 +412,10 @@
     "kindPlaceholder": "Kind",
     "notFound": "Object not found",
     "notFoundBody": "This object no longer exists.",
-    "backToObjects": "Back to objects"
+    "backToObjects": "Back to objects",
+    "searchPlaceholder": "Search objects…",
+    "searchEmpty": "No objects match your search.",
+    "noScenes": "No scenes feature this object yet. Open a scene → Links → Objects to add one."
   },
   "strands": {
     "newStrand": "New narrative strand",
@@ -359,7 +441,18 @@
     "beatNotePlaceholder": "Note (optional)",
     "removeBeat": "Remove beat",
     "goToBeat": "Go to {label}",
-    "breadcrumb": "Narrative strand"
+    "breadcrumb": "Narrative strand",
+    "noChapter": "(no chapter)",
+    "askAbout": "Tell me about the narrative strand \"{name}\"",
+    "newBeatTitle": "New beat — {name}",
+    "beatField": "Beat",
+    "beatFieldPlaceholder": "e.g. Inciting, Midpoint, Climax",
+    "beatNoteFieldPlaceholder": "What happens at this beat?",
+    "searchPlaceholder": "Search narrative strands…",
+    "searchEmpty": "No narrative strands match your search.",
+    "reassignBeat": "Reassign to a different scene",
+    "noScene": "(no scene)",
+    "noScenes": "No scenes linked to this narrative strand yet. Open a scene → Links → Narrative strands to add one."
   },
   "sceneLinks": {
     "title": "Links",
@@ -378,7 +471,22 @@
     "strandsGroup": "Narrative strands",
     "newStrand": "new narrative strand",
     "excludeQuestion": "Should this scene be hidden from AI retrieval?",
-    "excludeHelp": "Keeps this scene out of Ask-the-Book retrieval and any future feature that feeds scene text into an LLM. Useful for spoilers, twists you haven't planted yet, or drafts you don't want surfaced."
+    "excludeHelp": "Keeps this scene out of Ask-the-Book retrieval and any future feature that feeds scene text into an LLM. Useful for spoilers, twists you haven't planted yet, or drafts you don't want surfaced.",
+    "dialog": {
+      "newMainTitle": "New main character",
+      "newSecondaryTitle": "New secondary character",
+      "characterName": "Character name",
+      "characterPlaceholder": "e.g. Mira Halden",
+      "newLocationTitle": "New location",
+      "locationName": "Location name",
+      "locationPlaceholder": "e.g. Brackish Cove",
+      "newObjectTitle": "New object",
+      "objectName": "Object name",
+      "objectPlaceholder": "e.g. The Ledger",
+      "newStrandTitle": "New narrative strand",
+      "strandName": "Narrative strand name",
+      "strandPlaceholder": "e.g. The Map Plot"
+    }
   },
   "critique": {
     "eyebrow": "Chapter critique",
@@ -411,7 +519,14 @@
       "flag": "Flags",
       "suggest": "Suggestions",
       "info": "Observations"
-    }
+    },
+    "taskNotes": "Chapter critique notes · Ch. {num}",
+    "taskStructure": "Chapter structure · Ch. {num}",
+    "err": {
+      "parse": "Couldn't parse notes from the model's reply. Try re-running, or switch the critique model in Settings."
+    },
+    "taskNotesShort": "Chapter critique notes",
+    "taskStructureShort": "Chapter structure"
   },
   "relations": {
     "zoomOut": "Zoom out",
@@ -441,7 +556,14 @@
     "hintPinned": "Click node again to open · click empty space to clear",
     "kbdZoom": "zoom",
     "kbdPan": "pan",
-    "kbdClearFocus": "clear focus"
+    "kbdClearFocus": "clear focus",
+    "edgeStrand": "Narrative strand: {name}",
+    "graphFocused": "Relationship graph — {name} selected",
+    "graph": "Relationship graph",
+    "nodePin": "{name} — {kind}. Click to pin",
+    "nodeOpen": "{name} — {kind}. Click again to open",
+    "edgeGroup": "Group: {name}",
+    "edgeScene": "Scene: {name}"
   },
   "indexBuild": {
     "eyebrow": "Manuscript index",
@@ -456,7 +578,17 @@
     "unknownShort": "?",
     "indexed": "Indexed {scenes}.",
     "staleCleared": " · {n} stale chunk cleared | · {n} stale chunks cleared",
-    "clearIndex": "Clear index"
+    "clearIndex": "Clear index",
+    "rowLabel": "Ch. {num} — {chapter} · {scene}",
+    "err": {
+      "noProvider": "No embedding provider configured. Set one in AI Settings.",
+      "noModel": "Provider \"{name}\" has no embedding model set. Set one in AI → Default embedding (or on the provider).",
+      "modelChanged": "The index was built with \"{built}\" but the embedding provider is now set to \"{now}\". Hit Rebuild to re-embed everything against the new model, or switch the embedding provider back to keep the existing index."
+    },
+    "taskRebuild": "Rebuild manuscript index",
+    "taskBuild": "Build manuscript index",
+    "staleRow": "(stale) {id}",
+    "unknownModel": "(unknown)"
   },
   "batchFill": {
     "title": "Draft many characters",
@@ -474,7 +606,22 @@
     "runProgress": "{done} of {total} done",
     "discard": "Discard",
     "applyAction": "Apply {fields}",
-    "retryFailed": "Retry {n} failed"
+    "retryFailed": "Retry {n} failed",
+    "unnamed": "Unnamed",
+    "err": {
+      "noScenes": "No linked scenes to draft from."
+    },
+    "status": {
+      "pending": "Waiting…",
+      "profile": "Drafting profile…",
+      "voice": "Drafting voice…",
+      "cancelled": "Cancelled",
+      "skipped": "Skipped",
+      "failed": "Failed",
+      "filled": "{n} field filled | {n} fields filled",
+      "drafted": "drafted",
+      "voiceSkipped": "{status} · voice skipped"
+    }
   },
   "markers": {
     "title": "Markers",
@@ -537,7 +684,11 @@
     "saveDialogTitle": "Save {format}",
     "doneToast": "Exported {format}.",
     "failed": "Export failed.",
-    "zipJvNote": "This is the file JustVoice imports — open it there to cast voices and record the audiobook. It is also how you move the book to another computer."
+    "zipJvNote": "This is the file JustVoice imports — open it there to cast voices and record the audiobook. It is also how you move the book to another computer.",
+    "err": {
+      "noChapters": "Project has no chapters to export.",
+      "saveFailed": "Save failed."
+    }
   },
   "versionHistory": {
     "labelPlaceholder": "Label this version (optional)…",
@@ -563,7 +714,11 @@
     "diffFrom": "From",
     "diffTo": "To",
     "paragraphs": "paragraphs",
-    "sceneStats": "{modified} modified · {added} added · {removed} removed"
+    "sceneStats": "{modified} modified · {added} added · {removed} removed",
+    "versionFrom": "version from {when}",
+    "deletedToast": "Deleted {label}",
+    "eyebrow": "Version history",
+    "untitledScene": "(untitled)"
   },
   "multiReader": {
     "eyebrow": "Multi-reader panel",
@@ -582,7 +737,13 @@
     "theirSuggestions": "Their suggestions",
     "generatedAgo": "generated {when}",
     "clearPanel": "Clear panel",
-    "rerunPanel": "Re-run panel"
+    "rerunPanel": "Re-run panel",
+    "err": {
+      "noProvider": "Configure an AI provider in Settings → AI to run the multi-reader panel.",
+      "failed": "Couldn't run the panel.",
+      "noProse": "This chapter has no prose to read yet."
+    },
+    "taskLabel": "Multi-reader critique"
   },
   "entitySweep": {
     "title": "Scanning for new entities",
@@ -600,7 +761,14 @@
     "reviewFound": "Review {n} found",
     "scanAction": "Scan {chapters}",
     "retryFailed": "Retry {n} failed",
-    "wholeBookTitle": "Whole-book scan"
+    "wholeBookTitle": "Whole-book scan",
+    "startOverTitle": "Start over?",
+    "startOverBody": "Discard the saved scan results ({n} chapter of findings)? The next sweep starts from scratch. | Discard the saved scan results ({n} chapters of findings)? The next sweep starts from scratch.",
+    "discardResults": "Discard results",
+    "noChapters": "No chapters selected.",
+    "rowDone": "done · {n} found",
+    "taskLabel": "Entity sweep",
+    "timedOut": "timed out after {s}s"
   },
   "chat": {
     "talkToCharacter": "Talk to a character",
@@ -633,7 +801,22 @@
     "sendTooltip": "Send your question",
     "sendDisabledTooltip": "Type a question to ask",
     "ask": "Ask",
-    "saveToSheet": "Save to sheet"
+    "saveToSheet": "Save to sheet",
+    "scopeBook": "Book",
+    "removedCharacter": "removed character",
+    "chatName": "Chat name",
+    "deleteTitle": "Delete this chat?",
+    "deleteBody": "Delete \"{title}\"? This can't be undone.",
+    "thisChat": "this chat",
+    "pickCharacterFirst": "Pick a character first.",
+    "characterFallback": "Character",
+    "taskCharacter": "Character chat · {name}",
+    "taskBook": "Ask the book",
+    "noCharacters": "No characters yet",
+    "untitled": "Untitled chat",
+    "followUpPlaceholder": "Ask a follow-up…",
+    "askPlaceholder": "Ask anything about your book — characters, scenes, threads…",
+    "taskCharacterShort": "Character chat"
   },
   "homeShelf": {
     "eyebrow": "Manuscript · Home (Paper Shelf)",
@@ -664,7 +847,29 @@
     "noPatterns": "start writing to see your patterns",
     "pending": "Pending",
     "openMarkerPins": "open marker pins across the manuscript",
-    "colophon": "Set in Fraunces & Spline Sans."
+    "colophon": "Set in Fraunces & Spline Sans.",
+    "gap": "today | yesterday | {n} days ago",
+    "range": {
+      "none": "no chapters yet",
+      "one": "Chapter {num}",
+      "many": "Chapters {first}–{last}"
+    },
+    "centredSub": {
+      "today": "today's chapter",
+      "yesterday": "yesterday's session",
+      "gap": "your last session — {gap}",
+      "none": "your last open chapter"
+    },
+    "centred": "centred on ch. {num} — {sub}",
+    "statusTodo": "To do",
+    "doneCount": "{n} done",
+    "centredOn": "centred on {num}",
+    "tail": {
+      "first": "Your first session awaits.",
+      "today": "You've already written today.",
+      "since": "{gap} since your last session."
+    },
+    "formFallback": "manuscript in progress"
   },
   "foreshadowing": {
     "eyebrow": "Foreshadowing scan",
@@ -707,7 +912,14 @@
       "secret": "Secret",
       "threat": "Threat",
       "debt": "Debt"
-    }
+    },
+    "err": {
+      "noChapters": "No chapters to scan.",
+      "noProvider": "Configure an AI provider in Settings → AI to run the scan.",
+      "failed": "Couldn't run scan."
+    },
+    "pinnedToast": "Pinned {n} loose thread. | Pinned {n} loose threads.",
+    "taskLabel": "Foreshadowing scan"
   },
   "plotHoles": {
     "eyebrow": "Plot holes",
@@ -751,7 +963,13 @@
       "characterKnowledge": "Character knowledge",
       "object": "Object / detail",
       "other": "Other"
-    }
+    },
+    "err": {
+      "noProvider": "Configure an AI provider in Settings → AI to run the audit.",
+      "failed": "Couldn't run the audit."
+    },
+    "taskLabel": "Plot-hole / continuity audit",
+    "taskShort": "Plot hole scan"
   },
   "marketingPack": {
     "eyebrow": "Marketing pack",
@@ -786,7 +1004,16 @@
     "verifyTerm": "Verify these before sending anywhere.",
     "untitledComp": "(untitled)",
     "confidenceLabel": "{level} confidence",
-    "clearPack": "Clear pack"
+    "clearPack": "Clear pack",
+    "err": {
+      "noProvider": "Configure an AI provider in Settings → AI to generate the marketing pack.",
+      "failed": "Couldn't generate the marketing pack.",
+      "copy": "Couldn't copy — your browser may have blocked the clipboard."
+    },
+    "taskLabel": "Marketing pack",
+    "copiedToast": "{label} copied to clipboard.",
+    "synopsisLabel": "Synopsis",
+    "noPitch": "(no pitch returned)"
   },
   "readerKnowledge": {
     "title": "Reader knowledge",
@@ -820,7 +1047,12 @@
     "factsCount": "{n} facts",
     "newForReader": "New for the reader",
     "newForPov": "New for the POV character",
-    "noNewFacts": "No new facts this chapter."
+    "noNewFacts": "No new facts this chapter.",
+    "err": {
+      "noProvider": "Configure an AI provider in Settings → AI to run this analysis.",
+      "failed": "Couldn't complete the analysis."
+    },
+    "taskLabel": "Reader knowledge"
   },
   "relationshipArc": {
     "eyebrow": "Relationship arc",
@@ -850,7 +1082,14 @@
     "rowPower": "Power",
     "detailVals": "warmth {warmth}/10 · tension {tension}/10 · power: {power}",
     "analyse": "Analyse",
-    "clearThisArc": "Clear this arc"
+    "clearThisArc": "Clear this arc",
+    "err": {
+      "noProvider": "Configure an AI provider in Settings → AI to track the relationship.",
+      "failed": "Couldn't analyse the relationship.",
+      "sameCharacter": "Pick two different characters."
+    },
+    "taskLabel": "Relationship arc",
+    "powerEqual": "Equal"
   },
   "writingAi": {
     "embeddingsEyebrow": "Embeddings & RAG",
@@ -883,7 +1122,9 @@
     "previewFingerprint": "Preview the fingerprint that will be injected",
     "storyContextCardTitle": "Story context",
     "storyContextDesc": "When the AI drafts a character, it reads your premise, genre, world rules, Setting and main cast. Rewrite, Expand, Tighten, Continue, Describe, Rewrite with direction…, Continue with direction… and Write dialogue… also read the scene they work in — its linked characters, places and objects, its beats and notes, and how the previous scene ends. Only what's relevant is sent; this is the most of the model's context window those notes may take. On a model with a small window, a lower share leaves more room for the reply; on a large one it rarely matters.",
-    "storyContextLabel": "Story notes may use up to"
+    "storyContextLabel": "Story notes may use up to",
+    "testTask": "Test · {action}",
+    "tabLabel": "Writing AI"
   },
   "richEditor": {
     "superscriptGlyph": "x²",
@@ -932,7 +1173,88 @@
     "edit": "Edit",
     "markerPlaceholder": "Optional one-line note (Enter to save)",
     "resolve": "Resolve",
-    "dropMarker": "Drop marker"
+    "dropMarker": "Drop marker",
+    "rules": {
+      "showDontTell": {
+        "label": "Show don't tell",
+        "description": "Trades told-emotion (\"she was nervous\") for the body language, behaviour, and dialogue that let the reader feel it firsthand."
+      },
+      "passiveVoice": {
+        "label": "Passive voice",
+        "description": "Switches to active voice when the actor matters. Leaves passive in place when the doer genuinely doesn't — crime scenes, mysteries, agentless states."
+      },
+      "filterWords": {
+        "label": "Filter words",
+        "description": "Strips the layer of \"she saw / he heard / I felt\" between the POV character and what they're perceiving. The reader gets the perception direct."
+      },
+      "dialogueTags": {
+        "label": "Dialogue tags",
+        "description": "Plainer tags (\"exclaimed\", \"retorted\" → \"said\") and action beats that show how a line lands. Pulls out adverb-glued tags (\"said angrily\") the same way."
+      },
+      "sensoryGrounding": {
+        "label": "Sensory grounding",
+        "description": "Anchors abstract or interior prose in the body — sight, sound, smell, the feel of the air. Pulls a scene out of pure thought and back into the world."
+      },
+      "sentenceVariety": {
+        "label": "Sentence variety",
+        "description": "When sentences start marching in lockstep, breaks long ones up or joins short ones together. Lets the rhythm breathe."
+      },
+      "proseTightening": {
+        "label": "Prose tightening",
+        "description": "Cuts hedges (just, really, somewhat), filler phrases, and lines that don't move the scene. The result is shorter and usually sharper."
+      }
+    },
+    "err": {
+      "nothingToContinue": "There's nothing to continue from.",
+      "guidedNeedsDirection": "Guided Continue needs a one-line direction.",
+      "nothingToWorkOn": "There's nothing to work on.",
+      "noDirection": "There's no direction to follow.",
+      "describeNeedsSelection": "Highlight the subject to describe (a place, person, object, or moment).",
+      "emptyResponse": "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.",
+      "continueNeedsCursor": "Place the cursor at the end of some prose to continue from.",
+      "sceneEmpty": "Nothing to work with — the scene is empty.",
+      "selectFirst": "Select some text first.",
+      "insertImage": "Couldn't insert image — {error}"
+    },
+    "taskLabel": "Writer assist · {action}",
+    "actionName": {
+      "continueGuided": "Continue (guided)",
+      "rewriteDirected": "Rewrite with direction",
+      "dialogue": "Write dialogue",
+      "describe": "Describe",
+      "continue": "Continue",
+      "continueDirected": "Continue with direction",
+      "rewrite": "Rewrite",
+      "expand": "Expand",
+      "tighten": "Tighten"
+    },
+    "placeholder": "Start writing…",
+    "action": {
+      "rewrite": "Rewriting selection…",
+      "expand": "Expanding selection…",
+      "tightenSelection": "Tightening selection…",
+      "tightenScene": "Tightening scene…",
+      "continue": "Continuing from cursor…",
+      "describe": "Describing selection…"
+    },
+    "variations": "Variations",
+    "variationsEyebrow": "{action} — three variations",
+    "variationsEyebrowScoped": "{action} — three variations ({scope})",
+    "scope": {
+      "selection": "selection",
+      "scene": "scene"
+    },
+    "pickDescription": "Pick a description to insert",
+    "pickContinuation": "Pick a continuation to insert",
+    "pickVariation": "Pick a variation to apply",
+    "pickLineEdit": "Pick a line-edit pass to apply",
+    "keys": {
+      "ctrl": "Ctrl",
+      "shift": "Shift",
+      "alt": "Alt"
+    },
+    "linkUrl": "Link URL",
+    "printTitle": "Print"
   },
   "home": {
     "eyebrow": "Manuscript",
@@ -983,7 +1305,17 @@
     "noPatterns": "Start writing to see your patterns.",
     "strandsHeading": "Narrative strands",
     "strandChapters": "{n} ch",
-    "noStrands": "No strands yet."
+    "noStrands": "No strands yet.",
+    "chapterN": "Chapter {num}",
+    "chapterTitled": "Chapter {num} — {title}",
+    "briefingTaskLabel": "Previously on your novel",
+    "err": {
+      "briefingNoProvider": "Configure an AI provider in Settings → AI to generate this briefing.",
+      "briefingFailed": "Couldn't generate briefing."
+    },
+    "manuscript": "Manuscript",
+    "regenerateBriefing": "Generate a fresh briefing",
+    "briefingTaskShort": "Previously on…"
   },
   "import": {
     "intro": "{importTerm} brings outside files into your project — {docx}, {epub}, {odt}, {md}, {txt}. Choose a mode (add to your current draft, start a new book, or bring sections in as notes), drop the file, review the parser's chapter split, confirm. Embedded images are extracted automatically.",
@@ -1037,7 +1369,18 @@
     "startOver": "Start over",
     "createBook": "Create book",
     "importNotes": "Import notes",
-    "importChapters": "Import chapters"
+    "importChapters": "Import chapters",
+    "untitledPart": "Untitled part",
+    "newPart": "New part…",
+    "err": {
+      "noContent": "No content found."
+    },
+    "warn": {
+      "ncx": "NCX parse failed; falling back to heading detection",
+      "nav": "Nav doc parse failed; falling back to heading detection",
+      "imagesSkipped": "{n} image skipped — unsupported format | {n} images skipped — unsupported format",
+      "odt": "Could not parse ODT content.xml"
+    }
   },
   "analysisView": {
     "milestones": "Milestones",
@@ -1123,7 +1466,26 @@
     "badgeCliffhanger": "Cliffhanger",
     "badgeSoft": "Soft hook",
     "badgeClosed": "Closed",
-    "badgeDeadEnd": "Dead-end"
+    "badgeDeadEnd": "Dead-end",
+    "err": {
+      "driftNoProvider": "Configure an AI provider in Settings → AI to explain voice drift.",
+      "driftFailed": "Couldn't generate explanation.",
+      "tensionNoProvider": "Configure an AI provider in Settings → AI to run the tension sweep.",
+      "tensionFailed": "Tension sweep failed."
+    },
+    "driftTaskLabel": "Voice drift explanation",
+    "cols": {
+      "words": "W",
+      "sentence": "Sent",
+      "paragraph": "Para",
+      "dialogue": "Dial",
+      "filter": "Filter",
+      "adverbs": "Adv",
+      "passive": "Pass",
+      "pov": "POV"
+    },
+    "driftTaskShort": "Voice drift",
+    "unattributed": "Unattributed"
   },
   "search": {
     "resultCount": "{n} result | {n} results",
@@ -1148,7 +1510,9 @@
       "note": "Notes",
       "strand": "Narrative strands",
       "architecture": "Architecture"
-    }
+    },
+    "chapterCrumb": "Ch. {num} {title}",
+    "kindStrand": "Narrative strand"
   },
   "reverseOutline": {
     "eyebrow": "Reverse outline",
@@ -1162,7 +1526,12 @@
     "chapterByChapter": "Chapter-by-chapter",
     "openChapterFallback": "Open chapter",
     "noBeat": "(no beat — chapter may be empty or new)",
-    "clearOutline": "Clear outline"
+    "clearOutline": "Clear outline",
+    "err": {
+      "noProvider": "Configure an AI provider in Settings → AI to generate the reverse outline.",
+      "failed": "Couldn't build the outline."
+    },
+    "taskLabel": "Reverse outline"
   },
   "projectReplace": {
     "title": "Find & replace in prose",
@@ -1177,7 +1546,9 @@
     "replaceRow": "Replace",
     "undoHint": "Replace all is a single undo (⌘Z).",
     "replaceAll": "Replace all",
-    "replaceAllCount": "Replace all ({n})"
+    "replaceAllCount": "Replace all ({n})",
+    "replacedAll": "Replaced {n} match across the manuscript. | Replaced {n} matches across the manuscript.",
+    "replacedOne": "Replaced {n} in {chapter}.{scene}."
   },
   "aiTell": {
     "eyebrow": "AI-tell scan",
@@ -1207,7 +1578,9 @@
     "restreamTooltip": "Discard this and re-stream just this column",
     "useThis": "Use this",
     "stillStreaming": "{running} of {total} still streaming",
-    "cancelAll": "Cancel all"
+    "cancelAll": "Cancel all",
+    "defaultLabel": "Three variations",
+    "defaultEyebrow": "Compare variations"
   },
   "commandPalette": {
     "ariaLabel": "Command palette",
@@ -1248,14 +1621,26 @@
     "noteTag": "tag · {tag}",
     "fromNamed": "from \"{name}\"",
     "fromRemovedEntity": "from removed entity",
-    "forKind": "for {kind}"
+    "forKind": "for {kind}",
+    "deleteOneTitle": "Permanently delete \"{name}\"?",
+    "deleteForever": "Delete forever",
+    "emptyConfirmTitle": "Empty trash?",
+    "emptyConfirmBody": "Permanently delete all {n} items in trash. This can't be undone.",
+    "colDetails": "Details",
+    "colDeleted": "Deleted",
+    "colActions": "Actions"
   },
   "dateTime": {
     "time": "Time",
     "meridiemAriaLabel": "AM/PM",
     "am": "AM",
     "pm": "PM",
-    "now": "Now"
+    "now": "Now",
+    "placeholder": "Set date & time",
+    "prevMonth": "Previous month",
+    "prevYear": "Previous year",
+    "nextYear": "Next year",
+    "nextMonth": "Next month"
   },
   "architecture": {
     "documentCount": "{n} document | {n} documents",
@@ -1263,7 +1648,8 @@
     "bodyPlaceholder": "Write the document…",
     "notFoundTitle": "Document not found",
     "notFoundBody": "This architecture document no longer exists.",
-    "backToList": "Back to architecture"
+    "backToList": "Back to architecture",
+    "askAbout": "Tell me about the {doc} document"
   },
   "events": {
     "newTitle": "New event",
@@ -1316,7 +1702,14 @@
     "empty": "No groups yet — create one below.",
     "memberCount": "{n} member | {n} members",
     "deleteGroup": "Delete group",
-    "newGroup": "New group"
+    "newGroup": "New group",
+    "askAbout": "Tell me about the group \"{name}\"",
+    "colMembers": "Members",
+    "searchPlaceholder": "Search groups…",
+    "searchEmpty": "No groups match your search.",
+    "removeMember": "Remove from group",
+    "newGroupPlaceholder": "e.g. The Cartographers' Guild",
+    "createGroup": "Create group"
   },
   "entityReview": {
     "eyebrow": "Entity proposals",
@@ -1345,7 +1738,10 @@
     "reading": "Reading {name}'s scenes…",
     "overwriteWarning": "replaces what you wrote",
     "applyAction": "Apply {n} field | Apply {n} fields",
-    "nothingGrounded": "The model couldn't ground any profile fields in these scenes."
+    "nothingGrounded": "The model couldn't ground any profile fields in these scenes.",
+    "taskVoice": "Voice: {name}",
+    "taskProfile": "Profile: {name}",
+    "characterFallback": "character"
   },
   "characterDraft": {
     "eyebrowDescription": "From a description",
@@ -1358,7 +1754,16 @@
     "nothingDrafted": "The model didn't draft any fields. Try again, or say a little more in the description.",
     "voiceFailed": "The voice pass failed ({error}) — the profile fields below are unaffected.",
     "groupProfile": "Profile",
-    "groupVoice": "Voice"
+    "groupVoice": "Voice",
+    "taskProfile": "Draft: profile",
+    "taskVoice": "Draft: voice",
+    "taskSection": "Draft: section",
+    "taskSuggest": "Suggest characters",
+    "field": {
+      "arcStart": "Arc — Beginning",
+      "arcMidpoint": "Arc — Midpoint",
+      "arcEnd": "Arc — End"
+    }
   },
   "linkBackfill": {
     "eyebrow": "Link scenes",
@@ -1369,7 +1774,8 @@
     "proposedCount": "{n} proposed",
     "matchedAs": "as “{name}”",
     "footerSelected": "{selected} of {total} links selected",
-    "linkAction": "Link {n} scene | Link {n} scenes"
+    "linkAction": "Link {n} scene | Link {n} scenes",
+    "linkedToast": "Linked {n} scene to the story bible. | Linked {n} scenes to the story bible."
   },
   "sensory": {
     "eyebrow": "Research feel",
@@ -1379,7 +1785,14 @@
     "idleBlurb": "Build a structured sensory pack — sights, sounds, smells, textures, tastes — for the selected subject. Change the provider in the chip above first if you want.",
     "action": "Research sensory details",
     "insertTooltip": "Click to insert at end of selection",
-    "phraseCount": "{n} phrase | {n} phrases"
+    "phraseCount": "{n} phrase | {n} phrases",
+    "err": {
+      "noProvider": "Configure an AI provider in Settings → AI to generate a sensory pack.",
+      "failed": "Couldn't generate the sensory pack.",
+      "empty": "The model returned no usable phrases. Try regenerating with a more specific subject."
+    },
+    "taskLabel": "Sensory research pack",
+    "taskShort": "Sensory research"
   },
   "stuck": {
     "eyebrow": "Stuck?",
@@ -1402,7 +1815,14 @@
       "setting": "Move the scene to a different place, or have the setting itself shift.",
       "reveal": "Reveal something the POV character doesn't yet know.",
       "timeframe": "Cut to a different moment — later, earlier, or somewhere else entirely."
-    }
+    },
+    "err": {
+      "noProvider": "Configure an AI provider in Settings → AI to generate Unstuck moves.",
+      "failed": "Couldn't generate moves.",
+      "empty": "The model didn't return any usable moves. Try regenerating."
+    },
+    "taskLabel": "Unstuck moves",
+    "taskShort": "Stuck diagnostic"
   },
   "storyContext": {
     "line": "Context: {parts}",
@@ -1419,7 +1839,17 @@
     "editNote": "Edit note",
     "deleteNote": "Delete note",
     "footerPinnedTo": "Notes stay pinned to {scope}",
-    "manageAll": "Manage all notes ↗"
+    "manageAll": "Manage all notes ↗",
+    "panelScene": "Scene notes",
+    "panelChapter": "Chapter notes",
+    "sceneTitled": "Scene {n} · {title}",
+    "thisScene": "this scene",
+    "thisChapter": "this chapter",
+    "placeholderScene": "Jot a note on this scene…",
+    "placeholderChapter": "Jot a chapter-level note…",
+    "untitledNote": "Untitled note",
+    "emptyNote": "Empty note.",
+    "chapterLevel": "Chapter-level"
   },
   "help": {
     "openOnWeb": "Open on the web",
@@ -1442,7 +1872,16 @@
     "customTheme": "Custom",
     "customThemeHint": "· your own mix",
     "mode": "Mode",
-    "modeTooltip": "Mode · {mode}"
+    "modeTooltip": "Mode · {mode}",
+    "modeSystem": "System",
+    "undo": "Undo · ⌘Z",
+    "nothingToUndo": "Nothing to undo on this page",
+    "redo": "Redo · ⌘⇧Z",
+    "nothingToRedo": "Nothing to redo on this page",
+    "askBook": "Ask the book · ⌘J",
+    "expandSidebar": "Expand sidebar · ⌘\\",
+    "collapseSidebar": "Collapse sidebar · ⌘\\",
+    "search": "Search · ⌘F"
   },
   "timeline": {
     "intro": "The {timeline} is a merged, read-only view of every event across every character, location, object, group, and the world Setting — sorted chronologically. Click any event title to edit it; click the entity badge on the right to jump to that entity's page. You add events from each entity's {events} button; the Timeline collects them automatically.",
@@ -1452,7 +1891,11 @@
   "status": {
     "ariaLabel": "Status",
     "unset": "Status Unset",
-    "new": "New status…"
+    "new": "New status…",
+    "dialogTitle": "New status",
+    "nameLabel": "Status name",
+    "namePlaceholder": "e.g. Polishing",
+    "addConfirm": "Add status"
   },
   "panes": {
     "ai": {
@@ -1593,7 +2036,8 @@
       "deleteWbCategoryConfirm": "Delete category",
       "newItemFallbackTitle": "New item",
       "newItemFallbackLabel": "Name",
-      "newItemFallbackConfirm": "Create"
+      "newItemFallbackConfirm": "Create",
+      "deleteWbCategoryMoves": "Its {n} article will move to \"{category}\". | Its {n} articles will move to \"{category}\"."
     },
     "empty": {
       "noChaptersMatch": "No chapters match",
@@ -1610,7 +2054,10 @@
       "savedNever": "never",
       "savedJustNow": "just now",
       "noEditsSaved": "No edits saved yet"
-    }
+    },
+    "statusUnset": "Unset",
+    "groupMain": "Main",
+    "groupSecondary": "Secondary"
   },
   "settings": {
     "title": "Settings",
@@ -2601,5 +3048,29 @@
   "syncPage": {
     "title": "Sync",
     "lead": "Bring your books from your other computer or phone: pair with it, or import a file you exported there."
+  },
+  "tagEditor": {
+    "placeholder": "Add tag…"
+  },
+  "mentionRefs": {
+    "empty": "Not mentioned in any scene yet. Type @ in a scene to mention it."
+  },
+  "sceneRefs": {
+    "empty": "No scenes linked yet. Open a scene → Links to add one."
+  },
+  "aiChip": {
+    "noModel": "No model set",
+    "openSettings": "open AI settings"
+  },
+  "connectionError": {
+    "need": "load and save your work",
+    "devHint": "Dev: start it with `npm run server` in the project root, then retry."
+  },
+  "bookTransfer": {
+    "exportTitle": "Export book",
+    "bookFilter": "JustWrite book",
+    "importTitle": "Import book",
+    "backupTitle": "Export backup",
+    "backupFilter": "Backup"
   }
 }

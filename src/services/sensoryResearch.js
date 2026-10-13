@@ -15,6 +15,7 @@
 //   }
 
 import { runJsonAnalysis } from "./runJson.js";
+import { t } from "../i18n/index.js";
 
 // Categories rendered in order in the modal. The "blurb" is shown
 // under each section header — sets the writer's expectation for what
@@ -73,7 +74,7 @@ export async function generateSensoryPack({
     provider,
     model,
     meta: sensoryMeta,
-    task: task || { label: "Sensory research", meta: sensoryMeta },
+    task: task || { label: t("sensory.taskShort"), meta: sensoryMeta },
   });
 
   const pack = {};

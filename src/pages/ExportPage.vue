@@ -80,7 +80,7 @@ function stageLabel() {
 // ── PDF / DOCX / EPUB ────────────────────────────────────────────────
 async function exportManuscript(fmtId) {
   if (!project.allChapters.length) {
-    exportError.value = "Project has no chapters to export.";
+    exportError.value = t("export.err.noChapters");
     return;
   }
   exportError.value = null;

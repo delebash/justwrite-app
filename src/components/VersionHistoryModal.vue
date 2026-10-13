@@ -19,6 +19,9 @@ import { AppModal } from "@delebash/llm-ui";
 import { EmptyState } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -63,7 +66,7 @@ function shortStamp(iso) {
   } catch { return iso || ""; }
 }
 function versionLabel(v) {
-  return v.label ? `“${clip(v.label)}”` : `version from ${shortStamp(v.savedAt)}`;
+  return v.label ? t("common.quoted", { text: clip(v.label) }) : t("versionHistory.versionFrom", { when: shortStamp(v.savedAt) });
 }
 
 function save() {
@@ -81,8 +84,8 @@ function remove(v) {
   const snapshot = { ...v };
   versions.deleteVersion(props.chapterId, v.id);
   ui.showToast({
-    message: `Deleted ${versionLabel(snapshot)}`,
-    action: { label: "Undo", fn: () => versions.addVersion(props.chapterId, snapshot) },
+    message: t("versionHistory.deletedToast", { label: versionLabel(snapshot) }),
+    action: { label: t("common.undo"), fn: () => versions.addVersion(props.chapterId, snapshot) },
   });
 }
 
@@ -96,7 +99,7 @@ function currentSnapshot() {
     title: s.title || "",
     body: s.body || "",
   }));
-  return { id: "current", label: "Current draft", savedAt: null, scenes };
+  return { id: "current", label: t("versionHistory.currentDraft"), savedAt: null, scenes };
 }
 
 function getVersionById(id) {
@@ -148,12 +151,12 @@ function backToList() {
 }
 
 function labelFor(id) {
-  if (id === "current") return "Current draft";
+  if (id === "current") return t("versionHistory.currentDraft");
   const v = list.value.find((x) => x.id === id);
-  return v ? (v.label || "Untitled version") : "—";
+  return v ? (v.label || t("versionHistory.untitledVersion")) : "—";
 }
 function whenFor(id) {
-  if (id === "current") return "live working copy";
+  if (id === "current") return t("versionHistory.liveWorkingCopy");
   const v = list.value.find((x) => x.id === id);
   return v ? when(v.savedAt) : "";
 }
@@ -161,8 +164,8 @@ function whenFor(id) {
 
 <template>
   <AppModal
-    eyebrow="Version history"
-    :title="chapterTitle || 'Chapter'"
+    :eyebrow="t('versionHistory.eyebrow')"
+    :title="chapterTitle || t('common.chapter')"
     :wide="mode === 'diff'"
     @close="emit('close')"
   >
@@ -227,7 +230,7 @@ function whenFor(id) {
         </div>
         <div v-for="v in list" :key="v.id" class="vh-row">
           <div class="vh-main">
-            <div class="vh-label">{{ v.label || "Untitled version" }}</div>
+            <div class="vh-label">{{ v.label || t("versionHistory.untitledVersion") }}</div>
             <div class="vh-meta">{{ $t("versionHistory.pickRowMeta", { when: when(v.savedAt), words: $t("versionHistory.wordsCount", { n: v.words.toLocaleString() }) }) }}</div>
           </div>
           <UiButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickA === v.id }" @click="pickAs('A', v.id)">{{ $t("versionHistory.sideA") }}</UiButton>

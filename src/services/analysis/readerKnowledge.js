@@ -23,6 +23,7 @@
 import { withAiTask } from "@delebash/llm-ui";
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
+import { t } from "../../i18n/index.js";
 
 // ─── helpers ─────────────────────────────────────────────────────────
 
@@ -154,7 +155,7 @@ export async function analyseChapterKnowledge({
     provider,
     model,
     meta,
-    task: task || { label: "Reader knowledge", meta },
+    task: task || { label: t("readerKnowledge.taskLabel"), meta },
   });
 
   const status = STATUS_OPTIONS.includes(parsed.status) ? parsed.status : "neutral";
@@ -238,7 +239,7 @@ export async function scanReaderKnowledge({
   // aborts the entire loop; per-chapter progress renders as n/m on the entry.
   return withAiTask({
     feature: "readerKnowledge",
-    label: "Reader knowledge",
+    label: t("readerKnowledge.taskLabel"),
     meta: { kind: "readerKnowledge" },
     signal,
   }, (handle) => runSweep(handle, { project, allChapters, provider, model, onProgress }));

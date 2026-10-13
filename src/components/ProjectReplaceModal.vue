@@ -14,6 +14,9 @@ import { AppModal } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({ initialTerm: { type: String, default: "" } });
 const emit = defineEmits(["close"]);
@@ -35,11 +38,11 @@ const lastResult = ref("");
 function replaceAll() {
   if (!canReplace.value) return;
   const n = project.replaceInScenes(term.value.trim(), replaceWith.value, { caseSensitive: caseSensitive.value });
-  lastResult.value = `Replaced ${n} ${n === 1 ? "match" : "matches"} across the manuscript.`;
+  lastResult.value = t("projectReplace.replacedAll", { n }, n);
 }
 function replaceRow(row) {
   const n = project.replaceInScene(row.chapterId, row.sceneId, term.value.trim(), replaceWith.value, { caseSensitive: caseSensitive.value });
-  if (n) lastResult.value = `Replaced ${n} in ${row.chapterNum}.${row.sceneIdx}.`;
+  if (n) lastResult.value = t("projectReplace.replacedOne", { n, chapter: row.chapterNum, scene: row.sceneIdx });
 }
 function openScene(row) {
   ui.select("chapters", row.chapterId);

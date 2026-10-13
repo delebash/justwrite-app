@@ -9,6 +9,9 @@
 
 import { computed, ref, nextTick } from "vue";
 import { NodeViewWrapper, nodeViewProps } from "@tiptap/vue-3";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps(nodeViewProps);
 
@@ -22,7 +25,7 @@ const title = computed({
 
 const placeholder = computed(() => {
   const idx = Number(props.node.attrs.sceneIdx ?? 0);
-  return `Scene ${idx + 1} — untitled`;
+  return t("editor.sceneUntitled", { n: idx + 1 });
 });
 
 // Esc / Enter blur the input — both commit (v-model already writes on

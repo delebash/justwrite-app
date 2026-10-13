@@ -19,6 +19,9 @@ import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { useSelectNewName } from "../composables/useSelectNewName.js";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
@@ -64,7 +67,7 @@ function askTheBook() {
   if (!g.value) return;
   ui.openChatPanelFor({
     mode: "book",
-    question: `Tell me about the group "${g.value.name}"`,
+    question: t("groups.askAbout", { name: g.value.name }),
     sourceKey: `ask:group:${g.value.id}`,
   });
 }
@@ -85,14 +88,14 @@ const statusOptions = computed(() =>
 // and the clear-all now live there (components/EntityIndex.vue), not in a private
 // copy per view.
 const facets = computed(() => [
-  { key: "status", label: "Status", options: statusOptions.value },
+  { key: "status", label: t("common.status"), options: statusOptions.value },
 ]);
 
-const columns = [
-  { accessorKey: "name",    header: "Name",    sortable: true,  headerStyle: "min-width: 200px" },
-  { accessorKey: "members", header: "Members", sortable: true,  headerStyle: "min-width: 100px; text-align: center" },
-  { accessorKey: "status",  header: "Status",  sortable: true,  headerStyle: "min-width: 120px" },
-];
+const columns = computed(() => [
+  { accessorKey: "name",    header: t("common.name"),    sortable: true,  headerStyle: "min-width: 200px" },
+  { accessorKey: "members", header: t("groups.colMembers"), sortable: true,  headerStyle: "min-width: 100px; text-align: center" },
+  { accessorKey: "status",  header: t("common.status"),  sortable: true,  headerStyle: "min-width: 120px" },
+]);
 
 function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
 function statusSeverity(id) {
@@ -133,8 +136,8 @@ function onRowClick(event) {
         :columns="columns"
         :facets="facets"
         :search-fields="['name']"
-        search-placeholder="Search groups…"
-        empty-text="No groups match your search."
+        :search-placeholder="t('groups.searchPlaceholder')"
+        :empty-text="t('groups.searchEmpty')"
         @row-click="onRowClick">
         <template #intro>
           <i18n-t keypath="groups.introList" tag="p" class="entity-desc" style="margin: 0 0 18px" scope="global">
@@ -220,7 +223,7 @@ function onRowClick(event) {
                     <template #icon><Icon :name="KIND_ICON[m.kind] || 'Star'" :size="15" /></template>
                     {{ m.name }}
                   </UiButton>
-                  <UiButton intent="ghost" size="small" v-tooltip.bottom="'Remove from group'" @click="project.removeGroupMember(g.id, m.kind, m.id)">×</UiButton>
+                  <UiButton intent="ghost" size="small" v-tooltip.bottom="t('groups.removeMember')" @click="project.removeGroupMember(g.id, m.kind, m.id)">×</UiButton>
                 </div>
               </div>
             </div>

@@ -13,6 +13,7 @@
 import { buildCharacterProfile } from "../rag/profile.js";
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText, tailWords } from "../text.js";
+import { t } from "../../i18n/index.js";
 
 // The prompt lives server-side (features.py, action "characterAudit").
 
@@ -155,7 +156,7 @@ export async function auditCharacter({
     provider,
     model,
     meta: auditMeta,
-    task: task || { label: "Character audit", meta: auditMeta },
+    task: task || { label: t("characterAudit.taskShort"), meta: auditMeta },
   });
 
   const rawConcerns = Array.isArray(parsed.concerns) ? parsed.concerns : [];

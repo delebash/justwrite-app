@@ -22,6 +22,10 @@ import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiSelect, UiInput, UiTextarea, UiBanner } from "@delebash/llm-ui";
 import { analyseRelationship, pairKey, TRAJECTORY_LABELS } from "../services/analysis/relationshipArc.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
+import { useI18n } from "vue-i18n";
+import { relativeTime } from "@delebash/llm-ui";
+
+const { t } = useI18n();
 
 const emit = defineEmits(["close"]);
 
@@ -80,11 +84,11 @@ if (!aId.value && !bId.value) {
 async function run() {
   error.value = "";
   if (!ai.providerForFeature("relationshipArc")) {
-    error.value = "Configure an AI provider in Settings → AI to track the relationship.";
+    error.value = t("relationshipArc.err.noProvider");
     return;
   }
   if (!aId.value || !bId.value || aId.value === bId.value) {
-    error.value = "Pick two different characters.";
+    error.value = t("relationshipArc.err.sameCharacter");
     return;
   }
   try {
@@ -92,15 +96,15 @@ async function run() {
       project,
       characterAId: aId.value,
       characterBId: bId.value,
-      task: { label: "Relationship arc", meta: {} },
+      task: { label: t("relationshipArc.taskLabel"), meta: {} },
     });
     project.setRelationshipArc(currentKey.value, result);
   } catch (e) {
     if (!isAbort(e)) {
       const msg = String(e?.message || e || "");
       error.value = /provider|api key|configure/i.test(msg)
-        ? "Configure an AI provider in Settings → AI to track the relationship."
-        : msg || "Couldn't analyse the relationship.";
+        ? t("relationshipArc.err.noProvider")
+        : msg || t("relationshipArc.err.failed");
     }
   }
 }
@@ -148,7 +152,7 @@ function tensionColour(v) {
 function powerLabel(power, charA, charB) {
   if (power === "A") return charA;
   if (power === "B") return charB;
-  return "Equal";
+  return t("relationshipArc.powerEqual");
 }
 function powerColour(power) {
   if (power === "A") return "color-mix(in oklab, var(--accent) 36%, transparent)";
@@ -160,16 +164,6 @@ const selectedChapter = ref(null);
 function selectChapter(row) {
   selectedChapter.value = row?.chapterNum === selectedChapter.value?.chapterNum ? null : row;
 }
-
-const ago = (ts) => {
-  if (!ts) return "";
-  const m = Math.floor((Date.now() - ts) / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-};
 
 const TRAJECTORY_COLOURS = {
   warming:    "var(--gold)",
@@ -224,7 +218,7 @@ const TRAJECTORY_COLOURS = {
           {{ TRAJECTORY_LABELS[arc.trajectory] || arc.trajectory }}
         </span>
         <span class="ra-meta">
-          {{ $t("relationshipArc.meta", { chapters: $t("count.sharedChapter", { n: arc.chapters.length }, arc.chapters.length), scenes: $t("count.sharedScene", { n: arc.sharedScenes }, arc.sharedScenes), when: ago(arc.generatedAt) }) }}
+          {{ $t("relationshipArc.meta", { chapters: $t("count.sharedChapter", { n: arc.chapters.length }, arc.chapters.length), scenes: $t("count.sharedScene", { n: arc.sharedScenes }, arc.sharedScenes), when: relativeTime(arc.generatedAt) }) }}
         </span>
       </div>
 
