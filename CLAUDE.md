@@ -30,7 +30,7 @@ npm run build          # the installer — and the UnPackaged app with its serve
 npm run test:fast      # quick gate: renderer vitest + build:spa + server vitest
 npm run test:unit      # renderer vitest only
 npm run test:server    # server vitest only (server/tests/, on Electron's Node)
-npm run i18n:report    # locale coverage — MISSING must always be zero
+npm run i18n:report    # key coverage of the English catalogs — MISSING must always be zero
 node ../just-llm-runner/scripts/check-family.js   # the family guard — must pass before a commit
 ```
 
@@ -64,7 +64,7 @@ Windows, macOS and Linux layouts) or set `JW_CHROME`. Never hardcode a browser p
 - **A new mutating store action must be added to `ACTION_DOMAINS`** — an unmapped action warns and records nothing, so undo silently skips it. Keystroke-grain mutators also go in `COALESCED_ACTIONS` or the undo buffer fills instantly.
 - **`project` is one monolithic Pinia store on purpose** — it owns snapshot-based undo/redo across all entities. That is JustWrite's sanctioned exception to per-domain stores.
 - **The kit's `Ui*` controls take one `intent` prop** that encodes role AND style — never add `severity` / `outlined` / `text`.
-- **`i18n/locales/en.json` is the world** for user-facing English. Reuse an existing key before minting a new one; `MISSING` in `i18n:report` must stay zero.
+- **`i18n/locales/en.json` is the world** for user-facing English. Reuse an existing key before minting a new one; `MISSING` in `i18n:report` must stay zero. A new key goes into `en.json` only: other languages fill through docgen and show English until then (2026-10-13).
 - **NOTHING hardcoded** — every value, threshold, name, mapping, flag and preset lives in the DB, seeded and user-editable. Code is only the engine.
 - **No JSON blobs in SQL** — relational data gets real columns and rows. JSON only for genuinely freeform data, with a cited reason.
 - The **`@renderer` alias** is `src/`. Prefer relative imports within a directory, `@renderer/...` across the tree.

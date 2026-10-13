@@ -26,7 +26,7 @@
     "release:macos": "npm run release -- --platform macos",
     "release:linux": "npm run release -- --platform linux",
     "i18n:lint": "eslint -c eslint.i18n.config.js \"src/**/*.vue\"",
-    "i18n:report": "vue-i18n-extract report --vueFiles \"src/**/*.?(js|vue)\" --languageFiles \"{src/i18n/locales,../just-llm-runner/ui/src/i18n/locales}/*.json\" --exclude kit.",
+    "i18n:report": "vue-i18n-extract report --vueFiles \"src/**/*.?(js|vue)\" --languageFiles \"{src/i18n/locales,../just-llm-runner/ui/src/i18n/locales}/en.json\" --exclude kit.",
     "i18n:pseudo": "node scripts/i18n-pseudo.js",
     "bench": "node bench/harness/run.js",
     "bench:gpu": "npm run bench -- --config bench/harness/configs/gpu.json --autostart",

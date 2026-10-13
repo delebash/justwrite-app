@@ -35,9 +35,10 @@ export default [
           },
           // Text made only of digits, spaces, punctuation and symbols is never words: close
           // buttons (✕), checkmarks (✓), dividers, key glyphs (⌘). \p{S} is there because Unicode
-          // files many of these as symbols, not punctuation (× − ✓ ↑ ⏎). Double backslashes on
-          // purpose: the rule builds a RegExp from this string with the "u" flag.
-          ignorePattern: "^[\\d\\s\\p{P}\\p{S}]*$",
+          // files many of these as symbols, not punctuation (× − ✓ ↑ ⏎). \p{M} is there for the
+          // marks that ride on a symbol: U+FE0F, which turns ⚠ into the emoji ⚠️. Double
+          // backslashes on purpose: the rule builds a RegExp from this string with the "u" flag.
+          ignorePattern: "^[\\d\\s\\p{P}\\p{S}\\p{M}]*$",
           // Elements whose content is never words: an icon, a <code> identifier (`.zip`,
           // `accent2`) and a <kbd> key name (`⌘F`) — ids and key names are not translated.
           ignoreNodes: ["Icon", "code", "kbd"],

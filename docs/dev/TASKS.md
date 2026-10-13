@@ -34,6 +34,10 @@ HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates 
         (2026-10-12). Items 1–4 done (the plan's "Task 1 follow-ups"); in 2 only JustWrite imports
         the appearance tables, so JustVoice was told when it landed, not before. Item 5, Task 2
         (the template, app-structure §Q.11, the guard's check 16), done 2026-10-12.
+        Ruled 2026-10-13 ("your rec go"; the questions as asked are in the kit's TASKS): the ⚠️
+        icon — the family lint ignores marks (`\p{M}`); the script-string guard —
+        `eslint-plugin-i18next`'s `no-literal-string`; Spanish for new keys — MISSING 0 is for
+        English, other languages wait for docgen (`i18n:report` reads the English catalogs).
 FOUND:  by the screenshot pass, both older than this work and not changed by it — the AI engine
         console's level and source selects stretch to the full width on rows of their own; the
         model catalog's Fit chip ("Fits · slow") runs into the Status column at 1280 px.

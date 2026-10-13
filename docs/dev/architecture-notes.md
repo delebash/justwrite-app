@@ -166,11 +166,11 @@ Coverage is being brought up view by view, so expect raw strings still in unconv
 
 ```bash
 npm run i18n:lint      # @intlify no-raw-text over src/**/*.vue — finds English still
-                       # hard-coded in templates. "warn" during the sweep; flips to "error" once
-                       # coverage completes. Config: eslint.i18n.config.js (i18n rules ONLY —
-                       # Biome remains the style linter).
-npm run i18n:report    # vue-i18n-extract: keys referenced but missing from the catalog, and
-                       # catalog keys nobody references. MISSING must always be zero.
+                       # hard-coded in templates, at "error". Config: eslint.i18n.config.js, the
+                       # family's one file (i18n rules ONLY — Biome remains the style linter).
+npm run i18n:report    # vue-i18n-extract: keys referenced but missing from the English catalogs
+                       # (ours and the kit's), and keys nobody references. MISSING must always be
+                       # zero. Other languages are docgen's to fill; a key they lack shows English.
 npm run i18n:pseudo    # writes locales/qps.json — accented +30%-padded English, to expose
                        # unconverted strings and overflow. NOT registered in the app yet
                        # (i18n/index.js lists locales explicitly); the switcher phase wires it.
