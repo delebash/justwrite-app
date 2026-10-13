@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { useSessionsStore, DOW_LABELS_MONDAY_FIRST, reorderForMonday } from "../stores/sessions.js";
+import { useSessionsStore, reorderForMonday } from "../stores/sessions.js";
 import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore, Icon, AiTaskStrip, UiButton, pageFill } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
@@ -13,7 +13,7 @@ import AiFeatureChip from "../components/AiFeatureChip.vue";
 import SessionRecapModal from "../components/SessionRecapModal.vue";
 import { useI18n } from "vue-i18n";
 
-const { t } = useI18n();
+const { t, d: fmtDate } = useI18n();
 
 const router = useRouter();
 const project = useProjectStore();
@@ -249,12 +249,15 @@ const canWrapUp = computed(() => sessions.todayWords > 0 || !!sessions.todayChap
 const hasTodayRecap = computed(() => !!project.getDailyRecap(todayKey()));
 
 // ── Cadence (day-of-week) peak + strand chapter counts ───
-const FULL_DOW = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+// Monday first, in the interface language (2024-01-01 was a Monday).
+const FULL_DOW = computed(() => Array.from({ length: 7 }, (_, i) => fmtDate(new Date(2024, 0, 1 + i), { weekday: "long" })));
+// the day-of-week chart's letters (M T W … in English)
+const DOW_LETTERS = computed(() => Array.from({ length: 7 }, (_, i) => fmtDate(new Date(2024, 0, 1 + i), { weekday: "narrow" })));
 const bestDowIdx = computed(() => {
   const m = Math.max(...dowAvg.value);
   return m > 0 ? dowAvg.value.indexOf(m) : -1;
 });
-const bestDow = computed(() => (bestDowIdx.value >= 0 ? FULL_DOW[bestDowIdx.value] : "—"));
+const bestDow = computed(() => (bestDowIdx.value >= 0 ? FULL_DOW.value[bestDowIdx.value] : "—"));
 const bestDowAvg = computed(() => (bestDowIdx.value >= 0 ? dowAvg.value[bestDowIdx.value] : 0));
 const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes(id)).length;
 </script>
@@ -301,7 +304,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
                   <div class="ring-sub">{{ $t("home.ofGoal") }}</div>
                 </div>
               </div>
-              <div class="ring-words">{{ $t("home.ringWords", { words: totalWords.toLocaleString(), goal: P.wordsGoal.toLocaleString() }) }}</div>
+              <div class="ring-words">{{ $t("home.ringWords", { words: $n(totalWords), goal: $n(P.wordsGoal) }) }}</div>
             </div>
           </div>
 
@@ -333,7 +336,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
             <p v-if="resumeTeaser" class="resume-quote">{{ resumeTeaser }}</p>
             <p v-else class="resume-quote resume-empty">{{ $t("home.blankPage") }}</p>
             <div class="resume-sub">
-              <span>{{ $t("home.wordsCount", { n: (resumeCh.words || 0).toLocaleString() }) }}</span>
+              <span>{{ $t("home.wordsCount", { n: $n(resumeCh.words || 0) }) }}</span>
               <span class="dot-sep">·</span>
               <span>{{ $t("count.scene", { n: resumeCh.scenes }, resumeCh.scenes) }}</span>
               <template v-if="resumeStatus">
@@ -397,11 +400,11 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
         <!-- Today's session -->
         <div class="card">
           <div class="gcard-h">{{ $t("home.todaysSession") }} <span class="tag">{{ $t("home.liveTag") }}</span></div>
-          <div class="gstat">{{ sessions.todayWords.toLocaleString() }}<small>{{ $t("home.wordsUnit") }}</small></div>
+          <div class="gstat">{{ $n(sessions.todayWords) }}<small>{{ $t("home.wordsUnit") }}</small></div>
           <div class="gkv">
             <span class="k">{{ $t("home.streak") }}</span><span class="v">{{ $t("count.day", { n: sessions.streak }, sessions.streak) }}</span>
-            <span class="k">{{ $t("home.thisFortnight") }}</span><span class="v">{{ totals14.total.toLocaleString() }}</span>
-            <span class="k">{{ $t("home.avgPerDay") }}</span><span class="v">{{ totals14.avg.toLocaleString() }}</span>
+            <span class="k">{{ $t("home.thisFortnight") }}</span><span class="v">{{ $n(totals14.total) }}</span>
+            <span class="k">{{ $t("home.avgPerDay") }}</span><span class="v">{{ $n(totals14.avg) }}</span>
           </div>
           <div class="gticks">
             <i v-for="(active, i) in streakSquares" :key="i" :class="{ on: active }" v-tooltip.bottom="history14[i].date" />
@@ -432,9 +435,9 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
             <polyline :points="sparkPts.pts" fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke" />
           </svg>
           <div class="gkv">
-            <span class="k">{{ $t("home.total") }}</span><span class="v">{{ $t("home.totalWords", { n: totals14.total.toLocaleString() }) }}</span>
-            <span class="k">{{ $t("home.avgPerDay") }}</span><span class="v">{{ totals14.avg.toLocaleString() }}</span>
-            <span class="k">{{ $t("home.peakDay") }}</span><span class="v">{{ totals14.peak.toLocaleString() }}</span>
+            <span class="k">{{ $t("home.total") }}</span><span class="v">{{ $t("home.totalWords", { n: $n(totals14.total) }) }}</span>
+            <span class="k">{{ $t("home.avgPerDay") }}</span><span class="v">{{ $n(totals14.avg) }}</span>
+            <span class="k">{{ $t("home.peakDay") }}</span><span class="v">{{ $n(totals14.peak) }}</span>
           </div>
         </div>
 
@@ -447,11 +450,11 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
               :style="`height:${Math.max(3, (v / dowMax) * 100)}%`" />
           </div>
           <div class="gdow-lbls">
-            <span v-for="(d, i) in DOW_LABELS_MONDAY_FIRST" :key="i" class="lbl">{{ d }}</span>
+            <span v-for="(d, i) in DOW_LETTERS" :key="i" class="lbl">{{ d }}</span>
           </div>
           <div class="gkv" style="margin-top:16px">
             <span class="k">{{ $t("home.bestDay") }}</span><span class="v">{{ bestDow }}</span>
-            <span class="k">{{ $t("home.mostWords") }}</span><span class="v">{{ $t("home.avgWords", { n: bestDowAvg.toLocaleString() }) }}</span>
+            <span class="k">{{ $t("home.mostWords") }}</span><span class="v">{{ $t("home.avgWords", { n: $n(bestDowAvg) }) }}</span>
           </div>
           <div v-if="totals14.total === 0" class="t-muted" style="font-size:11px;margin-top:10px;font-style:italic">
             {{ $t("home.noPatterns") }}

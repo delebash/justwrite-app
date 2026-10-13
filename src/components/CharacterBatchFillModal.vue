@@ -32,7 +32,7 @@ import { watchdogTimeoutMs } from "../services/analysis/entitySweep.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const props = defineProps({
   // When set (from the sweep-accept chain), pre-check exactly these ids.
@@ -50,7 +50,7 @@ const autoApply = ref(false);
 
 function buildPickRows() {
   const chars = [...(project.characters || [])];
-  chars.sort((a, b) => (Number(!!b.main) - Number(!!a.main)) || (a.name || "").localeCompare(b.name || ""));
+  chars.sort((a, b) => (Number(!!b.main) - Number(!!a.main)) || (a.name || "").localeCompare(b.name || "", locale.value));
   pickRows.value = chars.map((c) => {
     const scenes = characterSceneCount(project, c.id);
     return { id: c.id, name: c.name || t("batchFill.unnamed"), role: c.role || "", scenes, checked: false, disabled: scenes === 0 };

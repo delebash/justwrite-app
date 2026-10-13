@@ -16,7 +16,7 @@ import { useUiStore } from "../stores/ui.js";
 import { collectEntities, proposeSceneLinks } from "../services/rag/entityMatcher.js";
 import { useI18n } from "vue-i18n";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const emit = defineEmits(["close", "applied"]);
 
@@ -48,7 +48,7 @@ function buildGroups(list) {
   const grouped = { characters: [], locations: [], objects: [] };
   for (const g of byEntity.values()) grouped[g.field]?.push(g);
   for (const k of Object.keys(grouped)) {
-    grouped[k].sort((a, b) => a.entityName.localeCompare(b.entityName));
+    grouped[k].sort((a, b) => a.entityName.localeCompare(b.entityName, locale.value));
   }
   return grouped;
 }

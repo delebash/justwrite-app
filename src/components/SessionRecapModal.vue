@@ -180,7 +180,7 @@ onMounted(() => {
 
     <div class="recap-stats">
       <div class="recap-stat">
-        <div class="recap-stat-v">{{ headerStats.words.toLocaleString() }}</div>
+        <div class="recap-stat-v">{{ $n(headerStats.words) }}</div>
         <div class="recap-stat-k">{{ $t("sessionRecap.wordsToday") }}</div>
       </div>
       <div v-if="headerStats.chapter" class="recap-stat recap-stat-wide">

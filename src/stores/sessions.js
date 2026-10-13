@@ -170,8 +170,6 @@ export const useSessionsStore = defineStore("sessions", {
   },
 });
 
-// "M T W T F S S" with Monday first — for the day-of-week chart.
-export const DOW_LABELS_MONDAY_FIRST = ["M", "T", "W", "T", "F", "S", "S"];
 export function reorderForMonday(sundayFirst) {
   return [...sundayFirst.slice(1), sundayFirst[0]];
 }

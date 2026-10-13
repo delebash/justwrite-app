@@ -928,7 +928,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
                   @click.stop
                   @input="updateTitle(c.id, $event.target.value)" />
                 <span class="ol-chapter-meta">
-                  {{ $t('chapters.outline.sceneCount', { n: c.scenes }, c.scenes) }} · {{ $t('chapters.outline.wordCount', { n: c.words.toLocaleString() }, c.words) }}
+                  {{ $t('chapters.outline.sceneCount', { n: c.scenes }, c.scenes) }} · {{ $t('chapters.outline.wordCount', { n: $n(c.words) }, c.words) }}
                 </span>
                 <span v-if="project.notesForChapter(c.id).length"
                   class="ol-scene-notes"
@@ -1341,13 +1341,13 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
 
       <div style="display:flex;align-items:center;gap:16px;padding:8px 22px;border-top:1px solid var(--border);background:var(--surface-2);font-size:11.5px;color:var(--muted)">
         <span v-if="activeScene || continuousMode">
-          <b class="t-num" style="color:var(--ink)">{{ sceneWordCount.toLocaleString() }}</b> {{ $t('chapters.footer.words') }} ·
-          <b class="t-num" style="color:var(--ink)">{{ sceneCharCount.toLocaleString() }}</b> {{ $t('chapters.footer.characters') }}
+          <b class="t-num" style="color:var(--ink)">{{ $n(sceneWordCount) }}</b> {{ $t('chapters.footer.words') }} ·
+          <b class="t-num" style="color:var(--ink)">{{ $n(sceneCharCount) }}</b> {{ $t('chapters.footer.characters') }}
           <span v-if="continuousMode" style="margin-left:6px">{{ $t('chapters.footer.chapterSuffix') }}</span>
         </span>
         <span v-if="aiNotice" class="ai-done-note">
           <Icon name="Sparkle" :size="11" />
-          <span>{{ $t('chapters.footer.aiDone', { label: aiNotice.label, s: (aiNotice.durationMs / 1000).toFixed(1) }) }}<template v-if="aiNotice.tokensOut"> {{ $t('chapters.footer.aiTokens', { n: aiNotice.tokensOut.toLocaleString() }) }}</template></span>
+          <span>{{ $t('chapters.footer.aiDone', { label: aiNotice.label, s: $n(aiNotice.durationMs / 1000, 'oneDecimal') }) }}<template v-if="aiNotice.tokensOut"> {{ $t('chapters.footer.aiTokens', { n: $n(aiNotice.tokensOut) }) }}</template></span>
           <button class="ai-done-link" @click="aiTasks.openPanel()">{{ $t('chapters.footer.viewTaskQueue') }}</button>
           <button class="ai-done-x" :aria-label="$t('chapters.footer.dismiss')" @click="dismissedNoticeId = aiNotice.id">✕</button>
         </span>
@@ -1413,7 +1413,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
       </template>
 
       <template #words="{ row }">
-        <span class="t-num entity-cell-sub">{{ (row.words || 0).toLocaleString() }}</span>
+        <span class="t-num entity-cell-sub">{{ $n(row.words || 0) }}</span>
       </template>
     </EntityIndex>
 

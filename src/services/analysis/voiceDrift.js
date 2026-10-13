@@ -21,19 +21,21 @@
 import { runAiFeature } from "@delebash/llm-ui";
 import { htmlToText, tailWords } from "../text.js";
 import { bookMetrics } from "./styleMetrics.js";
-import { t, tEnglish } from "../../i18n/index.js";
+import { n, t, tEnglish } from "../../i18n/index.js";
 
 // Which metrics from bookMetrics rows are worth tracking for drift.
-// Each entry: { key, labelKey, unit, format }. `format` is a function that
-// renders the value for display.
+// Each entry: { key, labelKey, unit, format }. `format(v, lang)` renders the value in the
+// interface language, or in `lang` ("en" — the drift prompt reads English).
+const fmtNumber = (v, format, lang) => (lang ? n(v, format, lang) : n(v, format));
+const one = (v, lang) => fmtNumber(v, "oneDecimal", lang);
 export const TRACKED_METRICS = [
-  { key: "avgSentenceLength",    labelKey: "analysisView.metric.avgSentence", unit: "words", format: (v) => v.toFixed(1) },
-  { key: "avgParagraphLength",   labelKey: "analysisView.metric.avgParagraph", unit: "words", format: (v) => v.toFixed(1) },
-  { key: "dialogueRatio",        labelKey: "analysisView.metric.dialogue",       unit: "%",    format: (v) => `${Math.round(v * 100)}%`,
+  { key: "avgSentenceLength",    labelKey: "analysisView.metric.avgSentence", unit: "words", format: (v, lang) => one(v, lang) },
+  { key: "avgParagraphLength",   labelKey: "analysisView.metric.avgParagraph", unit: "words", format: (v, lang) => one(v, lang) },
+  { key: "dialogueRatio",        labelKey: "analysisView.metric.dialogue",       unit: "%",    format: (v, lang) => fmtNumber(v, "percent", lang),
                                   display: (v) => v * 100 },
-  { key: "filterWordsPer1k",     labelKey: "analysisView.metric.filter",    unit: "",     format: (v) => v.toFixed(1) },
-  { key: "adverbsPer1k",         labelKey: "analysisView.metric.adverbs",         unit: "",     format: (v) => v.toFixed(1) },
-  { key: "passivePer1k",         labelKey: "analysisView.metric.passive",         unit: "",     format: (v) => v.toFixed(1) },
+  { key: "filterWordsPer1k",     labelKey: "analysisView.metric.filter",    unit: "",     format: (v, lang) => one(v, lang) },
+  { key: "adverbsPer1k",         labelKey: "analysisView.metric.adverbs",         unit: "",     format: (v, lang) => one(v, lang) },
+  { key: "passivePer1k",         labelKey: "analysisView.metric.passive",         unit: "",     format: (v, lang) => one(v, lang) },
 ];
 
 function mean(arr) {
@@ -197,8 +199,8 @@ export function deriveVoiceDriftContext(drift, outlierChapterId) {
     const out = m.outliers.find((o) => o.chapterId === outlierChapterId);
     if (!out) continue;
     const direction = out.z > 0 ? "higher" : "lower";
-    const baselineMean = m.format ? m.format(m.mean) : m.mean.toFixed(1);
-    const outlierValue = m.format ? m.format(out.value) : out.value.toFixed(1);
+    const baselineMean = m.format ? m.format(m.mean, "en") : m.mean.toFixed(1);
+    const outlierValue = m.format ? m.format(out.value, "en") : out.value.toFixed(1);
     divergentMetrics.push({ label: tEnglish(m.labelKey), direction, baselineMean, outlierValue });
   }
   return { baselineChapterIds, divergentMetrics };

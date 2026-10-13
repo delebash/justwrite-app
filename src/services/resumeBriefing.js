@@ -184,7 +184,7 @@ export function buildBriefingContext({ project, sessions, maxTailWords = 500 }) 
 
   lines.push(
     `The writer last worked on this manuscript ${meta.gapLabel}.`,
-    `Last chapter touched: Chapter ${lastChapter.num}${lastChapter.title ? ` — "${lastChapter.title}"` : ""} (${(lastChapter.words || 0).toLocaleString()} words).`,
+    `Last chapter touched: Chapter ${lastChapter.num}${lastChapter.title ? ` — "${lastChapter.title}"` : ""} (${(lastChapter.words || 0).toLocaleString("en-US")} words).`,
     "",
   );
 

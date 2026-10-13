@@ -18,7 +18,7 @@ import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebas
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
 
-const { t } = useI18n();
+const { t, n: fmtNum } = useI18n();
 
 const props = defineProps({
   // Runner contract:
@@ -122,7 +122,7 @@ function close() {
 function elapsedSeconds(col) {
   const t = colTask(col);
   if (!t) return "0.0";
-  return Math.max(0, (aiTasks.now - t.startedAt) / 1000).toFixed(1);
+  return fmtNum(Math.max(0, (aiTasks.now - t.startedAt) / 1000), "oneDecimal");
 }
 
 onMounted(() => {
@@ -161,7 +161,7 @@ onBeforeUnmount(cancelAll);
       <article v-for="col in cols" :key="col.index" class="va-col" :data-temp="col.temperature">
         <header class="va-col-h">
           <span class="va-col-label">{{ $t("variations.colLabel", { n: col.index + 1 }) }}</span>
-          <span class="va-col-temp">{{ $t("variations.temperature", { value: col.temperature.toFixed(2) }) }}</span>
+          <span class="va-col-temp">{{ $t("variations.temperature", { value: $n(col.temperature, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }) }}</span>
         </header>
 
         <div class="va-col-body">

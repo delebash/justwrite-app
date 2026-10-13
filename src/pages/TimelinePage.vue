@@ -12,6 +12,7 @@ import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import { PaneHeader, pageFill } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
+import { d as fmtDate } from "../i18n/index.js";
 
 const project = useProjectStore();
 const router = useRouter();
@@ -59,9 +60,9 @@ function formatWhen(when) {
   const d = new Date(when);
   if (Number.isNaN(d.getTime())) return { weekday: "", date: when, time: "" };
   return {
-    weekday: d.toLocaleDateString(undefined, { weekday: "long" }),
-    date:    d.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }),
-    time:    d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }),
+    weekday: fmtDate(d, { weekday: "long" }),
+    date:    fmtDate(d, { month: "2-digit", day: "2-digit", year: "numeric" }),
+    time:    fmtDate(d, "time"),
   };
 }
 

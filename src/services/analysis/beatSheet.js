@@ -141,7 +141,7 @@ export function composeBeatSheetInput(project, templateKey = TEMPLATE_OPTIONS[0]
 
   const beatLines = template.beats.map((b) => `- "${b.key}" — ${tEnglish(b.nameKey)}: ${tEnglish(b.descKey)}`).join("\n");
   const chapterLines = chapters.map((c) => {
-    const header = `Ch. ${c.num}${c.title ? ` — ${c.title}` : ""} (${c.words.toLocaleString()} words)`;
+    const header = `Ch. ${c.num}${c.title ? ` — ${c.title}` : ""} (${c.words.toLocaleString("en-US")} words)`;
     return `${header}\n${c.summary || "(no summary)"}`;
   }).join("\n\n");
 

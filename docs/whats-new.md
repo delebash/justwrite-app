@@ -11,6 +11,11 @@ chat history, Trash and the sidebar's saved time — now come out in the interfa
 Spanish chosen, "hace 5 min". The dialogs, lists, errors and AI task names across the app now
 follow the language too; their words stay English until their Spanish is reviewed.
 
+**Dates and numbers follow the interface language.** Word counts, goals, percentages, backup and
+version times, the timeline's days, the date picker's months and weekdays, and the day letters on
+Home's and Analysis's charts now come out the interface language's way: with Spanish chosen,
+"105.000 palabras", "13 oct", "15,7", "lunes". A note's date keeps the way it was written.
+
 ## 2026-10-12
 
 **Spanish reaches a few more buttons.** With Spanish as the interface language, the AI task bar's

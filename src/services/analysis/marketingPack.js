@@ -75,7 +75,7 @@ export function composeMarketingPackInput(project) {
   body.push(`CHAPTER DIGEST (${chapters.length} chapters):`);
   body.push("");
   for (const c of chapters) {
-    body.push(`Ch. ${c.num}${c.title ? ` — ${c.title}` : ""} (${c.words.toLocaleString()} words)`);
+    body.push(`Ch. ${c.num}${c.title ? ` — ${c.title}` : ""} (${c.words.toLocaleString("en-US")} words)`);
     body.push(c.summary || "(no summary)");
     body.push("");
   }

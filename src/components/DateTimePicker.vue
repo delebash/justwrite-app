@@ -9,7 +9,7 @@ import { computePosition, autoUpdate, offset, flip, shift, size } from "@floatin
 import { Icon, usePanelDismiss } from "@delebash/llm-ui";
 import { useI18n } from "vue-i18n";
 
-const { t } = useI18n();
+const { t, d: fmtDate } = useI18n();
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
@@ -20,9 +20,10 @@ const props = defineProps({
 });
 const emit = defineEmits(["update:modelValue"]);
 
-const MONTHS = ["January","February","March","April","May","June",
-  "July","August","September","October","November","December"];
-const DOW = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+// The calendar's words in the interface language (Intl through vue-i18n's d()): the months in
+// full, the weekdays as two letters, Sunday first.
+const MONTHS = computed(() => Array.from({ length: 12 }, (_, i) => fmtDate(new Date(2000, i, 1), { month: "long" })));
+const DOW = computed(() => Array.from({ length: 7 }, (_, i) => fmtDate(new Date(2023, 0, 1 + i), { weekday: "short" }).slice(0, 2)));
 
 const open = ref(false);
 const rootEl = ref(null);
@@ -129,11 +130,11 @@ const isPM = computed(() => hour.value >= 12);
 const hasValue = computed(() => day.value != null);
 const triggerLabel = computed(() => {
   if (hasValue.value) {
-    const d = new Date(2000, 0, 1);
-    d.setFullYear(year.value, month.value, day.value);
-    d.setHours(hour.value, minute.value);
-    const date = d.toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "short", day: "numeric" });
-    const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    const dt = new Date(2000, 0, 1);
+    dt.setFullYear(year.value, month.value, day.value);
+    dt.setHours(hour.value, minute.value);
+    const date = fmtDate(dt, { weekday: "short", year: "numeric", month: "short", day: "numeric" });
+    const time = fmtDate(dt, "time");
     return { text: `${date}  ·  ${time}`, raw: false };
   }
   if (props.modelValue?.trim()) return { text: props.modelValue.trim(), raw: true };
@@ -239,7 +240,7 @@ onBeforeUnmount(tearDownPos);
       </div>
 
       <div class="dtp-dow">
-        <span v-for="d in DOW" :key="d">{{ d }}</span>
+        <span v-for="w in DOW" :key="w">{{ w }}</span>
       </div>
       <div class="dtp-grid">
         <template v-for="(d, i) in grid" :key="i">

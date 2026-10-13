@@ -53,7 +53,7 @@ const ui = useUiStore();
 // i18n locale picker — list comes from AVAILABLE_LOCALES; the active
 // value mirrors vue-i18n's reactive `locale` ref so the select reflects
 // the live UI language even if it was set elsewhere.
-const { locale: activeI18nLocale, t } = useI18n({ useScope: "global" });
+const { locale: activeI18nLocale, t, d: fmtDate } = useI18n({ useScope: "global" });
 const LOCALE_OPTIONS = AVAILABLE_LOCALES.map((l) => ({ label: l.label, value: l.code }));
 function onLocaleChange(code) {
   const next = code || AVAILABLE_LOCALES[0].code;
@@ -583,7 +583,7 @@ async function removeAllAutosaves() {
 
 async function restoreFromAutosave(entry) {
   backupError.value = null;
-  const when = entry.savedAt ? new Date(entry.savedAt).toLocaleString() : t("settings.backups.unknownTime");
+  const when = entry.savedAt ? fmtDate(new Date(entry.savedAt), "dateTime") : t("settings.backups.unknownTime");
   const yes = await confirmDialog({
     title: t("settings.backups.restoreTitle", { title: entry.title || t("settings.backups.untitledProject"), generation: entry.generation }),
     message: t("settings.backups.restoreMessage", { when }),
@@ -606,7 +606,7 @@ async function restoreFromAutosave(entry) {
 
 function autosaveLabel(when) {
   if (!when) return t("settings.backups.unknownTimeLabel");
-  try { return new Date(when).toLocaleString(); } catch { return when; }
+  try { return fmtDate(new Date(when), "dateTime"); } catch { return when; }
 }
 function generationLabel(gen) {
   if (gen === "current") return t("settings.backups.generationCurrent");
@@ -617,7 +617,7 @@ function generationLabel(gen) {
 
 const lastAutosaveLabel = computed(() => {
   if (!lastAutosaveAt.value) return t("settings.backups.autosavePending");
-  try { return new Date(lastAutosaveAt.value).toLocaleString(); } catch { return lastAutosaveAt.value; }
+  try { return fmtDate(new Date(lastAutosaveAt.value), "dateTime"); } catch { return lastAutosaveAt.value; }
 });
 
 

@@ -8,6 +8,7 @@
 // never a hand-rolled copy). Adapters read the LIVE stores lazily.
 import { useProjectStore } from "../stores/project";
 import { useSessionsStore } from "../stores/sessions.js";
+import { t } from "../i18n/index.js";
 import { composeCharacterAuditInput } from "./analysis/characterAudit.js";
 import { composeSuggestInput } from "./analysis/characterDraft.js";
 import { composeEntitySweepInput } from "./analysis/entityExtraction.js";
@@ -68,20 +69,20 @@ function chapterHeader(chapter) {
 export const LAB_TEST_SOURCES = [
   {
     id: "chapters",
-    label: "chapter",
-    kind: "chapter",
+    labelKey: "lab.source.chapter",
+    kindKey: "lab.source.chapter",
     list() {
       const p = useProjectStore();
-      return (p.allChapters || []).map((c, i) => ({ id: c.id, label: c.title || `Chapter ${i + 1}` }));
+      return (p.allChapters || []).map((c, i) => ({ id: c.id, label: c.title || t("chapters.read.chapterN", { num: i + 1 }) }));
     },
   },
   {
     id: "characters",
-    label: "character",
-    kind: "character",
+    labelKey: "characters.introTerms.character",
+    kindKey: "characters.introTerms.character",
     list() {
       const p = useProjectStore();
-      return (p.characters || []).map((c) => ({ id: c.id, label: c.name || "Unnamed" }));
+      return (p.characters || []).map((c) => ({ id: c.id, label: c.name || t("batchFill.unnamed") }));
     },
   },
 ];

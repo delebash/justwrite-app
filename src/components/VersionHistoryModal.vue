@@ -21,7 +21,7 @@ import { UiButton } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
 import { useI18n } from "vue-i18n";
 
-const { t } = useI18n();
+const { t, d: fmtDate } = useI18n();
 
 const props = defineProps({
   chapterId: { type: String, required: true },
@@ -60,8 +60,8 @@ function clip(s, n = 30) {
 function shortStamp(iso) {
   try {
     const d = new Date(iso);
-    const date = d.toLocaleString(undefined, { month: "short", day: "numeric" });
-    const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    const date = fmtDate(d, "monthDay");
+    const time = fmtDate(d, "time");
     return `${date}, ${time}`;
   } catch { return iso || ""; }
 }
@@ -89,7 +89,7 @@ function remove(v) {
   });
 }
 
-function when(iso) { try { return new Date(iso).toLocaleString(); } catch { return iso; } }
+function when(iso) { try { return fmtDate(new Date(iso), "dateTime"); } catch { return iso; } }
 
 // Build a synthetic "current" version object from the live scenes so
 // the diff machinery treats the working copy the same as a saved row.
@@ -182,7 +182,7 @@ function whenFor(id) {
         <div v-for="v in list" :key="v.id" class="vh-row">
           <div class="vh-main">
             <div class="vh-label">{{ v.label || $t("versionHistory.untitledVersion") }}</div>
-            <div class="vh-meta">{{ $t("versionHistory.rowMeta", { when: when(v.savedAt), words: $t("versionHistory.wordsCount", { n: v.words.toLocaleString() }), scenes: $t("count.scene", { n: v.scenes.length }, v.scenes.length) }) }}</div>
+            <div class="vh-meta">{{ $t("versionHistory.rowMeta", { when: when(v.savedAt), words: $t("versionHistory.wordsCount", { n: $n(v.words) }), scenes: $t("count.scene", { n: v.scenes.length }, v.scenes.length) }) }}</div>
           </div>
           <UiButton intent="secondary" size="small" @click="compareWithCurrent(v)" v-tooltip.bottom="$t('versionHistory.compareTooltip')">
             <Icon name="Replace" :size="12" /> {{ $t("versionHistory.compare") }}
@@ -231,7 +231,7 @@ function whenFor(id) {
         <div v-for="v in list" :key="v.id" class="vh-row">
           <div class="vh-main">
             <div class="vh-label">{{ v.label || t("versionHistory.untitledVersion") }}</div>
-            <div class="vh-meta">{{ $t("versionHistory.pickRowMeta", { when: when(v.savedAt), words: $t("versionHistory.wordsCount", { n: v.words.toLocaleString() }) }) }}</div>
+            <div class="vh-meta">{{ $t("versionHistory.pickRowMeta", { when: when(v.savedAt), words: $t("versionHistory.wordsCount", { n: $n(v.words) }) }) }}</div>
           </div>
           <UiButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickA === v.id }" @click="pickAs('A', v.id)">{{ $t("versionHistory.sideA") }}</UiButton>
           <UiButton intent="ghost" size="small" class="vh-pick-btn" :class="{ active: pickB === v.id }" @click="pickAs('B', v.id)">{{ $t("versionHistory.sideB") }}</UiButton>

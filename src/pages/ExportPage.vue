@@ -206,7 +206,7 @@ async function exportBookZip() {
               </div>
               <div>
                 <div class="t-muted" style="font-size:11px">{{ $t("export.statWords") }}</div>
-                <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ manuscriptStats.words.toLocaleString() }}</b>
+                <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ $n(manuscriptStats.words) }}</b>
               </div>
             </div>
           </div>
@@ -251,7 +251,7 @@ async function exportBookZip() {
               </div>
               <div>
                 <div class="t-muted" style="font-size:11px">{{ $t("export.statWords") }}</div>
-                <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ manuscriptStats.words.toLocaleString() }}</b>
+                <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ $n(manuscriptStats.words) }}</b>
               </div>
             </div>
 

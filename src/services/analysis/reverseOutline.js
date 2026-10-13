@@ -85,7 +85,7 @@ export function composeReverseOutlineInput(project) {
   }
 
   const body = [];
-  body.push(`The book has ${chapters.length} chapter${chapters.length === 1 ? "" : "s"} totalling ${chapters.reduce((s, c) => s + c.words, 0).toLocaleString()} words.`);
+  body.push(`The book has ${chapters.length} chapter${chapters.length === 1 ? "" : "s"} totalling ${chapters.reduce((s, c) => s + c.words, 0).toLocaleString("en-US")} words.`);
   body.push("");
   body.push("Chapter digest:");
   for (const c of chapters) {
@@ -93,7 +93,7 @@ export function composeReverseOutlineInput(project) {
     if (c.tension != null) meta.push(`tension ${c.tension}/10`);
     if (c.pacing) meta.push(`${c.pacing} pacing`);
     if (c.endingClass) meta.push(`${c.endingClass} ending`);
-    body.push(`Ch. ${c.num}${c.title ? ` — ${c.title}` : ""} (${c.words.toLocaleString()} words${meta.length ? ` · ${meta.join(", ")}` : ""})`);
+    body.push(`Ch. ${c.num}${c.title ? ` — ${c.title}` : ""} (${c.words.toLocaleString("en-US")} words${meta.length ? ` · ${meta.join(", ")}` : ""})`);
     body.push(c.summary || "(no summary — chapter is empty or hasn't been analysed)");
     body.push("");
   }

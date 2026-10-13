@@ -20,7 +20,7 @@ import { Icon } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
 import { useI18n } from "vue-i18n";
 
-const { t } = useI18n();
+const { t, d: fmtDate } = useI18n();
 
 const project = useProjectStore();
 const ui = useUiStore();
@@ -139,18 +139,19 @@ const weeklyDayList = computed(() => {
   return daysWrittenThisWeek.value
     .map((d) => {
       const [y, m, day] = d.date.split("-").map(Number);
-      return new Date(y, m - 1, day).toLocaleDateString(undefined, { weekday: "short" });
+      return fmtDate(new Date(y, m - 1, day), { weekday: "short" });
     })
     .join(" · ");
 });
 
 const dowAvg = computed(() => reorderForMonday(sessions.averageByDow()));
-const FULL_DOW = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+// Monday first, in the interface language (2024-01-01 was a Monday).
+const FULL_DOW = computed(() => Array.from({ length: 7 }, (_, i) => fmtDate(new Date(2024, 0, 1 + i), { weekday: "long" })));
 const bestDowIdx = computed(() => {
   const m = Math.max(...dowAvg.value);
   return m > 0 ? dowAvg.value.indexOf(m) : -1;
 });
-const bestDow = computed(() => (bestDowIdx.value >= 0 ? FULL_DOW[bestDowIdx.value] : "—"));
+const bestDow = computed(() => (bestDowIdx.value >= 0 ? FULL_DOW.value[bestDowIdx.value] : "—"));
 const bestDowAvg = computed(() => (bestDowIdx.value >= 0 ? Math.round(dowAvg.value[bestDowIdx.value]) : 0));
 
 const cadenceDelta = computed(() => {
@@ -196,7 +197,7 @@ onMounted(async () => {
 });
 
 const todayLabel = computed(() =>
-  new Date().toLocaleDateString(undefined, {
+  fmtDate(new Date(), {
     weekday: "long", year: "numeric", month: "long", day: "numeric",
   }),
 );
@@ -272,7 +273,7 @@ const formLine = computed(() => {
                 <p v-else class="ch-opener ch-opener-empty">{{ $t("homeShelf.blankPage") }}</p>
                 <div class="ch-foot">
                   <span>
-                    {{ $t("homeShelf.wordsShort", { n: (ch.words || 0).toLocaleString() }) }}<span v-if="ch.id === resumeId && lastSessionGap"> · {{ lastSessionGap }}</span>
+                    {{ $t("homeShelf.wordsShort", { n: $n(ch.words || 0) }) }}<span v-if="ch.id === resumeId && lastSessionGap"> · {{ lastSessionGap }}</span>
                   </span>
                   <span v-if="ch.id === resumeId" class="resume-tap" @click.stop="resume">{{ $t("homeShelf.resume") }}</span>
                   <span v-else-if="ch.partTitle" class="part-hint">{{ ch.partTitle }}</span>
@@ -308,7 +309,7 @@ const formLine = computed(() => {
           <dl class="col-row">
             <dt>{{ $t("homeShelf.progress") }}</dt>
             <dd>
-              {{ totalWords.toLocaleString() }} <span class="of">{{ $t("homeShelf.progressOf", { goal: (P.wordsGoal || 0).toLocaleString() }) }}</span>
+              {{ $n(totalWords) }} <span class="of">{{ $t("homeShelf.progressOf", { goal: $n(P.wordsGoal || 0) }) }}</span>
               <small>{{ $t("homeShelf.pctOfTarget", { pct }) }}</small>
             </dd>
           </dl>
@@ -326,7 +327,7 @@ const formLine = computed(() => {
           <dl class="col-row">
             <dt>{{ $t("homeShelf.cadence") }}</dt>
             <dd>
-              {{ totals14.avg.toLocaleString() }} <span class="of">{{ $t("homeShelf.wordsPerDay", { n: 14 }) }}</span>
+              {{ $n(totals14.avg) }} <span class="of">{{ $t("homeShelf.wordsPerDay", { n: 14 }) }}</span>
               <small v-if="cadenceDelta !== null">
                 {{ $t("homeShelf.cadenceDelta", { arrow: cadenceDelta >= 0 ? "↑" : "↓", pct: Math.abs(cadenceDelta) }) }}
               </small>
@@ -339,7 +340,7 @@ const formLine = computed(() => {
             <dt>{{ $t("homeShelf.strongest") }}</dt>
             <dd>
               {{ bestDow }}
-              <small v-if="bestDowAvg">{{ $t("homeShelf.averageWords", { n: bestDowAvg.toLocaleString() }) }}</small>
+              <small v-if="bestDowAvg">{{ $t("homeShelf.averageWords", { n: $n(bestDowAvg) }) }}</small>
               <small v-else>{{ $t("homeShelf.noPatterns") }}</small>
             </dd>
           </dl>

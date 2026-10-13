@@ -119,8 +119,8 @@ export function buildRecapContext({ project, sessions, maxTailWords = 1200 }) {
     lines.push("");
   }
   lines.push(
-    `Today the writer added roughly ${todayWords.toLocaleString()} words to this manuscript.`,
-    `The chapter they touched most recently: Chapter ${chapter.num}${chapter.title ? ` — "${chapter.title}"` : ""} (now ${(chapter.words || 0).toLocaleString()} words total).`,
+    `Today the writer added roughly ${todayWords.toLocaleString("en-US")} words to this manuscript.`,
+    `The chapter they touched most recently: Chapter ${chapter.num}${chapter.title ? ` — "${chapter.title}"` : ""} (now ${(chapter.words || 0).toLocaleString("en-US")} words total).`,
     "",
     "Current state of that chapter (last ~1200 words — most likely overlaps with what they wrote today):",
     tail,

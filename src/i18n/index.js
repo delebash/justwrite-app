@@ -69,12 +69,34 @@ export function detectLocale() {
   return AVAILABLE_LOCALES[0].code;
 }
 
+// Named date and number formats (vue-i18n's datetimeFormats / numberFormats), the shapes the
+// screens share. The Intl options are the same in every language — Intl writes each one's order,
+// names and separators — but every language lists them: vue-i18n formats a named format in the
+// language it found it in, so a language without the list would show English dates.
+const dateFormats = {
+  // a date and time to the second — what Date#toLocaleString() shows
+  dateTime: { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" },
+  // a day of a month ("Oct 13")
+  monthDay: { month: "short", day: "numeric" },
+  // a time of day ("3:05 PM")
+  time: { hour: "numeric", minute: "2-digit" },
+};
+const numberFormats = {
+  // one decimal, always shown ("15.7", "2.0")
+  oneDecimal: { minimumFractionDigits: 1, maximumFractionDigits: 1 },
+  // a ratio as a whole percent (0.31 → "31%")
+  percent: { style: "percent" },
+};
+const everyLanguage = (formats) => Object.fromEntries(AVAILABLE_LOCALES.map(({ code }) => [code, formats]));
+
 export const i18n = createI18n({
   legacy: false,            // Composition API mode (we're Vue 3)
   globalInjection: true,    // $t available in templates without import
   locale: AVAILABLE_LOCALES[0].code, // overridden post-boot in main.js
   fallbackLocale: AVAILABLE_LOCALES[0].code,
   messages: kitMessages(),
+  datetimeFormats: everyLanguage(dateFormats),
+  numberFormats: everyLanguage(numberFormats),
   missingWarn: false,       // chatty in dev otherwise
   fallbackWarn: false,
 });
@@ -86,5 +108,9 @@ export function t(...args) { return i18n.global.t(...args); }
 // interface language (ruled 2026-10-13, the i18n plan), so a table the screen and a prompt share
 // names its keys once and the prompt side asks for them in English.
 export function tEnglish(key, params = {}) { return i18n.global.t(key, params, { locale: "en" }); }
+// Numbers and dates in the interface language (vue-i18n's n() and d()): a named format above, or
+// Intl options for a one-off shape.
+export function n(...args) { return i18n.global.n(...args); }
+export function d(...args) { return i18n.global.d(...args); }
 export function setLocale(code) { i18n.global.locale.value = code; }
 export function currentLocale() { return i18n.global.locale.value; }

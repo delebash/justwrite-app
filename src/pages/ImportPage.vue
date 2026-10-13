@@ -417,7 +417,7 @@ function finishAfterSweep() {
                   <div class="ps-lbl">{{ validChapters.length === 1 ? itemLabel : itemLabelPlural }}</div>
                 </div>
                 <div class="ps-stat">
-                  <div class="ps-num">{{ totalWords.toLocaleString() }}</div>
+                  <div class="ps-num">{{ $n(totalWords) }}</div>
                   <div class="ps-lbl">{{ $t("import.statWords") }}</div>
                 </div>
                 <div class="ps-stat">
@@ -451,7 +451,7 @@ function finishAfterSweep() {
               <li v-for="(c, i) in chapters" :key="i" class="ch-row" :class="{ dropped: c.drop }">
                 <span class="ch-num">{{ i + 1 }}</span>
                 <UiInput class="ch-title" v-model="c.title" :placeholder="$t('import.untitledItem', { item: itemLabel })" :disabled="c.drop" />
-                <span class="ch-words">{{ $t("import.wordsShort", { n: wordCount(c.html).toLocaleString() }) }}</span>
+                <span class="ch-words">{{ $t("import.wordsShort", { n: $n(wordCount(c.html)) }) }}</span>
                 <UiButton intent="ghost" size="small" class="ch-drop"
                   @click="dropChapter(i)"
                   v-tooltip.bottom="c.drop ? $t('import.keepItem', { item: itemLabel }) : $t('import.dropItem', { item: itemLabel })">

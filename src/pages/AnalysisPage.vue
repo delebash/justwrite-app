@@ -24,7 +24,7 @@ import AiFeatureChip from "../components/AiFeatureChip.vue";
 import { useAiStore } from "../stores/ai.js";
 import { useI18n } from "vue-i18n";
 
-const { t } = useI18n();
+const { t, d: fmtDate } = useI18n();
 
 const project = useProjectStore();
 const sessions = useSessionsStore();
@@ -56,10 +56,10 @@ const pace = computed(() => {
 // Donut geometry — single-pass through STATUS_KEYS so the legend
 // and arc share the same color/order.
 const STATUS_KEYS = [
-  { k: "done",   label: "Done",    color: "var(--status-done)" },
-  { k: "revise", label: "Revise",  color: "var(--status-revise)" },
-  { k: "draft",  label: "Draft",   color: "var(--status-draft)" },
-  { k: "todo",   label: "To do",   color: "var(--status-todo)" },
+  { k: "done",   labelKey: "analysisView.statusDone",   color: "var(--status-done)" },
+  { k: "revise", labelKey: "analysisView.statusRevise", color: "var(--status-revise)" },
+  { k: "draft",  labelKey: "analysisView.statusDraft",  color: "var(--status-draft)" },
+  { k: "todo",   labelKey: "analysisView.statusTodo",   color: "var(--status-todo)" },
 ];
 
 const donut = computed(() => {
@@ -436,7 +436,7 @@ const heatmap = computed(() => {
     if (!firstDay) return;
     const m = parseInt(firstDay.date.slice(5, 7), 10) - 1;
     if (m !== lastMonth) {
-      monthLabels.push({ idx: i, label: new Date(2000, m, 1).toLocaleString(undefined, { month: "short" }) });
+      monthLabels.push({ idx: i, label: fmtDate(new Date(2000, m, 1), { month: "short" }) });
       lastMonth = m;
     }
   });
@@ -444,7 +444,8 @@ const heatmap = computed(() => {
   return { weeks, monthLabels, total: padded.reduce((s, d) => s + d.words, 0) };
 });
 
-const DOW_LABELS_HEATMAP = ["S", "M", "T", "W", "T", "F", "S"];
+// the heatmap's weekday letters, Sunday first, in the interface language (2023-01-01 was a Sunday)
+const DOW_LETTERS = computed(() => Array.from({ length: 7 }, (_, i) => fmtDate(new Date(2023, 0, 1 + i), { weekday: "narrow" })));
 
 const styleColumns = computed(() => [
   { accessorKey: "title",              header: t("common.chapter"), sortable: true, headerStyle: "min-width:200px", cellStyle: "min-width:200px" },
@@ -492,7 +493,7 @@ const milestoneState = computed(() => {
       <div class="kpi-row" style="display:grid;gap:14px;margin-bottom:18px">
         <div class="card kpi">
           <div class="t-eyebrow">{{ $t("analysis.kpi.manuscript") }}</div>
-          <div class="kpi-val">{{ kpis.totalWords.toLocaleString() }}</div>
+          <div class="kpi-val">{{ $n(kpis.totalWords) }}</div>
           <div class="kpi-sub">{{ $t("analysis.kpi.wordsOfGoal", { pct: kpis.goalPct }) }}</div>
         </div>
         <div class="card kpi">
@@ -502,12 +503,12 @@ const milestoneState = computed(() => {
         </div>
         <div class="card kpi">
           <div class="t-eyebrow">{{ $t("analysis.kpi.avgChapter") }}</div>
-          <div class="kpi-val">{{ kpis.avgChapterLength.toLocaleString() }}</div>
+          <div class="kpi-val">{{ $n(kpis.avgChapterLength) }}</div>
           <div class="kpi-sub">{{ $t("analysis.kpi.words") }}</div>
         </div>
         <div class="card kpi">
           <div class="t-eyebrow">{{ $t("analysis.kpi.paceWindow", { days: windowDays }) }}</div>
-          <div class="kpi-val">{{ pace.avg.toLocaleString() }}</div>
+          <div class="kpi-val">{{ $n(pace.avg) }}</div>
           <div class="kpi-sub">{{ $t("analysis.kpi.avgWordsPerDay") }}</div>
         </div>
       </div>
@@ -531,9 +532,9 @@ const milestoneState = computed(() => {
           <polyline :points="paceShape.line" fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke" />
         </svg>
         <div style="display:flex;gap:18px;margin-top:8px;font-size:11.5px;color:var(--muted)">
-          <span><b class="t-num" style="color:var(--ink)">{{ pace.total.toLocaleString() }}</b> {{ $t("analysis.pace.total") }}</span>
-          <span><b class="t-num" style="color:var(--ink)">{{ pace.avg.toLocaleString() }}</b> {{ $t("analysis.pace.avgPerDay") }}</span>
-          <span><b class="t-num" style="color:var(--ink)">{{ pace.max.toLocaleString() }}</b> {{ $t("analysis.pace.peakDay") }}</span>
+          <span><b class="t-num" style="color:var(--ink)">{{ $n(pace.total) }}</b> {{ $t("analysis.pace.total") }}</span>
+          <span><b class="t-num" style="color:var(--ink)">{{ $n(pace.avg) }}</b> {{ $t("analysis.pace.avgPerDay") }}</span>
+          <span><b class="t-num" style="color:var(--ink)">{{ $n(pace.max) }}</b> {{ $t("analysis.pace.peakDay") }}</span>
         </div>
       </div>
 
@@ -542,7 +543,7 @@ const milestoneState = computed(() => {
         <div class="card">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
             <div class="card-title" style="margin:0">{{ $t("analysis.year.title") }}</div>
-            <span class="t-muted" style="font-size:11.5px">{{ $t("analysis.year.subtitle", { words: heatmap.total.toLocaleString() }) }}</span>
+            <span class="t-muted" style="font-size:11.5px">{{ $t("analysis.year.subtitle", { words: $n(heatmap.total) }) }}</span>
             <span style="margin-left:auto;display:flex;gap:6px;align-items:center;font-size:10.5px;color:var(--muted)">
               <!-- $t, not t: the v-for below binds `t` and would shadow the composable's t. -->
               <span>{{ $t("analysis.year.less") }}</span>
@@ -552,7 +553,7 @@ const milestoneState = computed(() => {
           </div>
           <div class="hm-grid">
             <div class="hm-dow">
-              <span v-for="(d, i) in DOW_LABELS_HEATMAP" :key="i" class="hm-dow-lbl" :style="{ visibility: i % 2 ? 'visible' : 'hidden' }">{{ d }}</span>
+              <span v-for="(d, i) in DOW_LETTERS" :key="i" class="hm-dow-lbl" :style="{ visibility: i % 2 ? 'visible' : 'hidden' }">{{ d }}</span>
             </div>
             <div class="hm-weeks">
               <div class="hm-month-row">
@@ -565,7 +566,7 @@ const milestoneState = computed(() => {
                 <div v-for="(week, wi) in heatmap.weeks" :key="wi" class="hm-col">
                   <div v-for="(cell, ci) in week" :key="ci"
                     class="hm-cell" :class="cell ? `hm-t${cell.tier}` : 'hm-t0'"
-                    :title="cell ? t('analysisView.dayTip', { date: cell.date, words: cell.words.toLocaleString() }) : ''" />
+                    :title="cell ? t('analysisView.dayTip', { date: cell.date, words: $n(cell.words) }) : ''" />
                 </div>
               </div>
             </div>
@@ -576,12 +577,12 @@ const milestoneState = computed(() => {
           <div class="card-title" style="margin-bottom:10px">{{ $t("analysisView.milestones") }}</div>
           <div class="ms-next" v-if="milestoneState.next">
             <div class="ms-next-h">{{ $t("analysisView.nextMilestone") }}</div>
-            <div class="ms-next-target">{{ $t("analysisView.targetWords", { n: milestoneState.next.toLocaleString() }) }}</div>
+            <div class="ms-next-target">{{ $t("analysisView.targetWords", { n: $n(milestoneState.next) }) }}</div>
             <div class="ms-bar">
               <div class="ms-fill" :style="`width:${milestoneState.pct}%`" />
             </div>
             <div class="ms-next-sub">
-              <b>{{ kpis.totalWords.toLocaleString() }}</b> / {{ milestoneState.next.toLocaleString() }}
+              <b>{{ $n(kpis.totalWords) }}</b> / {{ $n(milestoneState.next) }}
               <span class="t-muted">· {{ milestoneState.pct }}%</span>
             </div>
           </div>
@@ -597,7 +598,7 @@ const milestoneState = computed(() => {
 
           <div class="ms-streaks">
             <div><span class="t-muted">{{ $t("analysisView.currentStreak") }}</span><span>{{ $t("count.day", { n: sessions.streak }, sessions.streak) }}</span></div>
-            <div><span class="t-muted">{{ $t("analysisView.lifetime") }}</span><span><b>{{ sessions.allTimeTotals.totalWords.toLocaleString() }}</b></span></div>
+            <div><span class="t-muted">{{ $t("analysisView.lifetime") }}</span><span><b>{{ $n(sessions.allTimeTotals.totalWords) }}</b></span></div>
             <div><span class="t-muted">{{ $t("analysisView.writingDays") }}</span><span><b>{{ sessions.allTimeTotals.writingDays }}</b></span></div>
           </div>
         </div>
@@ -623,7 +624,7 @@ const milestoneState = computed(() => {
               <div v-for="s in donut.segs" :key="s.k"
                 style="display:grid;grid-template-columns:auto 1fr auto;gap:10px;font-size:12.5px;align-items:center">
                 <span :style="`width:10px;height:10px;border-radius:2px;background:${s.color}`" />
-                <span>{{ s.label }}</span>
+                <span>{{ $t(s.labelKey) }}</span>
                 <span class="t-num" style="color:var(--ink-2)">{{ s.value }}</span>
               </div>
             </div>
@@ -639,7 +640,7 @@ const milestoneState = computed(() => {
                   <span :style="`width:10px;height:10px;border-radius:2px;background:${s.color}`" />
                   {{ s.name }}
                 </span>
-                <span class="t-muted t-num">{{ $t("analysisView.strandMeta", { words: s.words.toLocaleString(), chapters: s.chapters }) }}</span>
+                <span class="t-muted t-num">{{ $t("analysisView.strandMeta", { words: $n(s.words), chapters: s.chapters }) }}</span>
               </div>
               <div style="height:6px;background:var(--surface-3);border-radius:999px;overflow:hidden">
                 <div :style="`width:${(s.words / strandTotal) * 100}%;height:100%;background:${s.color};border-radius:999px`" />
@@ -659,7 +660,7 @@ const milestoneState = computed(() => {
             <div class="track">
               <div class="fill" :style="`width:${(c.words / Math.max(1, ...allCh.map(x => x.words))) * 100}%;background:${project.strandById((c.strands || [])[0])?.color || 'var(--accent)'}`" />
             </div>
-            <span class="val">{{ c.words.toLocaleString() }}</span>
+            <span class="val">{{ $n(c.words) }}</span>
           </button>
         </div>
       </div>
@@ -673,13 +674,13 @@ const milestoneState = computed(() => {
 
         <!-- Book-level rollup pills -->
         <div class="pill-row">
-          <StatPill :value="style.summary.avgSentenceLength.toFixed(1)" :label="$t('analysisView.pillWordsSentence')" />
-          <StatPill :value="style.summary.avgParagraphLength.toFixed(1)" :label="$t('analysisView.pillWordsParagraph')" />
+          <StatPill :value="$n(style.summary.avgSentenceLength, 'oneDecimal')" :label="$t('analysisView.pillWordsSentence')" />
+          <StatPill :value="$n(style.summary.avgParagraphLength, 'oneDecimal')" :label="$t('analysisView.pillWordsParagraph')" />
           <StatPill :value="`${Math.round(style.summary.dialogueRatio * 100)}%`" :label="$t('analysisView.pillDialogue')" />
-          <StatPill :value="style.summary.filterWordsPer1k.toFixed(1)" :label="$t('analysisView.pillFilterWords')" />
-          <StatPill :value="style.summary.adverbsPer1k.toFixed(1)" :label="$t('analysisView.pillAdverbs')" />
-          <StatPill :value="style.summary.passivePer1k.toFixed(1)" :label="$t('analysisView.pillPassive')" />
-          <StatPill :value="`${(style.summary.pacingCoV * 100).toFixed(0)}%`" :label="$t('analysisView.pillVariance')" />
+          <StatPill :value="$n(style.summary.filterWordsPer1k, 'oneDecimal')" :label="$t('analysisView.pillFilterWords')" />
+          <StatPill :value="$n(style.summary.adverbsPer1k, 'oneDecimal')" :label="$t('analysisView.pillAdverbs')" />
+          <StatPill :value="$n(style.summary.passivePer1k, 'oneDecimal')" :label="$t('analysisView.pillPassive')" />
+          <StatPill :value="$n(style.summary.pacingCoV, 'percent')" :label="$t('analysisView.pillVariance')" />
         </div>
 
         <!-- Per-chapter style table -->
@@ -694,24 +695,24 @@ const milestoneState = computed(() => {
           <template #title="{ row }">
             <span style="color:var(--ink)"><b>{{ row.num }}</b>. {{ row.title }}</span>
           </template>
-          <template #words="{ value }">{{ value.toLocaleString() }}</template>
+          <template #words="{ value }">{{ $n(value) }}</template>
           <template #avgSentenceLength="{ row }">
-            <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.avgSentenceLength / styleMaxes.sentence) * 100}%`" /></span>{{ row.avgSentenceLength.toFixed(1) }}
+            <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.avgSentenceLength / styleMaxes.sentence) * 100}%`" /></span>{{ $n(row.avgSentenceLength, 'oneDecimal') }}
           </template>
           <template #avgParagraphLength="{ row }">
-            <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.avgParagraphLength / styleMaxes.paragraph) * 100}%`" /></span>{{ row.avgParagraphLength.toFixed(1) }}
+            <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.avgParagraphLength / styleMaxes.paragraph) * 100}%`" /></span>{{ $n(row.avgParagraphLength, 'oneDecimal') }}
           </template>
           <template #dialogueRatio="{ row }">
-            <span class="sm-bar"><span class="sm-fill" :style="`width:${row.dialogueRatio * 100}%`" /></span>{{ Math.round(row.dialogueRatio * 100) }}%
+            <span class="sm-bar"><span class="sm-fill" :style="`width:${row.dialogueRatio * 100}%`" /></span>{{ $n(row.dialogueRatio, 'percent') }}
           </template>
           <template #filterWordsPer1k="{ row }">
-            <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.filterWordsPer1k / Math.max(styleMaxes.filter, 1)) * 100}%`" /></span>{{ row.filterWordsPer1k.toFixed(1) }}
+            <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.filterWordsPer1k / Math.max(styleMaxes.filter, 1)) * 100}%`" /></span>{{ $n(row.filterWordsPer1k, 'oneDecimal') }}
           </template>
           <template #adverbsPer1k="{ row }">
-            <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.adverbsPer1k / Math.max(styleMaxes.adverb, 1)) * 100}%`" /></span>{{ row.adverbsPer1k.toFixed(1) }}
+            <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.adverbsPer1k / Math.max(styleMaxes.adverb, 1)) * 100}%`" /></span>{{ $n(row.adverbsPer1k, 'oneDecimal') }}
           </template>
           <template #passivePer1k="{ row }">
-            <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.passivePer1k / Math.max(styleMaxes.passive, 1)) * 100}%`" /></span>{{ row.passivePer1k.toFixed(1) }}
+            <span class="sm-bar"><span class="sm-fill" :style="`width:${(row.passivePer1k / Math.max(styleMaxes.passive, 1)) * 100}%`" /></span>{{ $n(row.passivePer1k, 'oneDecimal') }}
           </template>
           <template #povHint="{ value }">
             <span style="color:var(--muted);font-family:var(--font-mono);font-size:10.5px">{{ POV_LABEL_KEYS[value] ? t(POV_LABEL_KEYS[value]) : "—" }}</span>
@@ -794,11 +795,11 @@ const milestoneState = computed(() => {
           <!-- Stats row -->
           <div v-if="tensionStats" class="st-stats">
             <div class="st-stat">
-              <div class="st-stat-v">{{ tensionStats.avgTension.toFixed(1) }}<small> / 10</small></div>
+              <div class="st-stat-v">{{ $n(tensionStats.avgTension, 'oneDecimal') }}<small> / 10</small></div>
               <div class="st-stat-k">{{ $t("analysisView.avgTension") }}</div>
             </div>
             <div class="st-stat">
-              <div class="st-stat-v">{{ tensionStats.avgHook.toFixed(1) }}<small> / 10</small></div>
+              <div class="st-stat-v">{{ $n(tensionStats.avgHook, 'oneDecimal') }}<small> / 10</small></div>
               <div class="st-stat-k">{{ $t("analysisView.avgHookQuality") }}</div>
             </div>
             <div class="st-stat st-stat-wide">

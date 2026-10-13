@@ -19,7 +19,7 @@ import { useRovingTabindexMap } from "@renderer/composables/useRovingTabindexMap
 // shows the full sidebar whatever a computer last collapsed.
 const props = defineProps({ rail: { type: Boolean, default: false } });
 
-const { t } = useI18n();
+const { t, d } = useI18n();
 const ui = useUiStore();
 const project = useProjectStore();
 const router = useRouter();
@@ -64,7 +64,7 @@ const savedAtLabel = computed(() => {
 });
 const savedAtTitle = computed(() => {
   const ts = project._lastSavedAt;
-  return ts ? new Date(ts).toLocaleString() : t("sidebar.footer.noEditsSaved");
+  return ts ? d(new Date(ts), "dateTime") : t("sidebar.footer.noEditsSaved");
 });
 
 function toggleProjectMenu() { projectMenuOpen.value = !projectMenuOpen.value; }
@@ -984,7 +984,7 @@ const authorInitials = computed(() => {
                     </UiButton>
                     <span class="nav-child-num">{{ c.num }}</span>
                     <span class="nav-child-label">{{ c.label }}</span>
-                    <span class="nav-child-sub t-num">{{ c.words ? c.words.toLocaleString() : '' }}</span>
+                    <span class="nav-child-sub t-num">{{ c.words ? $n(c.words) : '' }}</span>
                     <span class="nav-child-status" :style="c.statusColor ? { color: c.statusColor } : null">{{ c.statusLabel }}</span>
                     <UiButton intent="ghost" class="chapter-add-scene" v-tooltip.bottom="$t('sidebar.tooltips.addSceneToChapter')"
                       :aria-label="$t('sidebar.tooltips.addSceneToChapter')"
@@ -1009,8 +1009,8 @@ const authorInitials = computed(() => {
                       @drop="onSceneDrop(c.id, scn.id)"
                       @dragend="onSceneDragEnd">
                       <span class="scene-bullet">{{ si + 1 }}</span>
-                      <span class="scene-label">{{ scn.title || `Scene ${si + 1}` }}</span>
-                      <span class="nav-child-sub t-num">{{ scn.words ? scn.words.toLocaleString() : '' }}</span>
+                      <span class="scene-label">{{ scn.title || $t("common.sceneN", { n: si + 1 }) }}</span>
+                      <span class="nav-child-sub t-num">{{ scn.words ? $n(scn.words) : '' }}</span>
                       <span class="nav-child-status" :style="navStatus(scn.status).statusColor ? { color: navStatus(scn.status).statusColor } : null">{{ navStatus(scn.status).statusLabel }}</span>
                     </div>
                   </template>

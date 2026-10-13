@@ -201,7 +201,7 @@ function onRowClick(event) {
         </template>
 
         <template #words="{ row }">
-          <span class="wb-words">{{ (row.words || 0).toLocaleString() }}</span>
+          <span class="wb-words">{{ $n(row.words || 0) }}</span>
         </template>
       </EntityIndex>
     </template>

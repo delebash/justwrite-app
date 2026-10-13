@@ -18,7 +18,7 @@ import * as autosaveApi from "../services/autosaveApi.js";
 import { replaceInHtml } from "../services/projectReplace.js";
 import { splitHtmlIntoScenes } from "../services/sceneSplit.js";
 import { nextColor, nextHue } from "../services/categoricalColors.js";
-import { t } from "../i18n/index.js";
+import { d as fmtDate, t } from "../i18n/index.js";
 
 // Multi-project storage (all server-side SQL — no kv, no IndexedDB):
 //   projects table (/v1/projects) — book snapshots; the registry is DERIVED
@@ -1660,7 +1660,7 @@ export const useProjectStore = defineStore("project", {
     addNote(input = {}) {
       this._record("addNote");
       const id = uid("n");
-      const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const today = fmtDate(new Date(), "monthDay");
       // anchor = null     → story-wide note (default)
       // anchor = { chapterId }            → pinned to a chapter
       // anchor = { chapterId, sceneId }   → pinned to a specific scene
@@ -1678,7 +1678,7 @@ export const useProjectStore = defineStore("project", {
     },
     updateNote(id, patch) {
       this._record("updateNote");
-      const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const today = fmtDate(new Date(), "monthDay");
       this.notes = this.notes.map((n) => n.id === id ? { ...n, ...patch, updated: today } : n);
       this._persist();
     },
@@ -1693,7 +1693,7 @@ export const useProjectStore = defineStore("project", {
       const list = (notes || []).filter((n) => n && (n.html || n.title));
       if (!list.length) return { noteIds: [] };
       this._record("importNotes");
-      const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const today = fmtDate(new Date(), "monthDay");
       const noteIds = [];
       // Snapshot the anchor so every imported note holds an independent copy
       // — otherwise undo / per-note re-anchor would mutate shared state.

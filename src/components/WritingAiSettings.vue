@@ -118,7 +118,7 @@ function setSharePercent(v) {
               @update:model-value="toggleCanon(c.id)" />
             <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);min-width:48px">{{ $t("common.chapterShort", { num: c.num }) }}</span>
             <span style="flex:1;color:var(--ink-2);font-size:13px">{{ c.title || $t("writingAi.untitled") }}</span>
-            <span style="font-family:var(--font-mono);font-size:10.5px;color:var(--muted)">{{ $t("writingAi.wordsShort", { n: c.words.toLocaleString() }) }}</span>
+            <span style="font-family:var(--font-mono);font-size:10.5px;color:var(--muted)">{{ $t("writingAi.wordsShort", { n: $n(c.words) }) }}</span>
           </label>
         </div>
         <div style="margin-top:12px;display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:11px;color:var(--muted)">

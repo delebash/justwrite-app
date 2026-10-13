@@ -2080,7 +2080,11 @@
       "filter": "Filter words / 1k",
       "adverbs": "Adverbs / 1k",
       "passive": "Passive / 1k"
-    }
+    },
+    "statusDone": "Done",
+    "statusRevise": "Revise",
+    "statusDraft": "Draft",
+    "statusTodo": "To do"
   },
   "search": {
     "resultCount": "{n} result | {n} results",
@@ -3892,5 +3896,10 @@
     "category": "New category",
     "importedBook": "Imported book",
     "importedPart": "Imported"
+  },
+  "lab": {
+    "source": {
+      "chapter": "chapter"
+    }
   }
 }

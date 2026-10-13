@@ -567,7 +567,7 @@ defineExpose({ open: () => { open.value = true; }, close });
                       <span class="cp-cite-num">[{{ c.index }}]</span>
                       <span class="cp-cite-meta">{{ citationLabel(c.chunk, t) }}</span>
                       <span v-if="c.pinned" class="cp-cite-score" :title="$t('chat.pinnedTitle')">{{ $t("chat.pinned") }}</span>
-                      <span v-else class="cp-cite-score">{{ (c.score * 100).toFixed(0) }}%</span>
+                      <span v-else class="cp-cite-score">{{ $n(c.score, 'percent') }}</span>
                     </li>
                   </ol>
                 </div>

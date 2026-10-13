@@ -43,10 +43,15 @@ HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates 
         in exported books, default names stored as data; then the UPPER_CASE tables and data-tip
         tooltips. All five ruled 2026-10-13 ("your rec go there is no tauri app anymore!"; the
         questions as asked are in the kit's TASKS) and built; the script-string rule is on here
-        (i18n:lint reads src/**/*.{js,vue}, zero). Next: the D6 tables, dates and numbers, the
-        language picker.
+        (i18n:lint reads src/**/*.{js,vue}, zero). D6's tables done 2026-10-13; dates and numbers
+        done 2026-10-13 (step 3: named formats in src/i18n/index.js, every date and displayed
+        number through d()/n(), the calendar's and charts' day and month names from Intl). Next:
+        the language picker (D5).
 FOUND:  2026-10-13, at 1024 px, older than this work — the model catalog's License chip breaks
         mid-word ("Apac|he-2.0"), the Bench header is clipped, the row actions stack.
+        2026-10-13, older than this work — a note's date is stored as display text ("Oct 13", the
+        notes table's `updated` column, written when the note changes): old notes keep the
+        language they were written in, and the Notes list sorts that column as text, not by date.
 
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
 STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the

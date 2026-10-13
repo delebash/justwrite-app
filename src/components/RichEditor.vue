@@ -1502,8 +1502,8 @@ defineExpose({
     </div>
 
     <div v-if="showWordCount && editor && !focusMode" class="editor-footer">
-      <span>{{ $t("richEditor.wordsCount", { n: wordCount.toLocaleString() }) }}</span>
-      <span>{{ $t("richEditor.charsCount", { n: charCount.toLocaleString() }) }}</span>
+      <span>{{ $t("richEditor.wordsCount", { n: $n(wordCount) }) }}</span>
+      <span>{{ $t("richEditor.charsCount", { n: $n(charCount) }) }}</span>
     </div>
 
     <input ref="fileInput" type="file" accept="image/*" style="display:none" @change="onImagePicked" />

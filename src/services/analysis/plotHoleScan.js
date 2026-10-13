@@ -92,10 +92,10 @@ export function composePlotHolesInput(project) {
   }
 
   const body = [];
-  body.push(`The book has ${chapters.length} chapter${chapters.length === 1 ? "" : "s"} totalling ${chapters.reduce((s, c) => s + c.words, 0).toLocaleString()} words.`);
+  body.push(`The book has ${chapters.length} chapter${chapters.length === 1 ? "" : "s"} totalling ${chapters.reduce((s, c) => s + c.words, 0).toLocaleString("en-US")} words.`);
   body.push("");
   for (const c of chapters) {
-    body.push(`=== Chapter ${c.num}${c.title ? ` — ${c.title}` : ""} (${c.words.toLocaleString()} words) ===`);
+    body.push(`=== Chapter ${c.num}${c.title ? ` — ${c.title}` : ""} (${c.words.toLocaleString("en-US")} words) ===`);
     if (c.summary) body.push(`Summary: ${c.summary}`);
     if (c.tail) {
       body.push(`Tail (last ~300 words of prose):`);
