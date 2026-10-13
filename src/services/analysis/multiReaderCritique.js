@@ -29,26 +29,26 @@ import { t } from "../../i18n/index.js";
 export const PERSONAS = [
   {
     key: "genre-reader",
-    label: "Genre-savvy reader",
-    blurb: "A reader who's read deeply in this genre and is encountering your book cold.",
+    labelKey: "multiReader.persona.genre.label",
+    blurbKey: "multiReader.persona.genre.blurb",
     action: "multiReaderGenre",
   },
   {
     key: "literary-critic",
-    label: "Literary critic",
-    blurb: "A close reader concerned with prose craft, voice, image, and what the chapter is doing on the line level.",
+    labelKey: "multiReader.persona.literary.label",
+    blurbKey: "multiReader.persona.literary.blurb",
     action: "multiReaderLiterary",
   },
   {
     key: "agent-intern",
-    label: "Agent's intern",
-    blurb: "A junior agent reading the chapter as a query sample — looking for marketability and hooks.",
+    labelKey: "multiReader.persona.agent.label",
+    blurbKey: "multiReader.persona.agent.blurb",
     action: "multiReaderAgent",
   },
   {
     key: "book-club",
-    label: "Book club reader",
-    blurb: "A reader who'll bring this book to a six-person book club next month and is reading for what they'll say.",
+    labelKey: "multiReader.persona.bookClub.label",
+    blurbKey: "multiReader.persona.bookClub.blurb",
     action: "multiReaderBookClub",
   },
 ];
@@ -79,8 +79,6 @@ async function runPersona({ persona, html, chapterTitle, chapterNum, signal, pro
 
   return {
     personaKey: persona.key,
-    label: persona.label,
-    blurb: persona.blurb,
     reaction,
     suggestions,
     raw: result.content,

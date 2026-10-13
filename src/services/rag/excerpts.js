@@ -8,7 +8,8 @@
 // — formatExcerpts AND the ChatPanel citation row both render it (the row's
 // old inline template was a drifted duplicate; converged 2026-07-11).
 
-import { CARD_KIND_LABELS } from "./cards.js";
+import { CARD_KIND_LABEL_KEYS } from "./cards.js";
+import { tEnglish } from "../../i18n/index.js";
 
 // Scene prose truncates at 1200 chars (unchanged); bible cards are dense
 // facts and get a little more room so a whole card usually fits.
@@ -16,23 +17,20 @@ const SCENE_EXCERPT_CHARS = 1200;
 const CARD_EXCERPT_CHARS = 2000;
 
 /**
- * THE citation label for a chunk — scene chunks keep their historical
- * chapter/scene form byte-for-byte; card chunks read
- * "Story Bible — Character: Aria".
+ * THE citation label for a chunk — scene chunks read `Ch. 3 "Title", scene "Name"`; card chunks
+ * read "Story Bible — Character: Aria". `translate` is the screen's `t`; the default, English, is
+ * what the excerpts block the model reads carries (ruled 2026-10-13: prompts stay English).
  */
-export function citationLabel(chunk) {
+export function citationLabel(chunk, translate = tEnglish) {
   if (chunk?.kind) {
-    const kindLabel = CARD_KIND_LABELS[chunk.kind] || "Entry";
-    return `Story Bible — ${kindLabel}: ${chunk.title || chunk.entityId || ""}`;
+    const kindKey = CARD_KIND_LABEL_KEYS[chunk.kind] || "chat.citation.kind.entry";
+    return translate("chat.citation.bible", { kind: translate(kindKey), title: chunk.title || chunk.entityId || "" });
   }
-  const sceneLabel = chunk.sceneTitle
-    ? `, scene "${chunk.sceneTitle}"`
-    : chunk.sceneIdx != null
-      ? `, scene ${chunk.sceneIdx + 1}`
-      : "";
+  const at = { num: chunk.chapterNum, chapter: chunk.chapterTitle, scene: chunk.sceneTitle, n: chunk.sceneIdx != null ? chunk.sceneIdx + 1 : null };
+  const where = chunk.sceneTitle ? "sceneTitled" : chunk.sceneIdx != null ? "sceneN" : "chapter";
   // (c): two excerpts of one long scene stay distinguishable in citations.
-  const partLabel = chunk.scenePart ? ` (part ${chunk.scenePart})` : "";
-  return `Ch. ${chunk.chapterNum} "${chunk.chapterTitle}"${sceneLabel}${partLabel}`;
+  const base = translate(`chat.citation.${where}`, at);
+  return chunk.scenePart ? translate("chat.citation.part", { base, part: chunk.scenePart }) : base;
 }
 
 /**

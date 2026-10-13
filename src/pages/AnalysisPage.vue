@@ -893,7 +893,7 @@ const milestoneState = computed(() => {
         <div class="vd-grid">
           <div v-for="m in drift.metrics" :key="m.key" class="vd-row">
             <div class="vd-row-label">
-              <span class="vd-row-title">{{ m.label }}</span>
+              <span class="vd-row-title">{{ t(m.labelKey) }}</span>
               <span class="vd-row-mean">{{ $t("analysisView.mean", { value: m.format(m.mean) }) }}</span>
             </div>
             <div class="vd-row-trend"

@@ -565,7 +565,7 @@ defineExpose({ open: () => { open.value = true; }, close });
                   <ol class="cp-cite-list">
                     <li v-for="c in m.citations" :key="c.index" class="cp-cite" @click="openCitation(c)">
                       <span class="cp-cite-num">[{{ c.index }}]</span>
-                      <span class="cp-cite-meta">{{ citationLabel(c.chunk) }}</span>
+                      <span class="cp-cite-meta">{{ citationLabel(c.chunk, t) }}</span>
                       <span v-if="c.pinned" class="cp-cite-score" :title="$t('chat.pinnedTitle')">{{ $t("chat.pinned") }}</span>
                       <span v-else class="cp-cite-score">{{ (c.score * 100).toFixed(0) }}%</span>
                     </li>

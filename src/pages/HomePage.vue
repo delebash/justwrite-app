@@ -7,7 +7,7 @@ import { useSessionsStore, DOW_LABELS_MONDAY_FIRST, reorderForMonday } from "../
 import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore, Icon, AiTaskStrip, UiButton, pageFill } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
-import { generateResumeBriefing, buildBriefingContext } from "../services/resumeBriefing.js";
+import { buildBriefingContext, gapPhrase, generateResumeBriefing } from "../services/resumeBriefing.js";
 import { useWritingNav } from "../composables/useWritingNav.js";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import SessionRecapModal from "../components/SessionRecapModal.vue";
@@ -157,7 +157,11 @@ const briefingText = computed(() => {
 const briefingMetaLine = computed(() => {
   const c = ui.briefingCache;
   const live = briefingContext.value.meta;
-  const gap = c?.gapLabel || live?.gapLabel || "";
+  // the gap phrase in the interface language; a briefing cached before 2026-10-13 has no
+  // daysSince, only its English gapLabel
+  const days = c ? c.daysSince : live?.daysSince;
+  const phrase = (c || live) && days !== undefined ? gapPhrase(days) : null;
+  const gap = phrase ? t(phrase.key, { n: phrase.n }) : c?.gapLabel || "";
   const num = c?.chapterNum ?? live?.lastChapter?.num;
   const title = c?.chapterTitle ?? live?.lastChapter?.title;
   const chapterPart = num == null ? "" : title ? t("home.chapterTitled", { num, title }) : t("home.chapterN", { num });

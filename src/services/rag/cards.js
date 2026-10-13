@@ -15,7 +15,8 @@
 // Scene chunks carry chapter/scene fields instead of kind/entityId — the
 // `kind` field is what excerpts.js/ChatPanel key their card branches on.
 
-import { TRAJECTORY_LABELS } from "../analysis/relationshipArc.js";
+import { TRAJECTORY_LABEL_KEYS } from "../analysis/relationshipArc.js";
+import { tEnglish } from "../../i18n/index.js";
 import { povLabel } from "../povOptions.js";
 import { htmlToText } from "../text.js";
 import { buildCharacterProfile } from "./profile.js";
@@ -28,17 +29,17 @@ const WB_SPLIT_CHARS = 1500;
 // keeps the total honest.
 const MAX_APPEARANCE_LINES = 12;
 
-export const CARD_KIND_LABELS = {
-  character: "Character",
-  location: "Location",
-  object: "Object",
-  group: "Group",
-  worldbuilding: "Worldbuilding",
-  note: "Note",
-  strand: "Narrative strand",
-  cast: "Cast",
-  architecture: "Architecture",
-  outline: "Outline",
+export const CARD_KIND_LABEL_KEYS = {
+  character: "chat.citation.kind.character",
+  location: "chat.citation.kind.location",
+  object: "chat.citation.kind.object",
+  group: "chat.citation.kind.group",
+  worldbuilding: "chat.citation.kind.worldbuilding",
+  note: "chat.citation.kind.note",
+  strand: "chat.citation.kind.strand",
+  cast: "chat.citation.kind.cast",
+  architecture: "chat.citation.kind.architecture",
+  outline: "chat.citation.kind.outline",
 };
 
 // ── scene-link index ─────────────────────────────────────────────────────
@@ -138,7 +139,7 @@ function relationshipLines(project, characterId, nameOf) {
     if (a !== characterId && b !== characterId) continue;
     const other = nameOf.character(a === characterId ? b : a);
     if (!other) continue; // the other side was deleted — stale arc, skip
-    const traj = TRAJECTORY_LABELS[arc?.trajectory] || "";
+    const traj = TRAJECTORY_LABEL_KEYS[arc?.trajectory] ? tEnglish(TRAJECTORY_LABEL_KEYS[arc.trajectory]) : "";
     const summary = String(arc?.summary || "").trim();
     // (WS5) this character's side of the standing dynamic — indented under the
     // arc line; the other side lives on the other character's card. Only THIS

@@ -21,19 +21,19 @@
 import { runAiFeature } from "@delebash/llm-ui";
 import { htmlToText, tailWords } from "../text.js";
 import { bookMetrics } from "./styleMetrics.js";
-import { t } from "../../i18n/index.js";
+import { t, tEnglish } from "../../i18n/index.js";
 
 // Which metrics from bookMetrics rows are worth tracking for drift.
-// Each entry: { key, label, unit, format }. `format` is a function that
+// Each entry: { key, labelKey, unit, format }. `format` is a function that
 // renders the value for display.
 export const TRACKED_METRICS = [
-  { key: "avgSentenceLength",    label: "Avg sentence length", unit: "words", format: (v) => v.toFixed(1) },
-  { key: "avgParagraphLength",   label: "Avg paragraph length", unit: "words", format: (v) => v.toFixed(1) },
-  { key: "dialogueRatio",        label: "Dialogue ratio",       unit: "%",    format: (v) => `${Math.round(v * 100)}%`,
+  { key: "avgSentenceLength",    labelKey: "analysisView.metric.avgSentence", unit: "words", format: (v) => v.toFixed(1) },
+  { key: "avgParagraphLength",   labelKey: "analysisView.metric.avgParagraph", unit: "words", format: (v) => v.toFixed(1) },
+  { key: "dialogueRatio",        labelKey: "analysisView.metric.dialogue",       unit: "%",    format: (v) => `${Math.round(v * 100)}%`,
                                   display: (v) => v * 100 },
-  { key: "filterWordsPer1k",     label: "Filter words / 1k",    unit: "",     format: (v) => v.toFixed(1) },
-  { key: "adverbsPer1k",         label: "Adverbs / 1k",         unit: "",     format: (v) => v.toFixed(1) },
-  { key: "passivePer1k",         label: "Passive / 1k",         unit: "",     format: (v) => v.toFixed(1) },
+  { key: "filterWordsPer1k",     labelKey: "analysisView.metric.filter",    unit: "",     format: (v) => v.toFixed(1) },
+  { key: "adverbsPer1k",         labelKey: "analysisView.metric.adverbs",         unit: "",     format: (v) => v.toFixed(1) },
+  { key: "passivePer1k",         labelKey: "analysisView.metric.passive",         unit: "",     format: (v) => v.toFixed(1) },
 ];
 
 function mean(arr) {
@@ -135,7 +135,7 @@ export function computeVoiceDrift(rows = []) {
 
     perMetric.push({
       key: m.key,
-      label: m.label,
+      labelKey: m.labelKey,
       unit: m.unit,
       format: m.format,
       values,
@@ -199,7 +199,7 @@ export function deriveVoiceDriftContext(drift, outlierChapterId) {
     const direction = out.z > 0 ? "higher" : "lower";
     const baselineMean = m.format ? m.format(m.mean) : m.mean.toFixed(1);
     const outlierValue = m.format ? m.format(out.value) : out.value.toFixed(1);
-    divergentMetrics.push({ label: m.label, direction, baselineMean, outlierValue });
+    divergentMetrics.push({ label: tEnglish(m.labelKey), direction, baselineMean, outlierValue });
   }
   return { baselineChapterIds, divergentMetrics };
 }

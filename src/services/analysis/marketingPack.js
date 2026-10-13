@@ -21,10 +21,10 @@ function firstParagraph(text, maxWords = 60) {
   return `${words.slice(0, maxWords).join(" ")}…`;
 }
 
-const BLURB_ANGLES = [
-  { key: "hook",      label: "Hook-driven",      description: "Leads with the central conflict or question; closes with stakes." },
-  { key: "character", label: "Character-driven", description: "Leads with the protagonist; closes with what they stand to lose." },
-  { key: "premise",   label: "Premise-driven",   description: "Leads with the world or situation; closes with the human pull." },
+export const BLURB_ANGLES = [
+  { key: "hook",      labelKey: "marketingPack.angle.hook.label", descriptionKey: "marketingPack.angle.hook.description" },
+  { key: "character", labelKey: "marketingPack.angle.character.label", descriptionKey: "marketingPack.angle.character.description" },
+  { key: "premise",   labelKey: "marketingPack.angle.premise.label", descriptionKey: "marketingPack.angle.premise.description" },
 ];
 
 function buildChapterDigest(project) {
@@ -114,8 +114,6 @@ export async function generateMarketingPack({
     const hit = rawBlurbs.find((b) => b?.angle === angle.key);
     return {
       angle: angle.key,
-      label: angle.label,
-      description: angle.description,
       text: typeof hit?.text === "string" ? hit.text.trim() : "",
     };
   });

@@ -13,7 +13,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
-import { generateMarketingPack } from "../services/analysis/marketingPack.js";
+import { BLURB_ANGLES, generateMarketingPack } from "../services/analysis/marketingPack.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
 import { relativeTime } from "@delebash/llm-ui";
@@ -27,6 +27,13 @@ const ui = useUiStore();
 const ai = useAiStore();
 const aiTasks = useAiTasksStore();
 const error = ref("");
+// A blurb angle's label or description in the interface language, found by its key (older
+// saved packs also carry an English copy, the fallback).
+function angleWord(b, field) {
+  const a = BLURB_ANGLES.find((x) => x.key === b.angle);
+  if (a) return t(a[field]);
+  return field === "labelKey" ? b.label || "" : b.description || "";
+}
 
 const myTask = computed(() => aiTasks.runningTasks.find(
   (t) => t.feature === "marketingPack"
@@ -165,14 +172,14 @@ function formatComps(comps) {
         <div class="mp-blurbs">
           <article v-for="b in pack.blurbs" :key="b.angle" class="mp-blurb-card">
             <header class="mp-blurb-h">
-              <span class="mp-blurb-angle">{{ b.label }}</span>
+              <span class="mp-blurb-angle">{{ angleWord(b, "labelKey") }}</span>
               <span class="mp-section-meta">{{ $t("marketingPack.wordsMeta", { n: wordCount(b.text) }) }}</span>
               <span class="mp-spacer" />
-              <UiButton intent="ghost" size="small" @click="copyText(b.text, $t('marketingPack.blurbCopyLabel', { label: b.label }))">
+              <UiButton intent="ghost" size="small" @click="copyText(b.text, $t('marketingPack.blurbCopyLabel', { label: angleWord(b, 'labelKey') }))">
                 <Icon name="Plus" :size="12" /> {{ $t("marketingPack.copy") }}
               </UiButton>
             </header>
-            <p class="mp-blurb-desc">{{ b.description }}</p>
+            <p class="mp-blurb-desc">{{ angleWord(b, "descriptionKey") }}</p>
             <p class="mp-blurb-text">{{ b.text || $t("marketingPack.noBlurb") }}</p>
           </article>
         </div>

@@ -20,7 +20,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
 import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiSelect, UiInput, UiTextarea, UiBanner } from "@delebash/llm-ui";
-import { analyseRelationship, pairKey, TRAJECTORY_LABELS } from "../services/analysis/relationshipArc.js";
+import { analyseRelationship, pairKey, TRAJECTORY_LABEL_KEYS } from "../services/analysis/relationshipArc.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
 import { relativeTime } from "@delebash/llm-ui";
@@ -215,7 +215,7 @@ const TRAJECTORY_COLOURS = {
     <template v-else-if="arc">
       <div class="ra-head">
         <span class="ra-trajectory" :style="{ background: TRAJECTORY_COLOURS[arc.trajectory] }">
-          {{ TRAJECTORY_LABELS[arc.trajectory] || arc.trajectory }}
+          {{ TRAJECTORY_LABEL_KEYS[arc.trajectory] ? t(TRAJECTORY_LABEL_KEYS[arc.trajectory]) : arc.trajectory }}
         </span>
         <span class="ra-meta">
           {{ $t("relationshipArc.meta", { chapters: $t("count.sharedChapter", { n: arc.chapters.length }, arc.chapters.length), scenes: $t("count.sharedScene", { n: arc.sharedScenes }, arc.sharedScenes), when: relativeTime(arc.generatedAt) }) }}

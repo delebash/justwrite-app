@@ -124,7 +124,7 @@ function onBackdrop(e) {
               :class="{ active: scene?.pov === opt.value }"
               :aria-pressed="scene?.pov === opt.value ? 'true' : 'false'"
               @click="setPov(opt.value)">
-              {{ opt.label }}
+              {{ t(opt.labelKey) }}
             </button>
           </div>
         </section>

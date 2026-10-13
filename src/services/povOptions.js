@@ -1,16 +1,19 @@
-// The scene POV (narration mode) options — ONE source (RAG build 2026-07-11):
-// SceneLinks' picker and the RAG card/links lines both render these labels.
+
+import { tEnglish } from "../i18n/index.js";// The scene POV (narration mode) options — ONE source (RAG build 2026-07-11):
+// SceneLinks' picker shows them translated; the RAG card/links lines read them in English.
 // Values are the stored slugs on `scene.pov`.
 export const POV_OPTIONS = [
-  { value: "first",            label: "First person" },
-  { value: "secondary-first",  label: "Secondary first person" },
-  { value: "limited-third",    label: "Limited third person" },
-  { value: "omniscient-third", label: "Omniscient third person" },
-  { value: "objective-third",  label: "Objective third person" },
-  { value: "second",           label: "Second person" },
+  { value: "first",            labelKey: "sceneLinks.pov.first" },
+  { value: "secondary-first",  labelKey: "sceneLinks.pov.secondaryFirst" },
+  { value: "limited-third",    labelKey: "sceneLinks.pov.limitedThird" },
+  { value: "omniscient-third", labelKey: "sceneLinks.pov.omniscientThird" },
+  { value: "objective-third",  labelKey: "sceneLinks.pov.objectiveThird" },
+  { value: "second",           labelKey: "sceneLinks.pov.second" },
 ];
 
-/** The human label for a stored pov slug; "" when unset/unknown. */
+/** A stored pov slug in English, for the text the AI model reads (the RAG cards, the story
+ *  context); "" when unset/unknown. The picker translates `labelKey` itself. */
 export function povLabel(value) {
-  return POV_OPTIONS.find((o) => o.value === value)?.label || "";
+  const key = POV_OPTIONS.find((o) => o.value === value)?.labelKey;
+  return key ? tEnglish(key) : "";
 }

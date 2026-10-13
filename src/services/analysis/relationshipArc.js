@@ -18,13 +18,13 @@ import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText, tailWords } from "../text.js";
 import { t } from "../../i18n/index.js";
 
-export const TRAJECTORY_LABELS = {
-  warming:    "Warming",
-  cooling:    "Cooling",
-  escalating: "Escalating",
-  defusing:   "Defusing",
-  flipping:   "Flipping",
-  static:     "Static",
+export const TRAJECTORY_LABEL_KEYS = {
+  warming:    "relationshipArc.trajectory.warming",
+  cooling:    "relationshipArc.trajectory.cooling",
+  escalating: "relationshipArc.trajectory.escalating",
+  defusing:   "relationshipArc.trajectory.defusing",
+  flipping:   "relationshipArc.trajectory.flipping",
+  static:     "relationshipArc.trajectory.static",
 };
 
 // Canonical pair key — characters in sorted id order so (A,B) == (B,A).

@@ -81,6 +81,10 @@ export const i18n = createI18n({
 for (const [code, msgs] of found) i18n.global.mergeLocaleMessage(code, msgs);
 
 // Imperative helpers for non-component callers.
-export function t(key, params) { return i18n.global.t(key, params); }
+export function t(...args) { return i18n.global.t(...args); }
+// The same words in English, for text the AI model reads: prompts stay English whatever the
+// interface language (ruled 2026-10-13, the i18n plan), so a table the screen and a prompt share
+// names its keys once and the prompt side asks for them in English.
+export function tEnglish(key, params = {}) { return i18n.global.t(key, params, { locale: "en" }); }
 export function setLocale(code) { i18n.global.locale.value = code; }
 export function currentLocale() { return i18n.global.locale.value; }

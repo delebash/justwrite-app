@@ -493,6 +493,14 @@
       "newStrandTitle": "New narrative strand",
       "strandName": "Narrative strand name",
       "strandPlaceholder": "e.g. The Map Plot"
+    },
+    "pov": {
+      "first": "First person",
+      "secondaryFirst": "Secondary first person",
+      "limitedThird": "Limited third person",
+      "omniscientThird": "Omniscient third person",
+      "objectiveThird": "Objective third person",
+      "second": "Second person"
     }
   },
   "critique": {
@@ -767,7 +775,25 @@
       "failed": "Couldn't run the panel.",
       "noProse": "This chapter has no prose to read yet."
     },
-    "taskLabel": "Multi-reader critique"
+    "taskLabel": "Multi-reader critique",
+    "persona": {
+      "genre": {
+        "label": "Genre-savvy reader",
+        "blurb": "A reader who's read deeply in this genre and is encountering your book cold."
+      },
+      "literary": {
+        "label": "Literary critic",
+        "blurb": "A close reader concerned with prose craft, voice, image, and what the chapter is doing on the line level."
+      },
+      "agent": {
+        "label": "Agent's intern",
+        "blurb": "A junior agent reading the chapter as a query sample — looking for marketability and hooks."
+      },
+      "bookClub": {
+        "label": "Book club reader",
+        "blurb": "A reader who'll bring this book to a six-person book club next month and is reading for what they'll say."
+      }
+    }
   },
   "entitySweep": {
     "title": "Scanning for new entities",
@@ -840,7 +866,27 @@
     "untitled": "Untitled chat",
     "followUpPlaceholder": "Ask a follow-up…",
     "askPlaceholder": "Ask anything about your book — characters, scenes, threads…",
-    "taskCharacterShort": "Character chat"
+    "taskCharacterShort": "Character chat",
+    "citation": {
+      "kind": {
+        "character": "Character",
+        "location": "Location",
+        "object": "Object",
+        "group": "Group",
+        "worldbuilding": "Worldbuilding",
+        "note": "Note",
+        "strand": "Narrative strand",
+        "cast": "Cast",
+        "architecture": "Architecture",
+        "outline": "Outline",
+        "entry": "Entry"
+      },
+      "bible": "Story Bible — {kind}: {title}",
+      "chapter": "Ch. {num} \"{chapter}\"",
+      "sceneTitled": "Ch. {num} \"{chapter}\", scene \"{scene}\"",
+      "sceneN": "Ch. {num} \"{chapter}\", scene {n}",
+      "part": "{base} (part {part})"
+    }
   },
   "homeShelf": {
     "eyebrow": "Manuscript · Home (Paper Shelf)",
@@ -1037,7 +1083,21 @@
     "taskLabel": "Marketing pack",
     "copiedToast": "{label} copied to clipboard.",
     "synopsisLabel": "Synopsis",
-    "noPitch": "(no pitch returned)"
+    "noPitch": "(no pitch returned)",
+    "angle": {
+      "hook": {
+        "label": "Hook-driven",
+        "description": "Leads with the central conflict or question; closes with stakes."
+      },
+      "character": {
+        "label": "Character-driven",
+        "description": "Leads with the protagonist; closes with what they stand to lose."
+      },
+      "premise": {
+        "label": "Premise-driven",
+        "description": "Leads with the world or situation; closes with the human pull."
+      }
+    }
   },
   "readerKnowledge": {
     "title": "Reader knowledge",
@@ -1122,7 +1182,15 @@
     "powerEqual": "Equal",
     "tipWarmth": "Ch.{num} warmth {value}/10",
     "tipTension": "Ch.{num} tension {value}/10",
-    "tipPower": "Ch.{num}: {power}"
+    "tipPower": "Ch.{num}: {power}",
+    "trajectory": {
+      "warming": "Warming",
+      "cooling": "Cooling",
+      "escalating": "Escalating",
+      "defusing": "Defusing",
+      "flipping": "Flipping",
+      "static": "Static"
+    }
   },
   "writingAi": {
     "embeddingsEyebrow": "Embeddings & RAG",
@@ -1400,7 +1468,17 @@
     },
     "manuscript": "Manuscript",
     "regenerateBriefing": "Generate a fresh briefing",
-    "briefingTaskShort": "Previously on…"
+    "briefingTaskShort": "Previously on…",
+    "gap": {
+      "afterBreak": "after a break",
+      "earlierToday": "earlier today",
+      "yesterday": "yesterday",
+      "days": "{n} days ago",
+      "week": "a week ago",
+      "weeks": "{n} weeks ago",
+      "month": "a month ago",
+      "months": "{n} months ago"
+    }
   },
   "import": {
     "intro": "{importTerm} brings outside files into your project — {docx}, {epub}, {odt}, {md}, {txt}. Choose a mode (add to your current draft, start a new book, or bring sections in as notes), drop the file, review the parser's chapter split, confirm. Embedded images are extracted automatically.",
@@ -1588,6 +1666,14 @@
       "second": "Second person",
       "third": "Third person",
       "mixed": "Mixed POV"
+    },
+    "metric": {
+      "avgSentence": "Avg sentence length",
+      "avgParagraph": "Avg paragraph length",
+      "dialogue": "Dialogue ratio",
+      "filter": "Filter words / 1k",
+      "adverbs": "Adverbs / 1k",
+      "passive": "Passive / 1k"
     }
   },
   "search": {

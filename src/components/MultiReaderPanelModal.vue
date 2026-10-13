@@ -37,6 +37,12 @@ const ch = computed(() => project.chapterById(props.chapterId));
 const cached = computed(() => ch.value?.multiReader || null);
 
 const error = ref("");
+// A persona's label or blurb in the interface language, found by its key (older saved panels
+// also carry an English copy, the fallback).
+function personaWord(key, field) {
+  const p = PERSONAS.find((x) => x.key === key);
+  return p ? t(p[field]) : "";
+}
 const liveColumns = ref(null);  // null until first run; map { personaKey: 'running' | 'done' | 'error' }
 
 // Find this chapter's multi-reader task. QC-31 (#229): the whole 4-persona
@@ -150,7 +156,7 @@ function cancel() {
         <template v-for="(state, key, i) in (liveColumns || {})" :key="key">
           <span v-if="i > 0">, </span>
           <span :class="{ done: state === 'done', err: state === 'error' }">
-            {{ PERSONAS.find(p => p.key === key)?.label || key }}
+            {{ personaWord(key, "labelKey") || key }}
           </span>
         </template>
       </span>
@@ -173,8 +179,8 @@ function cancel() {
       <article v-for="p in panel" :key="p.personaKey" class="mr-col" :data-key="p.personaKey">
         <header class="mr-col-h">
           <div>
-            <div class="mr-col-label">{{ p.label }}</div>
-            <div class="mr-col-blurb">{{ p.blurb }}</div>
+            <div class="mr-col-label">{{ personaWord(p.personaKey, "labelKey") || p.label }}</div>
+            <div class="mr-col-blurb">{{ personaWord(p.personaKey, "blurbKey") || p.blurb }}</div>
           </div>
         </header>
         <div class="mr-col-body">

@@ -17,7 +17,7 @@
 import { runAiFeature } from "@delebash/llm-ui";
 import { scanProjectMarkers } from "justwrite-server/editor/markers.js";
 import { htmlToText, tailWords } from "./text.js";
-import { t } from "../i18n/index.js";
+import { t, tEnglish } from "../i18n/index.js";
 
 // ─── Context composition ───────────────────────────────────────────────
 
@@ -30,15 +30,21 @@ function daysBetween(fromYmd, toDate = new Date()) {
   return Math.max(0, Math.floor(ms / 86400000));
 }
 
+/** How long since the last session, as a phrase key — "yesterday", "3 days ago". The prompt reads
+ *  it in English (describeGap); the Home page's meta line translates the same key. */
+export function gapPhrase(days) {
+  if (days == null) return { key: "home.gap.afterBreak", n: 0 };
+  if (days <= 0) return { key: "home.gap.earlierToday", n: 0 };
+  if (days === 1) return { key: "home.gap.yesterday", n: 1 };
+  if (days < 7) return { key: "home.gap.days", n: days };
+  if (days < 14) return { key: "home.gap.week", n: 1 };
+  if (days < 30) return { key: "home.gap.weeks", n: Math.round(days / 7) };
+  if (days < 60) return { key: "home.gap.month", n: 1 };
+  return { key: "home.gap.months", n: Math.round(days / 30) };
+}
 function describeGap(days) {
-  if (days == null) return "after a break";
-  if (days <= 0) return "earlier today";
-  if (days === 1) return "yesterday";
-  if (days < 7) return `${days} days ago`;
-  if (days < 14) return "a week ago";
-  if (days < 30) return `${Math.round(days / 7)} weeks ago`;
-  if (days < 60) return "a month ago";
-  return `${Math.round(days / 30)} months ago`;
+  const { key, n } = gapPhrase(days);
+  return tEnglish(key, { n });
 }
 
 // Pull the most-recent dailyRecap that's older than today. End-of-day
