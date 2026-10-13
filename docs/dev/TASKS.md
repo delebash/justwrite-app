@@ -601,13 +601,15 @@ FOUND:  2026-10-13, reported by the JustVoice session (its review P16; the user'
         `beforeCopy` / `afterCopy`. JustWrite's part: `server/src/data_admin.js` (`onReplaced`,
         ~86-91) passes the two hooks and calls `afterRestore()` instead of `flushSync()`;
         `docs/sync.md`'s "Restoring a backup" bullet changes. GO given 2026-10-13 ("your rec think
-        on them again go" — the rec was "go once they push"); waits for JustVoice's push. The
-        wiring grew since (JustVoice, 2026-10-13): `makeDataRouter` also takes `afterTables`, run
-        after the table copy commits and before the asset folders — JustWrite passes
-        `afterTables: () => sync.afterRestore()` with `beforeCopy: beforeRestoreCopy, afterCopy:
-        afterRestoreCopy`, and no afterRestore in `onReplaced`.
-FOUND:  2026-10-13, from JustVoice's session — its coming kit push changes what JustWrite runs on;
-        no go yet for JustWrite's side: CORS on hono/cors (JustWrite's
+        on them again go" — the rec was "go once they push"). ON HOLD since 2026-10-13, at
+        JustVoice's request: its stress test (three devices, random edits, backups and restores,
+        300 runs) found permanent divergence in this design; a "restored device becomes a new
+        identity" design passed 300/300 and awaits the user's word in JustVoice's session. The
+        engine's changes are on just-sqlite-sync's branch `restore-wip`, not main; the kit's
+        restore route keeps its optional hooks (`beforeCopy` / `afterCopy` / `afterTables`),
+        unused until then. Don't wire JustWrite's side before that word.
+FOUND:  2026-10-13, from JustVoice's session — its kit push (`a4ef14d`, 2026-10-13) changes what
+        JustWrite runs on; no go yet for JustWrite's side: CORS on hono/cors (JustWrite's
         `server/tests/csrf.test.js` `settings_driven_cors_matches_starlette` fails until updated:
         a refused preflight is 204 without Allow-Origin, allowed answers carry `Vary: Origin`);
         the shell stops a stale server only when its /v1/health `product` matches —
