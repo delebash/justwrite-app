@@ -674,6 +674,16 @@ FOUND:  2026-10-13, reported by the JustVoice session (its review P16; the user'
         getDataRouter adds `...restoreSyncHooks` and drops `flushSync()` from `onReplaced`; a
         restore test; `docs/sync.md` "Restoring a backup … counts as an edit" is no longer true.
         Waits for the user's word on the changed design, and for those engine fixes.
+        The engine fixes landed 2026-10-15 (just-sqlite-sync `87dc877`, its RESEARCH `9bfac8b`): a
+        parent's delete cascading over a re-inserted child is recorded now — on every device,
+        restore or not; the Yjs client id is the device plus the row's insert mark, so rich text
+        survives a delete-and-reinsert, and old and new engines merge without losing or doubling
+        an edit. Stress, JustVoice's: 3,500/3,500 plain, 2,300/2,300 and 1,300/1,300 restore runs.
+        JustWrite runs the new engine already (a `file:` dependency): its server suite passes
+        (160). One more line for JustWrite's wiring: the app layer's sync options take `auth.set`
+        — `(tokens) => writeRow("auth", { ...readRow("auth"), tokens })` — so a restore keeps the
+        pairing tokens (JustVoice `e07a7f9`). Waits for the user's word (asked 2026-10-15: "wire it
+        once JustVoice's session says its sync-engine fixes have landed").
 FOUND:  2026-10-15 — JustVoice's kit additions JustWrite took up (the user: "your rec on all go",
         on "a data-folder lock, so a second JustWrite server can't open the same data (708b9d1),
         Retry on the connection-error page restarting a server that failed to start (8c7a17a),
