@@ -13,7 +13,7 @@
 //
 // The fix moved those maps to hold message KEYS, resolved at render time with $t(variable).
 // That closes the original hole and opens a smaller one: a dynamic $t() cannot be checked by
-// scanning for $t("literal"), and vue-i18n is configured with missingWarn:false, so a typo'd
+// scanning for $t() calls with a literal key, and vue-i18n is configured with missingWarn:false, so a typo'd
 // key renders the raw key string in the UI with no console error and no failing test. This
 // test is what makes the new shape safe — it reads the maps as text and resolves every key.
 //

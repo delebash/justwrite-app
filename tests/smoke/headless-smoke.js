@@ -352,7 +352,13 @@ try {
     await sleep(500);
     mark = errors.length;
     await page.evaluate(() => [...document.querySelectorAll(".lu-prow button, .lu-prow .lu-btn")].find((b) => /edit/i.test(b.textContent))?.click());
-    await sleep(700);
+    // The catalog shows its grid only once the model list has loaded (LuModelCatalog's
+    // `v-else-if="loading"`). A fixed 700 ms read raced that load on a freshly started server and
+    // reported search=false with nothing wrong (2026-10-15): wait for the grid or its error,
+    // bounded — a catalog that never loads still fails the read below.
+    await page
+      .waitForFunction(() => document.querySelector(".lu-mgrid th.is-sortable, .lu-mcat-err"), null, { timeout: 15_000 })
+      .catch(() => {});
     const pf = await page.evaluate(() => ({
       engine: !!document.querySelector(".lu-eng"),
       catalog: !!document.querySelector(".lu-mcat"),
