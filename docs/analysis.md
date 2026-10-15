@@ -37,7 +37,7 @@ Populated automatically as you write — no manual logging required.
 
 > *"I think of myself as someone who writes consistently. I'm a little afraid to find out if that's actually true."*
 
-A GitHub-style 53-week grid, every day of the past year as a small square. Each square is shaded by how much you wrote that day, on a 5-tier scale from none (blank) to peak (deep colour). Month labels and day-of-week labels are shown. Hover any cell to see the date and exact word count.
+A GitHub-style 53-week grid, every day of the past year as a small square. Each square is shaded by how much you wrote that day, on a 5-tier scale from none (blank) to peak (deep colour). Month labels and day-of-week labels are shown. Hover any cell to see the date and exact word count. When the year is wider than its card, it scrolls sideways in its own box — scroll right for the latest weeks.
 
 **Why a writer would care.** Long blank stretches are obvious. So are streaks. So is the pattern of "I write a lot for two weeks and then nothing for a week" — which is useful information about your real working style.
 

@@ -879,7 +879,7 @@ const milestoneState = computed(() => {
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
           <div class="card-title" style="margin:0">{{ $t("analysisView.voiceDrift") }}</div>
           <span class="t-muted" style="font-size:11.5px">{{ $t("analysisView.voiceDriftSub") }}</span>
-          <span style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0;max-width:100%">
             <AiFeatureChip feature="voiceDrift" :label="$t('analysisView.voiceDrift')" editable />
             <span class="vd-pill vd-pill-hot">{{ $t("analysisView.hotChapterPill", { n: drift.hotChapters.length }, drift.hotChapters.length) }}</span>
             <span class="vd-pill vd-pill-muted">{{ $t("analysisView.percentOfBook", { n: Math.round(drift.driftIndex * 100) }) }}</span>
@@ -1089,12 +1089,10 @@ const milestoneState = computed(() => {
   font-family: var(--font-mono); font-size: 9.5px; color: var(--muted);
 }
 .hm-dow-lbl { line-height: 1; text-align: center; height: 12px; }
-.hm-weeks { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow: hidden; }
-/* At phone width the year is wider than the card: it scrolls sideways in its own box rather
-   than losing its latest weeks past the edge. */
-@media (max-width: 599.98px) {
-  .hm-weeks { overflow-x: auto; }
-}
+/* When the year is wider than the card it scrolls sideways in its own box rather than losing its
+   latest weeks past the edge — at phone width, and at 1280 px too, where the card beside
+   Milestones showed October to July and hid August to October (measured 2026-10-15). */
+.hm-weeks { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow-x: auto; }
 .hm-month-row { display: grid; grid-auto-flow: column; grid-auto-columns: 13px; height: 12px; font-family: var(--font-mono); font-size: 9.5px; color: var(--muted); }
 .hm-month-lbl { grid-row: 1; line-height: 1; }
 .hm-cells { display: flex; gap: 2px; }
