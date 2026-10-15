@@ -113,9 +113,13 @@ FOUND:  2026-10-13, older than this work — the model catalog at narrow windows
         LuModelCatalog.vue): measured at 1000 / 1280 / 1440 / 390 px — no page scrolls sideways;
         Characters, Chapters, Worldbuilding and Analysis scroll in their box at 1000; the catalog's
         header stays pinned at every width, its columns sized to their content (936 px: it fits
-        from a ~1,330 px window and scrolls ~50 px sideways in its box at 1280). Open: whether
-        Model's tags may wrap between words so the catalog fits at 1280 (asked 2026-10-15);
-        JustVoice's Voices list lands with JustVoice's edit; docgen's two tables not looked at
+        from a ~1,330 px window and scrolls ~50 px sideways in its box at 1280). Ruled 2026-10-15 —
+        the user: "thinki on it there should be an easy normal way to deal wtih these things, your
+        rec go", on "Letting Model's own tags … wrap between words makes it fit exactly at 1280 …
+        That follows "the text column wraps", and it's my rec." Built: the tags wrap between words
+        (the browser's normal wrapping; QBadge's `multi-line` breaks mid-word): 833 px, fits from
+        a ~1,227 px window, measured at 1264 and 1280. Open: JustVoice's Voices list lands with
+        JustVoice's edit; docgen's two tables not looked at
         (its e2e runs on docgen's own data folder, where the Spanish waits for review).
 FOUND:  2026-10-15 — the project's Started and Deadline are free text: in Spanish, Home shows the
         sample's "Fecha límite March 1, 2027". Ruled 2026-10-15 ("your rec on all go"), as shown:
