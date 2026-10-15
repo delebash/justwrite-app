@@ -20,6 +20,9 @@
 // ============================================================
 
 import { post, requestBlob } from "@delebash/llm-ui";
+// The filename stem — the display title minus the characters a filename can't hold, so "The
+// Ninth Facet" stays intact. The kit's one rule, the same the server names the zip with.
+import { safeTitle } from "@delebash/llm-runner/platform/filename";
 import { chooserDir, rememberDir } from "./chooserDirs.js";
 import { saveBlob } from "./download.js";
 import { hasShell, pickFile } from "./native.js";
@@ -33,14 +36,6 @@ import { t } from "../i18n/index.js";
 export const canSaveFiles = hasShell();
 /** Host offers a file picker — the gate on Import, which has no browser path. */
 export const canPickBooks = hasShell();
-
-// Filesystem-safe filename stem — the display title minus chars illegal in a
-// filename (mirrors the server's `_safe_title`); spaces + hyphens are kept, so
-// "The Ninth Facet" stays intact. Never empty.
-export function safeTitle(title) {
-  const s = (title || "").replace(/[<>:"/\\|?*]/g, "").trim().replace(/\.+$/, "");
-  return s || "book";
-}
 
 /**
  * Export a project as "<title>.zip". Desktop: a user-chosen location via the

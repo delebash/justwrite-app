@@ -20,6 +20,9 @@ runDesktopApp({
   appName: "JustWrite",
   productName: "JustWrite",
   port: 17495, // the family port registry: this app 17495 · JV 17494 · docgen 8742 · template 17490
+  // The `product` this app's server names in GET /v1/health (server/src/version.js PRODUCT): a
+  // listener already on the port is stopped only when it answers with it, as this app's own.
+  serverProduct: "JustWrite Server",
   // the server package (server/): its source in development, the installed copy when packaged
   serverEntry: dev ? path.resolve("server", "src", "serve.js") : path.join(here, "node_modules", "justwrite-server", "src", "serve.js"),
   dataDirEnv: "JUSTWRITE_DATA_DIR",

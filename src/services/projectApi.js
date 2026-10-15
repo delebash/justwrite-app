@@ -162,34 +162,6 @@ export async function refetchSnapshot(id) {
   return null;
 }
 
-/**
- * Watch for other devices' changes landing on the server (sync): its counter moves, and
- * `onChange` runs (the store reloads the open book). The interval is the server's sync
- * setting `pollSeconds`. Returns a stop function.
- */
-export function watchSync(onChange) {
-  let last = null;
-  let timer = null;
-  let stopped = false;
-  const tick = async () => {
-    let wait = 5;
-    try {
-      const r = await get("/v1/sync/rev");
-      wait = Number(r?.pollSeconds) > 0 ? Number(r.pollSeconds) : wait;
-      if (last !== null && r.rev !== last) await onChange();
-      last = r.rev;
-    } catch {
-      // the server is busy or restarting: try again next time
-    }
-    if (!stopped) timer = setTimeout(tick, wait * 1000);
-  };
-  void tick();
-  return () => {
-    stopped = true;
-    clearTimeout(timer);
-  };
-}
-
 export function flushPendingProjects() {
   return Promise.allSettled([..._putTimers.keys()].map((id) => _flushPut(id)));
 }

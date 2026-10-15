@@ -20,21 +20,14 @@ import { HttpError } from "@delebash/llm-runner/platform/errors";
 import { T } from "@delebash/llm-runner/platform/models";
 import { pyJson } from "@delebash/llm-runner/platform/pyjson";
 import { attachment, Hono, input } from "@delebash/llm-runner/platform/server";
-import { b64decode, pyOr, rstrip, strip, ValueError } from "@delebash/llm-runner/platform/py";
+import { b64decode, pyOr, ValueError } from "@delebash/llm-runner/platform/py";
+// The book title made filesystem-safe — so the zip is `<Title>.zip` unzipping to a `<Title>/`
+// folder (user: "zip file should be name of book"). The kit's one rule, shared with the renderer.
+import { safeTitle } from "@delebash/llm-runner/platform/filename";
 import { BadZipFile, ZipReader, ZipWriter } from "@delebash/llm-runner/platform/zip";
 import * as bookIo from "../book_io.js";
 import { pyGet } from "../book_io.js";
 import { getDb } from "../database/session.js";
-
-/**
- * The book title made filesystem-safe — drops only chars illegal in Windows / POSIX
- * filenames, otherwise preserved — so the zip is `<Title>.zip` unzipping to a `<Title>/`
- * folder (user: "zip file should be name of book"). Never empty.
- */
-export function safeTitle(title) {
-  const s = rstrip(strip(String(title || "").replace(/[<>:"/\\|?*\x00-\x1f]/g, "")), ".");
-  return s || "book";
-}
 
 /** `json.loads(bytes)`: the encoding detected the way Python's json module detects it (a
  * UTF-8 BOM is skipped; UTF-16/32 by BOM or by their zero bytes). A bad byte is a

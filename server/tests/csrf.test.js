@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Port of tests/test_csrf.py — the CSRF Origin guard (the kit's csrf.js), the no-token "do
 // the vector directly" hardening, and the CORS hook that sits inside it. +2 tests beyond
-// Python: the settings-driven CORS branch (no Python test covered it; its expectations were
-// measured on the Python server), and the Electron window's origin (`app://justwrite`),
+// Python: the settings-driven CORS branch (no Python test covered it; its answers are hono/cors's
+// since 2026-10-13), and the Electron window's origin (`app://justwrite`),
 // which the desktop app's mutating calls carry.
 import { expect, test } from "vitest";
 import { client, tmpPath, useHermeticKit } from "./helpers.js";
@@ -45,11 +45,12 @@ test("cross_site_read_allowed", async () => {
   expect(r.statusCode).toBe(200);
 });
 
-test("settings_driven_cors_matches_starlette", async () => {
+test("settings_driven_cors", async () => {
   // The `cors` settings section (read at boot) switches CORS from allow-all to an explicit
-  // list + regex with credentials. Every expectation below was measured on the Python server
-  // (Starlette 1.3.1), 2026-10-08 — including the CSRF guard NOT taking the regex (app.py
-  // passes it only the origins list).
+  // list + regex with credentials. The CORS answers are hono/cors's (the kit's platform/cors.js
+  // since 2026-10-13, `a4ef14d`; hono.dev/docs/middleware/builtin/cors) — the kit's
+  // server/tests/cors.test.js asserts the same. The CSRF guard still doesn't take the regex
+  // (measured on the Python server 2026-10-08: app.py passed it only the origins list).
   const tmp = tmpPath();
   await (await client(tmp)).patch("/v1/settings", {
     json: { cors: { origins: ["http://ok.example"], originRegex: "https://.*\\.trusted\\.dev" } },
@@ -62,25 +63,25 @@ test("settings_driven_cors_matches_starlette", async () => {
   expect(cors(r)).toEqual({ "access-control-allow-credentials": "true", "access-control-allow-origin": "http://ok.example", vary: "Origin" });
   r = await c.get("/v1/health", { headers: { origin: "https://a.trusted.dev" } });
   expect(r.headers["access-control-allow-origin"]).toBe("https://a.trusted.dev");
+  // Not allowed: no Allow-Origin, so the browser keeps the answer from the page.
   r = await c.get("/v1/health", { headers: { origin: "http://evil.example" } });
-  expect(cors(r)).toEqual({ "access-control-allow-credentials": "true" });
+  expect(cors(r)).toEqual({ "access-control-allow-credentials": "true", vary: "Origin" });
 
+  // A preflight is answered 204 with no body; allowHeaders ["*"] allows the requested headers back.
   r = await c.options("/v1/health", {
     headers: { origin: "http://ok.example", "access-control-request-method": "PUT", "access-control-request-headers": "Content-Type, X-Custom" },
   });
-  expect(r.statusCode).toBe(200);
-  expect(r.body).toBe("OK");
-  expect(cors(r)).toEqual({
-    vary: "Origin",
-    "access-control-allow-methods": "DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT",
-    "access-control-max-age": "600",
-    "access-control-allow-credentials": "true",
-    "access-control-allow-origin": "http://ok.example",
-    "access-control-allow-headers": "Content-Type, X-Custom",
-  });
+  expect(r.statusCode).toBe(204);
+  expect(r.body).toBe("");
+  const h = cors(r);
+  expect(h["access-control-allow-origin"]).toBe("http://ok.example");
+  expect(h["access-control-allow-credentials"]).toBe("true");
+  expect(h["access-control-max-age"]).toBe("600");
+  expect(h["access-control-allow-methods"].split(",")).toContain("PUT");
+  expect(h["access-control-allow-headers"]).toBe("Content-Type,X-Custom");
+  // A refused preflight: 204 with no Allow-Origin — the browser refuses the request.
   r = await c.options("/v1/health", { headers: { origin: "http://evil.example", "access-control-request-method": "PUT" } });
-  expect(r.statusCode).toBe(400);
-  expect(r.body).toBe("Disallowed CORS origin");
+  expect(r.statusCode).toBe(204);
   expect(r.headers["access-control-allow-origin"]).toBeUndefined();
 
   // The CORS origins are the CSRF guard's extra allowlist; its regex is not.

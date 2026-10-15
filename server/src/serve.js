@@ -125,6 +125,10 @@ export async function main(argv = process.argv.slice(2)) {
   return runServer({
     argv: ["serve", "--host", args.host, "--port", String(args.port), ...(args.dataDir ? ["--data-dir", args.dataDir] : [])],
     envPrefix: "JUSTWRITE",
+    // The port is known before the app is built (the command line, else JUSTWRITE_PORT, else
+    // 17495), so the kit probes it first: a port another server holds — this app's own, with the
+    // same database open — is reported before createApp opens the database.
+    resolvePort: ({ port }) => port,
     build: async ({ dataDir, host, port }) => {
       process.stdout.write(`${PRODUCT} ${VERSION} — http://${host}:${port}/\n`);
       const app = await createApp(dataDir);

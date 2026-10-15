@@ -17,7 +17,6 @@ import { defineBoot } from "#q-app";
 import { phone } from "#phone";
 import { bootSettings, readSetting } from "../services/settings.js";
 import { hydrateProjects, useProjectStore } from "../stores/project.js";
-import { watchSync } from "../services/projectApi.js";
 import { useSessionsStore } from "../stores/sessions.js";
 import { bootProviders } from "../services/providerBackend.js";
 import { bootRouting } from "../services/routingBackend.js";
@@ -34,7 +33,7 @@ import { startWarmOnBoot } from "@delebash/llm-ui";
 // separate configure* calls here, the exact per-step wiring the installer
 // exists to make un-forgettable), wires the external opener, and registers
 // <LlmUiHosts /> (Toast + AppDialog, mounted once in layouts/MainLayout.vue).
-import { installLlmUi, checkServer, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal } from "@delebash/llm-ui";
+import { installLlmUi, checkServer, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, watchSync } from "@delebash/llm-ui";
 import { hasShell, openPath, openUrl, saveFile } from "../services/native.js";
 import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "../services/helpDocs.js";
 import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "../services/labTestData.js";
@@ -220,7 +219,7 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
   // Quasar mounts the app when this returns. The rest only subscribes, so it runs here.
 
   // Sync: when another device's changes land on the server, reload the open book
-  // (services/projectApi.js watchSync; server/src/sync.js).
+  // (the kit's watchSync; server/src/sync.js).
   watchSync(async () => {
     const store = useProjectStore(pinia);
     await store.refreshProjectsList(); // books another device made

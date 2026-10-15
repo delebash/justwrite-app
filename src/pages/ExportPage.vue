@@ -8,7 +8,8 @@ import { Icon } from "@delebash/llm-ui";
 import { buildManuscript, slug } from "../services/export/manuscript.js";
 // safeTitle, not slug(): the .zip keeps the display title verbatim (minus
 // characters illegal in a filename), so "Saves as …" must show what really lands.
-import { exportProject, safeTitle } from "../services/bookTransfer.js";
+import { safeTitle } from "@delebash/llm-runner/platform/filename";
+import { exportProject } from "../services/bookTransfer.js";
 import { saveBlob } from "../services/download.js";
 import { UiButton } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
