@@ -14,7 +14,7 @@ import { PRESERVED_FOLDER_KEYS } from "./api/settings_api.js";
 import { TABLES } from "./database/models.js";
 import { seedWorkspace } from "./database/seed.js";
 import { state } from "./database/session.js";
-import { flushSync, resetBookSync } from "./sync.js";
+import { resetBookSync, restoreSyncHooks } from "./sync.js";
 
 /**
  * Full runner teardown (unload every child + clear the VRAM ledger). A reset or restore is a
@@ -81,13 +81,14 @@ export function getDataRouter() {
     metadata: [TABLES, LLM_TABLES],
     runReset: reset,
     assetDirs: () => ({}),
+    // Sync's restore steps (sync.js): a backup from another sync library is refused while this
+    // device syncs; the backup's rows keep their sync stamps; this device keeps its own sync
+    // settings and continues as a new device, so the other devices' newer work wins.
+    ...restoreSyncHooks,
     // A restore replaces routing/tunes under the live app — same clean-slate rule as reset:
     // no child keeps running under the pre-restore config.
     onReplaced: async () => {
       await stopRunnerBestEffort();
-      // the restore rewrote the book tables on its own connection; the triggers noted it —
-      // stamp it now, so the restored books sync as this device's change
-      flushSync();
     },
   });
 }

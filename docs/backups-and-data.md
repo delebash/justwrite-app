@@ -64,6 +64,10 @@ Click **Import a book…** and pick a `.zip`. It comes in as a **new** book — 
 
 **Settings → Backups → Backup & restore** is a bigger hammer than a single book: **Export backup** produces a ZIP of the entire database (every book + AI providers + settings), and **Import backup** restores one, **replacing all current data**. On the desktop app the export opens a Save dialog (default: your data folder, last location remembered); in the browser it downloads to Downloads.
 
+On a device that syncs, a restore keeps your other devices' newer work, and this device keeps its
+own sync settings; a backup from another sync library is refused while this device syncs — see
+[Sync](sync.md#good-to-know).
+
 Use the whole-workspace backup to move your entire setup; use the per-book `.zip` above to move or share a single book. Autosave (above) is your moment-to-moment net; these are your archives.
 
 ---

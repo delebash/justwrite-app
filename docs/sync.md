@@ -150,8 +150,20 @@ an empty library, it rebuilds your books from that copy.
 
 - **Resetting the workspace** starts a new library on this device — pair your other devices with it
   again.
-- **Restoring a backup** counts as an edit on this device: the restored books sync to your other
-  devices like any other change.
+- **Restoring a backup** puts this device back where the backup was, and the backup keeps its own
+  age: the next sync brings back what was changed, made or deleted since — on your other devices,
+  and what this device had already synced to them — and your other devices keep their newer work.
+  What this device changed after the backup and never synced is gone, as it would be without sync.
+  - After a restore, this device carries on in sync as a new device: your other devices'
+    **Devices** list it as a new entry beside the old one (both with its name), and the old one's
+    files stay in the cloud folder.
+  - This device keeps its own sync settings — the cloud folder, the paired devices and the
+    passwords they reach it with, the library key and its name — not the ones in the backup.
+  - While this device is syncing (a cloud folder or a paired device is set), a backup from another
+    sync library — made on a device that wasn't synced with this one — is refused with *"This
+    backup is from another sync library. Stop using the cloud folder and remove your paired
+    devices in Settings → Sync, then restore it."* A device that isn't syncing restores it and
+    stays in its own library.
 - **Sync isn't a backup.** A deleted chapter is deleted everywhere. Keep using
   [Backups](backups-and-data.md).
 - Sync needs JustWrite open on the devices taking part; the cloud folder lets them take turns.
