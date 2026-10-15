@@ -79,6 +79,17 @@ export const i18n = createI18n({
   numberFormats: everyLanguage(numberFormats),
   missingWarn: false,       // chatty in dev otherwise
   fallbackWarn: false,
+  // The smoke's build (scripts/smoke.js sets QCLI_I18N_MISSING_ERRORS — Quasar's command-line
+  // import.meta.env) reports a key the English catalog lacks as a console error, which fails the
+  // smoke: vue-i18n's own `missing` hook in place of a pseudo-locale walk (the i18n plan's D3,
+  // ruled 2026-10-15). Only English counts — another language's gap is the ruled fallback.
+  ...(import.meta.env.QCLI_I18N_MISSING_ERRORS
+    ? {
+        missing: (locale, key, _instance, type) => {
+          if (type !== "translate" || !i18n.global.te(key, "en")) console.error(`[i18n] missing ${type || "key"}: ${key} (${locale})`);
+        },
+      }
+    : {}),
 });
 for (const [code, msgs] of found) i18n.global.mergeLocaleMessage(code, msgs);
 

@@ -128,9 +128,14 @@ function cleanup() {
 }
 
 async function main() {
-  // The UI under test is built from the current source, every run.
+  // The UI under test is built from the current source, every run — with a key missing from the
+  // English catalog reported as a console error, which the sweep counts (src/i18n/index.js).
   console.log("· ui                building dist/spa (quasar build)…");
-  const built = spawnSync(process.execPath, [QUASAR, "build"], { cwd: ROOT, stdio: ["ignore", "ignore", "inherit"] });
+  const built = spawnSync(process.execPath, [QUASAR, "build"], {
+    cwd: ROOT,
+    stdio: ["ignore", "ignore", "inherit"],
+    env: { ...process.env, QCLI_I18N_MISSING_ERRORS: "1" },
+  });
   if (built.status !== 0 || !existsSync(join(UI_DIR, "index.html"))) {
     console.log("✗ quasar build failed — see the output above");
     process.exit(2);
