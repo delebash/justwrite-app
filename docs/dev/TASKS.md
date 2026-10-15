@@ -55,9 +55,29 @@ HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates 
         87–91 px, measured at 1280 and 390); the Tauri leftovers — the kit's, and here the
         smoke's stale e2e comment; Task 4 (docgen) — in progress in docgen; JustVoice's
         restore fix — when JustVoice pushes. D3 still waits for its own word.
-        Next: step 6's gates (its pseudo-locale check is D3).
-FOUND:  2026-10-13, at 1024 px, older than this work — the model catalog's License chip breaks
-        mid-word ("Apac|he-2.0"), the Bench header is clipped, the row actions stack.
+        Step 6's gates, 2026-10-15 (the user: "you have a go on it all get it all done"), all but
+        D3's check: test:fast (unit 660, server 158, build:spa), the smoke, i18n:report MISSING 0,
+        the family guard, and every route at 1280 and 390 px in Spanish and in English — `lang`
+        es, no raw keys, no page errors. Fixed on the way: the Quick Setup band at 390 px (the
+        kit's `db23468`); the page header's actions and the Local/Online strip at 390 px (the
+        kit's `10df0cf`); the writing year hiding its latest weeks at 1280 px and Voice drift's
+        chip at 390 px (`d4a8c61`). English where Spanish has no key yet (Export's format cards,
+        the AI page's lede, the kit's hardware card) is the ruled fallback until Task 6.
+        Next: D3's word; Task 6 — its context sentences wait for the user's words (asked
+        2026-10-15).
+FOUND:  2026-10-13, older than this work — the model catalog at narrow windows. Measured
+        2026-10-15: the License chip breaks mid-word below a 1280 px window ("Apache-2.0" on two
+        lines at 1000–1152); the Bench header (60 px) overflows its 5% column at every width up to
+        1440 (31–52 px); the row actions take three rows below 1280 and two up to 1440 (⋯ under
+        Download). One cause: fixed column shares in a table that gets 606 px at a 1000 px
+        window. A layout choice — asked 2026-10-15.
+FOUND:  2026-10-15, older than this work (English too) — the Characters list's column minimums
+        (200 + 140 + 100 + 110 + 140 + 110 + 70 px) make the table 1080 px; at a 1280 px window
+        with the sidebar the page has 922, so the whole page scrolls sideways (UiTable lets a
+        desktop table overflow so its header pins to the page). Asked 2026-10-15.
+FOUND:  2026-10-15 — the project's Started and Deadline are free text: in Spanish, Home shows the
+        sample's "Fecha límite March 1, 2027". Storing them as dates (as notes now are) changes
+        stored data. Asked 2026-10-15.
 
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
 STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the
@@ -608,14 +628,13 @@ FOUND:  2026-10-13, reported by the JustVoice session (its review P16; the user'
         engine's changes are on just-sqlite-sync's branch `restore-wip`, not main; the kit's
         restore route keeps its optional hooks (`beforeCopy` / `afterCopy` / `afterTables`),
         unused until then. Don't wire JustWrite's side before that word.
-FOUND:  2026-10-13, from JustVoice's session — its kit push (`a4ef14d`, 2026-10-13) changes what
-        JustWrite runs on; no go yet for JustWrite's side: CORS on hono/cors (JustWrite's
-        `server/tests/csrf.test.js` `settings_driven_cors_matches_starlette` fails until updated:
-        a refused preflight is 204 without Allow-Origin, allowed answers carry `Vary: Origin`);
-        the shell stops a stale server only when its /v1/health `product` matches —
-        `src-electron/electron-main.js` needs `serverProduct: "JustWrite Server"`; `runServer`
-        takes an optional `resolvePort(args)`; the kit's new `watchSync` and `safeTitle` are copies
-        of JustWrite's, which could switch to them.
+FOUND:  2026-10-15 — the kit's watchSync took `waitWhileEditing` (JustVoice's P18, 2026-10-15): a
+        sync's reload waits while a dialog is open or the cursor is in a text box. JustWrite calls
+        it without the option, and `reloadFromServer()` (stores/project.js) replaces the open book
+        and clears undo — a change from another device can land mid-typing. Asked 2026-10-15.
+FOUND:  2026-10-15 — since the kit's shell stopped passing `--port` (`a4ef14d`), a JUSTWRITE_PORT
+        in the environment reaches the desktop app's server, while the window still asks 17495
+        (`src/boot/jw.js` fallbackBase). Nothing sets it today (grep: docs only).
 GO:     given 2026-10-08 — the tests and research ("your rec on all go do the testing"), then
         the build ("just-sqlite-sync you have a go on it all your recs complete the whole
         project without stopping unless you need to").
