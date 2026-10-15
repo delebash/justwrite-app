@@ -90,7 +90,7 @@ See [AI providers](ai-providers.md) for setup instructions for each engine.
 
 A common rhythm for a writer's first day with the app:
 
-1. Open **Settings → Project** and fill in your book's title, your name, the genre, a deadline, and a word goal.
+1. Open **Settings → Project** and fill in your book's title, your name, the genre, a deadline (picked from a calendar), and a word goal.
 2. Open **Architecture** and write a paragraph in the **Premise** document — what the book is about in one breath.
 3. Open **Characters** and add your protagonist. Fill in Wants / Needs / Lie / Truth (the Motivation panel). You can come back and finish the rest later.
 4. Open **Chapters**, add **Chapter 1**, and start writing.

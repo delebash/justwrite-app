@@ -17,6 +17,7 @@ import * as autosaveApi from "../services/autosaveApi.js";
 import { PaneHeader } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { UiInput } from "@delebash/llm-ui";
+import { UiDate } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
 import { UiNumber } from "@delebash/llm-ui";
@@ -746,10 +747,11 @@ async function deleteCategory(c) {
               <UiInput :model-value="project.project.genre"
                 @update:model-value="(v) => setMeta('genre', v)" :placeholder="$t('settings.project.fieldGenrePlaceholder')" />
               <span class="t-muted">{{ $t('settings.project.fieldStarted') }}</span>
-              <UiInput :model-value="project.project.startedOn"
+              <!-- Dates since 2026-10-15 (ISO, picked from a calendar); words typed before show as typed. -->
+              <UiDate :model-value="project.project.startedOn"
                 @update:model-value="(v) => setMeta('startedOn', v)" :placeholder="$t('settings.project.fieldStartedPlaceholder')" />
               <span class="t-muted">{{ $t('settings.project.fieldDeadline') }}</span>
-              <UiInput :model-value="project.project.deadline"
+              <UiDate :model-value="project.project.deadline"
                 @update:model-value="(v) => setMeta('deadline', v)" :placeholder="$t('settings.project.fieldDeadlinePlaceholder')" />
               <span class="t-muted" style="align-self:start;padding-top:6px">{{ $t('settings.project.fieldPremise') }}</span>
               <UiTextarea auto-resize rows="3" :model-value="project.project.premise"

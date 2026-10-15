@@ -4,6 +4,16 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## 2026-10-15
+
+**Started and Deadline are dates.** In **Settings → Project** you now pick them from a calendar,
+and they show in the interface language — on Home, "Deadline March 1, 2027", or with Spanish
+chosen, "1 de marzo de 2027". A date typed in before today shows as it was typed until you pick
+one.
+
+**The writing year scrolls.** On **Analysis**, when the year is wider than its card it scrolls
+sideways in its own box instead of hiding the latest weeks.
+
 ## 2026-10-13
 
 **Times follow the interface language.** "5m ago", "2h ago" and the like — in the AI panels, the

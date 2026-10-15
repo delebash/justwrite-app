@@ -5,7 +5,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore, reorderForMonday } from "../stores/sessions.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, UiButton, pageFill } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, UiButton, pageFill, dateLabel } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
 import { buildBriefingContext, gapPhrase, generateResumeBriefing } from "../services/resumeBriefing.js";
 import { useWritingNav } from "../composables/useWritingNav.js";
@@ -320,7 +320,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
               <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--status-draft);margin-right:5px" />{{ $t("home.statusDraft", { n: draft }) }}</span>
               <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--status-todo);margin-right:5px" />{{ $t("home.statusTodo", { n: todo }) }}</span>
               <router-link to="/settings/project" class="deadline-link" style="margin-left:auto"
-                v-tooltip.bottom="$t('home.deadlineTooltip')">{{ $t("home.deadline", { date: P.deadline }) }}</router-link>
+                v-tooltip.bottom="$t('home.deadlineTooltip')">{{ $t("home.deadline", { date: dateLabel(P.deadline) }) }}</router-link>
             </div>
           </div>
         </div>
