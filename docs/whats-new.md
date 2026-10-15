@@ -27,7 +27,11 @@ instead of pushing the whole page sideways.
 **The model catalog fits its columns to their content.** In **AI → Providers & models**, the
 License, Bench, Fit and Status columns and the buttons take only the room they need, each on one
 line, and the Model column takes the rest. When the window is too narrow for all of them, the list
-scrolls sideways inside its box, with its column names still pinned at the top.
+scrolls sideways inside its box, with its column names still pinned at the top. The tags under a
+model's name wrap like the rest of its text, so at a 1280 px window the whole list fits.
+
+**On a phone, the provider form's buttons wrap.** When a provider is open for editing, **Save
+provider** moves to a second row instead of running off the screen.
 
 **The writing year scrolls.** On **Analysis**, when the year is wider than its card it scrolls
 sideways in its own box instead of hiding the latest weeks.
