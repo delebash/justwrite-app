@@ -664,14 +664,24 @@ FOUND:  2026-10-13, reported by the JustVoice session (its review P16; the user'
         engine's changes are on just-sqlite-sync's branch `restore-wip`, not main; the kit's
         restore route keeps its optional hooks (`beforeCopy` / `afterCopy` / `afterTables`),
         unused until then. Don't wire JustWrite's side before that word.
-FOUND:  2026-10-15 — the kit's watchSync took `waitWhileEditing` (JustVoice's P18, 2026-10-15): a
-        sync's reload waits while a dialog is open or the cursor is in a text box. JustWrite calls
-        it without the option, and `reloadFromServer()` (stores/project.js) replaces the open book
-        and clears undo — a change from another device can land mid-typing. Ruled 2026-10-15
-        ("your rec on all go"), as shown: "My rec: turn it on in JustWrite too."
-FOUND:  2026-10-15 — since the kit's shell stopped passing `--port` (`a4ef14d`), a JUSTWRITE_PORT
-        in the environment reaches the desktop app's server, while the window still asks 17495
-        (`src/boot/jw.js` fallbackBase). Nothing sets it today (grep: docs only).
+        2026-10-15, from JustVoice's session: the new-identity design is built (just-sqlite-sync
+        `35dc1d7`, kit `4157d95`, JustVoice `5f76cb9`; more engine fixes coming there, a
+        convergence bug that needs no restore among them). JustWrite's part now: `server/src/
+        sync.js` `export const restoreSyncHooks = appSync.restoreHooks;`; `data_admin.js`
+        getDataRouter adds `...restoreSyncHooks` and drops `flushSync()` from `onReplaced`; a
+        restore test; `docs/sync.md` "Restoring a backup … counts as an edit" is no longer true.
+        Waits for the user's word on the changed design, and for those engine fixes.
+FOUND:  2026-10-15 — JustVoice's kit additions JustWrite took up (the user: "your rec on all go",
+        on "a data-folder lock, so a second JustWrite server can't open the same data (708b9d1),
+        Retry on the connection-error page restarting a server that failed to start (8c7a17a),
+        and a shutdown route, so the desktop app can stop a stale server cleanly instead of
+        killing it (a1ddee9)"): the lock — serve.js names itself `APP_NAME` and its ladder folder;
+        the boot asks the shell for the server's URL (Retry then restarts a failed start, and a
+        JUSTWRITE_PORT in the environment no longer leaves the window on 17495); the connection
+        page shows the lock's words. Open: the shutdown route — the generic part belongs in the
+        kit (JustVoice's is its own, stopping its engines); asked JustVoice's session how to split
+        it, 2026-10-15. Open: a port another program holds shows no reason — JustVoice's sentence
+        names a Port setting JustWrite doesn't have; words for JustWrite asked 2026-10-15.
 GO:     given 2026-10-08 — the tests and research ("your rec on all go do the testing"), then
         the build ("just-sqlite-sync you have a go on it all your recs complete the whole
         project without stopping unless you need to").

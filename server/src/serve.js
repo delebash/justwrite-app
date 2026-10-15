@@ -21,6 +21,7 @@ import { pathToFileURL } from "node:url";
 import { runServer } from "@delebash/llm-runner/platform";
 import { pyInt } from "@delebash/llm-runner/platform/py";
 import { createApp } from "./app.js";
+import { APP_NAME, defaultDataDir } from "./paths.js";
 import { networkHost } from "./sync.js";
 import { seedWorkspace } from "./database/seed.js";
 import { PRODUCT, VERSION } from "./version.js";
@@ -129,6 +130,11 @@ export async function main(argv = process.argv.slice(2)) {
     // 17495), so the kit probes it first: a port another server holds — this app's own, with the
     // same database open — is reported before createApp opens the database.
     resolvePort: ({ port }) => port,
+    // One server per data folder (the kit's platform/data_lock.js, 2026-10-15): the folder — the
+    // family ladder when none is named — is locked before `build` opens it; a second JustWrite
+    // server there says "Another JustWrite server is using this data folder (…) — stop it first."
+    productName: APP_NAME,
+    defaultDataDir,
     build: async ({ dataDir, host, port }) => {
       process.stdout.write(`${PRODUCT} ${VERSION} — http://${host}:${port}/\n`);
       const app = await createApp(dataDir);

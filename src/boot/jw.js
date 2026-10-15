@@ -34,8 +34,8 @@ import { startWarmOnBoot } from "@delebash/llm-ui";
 // separate configure* calls here, the exact per-step wiring the installer
 // exists to make un-forgettable), wires the external opener, and registers
 // <LlmUiHosts /> (Toast + AppDialog, mounted once in layouts/MainLayout.vue).
-import { installLlmUi, checkServer, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, watchSync } from "@delebash/llm-ui";
-import { hasShell, openPath, openUrl, saveFile } from "../services/native.js";
+import { installLlmUi, checkServer, CHECK_SERVER_MS, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, watchSync } from "@delebash/llm-ui";
+import { hasShell, openPath, openUrl, saveFile, shellServerUrl } from "../services/native.js";
 import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "../services/helpDocs.js";
 import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "../services/labTestData.js";
 
@@ -52,6 +52,16 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
   // below — the server check included — goes to it.
   if (phone) await phone.startInAppServer();
 
+  // Where the desktop app's server listens (its shell knows once the server is up); null in a
+  // browser. Asked after a start that failed on a taken port or a held data folder, the shell
+  // starts the server again, so the connection screen's Retry (a reload) retries the start too
+  // (the kit's 8c7a17a). The wait is the server check's own (CHECK_SERVER_MS, about 7.5 s), as
+  // JustVoice's boot: a start that hangs still ends on the connection-error page.
+  const shellBase = await Promise.race([
+    shellServerUrl(),
+    new Promise((resolve) => setTimeout(() => resolve(null), CHECK_SERVER_MS)),
+  ]);
+
   installLlmUi(app, {
     // The kit's words come from its `kit.*` keys in this instance's language (i18n/index.js
     // starts it from the kit's catalogs), and follow every language switch.
@@ -61,7 +71,7 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
     // JustVoice had src/config.js, docgen had nothing and let the installer do it.
     // docgen was right.
     devPorts: ["1420"],
-    fallbackBase: import.meta.env?.VITE_SERVER_URL || "http://127.0.0.1:17495",
+    fallbackBase: shellBase || import.meta.env?.VITE_SERVER_URL || "http://127.0.0.1:17495",
     // The openers, through services/native.js (the shell's one bridge) — the SAME
     // line in all three apps. The kit decides when they can be used (browser vs
     // desktop window); no app repeats that reasoning. `openPath` is what the model
