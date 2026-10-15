@@ -90,7 +90,10 @@ HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates 
         neutral Latin American Spanish and address the user as tú.", "the writer" for JustWrite);
         JustWrite's list first, as a docgen job (proposals only — es.json untouched until the
         user applies them in Review), the GPU free by JustVoice's word, which comes before each
-        list.
+        list. All three staged 2026-10-15: JustWrite's 2,980 keys, the kit's 1,453 of 1,454 (the
+        one left is "" on purpose — docgen's TASKS), docgen's 278; no locale file written. Next:
+        the user's review in docgen's Review page (start docgen with a project's config.json),
+        then Apply per catalog, then step 4's gates.
 FOUND:  2026-10-13, older than this work — the model catalog at narrow windows. Measured
         2026-10-15: the License chip breaks mid-word below a 1280 px window ("Apache-2.0" on two
         lines at 1000–1152); the Bench header (60 px) overflows its 5% column at every width up to
