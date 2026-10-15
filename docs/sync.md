@@ -155,3 +155,5 @@ an empty library, it rebuilds your books from that copy.
 - **Sync isn't a backup.** A deleted chapter is deleted everywhere. Keep using
   [Backups](backups-and-data.md).
 - Sync needs JustWrite open on the devices taking part; the cloud folder lets them take turns.
+- **Changes from another device show up by themselves** — but not while you're typing or a dialog
+  is open. They wait until you click out of the text, so nothing you're in the middle of is lost.

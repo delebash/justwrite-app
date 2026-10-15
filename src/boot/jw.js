@@ -17,6 +17,7 @@ import { defineBoot } from "#q-app";
 import { phone } from "#phone";
 import { bootSettings, readSetting } from "../services/settings.js";
 import { hydrateProjects, useProjectStore } from "../stores/project.js";
+import { flushPendingProjects } from "../services/projectApi.js";
 import { useSessionsStore } from "../stores/sessions.js";
 import { bootProviders } from "../services/providerBackend.js";
 import { bootRouting } from "../services/routingBackend.js";
@@ -219,12 +220,18 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
   // Quasar mounts the app when this returns. The rest only subscribes, so it runs here.
 
   // Sync: when another device's changes land on the server, reload the open book
-  // (the kit's watchSync; server/src/sync.js).
-  watchSync(async () => {
-    const store = useProjectStore(pinia);
-    await store.refreshProjectsList(); // books another device made
-    await store.reloadFromServer(); // the open book's changes
-  });
+  // (the kit's watchSync; server/src/sync.js). The reload replaces the open book and clears undo,
+  // so it waits while a dialog is open or the cursor is in a text box (ruled 2026-10-15), and
+  // sends this window's pending save first — the server merges it before the reload reads back.
+  watchSync(
+    async () => {
+      const store = useProjectStore(pinia);
+      await flushPendingProjects();
+      await store.refreshProjectsList(); // books another device made
+      await store.reloadFromServer(); // the open book's changes
+    },
+    { waitWhileEditing: true },
+  );
 
   // Dev-only test seams: the project store (deterministic edits for book-smoke)
   // and the bench hook (the LLM bench harness drives real feature runs through
