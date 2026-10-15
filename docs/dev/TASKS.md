@@ -118,8 +118,10 @@ FOUND:  2026-10-13, older than this work — the model catalog at narrow windows
         rec go", on "Letting Model's own tags … wrap between words makes it fit exactly at 1280 …
         That follows "the text column wraps", and it's my rec." Built: the tags wrap between words
         (the browser's normal wrapping; QBadge's `multi-line` breaks mid-word): 833 px, fits from
-        a ~1,227 px window, measured at 1264 and 1280. Open: JustVoice's Voices list lands with
-        JustVoice's edit; docgen's two tables not looked at
+        a ~1,227 px window, measured at 1264 and 1280. JustVoice's Voices list: its edit landed
+        (JustVoice 6b4d4a9 — the lane a flex column, the table `flex: 1 1 0; min-height: 0`), not
+        yet seen on screen (its session's gate checks it after its GPU test). Open: docgen's two
+        tables not looked at
         (its e2e runs on docgen's own data folder, where the Spanish waits for review).
 FOUND:  2026-10-15 — the project's Started and Deadline are free text: in Spanish, Home shows the
         sample's "Fecha límite March 1, 2027". Ruled 2026-10-15 ("your rec on all go"), as shown:
