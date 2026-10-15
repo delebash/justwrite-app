@@ -261,7 +261,10 @@ BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV 
         all / Reject all (`87f0ca0`, `c8914db`).
 OPEN:   the Lab check (the user) — now also "With story context", "Rewrite with a direction" and
         "Dialogue at the lamp". After them, per decision 2: the translation work, then the sheets and
-        slices 3–4.
+        slices 3–4. Their plan written 2026-10-15 (the user: "lets do all the stuff that does not
+        need gpu"): `docs/plans/2026-10-15-ai-drafting-plan-slices-3-4.md`; its §5 asks five
+        things first (the new fields' hints, one schema step, the feature rows' names, Fill from
+        book for the new sheets, the AI-text mark's design); then the go for implementation.
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;
         "your rec go" for the third round (Task 0, Tasks 9b and 11b, Task 12 in the chat panel).
