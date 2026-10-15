@@ -23,6 +23,9 @@ runDesktopApp({
   // The `product` this app's server names in GET /v1/health (server/src/version.js PRODUCT): a
   // listener already on the port is stopped only when it answers with it, as this app's own.
   serverProduct: "JustWrite Server",
+  // Such a server is asked to stop through its own route first (the kit's platform/shutdown_api.js,
+  // mounted in server/src/app.js), and killed only if it hasn't ended within the shell's wait.
+  shutdownPath: "/v1/shutdown",
   // the server package (server/): its source in development, the installed copy when packaged
   serverEntry: dev ? path.resolve("server", "src", "serve.js") : path.join(here, "node_modules", "justwrite-server", "src", "serve.js"),
   dataDirEnv: "JUSTWRITE_DATA_DIR",

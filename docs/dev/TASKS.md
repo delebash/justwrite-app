@@ -678,10 +678,11 @@ FOUND:  2026-10-15 — JustVoice's kit additions JustWrite took up (the user: "y
         killing it (a1ddee9)"): the lock — serve.js names itself `APP_NAME` and its ladder folder;
         the boot asks the shell for the server's URL (Retry then restarts a failed start, and a
         JUSTWRITE_PORT in the environment no longer leaves the window on 17495); the connection
-        page shows the lock's words. Open: the shutdown route — the generic part belongs in the
-        kit (JustVoice's is its own, stopping its engines); asked JustVoice's session how to split
-        it, 2026-10-15. Open: a port another program holds shows no reason — JustVoice's sentence
-        names a Port setting JustWrite doesn't have; words for JustWrite asked 2026-10-15.
+        page shows the lock's words; the shutdown route — the kit's (`0b42f44`, JustVoice's route
+        moved there at its session's request), mounted in app.js, `shutdownPath` in the desktop
+        main; checked live (the lock's words and exit 3; the POST stopped the server and freed its
+        port). Open: a port another program holds shows no reason — JustVoice's sentence names a
+        Port setting JustWrite doesn't have; words for JustWrite asked 2026-10-15.
 GO:     given 2026-10-08 — the tests and research ("your rec on all go do the testing"), then
         the build ("just-sqlite-sync you have a go on it all your recs complete the whole
         project without stopping unless you need to").

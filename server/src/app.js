@@ -17,7 +17,9 @@ import {
   installLogRing,
   makeDiskRouter,
   makeLogsRouter,
+  makeShutdownRouter,
   onClose,
+  SHUTDOWN_PATH,
   serveStatic,
   starletteCors,
 } from "@delebash/llm-runner/platform";
@@ -194,8 +196,9 @@ export async function createApp(dataDir = null) {
   }
 
   // Bearer auth — OFF unless tokens are configured in Settings (the `auth` section). Gates
-  // /v1/* only.
-  app.use("*", bearerAuth({ readAuth, typeBase: TYPE_BASE }));
+  // /v1/* only. The desktop shell's POST /v1/shutdown carries no token: it stays open from this
+  // machine (and the route itself refuses anyone else).
+  app.use("*", bearerAuth({ readAuth, typeBase: TYPE_BASE, loopbackOpenPaths: [SHUTDOWN_PATH] }));
 
   // Sync: stamp what the triggers noted after every request that may have written (the order
   // edits were made in is the order their stamps run); stop the auto-sync timer on close.
@@ -206,6 +209,10 @@ export async function createApp(dataDir = null) {
   onClose(app, async () => stopBookSync());
 
   app.route("/", healthRouter);
+  // POST /v1/shutdown — the desktop shell's clean stop of a JustWrite server it finds on its port
+  // (the kit's route; src-electron/electron-main.js `shutdownPath`). The AI engine needs no hook:
+  // it runs in the kill-on-close job of this process and ends with it.
+  app.route("/", makeShutdownRouter());
   app.route("/", serverAuthRouter); // the auth door + lockout escape (family shape)
   // The server-owned rotating on-disk JSON mirror of each book (moved off Rust 2026-07-13).
   app.route("/", autosaveRouter);
