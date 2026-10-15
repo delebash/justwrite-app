@@ -156,7 +156,10 @@ an empty library, it rebuilds your books from that copy.
   What this device changed after the backup and never synced is gone, as it would be without sync.
   - After a restore, this device carries on in sync as a new device: your other devices'
     **Devices** list it as a new entry beside the old one (both with its name), and the old one's
-    files stay in the cloud folder.
+    files stay in the cloud folder. In this device's own **Devices**, the old entry reads
+    *‹name› (before the restore on ‹date›)*. There is no Remove: that entry's cloud-folder copy is
+    how this device gets its newer work back, and a device that is still offline may not have read
+    it yet.
   - This device keeps its own sync settings — the cloud folder, the paired devices and the
     passwords they reach it with, the library key and its name — not the ones in the backup.
   - While this device is syncing (a cloud folder or a paired device is set), a backup from another
