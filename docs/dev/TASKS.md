@@ -112,6 +112,19 @@ FOUND:  2026-10-13, older than this work — the model catalog at narrow windows
         table overflows — any `overflow` but `visible`/`clip` makes the wrapper the sticky header's
         scroller, and a `scroll-state()` query needs a scroll container already; the rec stands
         (the NOT STANDARD switch in UiTable) and still waits for the word by name.
+        Ruled 2026-10-15 — the user: "go on the UiTable overflow switch". Built and measured
+        (kit `c115cfd`, JustWrite's test `a72771a`), parked on both repos' branch
+        `uitable-overflow-switch`, not on master/main: at 1000 px Characters (784 in 642),
+        Chapters (766), Worldbuilding (848) and Analysis (682 in 596) scroll in their box instead of
+        pushing the page sideways; at 1280/1440 they fit and don't scroll. Found while measuring —
+        my claim above was wrong: the catalog's header pins to the catalog's own box
+        (`.lu-mcat-wrap`, max-height 58vh, overflow auto), not the AI tab's scroller; JustVoice's
+        Voices list sits alone in its own lane too (`.voices-view__list`, its table min-width
+        720 px, JustVoice's window minWidth 960). Such a box already scrolls both ways with the
+        header pinned; the switch would move the sideways scroll inside it and unpin the header
+        (the Voices list below a ~1,050 px window; the catalog once its column fix lets it
+        overflow). Asked 2026-10-15 how those two should behave; the catalog's column fix waits
+        for it.
 FOUND:  2026-10-15, older than this work (English too) — the Characters list's column minimums
         (200 + 140 + 100 + 110 + 140 + 110 + 70 px) make the table 1080 px; at a 1280 px window
         with the sidebar the page has 922, so the whole page scrolls sideways (UiTable lets a
