@@ -14,16 +14,16 @@ report/
 biome_output.json
 biome_parsed.json
 
-# just-ai-help — the translation tool's working state.
-# Its folder holds two kinds of file. config.json and *.accepted.json / *.notes.json are
-# DECISIONS and knowledge: committed, because --check-only runs in CI against a fresh clone and
-# a gitignored verdict would be missing exactly where the gate reads it. Everything below is
-# machine state — regenerable, and *.db holds API keys, which the tool refuses to store unless
-# git genuinely ignores the file.
-just-ai-help/*.probe.json
-just-ai-help/.jah-cache.json
-just-ai-help/.jah-probe-cache.json
-just-ai-help/.jah.db
+# docgen (just-ai-i18n-docgen) — the translation tool's working state, the lines its Setup page
+# prints (its server/src/init.js gitignoreLines). Its folder holds two kinds of file.
+# config.json and *.accepted.json / *.notes.json are DECISIONS and knowledge: committed, because
+# `check` runs in CI against a fresh clone and a gitignored verdict would be missing exactly where
+# the gate reads it. Everything below is machine state — regenerable. (Until 2026-10-15 this block
+# named the tool's old folder, just-ai-help.)
+just-ai-i18n-docgen/*.probe.json
+just-ai-i18n-docgen/.just-ai-i18n-docgen-cache.json
+just-ai-i18n-docgen/.just-ai-i18n-docgen-probe-cache.json
+just-ai-i18n-docgen/.just-ai-i18n-docgen-state.json
 
 # App data (the family portable default: a data/ folder beside the app —
 # the kit's platform/data_paths.js). Never committed.

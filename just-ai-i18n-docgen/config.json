@@ -3,6 +3,22 @@
   "targets": [
     "es"
   ],
-  "context": "",
-  "glossary": []
+  "context": "JustWrite, a desktop and phone app where novelists write their books, keep a story bible and get AI help; write neutral Latin American Spanish and address the writer as tú.",
+  "glossary": [
+    "JustWrite",
+    "JustVoice",
+    "docgen",
+    "llama.cpp",
+    "Hugging Face",
+    "GGUF",
+    "CUDA",
+    "OneDrive",
+    "Ollama",
+    "Dropbox",
+    "Vulkan",
+    "Tailscale",
+    "ZeroTier",
+    "EPUB",
+    "DOCX"
+  ]
 }

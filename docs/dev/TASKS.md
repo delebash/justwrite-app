@@ -63,21 +63,57 @@ HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates 
         kit's `10df0cf`); the writing year hiding its latest weeks at 1280 px and Voice drift's
         chip at 390 px (`d4a8c61`). English where Spanish has no key yet (Export's format cards,
         the AI page's lede, the kit's hardware card) is the ruled fallback until Task 6.
-        Next: D3's word; Task 6 — its context sentences wait for the user's words (asked
-        2026-10-15).
+        Ruled 2026-10-15 — the user: "your rec on all go", on these as shown (after "think on you
+        recs again", and the user's "what is this" on D3 and the glossary):
+        · D3: "Rethought, my rec changes from yes to no. The smoke runs on a copy of your real
+        data, so your books are on almost every page and the list would be large and noisy. A
+        gate that cries wolf gets ignored. Also, since 2026-10-13 the lint already catches English
+        typed into the code, which was most of what D3 was for. The standard alternative is
+        vue-i18n's own missing-key hook, its `missing` option
+        (vue-i18n.intlify.dev/api/general.html). In the smoke's build only, it would report each
+        missing key as a console error, and the smoke already fails on those. That needs no list
+        to maintain. Today the warning is switched off (`missingWarn: false`,
+        `src/i18n/index.js:80`). The fake language would stay a by-eye tool."
+        · Task 6: the context sentences as drafted — "JustWrite: "JustWrite, a desktop and phone
+        app where novelists write their books, keep a story bible and get AI help."" · "Kit:
+        "Shared screens of a family of desktop apps: AI model setup, providers, sync, appearance
+        and settings."" · "docgen: "A desktop tool that translates an app's interface text and
+        docs with a local AI model, for a person to review."" — and "OK to run it unattended once
+        you approve the sentences?"; the glossary — "the word lists contain other names that
+        should stay as they are: Hugging Face (5 times), GGUF (4), CUDA (3), OneDrive (3), Ollama
+        (2), Dropbox (2), Vulkan, Tailscale, ZeroTier, plus EPUB (8) and DOCX (5). My rec is to
+        add only those names."; the Spanish — "The context sentence can fix both … My lean: keep
+        "tú", and use neutral Latin American Spanish ("computadora")". Then: "another sessions is
+        running make sure you both dont use gpu at same time" · "priority is jv sessions so if you
+        have to wait then do so".
+        Task 6 under way 2026-10-15: the three projects' config.json (each sentence ends "; write
+        neutral Latin American Spanish and address the user as tú.", "the writer" for JustWrite);
+        JustWrite's list first, as a docgen job (proposals only — es.json untouched until the
+        user applies them in Review), the GPU free by JustVoice's word, which comes before each
+        list.
 FOUND:  2026-10-13, older than this work — the model catalog at narrow windows. Measured
         2026-10-15: the License chip breaks mid-word below a 1280 px window ("Apache-2.0" on two
         lines at 1000–1152); the Bench header (60 px) overflows its 5% column at every width up to
         1440 (31–52 px); the row actions take three rows below 1280 and two up to 1440 (⋯ under
         Download). One cause: fixed column shares in a table that gets 606 px at a 1000 px
-        window. A layout choice — asked 2026-10-15.
+        window. Ruled 2026-10-15 ("your rec on all go") on, as shown: "My rec: narrow columns
+        (chips, numbers, buttons) take only the width they need, and the text column takes the
+        rest and wraps. That's your "size to content" rule. When even that doesn't fit, the table
+        scrolls inside its own box, which is QTable's standard behaviour
+        (quasar.dev/vue-components/table). Trade-off: a table that scrolls sideways can't keep its
+        header pinned while you scroll down the page." The second half has a gap, asked again
+        2026-10-15: QTable's standard scroll makes every table's wrapper a scroll container, so the
+        two pinned headers (this catalog's, in the AI tab's scroller; JustVoice's Voices list) stop
+        pinning at every width, not only when a table scrolls sideways.
 FOUND:  2026-10-15, older than this work (English too) — the Characters list's column minimums
         (200 + 140 + 100 + 110 + 140 + 110 + 70 px) make the table 1080 px; at a 1280 px window
         with the sidebar the page has 922, so the whole page scrolls sideways (UiTable lets a
-        desktop table overflow so its header pins to the page). Asked 2026-10-15.
+        desktop table overflow so its header pins to the page). Ruled 2026-10-15 with the catalog
+        (above).
 FOUND:  2026-10-15 — the project's Started and Deadline are free text: in Spanish, Home shows the
-        sample's "Fecha límite March 1, 2027". Storing them as dates (as notes now are) changes
-        stored data. Asked 2026-10-15.
+        sample's "Fecha límite March 1, 2027". Ruled 2026-10-15 ("your rec on all go"), as shown:
+        "My rec: store them as dates with a date picker, the way notes now work; old values stay
+        as typed."
 
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
 STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the
@@ -631,7 +667,8 @@ FOUND:  2026-10-13, reported by the JustVoice session (its review P16; the user'
 FOUND:  2026-10-15 — the kit's watchSync took `waitWhileEditing` (JustVoice's P18, 2026-10-15): a
         sync's reload waits while a dialog is open or the cursor is in a text box. JustWrite calls
         it without the option, and `reloadFromServer()` (stores/project.js) replaces the open book
-        and clears undo — a change from another device can land mid-typing. Asked 2026-10-15.
+        and clears undo — a change from another device can land mid-typing. Ruled 2026-10-15
+        ("your rec on all go"), as shown: "My rec: turn it on in JustWrite too."
 FOUND:  2026-10-15 — since the kit's shell stopped passing `--port` (`a4ef14d`), a JUSTWRITE_PORT
         in the environment reaches the desktop app's server, while the window still asks 17495
         (`src/boot/jw.js` fallbackBase). Nothing sets it today (grep: docs only).
