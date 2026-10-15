@@ -94,42 +94,29 @@ HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates 
         one left is "" on purpose — docgen's TASKS), docgen's 278; no locale file written. Next:
         the user's review in docgen's Review page (start docgen with a project's config.json),
         then Apply per catalog, then step 4's gates.
-FOUND:  2026-10-13, older than this work — the model catalog at narrow windows. Measured
-        2026-10-15: the License chip breaks mid-word below a 1280 px window ("Apache-2.0" on two
-        lines at 1000–1152); the Bench header (60 px) overflows its 5% column at every width up to
-        1440 (31–52 px); the row actions take three rows below 1280 and two up to 1440 (⋯ under
-        Download). One cause: fixed column shares in a table that gets 606 px at a 1000 px
-        window. Ruled 2026-10-15 ("your rec on all go") on, as shown: "My rec: narrow columns
-        (chips, numbers, buttons) take only the width they need, and the text column takes the
-        rest and wraps. That's your "size to content" rule. When even that doesn't fit, the table
-        scrolls inside its own box, which is QTable's standard behaviour
-        (quasar.dev/vue-components/table). Trade-off: a table that scrolls sideways can't keep its
-        header pinned while you scroll down the page." The second half has a gap, asked again
-        2026-10-15: QTable's standard scroll makes every table's wrapper a scroll container, so the
-        two pinned headers (this catalog's, in the AI tab's scroller; JustVoice's Voices list) stop
-        pinning at every width, not only when a table scrolls sideways. Rethought 2026-10-15 (the
-        user: "think on everthing again before coding go"): no CSS-only way to scroll only when the
-        table overflows — any `overflow` but `visible`/`clip` makes the wrapper the sticky header's
-        scroller, and a `scroll-state()` query needs a scroll container already; the rec stands
-        (the NOT STANDARD switch in UiTable) and still waits for the word by name.
-        Ruled 2026-10-15 — the user: "go on the UiTable overflow switch". Built and measured
-        (kit `c115cfd`, JustWrite's test `a72771a`), parked on both repos' branch
-        `uitable-overflow-switch`, not on master/main: at 1000 px Characters (784 in 642),
-        Chapters (766), Worldbuilding (848) and Analysis (682 in 596) scroll in their box instead of
-        pushing the page sideways; at 1280/1440 they fit and don't scroll. Found while measuring —
-        my claim above was wrong: the catalog's header pins to the catalog's own box
-        (`.lu-mcat-wrap`, max-height 58vh, overflow auto), not the AI tab's scroller; JustVoice's
-        Voices list sits alone in its own lane too (`.voices-view__list`, its table min-width
-        720 px, JustVoice's window minWidth 960). Such a box already scrolls both ways with the
-        header pinned; the switch would move the sideways scroll inside it and unpin the header
-        (the Voices list below a ~1,050 px window; the catalog once its column fix lets it
-        overflow). Asked 2026-10-15 how those two should behave; the catalog's column fix waits
-        for it.
-FOUND:  2026-10-15, older than this work (English too) — the Characters list's column minimums
-        (200 + 140 + 100 + 110 + 140 + 110 + 70 px) make the table 1080 px; at a 1280 px window
-        with the sidebar the page has 922, so the whole page scrolls sideways (UiTable lets a
-        desktop table overflow so its header pins to the page). Ruled 2026-10-15 with the catalog
-        (above).
+FOUND:  2026-10-13, older than this work — the model catalog at narrow windows (the License chip
+        broken mid-word below 1280 px, the Bench header wider than its 5% column, Edit / Download / ⋯
+        on three rows below 1280), and 2026-10-15 the Characters list pushing its page sideways.
+        Ruled 2026-10-15 ("your rec on all go"), as shown: "My rec: narrow columns (chips, numbers,
+        buttons) take only the width they need, and the text column takes the rest and wraps.
+        That's your "size to content" rule. When even that doesn't fit, the table scrolls inside
+        its own box, which is QTable's standard behaviour (quasar.dev/vue-components/table)."
+        After a NOT STANDARD switch was built and parked (it would have unpinned the two headers
+        that pin in their own box), the user: "think on it again this cant be that hard i am sure
+        there are standard way of doing this"; then "your rec go" on, as shown: "1. Turn QTable's
+        sideways scroll back on. Remove the kit's override in theme.css … 2. Use Quasar's
+        sticky-header pattern for the two pinned tables. ui-table-sticky passes the table's height
+        to QTable. Model catalog: the 58% height limit moves from its outer box onto the table …
+        JustVoice's Voices list: the table fills its lane and scrolls itself instead of the lane …
+        3. Then the catalog's column fix, as already ruled. 4. Delete the two parked
+        uitable-overflow-switch branches." Built 2026-10-15 (kit: theme.css, UiTable.vue,
+        LuModelCatalog.vue): measured at 1000 / 1280 / 1440 / 390 px — no page scrolls sideways;
+        Characters, Chapters, Worldbuilding and Analysis scroll in their box at 1000; the catalog's
+        header stays pinned at every width, its columns sized to their content (936 px: it fits
+        from a ~1,330 px window and scrolls ~50 px sideways in its box at 1280). Open: whether
+        Model's tags may wrap between words so the catalog fits at 1280 (asked 2026-10-15);
+        JustVoice's Voices list lands with JustVoice's edit; docgen's two tables not looked at
+        (its e2e runs on docgen's own data folder, where the Spanish waits for review).
 FOUND:  2026-10-15 — the project's Started and Deadline are free text: in Spanish, Home shows the
         sample's "Fecha límite March 1, 2027". Ruled 2026-10-15 ("your rec on all go"), as shown:
         "My rec: store them as dates with a date picker, the way notes now work; old values stay

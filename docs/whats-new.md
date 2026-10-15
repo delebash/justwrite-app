@@ -20,6 +20,15 @@ the JustWrite server" page now says so, and **Retry** starts the server again. S
 carries on in sync as a new device and keeps its own sync settings, and a backup from another sync
 library is refused while it syncs. See [Sync](sync.md#good-to-know).
 
+**Wide tables scroll inside their own box.** On a narrow window, a list wider than its card —
+Characters, Chapters, Worldbuilding, the Analysis tables — now scrolls sideways inside the card
+instead of pushing the whole page sideways.
+
+**The model catalog fits its columns to their content.** In **AI → Providers & models**, the
+License, Bench, Fit and Status columns and the buttons take only the room they need, each on one
+line, and the Model column takes the rest. When the window is too narrow for all of them, the list
+scrolls sideways inside its box, with its column names still pinned at the top.
+
 **The writing year scrolls.** On **Analysis**, when the year is wider than its card it scrolls
 sideways in its own box instead of hiding the latest weeks.
 
