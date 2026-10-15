@@ -53,6 +53,19 @@ most questions land), then pointers for everything else.
   feature on a shorter chapter. Thinking counts against both, because the hidden
   reasoning is part of the answer.
 
+## The app can't reach its server
+
+**"Can't reach the JustWrite server."** The desktop app starts its own server; when that start
+fails, this page says why, if it knows:
+
+- *"Another JustWrite server is using this data folder (…) — stop it first."* — another JustWrite
+  server, such as one you started yourself on another port ([Headless access](headless-access.md)),
+  has the same data folder open. Stop it, then press **Retry**.
+- *"Port 17495 is in use by another program — close that program, then press Retry."* — another
+  program holds JustWrite's port.
+
+**Retry** starts the server again.
+
 ## Everything else
 
 - **Data, snapshots, restoring** — [Backups and data](backups-and-data.md)

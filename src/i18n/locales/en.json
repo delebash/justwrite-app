@@ -3872,7 +3872,8 @@
   },
   "connectionError": {
     "need": "load and save your work",
-    "devHint": "Dev: start it with `npm run server` in the project root, then retry."
+    "devHint": "Dev: start it with `npm run server` in the project root, then retry.",
+    "portTaken": "Port {port} is in use by another program — close that program, then press {retry}."
   },
   "bookTransfer": {
     "exportTitle": "Export book",

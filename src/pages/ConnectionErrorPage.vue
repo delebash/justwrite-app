@@ -12,11 +12,13 @@ import { shellServerStatus } from "../services/native.js";
 const { t } = useI18n();
 
 // Why the desktop app's server didn't start, when its shell knows: another JustWrite server holds
-// the data folder — the shell's words, the kit's platform/data_lock.js (2026-10-15).
+// the data folder — the shell's words, the kit's platform/data_lock.js (2026-10-15) — or another
+// program holds the port (the approved words, 2026-10-15; {retry} is the button's own label).
 const detail = ref("");
 onMounted(async () => {
   const status = await shellServerStatus();
   if (status?.dataFolderInUse) detail.value = status.dataFolderInUse;
+  else if (status?.portTaken) detail.value = t("connectionError.portTaken", { port: status.portTaken, retry: t("kit.common.retry") });
 });
 </script>
 

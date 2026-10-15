@@ -11,6 +11,15 @@ and they show in the interface language — on Home, "Deadline March 1, 2027", o
 chosen, "1 de marzo de 2027". A date typed in before today shows as it was typed until you pick
 one.
 
+**The connection page says why.** When the desktop app's server can't start because another
+JustWrite server is using the data folder, or another program holds its port, the "Can't reach
+the JustWrite server" page now says so, and **Retry** starts the server again. See
+[Troubleshooting](troubleshooting.md#the-app-cant-reach-its-server).
+
+**Restoring a backup on a device that syncs** keeps your other devices' newer work: this device
+carries on in sync as a new device and keeps its own sync settings, and a backup from another sync
+library is refused while it syncs. See [Sync](sync.md#good-to-know).
+
 **The writing year scrolls.** On **Analysis**, when the year is wider than its card it scrolls
 sideways in its own box instead of hiding the latest weeks.
 

@@ -107,7 +107,11 @@ FOUND:  2026-10-13, older than this work — the model catalog at narrow windows
         header pinned while you scroll down the page." The second half has a gap, asked again
         2026-10-15: QTable's standard scroll makes every table's wrapper a scroll container, so the
         two pinned headers (this catalog's, in the AI tab's scroller; JustVoice's Voices list) stop
-        pinning at every width, not only when a table scrolls sideways.
+        pinning at every width, not only when a table scrolls sideways. Rethought 2026-10-15 (the
+        user: "think on everthing again before coding go"): no CSS-only way to scroll only when the
+        table overflows — any `overflow` but `visible`/`clip` makes the wrapper the sticky header's
+        scroller, and a `scroll-state()` query needs a scroll container already; the rec stands
+        (the NOT STANDARD switch in UiTable) and still waits for the word by name.
 FOUND:  2026-10-15, older than this work (English too) — the Characters list's column minimums
         (200 + 140 + 100 + 110 + 140 + 110 + 70 px) make the table 1080 px; at a 1280 px window
         with the sidebar the page has 922, so the whole page scrolls sideways (UiTable lets a
@@ -682,8 +686,15 @@ FOUND:  2026-10-13, reported by the JustVoice session (its review P16; the user'
         JustWrite runs the new engine already (a `file:` dependency): its server suite passes
         (160). One more line for JustWrite's wiring: the app layer's sync options take `auth.set`
         — `(tokens) => writeRow("auth", { ...readRow("auth"), tokens })` — so a restore keeps the
-        pairing tokens (JustVoice `e07a7f9`). Waits for the user's word (asked 2026-10-15: "wire it
-        once JustVoice's session says its sync-engine fixes have landed").
+        pairing tokens (JustVoice `e07a7f9`). Ruled 2026-10-15 — the user: "your rec go", then
+        "think on everthing again before coding go", on "Restore wiring: go now that the engine
+        fixes are in." Built 2026-10-15: `restoreSyncHooks` in sync.js, spread into getDataRouter,
+        `flushSync()` gone from `onReplaced`, `auth.set` as above; two tests through POST
+        /v1/data/restore (tests/sync.test.js — the backup's stamps kept, a new device with the old
+        id an origin, nothing restored sent as this device's change, the sync settings and a token
+        paired after the backup kept; another library's backup refused with 409 while a folder is
+        set, restored when not, the library unchanged), each failing without its piece; docs
+        sync.md "Good to know", backups-and-data.md, whats-new.md. The phone has no restore route.
 FOUND:  2026-10-15 — JustVoice's kit additions JustWrite took up (the user: "your rec on all go",
         on "a data-folder lock, so a second JustWrite server can't open the same data (708b9d1),
         Retry on the connection-error page restarting a server that failed to start (8c7a17a),
@@ -694,8 +705,13 @@ FOUND:  2026-10-15 — JustVoice's kit additions JustWrite took up (the user: "y
         page shows the lock's words; the shutdown route — the kit's (`0b42f44`, JustVoice's route
         moved there at its session's request), mounted in app.js, `shutdownPath` in the desktop
         main; checked live (the lock's words and exit 3; the POST stopped the server and freed its
-        port). Open: a port another program holds shows no reason — JustVoice's sentence names a
-        Port setting JustWrite doesn't have; words for JustWrite asked 2026-10-15.
+        port). A port another program holds: ruled 2026-10-15 — the user: "your rec go", then "think
+        on everthing again before coding go", on "Taken-port wording: "Port 17495 is in use by
+        another program — close that program, then press Retry."" Built 2026-10-15: en.json
+        `connectionError.portTaken` with `{port}` (the shell's `portTaken`) and `{retry}` (the
+        button's own label, `kit.common.retry`, so a translation names the button as it reads);
+        src/pages/ConnectionErrorPage.test.js; docs troubleshooting.md "The app can't reach its
+        server" (the lock's words too — missed when they shipped), whats-new.md.
 GO:     given 2026-10-08 — the tests and research ("your rec on all go do the testing"), then
         the build ("just-sqlite-sync you have a go on it all your recs complete the whole
         project without stopping unless you need to").
