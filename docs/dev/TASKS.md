@@ -122,11 +122,13 @@ FOUND:  2026-10-13, older than this work — the model catalog at narrow windows
         (JustVoice 6b4d4a9 — the lane a flex column, the table `flex: 1 1 0; min-height: 0`), not
         yet seen on screen (its session's gate checks it after its GPU test). docgen (the user:
         "do it all go", 2026-10-15), on a copy of its database and of JustWrite's docgen project:
-        the Runs table fits at 1000 / 1280 / 1440 and scrolls in its box at 390 (docgen's page is
-        194 px wide there); the Home table not measured — docgen's start screen warms its model,
-        and opening the pages loaded gemma-4-26b on the GPU (18:17–18:19) while JustVoice's test
-        held it (the server found the shared engine cache; JUST_AI_HOME wasn't set to the
-        scratch). Stopped, JustVoice told; Home waits until JustVoice says the GPU is free.
+        both tables fit at 1000 / 1280 / 1440 (docgen's window is never narrower: minWidth 1000).
+        The first try loaded gemma-4-26b on the GPU (18:17–18:19) while JustVoice's test held it:
+        docgen's start screen warms its model, and its database saves JustWrite's engine cache as
+        its own (`runner_setting.cache_root`), which JUST_AI_HOME doesn't override. Stopped,
+        JustVoice told; the Home table measured later on a copy with that row removed, an empty
+        scratch JUST_AI_HOME and the browser's GPU off — no load logged, nothing of mine on the
+        card (nvidia-smi before and after, JustVoice's terms).
 FOUND:  2026-10-15 — the project's Started and Deadline are free text: in Spanish, Home shows the
         sample's "Fecha límite March 1, 2027". Ruled 2026-10-15 ("your rec on all go"), as shown:
         "My rec: store them as dates with a date picker, the way notes now work; old values stay
