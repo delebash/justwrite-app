@@ -308,14 +308,19 @@ const allLifeStatuses = computed(() => {
 
 // computed() for the same reason as LIFE_STATUS_OPTIONS: a module-const header
 // row would freeze the column names in the boot language.
+// No widths: the browser's table layout gives each column what its content needs, the name
+// column (its description cut with "…" at 340 px) the most (ruled 2026-10-15 — "narrow columns
+// … take only the width they need, and the text column takes the rest"). The hand-set minimums
+// they replace added up to a 1080 px table, past the page at a 1280 px window; measured after:
+// 922 px at 1280, in English and Spanish.
 const columns = computed(() => [
-  { accessorKey: "name",     header: t("characters.columns.name"),     sortable: true, headerStyle: "min-width: 200px" },
-  { accessorKey: "role",     header: t("characters.columns.role"),     sortable: true, headerStyle: "min-width: 140px" },
-  { accessorKey: "gender",   header: t("characters.columns.gender"),   sortable: true, headerStyle: "min-width: 100px" },
-  { accessorKey: "pronouns", header: t("characters.columns.pronouns"), sortable: true, headerStyle: "min-width: 110px" },
-  { accessorKey: "tags",     header: t("characters.columns.tags"),     sortable: false, headerStyle: "min-width: 140px", enableGlobalFilter: true },
-  { accessorKey: "status",   header: t("characters.columns.status"),   sortable: true, headerStyle: "min-width: 110px" },
-  { accessorKey: "main",     header: t("characters.columns.main"),     sortable: true, headerStyle: "min-width: 70px" },
+  { accessorKey: "name",     header: t("characters.columns.name"),     sortable: true },
+  { accessorKey: "role",     header: t("characters.columns.role"),     sortable: true },
+  { accessorKey: "gender",   header: t("characters.columns.gender"),   sortable: true },
+  { accessorKey: "pronouns", header: t("characters.columns.pronouns"), sortable: true },
+  { accessorKey: "tags",     header: t("characters.columns.tags"),     sortable: false, enableGlobalFilter: true },
+  { accessorKey: "status",   header: t("characters.columns.status"),   sortable: true },
+  { accessorKey: "main",     header: t("characters.columns.main"),     sortable: true },
 ]);
 
 function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
