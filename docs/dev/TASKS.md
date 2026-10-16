@@ -305,12 +305,21 @@ BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV 
         Task 15 — closed out: the gates, every surface at 1280 and 390 px, RESEARCH (here and the
         kit's `544dfd3`). Fixed on the way: the description draft's voice pass (`be35f4b`), Accept
         all / Reject all (`87f0ca0`, `c8914db`).
-OPEN:   the Lab check (the user) — now also "With story context", "Rewrite with a direction" and
-        "Dialogue at the lamp". After them, per decision 2: the translation work, then the sheets and
-        slices 3–4. Their plan written 2026-10-15 (the user: "lets do all the stuff that does not
-        need gpu"): `docs/plans/2026-10-15-ai-drafting-plan-slices-3-4.md`; its §5 answered in the
-        fifth round; the sheets and slice 3 being built (2026-10-16); slice 4 after the AI-text
-        mark's design.
+        The sheets and slice 3 (2026-10-16, the fifth round; the plan
+        `docs/plans/2026-10-15-ai-drafting-plan-slices-3-4.md`, each task ticked there): the columns
+        and sync schema 4 (`2769599`); the sheets on the three pages and the cards (`df8b6c0`);
+        drafting them, Worldbuilding's body, Name ideas, Suggest locations (`afff407`); the
+        Summary, the Plot board's strand menu, Draft from the premise (`891ce9e`); the phone's
+        sentence (`e10b65b`). Fixed on the way: the bare @ in mentionRefs.empty (`b1c584b`), the
+        Apply template list's outside click (`f1d8128`).
+OPEN:   the Lab check (the user) — now also "With story context", "Rewrite with a direction",
+        "Dialogue at the lamp", and the eight 2026-10-16 samples: "Location from a description",
+        "Object from a description", "Group from a description", "Worldbuilding article",
+        "Suggest locations", "Scene to summarize", "Template beats", "Draft from the premise" (no
+        real model has run them; every test stubbed the reply).
+        Asked 2026-10-16: Next plot beats / Plot twists in the editor's AI menu (spec §5) — what
+        should picking an idea there do? Not built until answered.
+        Slice 4 after the AI-text mark's design, which I bring.
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;
         "your rec go" for the third round (Task 0, Tasks 9b and 11b, Task 12 in the chat panel);

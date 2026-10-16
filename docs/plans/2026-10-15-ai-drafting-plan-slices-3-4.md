@@ -27,7 +27,8 @@ wait until the GPU is free.
 
 ## 2. The sheets (spec §9.1)
 
-### Task S1 — The columns, in one schema step (with slice 3's and 4's)
+### Task S1 — The columns, in one schema step (with slice 3's)
+**Built** `2769599` (2026-10-16).
 - `locations.atmosphere`, `locations.history`; `objects.properties`, `objects.history`,
   `objects.where_now`; `groups.goals`, `groups.leadership`, `groups.history` — TEXT NOT NULL
   DEFAULT ''. With them, slice 3's `scenes.summary` (TEXT), so older devices are asked to update
@@ -42,11 +43,14 @@ wait until the GPU is free.
   sync version.
 
 ### Task S2 — The field definitions, one source
+**Built** `df8b6c0` — `src/services/storyWorldSheet.js`.
 - Beside `characterSheet.js`'s `SHEET_SECTIONS`: the location, object and group sheets as data
   (key, label key, hint key, textarea), read by the pages, the card builder, the drafting prompts
   and the docs' field list. Labels as approved; hints per §5 question 1.
 
 ### Task S3 — The sheets on their pages
+**Built** `df8b6c0` — one SheetSection per field (`StoryWorldSheet.vue`); the pages became one
+scroller (the description editor above a minimum height), which also fixed their 390 px overlap.
 - `LocationsPage.vue` (:215, the note), `ObjectsPage.vue` (:215), `GroupsPage.vue` (:193, the
   blurb): the description stays first; the new fields below it, folded while empty, as the
   character sheet's sections fold. `CharacterSheetSection.vue` is already generic (title, hint,
@@ -57,12 +61,16 @@ wait until the GPU is free.
 - Measured at 1280 and 390 px.
 
 ### Task S4 — The cards carry the new fields
+**Built** `df8b6c0`.
 - `buildEntityCards` (`src/services/rag/cards.js:443`; locations and objects :210, groups :108):
   each new field, labelled, when filled — so the composer, both chats and Ask the book's index get
   atmosphere, properties, where an object is now. Tests: the card text; Exclude from AI still drops
   the whole card.
 
 ### Task S5 — Drafting on the three pages
+**Built** `afff407` — one review window (now `DraftReviewModal.vue`), the describe box, menu and
+review list moved out of the character page and reused; Suggest characters' window now serves
+both kinds (`SuggestEntitiesModal.vue`).
 - **Draft with AI ▾ → From a description**, and the describe box while the page is thin (§9.3:
   every sheet field empty), on the character page's components (`CharactersPage.vue:453`).
 - One drafting service for every sheet: `characterDraft.js` generalised (its section filter, the
@@ -78,6 +86,7 @@ wait until the GPU is free.
 ## 3. Slice 3 — scene summaries + planning from the premise (spec §5)
 
 ### Task P1 — Summary
+**Built** `891ce9e`.
 - The scene's Links panel shows **Summary** (an editable field); the chapter's card view shows it
   instead of the first 180 characters (`src/pages/ChaptersPage.vue:330`), falling back to the prose
   when empty. The composer's scene scope gains it (`src/services/storyContext.js`; the spec lists
@@ -85,6 +94,9 @@ wait until the GPU is free.
 - **Summarize this scene** — drafts it from the prose; reviewed; one undo step.
 
 ### Task P2 — The plot board
+**Built** `891ce9e` — a strand's ✨ menu: Fill this template for my story, Suggest next beats,
+Plot twists. **Not built:** the editor's AI menu entries — what picking an idea there does is
+asked (TASKS, 2026-10-16).
 - **Fill this template for my story** — on a template applied from `PLOT_TEMPLATES`
   (`src/services/plotTemplates.js`, `PlotBoardPage.vue:64`): composer(book) → a note for each beat;
   reviewed per beat.
@@ -92,6 +104,7 @@ wait until the GPU is free.
 - Brainstorm's Next plot beats / Plot twists also in the plot board and the editor's AI menu.
 
 ### Task P3 — Architecture
+**Built** `891ce9e`.
 - **Draft from the premise** on the Fabula and Setting documents
   (`src/pages/ArchitecturePage.vue:29-30`): composer(book) → lands as a diff in the document.
 

@@ -307,6 +307,33 @@ toasts and hover tooltips were not opened; 147 strings matching book content wer
   `kbd` joined 2026-07-29, because Settings' shortcut table had `⌘F` flagged while `⌘\` passed;
   the rule went from warn to error 2026-07-30, when the sweep reached zero in all 81 renderer `.vue`
   files. — *the config's own comments until 2026-10-12, when they moved here*.
+- **A bare `@`, `{`, `}` or `|` in a message breaks it when it's shown.** vue-i18n's message format
+  reads `@` as the start of a linked message; `mentionRefs.empty` ("Type @ in a scene…") failed to
+  compile on every location or object page without mentions, and the built app's console said
+  only `SyntaxError: 10` — the compiler's code 10, INVALID_LINKED_FORMAT, with its words stripped
+  from the production build. A literal one is written `{'@'}`. `src/i18n/messagesCompile.test.js`
+  compiles every English message through the app's vue-i18n and failed on exactly that one.
+  The smoke didn't catch it: its routes are the list pages, which never show the message.
+  — *found driving the sheet pages in a browser, 2026-10-16 (`b1c584b`)*.
+
+## Page layout: measured on the story-world pages (2026-10-16)
+
+- **A flex column that is itself the scroller squashes its fields instead of scrolling.** With
+  `display:flex; flex-direction:column; overflow-y:auto; min-height:0` on one element, a child
+  whose own overflow isn't visible (Quasar's QField) has an automatic minimum height of 0, so a
+  page taller than the card shrank the Kind box to a sliver (Locations, at 1280x800 once the
+  describe box was there). The standard shape: the scroller holds a plain column. — *measured
+  2026-10-16 (`afff407`)*.
+- **A grid or flex item's automatic minimum width is its content's.** The scene Links panel (a
+  grid item, `width:100%; max-width:920px`) grew to 606 px on a 390 px screen once it held a 60ch
+  field; `min-width:0` lets it take the screen's width, and the field's `max-width:100%` then
+  holds. — *measured 2026-10-16 (`891ce9e`)*.
+- **Two editors sharing a card's height by flex weights leave each a strip.** The location,
+  object and group pages split the card between the description editor (`fill`) and the area
+  below it: at 1280x800 the area under the editor was ~190 px, and at 390 px the editor's wrapped
+  toolbar (taller than its share) spilled over the next block. One scroller for the page, the
+  editor sized to its text above a minimum, is Architecture's shape. — *measured 2026-10-16
+  (`df8b6c0`)*.
 
 ## Records not yet distilled
 
