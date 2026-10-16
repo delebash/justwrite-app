@@ -379,7 +379,7 @@ toasts and hover tooltips were not opened; 147 strings matching book content wer
   the whole reply is written, and the kit's agent bounds the wait for headers by that timeout
   (`base.js` `agentFor`). `/v1/ai/stream` — the route the app's own AI calls take — gets headers at
   once. gemma-4-12b's marketing pack failed at 61 s with "Headers Timeout Error"; the eval's
-  provider now uses the stream. — *measured 2026-10-16.*
+  provider now uses the stream, and the same sample then passed in 89.1 s. — *measured 2026-10-16.*
 
 ## Records not yet distilled
 
