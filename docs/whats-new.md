@@ -4,6 +4,16 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## 2026-10-16
+
+**Locations, objects and groups have sheets.** Under the description, a location now has
+**Atmosphere & senses** and **History**; an object **Properties**, **History** and **Where it is
+now**; a group **Goals & beliefs**, **Leadership** and **History**. Each row stays folded until
+it has something in it, and its hint gives an example. The AI reads them with the entry — Ask
+the book, and the writer actions in a scene set there. See
+[Story bible](story-bible.md#locations). Your other devices ask to be updated before they sync
+with this one again.
+
 ## 2026-10-15
 
 **Started and Deadline are dates.** In **Settings → Project** you now pick them from a calendar,

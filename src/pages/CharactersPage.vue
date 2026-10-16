@@ -24,7 +24,7 @@ import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
 import CharacterDraftModal from "../components/CharacterDraftModal.vue";
 import CharacterBatchFillModal from "../components/CharacterBatchFillModal.vue";
-import CharacterSheetSection from "../components/CharacterSheetSection.vue";
+import SheetSection from "../components/SheetSection.vue";
 import NameIdeas from "../components/NameIdeas.vue";
 import { nameIdeasRequest } from "../services/analysis/characterDraft.js";
 import TagEditor from "../components/TagEditor.vue";
@@ -581,7 +581,7 @@ function onRowClick(event) {
                Voice grid, and Backstory are kept verbatim inside their sections;
                new v3 fields are labeled .ch-field rows. Each section is keyed on
                ch.id so an empty character opens collapsed, a filled one expands. -->
-          <CharacterSheetSection :key="`identity-${ch.id}`"
+          <SheetSection :key="`identity-${ch.id}`"
             :title="$t('characters.sections.identity.title')"
             :hint="$t('characters.sections.identity.hint')"
             :count="identityCount" draftable @draft="draftSectionFor('identity')">
@@ -607,9 +607,9 @@ function onRowClick(event) {
                 <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               </div>
             </div>
-          </CharacterSheetSection>
+          </SheetSection>
 
-          <CharacterSheetSection :key="`arc-${ch.id}`"
+          <SheetSection :key="`arc-${ch.id}`"
             :title="$t('characters.sections.arc.title')"
             :hint="$t('characters.sections.arc.hint')"
             :count="arcCount" draftable @draft="draftSectionFor('arc')">
@@ -627,9 +627,9 @@ function onRowClick(event) {
                 </div>
               </div>
             </div>
-          </CharacterSheetSection>
+          </SheetSection>
 
-          <CharacterSheetSection :key="`voice-${ch.id}`"
+          <SheetSection :key="`voice-${ch.id}`"
             :title="$t('characters.sections.voice.title')"
             :hint="$t('characters.sections.voice.hint')"
             :count="voiceCount" draftable @draft="draftSectionFor('voice')">
@@ -666,9 +666,9 @@ function onRowClick(event) {
                 <UiTextarea auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               </div>
             </div>
-          </CharacterSheetSection>
+          </SheetSection>
 
-          <CharacterSheetSection :key="`function-${ch.id}`"
+          <SheetSection :key="`function-${ch.id}`"
             :title="$t('characters.sections.function.title')"
             :hint="$t('characters.sections.function.hint')"
             :count="functionCount" draftable @draft="draftSectionFor('function')">
@@ -679,9 +679,9 @@ function onRowClick(event) {
                 <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               </div>
             </div>
-          </CharacterSheetSection>
+          </SheetSection>
 
-          <CharacterSheetSection :key="`capabilities-${ch.id}`"
+          <SheetSection :key="`capabilities-${ch.id}`"
             :title="$t('characters.sections.capabilities.title')"
             :hint="$t('characters.sections.capabilities.hint')"
             :count="capabilitiesCount" draftable @draft="draftSectionFor('capabilities')">
@@ -692,9 +692,9 @@ function onRowClick(event) {
                 <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               </div>
             </div>
-          </CharacterSheetSection>
+          </SheetSection>
 
-          <CharacterSheetSection :key="`continuity-${ch.id}`"
+          <SheetSection :key="`continuity-${ch.id}`"
             :title="$t('characters.sections.continuity.title')"
             :hint="$t('characters.sections.continuity.hint')"
             :count="continuityCount" draftable @draft="draftSectionFor('continuity')">
@@ -705,9 +705,9 @@ function onRowClick(event) {
                 <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               </div>
             </div>
-          </CharacterSheetSection>
+          </SheetSection>
 
-          <CharacterSheetSection :key="`depth-${ch.id}`"
+          <SheetSection :key="`depth-${ch.id}`"
             :title="$t('characters.sections.depth.title')"
             :hint="$t('characters.sections.depth.hint')"
             :count="depthCount" draftable @draft="draftSectionFor('depth')">
@@ -723,7 +723,7 @@ function onRowClick(event) {
                 <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               </div>
             </div>
-          </CharacterSheetSection>
+          </SheetSection>
 
           <div style="margin-top:22px">
             <div class="t-eyebrow" style="margin-bottom:10px">{{ $t("characters.detail.appearsInScenes") }}</div>

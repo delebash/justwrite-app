@@ -19,6 +19,7 @@
 import { TRAJECTORY_LABEL_KEYS } from "../analysis/relationshipArc.js";
 import { tEnglish } from "../../i18n/index.js";
 import { povLabel } from "../povOptions.js";
+import { sheetFieldLabelKeys, sheetFields, sheetValue } from "../storyWorldSheet.js";
 import { htmlToText } from "../text.js";
 import { buildCharacterProfile } from "./profile.js";
 
@@ -121,6 +122,14 @@ function eventLines(project, entityId) {
   });
 }
 
+// A location's, object's or group's sheet (services/storyWorldSheet.js): each filled field on its
+// own line, labelled as the page labels it — in English, as the model reads it.
+function sheetLines(kind, entity) {
+  return sheetFields(kind)
+    .filter((k) => sheetValue(entity, k).trim())
+    .map((k) => `${tEnglish(sheetFieldLabelKeys(kind, k).label)}: ${sheetValue(entity, k).trim()}`);
+}
+
 function tagsLine(entity) {
   return (entity.tags || []).length ? `Tags: ${entity.tags.join(", ")}` : "";
 }
@@ -212,6 +221,7 @@ function placeThingCards(project, index, nameOf, kind) {
   return included(list).map((e) => {
     const lines = [`${e.name}${e.kind ? ` (${e.kind})` : ""}`];
     if (e.note) lines.push(e.note);
+    lines.push(...sheetLines(kind, e));
     if (tagsLine(e)) lines.push(tagsLine(e));
     const groups = groupMemberships(project, kind, e.id);
     if (groups.length) lines.push(`Member of: ${groups.join(", ")}`);
@@ -237,6 +247,7 @@ function groupCards(project, nameOf) {
   return included(project.groups).map((g) => {
     const lines = [g.name];
     if (g.blurb) lines.push(g.blurb);
+    lines.push(...sheetLines("group", g));
     const members = (g.members || [])
       .map((m) => {
         const name = nameOf[m.kind] ? nameOf[m.kind](m.id) : "";

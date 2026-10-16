@@ -800,7 +800,17 @@
     "backToLocations": "Back to locations",
     "searchPlaceholder": "Search locations…",
     "searchEmpty": "No locations match your search.",
-    "noScenes": "No scenes set in this location yet. Open a scene → Links → Locations to add one."
+    "noScenes": "No scenes set in this location yet. Open a scene → Links → Locations to add one.",
+    "fields": {
+      "atmosphere": {
+        "label": "Atmosphere & senses",
+        "hint": "What it's like to be there — light, sound, smell, mood. e.g. salt and diesel; the fog never lifts before noon."
+      },
+      "history": {
+        "label": "History",
+        "hint": "What happened here before the story, and what people say about it. e.g. burned in the '62 fire; locals say the night shift still clocks in."
+      }
+    }
   },
   "objects": {
     "newObject": "New object",
@@ -816,7 +826,21 @@
     "backToObjects": "Back to objects",
     "searchPlaceholder": "Search objects…",
     "searchEmpty": "No objects match your search.",
-    "noScenes": "No scenes feature this object yet. Open a scene → Links → Objects to add one."
+    "noScenes": "No scenes feature this object yet. Open a scene → Links → Objects to add one.",
+    "fields": {
+      "properties": {
+        "label": "Properties",
+        "hint": "What it does, what it's made of, what makes it unusual. e.g. brass, always warm; it stops when its holder lies."
+      },
+      "history": {
+        "label": "History",
+        "hint": "Where it came from and who has held it. e.g. made for the first harbourmaster; pawned twice, stolen once."
+      },
+      "whereNow": {
+        "label": "Where it is now",
+        "hint": "Who has it, or where it is, at this point in the story. e.g. sewn into her coat lining."
+      }
+    }
   },
   "strands": {
     "newStrand": "New narrative strand",
@@ -2454,7 +2478,21 @@
     "searchEmpty": "No groups match your search.",
     "removeMember": "Remove from group",
     "newGroupPlaceholder": "e.g. The Cartographers' Guild",
-    "createGroup": "Create group"
+    "createGroup": "Create group",
+    "fields": {
+      "goals": {
+        "label": "Goals & beliefs",
+        "hint": "What the group wants and what it holds true. e.g. keep the old charts secret; the sea collects its debts."
+      },
+      "leadership": {
+        "label": "Leadership",
+        "hint": "Who leads it and how it decides. e.g. three elders vote; the eldest breaks ties."
+      },
+      "history": {
+        "label": "History",
+        "hint": "How it began and what shaped it. e.g. founded by the fire's survivors; split over the harbour deal."
+      }
+    }
   },
   "entityReview": {
     "eyebrow": "Entity proposals",

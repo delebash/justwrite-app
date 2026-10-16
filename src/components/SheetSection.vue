@@ -1,5 +1,7 @@
 <script setup>
-// Collapsible section shell for the v3 character sheet. Header = chevron +
+// Collapsible section shell for the v3 character sheet — and, since 2026-10-16, the location,
+// object and group sheets (components/StoryWorldSheet.vue: one section per field, so it shows no
+// count chip; renamed from CharacterSheetSection then). Header = chevron +
 // title + a muted one-line hint + a filled-count chip; body = the default slot.
 // Empty sections (count 0) start collapsed so an unfilled character isn't a
 // wall of empty boxes — the template's rule that "a field that never affects a
@@ -25,6 +27,8 @@ const props = defineProps({
   count: { type: Number, default: 0 },
   // Show the "Draft this section" button (emits `draft`).
   draftable: { type: Boolean, default: false },
+  // Show the count chip (a one-field section has nothing to count).
+  chip: { type: Boolean, default: true },
 });
 const emit = defineEmits(["draft"]);
 
@@ -46,7 +50,7 @@ watch(() => props.count, (n, was) => { if (was === 0 && n > 0) open.value = true
         <Icon :name="open ? 'ChevDown' : 'ChevRight'" :size="14" class="ch-section-chev" />
         <span class="t-eyebrow ch-section-title">{{ title }}</span>
         <span v-if="hint" class="ch-section-hint">{{ hint }}</span>
-        <span v-if="count" class="ch-section-count">{{ count }}</span>
+        <span v-if="chip && count" class="ch-section-count">{{ count }}</span>
       </button>
       <UiButton v-if="draftable" class="ch-section-draft" intent="secondary" size="small"
         v-tooltip.bottom="$t('characters.draft.draftSectionTooltip')" @click="emit('draft')">
@@ -66,8 +70,10 @@ watch(() => props.count, (n, was) => { if (was === 0 && n > 0) open.value = true
   padding-top: 14px;
 }
 .ch-section-headrow { display: flex; align-items: center; gap: 10px; }
+/* The hint stays beside the title while it has room and otherwise takes its own line, wrapping —
+   never cut off (2026-10-16: the sheets' hints carry an example, which a phone lost). */
 .ch-section-head {
-  display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 2px 10px; flex: 1; min-width: 0;
   background: none; border: 0; padding: 2px 0; cursor: pointer; text-align: left;
   color: var(--ink);
 }
@@ -75,7 +81,7 @@ watch(() => props.count, (n, was) => { if (was === 0 && n > 0) open.value = true
 .ch-section-title { flex: none; color: var(--ink); }
 .ch-section-hint {
   font-size: 11.5px; color: var(--muted); font-weight: 400;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+  flex: 1 1 24ch; min-width: 0;
 }
 .ch-section-count {
   margin-left: auto; flex: none;
@@ -84,5 +90,10 @@ watch(() => props.count, (n, was) => { if (was === 0 && n > 0) open.value = true
   font-variant-numeric: tabular-nums;
 }
 .ch-section-draft { flex: none; }
+/* A phone (Quasar's xs): the hint always takes the line under the title, aligned with it; the count
+   stays on the title's line. */
+@media (max-width: 599.98px) {
+  .ch-section-hint { flex-basis: 100%; order: 2; padding-left: 24px; }
+}
 .ch-section-body { padding-top: 14px; }
 </style>

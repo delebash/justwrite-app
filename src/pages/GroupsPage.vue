@@ -14,6 +14,7 @@ import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_SLIM } from "../services/editorToolbars.js";
 import StatusSelect from "../components/StatusSelect.vue";
 import MentionRefList from "../components/MentionRefList.vue";
+import StoryWorldSheet from "../components/StoryWorldSheet.vue";
 import { PaneHeader } from "@delebash/llm-ui";
 import { UiColorPicker } from "@delebash/llm-ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
@@ -183,7 +184,11 @@ function onRowClick(event) {
         <StatusSelect :model-value="g.status || ''" @update:model-value="(v) => update('status', v)" />
       </PaneHeader>
       <div class="pane-card">
-        <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
+        <!-- One scroller for the page (2026-10-16, with the sheet): the description editor sizes to
+             its text above a minimum, as Architecture's does, instead of sharing the card's height
+             with the area below it — which left the sheet a strip, and on a phone let the wrapped
+             toolbar spill over it. -->
+        <div class="scrollarea" style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
           <i18n-t keypath="groups.introDetail" tag="p" class="entity-desc" scope="global">
             <template #groupTerm><strong>{{ $t("groups.groupTerm") }}</strong></template>
             <template #groupsButton><strong>{{ $t("nav.groups") }}</strong></template>
@@ -194,10 +199,10 @@ function onRowClick(event) {
             :placeholder="$t('groups.blurbPlaceholder')"
             variant="inline"
             :toolbar="EDITOR_TOOLBAR_SLIM"
-            :fill="true"
+            :min-height="160"
             @change="(html) => update('blurb', html)"
           />
-          <div style="flex:3;min-height:0;overflow-y:auto">
+          <div>
           <div class="group-color-picker">
             <span class="t-eyebrow" style="font-size:10px;color:var(--muted)">{{ $t("groups.colorLabel") }}</span>
             <UiColorPicker :presets="PRESET_COLORS"
@@ -210,6 +215,7 @@ function onRowClick(event) {
               {{ $t("common.excludeFromAi") }}
             </label>
           </div>
+          <StoryWorldSheet :key="g.id" kind="group" :entity="g" @update="update" />
           <div style="margin-top:24px">
             <div class="t-eyebrow" style="margin-bottom:10px">{{ $t("groups.membersCount", { n: (g.members || []).length }) }}</div>
             <p class="t-muted" style="font-size:12px;margin:0 0 10px">{{ $t("groups.membersHint") }}</p>

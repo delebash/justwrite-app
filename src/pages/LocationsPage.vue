@@ -17,6 +17,7 @@ import StatusSelect from "../components/StatusSelect.vue";
 import GroupsModal from "../components/GroupsModal.vue";
 import TagEditor from "../components/TagEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
+import StoryWorldSheet from "../components/StoryWorldSheet.vue";
 import MentionRefList from "../components/MentionRefList.vue";
 import { PaneHeader } from "@delebash/llm-ui";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
@@ -195,7 +196,11 @@ function onRowClick(event) {
         <StatusSelect :model-value="loc.status || ''" @update:model-value="(v) => update('status', v)" />
       </PaneHeader>
       <div class="pane-card">
-        <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
+        <!-- One scroller for the page (2026-10-16, with the sheet): the description editor sizes to
+             its text above a minimum, as Architecture's does, instead of sharing the card's height
+             with the area below it — which left the sheet a strip, and on a phone let the wrapped
+             toolbar spill over it. -->
+        <div class="scrollarea" style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
           <p class="entity-desc">
             {{ $t("locations.intro", { locationTerm: $t("locations.locationTerm"), relations: $t("panes.relations.title") }) }}
           </p>
@@ -216,10 +221,11 @@ function onRowClick(event) {
             :placeholder="$t('common.description')"
             variant="inline"
             :toolbar="EDITOR_TOOLBAR_DOC"
-            :fill="true"
+            :min-height="160"
             @change="(html) => update('note', html)"
           />
-          <div style="flex:1;min-height:0;overflow-y:auto">
+          <div>
+            <StoryWorldSheet :key="loc.id" kind="location" :entity="loc" @update="update" />
             <div style="margin-top:22px">
               <div class="t-eyebrow" style="margin-bottom:10px">{{ $t("common.appearsInScenes") }}</div>
               <SceneRefList field="locations" :entity-id="loc.id"

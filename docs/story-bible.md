@@ -171,12 +171,16 @@ Reference sheets for every place in your story.
 - **Kind** — short category text (e.g., "Medieval city", "Spaceship interior", "Abandoned barn").
 - **Status, Tags, Images, Groups, Events** — same conventions as characters.
 - **Description** — a full rich-text editor. Use as much or as little as you want.
+- **Atmosphere & senses** — what it's like to be there: light, sound, smell, mood.
+- **History** — what happened here before the story, and what people say about it.
 - **Appears in scenes** — scenes that linked this location.
 - **Mentioned in prose** — `@` mentions with snippets.
 
 ### When to use it
 
 > *"This inn shows up in three chapters and every time I write it the layout is slightly different. Now I can't remember which version is canon."*
+
+**The sheet folds while it's empty.** Each of these fields (on Locations, Objects and Groups alike) is a row you open with a click; an empty one stays folded so a new entry isn't a wall of boxes, and a filled one opens. Each row's hint gives an example. What you write there goes to the AI with the entry — Ask the book and the writer actions in a scene see a location's atmosphere or where an object is now — unless the entry is ticked **Exclude from AI**.
 
 A location entry is worth it when the place will appear in more than one scene and you want to keep sensory details, history, or floor plans consistent. For a single throwaway location ("a dusty bar in town"), a tag on the scene is enough — don't fill the bible with one-shot rooms.
 
@@ -190,7 +194,11 @@ Significant props: weapons, letters, artefacts, MacGuffins, vehicles. Anything t
 
 ### Fields
 
-Same shape as Locations: Name, Kind, Status, Tags, Images, Groups, Events, Description, "Appears in scenes", "Mentioned in prose".
+Same shape as Locations: Name, Kind, Status, Tags, Images, Groups, Events, Description, "Appears in scenes", "Mentioned in prose" — with the object's own sheet in place of Atmosphere and History:
+
+- **Properties** — what it does, what it's made of, what makes it unusual.
+- **History** — where it came from and who has held it.
+- **Where it is now** — who has it, or where it is, at this point in the story.
 
 ### When to make something an Object
 
@@ -214,6 +222,9 @@ Groups are collections that bundle any mix of characters, locations, objects, an
 ### Fields
 
 - **Name, Color, Blurb, Status, Images, Events**
+- **Goals & beliefs** — what the group wants and what it holds true.
+- **Leadership** — who leads it and how it decides.
+- **History** — how it began and what shaped it.
 - **Members** — auto-collected from every entity that has been toggled into this group. The Groups view shows the roster; you add and remove members from the individual entities' Groups buttons, not from the Group page itself.
 
 ### Why use a Group instead of just tagging things

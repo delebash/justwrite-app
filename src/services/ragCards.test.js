@@ -228,6 +228,23 @@ describe("buildEntityCards", () => {
     expect(ledger.text).toContain("Appears in:");
   });
 
+  it("puts each filled sheet field on the card, labelled as on the page; empty ones are left out", () => {
+    const p = fixtureProject();
+    Object.assign(p.locations[0], { atmosphere: "Tar and wet rope.", history: "" });
+    Object.assign(p.objects[0], { properties: "", history: "", whereNow: "In Bren's coat." });
+    Object.assign(p.groups[0], { goals: "Keep the charts secret.", leadership: " ", history: "" });
+    const built = buildEntityCards(p);
+    const customs = cardById(built, "card:location:l_customs").text;
+    expect(customs).toContain("Atmosphere & senses: Tar and wet rope.");
+    expect(customs).not.toContain("History:");
+    const ledger = cardById(built, "card:object:o_ledger").text;
+    expect(ledger).toContain("Where it is now: In Bren's coat.");
+    expect(ledger).not.toContain("Properties:");
+    const guild = cardById(built, "card:group:g1").text;
+    expect(guild).toContain("Goals & beliefs: Keep the charts secret.");
+    expect(guild).not.toContain("Leadership:");
+  });
+
   it("builds group cards with kind-labelled members", () => {
     const guild = cardById(cards, "card:group:g1");
     expect(guild.text).toContain("Chartmakers' guild.");
