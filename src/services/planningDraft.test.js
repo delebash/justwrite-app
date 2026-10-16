@@ -122,6 +122,34 @@ describe("a strand's next beats and twists", () => {
   });
 });
 
+describe("brainstormPlot's Lab samples keep the composers' shape (the QC-35 sample law)", async () => {
+  const { DEFAULT_TEST_SAMPLES } = await import("../../server/src/seed_presets.js");
+  const { brainstormAction, brainstormPrompt } = await import("./brainstorm.js");
+  const sample = (label) => DEFAULT_TEST_SAMPLES.find((s) => s.label === label && s.actions.includes("brainstormPlot")).variables;
+  // The headings, then the request's own lines — what the composer writes whatever the book holds.
+  const skeleton = (text) => text.split("\n").filter((l) => /^[A-Z][A-Z' ]+$/.test(l) || /^(Category|Seed|Output)\b/.test(l));
+  const kind = brainstormAction("next_beat").variables.kind;
+
+  it("from a seed, as the Brainstorm page asks", () => {
+    const s = sample("Plot beats from a seed");
+    const seed = /^Seed: (.*)$/m.exec(s.user_content)[1];
+    expect(s.user_content).toBe(brainstormPrompt({ category: "next_beat", seed }));
+    expect(s.kind).toBe(kind);
+  });
+
+  it("at the cursor, as the editor's AI menu asks", () => {
+    const r = composeSceneIdeasInput(project(), { chapterId: "ch1", sceneId: "s1", category: "next_beat", proseTail: "Mira turns the key.", budgetTokens: null });
+    expect(skeleton(sample("Next beats at the cursor").user_content)).toEqual(skeleton(r.variables.user_content));
+    expect(sample("Next beats at the cursor").kind).toBe(r.variables.kind);
+  });
+
+  it("on a strand, as its ✨ menu asks", () => {
+    const r = composeStrandIdeasInput(project(), project().strands[0], "next_beat", { budgetTokens: null });
+    expect(skeleton(sample("Next beats on a strand").user_content)).toEqual(skeleton(r.variables.user_content));
+    expect(sample("Next beats on a strand").kind).toBe(r.variables.kind);
+  });
+});
+
 describe("next beats and twists at the cursor", () => {
   it("asks Brainstorm's plot category with the scene's story context and the prose so far", () => {
     const r = composeSceneIdeasInput(project(), { chapterId: "ch1", sceneId: "s1", category: "next_beat", proseTail: "Mira turns the key.", seen: ["Old idea"], budgetTokens: null });

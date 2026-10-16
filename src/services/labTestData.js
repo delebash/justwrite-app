@@ -336,7 +336,9 @@ export const LAB_TEST_ACTIONS = {
 
   // D — freeform user intent (no book data belongs; type it or Sample)
   brainstorm: { samples: ["Brainstorm seed"] },
-  brainstormPlot: { samples: ["Brainstorm seed"] },
+  // One sample per way the app asks for plot ideas (2026-10-16): the Brainstorm page, the editor's
+  // AI menu at the cursor, a strand's ✨ menu.
+  brainstormPlot: { samples: ["Plot beats from a seed", "Next beats at the cursor", "Next beats on a strand"] },
   sensory: { samples: ["Sensory subject"] },
   // The AI drafting from a description — the writer types it (2026-10-11).
   characterProfileDraft: { samples: ["Character from a description"] },
