@@ -16,6 +16,7 @@
 // (app_state, autosave_api, database/demo_seed, editor/html, sync_platform); under Node (tests)
 // the originals load.
 import { installCloudLlm } from "@delebash/llm-runner/llm/install_cloud";
+import { setNotConfiguredMessage } from "@delebash/llm-runner/llm/dispatch";
 import { loadFromConfigs } from "@delebash/llm-runner/llm/registry";
 import { seedLlm } from "@delebash/llm-runner/llm/seed";
 import * as llmStores from "@delebash/llm-runner/llm/stores";
@@ -52,6 +53,10 @@ import { flushSync, getSync, openBookSync, stopBookSync, router as syncRouter } 
 import { SYNC_PLATFORM, startGuard } from "#sync_platform";
 
 const log = getLogger("justwrite_server.phone");
+
+/** The phone's no-model sentence (the words as decided 2026-10-16). */
+export const PHONE_NO_MODEL_MESSAGE =
+  "No AI model is set up on this phone. On the AI page, add an online provider with its Default model, then press Set as default on it.";
 
 /** Where the data is, as /v1/health reports it: inside the app, not a folder. A test passes a
  * temporary folder instead (the computer's modules it runs under Node use one). */
@@ -110,6 +115,10 @@ export async function createPhoneApp({ handle, dataDir = PHONE_DATA_DIR, deviceI
     featurePromptHeals: FEATURE_PROMPT_HEALS,
     allowKeyReveal: true,
   });
+  // What an AI feature says before a model is set (decided 2026-10-16, TASKS "AI drafting", the
+  // fifth round): the kit's sentence names Quick Setup and the model catalog, which a phone
+  // doesn't have — it adds an online provider, and an added one isn't made the default by itself.
+  setNotConfiguredMessage(PHONE_NO_MODEL_MESSAGE);
   // seeded as serve.js seeds a computer (database/seed.js seedWorkspace): the shared seed, then
   // the providers into the dispatch registry
   try {

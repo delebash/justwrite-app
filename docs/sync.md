@@ -111,7 +111,9 @@ join that device's library. Say yes, and your books on both devices become one l
 JustWrite on a phone keeps your books in the app itself and works with no network, like a
 computer. What it does there: the books — the manuscript, the story bible, images and saved versions
 — sync, and the AI features that use an online provider. What stays on a computer: the local AI
-engine and the book search by meaning.
+engine and the book search by meaning. To use the AI there, open the **AI** page, add an online
+provider with its **Default model**, then press **Set as default** on it; until you have, an AI
+feature says *"No AI model is set up on this phone…"* with those steps.
 
 **The screens.** The phone shows the same pages as a computer, laid out in one column. The sidebar
 opens from ☰ at the top left and closes when you pick a page; the title bar keeps Back, the book's

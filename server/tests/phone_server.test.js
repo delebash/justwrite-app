@@ -16,7 +16,7 @@ import * as htmlTwin from "../src/editor/html.phone.js";
 import * as html from "../src/editor/html.js";
 import * as syncPlatformTwin from "../src/sync_platform.phone.js";
 import * as syncPlatform from "../src/sync_platform.js";
-import { createPhoneApp } from "../src/phone.js";
+import { createPhoneApp, PHONE_NO_MODEL_MESSAGE } from "../src/phone.js";
 import { testClient, tmpPath } from "./helpers.js";
 
 /** The phone's server on a temporary folder (its database, and the computer's sync identity file). */
@@ -72,4 +72,12 @@ test("the twins keep the originals' names and answers", async () => {
   expect((await c.post("/v1/projects/prj1/autosave", { json: { project: {} } })).json()).toMatchObject({ ok: true, projectId: "prj1" });
   expect((await c.get("/v1/projects/autosave-dir")).json()).toEqual({ dir: null });
   expect((await c.get("/v1/projects/autosaves")).json()).toEqual([]);
+});
+
+test("before a model is set, an AI feature on the phone says how to set one up there", async () => {
+  const c = await phone();
+  const r = await c.post("/v1/ai/run", { json: { action: "brainstorm", variables: { label: "Place names", user_content: "Seed: a harbour" } } });
+  expect(r.statusCode).toBe(501);
+  expect(JSON.stringify(r.json())).toContain(PHONE_NO_MODEL_MESSAGE);
+  expect(JSON.stringify(r.json())).not.toContain("Quick Setup");
 });

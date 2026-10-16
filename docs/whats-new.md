@@ -24,6 +24,11 @@ They're routed under **Story-world sheets** in Settings → AI (the suggestions 
 Brainstorm). See [Story bible](story-bible.md#locations) and
 [Worldbuilding](worldbuilding.md#the-article-editor).
 
+**On a phone, the no-model message fits the phone.** Before a model is set, an AI feature on the
+phone no longer points at Quick Setup and the model catalog, which a phone doesn't have: it says
+to add an online provider with its Default model on the AI page and press **Set as default**.
+See [Sync → On your phone](sync.md#on-your-phone).
+
 ## 2026-10-15
 
 **Started and Deadline are dates.** In **Settings → Project** you now pick them from a calendar,
