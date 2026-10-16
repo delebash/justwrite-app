@@ -377,8 +377,15 @@ BUILT:  `npm run eval` (promptfoo 0.123.1 through npx; the kit's `scripts/evals/
         a character's vocabulary. … Fix: the app joins the list with semicolons …, and the prompt
         asks for semicolons." Then: "Your go to translate the new English lines, which also uses
         the GPU." The user: "your rec on all go" (2026-10-16).
-OPEN:   the five fixes (in progress); then, on the GPU once JustVoice frees it, `npm run eval` on
-        the changed actions and the translation of the new English lines.
+        Built 2026-10-16: 1 — kit `6b7d96b` (the transport keeps keepalive only within 64 KiB in
+        flight) + `a56e0a3` (its tests: a book over 64 KB saves); 2 — `575ba75` + kit `3b485a8`
+        (the samples carry the variables; the seeder adds a variable a stored sample lacks; a test
+        renders every sample through its prompts); 3 — `14fb8b8` (the three samples, held to their
+        composers); 4 — `a820ccd` (the rule, healed into an unedited stored prompt; the sample's
+        cast); 5 — `e2da0ee` (a list of phrases joined with semicolons; the prompts name the shape).
+OPEN:   on the GPU once JustVoice frees it: `npm run eval` on the changed actions (the writer
+        samples, brainstormPlot, premiseDraft, characterVoice/characterVoiceDraft); the
+        translation of the new English lines.
 GO:     given 2026-10-16 for the eval and the flow tests ("think on your rec again always adversially
         go"; "carry on, your rec go"); for the five fixes, the three labels and the translation
         ("your rec on all go").
