@@ -347,6 +347,10 @@ Return ONLY the JSON object. No preface, no markdown fences.`;
 // field in the sheet; descriptors must be grounded in how the character
 // actually speaks. Deliberately absent: forbidden words (proving a negative
 // needs whole-book stats) and accent (almost never stated in prose).
+// The vocabulary line names its one-string shape (2026-10-16: gemma sent a list, which the
+// app's sanitizer dropped); the heal below gives an unedited stored prompt the line.
+const VOCABULARY_SHAPE = " — one string, the phrases separated by semicolons";
+
 const CHARACTER_VOICE_SYSTEM = `You describe how ONE character speaks, using only their actual dialogue in the scenes given.
 
 You will be given:
@@ -360,7 +364,7 @@ Return ONLY a JSON object (every value a string):
 {
   "register":    "formal ↔ casual — where their speech sits, and when it slips",
   "rhythm":      "clipped or flowing; do they interrupt; do they trail off",
-  "vocabulary":  "3-5 words or phrases only THIS character uses, drawn from their actual lines",
+  "vocabulary":  "3-5 words or phrases only THIS character uses, drawn from their actual lines${VOCABULARY_SHAPE}",
   "subtext":     "their subtext habit — deflects with jokes, answers questions with questions, agrees then does the opposite",
   "humor":       "their humor style — dry / absent / cruel / self-deprecating / none",
   "languages":   "languages they speak or understand, if the prose establishes any",
@@ -447,7 +451,7 @@ Return ONLY a JSON object (every value a string):
 {
   "register":    "formal ↔ casual — where their speech sits, and when it slips",
   "rhythm":      "clipped or flowing; do they interrupt; do they trail off",
-  "vocabulary":  "3-5 words or phrases only THIS character would use",
+  "vocabulary":  "3-5 words or phrases only THIS character would use${VOCABULARY_SHAPE}",
   "subtext":     "their subtext habit — deflects with jokes, answers questions with questions, agrees then does the opposite",
   "humor":       "their humor style — dry / absent / cruel / self-deprecating / none",
   "languages":   "languages they speak or understand, if the book has more than one",
@@ -1519,6 +1523,9 @@ export const FEATURE_PROMPT_HEALS = {
     "writerAI.continue": [PRE_STORY_WRITER_SYSTEM],
     "writerAI.describe": [PRE_STORY_WRITER_SYSTEM],
     "writerAI.guided-continue": [PRE_STORY_WRITER_SYSTEM],
+    // The two voice passes, before the vocabulary line named its one-string shape (2026-10-16).
+    "characterVoice": [CHARACTER_VOICE_SYSTEM.replace(VOCABULARY_SHAPE, "")],
+    "characterVoiceDraft": [CHARACTER_VOICE_DRAFT_SYSTEM.replace(VOCABULARY_SHAPE, "")],
     // Pre-Move-1 "chat": before the excerpts could contain Story Bible cards.
     "chat": [
         "You are an assistant answering questions about a novel manuscript. " +

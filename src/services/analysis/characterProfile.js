@@ -68,15 +68,22 @@ export function sanitizeProfile(parsed) {
 
 const VOICE_KEYS = ["register", "rhythm", "vocabulary", "subtext", "humor", "languages", "tic"];
 
+/** A field that may come back as a list of phrases (gemma sent `vocabulary` as one, 2026-10-16)
+ *  → one string, the phrases separated by semicolons — the shape the prompt asks for. */
+function phrases(v, max) {
+  if (!Array.isArray(v)) return s(v, max);
+  return s(v.filter((x) => typeof x === "string").map((x) => x.trim()).filter(Boolean).join("; "), max);
+}
+
 /** Normalize a parsed characterVoice reply to the extras shape the page edits.
  *  Exported for tests — the modal trusts this, never `parsed` raw. */
 export function sanitizeVoice(parsed) {
   const voice = {};
-  for (const k of VOICE_KEYS) voice[k] = s(parsed?.[k], 200);
+  for (const k of VOICE_KEYS) voice[k] = phrases(parsed?.[k], 200);
   voice.sample = s(parsed?.sampleCalm, 300);
   voice.sampleAngry = s(parsed?.sampleAngry, 300);
   voice.sampleLying = s(parsed?.sampleLying, 300);
-  return { voice, presence: { stressTells: s(parsed?.stressTells, 300) } };
+  return { voice, presence: { stressTells: phrases(parsed?.stressTells, 300) } };
 }
 
 /**

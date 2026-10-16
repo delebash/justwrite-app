@@ -104,6 +104,12 @@ describe("sanitizeVoice", () => {
     expect(v.presence.stressTells).toBe("Goes still; over-precise hands.");
   });
 
+  it("joins a list of phrases with semicolons (gemma sent vocabulary as a list, 2026-10-16)", () => {
+    const v = sanitizeVoice({ vocabulary: [" per my records ", "clerical error", 7, ""], stressTells: ["rubs his knuckles", "shallow breath"] });
+    expect(v.voice.vocabulary).toBe("per my records; clerical error");
+    expect(v.presence.stressTells).toBe("rubs his knuckles; shallow breath");
+  });
+
   it("honest-\"\" for missing / garbage fields, and clamps lengths", () => {
     const empty = sanitizeVoice(null);
     expect(empty.voice.register).toBe("");

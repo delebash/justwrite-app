@@ -163,6 +163,21 @@ test("Rewrite with direction and Write dialogue: the writer's direction on the p
   expect(SP.DEFAULT_FEATURE_PRESETS["writerAI.dialogue"]).toBe("p_prose_voiced");
 });
 
+test("the voice passes ask for vocabulary as one string; an unedited stored prompt heals to it", async () => {
+  const { FEATURE_PROMPT_HEALS } = await import("../src/seed_feature_prompts.js");
+  const lines = {
+    characterVoice: '"vocabulary":  "3-5 words or phrases only THIS character uses, drawn from their actual lines',
+    characterVoiceDraft: '"vocabulary":  "3-5 words or phrases only THIS character would use',
+  };
+  for (const [key, line] of Object.entries(lines)) {
+    const now = DEFAULT_FEATURE_PROMPTS[key].system;
+    expect(now, key).toContain(`${line} — one string, the phrases separated by semicolons",`);
+    const [old] = FEATURE_PROMPT_HEALS[key];
+    expect(old, key).toContain(`${line}",`); // the text a database seeded before 2026-10-16 holds
+    expect(old.length, key).toBe(now.length - " — one string, the phrases separated by semicolons".length);
+  }
+});
+
 // The server refuses a run whose variables lack a {{name}} its prompt uses (the kit's `render`,
 // HTTP 400) — so a seeded sample missing one fails in the Lab for every user. Three writer samples
 // predated {{storyContext}} / {{voiceCanon}} and did (found by `npm run eval`, 2026-10-16).
