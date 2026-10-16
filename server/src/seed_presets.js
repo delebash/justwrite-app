@@ -266,13 +266,15 @@ export const DEFAULT_TEST_SAMPLES = [
                               "each sweep of the lamp. The supply boat's light appeared " +
                               "where no boat should be.",
                    "voiceCanon": "Close third person, past tense; spare coastal imagery.",
-                   "direction": "Continue the scene as the light draws closer; keep the dread quiet."}},
+                   "direction": "Continue the scene as the light draws closer; keep the dread quiet.",
+                   "storyContext": ""}},
     {"actions": ["writerAI.expand", "writerAI.continue", "writerAI.describe", "writerAI.guided-continue"], "label": "Guided continuation",
      "variables": {"passage": "The tide had taken the last of the light when Mira reached " +
                               "the cannery office. The brass key turned, but the door was " +
                               "already unlatched.",
                    "direction": "Continue the scene: someone has been here first; keep it quiet and close.",
-                   "voiceCanon": "Close third person, past tense; spare coastal imagery."}},
+                   "voiceCanon": "Close third person, past tense; spare coastal imagery.",
+                   "storyContext": ""}},
     // ── Rewrite with direction… and Write dialogue… (the AI drafting plan Task 14, 2026-10-11):
     // the selection with a direction; dialogue from the cursor, its speakers' voices in
     // {{storyContext}} (the shape writerAI.js storyContextVar sends) ──
@@ -320,7 +322,11 @@ export const DEFAULT_TEST_SAMPLES = [
     {"actions": ["writerAI.rewrite", "writerAI.tighten", "writerAI.rule.show-dont-tell", "writerAI.rule.passive-voice", "writerAI.rule.filter-words", "writerAI.rule.dialogue-tags", "writerAI.rule.sensory-grounding", "writerAI.rule.sentence-variety", "writerAI.rule.prose-tightening"], "label": "Flabby paragraph",
      "variables": {"passage": "It was very really quite windy that day, and the wind, which " +
                               "was blowing hard, made the trees move back and forth a lot in " +
-                              "the wind, which she could see happening as she watched it."}},
+                              "the wind, which she could see happening as she watched it.",
+                   // No voice set and nothing linked — what the client sends then (writerAI.js
+                   // voiceCanonVar / storyContextVar); the line edits read only {{voiceCanon}}.
+                   "voiceCanon": "",
+                   "storyContext": ""}},
     // ── ideation (brainstorm/brainstormPlot: {{user_content}} is the
     // BrainstormView buildUserPrompt shape — Category/Seed + the output line;
     // {{label}}/{{kind}} are the client-filled SYSTEM variables) ──

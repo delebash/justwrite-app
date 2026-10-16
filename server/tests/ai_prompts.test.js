@@ -163,6 +163,27 @@ test("Rewrite with direction and Write dialogue: the writer's direction on the p
   expect(SP.DEFAULT_FEATURE_PRESETS["writerAI.dialogue"]).toBe("p_prose_voiced");
 });
 
+// The server refuses a run whose variables lack a {{name}} its prompt uses (the kit's `render`,
+// HTTP 400) — so a seeded sample missing one fails in the Lab for every user. Three writer samples
+// predated {{storyContext}} / {{voiceCanon}} and did (found by `npm run eval`, 2026-10-16).
+test("every seeded Lab sample carries every variable its actions' prompts use", async () => {
+  const SP = await import("../src/seed_presets.js");
+  const { render } = await import("@delebash/llm-runner/llm/prompts");
+  const gaps = [];
+  for (const sample of SP.DEFAULT_TEST_SAMPLES) {
+    for (const action of sample.actions) {
+      const prompt = DEFAULT_FEATURE_PROMPTS[action];
+      if (!prompt) continue;
+      try {
+        render(`${prompt.system}${prompt.user_template}`, sample.variables);
+      } catch (e) {
+        gaps.push(`${action} · ${sample.label}: ${e.message}`);
+      }
+    }
+  }
+  expect(gaps).toEqual([]);
+});
+
 test("the prose actions share a story-context Lab sample, in the shape the client sends", async () => {
   const SP = await import("../src/seed_presets.js");
   const sample = SP.DEFAULT_TEST_SAMPLES.find((s) => s.label === "With story context");
