@@ -380,6 +380,19 @@ toasts and hover tooltips were not opened; 147 strings matching book content wer
   (`base.js` `agentFor`). `/v1/ai/stream` — the route the app's own AI calls take — gets headers at
   once. gemma-4-12b's marketing pack failed at 61 s with "Headers Timeout Error"; the eval's
   provider now uses the stream, and the same sample then passed in 89.1 s. — *measured 2026-10-16.*
+- **The re-run after the five fixes** (gemma-4-26b, the changed actions only): 12 of 12 passed.
+  The writer samples run now: Continue ×3, Rewrite ×2, the passive-voice rule. Draft from the premise
+  keeps Mira, "she" and "her father"; both voice passes return `vocabulary` as one string of
+  semicolon-separated phrases. Each of the three plot samples returns 18 plot beats, using only the
+  names its sample gives (Renn, Harbek, the harbor-master).
+  Read, not asserted:
+  - The passive-voice rule returns "Flabby paragraph" nearly unchanged, which is correct: the
+    passage has no passive verb ("which was blowing" is progressive), so this sample doesn't test
+    that rule.
+  - The audit voice pass copied the prompt's scale into its answer ("register": "formal ↔ casual —
+    formal and direct…"). The draft pass didn't.
+
+  — *evals/results/2026-10-16-23-44-09 (git-ignored); 12 samples in about 108 s of model time.*
 
 ## Records not yet distilled
 

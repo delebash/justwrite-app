@@ -383,9 +383,27 @@ BUILT:  `npm run eval` (promptfoo 0.123.1 through npx; the kit's `scripts/evals/
         renders every sample through its prompts); 3 — `14fb8b8` (the three samples, held to their
         composers); 4 — `a820ccd` (the rule, healed into an unedited stored prompt; the sample's
         cast); 5 — `e2da0ee` (a list of phrases joined with semicolons; the prompts name the shape).
-OPEN:   on the GPU once JustVoice frees it: `npm run eval` on the changed actions (the writer
-        samples, brainstormPlot, premiseDraft, characterVoice/characterVoiceDraft); the
-        translation of the new English lines.
+        Run 2026-10-16 on the GPU, after JustVoice freed it:
+        - `npm run eval` on the changed actions passed 12 of 12 on gemma-4-26b (RESEARCH
+          "Testing").
+        - The new English lines went to docgen as a job (proposals only; `es.json` byte-identical
+          before and after). That is 74 keys: the 72 added since the 2026-10-15 staging, and the 2
+          whose English changed since (`writingAi.storyContextDesc`, `mentionRefs.empty`), whose
+          old proposals it replaced. All 74 staged, none failed, 76 s.
+FOUND:  2026-10-16, while freeing the card: the kit's `POST /v1/llm-runner/stop` with no body at all
+        returns 500, "Cannot read private member #state from an object whose class did not declare
+        it" (hono's bodyLimit inside the kit's `readJson`, `platform/server.js:194`). With a JSON
+        body of `{}` it works. Seen on docgen's server; not yet looked into.
+OPEN:   1. Your review of the 74 proposals in docgen's Review (JustWrite's project), then Apply.
+           Read before review:
+           - Plural forms put the number after the noun ("Aplicar nota {n} | Aplicar notas {n}"
+             for "Apply {n} note | Apply {n} notes"; the same in `plotBoard.ai.addBeats`, and in
+             the 2026-10-15 proposals, e.g. `count.beat` "beat {n} | beats {n}").
+           - "reviravones" in `chapters.ai.twistsDesc` isn't Spanish.
+           - The new keys say "hito" for beat and "trama" for strand; the rest of the catalog
+             keeps "beat" and says "hilo".
+           - "Draft: {name}" is "Redactar:" in one key and "Borrador:" in another.
+        2. The stop route's 500 above.
 GO:     given 2026-10-16 for the eval and the flow tests ("think on your rec again always adversially
         go"; "carry on, your rec go"); for the five fixes, the three labels and the translation
         ("your rec on all go").
