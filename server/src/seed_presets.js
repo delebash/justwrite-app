@@ -480,7 +480,8 @@ export const DEFAULT_TEST_SAMPLES = [
                                    "THE WRITER'S DESCRIPTION\n" +
                                    "Shut since the fire; the customs men still walk through it at night.\n\n" +
                                    "FIELDS TO DRAFT\n" +
-                                   "- atmosphere — Atmosphere & senses: What it's like to be there — light, sound, smell, mood. e.g. salt and diesel; the fog never lifts before noon.\n" +
+                                   "- description — Description: What the location is, in a few sentences: its main description.\n" +
+                                   "- atmosphere —Atmosphere & senses: What it's like to be there — light, sound, smell, mood. e.g. salt and diesel; the fog never lifts before noon.\n" +
                                    "- history — History: What happened here before the story, and what people say about it. e.g. burned in the '62 fire; locals say the night shift still clocks in."}},
     {"actions": ["objectDraft"], "label": "Object from a description",
      "variables": {"user_content": "BOOK CONTEXT\n" +
@@ -508,7 +509,8 @@ export const DEFAULT_TEST_SAMPLES = [
                                    "THE WRITER'S DESCRIPTION\n" +
                                    "The harbor pilots who sell safe passage and keep the old charts to themselves.\n\n" +
                                    "FIELDS TO DRAFT\n" +
-                                   "- goals — Goals & beliefs: What the group wants and what it holds true. e.g. keep the old charts secret; the sea collects its debts.\n" +
+                                   "- description — Description: What the group is, in a few sentences: its main description.\n" +
+                                   "- goals —Goals & beliefs: What the group wants and what it holds true. e.g. keep the old charts secret; the sea collects its debts.\n" +
                                    "- leadership — Leadership: Who leads it and how it decides. e.g. three elders vote; the eldest breaks ties.\n" +
                                    "- history — History: How it began and what shaped it. e.g. founded by the fire's survivors; split over the harbour deal."}},
     {"actions": ["suggestLocations"], "label": "Suggest locations",

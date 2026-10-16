@@ -13,7 +13,7 @@ vi.mock("@delebash/llm-ui", () => ({ runAiFeature: (...a) => runAiFeature(...a) 
 
 const {
   applySheetDrafts, composeArticleInput, composeSheetInput, composeSheetNameIdeasInput, composeSuggestLocationsInput,
-  draftArticle, draftSheet, sanitizeLocationSuggestions, sanitizeSheet, sheetNameIdeasRequest, suggestLocations,
+  draftArticle, draftSheet, sanitizeLocationSuggestions, sanitizeSheet, sheetDraftDefs, sheetNameIdeasRequest, suggestLocations,
 } = await import("./analysis/sheetDraft.js");
 
 function project() {
@@ -63,6 +63,21 @@ describe("the composed sheet input", () => {
   it("refuses an entry that isn't there", () => {
     expect(() => composeSheetInput(project(), "object", "nope", "x")).toThrow(/No object/);
   });
+
+  it("asks for the entry's own description first while it has none", () => {
+    const { variables, keys } = composeSheetInput(project(), "location", "l2", "where the ledgers are kept");
+    expect(keys).toEqual(["description", "atmosphere", "history"]);
+    expect(variables.user_content).toContain("FIELDS TO DRAFT\n- description — Description: What the location is, in a few sentences: its main description.\n- atmosphere — ");
+    expect(variables.user_content).not.toMatch(/^Description: /m);
+  });
+
+  it("lists the description's review row under the page's label, only while it's empty", () => {
+    const t = (k) => `[${k}]`;
+    const p = project();
+    expect(sheetDraftDefs("group", { ...p.groups[0], blurb: "" }, t)[0]).toEqual({ key: "description", label: "[groups.blurbPlaceholder]", current: "" });
+    expect(sheetDraftDefs("location", p.locations[1], t)[0].label).toBe("[common.description]");
+    expect(sheetDraftDefs("location", p.locations[0], t).map((d) => d.key)).toEqual(["atmosphere", "history"]);
+  });
 });
 
 describe("sanitizers and apply", () => {
@@ -80,6 +95,15 @@ describe("sanitizers and apply", () => {
     expect(p.applySheetDraft).toHaveBeenCalledTimes(1);
     expect(p.applySheetDraft).toHaveBeenCalledWith("objects", "o1", { properties: "Warm brass.", whereNow: "In the safe." });
     expect(applySheetDrafts(p, "object", "o1", [{ key: "name", proposed: "x" }])).toBe(0);
+    expect(p.applySheetDraft).toHaveBeenCalledTimes(1);
+  });
+
+  it("writes the description as paragraphs while the entry has none, with the sheet in the same step", () => {
+    const p = project();
+    expect(applySheetDrafts(p, "location", "l2", [{ key: "description", proposed: "Damp stacks.\n\nOne lamp." }, { key: "history", proposed: "Moved twice." }])).toBe(2);
+    expect(p.applySheetDraft).toHaveBeenCalledWith("locations", "l2", { note: "<p>Damp stacks.</p><p>One lamp.</p>", history: "Moved twice." });
+    // a description written meanwhile is never replaced
+    expect(applySheetDrafts(p, "group", "g1", [{ key: "description", proposed: "Other text." }])).toBe(0);
     expect(p.applySheetDraft).toHaveBeenCalledTimes(1);
   });
 
@@ -119,9 +143,9 @@ describe("Name ideas and Suggest locations inputs", () => {
 
 describe("the calls, the model stubbed", () => {
   it("drafts a sheet under the Story-world sheets feature", async () => {
-    runJsonAnalysis.mockResolvedValueOnce({ result: { model: "m" }, parsed: { atmosphere: "Wet rope.", history: "Burned in '62.", other: "x" } });
+    runJsonAnalysis.mockResolvedValueOnce({ result: { model: "m" }, parsed: { description: "A dusty room.", atmosphere: "Wet rope.", history: "Burned in '62.", other: "x" } });
     const r = await draftSheet({ project: project(), kind: "location", entityId: "l2", description: "a dusty room", budgetTokens: null });
-    expect(r).toEqual({ fields: { atmosphere: "Wet rope.", history: "Burned in '62." }, model: "m" });
+    expect(r).toEqual({ fields: { description: "A dusty room.", atmosphere: "Wet rope.", history: "Burned in '62." }, model: "m" });
     const opts = runJsonAnalysis.mock.calls.at(-1)[0];
     expect([opts.action, opts.feature]).toEqual(["locationDraft", "storyWorld"]);
   });

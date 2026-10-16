@@ -16,6 +16,8 @@ import CritiqueModal from "../components/CritiqueModal.vue";
 import MultiReaderPanelModal from "../components/MultiReaderPanelModal.vue";
 import SceneNotesPanel from "../components/SceneNotesPanel.vue";
 import StuckDiagnosticModal from "../components/StuckDiagnosticModal.vue";
+import IdeaListModal from "../components/IdeaListModal.vue";
+import { sceneIdeas } from "../services/analysis/planningDraft.js";
 import SensoryResearchModal from "../components/SensoryResearchModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
 import { EmptyState } from "@delebash/llm-ui";
@@ -525,6 +527,37 @@ function closeStuck() { stuckOpen.value = false; }
 function onStuckUseMove(move) {
   stuckOpen.value = false;
   editorRef.value?.runGuidedContinue?.(move?.instruction || "");
+}
+
+// ── Next plot beats / Plot twists (the AI drafting plan Task P2; answered 2026-10-16) ──
+// Brainstorm's plot ideas from the cursor, in the shared ideas window; "Write this" does what
+// Unstuck's does — the next 2-4 paragraphs in that direction, as the accept/reject diff.
+const ideas = ref(null); // { category, sceneId, proseTail, seen } while the window is open
+function openIdeas(category) {
+  if (!editorRef.value) {
+    ui.showToast({ message: t("chapters.ai.openChapterFirst") });
+    return;
+  }
+  const proseTail = editorRef.value.grabUnstuckContext?.(1800) || "";
+  if (!proseTail.trim()) {
+    ui.showToast({ message: t("chapters.ai.ideasNeedProse") });
+    return;
+  }
+  const sceneId = editorRef.value.sceneIdAtCursor?.() || activeScene.value?.id || null;
+  ideas.value = { category, sceneId, proseTail, seen: [] };
+}
+async function runIdeas(signal) {
+  const s = ideas.value;
+  const found = await sceneIdeas({
+    project, chapterId: ch.value?.id, sceneId: s.sceneId, category: s.category, proseTail: s.proseTail,
+    seen: s.seen, taskName: ch.value?.title || t("sidebar.projectSwitcher.untitled"), signal,
+  });
+  s.seen.push(...found);
+  return found.map((text) => ({ id: text, text }));
+}
+function onIdeaPick(item) {
+  ideas.value = null;
+  editorRef.value?.runGuidedContinue?.(item.text);
 }
 
 // ── Sensory research ────────────────────────────────────────────
@@ -1236,6 +1269,14 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
               <div class="ai-strip-label">{{ $t('chapters.ai.unstuckLabel') }}</div>
               <div class="ai-strip-desc">{{ $t('chapters.ai.unstuckDesc') }}</div>
             </UiMenuItem>
+            <UiMenuItem class="ai-strip-item" :disabled="aiRunning" @select="openIdeas('next_beat')">
+              <div class="ai-strip-label">{{ $t('brainstorm.categories.next_beat.label') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.nextBeatsDesc') }}</div>
+            </UiMenuItem>
+            <UiMenuItem class="ai-strip-item" :disabled="aiRunning" @select="openIdeas('twist')">
+              <div class="ai-strip-label">{{ $t('brainstorm.categories.twist.label') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.twistsDesc') }}</div>
+            </UiMenuItem>
             <template v-if="proseRules.length">
               <UiMenuSeparator class="ai-strip-divider" />
               <div class="ai-strip-section">
@@ -1449,6 +1490,14 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
       :chapter-num="stuckChapterNum"
       @close="closeStuck"
       @use-move="onStuckUseMove" />
+
+    <IdeaListModal v-if="ideas"
+      :eyebrow="$t(`brainstorm.categories.${ideas.category}.label`)"
+      :title="ch?.title || $t('sidebar.projectSwitcher.untitled')"
+      :lede="$t(ideas.category === 'twist' ? 'chapters.ai.twistsDesc' : 'chapters.ai.nextBeatsDesc')"
+      feature="brainstorm" :chip-label="$t('brainstorm.title')" :task-meta="{ kind: `scene-${ideas.category}` }"
+      auto-run :pick-label="$t('stuck.writeThis')" :empty-text="$t('plotBoard.ai.empty')" :run="runIdeas"
+      @pick="onIdeaPick" @close="ideas = null" />
 
     <SensoryResearchModal v-if="sensoryOpen"
       :subject="sensorySubject"

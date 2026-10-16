@@ -15,8 +15,8 @@ the book, and the writer actions in a scene set there. See
 with this one again.
 
 **Draft them with AI.** On a location, object or group, **Describe this location** (object, group)
-— or **Draft with AI → From a description** in the header — drafts the sheet from a line or two
-of yours and the book; you review each field before it's applied, and one Undo takes it back.
+— or **Draft with AI → From a description** in the header — drafts the sheet, and the description
+if the page has none, from a line or two of yours and the book; you review each field before it's applied, and one Undo takes it back.
 **Name ideas** (✨ beside the name) now works on these pages too, **Suggest locations…** on the
 Locations list proposes places the book doesn't have yet, and a worldbuilding article's
 **Draft with AI** writes its body from the title and summary, as a change you accept or reject.
@@ -33,6 +33,11 @@ have **Draft from the premise**. All of it is reviewed before it's saved, and ro
 **Planning** in Settings → AI. See [Writing → the Links panel](writing.md#the-links-panel),
 [Plot and time](plot-and-time.md#the-ai-on-a-strand) and
 [Worldbuilding and Architecture](worldbuilding.md#whats-in-each-document).
+
+**Plot ideas in the editor.** The AI menu's **From the cursor** group has **Next plot beats** and
+**Plot twists**: Brainstorm's ideas from where your prose ends, read with your book and the scene.
+**Write this** on one drafts the next paragraphs in that direction, as Unstuck's does. See
+[Writing](writing.md#whole-passage-actions).
 
 **Fixed:** on the Plot board, a click outside the **Apply template** list now closes it.
 

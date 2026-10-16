@@ -34,6 +34,8 @@ Pick the one that fits the kind of output you want back. The selected category's
 
 The **Next plot beats** and **Plot twists** categories work differently from the naming ones — they return full-sentence ideas (12–25 words each) rather than short phrases. They mix close-to-obvious moves with wilder ones, so even when you reject most options, seeing the menu often unlocks the move you actually wanted.
 
+Both also work where you write and plan, without a seed to type: in the editor's AI menu they start from where your prose ends, and **Write this** on an idea drafts the next paragraphs in that direction ([Writing](writing.md#whole-passage-actions)); in a strand's ✨ menu on the Plot board, the ideas you tick become beat cards ([Plot and time](plot-and-time.md#the-ai-on-a-strand)).
+
 The categories aren't enforced — picking "Place names" doesn't stop you from typing a character-name seed. They're just a steering hint to the model. If the suggestions you get feel off-shape, switch the category and re-run.
 
 ---

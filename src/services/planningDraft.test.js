@@ -11,8 +11,9 @@ const runAiFeature = vi.fn();
 vi.mock("@delebash/llm-ui", () => ({ runAiFeature: (...a) => runAiFeature(...a) }));
 
 const {
-  cleanSummary, composePremiseDraftInput, composeSceneSummaryInput, composeStrandIdeasInput, composeTemplateFillInput,
-  draftFromPremise, fillTemplate, strandIdeas, summarizeScene, templateBeats, templateOfStrand,
+  cleanSummary, composePremiseDraftInput, composeSceneIdeasInput, composeSceneSummaryInput, composeStrandIdeasInput,
+  composeTemplateFillInput, draftFromPremise, fillTemplate, sceneIdeas, strandIdeas, summarizeScene, templateBeats,
+  templateOfStrand,
 } = await import("./analysis/planningDraft.js");
 
 // The templates as the plot board has them, words by key (tr is the identity on the key's last part).
@@ -118,6 +119,28 @@ describe("a strand's next beats and twists", () => {
     runAiFeature.mockResolvedValueOnce({ content: "1. The archive floods\n2. A beat of my own\n3. Tomas lies about the key", model: "m" });
     const rows = await strandIdeas({ project: project(), strandId: "st1", category: "next_beat", budgetTokens: null });
     expect(rows.map((r) => [r.proposed, r.accept, r.label])).toEqual([["The archive floods", false, ""], ["Tomas lies about the key", false, ""]]);
+  });
+});
+
+describe("next beats and twists at the cursor", () => {
+  it("asks Brainstorm's plot category with the scene's story context and the prose so far", () => {
+    const r = composeSceneIdeasInput(project(), { chapterId: "ch1", sceneId: "s1", category: "next_beat", proseTail: "Mira turns the key.", seen: ["Old idea"], budgetTokens: null });
+    const c = r.variables.user_content;
+    expect(r.action).toBe("brainstormPlot");
+    expect(r.variables.kind).toMatch(/next plot beats/);
+    expect(c.indexOf("STORY CONTEXT\n")).toBe(0);
+    expect(c).toContain("## Premise");
+    expect(c).toContain("THE STORY SO FAR\nMira turns the key.");
+    expect(c).toContain("Seed: next beats from where THE STORY SO FAR ends, fitting STORY CONTEXT");
+    expect(c).toContain("Avoid repeating any of these already-seen suggestions:\n- Old idea");
+  });
+
+  it("returns the fresh ideas, under Brainstorm, never one already shown", async () => {
+    runAiFeature.mockResolvedValueOnce({ content: "1. The archive floods\n2. Old idea\n- Tomas lies about the key", model: "m" });
+    const ideas = await sceneIdeas({ project: project(), chapterId: "ch1", sceneId: "s1", category: "twist", proseTail: "x", seen: ["Old idea"], budgetTokens: null });
+    expect(ideas).toEqual(["The archive floods", "Tomas lies about the key"]);
+    const opts = runAiFeature.mock.calls.at(-1)[0];
+    expect([opts.action, opts.feature, opts.meta.kind]).toEqual(["brainstormPlot", "brainstorm", "scene-twist"]);
   });
 });
 

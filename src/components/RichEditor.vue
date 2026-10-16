@@ -1329,6 +1329,8 @@ defineExpose({
   grabUnstuckContext,
   grabSensorySubject,
   insertSensoryPhrase,
+  // The scene the cursor is in (a stitched chapter's) — the editor's plot ideas compose its context.
+  sceneIdAtCursor,
   aiRunning,
   hasSelection,
   PROSE_RULES_LIST,

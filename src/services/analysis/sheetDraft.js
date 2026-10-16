@@ -19,7 +19,9 @@ import { runAiFeature } from "@delebash/llm-ui";
 import { brainstormAction, brainstormPrompt } from "../brainstorm.js";
 import { runJsonAnalysis } from "../runJson.js";
 import { storyBudgetFor } from "../storyContext.js";
-import { sheetFieldLabelKeys, sheetFields, sheetValue, STORY_WORLD_SHEETS } from "../storyWorldSheet.js";
+import {
+  sheetDescription, sheetFieldDefs, sheetFieldLabelKeys, sheetFields, sheetValue, STORY_WORLD_SHEETS,
+} from "../storyWorldSheet.js";
 import { htmlToText, textToHtml } from "../text.js";
 import { block, bookBlock, clamp, join } from "./draftInput.js";
 import { t, tEnglish } from "../../i18n/index.js";
@@ -28,8 +30,10 @@ import { t, tEnglish } from "../../i18n/index.js";
  *  "Story-world sheets"). */
 export const STORY_WORLD_FEATURE = "storyWorld";
 const SHEET_ACTIONS = { location: "locationDraft", object: "objectDraft", group: "groupDraft" };
-// The page's own description of the entry — not a sheet field.
-const DESCRIPTION_KEY = { location: "note", object: "note", group: "blurb" };
+// The page's own description (a group's Blurb) as a draft's key: proposed only while it's empty —
+// it's rich text, so a plain-text draft never replaces one (a character's one-liner, plain text,
+// is proposed either way). Answered 2026-10-16 (TASKS, the sixth round).
+export const DESCRIPTION_FIELD = "description";
 // Name ideas' Brainstorm category by page kind (spec §3.3); groups have none of their own.
 const NAME_CATEGORY = { location: "place_name", object: "item_name", group: "free" };
 
@@ -52,12 +56,17 @@ function entryOf(project, kind, entityId) {
   return entity;
 }
 
+/** The entry's own description, as plain text ("" when it has none). */
+function descriptionOf(kind, entity) {
+  return htmlToText(entity?.[sheetDescription(kind).key] || "").trim();
+}
+
 /* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 /** The entry as the model reads it: its name, kind, description and every filled sheet field. */
 function entryBlock(kind, entity) {
   const lines = [`Name: ${entity.name || ""}`];
   if (entity.kind) lines.push(`Kind: ${entity.kind}`);
-  const description = htmlToText(entity[DESCRIPTION_KEY[kind]] || "").trim();
+  const description = descriptionOf(kind, entity);
   if (description) lines.push(`Description: ${description}`);
   for (const k of sheetFields(kind)) {
     const v = sheetValue(entity, k).trim();
@@ -73,23 +82,37 @@ function takenBlock(project, kind) {
 }
 
 /* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
-/** The input for a sheet draft: the book, the entry, the writer's description and the sheet's
- *  fields, each with its label and what it asks for. */
+/** The input for a sheet draft: the book, the entry, the writer's description and the fields to
+ *  draft, each with its label and what it asks for — the entry's own description first while it
+ *  has none, then the sheet. */
 export function composeSheetInput(project, kind, entityId, description, { budgetTokens = null } = {}) {
   const entity = entryOf(project, kind, entityId);
-  const fields = sheetFields(kind).map((k) => {
-    const keys = sheetFieldLabelKeys(kind, k);
-    return `- ${k} — ${tEnglish(keys.label)}: ${tEnglish(keys.hint)}`;
+  const keys = [...sheetFields(kind)];
+  const fields = keys.map((k) => {
+    const labels = sheetFieldLabelKeys(kind, k);
+    return `- ${k} — ${tEnglish(labels.label)}: ${tEnglish(labels.hint)}`;
   });
+  if (!descriptionOf(kind, entity)) {
+    keys.unshift(DESCRIPTION_FIELD);
+    fields.unshift(`- ${DESCRIPTION_FIELD} — Description: What the ${kind} is, in a few sentences: its main description.`);
+  }
   const user_content = join(
     bookBlock(project, budgetTokens),
     entryBlock(kind, entity),
     block("THE WRITER'S DESCRIPTION", description),
     block("FIELDS TO DRAFT", fields.join("\n")),
   );
-  return { action: SHEET_ACTIONS[kind], variables: { user_content }, keys: sheetFields(kind) };
+  return { action: SHEET_ACTIONS[kind], variables: { user_content }, keys };
 }
 /* eslint-enable i18next/no-literal-string */
+
+/** The review's rows to fill: the entry's own description (under the page's label) first while it
+ *  has none, then the sheet's fields. `t` is the i18n translate function. */
+export function sheetDraftDefs(kind, entity, t) {
+  const defs = sheetFieldDefs(kind, entity, t);
+  if (descriptionOf(kind, entity)) return defs;
+  return [{ key: DESCRIPTION_FIELD, label: t(sheetDescription(kind).label), current: "" }, ...defs];
+}
 
 // A sheet field is a few sentences.
 const SHEET_FIELD_MAX = 1200;
@@ -114,12 +137,18 @@ export async function draftSheet({ project, kind, entityId, description = "", si
   return { fields: sanitizeSheet(parsed, keys), model: result.model };
 }
 
-/** The review's ticked rows onto the entry, as ONE undo step. Only the sheet's own keys land.
+/** The review's ticked rows onto the entry, as ONE undo step. Only the sheet's own keys land, and
+ *  the description while the entry still has none (as paragraphs).
  *  @returns {number} how many fields were written. */
 export function applySheetDrafts(project, kind, entityId, picks) {
   const allowed = new Set(sheetFields(kind));
+  const empty = !descriptionOf(kind, entryOf(project, kind, entityId));
   const patch = {};
-  for (const p of picks || []) if (allowed.has(p.key)) patch[p.key] = String(p.proposed ?? "").trim();
+  for (const p of picks || []) {
+    const text = String(p.proposed ?? "").trim();
+    if (allowed.has(p.key)) patch[p.key] = text;
+    else if (p.key === DESCRIPTION_FIELD && empty && text) patch[sheetDescription(kind).key] = textToHtml(text);
+  }
   const n = Object.keys(patch).length;
   if (n) project.applySheetDraft(STORY_WORLD_SHEETS[kind].plural, entityId, patch);
   return n;

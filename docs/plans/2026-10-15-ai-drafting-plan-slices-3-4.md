@@ -95,8 +95,9 @@ both kinds (`SuggestEntitiesModal.vue`).
 
 ### Task P2 — The plot board
 **Built** `891ce9e` — a strand's ✨ menu: Fill this template for my story, Suggest next beats,
-Plot twists. **Not built:** the editor's AI menu entries — what picking an idea there does is
-asked (TASKS, 2026-10-16).
+Plot twists. The editor's AI menu entries — answered 2026-10-16 (TASKS, the sixth round): a
+picked idea does what Unstuck's Write this does, in Unstuck's window made shared
+(`IdeaListModal.vue`); built in the sixth round's commit.
 - **Fill this template for my story** — on a template applied from `PLOT_TEMPLATES`
   (`src/services/plotTemplates.js`, `PlotBoardPage.vue:64`): composer(book) → a note for each beat;
   reviewed per beat.

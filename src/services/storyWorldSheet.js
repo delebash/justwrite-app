@@ -5,13 +5,14 @@
 //
 // A sheet is the entity kind's extra fields, each a plain string on the entity under its own key
 // (a real column: book_io maps `whereNow` ↔ `where_now`). The description (a location's or an
-// object's `note`, a group's `blurb`) stays the page's own and isn't a sheet field. Labels and
+// object's `note`, a group's `blurb` — rich text, under its catalog label) stays the page's own and
+// isn't a sheet field; a draft proposes it only while it's empty (sheetDraft.js). Labels and
 // hints live in the catalog at `<plural>.fields.<key>.{label,hint}`.
 
 export const STORY_WORLD_SHEETS = {
-  location: { plural: "locations", fields: ["atmosphere", "history"] },
-  object: { plural: "objects", fields: ["properties", "history", "whereNow"] },
-  group: { plural: "groups", fields: ["goals", "leadership", "history"] },
+  location: { plural: "locations", fields: ["atmosphere", "history"], description: { key: "note", label: "common.description" } },
+  object: { plural: "objects", fields: ["properties", "history", "whereNow"], description: { key: "note", label: "common.description" } },
+  group: { plural: "groups", fields: ["goals", "leadership", "history"], description: { key: "blurb", label: "groups.blurbPlaceholder" } },
 };
 
 function sheetOf(kind) {
@@ -23,6 +24,11 @@ function sheetOf(kind) {
 /** The kind's sheet fields, in page order. */
 export function sheetFields(kind) {
   return sheetOf(kind).fields;
+}
+
+/** The page's own description: its key on the entity and its catalog label. */
+export function sheetDescription(kind) {
+  return sheetOf(kind).description;
 }
 
 /** A field's catalog keys for its label and hint. */

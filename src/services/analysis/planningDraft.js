@@ -9,6 +9,7 @@
 //   THE SCENE (its place, title, POV, who and what it involves) · THE PROSE        (Summary)
 //   BOOK CONTEXT · THE STRUCTURE · BEATS TO FILL (each with the template's note)   (a template)
 //   BOOK CONTEXT · THE STRAND · ITS BEATS SO FAR · Brainstorm's request            (next beats, twists)
+//   STORY CONTEXT · THE STORY SO FAR · Brainstorm's request          (the same, in the editor)
 //   BOOK CONTEXT · THE DOCUMENT (its name, what it is for) · WHAT IT SAYS NOW      (Fabula, Setting)
 // The prompts live server-side (seed_feature_prompts.js: sceneSummary, templateFill,
 // premiseDraft under the feature planning); next beats and twists are Brainstorm's own
@@ -18,7 +19,7 @@ import { runAiFeature } from "@delebash/llm-ui";
 import { brainstormAction, brainstormPrompt, freshIdeas, parseBrainstormLines } from "../brainstorm.js";
 import { povLabel } from "../povOptions.js";
 import { runJsonAnalysis } from "../runJson.js";
-import { storyBudgetFor } from "../storyContext.js";
+import { composeSceneContext, storyBudgetFor } from "../storyContext.js";
 import { htmlToText, textToHtml } from "../text.js";
 import { block, bookBlock, clamp, join } from "./draftInput.js";
 import { t } from "../../i18n/index.js";
@@ -186,6 +187,38 @@ export async function strandIdeas({ project, strandId, category, signal, budgetT
   });
   const ideas = freshIdeas(parseBrainstormLines(result.content), { exclude: (strand.beats || []).map((b) => b.label) });
   return ideas.map((idea, i) => ({ key: `idea${i + 1}`, label: "", current: "", proposed: clamp(idea, BEAT_NOTE_MAX), accept: false }));
+}
+
+// ── Next plot beats and Plot twists in the editor's AI menu (P2; answered 2026-10-16) ──────────
+
+/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
+/** The input for ideas at the cursor: the scene's story context (the book, the scene's links and
+ *  Summary, how the previous scene ends), the prose up to the cursor, then Brainstorm's request —
+ *  never an idea already shown (`seen`). */
+export function composeSceneIdeasInput(project, { chapterId, sceneId, category, proseTail = "", seen = [], budgetTokens = null } = {}) {
+  const { action, variables } = brainstormAction(category);
+  const story = composeSceneContext(project, { chapterId, sceneId, budgetTokens }).text;
+  const what = category === "twist" ? "twists" : "next beats";
+  const seed = `${what} from where THE STORY SO FAR ends${story ? ", fitting STORY CONTEXT" : ""}`;
+  const user_content = join(
+    block("STORY CONTEXT", story),
+    block("THE STORY SO FAR", proseTail),
+    brainstormPrompt({ category, seed, seen }),
+  );
+  return { action, variables: { ...variables, user_content } };
+}
+/* eslint-enable i18next/no-literal-string */
+
+/** Ideas for what happens next from the cursor, none already shown. @returns {Promise<string[]>} */
+export async function sceneIdeas({ project, chapterId, sceneId, category, proseTail = "", seen = [], taskName = "", signal, budgetTokens } = {}) {
+  const budget = await storyBudgetFor("brainstorm", brainstormAction(category).action, budgetTokens);
+  const { action, variables } = composeSceneIdeasInput(project, { chapterId, sceneId, category, proseTail, seen, budgetTokens: budget });
+  const meta = { kind: `scene-${category}`, sceneId };
+  const result = await runAiFeature({
+    action, feature: "brainstorm", variables, signal, meta,
+    task: { label: t("plotBoard.ai.taskIdeas", { name: taskName }), meta },
+  });
+  return freshIdeas(parseBrainstormLines(result.content), { seen }).map((idea) => clamp(idea, BEAT_NOTE_MAX));
 }
 
 // ── Draft from the premise (P3): the Fabula or Setting document ───────────────────────────────

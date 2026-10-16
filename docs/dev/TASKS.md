@@ -286,6 +286,30 @@ STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the
            `seedDefaultRouting` — so the sentence names the button.)
         The other new words (the describe box's label per page, the review window's lines, task
         labels) follow slice 1's, page by page, and are listed in the report with their commit.
+        Sixth round (after the sheets and slice 3), asked as shown: "1. **Editor AI menu ideas:**
+        what should picking a Next plot beat or Plot twist do? I'd open **Continue with
+        direction…** with the idea filled in. The alternative is copying it, as the Brainstorm page
+        does. 2. **From a description:** should it also propose a **Description** for a location,
+        object or group whose Description is empty? I'd say yes. 3. **Draft with AI ▾:** keep it
+        as a one-item menu so Fill from book can join it later? I'd say yes."
+        The user: "think on the questions again your rec go" (2026-10-16). The recs after the
+        second look, applied:
+        1. What Unstuck's **Write this** does — the editor's own precedent for a list of ideas:
+           the next 2–4 paragraphs in that direction, as the accept/reject diff, with no dialog
+           between (the diff is the review). Unstuck's window becomes the shared one
+           (`IdeaListModal.vue`); the ideas come from the scene's story context and the prose up
+           to the cursor; Regenerate never repeats an idea already shown. New words: the menu
+           lines "Ideas for what could happen next, from your book, this scene and the prose
+           before the cursor. Pick one and JustWrite drafts the next 2–4 paragraphs in that
+           direction." and "Twists, reveals and reversals the story could take from here —
+           plausible to wild. Pick one and JustWrite drafts the next 2–4 paragraphs in that
+           direction." (each also the window's lede), and the toast "Write a few lines first —
+           the ideas pick up where your prose ends."; the rest reuses Brainstorm's and Unstuck's.
+        2. Yes, while the page has none: the description (a group's Blurb) is rich text, so a
+           plain-text draft never replaces one. A character's draft already proposes its
+           one-liner the same way.
+        3. Keep it — the plan's "Draft with AI ▾ → From a description", the same control on all
+           four sheet pages; Fill from book joins it if it's built.
 WHY:    the user, 2026-10-11 — AI creation on each story-world page, not only on Brainstorm, and AI
         that writes the story or parts of it. Picks up IDEAS.md "Brainstorm → point-of-use
         generation" (2026-07-26).
@@ -317,14 +341,13 @@ OPEN:   the Lab check (the user) — now also "With story context", "Rewrite wit
         "Object from a description", "Group from a description", "Worldbuilding article",
         "Suggest locations", "Scene to summarize", "Template beats", "Draft from the premise" (no
         real model has run them; every test stubbed the reply).
-        Asked 2026-10-16: Next plot beats / Plot twists in the editor's AI menu (spec §5) — what
-        should picking an idea there do? Not built until answered.
         Slice 4 after the AI-text mark's design, which I bring.
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;
         "your rec go" for the third round (Task 0, Tasks 9b and 11b, Task 12 in the chat panel);
         "think on the questions again your rec go" (2026-10-16) for the fifth round's recs, the
-        sheets and slice 3, and the phone's sentence.
+        sheets and slice 3, and the phone's sentence; the same words again (2026-10-16) for the
+        sixth round's.
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's

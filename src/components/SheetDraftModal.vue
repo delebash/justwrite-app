@@ -8,8 +8,8 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
 import { draftRows } from "../services/analysis/characterProfile.js";
-import { applySheetDrafts, draftSheet, STORY_WORLD_FEATURE } from "../services/analysis/sheetDraft.js";
-import { STORY_WORLD_SHEETS, sheetFieldDefs } from "../services/storyWorldSheet.js";
+import { applySheetDrafts, draftSheet, sheetDraftDefs, STORY_WORLD_FEATURE } from "../services/analysis/sheetDraft.js";
+import { STORY_WORLD_SHEETS } from "../services/storyWorldSheet.js";
 import DraftReviewModal from "./DraftReviewModal.vue";
 
 const props = defineProps({
@@ -26,7 +26,7 @@ const entity = computed(() => (project[STORY_WORLD_SHEETS[props.kind].plural] ||
 
 async function run(signal) {
   const r = await draftSheet({ project, kind: props.kind, entityId: props.entityId, description: props.description, signal });
-  return draftRows(sheetFieldDefs(props.kind, entity.value, t), r.fields);
+  return draftRows(sheetDraftDefs(props.kind, entity.value, t), r.fields);
 }
 function apply(picked) {
   applySheetDrafts(project, props.kind, props.entityId, picked);

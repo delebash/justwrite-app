@@ -262,7 +262,7 @@ The dropdown groups actions by what they operate on, so you can tell at a glance
 
 - **Selection only** — Rewrite, Rewrite with direction…, Expand, and Describe. Greyed out until you select text in the editor.
 - **Selection or whole scene** — Tighten. Runs on the selection if you have one, on the entire scene otherwise.
-- **From the cursor** — Continue, Continue with direction…, and Write dialogue…. Generate the next paragraphs from wherever the cursor sits.
+- **From the cursor** — Continue, Continue with direction…, Write dialogue…, Unstuck, Next plot beats, and Plot twists. Generate the next paragraphs from wherever the cursor sits; the last three offer ideas to pick from first.
 - **Line edits** — surgical, single-issue revisions (Show don't tell, Filter words, Dialogue tags, Sensory grounding, etc.) that run on the selection, or on the whole scene if nothing is selected.
 
 ### Whole-passage actions
@@ -277,6 +277,7 @@ The dropdown groups actions by what they operate on, so you can tell at a glance
 - **Continue with direction…** — same as Continue, but you give it a one-line instruction first. See below.
 - **Write dialogue…** — an exchange at the cursor between the scene's characters, in their voices. See below.
 - **Unstuck — five ways out** — opens a diagnostic modal with five distinct moves the scene could take from here. See below.
+- **Next plot beats** and **Plot twists** — Brainstorm's plot ideas from where your prose ends, read with your book and this scene (its Summary, who and what it links, how the previous scene ends). **Write this** on one drafts the next 2–4 paragraphs in that direction, as Unstuck's does; **Regenerate** asks for ideas you haven't seen yet. They run on **Brainstorm** in Settings → AI.
 
 ### Research feel — sensory research pack
 

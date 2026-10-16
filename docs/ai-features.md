@@ -69,13 +69,14 @@ while quick ones stay local. How routing, presets and providers work is
   menu on the Plot board) writes each template beat's note for your book;
   **Draft from the premise** drafts the Fabula or the Setting document. Each
   is reviewed before anything saves, and each has its own row to route or tune.
-  A strand's **Suggest next beats** and **Plot twists** run on **Brainstorm**.
+  A strand's **Suggest next beats** and **Plot twists**, and the editor's
+  **Next plot beats** and **Plot twists**, run on **Brainstorm**.
 
 ## Story world
 
 - **Story-world sheets** — drafts a location's, object's or group's sheet from
   your description (**Draft with AI → From a description**, or the describe
-  box), and a worldbuilding article's body from its title and summary
+  box) — its Description too while it has none — and a worldbuilding article's body from its title and summary
   (**Draft with AI** on the article) — reviewed before anything saves. Each of
   the four has its own row under it (Locations, Objects, Groups,
   Worldbuilding), so you can route or tune them apart.
