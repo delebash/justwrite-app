@@ -3899,7 +3899,7 @@
     "placeholder": "Add tag…"
   },
   "mentionRefs": {
-    "empty": "Not mentioned in any scene yet. Type @ in a scene to mention it."
+    "empty": "Not mentioned in any scene yet. Type {'@'} in a scene to mention it."
   },
   "sceneRefs": {
     "empty": "No scenes linked yet. Open a scene → Links to add one."
