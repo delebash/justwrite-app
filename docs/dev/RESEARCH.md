@@ -335,6 +335,52 @@ toasts and hover tooltips were not opened; 147 strings matching book content wer
   editor sized to its text above a minimum, is Architecture's shape. — *measured 2026-10-16
   (`df8b6c0`)*.
 
+## Testing: real models and click-through flows (2026-10-16)
+
+- **promptfoo is the standard for running prompts on several models with checks** — MIT, Node
+  (≥22.22), 0.124.1 the latest (2026-10-08), a release every one to three weeks; OpenAI announced
+  buying it on 2026-03-09 and says it stays open source and maintained. Custom providers and
+  JavaScript checks are documented extension points; its telemetry and update check switch off with
+  `PROMPTFOO_DISABLE_TELEMETRY=1` / `PROMPTFOO_DISABLE_UPDATE=1`. Its docs say a JavaScript check
+  that is an ES module must be `.mjs`; on Node 26 a `.js` module in a `"type": "module"` package
+  loads (measured). We pin 0.123.1 (the newest at least two weeks old) and run it through npx:
+  installed into the app it would share node_modules with the server's native SQLite build. —
+  *npm registry and promptfoo.dev, read 2026-10-16; https://www.promptfoo.dev/docs/providers/custom-api/,
+  …/configuration/test-cases/, …/configuration/expected-outputs/javascript/,
+  …/configuration/telemetry/; the OpenAI announcement: finance.yahoo.com, gigazine.net 2026-03-10.*
+- **A server on a copy of the data finds the installed engine through the copy's
+  `runner_setting.cache_root`** — the kit reads the stored choice first (`install.js`
+  `resolveCacheRoots`); a copy whose source chose none would otherwise look for models in its own
+  empty `ai-cache` and, with `JUST_AI_HOME` pointed at the copy, find no sibling to share.
+  `scripts/snapshot-db.js --cache-root` sets it on the copy only. — *measured 2026-10-16: gemma-4-26b
+  loaded from `data/ai-cache` on the copy's server.*
+- **No cloud model can be tried yet on this box** — no provider in the database has a key, and no
+  `*_API_KEY` is set (checked 2026-10-16). The local chat models are gemma-4-26b-a4b-qat and
+  gemma-4-12b-qat (`data/ai-runtime/models.ini`).
+- **A `fetch` with `keepalive: true` fails once its body passes 64 KiB** (the Fetch standard's
+  limit on in-flight keepalive bytes; Chromium rejects with "TypeError: Failed to fetch" and sends
+  nothing). The book's autosave (`projectApi.js` `_flushPut`) has sent `keepalive: true` since
+  2026-06-18: a 62,304-byte book saved (204), the same book about 6 KB larger failed every save. The
+  sample book is 61,480 bytes, which is why it never showed. — *measured 2026-10-16
+  (`keepalive-probe`, a scratch server on a copy); found by the flow tests' repeat run.*
+- **The first real-model run of every Lab sample** (`npm run eval`, gemma-4-26b): 48 of 65
+  passed their contract; all 17 failures were writer samples refused by the server before any
+  model ran — "missing template variable(s): storyContext" (and `voiceCanon` for "Flabby
+  paragraph"): the seed's "Storm at the lighthouse", "Guided continuation" and "Flabby paragraph"
+  predate those variables and lack them, so the Lab can't run them either. Read, not asserted:
+  `brainstormPlot`'s "Brainstorm seed" sample is the place-name one (it returned 20 place names);
+  Draft from the premise gave the archivist of a premise that says "her" a man's name and "he";
+  Fill from book's voice pass returned `vocabulary` as a list, which `sanitizeVoice` empties.
+  gemma-4-12b: 47 of 65 — the same 17, plus the marketing pack (below); 650 s for the run against
+  gemma-4-26b's 394 s (12B dense against 4B active). — *evals/results/2026-10-16-20-21-01
+  (git-ignored).*
+- **A non-streaming `/v1/ai/run` to llama.cpp fails once the reply takes longer than the
+  provider's `timeout_seconds`** (the local provider's is 60): llama-server sends no headers until
+  the whole reply is written, and the kit's agent bounds the wait for headers by that timeout
+  (`base.js` `agentFor`). `/v1/ai/stream` — the route the app's own AI calls take — gets headers at
+  once. gemma-4-12b's marketing pack failed at 61 s with "Headers Timeout Error"; the eval's
+  provider now uses the stream. — *measured 2026-10-16.*
+
 ## Records not yet distilled
 
 Indexed by subject so they can be found; their facts move into a section above when work next

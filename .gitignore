@@ -46,3 +46,10 @@ release/
 
 # the phone's in-app server, built by scripts/phone-worker.js
 /src/phone/worker-bundle/
+
+# npm run eval output (scripts/eval.js): per-run replies and reports — their findings go to TASKS/RESEARCH
+/evals/results/
+
+# npm run test:flows output (Playwright Test): its report and failure traces
+/tests/flows/report/
+/tests/flows/artifacts/

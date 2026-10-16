@@ -336,11 +336,8 @@ BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV 
         Summary, the Plot board's strand menu, Draft from the premise (`891ce9e`); the phone's
         sentence (`e10b65b`). Fixed on the way: the bare @ in mentionRefs.empty (`b1c584b`), the
         Apply template list's outside click (`f1d8128`).
-OPEN:   the Lab check (the user) — now also "With story context", "Rewrite with a direction",
-        "Dialogue at the lamp", and the eight 2026-10-16 samples: "Location from a description",
-        "Object from a description", "Group from a description", "Worldbuilding article",
-        "Suggest locations", "Scene to summarize", "Template beats", "Draft from the premise" (no
-        real model has run them; every test stubbed the reply).
+OPEN:   the Lab check is now `npm run eval` (TASKS "Automated testing", 2026-10-16): every sample
+        ran on gemma; its findings are listed there.
         Slice 4 after the AI-text mark's design, which I bring.
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;
@@ -348,6 +345,32 @@ GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decis
         "think on the questions again your rec go" (2026-10-16) for the fifth round's recs, the
         sheets and slice 3, and the phone's sentence; the same words again (2026-10-16) for the
         sixth round's.
+
+## Automated testing: real models and click-through flows [2026-10-16]
+STATE:  DECIDED 2026-10-16 — the user: "what am i checking can you do it do you have or can find
+        tools to do testing like jv so there is minimul human interaction and can test with other
+        ai models what can you do? this type of testing is something we need to be able to to for
+        any app more good automated testing that is quick, think on your rec again always
+        adversially go"; then, asked what was being changed and told (nothing existing replaced:
+        the real-model eval for the Lab check, and the one-off click-through scripts made
+        permanent tests), "carry on, your rec go".
+WHY:    the Lab check was the user's to do by hand; every test faked the model's reply; my
+        click-through checks were one-off scripts nobody re-ran.
+BUILT:  `npm run eval` (promptfoo 0.123.1 through npx; the kit's `scripts/evals/`: the app server as
+        a provider, the Lab samples as test cases; JustWrite's `evals/`: the config and the reply
+        contract) and `npm run test:flows` (Playwright Test, `tests/flows/`, 14 tests at 1280 and
+        390 px, AI stubbed by the kit's `scripts/lib/ai-stub.js`); the smoke's setup shared as
+        `scripts/lib/scratch-server.js`. Docs: architecture-notes.md "Test harness detail".
+        First runs: the flow tests pass (30 s); the eval on gemma-4-26b and gemma-4-12b — findings
+        below and in RESEARCH "Testing".
+OPEN:   the findings, each waiting for its go (asked 2026-10-16, with their recs):
+        1. The book's autosave fails for any book over 64 KB (`keepalive`), since 2026-06-18.
+        2. Three writer Lab samples lack `storyContext` / `voiceCanon`: the server refuses them.
+        3. `brainstormPlot`'s Lab sample is the place-name one.
+        4. Draft from the premise contradicted the premise ("her" → a man).
+        5. Fill from book's voice pass loses `vocabulary` when the model sends a list.
+GO:     given 2026-10-16 for the eval and the flow tests ("think on your rec again always adversially
+        go"; "carry on, your rec go").
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's

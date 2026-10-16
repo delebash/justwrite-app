@@ -30,71 +30,17 @@
 // JW_KEEP (leave the servers up after the run), plus everything the smoke reads.
 
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, rmSync, statSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { resolveAppDataRoot } from "../bench/harness/lib/dataRoot.js";
+import { existsSync, mkdirSync, rmSync } from "node:fs";
+import { join } from "node:path";
 import { sleep, waitReady } from "../tests/lib/smoke-common.js";
+import { findDataRoot, killTree, ROOT, snapshotDataRoot, startServer } from "./lib/scratch-server.js";
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SERVER_PORT = Number(process.env.JW_SMOKE_PORT || 17496);
 const SERVER_URL = `http://127.0.0.1:${SERVER_PORT}`;
 const APP_URL = SERVER_URL; // the scratch server serves the built UI at /
 
 const children = [];
 let scratch = "";
-
-/**
- * The data root the desktop app actually uses.
- *
- * Asking the RUNNING server is the authoritative answer and the first probe:
- * /v1/health reports its own `dataDir` (server/src/api/health_api.js), so we read the
- * truth instead of re-deriving it. With the app closed, the fallback is the kit's one
- * ladder — the same one the desktop shell and the server use (`<repo>/data` in a
- * checkout, unless JUSTWRITE_DATA_DIR or a Change-folder pointer says otherwise).
- */
-async function findDataRoot() {
-  if (process.env.JW_DATA_ROOT) return process.env.JW_DATA_ROOT;
-  for (const port of [17495, SERVER_PORT]) {
-    try {
-      const r = await fetch(`http://127.0.0.1:${port}/v1/health`, { signal: AbortSignal.timeout(1500) });
-      if (r.ok) {
-        const { dataDir } = await r.json();
-        if (dataDir && existsSync(dataDir)) return dataDir;
-      }
-    } catch { /* not running — try the next probe */ }
-  }
-  const root = resolveAppDataRoot(ROOT);
-  return existsSync(join(root, "justwrite.db")) ? root : "";
-}
-
-/** Snapshot <source>/justwrite.db into a fresh scratch root via SQLite's backup
- *  API (safe against a live, mid-write source — a plain copy is not). Returns
- *  the scratch root; an empty one if there was nothing to snapshot.
- *
- *  The snapshot then switches warm_default_on_startup OFF in the scratch copy: a
- *  configured source DB carries a default model + warm-on-boot, so the scratch
- *  server otherwise spends every gate run downloading a ~500 MB llama.cpp build
- *  into %TEMP% (measured 2026-08-08) for a sweep that never generates a token. */
-function snapshotDataRoot(source) {
-  const dir = mkdtempSync(join(tmpdir(), "jw-smoke-"));
-  const src = source ? join(source, "justwrite.db") : "";
-  if (!src || !existsSync(src)) {
-    console.log(`· data              EMPTY scratch dir (no DB at ${src || "<no root found>"}) — the sweep will be less realistic`);
-    return dir;
-  }
-  const r = spawnSync(process.execPath, [
-    join(ROOT, "scripts", "node24.js"), join(ROOT, "scripts", "snapshot-db.js"), src, join(dir, "justwrite.db"),
-  ], { encoding: "utf8" });
-  if (r.status !== 0) {
-    console.log(`· data              snapshot FAILED (${(r.stderr || "").trim().slice(0, 160)}) — continuing on an empty dir`);
-    return dir;
-  }
-  const mb = (statSync(join(dir, "justwrite.db")).size / 1048576).toFixed(1);
-  console.log(`· data              snapshot of ${source} (${mb} MB) → ${dir}`);
-  return dir;
-}
 
 /** Quasar's CLI entry (app-structure §Q.6: run as node, never through npm's .cmd shims). */
 const QUASAR = join(ROOT, "node_modules", "@quasar", "app-vite", "bin", "quasar.js");
@@ -106,18 +52,6 @@ function track(label, child) {
   });
   children.push({ label, child });
   return child;
-}
-
-/** Kill a child AND its grandchildren. `child.kill()` on Windows signals only
- *  the direct process, which strands the server/esbuild children holding the
- *  ports — the next run then dies on "port already in use". */
-function killTree(child) {
-  if (!child || child.exitCode !== null) return;
-  if (process.platform === "win32") {
-    spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
-  } else {
-    try { process.kill(-child.pid, "SIGTERM"); } catch { child.kill("SIGTERM"); }
-  }
 }
 
 function cleanup() {
@@ -141,22 +75,11 @@ async function main() {
     process.exit(2);
   }
 
-  const source = await findDataRoot();
+  const source = await findDataRoot([17495, SERVER_PORT]);
   scratch = snapshotDataRoot(source);
 
   mkdirSync(scratch, { recursive: true });
-  // The server on Electron's own Node (scripts/node24.js) — the runtime it ships on.
-  track("server", spawn(process.execPath, [join(ROOT, "scripts", "node24.js"), join(ROOT, "server", "src", "serve.js"), "serve", "--port", String(SERVER_PORT), "--data-dir", scratch], {
-    cwd: ROOT,
-    stdio: ["ignore", "ignore", "inherit"],
-    // JUST_AI_HOME confines the scratch server's family registrations to the scratch
-    // itself. Without it, this boot writes "JustWrite Server → <scratch>/ai-cache"
-    // into the MACHINE-WIDE %LOCALAPPDATA%/just-ai registry, and a scratch that
-    // outlives cleanup becomes a Quick Setup cache offer (the 2026-08-08 ghost —
-    // one proceed click repointed the real install's cache at %TEMP%). The kit now
-    // also refuses temp-dir roots, but this harness should not rely on that net.
-    env: { ...process.env, JUSTWRITE_DATA_DIR: scratch, JUST_AI_HOME: scratch, JUSTWRITE_UI_DIR: UI_DIR },
-  }));
+  track("server", startServer({ port: SERVER_PORT, dataDir: scratch, uiDir: UI_DIR }));
   await waitReady(`${SERVER_URL}/v1/health`, "smoke server");
   await sleep(500);
 

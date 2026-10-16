@@ -1,6 +1,6 @@
 // Shared boot/browser helpers for every JW script that drives the renderer with
 // Playwright — `headless-smoke.js`, `book-smoke.js`, the bench harness
-// (`bench/harness/`).
+// (`bench/harness/`), the flow tests (`tests/flows/`).
 //
 // This file is JustWrite's DOOR to the family implementation in
 // `../just-llm-runner/scripts/lib/exec-resolve.js` (target-tree P7): it binds
@@ -29,3 +29,6 @@ export const findChrome = () => kitFindChrome({ env: "JW_CHROME" });
 export const chromeLaunchOptions = () => kitChromeLaunchOptions({ env: "JW_CHROME" });
 
 export { isUp, sleep, waitReady };
+
+/** The kit's AI calls answered by the test (its ai-stub.js): `stubAi(page, (body) => reply)`. */
+export { stubAi } from "../../../just-llm-runner/scripts/lib/ai-stub.js";

@@ -30,6 +30,8 @@ npm run build          # the installer — and the UnPackaged app with its serve
 npm run test:fast      # quick gate: renderer vitest + build:spa + server vitest
 npm run test:unit      # renderer vitest only
 npm run test:server    # server vitest only (server/tests/, on Electron's Node)
+npm run test:flows     # click-through tests of the built UI, AI stubbed, 1280 + 390 px (tests/flows/)
+npm run eval           # every Lab sample on a real model (uses the GPU — ask JustVoice first)
 npm run i18n:report    # key coverage of the English catalogs — MISSING must always be zero
 node ../just-llm-runner/scripts/check-family.js   # the family guard — must pass before a commit
 ```
