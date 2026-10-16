@@ -275,6 +275,7 @@ export function bookRows(projectId, snapIn) {
         when: s_(pyGet(scn, "when")),
         status: s_(pyGet(scn, "status")), // a statuses id, "" when unset
         exclude_from_ai: truthy(pyGet(scn, "excludeFromAi")),
+        summary: s_(pyGet(scn, "summary")),
       });
       for (const [plural, singular] of Object.entries(LINK_PLURAL)) {
         for (const [li, r] of pyIter(pyOr(pyGet(scn, plural), [])).entries()) {
@@ -318,6 +319,8 @@ export function bookRows(projectId, snapIn) {
       tags: pyJson(pyOr(pyGet(loc, "tags"), [])),
       status: s_(pyGet(loc, "status")),
       exclude_from_ai: truthy(pyGet(loc, "excludeFromAi")),
+      atmosphere: s_(pyGet(loc, "atmosphere")),
+      history: s_(pyGet(loc, "history")),
     });
   }
 
@@ -331,6 +334,9 @@ export function bookRows(projectId, snapIn) {
       tags: pyJson(pyOr(pyGet(obj, "tags"), [])),
       status: s_(pyGet(obj, "status")),
       exclude_from_ai: truthy(pyGet(obj, "excludeFromAi")),
+      properties: s_(pyGet(obj, "properties")),
+      history: s_(pyGet(obj, "history")),
+      where_now: s_(pyGet(obj, "whereNow")),
     });
   }
 
@@ -345,6 +351,9 @@ export function bookRows(projectId, snapIn) {
       color: s_(pyGet(g, "color")),
       status: s_(pyGet(g, "status")),
       exclude_from_ai: truthy(pyGet(g, "excludeFromAi")),
+      goals: s_(pyGet(g, "goals")),
+      leadership: s_(pyGet(g, "leadership")),
+      history: s_(pyGet(g, "history")),
     });
     for (const [mi, m] of pyIter(pyOr(pyGet(g, "members"), [])).entries()) {
       add("group_members", { group_id: gid, kind: s_(pyGet(m, "kind")), ref_id: s_(pyGet(m, "id")), position: mi });
@@ -591,7 +600,7 @@ export function assemble(h, projectId) {
   for (const scn of ordered("scenes")) {
     const s = {
       id: scn.id, title: scn.title, body: scn.body, pov: scn.pov ?? null, when: scn.when ?? "",
-      status: scn.status ?? "", excludeFromAi: !!scn.exclude_from_ai,
+      status: scn.status ?? "", excludeFromAi: !!scn.exclude_from_ai, summary: scn.summary ?? "",
     };
     Object.assign(s, truthy(linksByScene[scn.id]) ? linksByScene[scn.id] : emptyLinks());
     setdefault(scenesByCh, scn.chapter_id, []).push(s);
@@ -657,8 +666,12 @@ export function assemble(h, projectId) {
     id: x.id, name: x.name, kind: x.kind, note: x.note, tags: pyLoads(x.tags),
     status: x.status ?? "", excludeFromAi: !!x.exclude_from_ai,
   });
-  const locations = ordered("locations").map(entity);
-  const objects = ordered("objects").map(entity);
+  const locations = ordered("locations").map((x) => ({
+    ...entity(x), atmosphere: x.atmosphere ?? "", history: x.history ?? "",
+  }));
+  const objects = ordered("objects").map((x) => ({
+    ...entity(x), properties: x.properties ?? "", history: x.history ?? "", whereNow: x.where_now ?? "",
+  }));
   const strands = ordered("strands").map((s) => ({
     id: s.id,
     name: s.name,
@@ -697,6 +710,9 @@ export function assemble(h, projectId) {
     color: g.color,
     status: g.status ?? "",
     excludeFromAi: !!g.exclude_from_ai,
+    goals: g.goals ?? "",
+    leadership: g.leadership ?? "",
+    history: g.history ?? "",
     members: Object.hasOwn(membersByGroup, g.id) ? membersByGroup[g.id] : [],
   }));
 

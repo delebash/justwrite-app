@@ -37,7 +37,10 @@ const log = getLogger("justwrite_server.sync");
 // without them and, once updated, never receive the values it skipped — so it asks to be updated.
 // 3 (2026-10-11): scenes, characters, locations, objects and groups gained `status` and
 // `exclude_from_ai`; worldbuilding gained `exclude_from_ai`. Same reason as 2.
-export const SYNC_SCHEMA_VERSION = 3;
+// 4 (2026-10-16): the location, object and group sheets gained their fields (locations
+// `atmosphere`, `history`; objects `properties`, `history`, `where_now`; groups `goals`,
+// `leadership`, `history`) and scenes gained `summary`. Same reason as 2.
+export const SYNC_SCHEMA_VERSION = 4;
 
 // ── scene text: merged edit by edit through Yjs, on the editor's own schema ──────────────
 

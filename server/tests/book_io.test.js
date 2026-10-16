@@ -47,9 +47,10 @@ function canonicalBook() {
       ch1: [
         // pov (a POV_OPTIONS slug, null when unset) + when (the story time, "" when unset): the
         // Links panel sets both — lost on every save until 2026-10-11. So were status (a statuses
-        // id, "" when unset) and excludeFromAi, here and on the story-world entities below.
-        { id: "scn1", title: "The key", body: "<p>The key turned.</p>", pov: "limited-third", when: "1881-06-15T09:00", status: "draft", excludeFromAi: true, characters: ["c1"], locations: ["l1"], objects: ["o1"], strands: ["s1"] },
-        { id: "scn2", title: "", body: "<p>Cedar and ash.</p>", pov: null, when: "", status: "", excludeFromAi: false, characters: ["c1", "c2"], locations: [], objects: [], strands: ["s2"] },
+        // id, "" when unset) and excludeFromAi, here and on the story-world entities below. The
+        // Summary (2026-10-16) is "" when unset, as are the sheets' fields below.
+        { id: "scn1", title: "The key", body: "<p>The key turned.</p>", pov: "limited-third", when: "1881-06-15T09:00", status: "draft", excludeFromAi: true, summary: "Elen finds the key.", characters: ["c1"], locations: ["l1"], objects: ["o1"], strands: ["s1"] },
+        { id: "scn2", title: "", body: "<p>Cedar and ash.</p>", pov: null, when: "", status: "", excludeFromAi: false, summary: "", characters: ["c1", "c2"], locations: [], objects: [], strands: ["s2"] },
       ],
       ch2: [],
     },
@@ -88,8 +89,12 @@ function canonicalBook() {
     characterExtras: {
       c1: { voice: { accent: "north" }, motivation: { want: "freedom" }, quotes: ["..."] },
     },
-    locations: [{ id: "l1", name: "Halden House", kind: "Home", note: "Cliff road.", tags: ["setting"], status: "todo", excludeFromAi: true }],
-    objects: [{ id: "o1", name: "The Ledger", kind: "Manuscript", note: "84 pages.", tags: [], status: "", excludeFromAi: false }],
+    locations: [
+      { id: "l1", name: "Halden House", kind: "Home", note: "Cliff road.", tags: ["setting"], status: "todo", excludeFromAi: true, atmosphere: "Salt and cold stone.", history: "" },
+    ],
+    objects: [
+      { id: "o1", name: "The Ledger", kind: "Manuscript", note: "84 pages.", tags: [], status: "", excludeFromAi: false, properties: "Water-stained.", history: "Idris's.", whereNow: "" },
+    ],
     groups: [
       {
         id: "g1",
@@ -98,6 +103,9 @@ function canonicalBook() {
         color: "red",
         status: "draft",
         excludeFromAi: true,
+        goals: "Keep the house.",
+        leadership: "",
+        history: "Mapmakers since 1820.",
         members: [
           { kind: "character", id: "c1", name: "Elen Vael" },
           { kind: "character", id: "c2", name: "Idris Vael" },
@@ -185,7 +193,8 @@ test("book_round_trips", async () => {
 });
 
 // A database made before the ADDED_COLUMNS columns existed (scenes' pov / "when"; status and
-// exclude_from_ai on scenes and the story-world tables — all 2026-10-11) gains every one at boot
+// exclude_from_ai on scenes and the story-world tables — all 2026-10-11; the sheets' fields and
+// the scene Summary — 2026-10-16) gains every one at boot
 // and then round-trips them — no reset, so a writer's existing books survive the upgrade.
 test("an_older_database_gains_the_added_columns", async () => {
   const dir = tmpPath();

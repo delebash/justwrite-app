@@ -329,7 +329,7 @@ export const TABLES = [
   },
   {
     "name": "scenes",
-    "ddl": "CREATE TABLE scenes (\n\tproject_id VARCHAR NOT NULL, \n\tid VARCHAR NOT NULL, \n\tchapter_id VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\ttitle VARCHAR NOT NULL, \n\tbody TEXT NOT NULL, \n\tpov VARCHAR, \n\t\"when\" VARCHAR NOT NULL DEFAULT '', \n\tstatus VARCHAR NOT NULL DEFAULT '', \n\texclude_from_ai BOOLEAN NOT NULL DEFAULT 0, \n\tPRIMARY KEY (project_id, id), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
+    "ddl": "CREATE TABLE scenes (\n\tproject_id VARCHAR NOT NULL, \n\tid VARCHAR NOT NULL, \n\tchapter_id VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\ttitle VARCHAR NOT NULL, \n\tbody TEXT NOT NULL, \n\tpov VARCHAR, \n\t\"when\" VARCHAR NOT NULL DEFAULT '', \n\tstatus VARCHAR NOT NULL DEFAULT '', \n\texclude_from_ai BOOLEAN NOT NULL DEFAULT 0, \n\tsummary TEXT NOT NULL DEFAULT '', \n\tPRIMARY KEY (project_id, id), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
     "indexes": [],
     "columns": {
       "project_id": {
@@ -379,6 +379,11 @@ export const TABLES = [
         "kind": "bool",
         "notNull": true,
         "default": false
+      },
+      "summary": {
+        "kind": "text",
+        "notNull": true,
+        "default": ""
       }
     }
   },
@@ -561,7 +566,7 @@ export const TABLES = [
   },
   {
     "name": "locations",
-    "ddl": "CREATE TABLE locations (\n\tproject_id VARCHAR NOT NULL, \n\tid VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\tname VARCHAR NOT NULL, \n\tkind VARCHAR NOT NULL, \n\tnote TEXT NOT NULL, \n\ttags TEXT NOT NULL, \n\tstatus VARCHAR NOT NULL DEFAULT '', \n\texclude_from_ai BOOLEAN NOT NULL DEFAULT 0, \n\tPRIMARY KEY (project_id, id), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
+    "ddl": "CREATE TABLE locations (\n\tproject_id VARCHAR NOT NULL, \n\tid VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\tname VARCHAR NOT NULL, \n\tkind VARCHAR NOT NULL, \n\tnote TEXT NOT NULL, \n\ttags TEXT NOT NULL, \n\tstatus VARCHAR NOT NULL DEFAULT '', \n\texclude_from_ai BOOLEAN NOT NULL DEFAULT 0, \n\tatmosphere TEXT NOT NULL DEFAULT '', \n\thistory TEXT NOT NULL DEFAULT '', \n\tPRIMARY KEY (project_id, id), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
     "indexes": [],
     "columns": {
       "project_id": {
@@ -608,12 +613,22 @@ export const TABLES = [
         "kind": "bool",
         "notNull": true,
         "default": false
+      },
+      "atmosphere": {
+        "kind": "text",
+        "notNull": true,
+        "default": ""
+      },
+      "history": {
+        "kind": "text",
+        "notNull": true,
+        "default": ""
       }
     }
   },
   {
     "name": "objects",
-    "ddl": "CREATE TABLE objects (\n\tproject_id VARCHAR NOT NULL, \n\tid VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\tname VARCHAR NOT NULL, \n\tkind VARCHAR NOT NULL, \n\tnote TEXT NOT NULL, \n\ttags TEXT NOT NULL, \n\tstatus VARCHAR NOT NULL DEFAULT '', \n\texclude_from_ai BOOLEAN NOT NULL DEFAULT 0, \n\tPRIMARY KEY (project_id, id), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
+    "ddl": "CREATE TABLE objects (\n\tproject_id VARCHAR NOT NULL, \n\tid VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\tname VARCHAR NOT NULL, \n\tkind VARCHAR NOT NULL, \n\tnote TEXT NOT NULL, \n\ttags TEXT NOT NULL, \n\tstatus VARCHAR NOT NULL DEFAULT '', \n\texclude_from_ai BOOLEAN NOT NULL DEFAULT 0, \n\tproperties TEXT NOT NULL DEFAULT '', \n\thistory TEXT NOT NULL DEFAULT '', \n\twhere_now TEXT NOT NULL DEFAULT '', \n\tPRIMARY KEY (project_id, id), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
     "indexes": [],
     "columns": {
       "project_id": {
@@ -660,12 +675,27 @@ export const TABLES = [
         "kind": "bool",
         "notNull": true,
         "default": false
+      },
+      "properties": {
+        "kind": "text",
+        "notNull": true,
+        "default": ""
+      },
+      "history": {
+        "kind": "text",
+        "notNull": true,
+        "default": ""
+      },
+      "where_now": {
+        "kind": "text",
+        "notNull": true,
+        "default": ""
       }
     }
   },
   {
     "name": "groups",
-    "ddl": "CREATE TABLE groups (\n\tproject_id VARCHAR NOT NULL, \n\tid VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\tname VARCHAR NOT NULL, \n\tblurb TEXT NOT NULL, \n\tcolor VARCHAR NOT NULL, \n\tstatus VARCHAR NOT NULL DEFAULT '', \n\texclude_from_ai BOOLEAN NOT NULL DEFAULT 0, \n\tPRIMARY KEY (project_id, id), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
+    "ddl": "CREATE TABLE groups (\n\tproject_id VARCHAR NOT NULL, \n\tid VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\tname VARCHAR NOT NULL, \n\tblurb TEXT NOT NULL, \n\tcolor VARCHAR NOT NULL, \n\tstatus VARCHAR NOT NULL DEFAULT '', \n\texclude_from_ai BOOLEAN NOT NULL DEFAULT 0, \n\tgoals TEXT NOT NULL DEFAULT '', \n\tleadership TEXT NOT NULL DEFAULT '', \n\thistory TEXT NOT NULL DEFAULT '', \n\tPRIMARY KEY (project_id, id), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
     "indexes": [],
     "columns": {
       "project_id": {
@@ -707,6 +737,21 @@ export const TABLES = [
         "kind": "bool",
         "notNull": true,
         "default": false
+      },
+      "goals": {
+        "kind": "text",
+        "notNull": true,
+        "default": ""
+      },
+      "leadership": {
+        "kind": "text",
+        "notNull": true,
+        "default": ""
+      },
+      "history": {
+        "kind": "text",
+        "notNull": true,
+        "default": ""
       }
     }
   },

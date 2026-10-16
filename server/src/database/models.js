@@ -69,4 +69,15 @@ export const ADDED_COLUMNS = [
   ["groups", "status", "VARCHAR NOT NULL DEFAULT ''"],
   ["groups", "exclude_from_ai", "BOOLEAN NOT NULL DEFAULT 0"],
   ["worldbuilding", "exclude_from_ai", "BOOLEAN NOT NULL DEFAULT 0"],
+  // 2026-10-16: the location, object and group sheets (the AI drafting spec §9.1) and the
+  // scene's Summary (slice 3).
+  ["scenes", "summary", "TEXT NOT NULL DEFAULT ''"],
+  ["locations", "atmosphere", "TEXT NOT NULL DEFAULT ''"],
+  ["locations", "history", "TEXT NOT NULL DEFAULT ''"],
+  ["objects", "properties", "TEXT NOT NULL DEFAULT ''"],
+  ["objects", "history", "TEXT NOT NULL DEFAULT ''"],
+  ["objects", "where_now", "TEXT NOT NULL DEFAULT ''"],
+  ["groups", "goals", "TEXT NOT NULL DEFAULT ''"],
+  ["groups", "leadership", "TEXT NOT NULL DEFAULT ''"],
+  ["groups", "history", "TEXT NOT NULL DEFAULT ''"],
 ];
