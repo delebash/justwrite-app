@@ -34,6 +34,8 @@ have **Draft from the premise**. All of it is reviewed before it's saved, and ro
 [Plot and time](plot-and-time.md#the-ai-on-a-strand) and
 [Worldbuilding and Architecture](worldbuilding.md#whats-in-each-document).
 
+**Fixed:** on the Plot board, a click outside the **Apply template** list now closes it.
+
 **On a phone, the no-model message fits the phone.** Before a model is set, an AI feature on the
 phone no longer points at Quick Setup and the model catalog, which a phone doesn't have: it says
 to add an online provider with its Default model on the AI page and press **Set as default**.

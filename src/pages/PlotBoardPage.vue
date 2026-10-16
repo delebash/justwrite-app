@@ -63,7 +63,9 @@ function closeTemplateMenu() {
 
 function onDocMousedown(e) {
   if (!templateMenuOpen.value) return;
-  const btn = templateBtnRef.value;
+  // The button is a component (UiButton): its element is $el. (Until 2026-10-16 this called
+  // .contains on the component, which threw, so a click outside never closed the menu.)
+  const btn = templateBtnRef.value?.$el;
   const menu = templateMenuRef.value;
   if (btn?.contains(e.target)) return;
   if (menu?.contains(e.target)) return;
