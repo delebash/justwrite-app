@@ -569,6 +569,9 @@ export const DEFAULT_TEST_SAMPLES = [
                                    "A harbor archivist unpicks who altered her dead father's ledger.\n\n" +
                                    "## Genre\n" +
                                    "Literary mystery\n\n" +
+                                   "## Main cast\n" +
+                                   "Main cast:\n" +
+                                   "- Mira (Harbor archivist) — Guarded and dry-witted; keeps grief private.\n\n" +
                                    "THE DOCUMENT\n" +
                                    "Name: Fabula\n" +
                                    "What it is for: The events of the story in logical, chronological order — cause and effect."}},

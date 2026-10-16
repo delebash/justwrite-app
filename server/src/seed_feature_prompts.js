@@ -617,6 +617,11 @@ Rules:
 
 Return ONLY the JSON object. No preface, no markdown fences.`;
 
+// Named after the eval found a draft giving the premise's archivist ("her dead father's ledger")
+// a man's name and "he" (2026-10-16); the heal below gives an unedited stored prompt the rule.
+const PREMISE_FACTS_RULE =
+  "\n  - Keep every fact the book gives — the characters' names, their pronouns, who is who — and what the premise's own words imply (\"her father\" makes the protagonist a woman). Invent only what it leaves open.";
+
 const PREMISE_DRAFT_SYSTEM = `You draft one of a novelist's planning documents from the book's premise.
 
 You will be given:
@@ -628,7 +633,7 @@ Your job: write the document as its description asks, grown from the premise and
 
 Rules:
   - 3-8 paragraphs of plain prose, a blank line between paragraphs.
-  - Never contradict the book's context.
+  - Never contradict the book's context.${PREMISE_FACTS_RULE}
   - No title line, no headings, no lists, no markdown, no commentary.
 
 Return only the document's body.`;
@@ -1523,6 +1528,8 @@ export const FEATURE_PROMPT_HEALS = {
     "writerAI.continue": [PRE_STORY_WRITER_SYSTEM],
     "writerAI.describe": [PRE_STORY_WRITER_SYSTEM],
     "writerAI.guided-continue": [PRE_STORY_WRITER_SYSTEM],
+    // Draft from the premise, before its rule named the facts to keep (2026-10-16).
+    "premiseDraft": [PREMISE_DRAFT_SYSTEM.replace(PREMISE_FACTS_RULE, "")],
     // The two voice passes, before the vocabulary line named its one-string shape (2026-10-16).
     "characterVoice": [CHARACTER_VOICE_SYSTEM.replace(VOCABULARY_SHAPE, "")],
     "characterVoiceDraft": [CHARACTER_VOICE_DRAFT_SYSTEM.replace(VOCABULARY_SHAPE, "")],

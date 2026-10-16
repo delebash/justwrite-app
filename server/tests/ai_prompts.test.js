@@ -178,6 +178,15 @@ test("the voice passes ask for vocabulary as one string; an unedited stored prom
   }
 });
 
+test("Draft from the premise keeps the book's facts; an unedited stored prompt heals to the rule", async () => {
+  const { FEATURE_PROMPT_HEALS } = await import("../src/seed_feature_prompts.js");
+  const now = DEFAULT_FEATURE_PROMPTS.premiseDraft.system;
+  expect(now).toContain("  - Keep every fact the book gives — the characters' names, their pronouns, who is who");
+  const [old] = FEATURE_PROMPT_HEALS.premiseDraft;
+  expect(old).toContain("  - Never contradict the book's context.\n  - No title line");
+  expect(old).not.toContain("Keep every fact");
+});
+
 // The server refuses a run whose variables lack a {{name}} its prompt uses (the kit's `render`,
 // HTTP 400) — so a seeded sample missing one fails in the Lab for every user. Three writer samples
 // predated {{storyContext}} / {{voiceCanon}} and did (found by `npm run eval`, 2026-10-16).
