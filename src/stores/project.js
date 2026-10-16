@@ -417,6 +417,7 @@ const ACTION_DOMAINS = {
   reorderNotes: "notes",
   addStrand: "strands", removeStrand: "strands", updateStrand: "strands",
   addStrandBeat: "strands", updateStrandBeat: "strands", removeStrandBeat: "strands",
+  addStrandBeats: "strands", applyBeatNotes: "strands",
   moveBeat: "strands", reorderStrands: "strands",
   addWorldbuilding: "worldbuilding", removeWorldbuilding: "worldbuilding",
   updateWorldbuilding: "worldbuilding", moveWorldbuilding: "worldbuilding",
@@ -1889,6 +1890,26 @@ export const useProjectStore = defineStore("project", {
         : s);
       this._persist();
       return beat.id;
+    },
+    // Several beats at once — the Plot board's reviewed next beats or twists (2026-10-16) — as ONE
+    // undo step, unassigned (chapterId null) as a template's are.
+    addStrandBeats(strandId, list) {
+      if (!list?.length) return [];
+      this._record("addStrandBeats");
+      const made = list.map((input) => ({ id: uid("b"), chapterId: null, sceneId: null, label: "", note: "", ...input }));
+      this.strands = this.strands.map((s) => s.id === strandId ? { ...s, beats: [...(s.beats || []), ...made] } : s);
+      this._persist();
+      return made.map((b) => b.id);
+    },
+    // A reviewed template fill (Fill this template for my story, 2026-10-16): new notes for several
+    // beats, `{ [beatId]: note }`, as ONE undo step — never coalesced with typing in a note.
+    applyBeatNotes(strandId, notes) {
+      if (!notes || !Object.keys(notes).length) return;
+      this._record("applyBeatNotes");
+      this.strands = this.strands.map((s) => s.id === strandId
+        ? { ...s, beats: (s.beats || []).map((b) => Object.hasOwn(notes, b.id) ? { ...b, note: notes[b.id] } : b) }
+        : s);
+      this._persist();
     },
     updateStrandBeat(strandId, beatId, patch) {
       this._record("updateStrandBeat");

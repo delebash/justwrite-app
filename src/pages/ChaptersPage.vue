@@ -325,7 +325,10 @@ function addSceneHere() {
 
 // ── Corkboard (cards mode) ───────────────────────────────────────────
 const dragSceneId = ref(null);
+// A card shows the scene's Summary (slice 3, 2026-10-16), else the start of its prose.
 function synopsis(scene) {
+  const summary = String(scene.summary || "").trim();
+  if (summary) return summary;
   const text = (scene.body || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   return text.length > 180 ? `${text.slice(0, 180)}…` : text;
 }

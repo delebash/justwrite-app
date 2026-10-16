@@ -62,6 +62,15 @@ while quick ones stay local. How routing, presets and providers work is
 - **Relationship arc** — chapter-by-chapter warmth / tension / power tracking
   for a pair of characters.
 
+## Planning
+
+- **Planning** — **Summarize this scene** (the scene's Links panel) drafts its
+  Summary from the prose; **Fill this template for my story** (a strand's ✨
+  menu on the Plot board) writes each template beat's note for your book;
+  **Draft from the premise** drafts the Fabula or the Setting document. Each
+  is reviewed before anything saves, and each has its own row to route or tune.
+  A strand's **Suggest next beats** and **Plot twists** run on **Brainstorm**.
+
 ## Story world
 
 - **Story-world sheets** — drafts a location's, object's or group's sheet from
@@ -91,8 +100,8 @@ When the AI drafts a character it reads your book's frame: the premise, genre,
 world rules, the Setting document and the main cast. The editor's prose actions
 — Rewrite, Expand, Tighten, Continue, Describe, Rewrite with direction…, Continue
 with direction…, Write dialogue… — read
-it too, plus the scene they work in: what its Links panel ties to it, its beats
-and notes, and how the previous scene ends (see
+it too, plus the scene they work in: its Summary, what its Links panel ties to
+it, its beats and notes, and how the previous scene ends (see
 [Writing](writing.md#story-context-the-ai-knows-the-scene)). Only what's relevant
 is sent, and never anything marked **Exclude from AI**. **Settings → AI → Writing
 AI → Story context** sets the most of the model's context window those notes may

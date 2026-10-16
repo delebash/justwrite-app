@@ -580,6 +580,55 @@ Rules:
 
 Return only the article's body.`;
 
+// ── planningDraft.js (2026-10-16, slice 3): a scene's Summary, a plot template's beats, the
+// Fabula / Setting from the premise ─────────────────────────────────────────────────────────
+const SCENE_SUMMARY_SYSTEM = `You summarize one scene of a novel for the writer's plan — the line its card on the corkboard carries.
+
+You will be given:
+  - THE SCENE: where it sits in the book, and who and what it involves
+  - THE PROSE: the scene's text
+
+Your job: say what happens in the scene and what has changed by its end, in 1-3 sentences, present tense, naming the characters. Only what the prose shows — no interpretation, no judgement, no advice.
+
+Return only the summary: no heading, no quotes, no preface.`;
+
+const TEMPLATE_FILL_SYSTEM = `You fill a plot structure's beats for a novelist's book.
+
+You will be given:
+  - the book's context (premise, genre, world rules, setting, the main cast) — any part may be missing
+  - THE STRUCTURE: the plot template's name and what it is
+  - the BEATS to fill — each with its key, its name, and what that beat does in the structure
+
+Your job: for each beat, say what happens at that point in THIS book — the event, who drives it, what it changes — consistent with the book's context and with the beats before it. The writer reviews each beat before anything is saved.
+
+Return ONLY a JSON object whose keys are exactly the beat keys you were given, each with a string value:
+
+{ "<beat key>": "<what happens at this beat in this book>" }
+
+Rules:
+  - Use exactly the given keys — no others.
+  - 1-3 sentences per beat, concrete: names, places, events — not the template's general advice.
+  - Keep the beats one story: each follows from the ones before it.
+  - If the book's context gives nothing to build a beat on, return "" for it.
+
+Return ONLY the JSON object. No preface, no markdown fences.`;
+
+const PREMISE_DRAFT_SYSTEM = `You draft one of a novelist's planning documents from the book's premise.
+
+You will be given:
+  - the book's context (premise, genre, world rules, setting, the main cast) — any part may be missing
+  - THE DOCUMENT: its name and what it is for
+  - possibly, what the document says now
+
+Your job: write the document as its description asks, grown from the premise and consistent with everything else in the book's context — concrete enough to plan scenes from. Build on what the document already says rather than discarding it. The writer reviews the draft before it replaces anything.
+
+Rules:
+  - 3-8 paragraphs of plain prose, a blank line between paragraphs.
+  - Never contradict the book's context.
+  - No title line, no headings, no lists, no markdown, no commentary.
+
+Return only the document's body.`;
+
 // ── relationshipArc.js (analyseRelationship) ────────────────────────────────
 const RELATIONSHIP_SYSTEM = `You track a relationship between two characters across a novel — chapter by chapter.
 
@@ -1080,6 +1129,23 @@ export const DEFAULT_FEATURE_PROMPTS = {
         "user_template": "{{user_content}}",
         "json_mode": true,
     },
+    // Slice 3 (2026-10-16): {{user_content}} is composed client-side (planningDraft.js).
+    "sceneSummary": {
+        "feature": "planning",
+        "system": SCENE_SUMMARY_SYSTEM,
+        "user_template": "{{user_content}}",
+    },
+    "templateFill": {
+        "feature": "planning",
+        "system": TEMPLATE_FILL_SYSTEM,
+        "user_template": "{{user_content}}",
+        "json_mode": true,
+    },
+    "premiseDraft": {
+        "feature": "planning",
+        "system": PREMISE_DRAFT_SYSTEM,
+        "user_template": "{{user_content}}",
+    },
     "relationshipArc": {
         "feature": "relationshipArc",
         "system": RELATIONSHIP_SYSTEM,
@@ -1363,6 +1429,9 @@ const ACTION_META = {
     "groupDraft": {"description": "Drafts a group's sheet — goals, leadership, history — from your description and the book."},
     "worldbuildingDraft": {"description": "Writes a worldbuilding article's body from its title, its summary and the book."},
     "suggestLocations": {"description": "Proposes locations the book doesn't have yet, from its premise and the places it has."},
+    "sceneSummary": {"description": "Drafts a scene's Summary from its prose — what happens and what changes."},
+    "templateFill": {"description": "Fills a plot template's beats with what happens at each in this book."},
+    "premiseDraft": {"description": "Drafts the Fabula or the Setting document from the book's premise."},
 };
 
 // Canonical action labels — the ONE name the user sees wherever they meet the
@@ -1406,6 +1475,9 @@ const ACTION_LABELS = {
     "groupDraft": "Groups",
     "worldbuildingDraft": "Worldbuilding",
     "suggestLocations": "Suggest locations",
+    "sceneSummary": "Summarize this scene",
+    "templateFill": "Fill this template for my story",
+    "premiseDraft": "Draft from the premise",
 };
 
 // Sub-section labels clustering a multi-action feature's actions in the nav

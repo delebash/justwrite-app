@@ -100,10 +100,11 @@ describe("configureTestData + testDataAction", () => {
 
 // The QC-35 whole-job check: every seeded action key is declared with its
 // group's affordances. The key list mirrors DEFAULT_FEATURE_PROMPTS
-// (seed_feature_prompts.js — 50 keys: A=7, B=15, C=15, D=11, E=2; +8 on 2026-10-11 —
+// (seed_feature_prompts.js — 53 keys: A=7, B=15, C=15, D=14, E=2; +8 on 2026-10-11 —
 // Fill from book's two passes, which had no entry, the four AI drafting actions, and Rewrite
 // with direction / Write dialogue; +5 on 2026-10-16 — the three sheets, a worldbuilding
-// article, Suggest locations).
+// article, Suggest locations; +3 — slice 3: Summarize this scene, Fill this template for my
+// story, Draft from the premise).
 const A_GROUP = ["critique", "critiqueStructure", "foreshadowing", "multiReaderGenre", "multiReaderLiterary", "multiReaderAgent", "multiReaderBookClub"];
 const B_GROUP = [
   "writerAI.rewrite", "writerAI.expand", "writerAI.tighten", "writerAI.continue", "writerAI.describe", "writerAI.guided-continue",
@@ -114,17 +115,17 @@ const B_GROUP = [
 const C_PICKER = ["readerKnowledge", "entitySweep", "characterAudit", "voiceDrift", "characterProfile", "characterVoice"];
 const C_COMPOSE = ["plotHoles", "beatSheet", "reverseOutline", "marketingPack", "recap", "briefing", "suggestCharacters", "suggestLocations"];
 const SAMPLE_ONLY = ["relationshipArc", "brainstorm", "brainstormPlot", "sensory", "characterProfileDraft", "characterVoiceDraft", "characterSection",
-  "locationDraft", "objectDraft", "groupDraft", "worldbuildingDraft"];
+  "locationDraft", "objectDraft", "groupDraft", "worldbuildingDraft", "sceneSummary", "templateFill", "premiseDraft"];
 const ALL_SEEDED = [...A_GROUP, ...B_GROUP, ...C_PICKER, ...C_COMPOSE, ...SAMPLE_ONLY, "unstuck", "chat", "characterChat"];
 
 describe("LAB_TEST_ACTIONS (the QC-35 per-action table)", () => {
-  it("declares all 50 seeded actions, each with at least one sample label", () => {
-    expect(ALL_SEEDED).toHaveLength(50);
+  it("declares all 53 seeded actions, each with at least one sample label", () => {
+    expect(ALL_SEEDED).toHaveLength(53);
     for (const key of ALL_SEEDED) {
       expect(LAB_TEST_ACTIONS[key], `${key} declared`).toBeTruthy();
       expect(LAB_TEST_ACTIONS[key].samples?.length, `${key} has samples`).toBeGreaterThan(0);
     }
-    expect(Object.keys(LAB_TEST_ACTIONS)).toHaveLength(50);
+    expect(Object.keys(LAB_TEST_ACTIONS)).toHaveLength(53);
   });
 
   it("the location picker is gone (no source, no declaration references it)", () => {

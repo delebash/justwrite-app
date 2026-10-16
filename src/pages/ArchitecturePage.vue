@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
@@ -12,6 +12,9 @@ import { UiTable } from "@delebash/llm-ui";
 import StatusSelect from "../components/StatusSelect.vue";
 import { PaneHeader } from "@delebash/llm-ui";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
+import { AiTaskStrip, UiBanner, useAiTasksStore } from "@delebash/llm-ui";
+import { PLANNING_FEATURE, draftFromPremise } from "../services/analysis/planningDraft.js";
+import { tEnglish } from "../i18n/index.js";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
@@ -37,6 +40,34 @@ function docMeta(id) {
 const doc = computed(() => props.id ? project.architecture[props.id] : null);
 
 function update(k, v) { project.updateArchitecture(doc.value.id, { [k]: v }); }
+
+// Draft from the premise (slice 3, 2026-10-16; the spec §5): the Fabula and the Setting from the
+// book's premise, landing in the editor as one change to accept or reject (RichEditor
+// proposeDocument). The model reads the document's name and purpose in English.
+const PREMISE_DRAFTED = ["fabula", "setting"];
+const docEditor = ref(null);
+const aiTasks = useAiTasksStore();
+const draftTask = computed(() => aiTasks.runningTasks.find(
+  (task) => task.feature === PLANNING_FEATURE && task.meta?.docId === doc.value?.id));
+const draftError = ref("");
+watch(() => doc.value?.id, () => { draftError.value = ""; });
+async function draftDoc() {
+  const d = doc.value;
+  if (!d || draftTask.value) return;
+  draftError.value = "";
+  const keys = ARCH_DOCS[d.id];
+  try {
+    const { html } = await draftFromPremise({
+      project, docId: d.id, title: tEnglish(keys.titleKey), purpose: tEnglish(keys.descriptionKey),
+    });
+    if (doc.value?.id !== d.id) return; // the writer moved to another document meanwhile
+    if (!html) { draftError.value = t("architecture.draft.empty"); return; }
+    docEditor.value?.proposeDocument(html);
+  } catch (e) {
+    const msg = e?.message || String(e);
+    if (!/abort|cancel/i.test(msg)) draftError.value = msg;
+  }
+}
 function openEvents() { router.push("/architecture/setting/events"); }
 function askTheBook() {
   if (!doc.value) return;
@@ -114,6 +145,10 @@ function onRowClick(event) {
           v-tooltip.bottom="$t('architecture.askTheBookAbout', { title: doc.title })">
           <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
         </UiButton>
+        <UiButton v-if="PREMISE_DRAFTED.includes(doc.id)" intent="ghost" size="small" :disabled="!!draftTask" @click="draftDoc"
+          v-tooltip.bottom="$t('architecture.draft.tooltip')">
+          <Icon name="Sparkle" :size="14" /> {{ $t("architecture.draft.button") }}
+        </UiButton>
         <UiButton v-if="doc.id === 'setting'" intent="ghost" size="small" @click="openEvents"><Icon name="Calendar" :size="14" /> {{ $t("common.events") }}</UiButton>
         <StatusSelect :model-value="doc.status || ''" @update:model-value="(v) => update('status', v)" />
       </PaneHeader>
@@ -121,8 +156,10 @@ function onRowClick(event) {
       <div class="pane-card">
         <div class="arch-wrap scrollarea">
           <p class="arch-desc">{{ docMeta(doc.id).description }}</p>
+          <AiTaskStrip :task="draftTask" />
+          <UiBanner v-if="draftError">{{ draftError }}</UiBanner>
 
-          <RichEditor
+          <RichEditor ref="docEditor"
             :model-value="doc.body"
             :placeholder="$t('architecture.bodyPlaceholder')"
             variant="inline"

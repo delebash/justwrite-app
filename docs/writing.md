@@ -77,7 +77,7 @@ The **Chapters** view is the main writing surface. Open it from the sidebar, or 
 
 A segmented toggle at the top of the page switches between three modes. They show the same chapter; only the lens changes.
 
-- **Edit** — the writing surface. The default. Inside Edit, a style toggle switches between the continuous prose editor and **Cards** — a corkboard where each scene appears as a card with a small prose excerpt; drag cards to reorder scenes within the chapter without committing to a new layout.
+- **Edit** — the writing surface. The default. Inside Edit, a style toggle switches between the continuous prose editor and **Cards** — a corkboard where each scene appears as a card with its **Summary** (or, without one, a small prose excerpt); drag cards to reorder scenes within the chapter without committing to a new layout.
 - **Outline** — a tree view of every Part, Chapter, and Scene in your manuscript. Inline-editable titles. Drag to reorder. Click any chapter to open it in Edit mode.
 - **Read** — a clean read-only view, no editor chrome. Two sub-scopes: **Chapter** (one chapter at a time with Previous/Next) and **Whole book** (the entire manuscript in one continuous scroll, with the sidebar tracking what scene is visible).
 
@@ -185,6 +185,7 @@ A second toolbar sits just below for chapter-level controls when no scene is foc
 
 Click **Links** on the scene strip to open a modal that records the connective tissue for this scene:
 
+- **Summary** — what happens in the scene and what changes, in a sentence or two: your plan for it. The chapter's **Cards** show it in place of the prose's opening lines, and the AI writing actions read it with the scene. **Summarize this scene** drafts it from the scene's prose; you see the draft beside what's there, edit it, and **Apply** — nothing is saved before, and one Ctrl/⌘ + Z takes it back.
 - **POV perspective** — six options from first-person through omniscient
 - **Characters present** — main and secondary; you can create a new character right here without leaving the scene
 - **Locations** — same; inline-create supported
@@ -237,7 +238,7 @@ The chosen column threads back into the existing accept/reject AI-diff machinery
 
 > *"Continue wrote three good paragraphs — about a character who died in chapter four, in a city the book has never been to."*
 
-**Rewrite, Expand, Tighten, Continue, Describe, Rewrite with direction…, Continue with direction…** and **Write dialogue…** read more than your passage. They're also sent the scene's story context: your premise, genre, world rules, Setting and main cast, then what the scene's **Links** panel ties to it — its point of view, the strand beats pinned to it, its notes, the story-bible entries of its characters, places and objects — and how the previous scene ends. Link a character to the scene and the AI knows who they are; leave a scene unlinked and it still runs, on the book's frame and your passage. In continuous-chapter mode it's the scene your cursor is in.
+**Rewrite, Expand, Tighten, Continue, Describe, Rewrite with direction…, Continue with direction…** and **Write dialogue…** read more than your passage. They're also sent the scene's story context: your premise, genre, world rules, Setting and main cast, then what the scene's **Links** panel ties to it — its point of view, its Summary, the strand beats pinned to it, its notes, the story-bible entries of its characters, places and objects — and how the previous scene ends. Link a character to the scene and the AI knows who they are; leave a scene unlinked and it still runs, on the book's frame and your passage. In continuous-chapter mode it's the scene your cursor is in.
 
 While an action runs, the line under the progress strip names what was sent — **Context:** Premise · Genre · Main cast · Mira · Previous scene. Anything marked **Exclude from AI** is never sent.
 

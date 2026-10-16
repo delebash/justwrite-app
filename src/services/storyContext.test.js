@@ -91,6 +91,18 @@ describe("composeSceneContext", () => {
     expect(r.names).toEqual(expect.arrayContaining(["POV", "Beats", "Scene notes", "Aria", "Bren", "Customs House", "The Ledger", "Previous scene"]));
   });
 
+  it("adds the scene's Summary right after its POV (slice 3), and nothing when it's empty", () => {
+    const p = project();
+    const scene = p.scenesFor("ch1").find((s) => s.id === "s1");
+    scene.summary = "Aria bribes the clerk; Bren sees.";
+    const r = composeSceneContext(p, { chapterId: "ch1", sceneId: "s1", budgetTokens: null });
+    expect(r.text).toContain("## Summary\nWhat this scene is meant to do: Aria bribes the clerk; Bren sees.");
+    const ids = r.parts.map((x) => x.id || x.name);
+    expect(ids.indexOf("summary")).toBe(ids.indexOf("pov") + 1);
+    scene.summary = "  ";
+    expect(composeSceneContext(p, { chapterId: "ch1", sceneId: "s1", budgetTokens: null }).parts.map((x) => x.id)).not.toContain("summary");
+  });
+
   it("leaves out an entity marked Exclude from AI", () => {
     const p = project();
     p.characters[1].excludeFromAi = true;

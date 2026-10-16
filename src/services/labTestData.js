@@ -347,6 +347,11 @@ export const LAB_TEST_ACTIONS = {
   objectDraft: { samples: ["Object from a description"] },
   groupDraft: { samples: ["Group from a description"] },
   worldbuildingDraft: { samples: ["Worldbuilding article"] },
+  // Slice 3 (2026-10-16): a scene, a template's beats, a planning document — samples only (a scene
+  // and a strand are picked on their own pages).
+  sceneSummary: { samples: ["Scene to summarize"] },
+  templateFill: { samples: ["Template beats"] },
+  premiseDraft: { samples: ["Draft from the premise"] },
   // unstuck is book prose in disguise — the chapter TAIL is where they're stuck.
   unstuck: { pickers: [{ source: "chapters", fill: fillUnstuck }], samples: ["Stuck prose"] },
 

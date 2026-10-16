@@ -410,6 +410,18 @@
           }
         }
       }
+    },
+    "ai": {
+      "fill": "Fill this template for my story",
+      "nextBeats": "Suggest next beats",
+      "notATemplate": "This strand's beats aren't a plot template's, so there's nothing to fill.",
+      "taskFill": "Fill: {name}",
+      "taskIdeas": "Ideas: {name}",
+      "fillLede": "A note for each of the template's beats, for your book — from its premise, world and cast. Notes that still give the template's general advice come ticked; ones you've written don't. Edit any, then apply.",
+      "ideasLede": "Ideas for what happens next on this strand, from your book and the strand's beats so far. Tick the ones you want — each becomes a beat card, not yet on a chapter — then add them.",
+      "applyNotes": "Apply {n} note | Apply {n} notes",
+      "addBeats": "Add {n} beat | Add {n} beats",
+      "empty": "The model didn't suggest anything new. Try again."
     }
   },
   "brainstorm": {
@@ -959,7 +971,11 @@
       "omniscientThird": "Omniscient third person",
       "objectiveThird": "Objective third person",
       "second": "Second person"
-    }
+    },
+    "summary": "Summary",
+    "summaryPlaceholder": "What happens in this scene, and what changes — a sentence or two.",
+    "summarize": "Summarize this scene",
+    "summarizeTooltip": "Draft the Summary from the scene's prose — you review it before it's saved."
   },
   "critique": {
     "eyebrow": "Chapter critique",
@@ -1680,7 +1696,7 @@
     "clearAll": "Clear all",
     "previewFingerprint": "Preview the fingerprint that will be injected",
     "storyContextCardTitle": "Story context",
-    "storyContextDesc": "When the AI drafts a character, it reads your premise, genre, world rules, Setting and main cast. Rewrite, Expand, Tighten, Continue, Describe, Rewrite with direction…, Continue with direction… and Write dialogue… also read the scene they work in — its linked characters, places and objects, its beats and notes, and how the previous scene ends. Only what's relevant is sent; this is the most of the model's context window those notes may take. On a model with a small window, a lower share leaves more room for the reply; on a large one it rarely matters.",
+    "storyContextDesc": "When the AI drafts a character, it reads your premise, genre, world rules, Setting and main cast. Rewrite, Expand, Tighten, Continue, Describe, Rewrite with direction…, Continue with direction… and Write dialogue… also read the scene they work in — its Summary, its linked characters, places and objects, its beats and notes, and how the previous scene ends. Only what's relevant is sent; this is the most of the model's context window those notes may take. On a model with a small window, a lower share leaves more room for the reply; on a large one it rarely matters.",
     "storyContextLabel": "Story notes may use up to",
     "testTask": "Test · {action}",
     "tabLabel": "Writing AI"
@@ -2446,6 +2462,12 @@
         "title": "Setting",
         "description": "The place, time, and social context the story unfolds in."
       }
+    },
+    "draft": {
+      "button": "Draft from the premise",
+      "tooltip": "Draft this document from the book's premise — it arrives as a change you accept or reject.",
+      "task": "Draft: {name}",
+      "empty": "The model didn't write anything. Try again, or fill in the premise first."
     }
   },
   "events": {
@@ -3980,5 +4002,14 @@
     "desc": "Drafted from your description and the book. The AI fills in what your description leaves open. Tick the fields you want, edit them inline, then apply. Fields you've already written are unticked so nothing overwrites your work without you.",
     "drafting": "Drafting {name}…",
     "task": "Draft: {name}"
+  },
+  "sceneSummary": {
+    "lede": "Drafted from the scene's prose. Edit it inline if you like, then apply. A Summary you've already written is unticked, so nothing replaces it unless you tick it.",
+    "loading": "Reading the scene…",
+    "task": "Summarize: {name}",
+    "noProse": "This scene has no prose to summarize yet."
+  },
+  "planning": {
+    "chipLabel": "Planning"
   }
 }

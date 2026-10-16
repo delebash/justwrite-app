@@ -208,6 +208,24 @@ describe("per-domain page-related undo (#235)", () => {
     expect(store._past.characters?.length || 0).toBe(0);
   });
 
+  it("the Plot board's reviewed beats and template notes are ONE undo step each", () => {
+    const store = useProjectStore();
+    const sid = store.addStrand({ name: "Main" });
+    const b1 = store.addStrandBeat(sid, { label: "Hook", note: "Open with something that demands attention." });
+    const b2 = store.addStrandBeat(sid, { label: "Midpoint", note: "" });
+    store.clearHistory();
+    store.applyBeatNotes(sid, { [b1]: "Mira finds the torn page.", [b2]: "The ledger was altered twice." });
+    expect(store.strands[0].beats.map((b) => b.note)).toEqual(["Mira finds the torn page.", "The ledger was altered twice."]);
+    const ids = store.addStrandBeats(sid, [{ label: "Tomas lies about the key" }, { label: "The archive floods" }]);
+    expect(ids).toHaveLength(2);
+    expect(store.strands[0].beats.slice(2).map((b) => [b.label, b.chapterId])).toEqual([["Tomas lies about the key", null], ["The archive floods", null]]);
+    expect(store._past.strands.length).toBe(2);
+    store.undoFor(["strands"]);
+    expect(store.strands[0].beats).toHaveLength(2);
+    store.undoFor(["strands"]);
+    expect(store.strands[0].beats.map((b) => b.note)).toEqual(["Open with something that demands attention.", ""]);
+  });
+
   it("coalesces a same-action burst into one entry", () => {
     const store = useProjectStore();
     const { chId, scnId } = seedChapter(store);

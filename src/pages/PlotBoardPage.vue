@@ -7,6 +7,9 @@ import { promptDialog, confirmDialog, pageFill } from "@delebash/llm-ui";
 import { PaneHeader } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
+import { UiMenu, UiMenuItem } from "@delebash/llm-ui";
+import { PLANNING_FEATURE, fillTemplate, strandIdeas, templateOfStrand } from "../services/analysis/planningDraft.js";
+import DraftReviewModal from "../components/DraftReviewModal.vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
@@ -17,6 +20,33 @@ const router = useRouter();
 // ── Computed data ────────────────────────────────────────────────────
 const strands = computed(() => project.strands);
 const chapters = computed(() => project.allChapters);
+
+// ── AI on a strand (slice 3, 2026-10-16) ────────────────────────────────
+// Fill this template for my story (a strand applied from a template), Suggest next beats and Plot
+// twists (Brainstorm's plot categories) — each into the shared review window; Apply is one undo
+// step (applyBeatNotes / addStrandBeats).
+const aiReview = ref(null); // { kind: "fill" | "next_beat" | "twist", strand }
+const reviewProps = computed(() => {
+  const r = aiReview.value;
+  if (!r) return null;
+  const strandId = r.strand.id;
+  if (r.kind === "fill") {
+    return {
+      eyebrow: t("plotBoard.ai.fill"), lede: t("plotBoard.ai.fillLede"), feature: PLANNING_FEATURE,
+      chipLabel: t("planning.chipLabel"), applyKey: "plotBoard.ai.applyNotes",
+      run: (signal) => fillTemplate({ project, strandId, templates: PLOT_TEMPLATES, signal }),
+      apply: (picked) => project.applyBeatNotes(strandId, Object.fromEntries(picked.map((p) => [p.key, String(p.proposed || "").trim()]))),
+    };
+  }
+  return {
+    eyebrow: r.kind === "twist" ? t("brainstorm.categories.twist.label") : t("plotBoard.ai.nextBeats"),
+    lede: t("plotBoard.ai.ideasLede"), feature: "brainstorm", chipLabel: t("brainstorm.title"),
+    applyKey: "plotBoard.ai.addBeats", emptyText: t("plotBoard.ai.empty"),
+    run: (signal) => strandIdeas({ project, strandId, category: r.kind, signal }),
+    apply: (picked) => project.addStrandBeats(strandId, picked.map((p) => ({ label: String(p.proposed || "").trim() }))),
+  };
+});
+function isTemplateStrand(strand) { return !!templateOfStrand(strand, PLOT_TEMPLATES); }
 
 // ── Template dropdown ────────────────────────────────────────────────
 const templateMenuOpen = ref(false);
@@ -469,6 +499,13 @@ function sceneBadge(beat) {
                     @blur="onStrandNameBlur(strand, $event)"
                     @keydown="onStrandNameKeydown"
                   />
+                  <UiMenu :label="$t('characters.draft.menu')" trigger-class="ui-btn ui-btn--ghost ui-btn--small strand-ai-btn"
+                    content-class="lu-mmenu">
+                    <template #trigger><Icon name="Sparkle" :size="13" /></template>
+                    <UiMenuItem v-if="isTemplateStrand(strand)" class="lu-mmi" @select="aiReview = { kind: 'fill', strand }">{{ $t("plotBoard.ai.fill") }}</UiMenuItem>
+                    <UiMenuItem class="lu-mmi" @select="aiReview = { kind: 'next_beat', strand }">{{ $t("plotBoard.ai.nextBeats") }}</UiMenuItem>
+                    <UiMenuItem class="lu-mmi" @select="aiReview = { kind: 'twist', strand }">{{ $t("brainstorm.categories.twist.label") }}</UiMenuItem>
+                  </UiMenu>
                   <UiButton
                     intent="ghost"
                     size="small"
@@ -600,6 +637,9 @@ function sceneBadge(beat) {
       </template>
 
     </div>
+    <DraftReviewModal v-if="reviewProps" v-bind="reviewProps" :title="aiReview.strand.name"
+      :task-meta="{ strandId: aiReview.strand.id }" :loading-text="$t('sheetDraft.drafting', { name: aiReview.strand.name })"
+      @close="aiReview = null" />
   </q-page>
 </template>
 
@@ -837,6 +877,8 @@ function sceneBadge(beat) {
   transition: opacity .15s;
 }
 .strand-label-cell:hover .strand-trash-btn { opacity: 1; }
+/* The strand's AI menu (slice 3) stays visible — a touch screen has no hover. */
+:deep(.strand-ai-btn) { flex-shrink: 0; }
 .strand-trash-btn:hover { color: var(--danger-ink); }
 
 .strand-beat-count {

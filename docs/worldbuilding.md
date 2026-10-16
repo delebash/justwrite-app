@@ -38,6 +38,8 @@ Each Architecture document has:
 
 The Setting document also has an **Events** button that opens the world-level chronological event log (see [Plot and time](plot-and-time.md) for how events work).
 
+The Fabula and the Setting have **Draft from the premise** in their header: the AI drafts the document from your book's premise — with its genre, world rules, main cast and what the document already says. The draft arrives in the editor as one change, the old text struck through and the new text marked, with **Accept all** / **Reject all** above it; nothing replaces your text until you accept. Routable as **Planning → Draft from the premise** in Settings → AI.
+
 ### Why a writer would use it
 
 > *"I closed the laptop two weeks ago mid-chapter. I can't remember what I was building toward, and my Premise is buried somewhere in a notebook I can't find."*

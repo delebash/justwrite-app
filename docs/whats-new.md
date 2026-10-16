@@ -24,6 +24,16 @@ They're routed under **Story-world sheets** in Settings → AI (the suggestions 
 Brainstorm). See [Story bible](story-bible.md#locations) and
 [Worldbuilding](worldbuilding.md#the-article-editor).
 
+**Plan with AI.** A scene has a **Summary** now — in its **Links** panel, with **Summarize this
+scene** to draft it from the prose — and the chapter's **Cards** show it instead of the prose's
+first lines; the AI writing actions read it with the scene. On the **Plot board**, a strand's ✨
+menu offers **Fill this template for my story** (each template beat's note, for your book),
+**Suggest next beats** and **Plot twists** (new beat cards). Architecture's Fabula and Setting
+have **Draft from the premise**. All of it is reviewed before it's saved, and routed under
+**Planning** in Settings → AI. See [Writing → the Links panel](writing.md#the-links-panel),
+[Plot and time](plot-and-time.md#the-ai-on-a-strand) and
+[Worldbuilding and Architecture](worldbuilding.md#whats-in-each-document).
+
 **On a phone, the no-model message fits the phone.** Before a model is set, an AI feature on the
 phone no longer points at Quick Setup and the model catalog, which a phone doesn't have: it says
 to add an online provider with its Default model on the AI page and press **Set as default**.

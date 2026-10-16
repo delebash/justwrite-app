@@ -42,7 +42,7 @@ const groupedRows = computed(() => {
       <div v-for="r in g.rows" :key="r.key" class="cpf-row" :class="{ dropped: !r.accept }">
         <UiCheckbox v-model="r.accept" class="cpf-check" :aria-label="r.label" />
         <div class="cpf-fields">
-          <div class="cpf-label">
+          <div v-if="r.label || r.current" class="cpf-label">
             {{ r.label }}
             <span v-if="r.current" class="cpf-overwrite">{{ $t("characterProfile.overwriteWarning") }}</span>
           </div>

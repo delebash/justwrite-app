@@ -203,6 +203,11 @@ export const DEFAULT_FEATURE_PRESETS = {
     "suggestLocations": "p_creative_structured",
     // A worldbuilding article's body is prose: generated.
     "worldbuildingDraft": "p_prose_voiced",
+    // Slice 3 (2026-10-16): a Summary is grounded in the prose; a template's beats are invented in
+    // JSON; a planning document is generated prose.
+    "sceneSummary": "p_digest",
+    "templateFill": "p_creative_structured",
+    "premiseDraft": "p_prose_voiced",
     "sensory": "p_creative_structured",
     "marketingPack": "p_creative_structured",
     // Judgment & scoring
@@ -527,6 +532,38 @@ export const DEFAULT_TEST_SAMPLES = [
                                    "Title: Customs and the harbor dues\n" +
                                    "Category: Economy\n" +
                                    "Summary: How cargo is declared, taxed and recorded at the harbor — and where it can be fiddled."}},
+    // ── slice 3 (2026-10-16): the composed input of planningDraft.js ──
+    {"actions": ["sceneSummary"], "label": "Scene to summarize",
+     "variables": {"user_content": "THE SCENE\n" +
+                                   "Chapter 3 \"The Ledger\"\n" +
+                                   "Scene 1\n" +
+                                   "Characters: Mira, Tomas Vell\n\n" +
+                                   "THE PROSE\n" +
+                                   `${SAMPLE_CHAPTER_PROSE}`}},
+    {"actions": ["templateFill"], "label": "Template beats",
+     "variables": {"user_content": "BOOK CONTEXT\n" +
+                                   "## Premise\n" +
+                                   "A harbor archivist unpicks who altered her dead father's ledger.\n\n" +
+                                   "## Genre\n" +
+                                   "Literary mystery\n\n" +
+                                   "## Main cast\n" +
+                                   "Main cast:\n" +
+                                   "- Mira (Harbor archivist) — Guarded and dry-witted; keeps grief private.\n\n" +
+                                   "THE STRUCTURE\n" +
+                                   "Three-Act Structure — The classic backbone: setup, confrontation, resolution. Six beats marking the major turning points.\n\n" +
+                                   "BEATS TO FILL\n" +
+                                   "- beat1 — Hook: Open with something that demands attention.\n" +
+                                   "- beat2 — Inciting incident: The event that disrupts ordinary life and starts the story.\n" +
+                                   "- beat3 — Midpoint: A revelation or shift that recenters the stakes."}},
+    {"actions": ["premiseDraft"], "label": "Draft from the premise",
+     "variables": {"user_content": "BOOK CONTEXT\n" +
+                                   "## Premise\n" +
+                                   "A harbor archivist unpicks who altered her dead father's ledger.\n\n" +
+                                   "## Genre\n" +
+                                   "Literary mystery\n\n" +
+                                   "THE DOCUMENT\n" +
+                                   "Name: Fabula\n" +
+                                   "What it is for: The events of the story in logical, chronological order — cause and effect."}},
     {"actions": ["characterAudit", "characterProfile", "characterVoice"], "label": "Character audit scenes",
      "variables": {"user_content": "CHARACTER PROFILE\n" +
                                    "Name: Mira\n" +

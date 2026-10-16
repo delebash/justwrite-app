@@ -25,7 +25,9 @@ export const FEATURE_CATALOG = [
   // ── Drafting tools — get-unstuck / research / ideas ──
   e("sensory", "Research feel", "Structured sensory pack (smell / sound / touch / …) for a selected subject — the editor's “Research feel” modal.", "Drafting tools"),
   e("unstuck", "Unstuck", "Five ways to unblock the current scene — goal shift / interrupt / setting / reveal / time cut.", "Drafting tools"),
-  e("brainstorm", "Brainstorm", "The Brainstorm view — name / title / freeform idea generation with thumbs-up steering — plus Name ideas at a name box, and Suggest characters and Suggest locations on their pages.", "Drafting tools"),
+  e("brainstorm", "Brainstorm", "The Brainstorm view — name / title / freeform idea generation with thumbs-up steering — plus Name ideas at a name box, Suggest characters and Suggest locations on their pages, and a strand's next beats and plot twists on the Plot board.", "Drafting tools"),
+  // ── Planning (2026-10-16, slice 3) ──
+  e("planning", "Planning", "Summarize this scene, Fill this template for my story on the Plot board, and Draft from the premise on the Fabula and Setting — reviewed before anything saves.", "Drafting tools"),
   // ── Analysis — per-chapter passes ──
   e("critique", "Critique", "The Critique modal — line-level Notes (flags / suggestions / observations) and the Structure pass (tension, hook, pacing, ending).", "Analysis"),
   e("multiReader", "Multi-reader panel", "Four reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel.", "Multi-reader panel"),

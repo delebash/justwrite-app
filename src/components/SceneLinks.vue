@@ -4,13 +4,16 @@
 // a date, and strands. Everything is persisted onto the scene record
 // via the existing updateScene store action.
 
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { promptDialog } from "@delebash/llm-ui";
 import { Icon } from "@delebash/llm-ui";
 import DateTimePicker from "./DateTimePicker.vue";
 import { UiButton } from "@delebash/llm-ui";
 import { POV_OPTIONS } from "../services/povOptions.js";
+import { UiTextarea } from "@delebash/llm-ui";
+import { PLANNING_FEATURE, summarizeScene } from "../services/analysis/planningDraft.js";
+import DraftReviewModal from "./DraftReviewModal.vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
@@ -34,6 +37,19 @@ const scene = computed(() => {
 function update(patch) {
   if (!scene.value) return;
   project.updateScene(props.chapterId, props.sceneId, patch);
+}
+
+// ── Summary (slice 3, 2026-10-16): the writer's plan for the scene; Summarize this scene drafts
+// it from the prose into the shared review window ───────────────────────
+const summarizing = ref(false);
+async function draftSummary(signal) {
+  const { summary } = await summarizeScene({ project, chapterId: props.chapterId, sceneId: props.sceneId, signal });
+  if (!summary) return [];
+  const current = String(scene.value?.summary || "").trim();
+  return [{ key: "summary", label: t("sceneLinks.summary"), current, proposed: summary, accept: !current }];
+}
+function applySummary(picked) {
+  update({ summary: String(picked[0]?.proposed || "").trim() });
 }
 
 // ── POV (single-select) ──────────────────────────────────
@@ -114,6 +130,19 @@ function onBackdrop(e) {
       </header>
 
       <div class="links-body scrollarea">
+        <!-- Summary -->
+        <section class="links-section">
+          <div class="links-section-label">{{ $t("sceneLinks.summary") }}</div>
+          <div class="links-summary">
+            <UiTextarea class="links-summary-input" auto-resize :rows="2" :aria-label="$t('sceneLinks.summary')"
+              :placeholder="$t('sceneLinks.summaryPlaceholder')"
+              :model-value="scene?.summary || ''" @update:model-value="update({ summary: $event })" />
+            <UiButton intent="secondary" size="small" v-tooltip.bottom="$t('sceneLinks.summarizeTooltip')" @click="summarizing = true">
+              <Icon name="Sparkle" :size="12" /> {{ $t("sceneLinks.summarize") }}
+            </UiButton>
+          </div>
+        </section>
+
         <!-- POV -->
         <section class="links-section">
           <div class="links-section-label">{{ $t("sceneLinks.povQuestion") }}</div>
@@ -244,6 +273,10 @@ function onBackdrop(e) {
         </section>
       </div>
     </div>
+    <DraftReviewModal v-if="summarizing" :eyebrow="$t('sceneLinks.summarize')" :title="scene?.title || $t('sceneLinks.summary')"
+      :lede="$t('sceneSummary.lede')" :feature="PLANNING_FEATURE" :chip-label="$t('planning.chipLabel')"
+      :task-meta="{ sceneId }" :loading-text="$t('sceneSummary.loading')"
+      :run="draftSummary" :apply="applySummary" @close="summarizing = false" />
   </div>
 </template>
 
@@ -267,6 +300,9 @@ function onBackdrop(e) {
   max-height: calc(100vh - 48px);
   display: flex; flex-direction: column;
   min-height: 0;
+  /* A grid item's automatic minimum is its content's: without this the Summary field's 60ch
+     held the panel wider than a phone's screen (measured 606 px at 390, 2026-10-16). */
+  min-width: 0;
 }
 .links-head {
   display: flex; align-items: center;
@@ -304,6 +340,13 @@ function onBackdrop(e) {
   display: flex; flex-wrap: wrap; gap: 8px;
   padding-left: 60px;
 }
+/* The Summary: a prose field (~60ch, the layout rule) with its button under it, indented as the
+   rows are. */
+.links-summary {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  padding-left: 60px;
+}
+.links-summary-input { width: 60ch; max-width: 100%; }
 
 .link-chip {
   appearance: none;

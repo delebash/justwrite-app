@@ -47,6 +47,7 @@ export const CONTEXT_PART_KEYS = {
   setting: "events.kinds.setting",
   mainCast: "storyContext.parts.mainCast",
   pov: "readerKnowledge.povLabel",
+  summary: "sceneLinks.summary",
   beats: "strands.beatsHeading",
   sceneNotes: "sceneNotes.ariaLabel",
   previousScene: "storyContext.parts.previousScene",
@@ -108,6 +109,10 @@ function scenePieces(project, cards, chapterId, sceneId) {
 
   const pov = povLabel(scene.pov);
   if (pov) out.push(piece("POV", `Narration: ${pov}`, "pov"));
+
+  // The writer's plan for the scene (slice 3, 2026-10-16): short, so it comes before the cards.
+  const summary = String(scene.summary || "").trim();
+  if (summary) out.push(piece("Summary", `What this scene is meant to do: ${summary}`, "summary"));
 
   const beats = [];
   for (const strand of project.strands || []) {
