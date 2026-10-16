@@ -240,6 +240,52 @@ STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the
         Reject all now?"
         The user: "your rec go" (2026-10-11). Applied: 1 as proposed; 2 kept as it is (no new
         wording); 3 fixed (`87f0ca0`, and the last-paragraph case `c8914db`).
+        Fifth round (the plan for the sheets and slices 3–4, its §5 plus the phone), asked as
+        shown: "1. Hints for the 8 new fields, for example Atmosphere & senses: "What it's like
+        to be there: light, sound, smell, mood." [use the drafts in the plan's §5] 2. One
+        database change for all the new fields, so your other devices are asked to update once.
+        [yes] 3. Names of the new AI features, shown in Settings → AI → Routing by feature.
+        Proposed: Story-world sheets, Scene summary, Plot planning, Draft from the premise, Scene
+        drafting. [these] 4. Fill from book for locations, objects and groups. It isn't in the
+        spec. [not now] 5. The marking of AI-written text in slice 4: how it looks and whether it
+        survives your edits. [I bring a design before slice 4; the sheets and slice 3 don't
+        wait] 6. The phone's no-model message. Today it says "run Quick Setup…", which the phone
+        doesn't have. Proposed: "No AI model is set up on this phone. Open the AI page, add an
+        online provider and choose its model.""
+        The user: "think on the questions again your rec go" (2026-10-16). The recs after the
+        second look, applied:
+        1. The hints in the character sheet's style — one line, then an example:
+           Atmosphere & senses: "What it's like to be there — light, sound, smell, mood. e.g.
+           salt and diesel; the fog never lifts before noon." Location History: "What happened
+           here before the story, and what people say about it. e.g. burned in the '62 fire;
+           locals say the night shift still clocks in." Properties: "What it does, what it's
+           made of, what makes it unusual. e.g. brass, always warm; it stops when its holder
+           lies." Object History: "Where it came from and who has held it. e.g. made for the
+           first harbourmaster; pawned twice, stolen once." Where it is now: "Who has it, or
+           where it is, at this point in the story. e.g. sewn into her coat lining." Goals &
+           beliefs: "What the group wants and what it holds true. e.g. keep the old charts
+           secret; the sea collects its debts." Leadership: "Who leads it and how it decides.
+           e.g. three elders vote; the eldest breaks ties." Group History: "How it began and
+           what shaped it. e.g. founded by the fire's survivors; split over the harbour deal."
+        2. One sync step (4) for the eight sheet columns and the scene Summary. Slice 4's switch
+           column waits for slice 4: its AI-text mark changes the editor schema sync's scene
+           adapter shares (`server/src/sync.js` `editorExtensions`), so slice 4 takes a step of
+           its own either way.
+        3. Two new rows, as slice 1 did (its new actions sit under existing features; each
+           action routes on its own preset): **Story-world sheets** (Locations, Objects, Groups,
+           Worldbuilding) and **Planning** (Summarize this scene, Fill this template for my
+           story, Draft from the premise). Name ideas, Suggest locations… and Suggest next beats
+           sit under Brainstorm, as Suggest characters does. Scene drafting keeps its own row,
+           with slice 4.
+        4. Fill from book for the new sheets: not now.
+        5. Slice 4 waits for the AI-text mark's design, which I bring; the sheets and slice 3
+           are built now.
+        6. The phone: "No AI model is set up on this phone. On the AI page, add an online
+           provider with its Default model, then press Set as default on it." (An added
+           provider isn't made the default by itself — the 2026-07-06 ruling, the kit's
+           `seedDefaultRouting` — so the sentence names the button.)
+        The other new words (the describe box's label per page, the review window's lines, task
+        labels) follow slice 1's, page by page, and are listed in the report with their commit.
 WHY:    the user, 2026-10-11 — AI creation on each story-world page, not only on Brainstorm, and AI
         that writes the story or parts of it. Picks up IDEAS.md "Brainstorm → point-of-use
         generation" (2026-07-26).
@@ -262,12 +308,14 @@ BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV 
 OPEN:   the Lab check (the user) — now also "With story context", "Rewrite with a direction" and
         "Dialogue at the lamp". After them, per decision 2: the translation work, then the sheets and
         slices 3–4. Their plan written 2026-10-15 (the user: "lets do all the stuff that does not
-        need gpu"): `docs/plans/2026-10-15-ai-drafting-plan-slices-3-4.md`; its §5 asks five
-        things first (the new fields' hints, one schema step, the feature rows' names, Fill from
-        book for the new sheets, the AI-text mark's design); then the go for implementation.
+        need gpu"): `docs/plans/2026-10-15-ai-drafting-plan-slices-3-4.md`; its §5 answered in the
+        fifth round; the sheets and slice 3 being built (2026-10-16); slice 4 after the AI-text
+        mark's design.
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;
-        "your rec go" for the third round (Task 0, Tasks 9b and 11b, Task 12 in the chat panel).
+        "your rec go" for the third round (Task 0, Tasks 9b and 11b, Task 12 in the chat panel);
+        "think on the questions again your rec go" (2026-10-16) for the fifth round's recs, the
+        sheets and slice 3, and the phone's sentence.
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's

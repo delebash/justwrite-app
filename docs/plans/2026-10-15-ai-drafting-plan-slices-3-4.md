@@ -2,8 +2,10 @@
 
 The spec is `2026-10-11-ai-drafting-spec.md`; every decision it records stands (§1, §9). This plan
 turns its remaining parts into tasks, the way `2026-10-11-ai-drafting-plan.md` did for slices 1–2.
-Nothing here is built yet. It waits for the user's go, and §5 lists what needs the user's words
-first. Order (spec §1.5, §9.2): the sheets → slice 3 → slice 4.
+**Go** 2026-10-16 ("think on the questions again your rec go") for the sheets and slice 3; §5's
+answers, after a second look, are TASKS.md's fifth round (they change S1 and the feature rows
+below). Slice 4 waits for the AI-text mark's design. Order (spec §1.5, §9.2): the sheets → slice 3
+→ slice 4.
 
 Asked for by the user 2026-10-15: "lets do all the stuff that does not need gpu". Building and
 unit-testing these needs no GPU; the Lab runs of the new prompts and slice 4's bench leg do, and
@@ -28,9 +30,9 @@ wait until the GPU is free.
 ### Task S1 — The columns, in one schema step (with slice 3's and 4's)
 - `locations.atmosphere`, `locations.history`; `objects.properties`, `objects.history`,
   `objects.where_now`; `groups.goals`, `groups.leadership`, `groups.history` — TEXT NOT NULL
-  DEFAULT ''. With them, slice 3's `scenes.summary` (TEXT) and slice 4's
-  `projects.ai_scene_drafting` (BOOLEAN DEFAULT 0), so older devices are asked to update once
-  (§5 question 2).
+  DEFAULT ''. With them, slice 3's `scenes.summary` (TEXT), so older devices are asked to update
+  once. Slice 4's `projects.ai_scene_drafting` goes with slice 4's own sync step (the AI-text
+  mark) — §5 question 2 as answered.
 - Files, as `d55f8f5` (POV and "when") took the path: `server/src/database/models_schema.js` (DDL),
   `models.js` `ADDED_COLUMNS`, `book_io.js` save (locations :311, objects :324, groups :338,
   scenes, projects) and load (:660 on), `sync.js` `SYNC_SCHEMA_VERSION` 3 → 4 with its reason,
@@ -66,7 +68,8 @@ wait until the GPU is free.
 - One drafting service for every sheet: `characterDraft.js` generalised (its section filter, the
   sanitiser, `draftRows`, apply as one undo step); the review window takes the sheet's fields.
 - Seeded prompts, one per kind (location / object / group), reply shape = the sheet's keys;
-  revised through the prompt stale-heal; Lab samples for each. Their feature row: §5 question 3.
+  Lab samples for each. Their feature row: **Story-world sheets** (§5 question 3 as answered);
+  Name ideas and Suggest locations… under Brainstorm.
 - **Name ideas** at the name box on the three pages (§3.3), Brainstorm's categories by page kind.
 - **Suggest locations…** on the Locations list, in Suggest characters' shape (§3.4 names
   locations only).
@@ -111,7 +114,7 @@ wait until the GPU is free.
 ### Task D4 — The bench leg (needs the GPU, later)
 - Whether the local presets are recommended for it, and what the feature says when they aren't.
 
-## 5. Needs the user's words before building
+## 5. Needs the user's words before building (answered 2026-10-16 — TASKS.md, the fifth round)
 
 1. **The new fields' hints** (labels are approved). Proposed:
    - Location — Atmosphere & senses: "What it's like to be there: light, sound, smell, mood."
