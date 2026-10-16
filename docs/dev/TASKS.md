@@ -363,14 +363,25 @@ BUILT:  `npm run eval` (promptfoo 0.123.1 through npx; the kit's `scripts/evals/
         `scripts/lib/scratch-server.js`. Docs: architecture-notes.md "Test harness detail".
         First runs: the flow tests pass (30 s); the eval on gemma-4-26b and gemma-4-12b — findings
         below and in RESEARCH "Testing".
-OPEN:   the findings, each waiting for its go (asked 2026-10-16, with their recs):
-        1. The book's autosave fails for any book over 64 KB (`keepalive`), since 2026-06-18.
-        2. Three writer Lab samples lack `storyContext` / `voiceCanon`: the server refuses them.
-        3. `brainstormPlot`'s Lab sample is the place-name one.
-        4. Draft from the premise contradicted the premise ("her" → a man).
-        5. Fill from book's voice pass loses `vocabulary` when the model sends a list.
+        The findings, asked as shown (2026-10-16): "1. Autosave fails for any book over 64 KB —
+        this is serious. … Fix: the kit's request helper drops that setting when the body is over
+        64 KB, which fixes every app at once. … A new flow test would check a big book saves.
+        2. Three writer samples always fail … Fix: add the variables to `seed_presets.js:264,
+        270, 320`. Also have the kit's sample seeder add a missing variable to a sample already
+        saved, keeping your values, so your database gets them. 3. Brainstorm's plot sample tests
+        the wrong thing. … Fix: one sample per way the app asks for plot ideas. These are new
+        labels in the Lab, so I need your word on them: "Plot beats from a seed", "Next beats at
+        the cursor", "Next beats on a strand". 4. Draft from the premise contradicted the premise.
+        … Fix: the prompt gains "keep every fact the book gives — names, pronouns, who is who",
+        and the sample gets the main cast, as a real book would send. 5. Fill from book can lose
+        a character's vocabulary. … Fix: the app joins the list with semicolons …, and the prompt
+        asks for semicolons." Then: "Your go to translate the new English lines, which also uses
+        the GPU." The user: "your rec on all go" (2026-10-16).
+OPEN:   the five fixes (in progress); then, on the GPU once JustVoice frees it, `npm run eval` on
+        the changed actions and the translation of the new English lines.
 GO:     given 2026-10-16 for the eval and the flow tests ("think on your rec again always adversially
-        go"; "carry on, your rec go").
+        go"; "carry on, your rec go"); for the five fixes, the three labels and the translation
+        ("your rec on all go").
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's

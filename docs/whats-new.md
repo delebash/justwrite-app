@@ -41,6 +41,10 @@ have **Draft from the premise**. All of it is reviewed before it's saved, and ro
 
 **Fixed:** on the Plot board, a click outside the **Apply template** list now closes it.
 
+**Fixed: books bigger than about 64 KB are saved again.** Once a book passed that size (a few
+chapters), its changes were no longer saved — every save failed without a message. Saves now go
+through at any size. The same fix covers long chats (Ask the book, **Talk to {Name}**).
+
 **On a phone, the no-model message fits the phone.** Before a model is set, an AI feature on the
 phone no longer points at Quick Setup and the model catalog, which a phone doesn't have: it says
 to add an online provider with its Default model on the AI page and press **Set as default**.
