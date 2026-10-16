@@ -155,7 +155,9 @@ tests are the kit's RESEARCH §2 "Sync" / "Sync, round 2". JustWrite's:
 ## What other writing apps ship
 
 Asked 2026-10-11 for the AI drafting design ([`../plans/2026-10-11-ai-drafting-spec.md`](../plans/2026-10-11-ai-drafting-spec.md);
-its implementation plan [`../plans/2026-10-11-ai-drafting-plan.md`](../plans/2026-10-11-ai-drafting-plan.md)).
+its implementation plan [`../plans/2026-10-11-ai-drafting-plan.md`](../plans/2026-10-11-ai-drafting-plan.md);
+the plan for the story-world sheets and slices 3–4
+[`../plans/2026-10-15-ai-drafting-plan-slices-3-4.md`](../plans/2026-10-15-ai-drafting-plan-slices-3-4.md)).
 The full survey — two web passes, the matrices, about 90 sources — is
 [`../plans/2026-10-11-ai-writing-apps-survey.md`](../plans/2026-10-11-ai-writing-apps-survey.md);
 the 2026-06-05 passes it builds on are the roadmaps under *Records* below. *web, agent* = checked
