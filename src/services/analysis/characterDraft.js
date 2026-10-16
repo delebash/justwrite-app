@@ -17,19 +17,11 @@
 import { fieldKey, fieldLabelKeys, SHEET_SECTIONS } from "../characterSheet.js";
 import { brainstormAction, brainstormPrompt } from "../brainstorm.js";
 import { runJsonAnalysis } from "../runJson.js";
-import { composeBookContext, storyBudgetFor } from "../storyContext.js";
+import { storyBudgetFor } from "../storyContext.js";
 import { buildProfileText } from "./characterAudit.js";
 import { sanitizeProfile, sanitizeVoice } from "./characterProfile.js";
+import { block, bookBlock, clamp, join } from "./draftInput.js";
 import { t } from "../../i18n/index.js";
-
-const block = (heading, body) => (String(body || "").trim() ? `${heading}\n${String(body).trim()}` : "");
-const join = (...blocks) => blocks.filter(Boolean).join("\n\n");
-
-/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
-function bookBlock(project, budgetTokens) {
-  return block("BOOK CONTEXT", composeBookContext(project, { budgetTokens }).text);
-}
-/* eslint-enable i18next/no-literal-string */
 
 /* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 function profileBlock(project, characterId) {
@@ -106,7 +98,6 @@ export function composeNameIdeasInput(project, characterId, { liked = [], seen =
 
 // ── sanitizers ────────────────────────────────────────────────────────────
 
-const clamp = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 // A sheet field's cap: the backstory is a paragraph (Fill from book's 2000), the rest are a
 // sentence or two.
 const fieldMax = (key) => (key === "backstory" ? 2000 : 600);

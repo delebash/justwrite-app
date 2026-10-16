@@ -1299,8 +1299,24 @@ function insertSensoryPhrase(phrase) {
   editor.value.chain().focus().insertContentAt(at, `${lead}${text} `).run();
 }
 
+// A whole-document draft from a page's own AI action (Worldbuilding's Draft with AI; Architecture's
+// Draft from the premise — 2026-10-16): the new text replaces the document as ONE accept/reject
+// change, the same diff the writer actions land as — or, in an empty document, arrives as an
+// insertion alone.
+function proposeDocument(newHtml) {
+  const ed = editor.value;
+  if (!ed || !String(newHtml || "").trim()) return;
+  const empty = !ed.state.doc.textContent.trim();
+  ed.chain().focus().proposeReplacement({
+    from: 0, to: ed.state.doc.content.size,
+    originalHtml: empty ? "" : ed.getHTML(),
+    newHtml,
+  }).run();
+}
+
 defineExpose({
   editor,
+  proposeDocument,
   // Exposed so the scene-strip AI dropdown (in ChaptersView) can drive
   // the same writerAI actions that used to live in the selection bubble.
   runWriterAction,

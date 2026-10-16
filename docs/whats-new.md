@@ -14,6 +14,16 @@ the book, and the writer actions in a scene set there. See
 [Story bible](story-bible.md#locations). Your other devices ask to be updated before they sync
 with this one again.
 
+**Draft them with AI.** On a location, object or group, **Describe this location** (object, group)
+— or **Draft with AI → From a description** in the header — drafts the sheet from a line or two
+of yours and the book; you review each field before it's applied, and one Undo takes it back.
+**Name ideas** (✨ beside the name) now works on these pages too, **Suggest locations…** on the
+Locations list proposes places the book doesn't have yet, and a worldbuilding article's
+**Draft with AI** writes its body from the title and summary, as a change you accept or reject.
+They're routed under **Story-world sheets** in Settings → AI (the suggestions and names under
+Brainstorm). See [Story bible](story-bible.md#locations) and
+[Worldbuilding](worldbuilding.md#the-article-editor).
+
 ## 2026-10-15
 
 **Started and Deadline are dates.** In **Settings → Project** you now pick them from a calendar,

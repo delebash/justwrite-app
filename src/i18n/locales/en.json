@@ -489,6 +489,11 @@
       "label": "Article title",
       "placeholder": "e.g. The North Coast",
       "confirm": "Create article"
+    },
+    "draft": {
+      "button": "Draft with AI",
+      "tooltip": "Draft this article's body from its title, its summary and the book — it arrives as a change you accept or reject.",
+      "empty": "The model didn't write anything. Try again, or give the article a summary."
     }
   },
   "beatSheet": {
@@ -810,6 +815,23 @@
         "label": "History",
         "hint": "What happened here before the story, and what people say about it. e.g. burned in the '62 fire; locals say the night shift still clocks in."
       }
+    },
+    "draft": {
+      "describeLabel": "Describe this location",
+      "describeHint": "What it is, where it is, what happens there — a line or a paragraph. The AI drafts the sheet and you review every field.",
+      "describePlaceholder": "e.g. a cannery on the north quay, shut since the fire, where smugglers meet at low tide",
+      "describeCollapsed": "Describe this location…"
+    },
+    "suggest": {
+      "button": "Suggest locations…",
+      "tooltip": "Suggest locations your book doesn't have yet, from its premise and the places it has — you pick which to add",
+      "title": "Suggest locations",
+      "intro": "The AI proposes places your book doesn't have yet, from its premise, genre, world and the locations it has.",
+      "lookingForPlaceholder": "e.g. somewhere the ledger could be altered without anyone seeing",
+      "eyebrow": "Suggest locations",
+      "desc": "The AI suggested these locations for your book. Tick the ones you want, edit any field inline, then add them to your story bible. Unticked rows are discarded — nothing is saved until you confirm.",
+      "empty": "The model didn't suggest any new places. Try again, or say more about what you're looking for.",
+      "task": "Suggest locations"
     }
   },
   "objects": {
@@ -840,6 +862,12 @@
         "label": "Where it is now",
         "hint": "Who has it, or where it is, at this point in the story. e.g. sewn into her coat lining."
       }
+    },
+    "draft": {
+      "describeLabel": "Describe this object",
+      "describeHint": "What it is, what it does, who has it — a line or a paragraph. The AI drafts the sheet and you review every field.",
+      "describePlaceholder": "e.g. a brass key that opens the customs strongroom — and one door nobody admits exists",
+      "describeCollapsed": "Describe this object…"
     }
   },
   "strands": {
@@ -2492,6 +2520,12 @@
         "label": "History",
         "hint": "How it began and what shaped it. e.g. founded by the fire's survivors; split over the harbour deal."
       }
+    },
+    "draft": {
+      "describeLabel": "Describe this group",
+      "describeHint": "Who they are, what they want, who leads them — a line or a paragraph. The AI drafts the sheet and you review every field.",
+      "describePlaceholder": "e.g. the harbour pilots, who sell safe passage and keep the old charts to themselves",
+      "describeCollapsed": "Describe this group…"
     }
   },
   "entityReview": {
@@ -3939,5 +3973,12 @@
     "source": {
       "chapter": "chapter"
     }
+  },
+  "sheetDraft": {
+    "chipLabel": "Story-world sheets",
+    "menuTooltip": "Draft this sheet with AI from your description — you review every field before anything saves.",
+    "desc": "Drafted from your description and the book. The AI fills in what your description leaves open. Tick the fields you want, edit them inline, then apply. Fields you've already written are unticked so nothing overwrites your work without you.",
+    "drafting": "Drafting {name}…",
+    "task": "Draft: {name}"
   }
 }

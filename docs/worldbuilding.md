@@ -108,6 +108,7 @@ When you click into an article:
 - **Tag editor** — multi-tag with typeahead from all tags in use across worldbuilding.
 - **Rich-text body** — the full editor toolbar (headings, bold, italic, lists, images, tables, links).
 - **Ask the book** button in the header — opens the chat panel with the question prefilled ("Tell me about {title}") so you can interrogate the manuscript about this article without re-typing it.
+- **Draft with AI** in the header — the AI writes the article's body from its title, its summary and your book (premise, genre, world rules, Setting, main cast), building on what the body already says. The draft arrives in the editor as one change: the old text struck through, the new text marked, with **Accept all** / **Reject all** in the bar above — nothing replaces your text until you accept. A summary gives it more to go on. Routable as **Story-world sheets → Worldbuilding** in Settings → AI.
 
 ### How to use the category system
 

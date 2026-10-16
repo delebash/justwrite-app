@@ -392,7 +392,7 @@ const DOMAIN_SLICES = {
   events:        ["events", "trash.events"],
 };
 
-// Every recorded action → its one domain. addImage/removeImage are absent
+// Every recorded action → its one domain. addImage/removeImage and applySheetDraft are absent
 // on purpose: their domain is the caller-passed owner kind (opts.domain).
 const ACTION_DOMAINS = {
   addChapter: "manuscript", removeChapter: "manuscript", setChapterWords: "manuscript",
@@ -409,7 +409,7 @@ const ACTION_DOMAINS = {
   setCharacterExtras: "characters", reorderCharacters: "characters",
   addCharacters: "characters", applyCharacterDraft: "characters",
   addLocation: "locations", removeLocation: "locations", updateLocation: "locations",
-  reorderLocations: "locations",
+  reorderLocations: "locations", addLocations: "locations",
   addObject: "objects", removeObject: "objects", updateObject: "objects", reorderObjects: "objects",
   addGroup: "groups", removeGroup: "groups", updateGroup: "groups",
   addGroupMember: "groups", removeGroupMember: "groups", reorderGroups: "groups",
@@ -1641,6 +1641,25 @@ export const useProjectStore = defineStore("project", {
 
     // ── Locations ───────────────────────────────────────────
     addLocation(input = {}) { this._record("addLocation"); const id = uid("l"); this.locations.push({ id, name: t("defaults.location"), kind: "", note: "", tags: [], ...input }); this._persist(); return id; },
+    // Several at once — a review list's "Add {n} to story bible" — as ONE undo step (addCharacters'
+    // counterpart, 2026-10-16).
+    addLocations(list) {
+      if (!list?.length) return [];
+      this._record("addLocations");
+      const made = list.map((input) => ({ id: uid("l"), name: t("defaults.location"), kind: "", note: "", tags: [], ...input }));
+      this.locations.push(...made);
+      this._persist();
+      return made.map((l) => l.id);
+    },
+    // An applied AI draft of a location's, object's or group's sheet (services/analysis/
+    // sheetDraft.js) as ONE undo step in that list's domain — never coalesced with typing in the
+    // same fields, as updateLocation & co. are. `stateKey`: "locations" | "objects" | "groups".
+    applySheetDraft(stateKey, id, patch) {
+      if (!["locations", "objects", "groups"].includes(stateKey) || !patch || !Object.keys(patch).length) return;
+      this._record("applySheetDraft", { domain: stateKey });
+      this[stateKey] = this[stateKey].map((x) => x.id === id ? { ...x, ...patch } : x);
+      this._persist();
+    },
     removeLocation(id) {
       this._record("removeLocation");
       const l = this.locations.find((x) => x.id === id);

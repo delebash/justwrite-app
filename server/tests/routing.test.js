@@ -12,7 +12,7 @@ useHermeticKit();
 
 test("catalog_size", async () => {
   await client(tmpPath());
-  expect(FEATURE_CATALOG.length).toBe(22); // +characterProfile (E) +characterVoice (WS8)
+  expect(FEATURE_CATALOG.length).toBe(23); // +characterProfile (E) +characterVoice (WS8) +storyWorld (2026-10-16)
 });
 
 test("get_routing_returns_full_catalog", async () => {

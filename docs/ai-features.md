@@ -18,8 +18,9 @@ while quick ones stay local. How routing, presets and providers work is
 - **Unstuck** — five ways to unblock the current scene: goal shift, interrupt,
   setting, reveal, time cut.
 - **Brainstorm** — the Brainstorm view: name / title / freeform idea
-  generation with thumbs-up steering. Also runs **Suggest characters…** on
-  the Characters list.
+  generation with thumbs-up steering. Also runs **Name ideas** beside a
+  character's, location's, object's or group's name, and **Suggest
+  characters…** and **Suggest locations…** on those lists.
 
 ## Analysis
 
@@ -60,6 +61,15 @@ while quick ones stay local. How routing, presets and providers work is
   reviewed before anything saves.
 - **Relationship arc** — chapter-by-chapter warmth / tension / power tracking
   for a pair of characters.
+
+## Story world
+
+- **Story-world sheets** — drafts a location's, object's or group's sheet from
+  your description (**Draft with AI → From a description**, or the describe
+  box), and a worldbuilding article's body from its title and summary
+  (**Draft with AI** on the article) — reviewed before anything saves. Each of
+  the four has its own row under it (Locations, Objects, Groups,
+  Worldbuilding), so you can route or tune them apart.
 
 ## Chat
 

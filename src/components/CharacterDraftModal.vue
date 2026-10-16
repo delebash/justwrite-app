@@ -18,7 +18,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiButton, UiCheckbox, UiTextarea, UiBanner } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiButton, UiBanner } from "@delebash/llm-ui";
 import {
   profileFromBook, voiceFromBook,
   profileFieldDefs, voiceFieldDefs, draftRows, applyProfileDrafts,
@@ -26,6 +26,7 @@ import {
 import { draftSection, profileFromDescription, voiceFromDescription } from "../services/analysis/characterDraft.js";
 import { sectionFieldDefs } from "../services/characterSheet.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
+import DraftReviewList from "./DraftReviewList.vue";
 
 const props = defineProps({
   characterId: { type: String, required: true },
@@ -128,17 +129,6 @@ async function run() {
 }
 onMounted(run);
 
-// [{ section, rows }] in insertion order, for the grouped review list.
-const groupedRows = computed(() => {
-  const out = [];
-  for (const r of rows.value) {
-    const g = out[out.length - 1];
-    if (g && g.section === r.section) g.rows.push(r);
-    else out.push({ section: r.section, rows: [r] });
-  }
-  return out;
-});
-
 // The strip's Cancel aborts the call in flight through the task's own controller (the kit's
 // runAiFeature ORs it with ours), and the abort propagates, so a cancelled pass never reaches
 // the next. (Until 2026-10-11 a watcher here also aborted ours whenever no task was running
@@ -146,10 +136,8 @@ const groupedRows = computed(() => {
 // pass awaits its route before its task exists, so it was always cancelled before it began.)
 const running = computed(() => !!myTask.value);
 
+// The review list (DraftReviewList.vue) ticks and edits the rows in place.
 const acceptCount = computed(() => rows.value.filter((r) => r.accept).length);
-// All / None over every proposed field (mirrors the sweep + entity-review
-// modals' select-all affordance).
-function setAll(on) { for (const r of rows.value) r.accept = on; }
 
 function apply() {
   const picked = rows.value.filter((r) => r.accept);
@@ -195,29 +183,11 @@ const loadingLine = computed(() => {
 
     <div v-else-if="loading" class="cpf-empty">{{ loadingLine }}</div>
 
-    <div v-else class="cpf-rows">
-      <div v-if="rows.length" class="cpf-selectbar">
-        <span class="t-muted">{{ $t("common.selectedOf", { selected: acceptCount, total: rows.length }) }}</span>
-        <span class="cpf-spacer" />
-        <UiButton intent="ghost" size="small" @click="setAll(true)">{{ $t("common.all") }}</UiButton>
-        <UiButton intent="ghost" size="small" @click="setAll(false)">{{ $t("common.none") }}</UiButton>
-      </div>
-      <div v-if="voiceNotice" class="cpf-notice">{{ voiceNotice }}</div>
-      <template v-for="g in groupedRows" :key="g.section">
-        <div class="cpf-section">{{ g.section }}</div>
-        <div v-for="r in g.rows" :key="r.key" class="cpf-row" :class="{ dropped: !r.accept }">
-          <UiCheckbox v-model="r.accept" class="cpf-check" />
-          <div class="cpf-fields">
-            <div class="cpf-label">
-              {{ r.label }}
-              <span v-if="r.current" class="cpf-overwrite">{{ $t("characterProfile.overwriteWarning") }}</span>
-            </div>
-            <div v-if="r.current" class="cpf-current">{{ r.current }}</div>
-            <UiTextarea fluid auto-resize :rows="2" v-model="r.proposed" :disabled="!r.accept" />
-          </div>
-        </div>
+    <DraftReviewList v-else :rows="rows">
+      <template #notice>
+        <div v-if="voiceNotice" class="cpf-notice">{{ voiceNotice }}</div>
       </template>
-    </div>
+    </DraftReviewList>
 
     <template #footer>
       <span style="flex:1"></span>
@@ -235,41 +205,8 @@ const loadingLine = computed(() => {
   background: var(--surface-2); border-radius: 10px;
   font-size: 13px; color: var(--ink-2); line-height: 1.55;
 }
-.cpf-rows { display: flex; flex-direction: column; gap: 8px; }
-.cpf-selectbar { display: flex; align-items: center; gap: 8px; padding: 0 2px 2px; }
-.cpf-spacer { flex: 1; }
-.cpf-section {
-  font-family: var(--font-mono); font-size: 10px;
-  letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
-  margin: 6px 0 0; display: flex; align-items: center; gap: 10px;
-}
-.cpf-section::after { content: ""; flex: 1; height: 1px; background: var(--border-soft); }
 .cpf-notice {
   padding: 8px 12px; border-radius: 6px; font-size: 12px; line-height: 1.5;
   background: var(--surface-2); color: var(--ink-2);
-}
-.cpf-row {
-  display: grid; grid-template-columns: auto 1fr; gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid var(--border-soft); border-radius: 8px;
-  background: var(--surface);
-  transition: opacity .15s, background .15s;
-}
-.cpf-row.dropped { opacity: 0.55; background: var(--surface-2); }
-.cpf-check { display: flex; align-items: flex-start; padding-top: 4px; cursor: pointer; }
-.cpf-fields { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.cpf-label {
-  font-family: var(--font-mono); font-size: 10.5px;
-  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
-  display: flex; align-items: center; gap: 8px;
-}
-.cpf-overwrite {
-  font-family: var(--font-ui); text-transform: none; letter-spacing: 0;
-  font-size: 11px; color: var(--danger-ink, #b91c1c);
-}
-.cpf-current {
-  font-size: 12px; color: var(--muted); line-height: 1.5;
-  padding: 6px 9px; border-radius: 6px; background: var(--surface-2);
-  white-space: pre-wrap;
 }
 </style>

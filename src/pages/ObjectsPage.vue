@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
@@ -9,6 +9,13 @@ import { UiButton } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
 import EntityIndex from "../components/EntityIndex.vue";
 import { UiCheckbox } from "@delebash/llm-ui";
+import { UiMenuItem } from "@delebash/llm-ui";
+import DescribeBox from "../components/DescribeBox.vue";
+import DraftMenu from "../components/DraftMenu.vue";
+import NameIdeas from "../components/NameIdeas.vue";
+import SheetDraftModal from "../components/SheetDraftModal.vue";
+import { isThinSheet } from "../services/storyWorldSheet.js";
+import { sheetNameIdeasRequest } from "../services/analysis/sheetDraft.js";
 import ImagesModal from "../components/ImagesModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
 import RichEditor from "../components/RichEditor.vue";
@@ -34,6 +41,13 @@ const sweepOpen = ref(false);
 
 // When id is present → detail mode. When absent → list mode.
 const obj = computed(() => props.id ? project.objectById(props.id) : null);
+
+// AI drafting (2026-10-16, the AI drafting spec §9.1): the describe box (open while every sheet
+// field is empty), Draft with AI ▾ → From a description, the review window; Name ideas at the name.
+const describeText = ref("");
+const describeBox = ref(null);
+const draftFrom = ref(null); // the description being drafted from; null while no window is open
+watch(() => obj.value?.id, () => { describeText.value = ""; draftFrom.value = null; });
 const modal = ref(null);
 
 function update(k, v) { project.updateObject(obj.value.id, { [k]: v }); }
@@ -182,10 +196,18 @@ function onRowClick(event) {
       <PaneHeader ref="header" :crumbs="[{ label: $t('events.kinds.object'), to: '/objects' }]"
         editable :title="obj.name" :placeholder="$t('objects.namePlaceholder')"
         @update:title="(v) => update('name', v)">
+        <template #after-title>
+          <NameIdeas :key="obj.id" :meta="{ kind: 'name-ideas', entityId: obj.id }"
+            :request="(round) => sheetNameIdeasRequest({ project, kind: 'object', entityId: obj.id, ...round })"
+            @pick="(name) => update('name', name)" />
+        </template>
         <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
           v-tooltip.bottom="$t('common.askTheBookAbout', { title: obj.name })">
           <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
         </UiButton>
+        <DraftMenu :title="$t('sheetDraft.menuTooltip')">
+          <UiMenuItem class="lu-mmi" @select="describeBox?.start()">{{ $t("characters.draft.fromDescription") }}</UiMenuItem>
+        </DraftMenu>
         <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> {{ $t("common.images") }}</UiButton>
         <router-link :to="`/objects/${obj.id}/events`" custom v-slot="{ navigate }">
           <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> {{ $t("common.events") }}</UiButton>
@@ -199,11 +221,17 @@ function onRowClick(event) {
         <!-- One scroller for the page (2026-10-16, with the sheet): the description editor sizes to
              its text above a minimum, as Architecture's does, instead of sharing the card's height
              with the area below it — which left the sheet a strip, and on a phone let the wrapped
-             toolbar spill over it. -->
-        <div class="scrollarea" style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
+             toolbar spill over it. The scroller holds a plain column — a column that is itself the
+             scroller shrinks its fields instead of scrolling. -->
+        <div class="scrollarea" style="flex:1;min-height:0">
+        <div style="padding:24px 28px 40px;display:flex;flex-direction:column;gap:14px">
           <p class="entity-desc">
             {{ $t("objects.intro", { objectTerm: $t("objects.objectTerm"), relations: $t("panes.relations.title") }) }}
           </p>
+          <DescribeBox ref="describeBox" :key="obj.id" v-model="describeText" :thin="isThinSheet('object', obj)"
+            :label="$t('objects.draft.describeLabel')" :hint="$t('objects.draft.describeHint')"
+            :placeholder="$t('objects.draft.describePlaceholder')" :collapsed-label="$t('objects.draft.describeCollapsed')"
+            @draft="(text) => draftFrom = text" />
           <UiInput fluid :placeholder="$t('objects.kindPlaceholder')"
             :model-value="obj.kind" @update:model-value="update('kind', $event)" />
           <TagEditor
@@ -238,9 +266,11 @@ function onRowClick(event) {
             </div>
           </div>
         </div>
+        </div>
       </div>
       <ImagesModal v-if="modal === 'images'" kind="objects" :entity-id="obj.id" :entity-name="obj.name" @close="modal = null" />
       <GroupsModal v-if="modal === 'groups'" :entity-id="obj.id" :entity-name="obj.name" entity-kind="object" @close="modal = null" />
+      <SheetDraftModal v-if="draftFrom" kind="object" :entity-id="obj.id" :description="draftFrom" @close="draftFrom = null" />
     </template>
 
     <!-- ── id in URL but object not found ───────────────────────── -->

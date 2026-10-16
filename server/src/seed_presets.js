@@ -196,6 +196,13 @@ export const DEFAULT_FEATURE_PRESETS = {
     "characterVoiceDraft": "p_creative_structured",
     "characterSection": "p_creative_structured",
     "suggestCharacters": "p_creative_structured",
+    // The story-world sheets and Suggest locations (2026-10-16): invented, in JSON — as above.
+    "locationDraft": "p_creative_structured",
+    "objectDraft": "p_creative_structured",
+    "groupDraft": "p_creative_structured",
+    "suggestLocations": "p_creative_structured",
+    // A worldbuilding article's body is prose: generated.
+    "worldbuildingDraft": "p_prose_voiced",
     "sensory": "p_creative_structured",
     "marketingPack": "p_creative_structured",
     // Judgment & scoring
@@ -455,6 +462,71 @@ export const DEFAULT_TEST_SAMPLES = [
                                    "- Mira\n\n" +
                                    "WHAT THE WRITER IS LOOKING FOR\n" +
                                    "Someone at the harbor who gains if the ledger stays altered."}},
+    // ── the story-world sheets (2026-10-16): the composed input of sheetDraft.js ──
+    {"actions": ["locationDraft"], "label": "Location from a description",
+     "variables": {"user_content": "BOOK CONTEXT\n" +
+                                   "## Premise\n" +
+                                   "A harbor archivist unpicks who altered her dead father's ledger.\n\n" +
+                                   "## Genre\n" +
+                                   "Literary mystery\n\n" +
+                                   "THE LOCATION\n" +
+                                   "Name: The north quay cannery\n" +
+                                   "Kind: Cannery\n\n" +
+                                   "THE WRITER'S DESCRIPTION\n" +
+                                   "Shut since the fire; the customs men still walk through it at night.\n\n" +
+                                   "FIELDS TO DRAFT\n" +
+                                   "- atmosphere — Atmosphere & senses: What it's like to be there — light, sound, smell, mood. e.g. salt and diesel; the fog never lifts before noon.\n" +
+                                   "- history — History: What happened here before the story, and what people say about it. e.g. burned in the '62 fire; locals say the night shift still clocks in."}},
+    {"actions": ["objectDraft"], "label": "Object from a description",
+     "variables": {"user_content": "BOOK CONTEXT\n" +
+                                   "## Premise\n" +
+                                   "A harbor archivist unpicks who altered her dead father's ledger.\n\n" +
+                                   "## Genre\n" +
+                                   "Literary mystery\n\n" +
+                                   "THE OBJECT\n" +
+                                   "Name: The brass key\n" +
+                                   "Description: Worn on Old Harbek's belt.\n\n" +
+                                   "THE WRITER'S DESCRIPTION\n" +
+                                   "It opens the customs strongroom — and one other door nobody admits exists.\n\n" +
+                                   "FIELDS TO DRAFT\n" +
+                                   "- properties — Properties: What it does, what it's made of, what makes it unusual. e.g. brass, always warm; it stops when its holder lies.\n" +
+                                   "- history — History: Where it came from and who has held it. e.g. made for the first harbourmaster; pawned twice, stolen once.\n" +
+                                   "- whereNow — Where it is now: Who has it, or where it is, at this point in the story. e.g. sewn into her coat lining."}},
+    {"actions": ["groupDraft"], "label": "Group from a description",
+     "variables": {"user_content": "BOOK CONTEXT\n" +
+                                   "## Premise\n" +
+                                   "A harbor archivist unpicks who altered her dead father's ledger.\n\n" +
+                                   "## Genre\n" +
+                                   "Literary mystery\n\n" +
+                                   "THE GROUP\n" +
+                                   "Name: The Pilots' Guild\n\n" +
+                                   "THE WRITER'S DESCRIPTION\n" +
+                                   "The harbor pilots who sell safe passage and keep the old charts to themselves.\n\n" +
+                                   "FIELDS TO DRAFT\n" +
+                                   "- goals — Goals & beliefs: What the group wants and what it holds true. e.g. keep the old charts secret; the sea collects its debts.\n" +
+                                   "- leadership — Leadership: Who leads it and how it decides. e.g. three elders vote; the eldest breaks ties.\n" +
+                                   "- history — History: How it began and what shaped it. e.g. founded by the fire's survivors; split over the harbour deal."}},
+    {"actions": ["suggestLocations"], "label": "Suggest locations",
+     "variables": {"user_content": "BOOK CONTEXT\n" +
+                                   "## Premise\n" +
+                                   "A harbor archivist unpicks who altered her dead father's ledger.\n\n" +
+                                   "## Genre\n" +
+                                   "Literary mystery\n\n" +
+                                   "LOCATIONS ALREADY IN THE BOOK\n" +
+                                   "- The archive\n" +
+                                   "- The north quay cannery\n\n" +
+                                   "WHAT THE WRITER IS LOOKING FOR\n" +
+                                   "Somewhere the ledger could have been altered without anyone seeing."}},
+    {"actions": ["worldbuildingDraft"], "label": "Worldbuilding article",
+     "variables": {"user_content": "BOOK CONTEXT\n" +
+                                   "## Premise\n" +
+                                   "A harbor archivist unpicks who altered her dead father's ledger.\n\n" +
+                                   "## Genre\n" +
+                                   "Literary mystery\n\n" +
+                                   "THE ARTICLE\n" +
+                                   "Title: Customs and the harbor dues\n" +
+                                   "Category: Economy\n" +
+                                   "Summary: How cargo is declared, taxed and recorded at the harbor — and where it can be fiddled."}},
     {"actions": ["characterAudit", "characterProfile", "characterVoice"], "label": "Character audit scenes",
      "variables": {"user_content": "CHARACTER PROFILE\n" +
                                    "Name: Mira\n" +

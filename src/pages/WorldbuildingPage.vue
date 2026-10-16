@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
@@ -18,6 +18,8 @@ import { UiButton } from "@delebash/llm-ui";
 import { UiTextarea } from "@delebash/llm-ui";
 import { UiCheckbox } from "@delebash/llm-ui";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
+import { AiTaskStrip, UiBanner, useAiTasksStore } from "@delebash/llm-ui";
+import { draftArticle, STORY_WORLD_FEATURE } from "../services/analysis/sheetDraft.js";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
@@ -32,6 +34,30 @@ const article = computed(() => props.id ? project.worldbuildingById(props.id) : 
 const cat = computed(() => article.value ? project.worldbuildingCategories.find((c) => c.id === article.value.category) : null);
 
 function update(k, v) { project.updateWorldbuilding(article.value.id, { [k]: v }); }
+
+// Draft with AI (2026-10-16, the AI drafting spec §9.1): the body from the title, the summary and
+// the book, landing in the editor as one change to accept or reject (RichEditor proposeDocument).
+// Progress and Cancel are the shared AiTaskStrip's.
+const bodyEditor = ref(null);
+const aiTasks = useAiTasksStore();
+const draftTask = computed(() => aiTasks.runningTasks.find(
+  (task) => task.feature === STORY_WORLD_FEATURE && task.meta?.entityId === article.value?.id));
+const draftError = ref("");
+watch(() => article.value?.id, () => { draftError.value = ""; });
+async function draftBody() {
+  if (!article.value || draftTask.value) return;
+  draftError.value = "";
+  const id = article.value.id;
+  try {
+    const { html } = await draftArticle({ project, articleId: id });
+    if (article.value?.id !== id) return; // the writer moved to another article meanwhile
+    if (!html) { draftError.value = t("worldbuilding.draft.empty"); return; }
+    bodyEditor.value?.proposeDocument(html);
+  } catch (e) {
+    const msg = e?.message || String(e);
+    if (!/abort|cancel/i.test(msg)) draftError.value = msg;
+  }
+}
 
 // Pool feeding the tag typeahead — every tag in use across every
 // worldbuilding article. TagEditor dedups and filters internally; we
@@ -214,6 +240,10 @@ function onRowClick(event) {
           v-tooltip.bottom="$t('common.askTheBookAbout', { title: article.title })">
           <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
         </UiButton>
+        <UiButton intent="ghost" size="small" :disabled="!!draftTask" @click="draftBody"
+          v-tooltip.bottom="$t('worldbuilding.draft.tooltip')">
+          <Icon name="Sparkle" :size="14" /> {{ $t("worldbuilding.draft.button") }}
+        </UiButton>
         <UiButton :label="$t('common.back')" intent="ghost" size="small" @click="router.push('/worldbuilding')">
           <template #icon><Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" /></template>
         </UiButton>
@@ -247,7 +277,12 @@ function onRowClick(event) {
           {{ $t("common.excludeFromAi") }}
         </label>
 
-        <RichEditor
+        <div v-if="draftTask || draftError" class="wb-draft">
+          <AiTaskStrip :task="draftTask" />
+          <UiBanner v-if="draftError">{{ draftError }}</UiBanner>
+        </div>
+
+        <RichEditor ref="bodyEditor"
           :model-value="article.body"
           :placeholder="$t('worldbuilding.bodyPlaceholder')"
           @change="(html) => update('body', html)"
@@ -260,6 +295,7 @@ function onRowClick(event) {
 <style scoped>
 /* Shared shapes = global .entity-*; wb-desc composes its padding on top. */
 .wb-desc { padding: 14px 22px 0; }
+.wb-draft { padding: 8px 22px; }
 
 /* List view: shared shapes = global .entity-*; only these per-view cells stay local. */
 .wb-cell-title-sum {

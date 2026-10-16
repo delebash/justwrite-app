@@ -2,7 +2,7 @@
 
 > *"I need twenty names for this frontier tavern and I don't want any of them cluttering my project — I just need something to pick from so I can get back to the scene."*
 
-Brainstorm is the panel you open when you're stuck on "what should I *call* this thing." Give it a category (Character names, Place names, Item names, Titles, or a free prompt), a seed describing the vibe you're after, and it produces 15–20 short candidates. Thumbs-up the ones you like, click **More like these**, and the next batch drifts in that direction. Copy the winners into your story bible (or your manuscript) and close the panel — nothing here is saved. For a character's name you don't need the panel at all: **Name ideas** sits beside the name on the character's page (see [below](#name-ideas-at-the-name-itself)).
+Brainstorm is the panel you open when you're stuck on "what should I *call* this thing." Give it a category (Character names, Place names, Item names, Titles, or a free prompt), a seed describing the vibe you're after, and it produces 15–20 short candidates. Thumbs-up the ones you like, click **More like these**, and the next batch drifts in that direction. Copy the winners into your story bible (or your manuscript) and close the panel — nothing here is saved. For a name you don't need the panel at all: **Name ideas** sits beside the name on a character's, location's, object's or group's page (see [below](#name-ideas-at-the-name-itself)).
 
 It's a transient generator, not a note-taking surface. The Notes view is where you write your thinking down to keep; Brainstorm is for the moment when you want twenty options for a tavern's name and you don't want any of them to live in your project permanently.
 
@@ -58,7 +58,9 @@ You can also start a completely new run at any time — typing a new seed and hi
 
 On a character's page, the ✨ button beside the name opens **Name ideas**: Brainstorm's list for that character, right there. You don't write a seed — it asks for character names that fit the character as the sheet describes them (role, one-liner, whatever you've filled in) and your book (premise, genre, world rules, Setting, main cast). It never offers a name someone in your cast already uses, aliases included.
 
-It opens with a list. Thumbs-up and **More like these** work as they do on this page; **Generate** starts a fresh list. **Click a name to make it the character's name** — Undo takes it back. On a phone it opens as a window instead of a dropdown.
+Locations, objects and groups have it too: a location asks for **Place names**, an object for **Item / object names**, a group for names in a free prompt — each from the entry as its page describes it, and never one its own list already uses.
+
+It opens with a list. Thumbs-up and **More like these** work as they do on this page; **Generate** starts a fresh list. **Click a name to make it the name** — Undo takes it back. On a phone it opens as a window instead of a dropdown.
 
 It uses the same model as Brainstorm (below), and like the panel it keeps nothing: close it and reopen it on the same character and the list is still there; leave the page and it's gone.
 
@@ -69,7 +71,7 @@ It uses the same model as Brainstorm (below), and like the panel it keeps nothin
 > *"I thumbed up six names I liked, navigated away to check a character's notes, and came back to an empty panel."*
 
 - **It's not a notes feature.** Nothing persists between sessions; close the panel and the suggestions are gone. If you want to keep a brainstorm session for later, copy the suggestions you care about into a Note (or directly into a character/location/etc.).
-- **It's not a name *committer*.** Brainstorm doesn't write to your project. The copy button copies to the clipboard — you decide where the result lands. (Name ideas on a character's page is the one place a click sets a name.)
+- **It's not a name *committer*.** Brainstorm doesn't write to your project. The copy button copies to the clipboard — you decide where the result lands. (Name ideas beside a name is the one place a click sets a name.)
 - **It's not deterministic.** Temperature is high (0.9) — generating the same seed twice will give different results, and that's the point. You're after divergent options, not the "right" answer.
 
 ---

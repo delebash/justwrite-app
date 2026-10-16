@@ -25,7 +25,7 @@ export const FEATURE_CATALOG = [
   // ── Drafting tools — get-unstuck / research / ideas ──
   e("sensory", "Research feel", "Structured sensory pack (smell / sound / touch / …) for a selected subject — the editor's “Research feel” modal.", "Drafting tools"),
   e("unstuck", "Unstuck", "Five ways to unblock the current scene — goal shift / interrupt / setting / reveal / time cut.", "Drafting tools"),
-  e("brainstorm", "Brainstorm", "The Brainstorm view — name / title / freeform idea generation with thumbs-up steering — plus Suggest characters on the Characters page.", "Drafting tools"),
+  e("brainstorm", "Brainstorm", "The Brainstorm view — name / title / freeform idea generation with thumbs-up steering — plus Name ideas at a name box, and Suggest characters and Suggest locations on their pages.", "Drafting tools"),
   // ── Analysis — per-chapter passes ──
   e("critique", "Critique", "The Critique modal — line-level Notes (flags / suggestions / observations) and the Structure pass (tension, hook, pacing, ending).", "Analysis"),
   e("multiReader", "Multi-reader panel", "Four reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel.", "Multi-reader panel"),
@@ -43,6 +43,8 @@ export const FEATURE_CATALOG = [
   e("characterProfile", "Character profile", "Drafts a character's profile fields (description, motivation, arc, backstory) from their scenes, from your description, or a sheet section at a time — reviewed before anything saves.", "Characters"),
   e("characterVoice", "Character voice", "Drafts how a character speaks (register, rhythm, sample lines) from their actual dialogue, or from your description — reviewed before anything saves.", "Characters"),
   e("relationshipArc", "Relationship arc", "Chapter-by-chapter warmth / tension / power tracking for a pair of characters.", "Characters"),
+  // ── Story world — the location, object and group sheets and Worldbuilding (2026-10-16) ──
+  e("storyWorld", "Story-world sheets", "Drafts a location's, object's or group's sheet from your description, and a worldbuilding article's body from its title and summary — reviewed before anything saves.", "Story world"),
   // ── Chat ──
   e("chat", "Ask the book", "RAG question/answer over your manuscript — the chat panel's “Ask the book” mode.", "Chat"),
   e("characterChat", "Character chat", "The chat panel's “Talk to a character” mode — first-person, in-voice answers from your cast.", "Chat"),

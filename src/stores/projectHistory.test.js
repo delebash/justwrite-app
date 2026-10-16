@@ -174,6 +174,40 @@ describe("per-domain page-related undo (#235)", () => {
     expect(store.locations).toHaveLength(1); // its own domain, its own step
   });
 
+  it("a review list's accepted locations land as ONE undo step (Suggest locations, Entity sweep)", () => {
+    const store = useProjectStore();
+    store.clearHistory();
+    const accepted = addProposedEntities(store, {
+      characters: [],
+      locations: [
+        { name: "Reef", kind: "shoal", note: "", accept: true },
+        { name: "Skip", accept: false },
+        { name: "North quay", kind: "dock", note: "Shut since the fire.", accept: true },
+      ],
+      objects: [],
+    });
+    expect(store.locations.map((l) => [l.name, l.kind, l.note])).toEqual([["Reef", "shoal", ""], ["North quay", "dock", "Shut since the fire."]]);
+    expect(accepted.map((a) => a.entityId)).toEqual(store.locations.map((l) => l.id));
+    expect(store._past.locations.length).toBe(1);
+    store.undoFor(["locations"]);
+    expect(store.locations).toHaveLength(0);
+  });
+
+  it("an applied sheet draft is ONE undo step in its list's domain, never merged with typing", () => {
+    const store = useProjectStore();
+    const id = store.addObject({ name: "Compass" });
+    store.clearHistory();
+    store.updateObject(id, { properties: "brass" }); // typing in the field…
+    store.applySheetDraft("objects", id, { history: "The harbourmaster's.", whereNow: "In the safe." }); // …then Apply at once
+    expect(store.objectById(id)).toMatchObject({ properties: "brass", history: "The harbourmaster's.", whereNow: "In the safe." });
+    expect(store._past.objects.length).toBe(2);
+    store.undoFor(["objects"]);
+    expect(store.objectById(id)).toMatchObject({ properties: "brass" });
+    expect(store.objectById(id).history).toBeUndefined();
+    store.applySheetDraft("characters", id, { name: "x" }); // not a sheet list: ignored
+    expect(store._past.characters?.length || 0).toBe(0);
+  });
+
   it("coalesces a same-action burst into one entry", () => {
     const store = useProjectStore();
     const { chId, scnId } = seedChapter(store);

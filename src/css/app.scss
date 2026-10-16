@@ -1041,6 +1041,18 @@ html[data-editor-layout="page"] .rich-editor--manuscript .manuscript-inner.with-
 }
 .entity-desc strong { color: var(--ink-2); font-weight: 600; }
 
+/* Detail: a labelled field — label on top, an optional muted hint beside it, the control below.
+   The character sheet's canonical field (its hero row and every section) and the describe box
+   on every story-world page (components/DescribeBox.vue). Promoted from CharactersPage.vue's
+   scoped copy 2026-10-16, when the describe box became a component. */
+.ch-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ch-field-label {
+  font-size: 11px; font-weight: 600; color: var(--ink-2);
+  display: flex; gap: 7px; align-items: baseline; flex-wrap: wrap;
+  line-height: 1.35;
+}
+.ch-field-hint { font-weight: 400; color: var(--muted); font-size: 11px; }
+
 /* List: toolbar → search → count, facet chip rows, the table cells */
 .entity-toolbar {
   display: flex; align-items: center; gap: 10px;

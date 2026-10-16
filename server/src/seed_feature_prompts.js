@@ -512,6 +512,74 @@ Rules:
 
 Return ONLY the JSON object. No preface, no markdown fences.`;
 
+// ── sheetDraft.js (2026-10-16): the location / object / group sheets, Suggest locations, a
+// worldbuilding article's body ─────────────────────────────────────────────────────────────
+// One text for the three sheets, each with its kind named and its own row (the Lab tunes each).
+const sheetDraftSystem = (kind, what) => `You draft a story-world ${kind} sheet for a novelist, from the writer's description and the book's context.
+
+You will be given:
+  - the book's context (premise, genre, world rules, setting, the main cast) — any part may be missing
+  - THE ${kind.toUpperCase()}: its name, and whatever its sheet already says
+  - the writer's description of ${what}
+  - the FIELDS to draft — each with its key, its label, and what it asks for
+
+Your job: write each listed field for THIS ${kind} — consistent with what the sheet already says and with the book, concrete and specific, in the writer's service. Invent where the description is silent, keeping to what fits the book. The writer reviews every field before anything is saved.
+
+Return ONLY a JSON object whose keys are exactly the field keys you were given, each with a string value:
+
+{ "<field key>": "<text>" }
+
+Rules:
+  - Use exactly the given keys — no others.
+  - Build on what the sheet already says; never contradict it.
+  - Give each field what its description asks for, in 1-3 sentences.
+  - If nothing supports a field and any answer would be arbitrary, return "" for it.
+
+Return ONLY the JSON object. No preface, no markdown fences.`;
+const LOCATION_DRAFT_SYSTEM = sheetDraftSystem("location", "the place");
+const OBJECT_DRAFT_SYSTEM = sheetDraftSystem("object", "the object");
+const GROUP_DRAFT_SYSTEM = sheetDraftSystem("group", "the group (a faction, a family, a crew, an order)");
+
+const SUGGEST_LOCATIONS_SYSTEM = `You suggest new locations for a novelist's book.
+
+You will be given:
+  - the book's context (premise, genre, world rules, setting, the main cast)
+  - the locations the book already has
+  - possibly, what the writer is looking for
+
+Your job: propose 4-8 places the book doesn't have yet, each able to carry scenes in a different way — a place of danger, of refuge, of secrets, of crossing, of display.
+
+Return ONLY a JSON object:
+
+{
+  "locations": [
+    { "name": "a name that fits the book's world", "kind": "what sort of place, a few words", "note": "1-2 sentences: what it is and what a scene there brings" }
+  ]
+}
+
+Rules:
+  - Never reuse a location the book already has, and keep the names distinct from one another.
+  - Fit the genre and the world: places that belong in THIS book.
+  - Each note says what the place brings to a scene, not only what it looks like.
+
+Return ONLY the JSON object. No preface, no markdown fences.`;
+
+const WORLDBUILDING_DRAFT_SYSTEM = `You write a worldbuilding article for a novelist's reference — the kind of entry an appendix or a series bible holds.
+
+You will be given:
+  - the book's context (premise, genre, world rules, setting, the main cast) — any part may be missing
+  - THE ARTICLE: its title, possibly its category and a summary
+  - possibly, what the article says now
+
+Your job: write the article's body — what the title and summary promise, consistent with the book and with what the article already says, concrete enough that the writer can draw scenes from it. Build on what is there rather than discarding it. The writer reviews the draft before it replaces anything.
+
+Rules:
+  - 3-6 paragraphs of plain prose, a blank line between paragraphs.
+  - Never contradict the book's context.
+  - No title line, no headings, no lists, no markdown, no commentary.
+
+Return only the article's body.`;
+
 // ── relationshipArc.js (analyseRelationship) ────────────────────────────────
 const RELATIONSHIP_SYSTEM = `You track a relationship between two characters across a novel — chapter by chapter.
 
@@ -982,6 +1050,36 @@ export const DEFAULT_FEATURE_PROMPTS = {
         "user_template": "{{user_content}}",
         "json_mode": true,
     },
+    // The story-world sheets (2026-10-16): {{user_content}} is composed client-side (sheetDraft.js).
+    "locationDraft": {
+        "feature": "storyWorld",
+        "system": LOCATION_DRAFT_SYSTEM,
+        "user_template": "{{user_content}}",
+        "json_mode": true,
+    },
+    "objectDraft": {
+        "feature": "storyWorld",
+        "system": OBJECT_DRAFT_SYSTEM,
+        "user_template": "{{user_content}}",
+        "json_mode": true,
+    },
+    "groupDraft": {
+        "feature": "storyWorld",
+        "system": GROUP_DRAFT_SYSTEM,
+        "user_template": "{{user_content}}",
+        "json_mode": true,
+    },
+    "worldbuildingDraft": {
+        "feature": "storyWorld",
+        "system": WORLDBUILDING_DRAFT_SYSTEM,
+        "user_template": "{{user_content}}",
+    },
+    "suggestLocations": {
+        "feature": "brainstorm",
+        "system": SUGGEST_LOCATIONS_SYSTEM,
+        "user_template": "{{user_content}}",
+        "json_mode": true,
+    },
     "relationshipArc": {
         "feature": "relationshipArc",
         "system": RELATIONSHIP_SYSTEM,
@@ -1260,6 +1358,11 @@ const ACTION_META = {
     "characterSection": {"description": "Drafts one section of a character sheet, field by field."},
     "suggestCharacters": {"description": "Proposes characters the book doesn't have yet, from its premise and cast."},
     "brainstormPlot": {"description": "Plot-focused ideas — what-ifs, complications, and next beats."},
+    "locationDraft": {"description": "Drafts a location's sheet — atmosphere, history — from your description and the book."},
+    "objectDraft": {"description": "Drafts an object's sheet — properties, history, where it is now — from your description and the book."},
+    "groupDraft": {"description": "Drafts a group's sheet — goals, leadership, history — from your description and the book."},
+    "worldbuildingDraft": {"description": "Writes a worldbuilding article's body from its title, its summary and the book."},
+    "suggestLocations": {"description": "Proposes locations the book doesn't have yet, from its premise and the places it has."},
 };
 
 // Canonical action labels — the ONE name the user sees wherever they meet the
@@ -1298,6 +1401,11 @@ const ACTION_LABELS = {
     "characterVoiceDraft": "From a description",
     "characterSection": "Draft this section",
     "suggestCharacters": "Suggest characters",
+    "locationDraft": "Locations",
+    "objectDraft": "Objects",
+    "groupDraft": "Groups",
+    "worldbuildingDraft": "Worldbuilding",
+    "suggestLocations": "Suggest locations",
 };
 
 // Sub-section labels clustering a multi-action feature's actions in the nav

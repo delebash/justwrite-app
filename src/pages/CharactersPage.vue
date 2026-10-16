@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch, nextTick } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
@@ -13,11 +13,11 @@ import { UiNumber } from "@delebash/llm-ui";
 import { UiButton } from "@delebash/llm-ui";
 import { UiSelect } from "@delebash/llm-ui";
 import { UiTag } from "@delebash/llm-ui";
-import { UiMenu, UiMenuItem } from "@delebash/llm-ui";
+import { UiMenuItem } from "@delebash/llm-ui";
 import EntityIndex from "../components/EntityIndex.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
-import SuggestCharactersModal from "../components/SuggestCharactersModal.vue";
+import SuggestEntitiesModal from "../components/SuggestEntitiesModal.vue";
 import CharacterAuditModal from "../components/CharacterAuditModal.vue";
 import RelationshipArcModal from "../components/RelationshipArcModal.vue";
 import StatusSelect from "../components/StatusSelect.vue";
@@ -26,6 +26,8 @@ import CharacterDraftModal from "../components/CharacterDraftModal.vue";
 import CharacterBatchFillModal from "../components/CharacterBatchFillModal.vue";
 import SheetSection from "../components/SheetSection.vue";
 import NameIdeas from "../components/NameIdeas.vue";
+import DescribeBox from "../components/DescribeBox.vue";
+import DraftMenu from "../components/DraftMenu.vue";
 import { nameIdeasRequest } from "../services/analysis/characterDraft.js";
 import TagEditor from "../components/TagEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
@@ -85,23 +87,13 @@ function openDraft(source, opts = {}) {
   modal.value = "draft";
 }
 function closeDraft() { modal.value = null; draft.value = null; }
-// The describe box: open while the sheet is thin (no section has a filled field — the spec
-// §9.3), else one line that opens it. Its text is kept per character while the page lives, so
-// a redraft or a section draft can reuse it.
+// The describe box (components/DescribeBox.vue): open while the sheet is thin (no section has a
+// filled field — the spec §9.3), else one line that opens it. Its text is kept per character
+// while the page lives, so a redraft or a section draft can reuse it.
 const describeText = ref("");
-const describeOpen = ref(false);
 const describeBox = ref(null);
-const showDescribe = computed(() => isThinCharacter(extras.value) || describeOpen.value);
-watch(() => ch.value?.id, () => { describeText.value = ""; describeOpen.value = false; });
-function startFromDescription() {
-  describeOpen.value = true;
-  nextTick(() => describeBox.value?.querySelector("textarea")?.focus());
-}
-function draftFromDescription() {
-  const text = describeText.value.trim();
-  if (!text) return startFromDescription();
-  openDraft("description", { description: text });
-}
+watch(() => ch.value?.id, () => { describeText.value = ""; });
+function startFromDescription() { describeBox.value?.start(); }
 function draftSectionFor(sectionKey) {
   openDraft("section", { sectionKey, description: describeText.value.trim() });
 }
@@ -450,12 +442,10 @@ function onRowClick(event) {
           v-tooltip.bottom="$t('characters.detail.askTheBookTooltip', { name: ch.name })">
           <Icon name="Chat" :size="14" /> {{ $t("sidebar.nav.askTheBook") }}
         </UiButton>
-        <UiMenu :label="$t('characters.draft.menu')" :title="$t('characters.draft.menuTooltip')"
-          trigger-class="ui-btn ui-btn--ghost ui-btn--small" content-class="lu-mmenu" align="end">
-          <template #trigger><Icon name="Sparkle" :size="14" /> {{ $t("characters.draft.menu") }} <Icon name="ChevDown" :size="12" /></template>
+        <DraftMenu :title="$t('characters.draft.menuTooltip')">
           <UiMenuItem class="lu-mmi" @select="startFromDescription">{{ $t("characters.draft.fromDescription") }}</UiMenuItem>
           <UiMenuItem class="lu-mmi" @select="openDraft('book')">{{ $t("characters.header.fillFromBook") }}</UiMenuItem>
-        </UiMenu>
+        </DraftMenu>
         <UiButton intent="ghost" size="small" @click="modal = 'images'"><Icon name="Image" :size="14" /> {{ $t("characters.detail.images") }}</UiButton>
         <router-link :to="`/characters/${ch.id}/events`" custom v-slot="{ navigate }">
           <UiButton intent="ghost" size="small" @click="navigate"><Icon name="Calendar" :size="14" /> {{ $t("characters.detail.events") }}</UiButton>
@@ -547,23 +537,11 @@ function onRowClick(event) {
           </div>
 
           <!-- The describe box (the AI drafting): open while the sheet is thin, else one line. -->
-          <div ref="describeBox" class="ch-describe">
-            <div v-if="showDescribe" class="ch-field">
-              <span class="ch-field-label">{{ $t("characters.draft.describeLabel") }}
-                <span class="ch-field-hint">{{ $t("characters.draft.describeHint") }}</span>
-              </span>
-              <div class="ch-describe-row">
-                <UiTextarea class="ch-describe-input" auto-resize :rows="2" v-model="describeText"
-                  :placeholder="$t('characters.draft.describePlaceholder')" />
-                <UiButton intent="primary" :disabled="!describeText.trim()" @click="draftFromDescription">
-                  <Icon name="Sparkle" :size="13" /> {{ $t("characters.draft.draft") }}
-                </UiButton>
-              </div>
-            </div>
-            <UiButton v-else intent="secondary" size="small" @click="startFromDescription">
-              <Icon name="Sparkle" :size="12" /> {{ $t("characters.draft.describeCollapsed") }}
-            </UiButton>
-          </div>
+          <DescribeBox ref="describeBox" :key="ch.id" v-model="describeText" :thin="isThinCharacter(extras)"
+            :label="$t('characters.draft.describeLabel')" :hint="$t('characters.draft.describeHint')"
+            :placeholder="$t('characters.draft.describePlaceholder')"
+            :collapsed-label="$t('characters.draft.describeCollapsed')"
+            @draft="(text) => openDraft('description', { description: text })" />
 
           <TagEditor
             :model-value="ch.tags || []"
@@ -768,7 +746,7 @@ function onRowClick(event) {
     <RelationshipArcModal v-if="relationshipArcOpen"
       @close="relationshipArcOpen = false" />
 
-    <SuggestCharactersModal v-if="suggestOpen" @close="suggestOpen = false" />
+    <SuggestEntitiesModal v-if="suggestOpen" kind="character" @close="suggestOpen = false" />
     <CharacterBatchFillModal v-if="batchFillOpen"
       :pre-checked-ids="batchFillIds"
       @close="batchFillOpen = false; batchFillIds = null" />
@@ -781,11 +759,6 @@ function onRowClick(event) {
 
 .ch-aliases-label { margin: 14px 0 6px; }
 
-/* The describe box: a prose field (~60ch) with its Draft button beside it, aligned to the
-   input (the layout rule); one line when collapsed. */
-.ch-describe { margin: 16px 0 4px; }
-.ch-describe-row { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
-.ch-describe-input { flex: 0 1 60ch; min-width: 0; }
 
 .avatar-drop {
   position: relative;
@@ -829,16 +802,8 @@ function onRowClick(event) {
 }
 .character-hero-fields { flex: 1; min-width: 0; }
 
-/* ── The canonical character-sheet field: label on top, optional muted
-      hint next to the label, control below. Shared by the hero row and
-      every v3 section so the whole page reads as one form. ─────────── */
-.ch-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.ch-field-label {
-  font-size: 11px; font-weight: 600; color: var(--ink-2);
-  display: flex; gap: 7px; align-items: baseline; flex-wrap: wrap;
-  line-height: 1.35;
-}
-.ch-field-hint { font-weight: 400; color: var(--muted); font-size: 11px; }
+/* The canonical field (.ch-field, its label and hint) is in src/css/app.scss since 2026-10-16 —
+   the describe box (components/DescribeBox.vue) shares it. */
 .ch-hero-row { display: flex; gap: 12px 14px; align-items: flex-end; flex-wrap: wrap; }
 .ch-hero-row .ch-field { flex: 0 1 auto; }
 .ch-hero-chip { align-self: flex-end; margin-bottom: 4px; }

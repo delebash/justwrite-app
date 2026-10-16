@@ -11,6 +11,7 @@ import { useSessionsStore } from "../stores/sessions.js";
 import { t } from "../i18n/index.js";
 import { composeCharacterAuditInput } from "./analysis/characterAudit.js";
 import { composeSuggestInput } from "./analysis/characterDraft.js";
+import { composeSuggestLocationsInput } from "./analysis/sheetDraft.js";
 import { composeEntitySweepInput } from "./analysis/entityExtraction.js";
 import { composeBeatSheetInput } from "./analysis/beatSheet.js";
 import { composeMarketingPackInput } from "./analysis/marketingPack.js";
@@ -326,6 +327,8 @@ export const LAB_TEST_ACTIONS = {
   // Suggest characters: the book's frame + the cast (characterDraft.js), with no story-context
   // ceiling — the Lab has no routed window to take a share of.
   suggestCharacters: { compose: { run: () => composeSuggestInput(useProjectStore()).variables }, samples: ["Suggest characters"] },
+  // Suggest locations (2026-10-16): the book's frame + the locations it has (sheetDraft.js).
+  suggestLocations: { compose: { run: () => composeSuggestLocationsInput(useProjectStore()).variables }, samples: ["Suggest locations"] },
   briefing: { compose: { run: composeBriefing }, samples: ["Resume briefing context"] },
   // relationshipArc: a single dropdown can't honestly pick a PAIR —
   // sample + type only (the user's decided word).
@@ -339,6 +342,11 @@ export const LAB_TEST_ACTIONS = {
   characterProfileDraft: { samples: ["Character from a description"] },
   characterVoiceDraft: { samples: ["Character from a description"] },
   characterSection: { samples: ["Character sheet section"] },
+  // The story-world sheets and a worldbuilding article (2026-10-16) — the writer describes them.
+  locationDraft: { samples: ["Location from a description"] },
+  objectDraft: { samples: ["Object from a description"] },
+  groupDraft: { samples: ["Group from a description"] },
+  worldbuildingDraft: { samples: ["Worldbuilding article"] },
   // unstuck is book prose in disguise — the chapter TAIL is where they're stuck.
   unstuck: { pickers: [{ source: "chapters", fill: fillUnstuck }], samples: ["Stuck prose"] },
 
