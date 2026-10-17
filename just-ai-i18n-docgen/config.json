@@ -3,7 +3,7 @@
   "targets": [
     "es"
   ],
-  "context": "JustWrite, a desktop and phone app where novelists write their books, keep a story bible and get AI help; write neutral Latin American Spanish and address the writer as tú.",
+  "context": "JustWrite, a desktop and phone app where novelists write their books, keep a story bible and get AI help; write neutral Latin American Spanish and address the writer as tú. In Spanish, a plot beat stays \"beat\" (plural \"beats\"), a strand of the plot board is \"hilo\", and in a plural form the number comes before the noun (\"3 notas\").",
   "glossary": [
     "JustWrite",
     "JustVoice",

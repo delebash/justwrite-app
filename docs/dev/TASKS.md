@@ -391,22 +391,51 @@ BUILT:  `npm run eval` (promptfoo 0.123.1 through npx; the kit's `scripts/evals/
           whose English changed since (`writingAi.storyContextDesc`, `mentionRefs.empty`), whose
           old proposals it replaced. All 74 staged, none failed, 76 s.
 FOUND:  2026-10-16, while freeing the card: the kit's `POST /v1/llm-runner/stop` with no body at all
-        returns 500, "Cannot read private member #state from an object whose class did not declare
-        it" (hono's bodyLimit inside the kit's `readJson`, `platform/server.js:194`). With a JSON
-        body of `{}` it works. Seen on docgen's server; not yet looked into.
-OPEN:   1. Your review of the 74 proposals in docgen's Review (JustWrite's project), then Apply.
-           Read before review:
-           - Plural forms put the number after the noun ("Aplicar nota {n} | Aplicar notas {n}"
-             for "Apply {n} note | Apply {n} notes"; the same in `plotBoard.ai.addBeats`, and in
-             the 2026-10-15 proposals, e.g. `count.beat` "beat {n} | beats {n}").
+        returned 500, "Cannot read private member #state from an object whose class did not
+        declare it". The 2026-10-17 recs, as shown: "My rec: go back to the adapter's default —
+        delete `overrideGlobalObjects: false`" (the other option, NOT STANDARD: keep the setting
+        and hand the body limit a real request in `readBody`); and for the Spanish: "Keep "beat"
+        … and "hilo" for strand, put the number before the noun ("{n} notas"), all three in
+        docgen's conventions line for Spanish, then re-run the affected keys as a job (proposals
+        only)." The user: "go your rec"; asked which, "think on it adverserially your rec go";
+        and "i dont mind non standard i want what is best what works the reason for sticking
+        with standard is you often write and fix problems when a standard fix already exists".
+        What the attack changed: docgen's conventions line is docgen's packaged rule for Spanish
+        in every project, so the three went into JustWrite's own context sentence instead. The
+        glossary was no fit either: it protects whole words, case-sensitive, so "beat" would miss
+        "beats".
+        Built 2026-10-17:
+        - Kit `479dbad`: the server keeps @hono/node-server's default globals. Any JSON body that
+          came without a Content-Length (chunked, or a POST with none) had answered 500 on every
+          family server. Two tests go through the real server (kit RESEARCH, hono/body-limit).
+          Checked: kit 1,199 passed, JustWrite's server 166, the smoke, the flows 16 of 16; on
+          docgen's server, a POST to the stop route with no body and a chunked one both answer
+          200. JustVoice's smoke is with JustVoice's session.
+        - JustWrite's docgen context sentence gains: "In Spanish, a plot beat stays "beat"
+          (plural "beats"), a strand of the plot board is "hilo", and in a plural form the
+          number comes before the noun ("3 notas")."
+        - A job re-staged the 158 keys those rules govern: every key whose English says
+          beat/beats/strand/strands, and every plural form with a number. All 158 staged, none
+          failed; `es.json` byte-identical.
+          Read: every beat key keeps "beat", every strand key says "hilo"; 155 of the 158 put
+          the number first.
+OPEN:   1. Your review in docgen's Review (JustWrite's project), then Apply. Read before review:
+           - Three plural forms still put the number after the noun:
+             `settings.wbCategories.deleteMessage` ("Su artículo {n}…", where its twin
+             `sidebar.actions.deleteWbCategoryMoves` came out right),
+             `chapters.dialogs.deletePartMessage` ("Su capítulo {n}…"), and
+             `entityReview.linked` ("Vinculado a la {n} escena.").
            - "reviravones" in `chapters.ai.twistsDesc` isn't Spanish.
-           - The new keys say "hito" for beat and "trama" for strand; the rest of the catalog
-             keeps "beat" and says "hilo".
            - "Draft: {name}" is "Redactar:" in one key and "Borrador:" in another.
-        2. The stop route's 500 above.
+           - "stale chunk" is "fragmento estancado", "desactualizado" and "rancio" in three keys.
+           - `characters.sweepPrompt.message` keeps "story bible" in English; other keys say
+             "biblia de la historia".
+           - `count.beat` in `es.json` is "compás" (a musical beat); its proposal is
+             "{n} beat | {n} beats".
 GO:     given 2026-10-16 for the eval and the flow tests ("think on your rec again always adversially
         go"; "carry on, your rec go"); for the five fixes, the three labels and the translation
-        ("your rec on all go").
+        ("your rec on all go"); 2026-10-17 for the stop route and the Spanish ("go your rec";
+        "think on it adverserially your rec go").
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's
