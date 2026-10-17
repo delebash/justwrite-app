@@ -410,7 +410,8 @@ FOUND:  2026-10-16, while freeing the card: the kit's `POST /v1/llm-runner/stop`
           family server. Two tests go through the real server (kit RESEARCH, hono/body-limit).
           Checked: kit 1,199 passed, JustWrite's server 166, the smoke, the flows 16 of 16; on
           docgen's server, a POST to the stop route with no body and a chunked one both answer
-          200. JustVoice's smoke is with JustVoice's session.
+          200. JustVoice on 479dbad (its session, 2026-10-17): the smoke rendered every view
+          with zero JS errors, and the stop route with no body answers 200.
         - JustWrite's docgen context sentence gains: "In Spanish, a plot beat stays "beat"
           (plural "beats"), a strand of the plot board is "hilo", and in a plural form the
           number comes before the noun ("3 notas")."
