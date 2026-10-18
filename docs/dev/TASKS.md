@@ -17,124 +17,6 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
-## Every app and the kit on vue-i18n [2026-10-12]
-STATE:  DECIDED 2026-10-12, family-wide; building — the decision with the user's words is the kit's
-        TASKS, "Every app and the kit on vue-i18n"; the plan is
-        `just-core/docs/plans/2026-10-12-i18n-standard.md` (Task 1 done 2026-10-12).
-WHY:    JustWrite is the one app on vue-i18n, but the kit's screens inside it stay English except
-        the labels feed's ~20 words, Quasar's own words never switch, and dates follow the browser.
-HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates and numbers, the
-        pseudo-locale check in the smoke), then Task 6 (Spanish through docgen, your review).
-        Task 1 follow-ups, asked as shown (2026-10-12, after a review of Task 1 by Fable and the
-        user's "opus what do you think about fable recs"): "1. Key cleanup (common words, clearer
-        group names) and an empty `doneBody` default. 2. The getter tables onto `labelKey`. The
-        appearance tables are imported by the apps, so tell the JustVoice session first. 3. A test
-        setup file that installs `i18n`, then a one-time warning in `kitT`. 4. An English
-        screenshot pass of the restructured surfaces. 5. Task 2." The user: "your rec go"
-        (2026-10-12). Items 1–4 done (the plan's "Task 1 follow-ups"); in 2 only JustWrite imports
-        the appearance tables, so JustVoice was told when it landed, not before. Item 5, Task 2
-        (the template, app-structure §Q.11, the guard's check 16), done 2026-10-12.
-        Ruled 2026-10-13 ("your rec go"; the questions as asked are in the kit's TASKS): the ⚠️
-        icon — the family lint ignores marks (`\p{M}`); the script-string guard —
-        `eslint-plugin-i18next`'s `no-literal-string`; Spanish for new keys — MISSING 0 is for
-        English, other languages wait for docgen (`i18n:report` reads the English catalogs).
-        Task 3 step 2 in part (2026-10-13): the UI words in 98 files onto keys, the time-ago labels
-        onto the kit's relativeTime. Open, and asked 2026-10-13: text sent to the AI model, words
-        in exported books, default names stored as data; then the UPPER_CASE tables and data-tip
-        tooltips. All five ruled 2026-10-13 ("your rec go there is no tauri app anymore!"; the
-        questions as asked are in the kit's TASKS) and built; the script-string rule is on here
-        (i18n:lint reads src/**/*.{js,vue}, zero). D6's tables done 2026-10-13; dates and numbers
-        done 2026-10-13 (step 3: named formats in src/i18n/index.js, every date and displayed
-        number through d()/n(), the calendar's and charts' day and month names from Intl). The
-        language picker (D5) done 2026-10-13: the kit's LanguagePicker in the Appearance card.
-        Ruled 2026-10-13, third round ("your rec think on them again go"; the six items as asked
-        are in the kit's TASKS): a note's date stored as the moment (ISO) and shown through d()
-        — done (`noteDate()` in stores/project.js; notes saved before keep their stored words and
-        show them as stored; the sample book's four notes carry June 2026 dates, the month their
-        text was written in); the picker sized to its choice — done (the kit's `width="fit"`,
-        87–91 px, measured at 1280 and 390); the Tauri leftovers — the kit's, and here the
-        smoke's stale e2e comment; Task 4 (docgen) — in progress in docgen; JustVoice's
-        restore fix — when JustVoice pushes. D3 still waits for its own word.
-        Step 6's gates, 2026-10-15 (the user: "you have a go on it all get it all done"), all but
-        D3's check: test:fast (unit 660, server 158, build:spa), the smoke, i18n:report MISSING 0,
-        the family guard, and every route at 1280 and 390 px in Spanish and in English — `lang`
-        es, no raw keys, no page errors. Fixed on the way: the Quick Setup band at 390 px (the
-        kit's `db23468`); the page header's actions and the Local/Online strip at 390 px (the
-        kit's `10df0cf`); the writing year hiding its latest weeks at 1280 px and Voice drift's
-        chip at 390 px (`d4a8c61`). English where Spanish has no key yet (Export's format cards,
-        the AI page's lede, the kit's hardware card) is the ruled fallback until Task 6.
-        Ruled 2026-10-15 — the user: "your rec on all go", on these as shown (after "think on you
-        recs again", and the user's "what is this" on D3 and the glossary):
-        · D3: "Rethought, my rec changes from yes to no. The smoke runs on a copy of your real
-        data, so your books are on almost every page and the list would be large and noisy. A
-        gate that cries wolf gets ignored. Also, since 2026-10-13 the lint already catches English
-        typed into the code, which was most of what D3 was for. The standard alternative is
-        vue-i18n's own missing-key hook, its `missing` option
-        (vue-i18n.intlify.dev/api/general.html). In the smoke's build only, it would report each
-        missing key as a console error, and the smoke already fails on those. That needs no list
-        to maintain. Today the warning is switched off (`missingWarn: false`,
-        `src/i18n/index.js:80`). The fake language would stay a by-eye tool."
-        · Task 6: the context sentences as drafted — "JustWrite: "JustWrite, a desktop and phone
-        app where novelists write their books, keep a story bible and get AI help."" · "Kit:
-        "Shared screens of a family of desktop apps: AI model setup, providers, sync, appearance
-        and settings."" · "docgen: "A desktop tool that translates an app's interface text and
-        docs with a local AI model, for a person to review."" — and "OK to run it unattended once
-        you approve the sentences?"; the glossary — "the word lists contain other names that
-        should stay as they are: Hugging Face (5 times), GGUF (4), CUDA (3), OneDrive (3), Ollama
-        (2), Dropbox (2), Vulkan, Tailscale, ZeroTier, plus EPUB (8) and DOCX (5). My rec is to
-        add only those names."; the Spanish — "The context sentence can fix both … My lean: keep
-        "tú", and use neutral Latin American Spanish ("computadora")". Then: "another sessions is
-        running make sure you both dont use gpu at same time" · "priority is jv sessions so if you
-        have to wait then do so".
-        Task 6 under way 2026-10-15: the three projects' config.json (each sentence ends "; write
-        neutral Latin American Spanish and address the user as tú.", "the writer" for JustWrite);
-        JustWrite's list first, as a docgen job (proposals only — es.json untouched until the
-        user applies them in Review), the GPU free by JustVoice's word, which comes before each
-        list. All three staged 2026-10-15: JustWrite's 2,980 keys, the kit's 1,453 of 1,454 (the
-        one left is "" on purpose — docgen's TASKS), docgen's 278; no locale file written.
-        Reviewed, applied and checked 2026-10-17 by the agentic review instead of by hand (the
-        user: "i dont want to review spanish can you do it"): the three catalogs, with step 4's
-        gates — TASKS "Automated testing".
-FOUND:  2026-10-13, older than this work — the model catalog at narrow windows (the License chip
-        broken mid-word below 1280 px, the Bench header wider than its 5% column, Edit / Download / ⋯
-        on three rows below 1280), and 2026-10-15 the Characters list pushing its page sideways.
-        Ruled 2026-10-15 ("your rec on all go"), as shown: "My rec: narrow columns (chips, numbers,
-        buttons) take only the width they need, and the text column takes the rest and wraps.
-        That's your "size to content" rule. When even that doesn't fit, the table scrolls inside
-        its own box, which is QTable's standard behaviour (quasar.dev/vue-components/table)."
-        After a NOT STANDARD switch was built and parked (it would have unpinned the two headers
-        that pin in their own box), the user: "think on it again this cant be that hard i am sure
-        there are standard way of doing this"; then "your rec go" on, as shown: "1. Turn QTable's
-        sideways scroll back on. Remove the kit's override in theme.css … 2. Use Quasar's
-        sticky-header pattern for the two pinned tables. ui-table-sticky passes the table's height
-        to QTable. Model catalog: the 58% height limit moves from its outer box onto the table …
-        JustVoice's Voices list: the table fills its lane and scrolls itself instead of the lane …
-        3. Then the catalog's column fix, as already ruled. 4. Delete the two parked
-        uitable-overflow-switch branches." Built 2026-10-15 (kit: theme.css, UiTable.vue,
-        LuModelCatalog.vue): measured at 1000 / 1280 / 1440 / 390 px — no page scrolls sideways;
-        Characters, Chapters, Worldbuilding and Analysis scroll in their box at 1000; the catalog's
-        header stays pinned at every width, its columns sized to their content (936 px: it fits
-        from a ~1,330 px window and scrolls ~50 px sideways in its box at 1280). Ruled 2026-10-15 —
-        the user: "thinki on it there should be an easy normal way to deal wtih these things, your
-        rec go", on "Letting Model's own tags … wrap between words makes it fit exactly at 1280 …
-        That follows "the text column wraps", and it's my rec." Built: the tags wrap between words
-        (the browser's normal wrapping; QBadge's `multi-line` breaks mid-word): 833 px, fits from
-        a ~1,227 px window, measured at 1264 and 1280. JustVoice's Voices list: its edit landed
-        (JustVoice 6b4d4a9 — the lane a flex column, the table `flex: 1 1 0; min-height: 0`), not
-        yet seen on screen (its session's gate checks it after its GPU test). docgen (the user:
-        "do it all go", 2026-10-15), on a copy of its database and of JustWrite's docgen project:
-        both tables fit at 1000 / 1280 / 1440 (docgen's window is never narrower: minWidth 1000).
-        The first try loaded gemma-4-26b on the GPU (18:17–18:19) while JustVoice's test held it:
-        docgen's start screen warms its model, and its database saves JustWrite's engine cache as
-        its own (`runner_setting.cache_root`), which JUST_AI_HOME doesn't override. Stopped,
-        JustVoice told; the Home table measured later on a copy with that row removed, an empty
-        scratch JUST_AI_HOME and the browser's GPU off — no load logged, nothing of mine on the
-        card (nvidia-smi before and after, JustVoice's terms).
-FOUND:  2026-10-15 — the project's Started and Deadline are free text: in Spanish, Home shows the
-        sample's "Fecha límite March 1, 2027". Ruled 2026-10-15 ("your rec on all go"), as shown:
-        "My rec: store them as dates with a date picker, the way notes now work; old values stay
-        as typed."
-
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
 STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the
         plan `docs/plans/2026-10-11-ai-drafting-plan.md` (each task ticked there with its commit). First round, asked as shown (after Fable's review of the first design, whose changes were
@@ -1109,6 +991,11 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
 
 ## Now / near-term (JustWrite)
 
+- **Adopt the kit's `useSurfaceTask` — from web-0d's kit change (just-core `bc34207`, `5c7710e`,
+  2026-10-18).** The kit's new guard check 17 wants a `useSurfaceTask("<feature>")` for each
+  feature a screen starts; JustWrite gets advisories (`node ../just-core/scripts/check-family.js
+  --info`) until its hand-written `aiTasks.runningTasks.find(...)` computeds (useBrainstorm's
+  `myTask`, for one) move onto it, then the check can fail. Not started.
 - **"Serve `/health` before `seed_workspace`" — recommend DROPPING; your ruling owed.**
   Measured 2026-07-25: it buys 36 ms of a ~975 ms pre-listen window dominated by framework
   imports that cannot be deferred. (Correction, docs campaign: there is no "re-measure
