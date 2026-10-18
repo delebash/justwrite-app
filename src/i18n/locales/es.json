@@ -1792,7 +1792,6 @@
     },
     "err": {
       "nothingToContinue": "No hay nada para continuar.",
-      "guidedNeedsDirection": "La continuación guiada necesita una instrucción de una línea.",
       "nothingToWorkOn": "No hay nada en qué trabajar.",
       "noDirection": "No hay ninguna instrucción que seguir.",
       "describeNeedsSelection": "Selecciona lo que quieres describir (un lugar, una persona, un objeto o un momento).",
@@ -1805,7 +1804,6 @@
     },
     "taskLabel": "Asistente de escritura · {action}",
     "actionName": {
-      "continueGuided": "Continuar (guiado)",
       "rewriteDirected": "Reescribir con instrucciones",
       "dialogue": "Escribir diálogo",
       "describe": "Describir",
@@ -4269,7 +4267,6 @@
         "description": "Prosa sensorial nueva sobre el tema indicado, para insertarla después del pasaje."
       },
       "writerAIGuidedContinue": {
-        "label": "Continuar con instrucciones",
         "description": "Continúa el pasaje siguiendo una instrucción de una línea que le das."
       },
       "writerAIGuidedRewrite": {

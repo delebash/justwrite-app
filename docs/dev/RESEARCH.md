@@ -69,6 +69,14 @@ The family's move, step 4 (2026-10-08). The plan is JustVoice's
   one write — the theme test — is undone by writing the `ui` settings section back at the end;
   two tests were stale against the app (AI settings moved to `#/ai`; `--accent-h` became
   `--accent-hue`). (*measured 2026-10-08*.)
+- **The data folder's copy of the samples went stale.** `createApp` copied the bundled samples into
+  `<data>/samples/` once and never again (the 2026-07-13 decision D4), so the sample fix of
+  2026-10-15 (Started and Deadline as ISO dates) never reached a data folder made before it: the
+  user's copy still read "May 2, 2026". Since 2026-10-18 a boot replaces each entry the app ships
+  whose bytes differ, and leaves the rest of the folder alone; on a snapshot of the user's data the
+  copy went from "May 2, 2026 / March 1, 2027" to "2026-05-02 / 2027-03-01". A tutorial project
+  already in the database keeps its stored words, as notes do (the 2026-10-13 ruling). (*measured
+  2026-10-18*, `server/tests/samples_materialize.test.js`.)
 
 ---
 

@@ -1792,7 +1792,6 @@
     },
     "err": {
       "nothingToContinue": "There's nothing to continue from.",
-      "guidedNeedsDirection": "Guided Continue needs a one-line direction.",
       "nothingToWorkOn": "There's nothing to work on.",
       "noDirection": "There's no direction to follow.",
       "describeNeedsSelection": "Highlight the subject to describe (a place, person, object, or moment).",
@@ -1805,7 +1804,6 @@
     },
     "taskLabel": "Writer assist · {action}",
     "actionName": {
-      "continueGuided": "Continue (guided)",
       "rewriteDirected": "Rewrite with direction",
       "dialogue": "Write dialogue",
       "describe": "Describe",
@@ -4269,7 +4267,6 @@
         "description": "Fresh sensory prose about the named subject, to insert after the passage."
       },
       "writerAIGuidedContinue": {
-        "label": "Guided continue",
         "description": "Continue the passage following a one-line direction you give."
       },
       "writerAIGuidedRewrite": {

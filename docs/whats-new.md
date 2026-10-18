@@ -31,6 +31,13 @@ in your language — until you rename one, which then stays as you wrote it. A s
 you add starts with your language's word, and a note whose tag you leave blank stays blank. See
 [UI language](appearance.md#ui-language).
 
+**Smaller fixes.** **Continue with direction…** has that one name everywhere — the AI page called it
+"Guided continue" and the AI tasks list "Continue (guided)". A notice with a long button (in
+Spanish, "Ejecutar configuración rápida") puts the button under its text instead of squeezing the
+text into a narrow column, and the "Your graphics hardware changed" notice shows its title.
+**Try tutorial project** now opens the tutorial book this version ships, also on a computer that
+had an older JustWrite.
+
 ## 2026-10-17
 
 **All of JustWrite in Spanish.** With Spanish chosen in **Settings → Appearance**, every screen's

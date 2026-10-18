@@ -1215,7 +1215,7 @@ function onKeydown(e) {
 // writer's one-line instruction. Returned to ChaptersView via defineExpose so its AI menu (and
 // the Unstuck modal) drive the editor without reaching into the writerAI service itself.
 const DIRECTED_AT_CURSOR = {
-  continue: { fn: writerAI.guidedContinue, action: "writerAI.guided-continue", labelKey: "richEditor.actionName.continueGuided", eyebrowKey: "richEditor.actionName.continueDirected", noDirectionKey: "richEditor.err.guidedNeedsDirection" },
+  continue: { fn: writerAI.guidedContinue, action: "writerAI.guided-continue", labelKey: "richEditor.actionName.continueDirected", eyebrowKey: "richEditor.actionName.continueDirected", noDirectionKey: "richEditor.err.noDirection" },
   dialogue: { fn: writerAI.writeDialogue, action: "writerAI.dialogue", labelKey: "richEditor.actionName.dialogue", eyebrowKey: "richEditor.actionName.dialogue" },
 };
 

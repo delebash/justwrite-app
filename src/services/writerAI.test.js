@@ -43,9 +43,9 @@ describe("the direction actions (plan Task 14)", () => {
     expect(sent().variables).toMatchObject({ direction: "She asks about the boat.", storyContext: "\n\nSTORY CONTEXT\n## Ines\nClipped." });
   });
 
-  it("keep guided Continue's own messages", async () => {
+  it("Continue with direction: its own empty-passage message, the shared no-direction one", async () => {
     await expect(writerAI.guidedContinue({ html: "<p> </p>", instruction: "x" })).rejects.toThrow("There's nothing to continue from.");
-    await expect(writerAI.guidedContinue({ html: "<p>Text.</p>", instruction: " " })).rejects.toThrow("Guided Continue needs a one-line direction.");
+    await expect(writerAI.guidedContinue({ html: "<p>Text.</p>", instruction: " " })).rejects.toThrow("There's no direction to follow.");
   });
 });
 

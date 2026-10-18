@@ -353,8 +353,10 @@ BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV 
         typed word unmarked, the count, Mark as mine).
 OPEN:   the Lab check is now `npm run eval` (TASKS "Automated testing", 2026-10-16): every sample
         ran on gemma; its findings are listed there.
-        Slice 4's bench leg (the plan's D4): Draft from plan on the local presets — waits for the
-        graphics card (JustVoice holds it, 2026-10-18).
+        Slice 4's bench leg (the plan's D4): Draft from plan on the local presets — waits for your
+        word: you told JustVoice's session "i ran another ai task on another app, stop testing just
+        for a bit i will let you know when to resume" (2026-10-18), so the card stays free until
+        then.
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;
         "your rec go" for the third round (Task 0, Tasks 9b and 11b, Task 12 in the chat panel);
@@ -584,13 +586,24 @@ FOUND:  2026-10-16, while freeing the card: the kit's `POST /v1/llm-runner/stop`
           tests (core 1,226, ui 18 with `seeded_words.test.js`) and lint; docgen's tests (server
           165, unit 5) and lint; the family guard. User docs: appearance.md, whats-new.md (here);
           settings.md, whats-new.md (docgen).
-        Found and left as found: one action has three English names ("Guided continue" on the AI
-        page, "Continue (guided)" and "Continue with direction…" in the editor) — the Spanish
-        follows each, and naming it once is an English wording choice. The sample book's copy in
-        a data folder is made once and never refreshed (`server/src/app.js` `materializeSamples`),
-        so a fixed bundled sample — the ISO dates of 2026-10-15 — never reaches an existing
-        install's tutorial; refreshing it would overwrite a folder in your data, so it is yours to
-        decide.
+        2026-10-18, fourth round — the user: "keep going until all issues are fixed dont stop
+        adversiarl think on your decisions go". Done, with what the second look changed:
+        - One action, one name: Continue with direction… everywhere (the AI page said "Guided
+          continue", the AI tasks list "Continue (guided)", its no-direction error "Guided
+          Continue …"). It reuses its sibling's keys — `continueDirected` as Rewrite with direction
+          uses `rewriteDirected`, and Rewrite's `err.noDirection` — so three keys retired and none
+          minted (docgen dropped their Spanish on Save); writing.md's "Guided Continue" too.
+        - The tutorial's copy in the data folder refreshes: a boot replaces each sample the app
+          ships whose bytes differ, and leaves anything else in the folder alone (D4 of
+          2026-07-13 kept — the copy stays, it just stops going stale). The attack: nothing in the
+          user docs puts files there. Your tutorial project already in the database keeps its
+          stored dates, as notes do (the 2026-10-13 ruling).
+        - Found on the way: the "Your graphics hardware changed" notice lost its title (it passed
+          `title` and `message`; `pushToast` takes `description`), and a toast's long button
+          squeezed its message into a 110px column in Spanish. The kit's toast row wraps now and
+          keeps the message at least 180px (a shorter minimum would keep the squeeze, a longer one
+          would push "Undo" under one-line messages); measured in Spanish and English at 1280
+          and 390.
 OPEN:   nothing of this item's rounds. Slice 4's bench leg (D4) is in "AI drafting".
 GO:     given 2026-10-16 for the eval and the flow tests ("think on your rec again always adversially
         go"; "carry on, your rec go"); for the five fixes, the three labels and the translation
@@ -601,7 +614,8 @@ GO:     given 2026-10-16 for the eval and the flow tests ("think on your rec aga
         docs rules session your rec on all go"); 2026-10-18 for the second round ("keep going until
         everything is done your rec but think on your decisions twice before doing, finish
         everything dont stop"); 2026-10-18 for the third round ("your rec on all go dont stop dont
-        ask me again … take your on rec go on all").
+        ask me again … take your on rec go on all"); 2026-10-18 for the fourth round ("keep going
+        until all issues are fixed dont stop adversiarl think on your decisions go").
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's

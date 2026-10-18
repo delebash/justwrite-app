@@ -6,7 +6,7 @@
 // installLlm (the same stack JustVoice mounts). All renderer state persists here in SQLite —
 // there is no key/value or IndexedDB seam.
 
-import { cpSync, existsSync, mkdtempSync, renameSync, rmSync, statSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync } from "node:fs";
 import path from "node:path";
 import { installLlm, runnerRouter } from "@delebash/core/llm";
 import {
@@ -92,31 +92,58 @@ function readCors() {
 }
 
 /**
- * Best-effort one-time copy of the bundled samples into `<dataDir>/samples/`, so the
- * demo/tutorial loader reads samples from the portable data root (which a relocate carries)
- * instead of the source tree. Copies via a temp dir + atomic rename so a crash mid-copy can
- * never leave an empty/partial `<data>/samples/` (same crash-safety idiom as the autosave
- * write). NEVER crashes boot: a missing/partial source is tolerated — demo_seed's read-time
+ * Best-effort copy of the bundled samples into `<dataDir>/samples/`, so the demo/tutorial
+ * loader reads samples from the portable data root (which a relocate carries) instead of the
+ * source tree. The first boot copies the whole folder; a later boot replaces each entry the app
+ * ships whose bytes differ from the copy, and leaves anything else in the folder alone
+ * (2026-10-18: copied once and never again, a fixed bundled sample — the ISO dates of 2026-10-15
+ * — never reached an install that had booted before). Each copy goes through a temp dir + rename,
+ * so a crash mid-copy never leaves a partial entry (same crash-safety idiom as the autosave
+ * write). NEVER crashes boot: a missing/partial copy is tolerated — demo_seed's read-time
  * fallback still serves the bundled source directly.
  */
 function materializeSamples(dataDir) {
-  const dest = path.join(dataDir, "samples");
-  if (existsSync(dest)) return; // already materialized (or a partial one — read-fallback covers it)
   const src = _bundledSamplesDir();
   if (!_dirHasSample(src)) return; // no bundled source to copy from
+  const dest = path.join(dataDir, "samples");
   try {
-    const tmpParent = mkdtempSync(path.join(dataDir, ".samples-tmp-"));
-    try {
-      const staged = path.join(tmpParent, "samples");
-      cpSync(src, staged, { recursive: true, preserveTimestamps: true });
-      renameSync(staged, dest); // atomic — dest was absent; same filesystem
-    } finally {
-      rmSync(tmpParent, { recursive: true, force: true });
+    if (!existsSync(dest)) {
+      stagedCopy(dataDir, src, dest);
+      return;
+    }
+    for (const name of readdirSync(src)) {
+      const from = path.join(src, name);
+      const to = path.join(dest, name);
+      if (!sameTree(from, to)) stagedCopy(dataDir, from, to);
     }
   } catch (e) {
     // a copy failure must never crash boot
     log.warning(`sample materialize skipped (${dataDir}): ${e?.message ?? e}`);
   }
+}
+
+/** Copy `from` to `to` through a temp dir beside them, then swap it in by rename (same filesystem). */
+function stagedCopy(dataDir, from, to) {
+  const tmpParent = mkdtempSync(path.join(dataDir, ".samples-tmp-"));
+  try {
+    const staged = path.join(tmpParent, "new");
+    cpSync(from, staged, { recursive: true, preserveTimestamps: true });
+    if (existsSync(to)) renameSync(to, path.join(tmpParent, "old"));
+    renameSync(staged, to);
+  } finally {
+    rmSync(tmpParent, { recursive: true, force: true });
+  }
+}
+
+/** True when `a` and `b` hold the same files with the same bytes. */
+function sameTree(a, b) {
+  const sa = statSync(a, { throwIfNoEntry: false });
+  const sb = statSync(b, { throwIfNoEntry: false });
+  if (!sa || !sb || sa.isDirectory() !== sb.isDirectory()) return false;
+  if (!sa.isDirectory()) return sa.size === sb.size && readFileSync(a).equals(readFileSync(b));
+  const na = readdirSync(a).sort();
+  const nb = readdirSync(b).sort();
+  return na.length === nb.length && na.every((n, i) => n === nb[i] && sameTree(path.join(a, n), path.join(b, n)));
 }
 
 /** Find the built UI across the checkout and packaged layouts (Quasar's build, 2026-10-08). */

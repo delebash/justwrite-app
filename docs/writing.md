@@ -363,7 +363,7 @@ Click **Unstuck — five ways out** in the AI dropdown. JustWrite sends the pros
 
 The model returns five cards — one per category — each with a short headline and a 1–2 sentence direction. The categories are constraints, not suggestions, so you really do get five different shapes of move, not five variations of the same idea.
 
-**Each card has a Write this button.** Click it and JustWrite drafts the next 2–4 paragraphs using that direction (via Guided Continue under the hood — the user's pick is fed verbatim into the Continue prompt). The result lands in the editor as a coloured diff you can accept or reject like any other AI change.
+**Each card has a Write this button.** Click it and JustWrite drafts the next 2–4 paragraphs using that direction (through Continue with direction — your pick is the direction, word for word). The result lands in the editor as a coloured diff you can accept or reject like any other AI change.
 
 **Regenerate** in the modal footer asks for a fresh five if none landed. The modal is dismissible at any time.
 

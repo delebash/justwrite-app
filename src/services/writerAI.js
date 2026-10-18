@@ -173,9 +173,8 @@ export function describe(opts)  { return runAction("describe", opts); }
  * @param {string} [opts.model]
  */
 export function guidedContinue(opts = {}) {
-  return runDirected("writerAI.guided-continue", "richEditor.actionName.continueGuided", opts, {
+  return runDirected("writerAI.guided-continue", "richEditor.actionName.continueDirected", opts, {
     empty: t("richEditor.err.nothingToContinue"),
-    noDirection: t("richEditor.err.guidedNeedsDirection"),
   });
 }
 
