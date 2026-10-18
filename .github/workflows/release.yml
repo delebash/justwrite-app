@@ -54,8 +54,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       # The app needs the family kit and the sync engine beside it (server/package.json:
-      # file:../../just-llm-runner/server and file:../../just-sqlite-sync; quasar.config.js:
-      # ../just-llm-runner/ui), so all three are checked out side by side.
+      # file:../../just-core/packages/core and file:../../just-sqlite-sync; quasar.config.js:
+      # ../just-core/packages/ui), so all three are checked out side by side.
       - name: Checkout (at tag)
         uses: actions/checkout@v4
         with:
@@ -65,8 +65,8 @@ jobs:
       - name: Checkout the kit
         uses: actions/checkout@v4
         with:
-          repository: delebash/just-llm-runner
-          path: just-llm-runner
+          repository: delebash/just-core
+          path: just-core
 
       - name: Checkout the sync engine
         uses: actions/checkout@v4
@@ -82,14 +82,14 @@ jobs:
           cache-dependency-path: |
             justwrite-app/package-lock.json
             justwrite-app/src-electron/package-lock.json
-            just-llm-runner/server/package-lock.json
+            just-core/packages/core/package-lock.json
             just-sqlite-sync/package-lock.json
 
       # better-sqlite3 and koffi ship per-platform N-API prebuilds, so nothing native is
       # compiled here; electron-builder (Quasar's Electron mode, quasar.config.js) packages the
       # Electron src-electron/package.json pins.
       - name: Install the kit's server deps
-        working-directory: just-llm-runner/server
+        working-directory: just-core/packages/core
         run: npm ci
       - name: Install the sync engine's deps
         working-directory: just-sqlite-sync

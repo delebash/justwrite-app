@@ -35,7 +35,7 @@ button { font: inherit; cursor: default; }
 /* Native buttons inherit text colour; the shared .ui-btn family manages its own
    colour and must be excluded, or this reset (:not specificity 0,1,1) would
    override .ui-btn's own 0,1,0 colour rules — e.g. white-on-accent primary
-   buttons rendered as dark text. (.ui-btn's CSS ships from @delebash/llm-ui's
+   buttons rendered as dark text. (.ui-btn's CSS ships from @delebash/ui's
    common/styles.css; this is a redundant safety copy of that reset.) */
 button:not(.ui-btn) { color: inherit; }
 input, textarea, select { font: inherit; color: inherit; }

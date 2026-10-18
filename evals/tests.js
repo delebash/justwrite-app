@@ -8,7 +8,7 @@
 // 2026-10-16). Seeding only adds, so such rows stay in a database seeded before. A sample the
 // writer made (a label the seed doesn't have) is tested.
 
-import { labSamples } from "../../just-llm-runner/scripts/evals/lab-samples.js";
+import { labSamples } from "../../just-core/scripts/evals/lab-samples.js";
 import { DEFAULT_TEST_SAMPLES } from "../server/src/seed_presets.js";
 
 const seededLabels = new Set(DEFAULT_TEST_SAMPLES.map((s) => s.label));

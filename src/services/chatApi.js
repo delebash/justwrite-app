@@ -6,7 +6,7 @@
 // per-request LLM cost is unchanged (rag/chat.js still sends the last 8 turns +
 // retrieval per ask). HTTP via the shared kit transport.
 
-import { get, put, del } from "@delebash/llm-ui";
+import { get, put, del } from "@delebash/ui";
 import { t } from "../i18n/index.js";
 
 // Session ids mint in the app's `<prefix>_<base36 time>_<rand>` style — the same

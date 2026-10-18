@@ -23,7 +23,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { slugifyHeading } from "@delebash/llm-ui";
+import { slugifyHeading } from "@delebash/ui";
 import { describe, expect, it } from "vitest";
 import HELP_TOC from "../../docs/toc.json";
 

@@ -13,7 +13,7 @@
 //   changed between `base` (the rows that renderer last loaded or saved) and the snapshot, so a
 //   field another device changed meanwhile through sync stays as it is. decompose's wipe-and-
 //   reinsert would record every field of the book as changed on every save (the sync design,
-//   ../just-llm-runner/docs/plans/2026-10-08-sync-product-design.md §7.1).
+//   ../just-core/docs/plans/2026-10-08-sync-product-design.md §7.1).
 //
 // assemble emits the **canonical** snapshot shape (link arrays always present on scenes;
 // full-key entities; the four default tag-vocab kinds; an empty scene list for every
@@ -29,8 +29,8 @@
 // Python's did (an AttributeError/TypeError → the app's 500 envelope), not silently.
 
 import { randomUUID } from "node:crypto";
-import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { b64decode, isDict, pyInt, pyIter, pyOr, pyTypeName, truthy, ValueError } from "@delebash/llm-runner/platform/py";
+import { pyJson } from "@delebash/core/platform/pyjson";
+import { b64decode, isDict, pyInt, pyIter, pyOr, pyTypeName, truthy, ValueError } from "@delebash/core/platform/py";
 import { TABLES } from "./database/models.js";
 
 // Every per-project table, wiped on decompose (NOT projects itself — it's upserted — and

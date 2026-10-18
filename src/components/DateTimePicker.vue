@@ -6,7 +6,7 @@
 // fiddly native spinner, so arbitrary years (past or far future) are easy.
 import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import { computePosition, autoUpdate, offset, flip, shift, size } from "@floating-ui/dom";
-import { Icon, usePanelDismiss } from "@delebash/llm-ui";
+import { Icon, usePanelDismiss } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
 const { t, d: fmtDate } = useI18n();

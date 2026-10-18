@@ -44,8 +44,8 @@ try {
   // caches ESM by resolved URL). Pick a seeded runner model + a custom tuned switch.
   const drove = await page.evaluate(async () => {
     const urls = [
-      "/@fs/home/user/just-llm-runner/ui/src/common/services/labHandoff.js",
-      "/@id/@fs/home/user/just-llm-runner/ui/src/common/services/labHandoff.js",
+      "/@fs/home/user/just-core/packages/ui/src/common/services/labHandoff.js",
+      "/@id/@fs/home/user/just-core/packages/ui/src/common/services/labHandoff.js",
     ];
     for (const u of urls) {
       try {

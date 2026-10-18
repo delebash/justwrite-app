@@ -9,7 +9,7 @@ import { generateHTML, generateJSON } from "@tiptap/html/server";
 import { expect, test } from "vitest";
 import { editorExtensions, schemaMention, stableImageSrc } from "../src/editor/editorSchema.js";
 import { createPhoneApp } from "../src/phone.js";
-import { openDatabase } from "@delebash/llm-runner/platform/sql";
+import { openDatabase } from "@delebash/core/platform/sql";
 import { join } from "node:path";
 import { testClient, tmpPath } from "./helpers.js";
 

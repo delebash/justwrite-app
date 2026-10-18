@@ -7,7 +7,7 @@
 // Regenerate asks again. Its users: Unstuck (StuckDiagnosticModal.vue) and the editor's plot
 // ideas (ChaptersPage.vue).
 import { computed, onMounted, ref } from "vue";
-import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiBanner, UiButton } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiBanner, UiButton } from "@delebash/ui";
 import AiFeatureChip from "./AiFeatureChip.vue";
 
 const props = defineProps({

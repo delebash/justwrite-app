@@ -11,7 +11,7 @@
 
 import { computed, unref, watchEffect } from "vue";
 import { useRouter } from "vue-router";
-import { LuFeatureChip, useResolvedRoute } from "@delebash/llm-ui";
+import { LuFeatureChip, useResolvedRoute } from "@delebash/ui";
 import { useAiStore } from "../stores/ai.js";
 import { useI18n } from "vue-i18n";
 

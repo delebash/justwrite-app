@@ -7,7 +7,7 @@
 // (SheetDraftModal.vue). The `notice` slot sits between the bar and the rows.
 // RULE #1 precedent: EntityReviewModal — UiCheckbox rows, editable proposals, select-all.
 import { computed } from "vue";
-import { UiButton, UiCheckbox, UiTextarea } from "@delebash/llm-ui";
+import { UiButton, UiCheckbox, UiTextarea } from "@delebash/ui";
 
 const props = defineProps({
   rows: { type: Array, required: true },

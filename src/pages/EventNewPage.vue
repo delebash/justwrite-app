@@ -3,12 +3,12 @@ import { computed, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
-import { Icon, pageFill } from "@delebash/llm-ui";
+import { Icon, pageFill } from "@delebash/ui";
 import DateTimePicker from "../components/DateTimePicker.vue";
-import { UiInput } from "@delebash/llm-ui";
-import { UiTextarea } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { PaneHeader } from "@delebash/llm-ui";
+import { UiInput } from "@delebash/ui";
+import { UiTextarea } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
+import { PaneHeader } from "@delebash/ui";
 
 const props = defineProps({
   kind:     { type: String, required: true },

@@ -8,8 +8,8 @@
 // delta (diffs its stored checkpoint), so a debounced POST of only the latest count can't
 // double-count.
 
-import { T } from "@delebash/llm-runner/platform/models";
-import { Hono, input } from "@delebash/llm-runner/platform/server";
+import { T } from "@delebash/core/platform/models";
+import { Hono, input } from "@delebash/core/platform/server";
 import { dset } from "../book_io.js";
 import { getDb } from "../database/session.js";
 

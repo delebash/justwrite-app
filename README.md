@@ -11,7 +11,7 @@ User docs live in `docs/`. The marketing site at <https://delebash.github.io/jus
 ## Quick start
 
 ```bash
-npm install            # JS deps (the kit checkout ../just-llm-runner sits beside this repo)
+npm install            # JS deps (the kit checkout ../just-core sits beside this repo)
 npm run dev            # Vite HMR + the desktop window (Electron), its server on the dev data folder data/
 npm run build          # The installer for the current OS, in release/
 ```
@@ -132,7 +132,7 @@ Seven rooms, one house — organised by what part of the work you're in.
 | Tool | Purpose | Install |
 |---|---|---|
 | **Node 24+** | The renderer build, the scripts, npm | <https://nodejs.org/> |
-| **The kit** | `../just-llm-runner` beside this repo — the shared server package (`file:../just-llm-runner/server`) and Vue kit (the vite alias) | `git clone https://github.com/delebash/just-llm-runner ../just-llm-runner` then `cd ../just-llm-runner/server && npm install` |
+| **The kit** | `../just-core` beside this repo — the shared server package (`file:../just-core/packages/core`) and Vue kit (the vite alias) | `git clone https://github.com/delebash/just-core ../just-core` then `cd ../just-core/packages/core && npm install` |
 | **gh CLI** | Triggering the release workflow only | <https://cli.github.com/> + `gh auth login` |
 
 Electron comes in through `npm install` (a devDependency); the server runs on Electron's own Node
@@ -243,7 +243,7 @@ npm run release:windows      # or one
 
 What the workflow does (see `.github/workflows/release.yml`):
 
-1. Builds .dmg (macOS universal), .exe (Windows, NSIS), .AppImage + .deb (Linux) with Quasar's Electron mode (electron-builder) on per-platform runners — each checks out the kit (`delebash/just-llm-runner`) and the sync engine (`delebash/just-sqlite-sync`) beside the app. Not yet run since the Quasar move (it needs a tag).
+1. Builds .dmg (macOS universal), .exe (Windows, NSIS), .AppImage + .deb (Linux) with Quasar's Electron mode (electron-builder) on per-platform runners — each checks out the kit (`delebash/just-core`) and the sync engine (`delebash/just-sqlite-sync`) beside the app. Not yet run since the Quasar move (it needs a tag).
 2. Creates / updates GitHub Release `v<version>` with the binaries attached.
 3. Packs `docs/` into `docs.tar.gz` and attaches it to the release.
 4. Fires a `repository_dispatch` at the marketing-site repo so it rebuilds with the new docs.
@@ -311,7 +311,7 @@ The renderer reaches the desktop shell through ONE file, `src/services/native.js
 exports (`pickDirectory`, `pickFile`, `saveFile`, `storageGetRoot`, `storageRelocate`,
 `setKeepRunning`, `setTrayLabels`, the openers, `onShellEvent` for the tray), each calling the
 kit's preload object `window.appShell`. The shell itself is the kit's shared Electron main
-module (`@delebash/llm-runner/shell`); `src-electron/electron-main.js` only names this app's settings.
+module (`@delebash/core/shell`); `src-electron/electron-main.js` only names this app's settings.
 Outside the desktop app (a browser tab on `npm run dev:spa`, or the headless server's UI) every call
 answers the browser's way — null or a no-op — and the renderer falls back to downloads and
 file inputs.
@@ -323,11 +323,11 @@ A new shell command is added to the kit (its `COMMANDS` list in `server/src/shel
 
 ## AI providers
 
-AI runs through the family's **shared LLM stack** (`../just-llm-runner`): the server
+AI runs through the family's **shared LLM stack** (`../just-core`): the server
 mounts its providers/routing/usage API (`/v1/llm-providers`, `/v1/ai/*`) with
 official-SDK adapters per vendor (OpenAI · Anthropic · Gemini) plus the
 OpenAI-compatible shape for local servers, and the renderer consumes the shared
-`@delebash/llm-ui` views (providers & models · routing by feature · usage) via a
+`@delebash/ui` views (providers & models · routing by feature · usage) via a
 Vite source alias. A bundled llama.cpp runner downloads, tunes, and serves local
 GGUF models — no separate install. Add any OpenAI-compatible provider (Ollama, LM
 Studio, vLLM, …) via **Add provider** on the AI Settings page. (The old

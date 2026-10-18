@@ -80,7 +80,7 @@ this ruling is history: `docs/plans/archive/2026-06-18-unified-storage-no-idb.md
   plugin) in
   `docs/plans/archive/2026-06-18-cross-app-runner-and-jw-backend-decision.md`; headless
   is what closed that door.
-- **The shared runner mounts in-process.** The kit (`@delebash/llm-runner`) runs
+- **The shared runner mounts in-process.** The kit (`@delebash/core`) runs
   inside this server, so the AI stack costs no extra process. The 2026-10-08 move
   re-decided the language (JavaScript for the whole family) but not headless — the
   server stayed, in Node.
@@ -166,7 +166,7 @@ Phases were locked up front; built and shipped in order.
 
 ## AI task panel
 
-The global task queue is the KIT's (`@delebash/llm-ui`: `stores/aiTasks.js`,
+The global task queue is the KIT's (`@delebash/ui`: `stores/aiTasks.js`,
 `AiStatusButton`, `AiStatusPanel`, `AiTaskStrip` — this section described them as
 app files long after C3 moved them; a 2026-08-07 audit found four stale claims
 here, all fixed below). The header chip shows running count + pulsing dot;

@@ -10,8 +10,8 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
-import { PaneHeader, pageFill } from "@delebash/llm-ui";
-import { Icon } from "@delebash/llm-ui";
+import { PaneHeader, pageFill } from "@delebash/ui";
+import { Icon } from "@delebash/ui";
 import { d as fmtDate } from "../i18n/index.js";
 
 const project = useProjectStore();

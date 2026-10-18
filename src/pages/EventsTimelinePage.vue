@@ -4,9 +4,9 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
-import { Icon, pageFill } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { PaneHeader } from "@delebash/llm-ui";
+import { Icon, pageFill } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
+import { PaneHeader } from "@delebash/ui";
 import { d as fmtDate } from "../i18n/index.js";
 
 const props = defineProps({

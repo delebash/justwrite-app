@@ -13,7 +13,7 @@
 // while testing, not a design.
 // ============================================================
 
-import { downloadBlob as kitDownloadBlob, saveBlob as kitSaveBlob } from "@delebash/llm-ui";
+import { downloadBlob as kitDownloadBlob, saveBlob as kitSaveBlob } from "@delebash/ui";
 import { chooserDir, rememberDir } from "./chooserDirs.js";
 import { t } from "../i18n/index.js";
 

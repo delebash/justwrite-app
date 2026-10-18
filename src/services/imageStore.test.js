@@ -8,7 +8,7 @@
 // "lands"). Node env: global Blob is available (Node 18+).
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@delebash/llm-ui", () => ({
+vi.mock("@delebash/ui", () => ({
   serverUrl: vi.fn((p) => p),
   post: vi.fn(),
   del: vi.fn(),
@@ -16,7 +16,7 @@ vi.mock("@delebash/llm-ui", () => ({
   inAppServer: vi.fn(() => false),
 }));
 
-import { requestBlob } from "@delebash/llm-ui";
+import { requestBlob } from "@delebash/ui";
 import { imagePath, readImageBytes, storedSrcFor, withSceneImages } from "./imageStore.js";
 
 describe("imageStore.readImageBytes — path-first requestBlob (kit client.js:65)", () => {

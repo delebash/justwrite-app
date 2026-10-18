@@ -15,9 +15,9 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore, reorderForMonday } from "../stores/sessions.js";
 import { scanProjectMarkers } from "justwrite-server/editor/markers.js";
-import { UiButton, pageFill } from "@delebash/llm-ui";
-import { Icon } from "@delebash/llm-ui";
-import { PaneHeader } from "@delebash/llm-ui";
+import { UiButton, pageFill } from "@delebash/ui";
+import { Icon } from "@delebash/ui";
+import { PaneHeader } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
 const { t, d: fmtDate } = useI18n();

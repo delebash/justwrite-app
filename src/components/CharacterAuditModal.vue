@@ -15,7 +15,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AppModal, AiTaskStrip, EmptyState, UiButton, UiBanner } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AppModal, AiTaskStrip, EmptyState, UiButton, UiBanner } from "@delebash/ui";
 import { auditAllCharacters } from "../services/analysis/characterAudit.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import StatusRow from "./StatusRow.vue";

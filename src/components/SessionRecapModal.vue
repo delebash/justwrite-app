@@ -17,7 +17,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore } from "../stores/sessions.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/ui";
 import { generateSessionRecap } from "../services/sessionRecap.js";
 import { addMarkerToSceneHtml } from "justwrite-server/editor/markers.js";
 import AiFeatureChip from "./AiFeatureChip.vue";

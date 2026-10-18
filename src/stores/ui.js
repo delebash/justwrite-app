@@ -8,7 +8,7 @@ import { defineStore } from "pinia";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
 import { DEFAULT_APPEARANCE, migrateAppearance } from "../services/appearance.js";
-import { pushToast, clearToasts } from "@delebash/llm-ui";
+import { pushToast, clearToasts } from "@delebash/ui";
 import { t } from "../i18n/index.js";
 
 const SECTION = "ui";
@@ -122,7 +122,7 @@ export const useUiStore = defineStore("ui", {
       // Off by default — triples token cost. Shift-click on any AI
       // dropdown item is a per-call override regardless of this toggle.
       showVariations: false,
-      // In-app help drawer state now lives in the shared kit (@delebash/llm-ui
+      // In-app help drawer state now lives in the shared kit (@delebash/ui
       // services/help.js → helpState / openHelp / closeHelp); the kit HelpDrawer
       // + HelpTrigger read it directly. configureHelp() in main.js wires the
       // content adapter + the full-docs / web handoffs.
@@ -223,7 +223,7 @@ export const useUiStore = defineStore("ui", {
     },
 
     // In-app Help drawer state + actions moved to the shared kit
-    // (@delebash/llm-ui → openHelp / closeHelp / helpState). Call those
+    // (@delebash/ui → openHelp / closeHelp / helpState). Call those
     // directly; configureHelp() in main.js wires the content + handoffs.
 
     // ── Shortcut cheatsheet ──────────────────────────────────────────

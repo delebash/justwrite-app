@@ -16,16 +16,16 @@ lives in `../plans/archive/`).
 4. **`architecture-notes.md`** — the invariants in detail: IPC bridge, the
    monolithic project store + snapshot undo (domains, coalescing, the editor-echo
    law), soft deletes + the toast law, the AI stack's current shape, i18n rules.
-5. **`ui-kit.md`** — the shared `@delebash/llm-ui` kit contract (one `intent` prop,
+5. **`ui-kit.md`** — the shared `@delebash/ui` kit contract (one `intent` prop,
    kit-first, no local primitives). The kit itself lives in
-   `../../../just-llm-runner/ui/` — its family standard is
-   `../../../just-llm-runner/docs/app-structure.md`.
+   `../../../just-core/packages/ui/` — its family standard is
+   `../../../just-core/docs/app-structure.md`.
 6. **Design records**: `measured-performance.md` (every tuning/boot/band number
    that justifies today's defaults) · `rag-design.md` (cards, pinning, embed
    templates — the why behind `src/services/rag/`) · `bench.md` (the LLM bench
    harness) · `ai-features-roadmap.md` + `potential-roadmap.md` (shipped/won't-ship
    history).
-7. **The family docs convention** — `../../../just-llm-runner/docs/app-structure.md`
+7. **The family docs convention** — `../../../just-core/docs/app-structure.md`
    §13: trackers, placement rule, plans/ holds only live work.
 
 User-facing docs are `../*.md` (the in-app Help corpus, indexed by `../toc.json`) —

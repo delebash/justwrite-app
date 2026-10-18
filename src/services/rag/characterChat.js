@@ -10,7 +10,7 @@
 // Returns { answer, citations, usage } in the same shape as
 // askManuscript so the ChatPanel can render either flavour with one UI.
 
-import { embedTexts, friendlyAiError, runAiFeatureStream } from "@delebash/llm-ui";
+import { embedTexts, friendlyAiError, runAiFeatureStream } from "@delebash/ui";
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
 import { buildEntityCards } from "./cards.js";

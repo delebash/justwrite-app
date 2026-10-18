@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
 import {
   levelForValue, presetToThinkingControl, resolvedToThinkingControl,
   THINKING_CUSTOM, thinkingControlToWire, thinkingOptionsFor,
-} from "@delebash/llm-ui/thinkingControl.js";
+} from "@delebash/ui/thinkingControl.js";
 
 // The built-in engine's seeded map: number budgets, no words.
 const LOCAL_ROWS = [

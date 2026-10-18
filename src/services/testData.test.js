@@ -11,11 +11,11 @@ import {
   mergeVariables,
   testDataAction,
   testDataSources,
-} from "@delebash/llm-ui/common/services/testData.js";
+} from "@delebash/ui/common/services/testData.js";
 
 // labTestData pulls the run-path composers, which import the kit's run
 // wrappers — stub them (no LLM calls in a unit test) and the stores.
-vi.mock("@delebash/llm-ui", () => ({
+vi.mock("@delebash/ui", () => ({
   runAiFeature: vi.fn(),
   runAiFeatureStream: vi.fn(),
   embedTexts: vi.fn(),

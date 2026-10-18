@@ -10,7 +10,7 @@
 // `t` (i18n/index.js:46); the stores are resolved lazily so this module can be
 // imported before Pinia is active.
 
-import { promptDialog } from "@delebash/llm-ui";
+import { promptDialog } from "@delebash/ui";
 import { router } from "../router/index.js";
 import { t } from "../i18n/index.js";
 import { useProjectStore } from "../stores/project.js";

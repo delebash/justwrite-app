@@ -17,10 +17,10 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useVersionsStore } from "../stores/versions.js";
-import { promptDialog, openHelp } from "@delebash/llm-ui";
+import { promptDialog, openHelp } from "@delebash/ui";
 import { HELP_TOC } from "../services/helpDocs.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
-import { Icon } from "@delebash/llm-ui";
+import { Icon } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

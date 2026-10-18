@@ -17,7 +17,7 @@
 // label overlaps with a proposal) are filtered out so the sweep doesn't
 // surface threads the writer has already noted.
 
-import { withAiTask } from "@delebash/llm-ui";
+import { withAiTask } from "@delebash/ui";
 
 import { normalizeName as norm, textMentionsTerm } from "../text.js";
 import { extractThreads } from "./threadExtraction.js";

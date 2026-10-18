@@ -9,7 +9,7 @@
 
 import { ref, computed, onMounted } from "vue";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
 import { generateSensoryPack, SENSORY_CATEGORIES } from "../services/sensoryResearch.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";

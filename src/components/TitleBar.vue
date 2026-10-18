@@ -18,7 +18,7 @@ import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
 import { THEME_PRESETS } from "../services/appearance.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
-import { Icon, AiStatusButton, TitleBar } from "@delebash/llm-ui";
+import { Icon, AiStatusButton, TitleBar } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

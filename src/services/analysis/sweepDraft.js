@@ -25,7 +25,7 @@
 // bearing choice: any subset can be re-scanned and the review aggregate is
 // re-merged from scratch with the same mergeProposals the live sweep uses.
 
-import { del, get, put } from "@delebash/llm-ui";
+import { del, get, put } from "@delebash/ui";
 
 import { mergeProposals } from "./entitySweep.js";
 

@@ -126,7 +126,7 @@ fails to create a context when loading a `gemma4_mtp` draft — cure `--fit off`
 ## Memory-bandwidth constants (2026-08-13 — derived from the rows above for the fit redesign)
 
 Derived read-only from THIS doc's recorded measurements + the real GGUF headers; full
-reproduction in `../../../just-llm-runner/docs/plans/2026-08-09-fit-redesign.md`
+reproduction in `../../../just-core/docs/plans/2026-08-09-fit-redesign.md`
 Appendix B. These seed the fit redesign's speed bands (§5.5 there).
 
 - **Device-compute (VRAM) factor ≈ 0.59 of spec** — 12B dense (6.716 GB file) ×

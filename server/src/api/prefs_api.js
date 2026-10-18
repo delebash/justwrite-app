@@ -12,7 +12,7 @@
 // DELETE here = the D3b-aware clear settings_api's DELETE performs: a user-changed folder
 // path never resets, so the PRESERVED_FOLDER_KEYS whitelist survives.
 
-import { makePrefsRouter } from "@delebash/llm-runner/platform";
+import { makePrefsRouter } from "@delebash/core/platform";
 import { getDb } from "../database/session.js";
 import { clearKeepingFolders, readAll, writeMany } from "./settings_api.js";
 

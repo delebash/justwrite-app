@@ -2,7 +2,7 @@
 // GET /v1/health — liveness + version + persistence status (the port of
 // justwrite_server/api/health_api.py).
 
-import { Hono } from "@delebash/llm-runner/platform/server";
+import { Hono } from "@delebash/core/platform/server";
 import { getState } from "#app_state";
 import { getEngine } from "../database/session.js";
 import { API_VERSION, PRODUCT, VERSION } from "../version.js";

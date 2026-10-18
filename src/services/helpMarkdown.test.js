@@ -11,12 +11,12 @@
 // the machine the app is developed on.
 //
 // The kit has no test harness of its own; this is the guard, and it lives here
-// because the @delebash/llm-ui alias + `marked` dedupe are configured here.
+// because the @delebash/ui alias + `marked` dedupe are configured here.
 
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { renderHelpMarkdown } from "@delebash/llm-ui";
+import { renderHelpMarkdown } from "@delebash/ui";
 import { describe, expect, it } from "vitest";
 
 const DOCS = fileURLToPath(new URL("../../docs", import.meta.url));

@@ -16,15 +16,15 @@
 // `writestr` and `ZipFile(io.BytesIO(raw))`) — Python reads these zips and these read Python's.
 
 import { randomUUID } from "node:crypto";
-import { HttpError } from "@delebash/llm-runner/platform/errors";
-import { T } from "@delebash/llm-runner/platform/models";
-import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { attachment, Hono, input } from "@delebash/llm-runner/platform/server";
-import { b64decode, pyOr, ValueError } from "@delebash/llm-runner/platform/py";
+import { HttpError } from "@delebash/core/platform/errors";
+import { T } from "@delebash/core/platform/models";
+import { pyJson } from "@delebash/core/platform/pyjson";
+import { attachment, Hono, input } from "@delebash/core/platform/server";
+import { b64decode, pyOr, ValueError } from "@delebash/core/platform/py";
 // The book title made filesystem-safe — so the zip is `<Title>.zip` unzipping to a `<Title>/`
 // folder (user: "zip file should be name of book"). The kit's one rule, shared with the renderer.
-import { safeTitle } from "@delebash/llm-runner/platform/filename";
-import { BadZipFile, ZipReader, ZipWriter } from "@delebash/llm-runner/platform/zip";
+import { safeTitle } from "@delebash/core/platform/filename";
+import { BadZipFile, ZipReader, ZipWriter } from "@delebash/core/platform/zip";
 import * as bookIo from "../book_io.js";
 import { pyGet } from "../book_io.js";
 import { getDb } from "../database/session.js";

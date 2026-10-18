@@ -2,14 +2,14 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { PaneHeader, pageFill, UiBanner } from "@delebash/llm-ui";
-import { Icon } from "@delebash/llm-ui";
+import { PaneHeader, pageFill, UiBanner } from "@delebash/ui";
+import { Icon } from "@delebash/ui";
 import { parseFile, normalizeHtml } from "../services/import/index.js";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
-import { UiButton } from "@delebash/llm-ui";
-import { UiInput } from "@delebash/llm-ui";
-import { UiCheckbox } from "@delebash/llm-ui";
-import { UiSelect } from "@delebash/llm-ui";
+import { UiButton } from "@delebash/ui";
+import { UiInput } from "@delebash/ui";
+import { UiCheckbox } from "@delebash/ui";
+import { UiSelect } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

@@ -10,7 +10,7 @@
 // all 15 call sites already applied with `|| {}`, so every caller's
 // `parsed.<field>` access stays safe on a malformed model reply.
 
-import { runAiFeature } from "@delebash/llm-ui";
+import { runAiFeature } from "@delebash/ui";
 import { parseJsonLoose } from "./llmText.js";
 
 export async function runJsonAnalysis(opts) {

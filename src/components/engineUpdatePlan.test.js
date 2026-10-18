@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 // The engine update's two pure decisions, from the kit (plan
-// just-llm-runner/docs/plans/2026-09-19-engine-update-safety-and-stable-channel.md §4 Slice 2).
+// just-core/docs/plans/2026-09-19-engine-update-safety-and-stable-channel.md §4 Slice 2).
 // Tested HERE because the kit's ui/ has no vitest of its own — the same precedent as
-// classMembership.test.js importing @delebash/llm-ui/classTunes.js.
+// classMembership.test.js importing @delebash/ui/classTunes.js.
 //
 // WHY THEY EXIST: upstream renames its release files between builds (Windows AMD went
 // hip-radeon → rocm-7.14 → rocm-10.0; Linux AMD had no file at all for ~180 builds), so the
@@ -10,7 +10,7 @@
 // already been written, with nothing to put it back.
 import { describe, expect, it } from "vitest";
 
-import { applyBuildToUrl, planBinaries, shouldRollback } from "@delebash/llm-ui/common/services/engineUrl.js";
+import { applyBuildToUrl, planBinaries, shouldRollback } from "@delebash/ui/common/services/engineUrl.js";
 
 const DL = "https://github.com/ggml-org/llama.cpp/releases/download";
 

@@ -9,7 +9,7 @@ export default defineConfig({
     root: import.meta.dirname,
     include: ["tests/**/*.test.js"],
     // One temp folder per run, removed at the end (the kit's platform/vitest_tmp.js).
-    globalSetup: [fileURLToPath(import.meta.resolve("@delebash/llm-runner/platform/vitest_tmp"))],
+    globalSetup: [fileURLToPath(import.meta.resolve("@delebash/core/platform/vitest_tmp"))],
     pool: "forks",
     testTimeout: 20000,
     restoreMocks: true,

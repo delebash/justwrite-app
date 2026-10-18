@@ -13,7 +13,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 // (common/services/fileSave.js) — native dialog where a saver is wired,
 // Downloads otherwise. This file locks what JustWrite hands it.
 const kitSaveBlob = vi.fn(async () => ({ ok: true, path: "/data/My Book.zip" }));
-vi.mock("@delebash/llm-ui", () => ({
+vi.mock("@delebash/ui", () => ({
   requestBlob: vi.fn(async () => new Blob(["ZIPBYTES"], { type: "application/zip" })),
   post: vi.fn(async () => ({ id: "prj_new", title: "My Book" })),
   // bookTransfer now pulls chooserDir/rememberDir from chooserDirs.js, which reads
@@ -35,7 +35,7 @@ vi.mock("./native.js", () => ({
   storageGetRoot: vi.fn(async () => ({ root: "/data" })),
 }));
 
-import { post, requestBlob } from "@delebash/llm-ui";
+import { post, requestBlob } from "@delebash/ui";
 
 let exportProject;
 let importProject;

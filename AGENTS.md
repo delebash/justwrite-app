@@ -80,7 +80,7 @@ reset on remount.
 ## 3. Kit primitives — intentional raw-HTML exceptions
 
 Use the kit's `UiButton` / `UiInput` / `UiTextarea` / `UiCheckbox` / `UiSelect` /
-`UiNumber` / `UiTag` / `UiTable` from `@delebash/llm-ui` instead of raw HTML
+`UiNumber` / `UiTag` / `UiTable` from `@delebash/ui` instead of raw HTML
 controls. (The old local `Jw*` fork was fully converged into that kit in
 2026-06-24 — the names below were updated to match; the reasoning is unchanged.)
 Several places in the codebase deliberately do NOT use the primitives — don't
@@ -219,7 +219,7 @@ provider/model routing).
 a "known exception" to be migrated to the backdrop pattern.)
 
 Slide-in panels — Ask-the-book, AI tasks, the Help drawer — use the shared kit
-composable `usePanelDismiss` (`@delebash/llm-ui`) instead, which IS a
+composable `usePanelDismiss` (`@delebash/ui`) instead, which IS a
 document-level `mousedown` + `keydown` handler. The backdrop pattern is wrong
 for them for a concrete reason: a full-inset backdrop **swallows** the click
 that dismisses. That is exactly what a dropdown wants, and exactly what a panel
@@ -244,7 +244,7 @@ the old `data-chat-toggle` / `data-ai-status-toggle` names are gone) so the
 handler doesn't close a panel just before its own trigger re-opens it.
 
 Full reasoning + the user's rulings:
-`just-llm-runner/docs/plans/archive/2026-07-19-panel-dismiss-and-no-dim.md`.
+`just-core/docs/plans/archive/2026-07-19-panel-dismiss-and-no-dim.md`.
 
 ---
 

@@ -11,7 +11,7 @@ import {
   fmtSpeed,
   progressCaption,
   rateSuffix,
-} from "@delebash/llm-ui/common/services/downloadRate.js";
+} from "@delebash/ui/common/services/downloadRate.js";
 
 const MB = 1024 * 1024;
 

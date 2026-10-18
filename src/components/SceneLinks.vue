@@ -6,12 +6,12 @@
 
 import { computed, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { promptDialog } from "@delebash/llm-ui";
-import { Icon } from "@delebash/llm-ui";
+import { promptDialog } from "@delebash/ui";
+import { Icon } from "@delebash/ui";
 import DateTimePicker from "./DateTimePicker.vue";
-import { UiButton } from "@delebash/llm-ui";
+import { UiButton } from "@delebash/ui";
 import { POV_OPTIONS } from "../services/povOptions.js";
-import { UiTextarea } from "@delebash/llm-ui";
+import { UiTextarea } from "@delebash/ui";
 import { PLANNING_FEATURE, summarizeScene } from "../services/analysis/planningDraft.js";
 import DraftReviewModal from "./DraftReviewModal.vue";
 import { useI18n } from "vue-i18n";

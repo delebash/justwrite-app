@@ -5,7 +5,7 @@
 // The kit's store is imported real (subpath alias), as sweepCancel.test.js does.
 import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useAiTasksStore } from "@delebash/llm-ui/stores/aiTasks.js";
+import { useAiTasksStore } from "@delebash/ui/stores/aiTasks.js";
 
 beforeEach(() => {
   setActivePinia(createPinia());

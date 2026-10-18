@@ -2,7 +2,7 @@
 // JustWrite's sync — the books through the family's sync product (@delebash/sqlite-sync, the
 // ../just-sqlite-sync repo). Every device keeps the whole library and works offline; changes
 // travel by a file carried by hand, through a cloud folder, or over HTTP with another device or a
-// server. The design: ../just-llm-runner/docs/plans/2026-10-08-sync-product-design.md; the
+// server. The design: ../just-core/docs/plans/2026-10-08-sync-product-design.md; the
 // decisions, verbatim: docs/dev/TASKS.md "Sync — offline first, by file, folder and server".
 //
 // The product's app layer (`@delebash/sqlite-sync/app`) runs the rest — this device's identity,
@@ -15,10 +15,10 @@
 // images), and the error shape (the kit's problem+json).
 
 import { createAppSync } from "@delebash/sqlite-sync/app";
-import { ApiError, HttpError } from "@delebash/llm-runner/platform/errors";
-import { getLogger } from "@delebash/llm-runner/platform/log";
-import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { readJson } from "@delebash/llm-runner/platform/server";
+import { ApiError, HttpError } from "@delebash/core/platform/errors";
+import { getLogger } from "@delebash/core/platform/log";
+import { pyJson } from "@delebash/core/platform/pyjson";
+import { readJson } from "@delebash/core/platform/server";
 import { getSchema } from "@tiptap/core";
 import { generateHTML, generateJSON } from "#editor/html";
 import { Node as PMNode } from "@tiptap/pm/model";

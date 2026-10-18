@@ -14,10 +14,10 @@
 //
 // The kit's words come first: the instance starts from the kit's catalogs (`kit.*`) and JustWrite's
 // own are merged over them, so a `kit.*` key here would reword the kit's (the vue-i18n standard;
-// just-llm-runner/docs/plans/2026-10-12-i18n-standard.md).
+// just-core/docs/plans/2026-10-12-i18n-standard.md).
 
 import { createI18n } from "vue-i18n";
-import { catalogsFromFiles, kitMessages, languageName } from "@delebash/llm-ui/i18n/index.js";
+import { catalogsFromFiles, kitMessages, languageName } from "@delebash/ui/i18n/index.js";
 
 // Vite inlines every match at BUILD time, so this is a static import graph, not a runtime read
 // — the bundle is identical to hand-written imports.

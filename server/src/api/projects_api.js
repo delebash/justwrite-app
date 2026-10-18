@@ -9,10 +9,10 @@
 // and the per-entity reads (`/chapters`, `/characters`) are extracted from the assembled
 // book so other clients (e.g. a future mobile app) get granular JSON.
 
-import { HttpError } from "@delebash/llm-runner/platform/errors";
-import { T } from "@delebash/llm-runner/platform/models";
-import { pyIter, pyOr } from "@delebash/llm-runner/platform/py";
-import { Hono, input } from "@delebash/llm-runner/platform/server";
+import { HttpError } from "@delebash/core/platform/errors";
+import { T } from "@delebash/core/platform/models";
+import { pyIter, pyOr } from "@delebash/core/platform/py";
+import { Hono, input } from "@delebash/core/platform/server";
 import * as bookIo from "../book_io.js";
 import { pyGet } from "../book_io.js";
 import { DEMO_PROJECT_ID } from "#database/demo_seed";

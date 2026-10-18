@@ -11,8 +11,8 @@
 // seedWorkspace() uses the open database, which createApp(tmp) opened — so constructing a
 // client first points the seeders at the test's tmp database. Python read the class-tune
 // rows through the SQLAlchemy model; here with SQL from the same table.
-import { stores } from "@delebash/llm-runner/llm";
-import { DEFAULT_PROVIDERS, seedDefaultProviders } from "@delebash/llm-runner/llm/seed";
+import { stores } from "@delebash/core/llm";
+import { DEFAULT_PROVIDERS, seedDefaultProviders } from "@delebash/core/llm/seed";
 import { expect, test } from "vitest";
 import * as bookIo from "../src/book_io.js";
 import { DEMO_PROJECT_ID, demoBookSnapshot, listSamples } from "../src/database/demo_seed.js";

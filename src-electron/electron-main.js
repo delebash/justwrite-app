@@ -5,7 +5,7 @@
 // Quasar builds this file (its Electron mode, app-structure §Q.2) and runs it in Electron's main
 // process; it replaced electron/main.js with the Quasar move (2026-10-08).
 import path from "node:path";
-import { runDesktopApp } from "@delebash/llm-runner/shell";
+import { runDesktopApp } from "@delebash/core/shell";
 import { resolveElectronAssetsPath } from "#q-app/electron/main";
 
 const here = import.meta.dirname;

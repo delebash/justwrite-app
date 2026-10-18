@@ -5,8 +5,8 @@
 // bytes are Python's (json.dumps indent=2, written with the OS line separator).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { purePath } from "@delebash/llm-runner/platform/data_paths";
-import { pyJson } from "@delebash/llm-runner/platform/pyjson";
+import { purePath } from "@delebash/core/platform/data_paths";
+import { pyJson } from "@delebash/core/platform/pyjson";
 import { expect, test } from "vitest";
 import { client, tmpPath, useHermeticKit } from "./helpers.js";
 

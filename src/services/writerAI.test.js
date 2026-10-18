@@ -6,7 +6,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const runAiFeatureStream = vi.fn(async () => ({ content: "Out.", usage: null }));
-vi.mock("@delebash/llm-ui", () => ({ runAiFeatureStream: (...a) => runAiFeatureStream(...a) }));
+vi.mock("@delebash/ui", () => ({ runAiFeatureStream: (...a) => runAiFeatureStream(...a) }));
 vi.mock("../stores/project.js", () => ({ useProjectStore: () => ({}) }));
 vi.mock("./voiceFingerprint.js", () => ({ buildVoiceFingerprint: () => ({ block: "" }) }));
 

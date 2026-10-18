@@ -5,7 +5,7 @@
 // shared with Name ideas at a name box (2026-10-11, the AI drafting plan Task 10).
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { AiTaskStrip, Icon, PaneHeader, pageFill, UiBanner, UiButton, UiSelect, UiTextarea } from "@delebash/llm-ui";
+import { AiTaskStrip, Icon, PaneHeader, pageFill, UiBanner, UiButton, UiSelect, UiTextarea } from "@delebash/ui";
 import { useUiStore } from "../stores/ui.js";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import BrainstormResults from "../components/BrainstormResults.vue";

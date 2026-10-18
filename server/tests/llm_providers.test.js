@@ -7,7 +7,7 @@
 // `test_provider_columns_persist` read the row through the SQLAlchemy model; here the row
 // is read with SQL from the same table (`llm_providers`), its booleans converted by the
 // captured column map as SQLAlchemy did.
-import { getLlmRegistry } from "@delebash/llm-runner/llm";
+import { getLlmRegistry } from "@delebash/core/llm";
 import { expect, test } from "vitest";
 import { state } from "../src/database/session.js";
 import { clearRegistry, client, tmpPath, useHermeticKit } from "./helpers.js";

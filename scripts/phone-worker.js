@@ -9,7 +9,7 @@
 import { copyFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { WORKER_GLOBALS, workerShims } from "@delebash/llm-runner/platform/worker/esbuild";
+import { WORKER_GLOBALS, workerShims } from "@delebash/core/platform/worker/esbuild";
 import { build } from "esbuild";
 import { nodeModulesPolyfillPlugin } from "esbuild-plugins-node-modules-polyfill";
 

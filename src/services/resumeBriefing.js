@@ -14,7 +14,7 @@
 // The output is 150–250 words of second-person prose addressed to the
 // writer, ending with one concrete next-action suggestion.
 
-import { runAiFeature } from "@delebash/llm-ui";
+import { runAiFeature } from "@delebash/ui";
 import { scanProjectMarkers } from "justwrite-server/editor/markers.js";
 import { htmlToText, tailWords } from "./text.js";
 import { t, tEnglish } from "../i18n/index.js";

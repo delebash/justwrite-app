@@ -11,7 +11,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 // for factory-referenced state).
 const h = vi.hoisted(() => ({ health: null, chooserDirs: null }));
 
-vi.mock("@delebash/llm-ui", () => ({
+vi.mock("@delebash/ui", () => ({
   get: vi.fn((path) => h.health(path)),
 }));
 // chooserDirs' last fallback is the shell's storage root (services/native.js). No
@@ -35,21 +35,21 @@ describe("chooserDirs — default folder resolution (the 'opens at home' fix)", 
   it("returns the remembered folder for a key without hitting /v1/health", async () => {
     h.chooserDirs = { export: "/remembered/export" };
     const { chooserDir } = await import("./chooserDirs.js");
-    const { get } = await import("@delebash/llm-ui");
+    const { get } = await import("@delebash/ui");
     expect(await chooserDir("export")).toBe("/remembered/export");
     expect(get).not.toHaveBeenCalled();
   });
 
   it("falls back to the server data dir (GET /v1/health) when nothing is remembered", async () => {
     const { chooserDir } = await import("./chooserDirs.js");
-    const { get } = await import("@delebash/llm-ui");
+    const { get } = await import("@delebash/ui");
     expect(await chooserDir("import")).toBe("/data");
     expect(get).toHaveBeenCalledWith("/v1/health");
   });
 
   it("caches the health fetch across calls (one request per session)", async () => {
     const { serverDataDir } = await import("./chooserDirs.js");
-    const { get } = await import("@delebash/llm-ui");
+    const { get } = await import("@delebash/ui");
     expect(await serverDataDir()).toBe("/data");
     expect(await serverDataDir()).toBe("/data");
     expect(get).toHaveBeenCalledTimes(1);

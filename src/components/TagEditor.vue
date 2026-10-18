@@ -23,7 +23,7 @@
 // entity to keep the dropdown signal-only.
 
 import { ref, computed, nextTick } from "vue";
-import { Icon } from "@delebash/llm-ui";
+import { Icon } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

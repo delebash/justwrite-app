@@ -114,8 +114,8 @@ JustWrite is open source. The repository lives at **[github.com/delebash/justwri
 If you want to run from source instead of using a packaged installer:
 
 ```bash
-git clone https://github.com/delebash/just-llm-runner.git
-(cd just-llm-runner/server && npm install)
+git clone https://github.com/delebash/just-core.git
+(cd just-core/packages/core && npm install)
 git clone https://github.com/delebash/justwrite-app.git
 cd justwrite-app
 npm install
@@ -124,7 +124,7 @@ npm run dev
 
 You will need **[Node.js](https://nodejs.org/) 24 or newer** — nothing else. JustWrite is plain
 JavaScript: a desktop window (Electron), the Vue 3 interface, and a small local server that keeps
-your books. The shared AI kit (`just-llm-runner`) sits beside the app's folder, as above.
+your books. The shared AI kit (`just-core`) sits beside the app's folder, as above.
 
 Running from source keeps its data in the `data` folder inside the checkout.
 

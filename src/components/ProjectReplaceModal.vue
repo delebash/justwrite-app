@@ -9,11 +9,11 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import { scanScenes } from "../services/projectReplace.js";
-import { Icon } from "@delebash/llm-ui";
-import { AppModal } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { UiCheckbox } from "@delebash/llm-ui";
-import { UiInput } from "@delebash/llm-ui";
+import { Icon } from "@delebash/ui";
+import { AppModal } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
+import { UiCheckbox } from "@delebash/ui";
+import { UiInput } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

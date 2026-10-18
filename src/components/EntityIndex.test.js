@@ -23,7 +23,7 @@ import EntityIndex from "./EntityIndex.vue";
 import en from "../i18n/locales/en.json";
 import { i18n } from "../i18n/index.js";
 // Quasar installed as in the real app — the kit's controls are Quasar components
-import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
+import { createTestApp } from "@delebash/ui/quasar/install.js";
 
 let app;
 let host;

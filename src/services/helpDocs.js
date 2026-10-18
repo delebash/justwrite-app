@@ -9,7 +9,7 @@
 // and consumed by the marketing site, so this corpus and the website's
 // DocsLayout.astro share a single source of truth.
 
-import { makeDocsHelpAdapter } from "@delebash/llm-ui";
+import { makeDocsHelpAdapter } from "@delebash/ui";
 import HELP_TOC_DATA from "../../docs/toc.json";
 
 export const HELP_TOC = HELP_TOC_DATA;

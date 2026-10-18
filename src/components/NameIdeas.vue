@@ -12,7 +12,7 @@
 // Precedent: the Brainstorm page (the list) and the kit's UiMenu (a popup on Quasar's).
 import { ref } from "vue";
 import { QPopupProxy } from "quasar";
-import { AiTaskStrip, Icon, UiBanner, UiButton, useModalPopup } from "@delebash/llm-ui";
+import { AiTaskStrip, Icon, UiBanner, UiButton, useModalPopup } from "@delebash/ui";
 import { useBrainstorm } from "../composables/useBrainstorm.js";
 import BrainstormResults from "./BrainstormResults.vue";
 import { useI18n } from "vue-i18n";

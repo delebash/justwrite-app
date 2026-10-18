@@ -7,10 +7,10 @@
 // 10 GB card. The rule lives in the shared kit, which has no vitest harness, so JustWrite
 // exercises it via the alias subpath — the draftSelect/embedApi precedent.
 // The ladders' agreement with runner/hardware.py is pinned in the OTHER repo, where those
-// numbers change: just-llm-runner/tests/test_class_label_ladders.py.
+// numbers change: just-core/tests/test_class_label_ladders.py.
 import { describe, expect, it } from "vitest";
 
-import { bandOf, classKeyLabel, VRAM_BANDS } from "@delebash/llm-ui/classTunes.js";
+import { bandOf, classKeyLabel, VRAM_BANDS } from "@delebash/ui/classTunes.js";
 
 
 describe("classKeyLabel (the short form)", () => {

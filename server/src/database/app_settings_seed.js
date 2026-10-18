@@ -5,7 +5,7 @@
 // after a workspace reset (seedWorkspace), after a settings reset (DELETE /v1/settings), and
 // on the phone (createPhoneApp).
 
-import { pyJson } from "@delebash/llm-runner/platform/pyjson";
+import { pyJson } from "@delebash/core/platform/pyjson";
 import { pyLoads } from "../book_io.js";
 
 /** The `ai` settings section's seeded keys. `storyContextShare` (2026-10-11): the most of the

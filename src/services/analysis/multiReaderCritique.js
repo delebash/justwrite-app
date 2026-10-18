@@ -16,7 +16,7 @@
 //     generatedAt, model
 //   }
 
-import { withAiTask } from "@delebash/llm-ui";
+import { withAiTask } from "@delebash/ui";
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 import { t } from "../../i18n/index.js";

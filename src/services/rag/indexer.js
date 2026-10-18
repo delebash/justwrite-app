@@ -9,7 +9,7 @@
 
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
-import { friendlyAiError, embedTexts, ensureEmbeddingReady } from "@delebash/llm-ui";
+import { friendlyAiError, embedTexts, ensureEmbeddingReady } from "@delebash/ui";
 import { chunkProjectAsync } from "./chunker.js";
 import { clear, diff, putVectors, removeIds, shas, status } from "./vectorStore.js";
 import { t } from "../../i18n/index.js";

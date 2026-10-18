@@ -17,7 +17,7 @@
 // composition, not a reusable control, so it stays in JustWrite.
 
 import { ref, watch } from "vue";
-import { Icon, UiButton } from "@delebash/llm-ui";
+import { Icon, UiButton } from "@delebash/ui";
 
 const props = defineProps({
   title: { type: String, required: true },

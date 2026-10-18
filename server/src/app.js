@@ -8,7 +8,7 @@
 
 import { cpSync, existsSync, mkdtempSync, renameSync, rmSync, statSync } from "node:fs";
 import path from "node:path";
-import { installLlm, router as runnerRouter } from "@delebash/llm-runner";
+import { installLlm, runnerRouter } from "@delebash/core/llm";
 import {
   bearerAuth,
   createServer,
@@ -22,10 +22,10 @@ import {
   SHUTDOWN_PATH,
   serveStatic,
   starletteCors,
-} from "@delebash/llm-runner/platform";
-import { purePath } from "@delebash/llm-runner/platform/data_paths";
-import { getLogger } from "@delebash/llm-runner/platform/log";
-import { pyOr } from "@delebash/llm-runner/platform/py";
+} from "@delebash/core/platform";
+import { purePath } from "@delebash/core/platform/data_paths";
+import { getLogger } from "@delebash/core/platform/log";
+import { pyOr } from "@delebash/core/platform/py";
 import { router as autosaveRouter } from "#api/autosave_api";
 import { router as bookTransferRouter } from "./api/book_transfer_api.js";
 import { router as chatRouter } from "./api/chat_api.js";

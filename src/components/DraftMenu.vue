@@ -3,7 +3,7 @@
 // button; the page puts its items in the slot (a character: From a description, Fill from book;
 // a location, object or group: From a description). One component since 2026-10-16, when the
 // three sheet pages gained it beside the character page.
-import { Icon, UiMenu } from "@delebash/llm-ui";
+import { Icon, UiMenu } from "@delebash/ui";
 
 defineProps({
   // The button's tooltip.

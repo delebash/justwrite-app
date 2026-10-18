@@ -20,7 +20,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, PaneHeader, EmptyState, UiButton, pageFill, UiBanner } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, PaneHeader, EmptyState, UiButton, pageFill, UiBanner } from "@delebash/ui";
 import {
   scanReaderKnowledge,
   STATUS_LABEL_KEYS,
@@ -28,7 +28,7 @@ import {
 } from "../services/analysis/readerKnowledge.js";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
-import { relativeTime } from "@delebash/llm-ui";
+import { relativeTime } from "@delebash/ui";
 
 const { t } = useI18n();
 

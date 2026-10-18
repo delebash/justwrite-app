@@ -14,7 +14,7 @@ import en from "../i18n/locales/en.json";
 import { i18n } from "../i18n/index.js";
 
 const tasks = reactive({ runningTasks: [] });
-vi.mock("@delebash/llm-ui", async (importOriginal) => ({
+vi.mock("@delebash/ui", async (importOriginal) => ({
   ...(await importOriginal()),
   useAiTasksStore: () => tasks,
 }));
@@ -40,7 +40,7 @@ vi.mock("../services/analysis/characterDraft.js", () => ({
   draftSection: vi.fn(),
 }));
 
-const { createTestApp } = await import("@delebash/llm-ui/quasar/install.js");
+const { createTestApp } = await import("@delebash/ui/quasar/install.js");
 const { default: CharacterDraftModal } = await import("./CharacterDraftModal.vue");
 
 let app;

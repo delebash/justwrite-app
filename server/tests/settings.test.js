@@ -2,7 +2,7 @@
 // Port of tests/test_settings.py — /v1/settings, the renderer's preferences document (real
 // rows, not kv blobs).
 import { join } from "node:path";
-import { purePath } from "@delebash/llm-runner/platform/data_paths";
+import { purePath } from "@delebash/core/platform/data_paths";
 import { expect, test } from "vitest";
 import { client, tmpPath, useHermeticKit } from "./helpers.js";
 

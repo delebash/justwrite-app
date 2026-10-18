@@ -18,7 +18,7 @@
 // EXISTS but whose embed provider fails still errors loudly — that's a config
 // break the user must see, never silently downgraded.
 
-import { embedTexts, friendlyAiError, runAiFeatureStream } from "@delebash/llm-ui";
+import { embedTexts, friendlyAiError, runAiFeatureStream } from "@delebash/ui";
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
 import { buildEntityCards } from "./cards.js";

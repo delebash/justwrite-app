@@ -14,8 +14,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { refresh, taskFor } from "@delebash/llm-ui/composables/useRunnerModels.js";
-import { PHASE_KEYS, friendlyPhase } from "@delebash/llm-ui/common/services/loadPhases.js";
+import { refresh, taskFor } from "@delebash/ui/composables/useRunnerModels.js";
+import { PHASE_KEYS, friendlyPhase } from "@delebash/ui/common/services/loadPhases.js";
 
 function jsonOk(obj) {
   return {
@@ -125,7 +125,7 @@ describe("the ONE vocabulary (loadPhases.js)", () => {
     // vocabulary INDIRECTLY: it imports the factories from useDownloadTask.js,
     // which is the one module that imports loadPhases.js.
     const HERE = dirname(fileURLToPath(import.meta.url));
-    const KIT = resolve(HERE, "../../../just-llm-runner/ui/src");
+    const KIT = resolve(HERE, "../../../just-core/packages/ui/src");
     const qs = readFileSync(resolve(KIT, "views/QuickSetup.vue"), "utf8");
     expect(qs).not.toMatch(/const\s+PHASE_KEYS/);
     expect(qs).not.toMatch(/function\s+friendlyPhase/);

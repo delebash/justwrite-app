@@ -14,7 +14,7 @@
 // products and norms (BLAS summation order); here they are plain loops. Rankings are the
 // same unless two scores tie to within an ulp.
 
-import { pySorted } from "@delebash/llm-runner/platform/py";
+import { pySorted } from "@delebash/core/platform/py";
 
 export const K1 = 1.5;
 export const B = 0.75;

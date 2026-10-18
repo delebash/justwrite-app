@@ -2,7 +2,7 @@
 
 > **THIS is JustWrite's live tracker.** Since 2026-08-04 every repo carries its own
 > (the docs campaign; the rule: **an item lives where the code that closes it
-> lives**): kit + shared-server work → `../just-llm-runner/docs/dev/TASKS.md` ·
+> lives**): kit + shared-server work → `../just-core/docs/dev/TASKS.md` ·
 > JustVoice → `../JustVioce/docs/dev/TASKS.md` · this file = JustWrite + the
 > cross-app coordination items only. Unscheduled ideas live in `docs/dev/IDEAS.md`.
 >
@@ -20,7 +20,7 @@
 ## Every app and the kit on vue-i18n [2026-10-12]
 STATE:  DECIDED 2026-10-12, family-wide; building — the decision with the user's words is the kit's
         TASKS, "Every app and the kit on vue-i18n"; the plan is
-        `just-llm-runner/docs/plans/2026-10-12-i18n-standard.md` (Task 1 done 2026-10-12).
+        `just-core/docs/plans/2026-10-12-i18n-standard.md` (Task 1 done 2026-10-12).
 WHY:    JustWrite is the one app on vue-i18n, but the kit's screens inside it stay English except
         the labels feed's ~20 words, Quasar's own words never switch, and dates follow the browser.
 HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates and numbers, the
@@ -518,7 +518,7 @@ BUILT:  2026-10-09 — 14 routers, app.js, phone.js, sync.js, the error envelope
         on `app.request` (148/148); the phone versions by `server/package.json` `"imports"` (`#app_state`,
         `#api/autosave_api`, `#database/demo_seed`, `#editor/html`, `#sync_platform`); the phone bundle
         8.0 MB, checked in Chrome on `dist/spa-in-app` (the book, an image, an AI stream). The plan:
-        `../just-llm-runner/docs/plans/2026-10-09-hono-standard.md` §9.
+        `../just-core/docs/plans/2026-10-09-hono-standard.md` §9.
 OPEN:   nothing. (2026-10-09: the phone on Hono ran on the Android 16 emulator — the tutorial book,
         kept across a force-stop, an AI answer through native HTTP.)
 GO:     given 2026-10-09 (the kit's item).
@@ -571,7 +571,7 @@ STATE:  DECIDED 2026-10-05, 2026-10-07 and 2026-10-08 — every ruling, as shown
         JustVoice's TASKS, "The family moves to Electron and a Node server; Tauri and Python go"
         (the decision lives with the plan, §6 is this repo's step). This item is a pointer only.
 BUILT:  2026-10-08, under the user's go "do it all … finsih the conversion your rec on all go!":
-        the server in JavaScript (`server/src/`, mounting the kit's `@delebash/llm-runner`), the
+        the server in JavaScript (`server/src/`, mounting the kit's `@delebash/core`), the
         shell (`electron/main.js` on the kit's `runDesktopApp`, the 400 ms close hold), `native.js`
         on the `window.appShell` bridge (About now names Electron's version), the e2e on
         Playwright's Electron driver, `npm run smoke` and the bench on the Node server, the
@@ -630,7 +630,7 @@ STATE:  DECIDED 2026-10-08 (after the test) — the user: "i stopped the electro
         entry; the test builds the Quasar and Element Plus versions against it.
 WHY:    one framework for desktop and phones without Material; the question is whether a
         library's components follow the kit's appearance engine
-        (`../just-llm-runner/ui/src/common/services/appearance.js`, live CSS variables).
+        (`../just-core/packages/ui/src/common/services/appearance.js`, live CSS variables).
 NOT:    Vue Lynx (native views, not DOM — TipTap can't run; pre-alpha) · PrimeVue 5 (a commercial
         PrimeUI licence with a key since 5.x; 4.5.5 was the last MIT) · Vuetify (Material) · back
         to Tauri (rejected 2026-10-05; a Node sidecar ships node.exe, 103 MB).
@@ -761,7 +761,7 @@ STATE:  DECIDED 2026-10-08, step by step (the record, with every option shown, i
            workflow is not decided.)
            Then: "give me a summary of the ways we can sync and basics of how it works and is
            setup, then complete the design and code it all". The design is
-           `../just-llm-runner/docs/plans/2026-10-08-sync-product-design.md`.
+           `../just-core/docs/plans/2026-10-08-sync-product-design.md`.
         8. DECIDED 2026-10-08 (after Settings → Sync was built) — the user: "your rec all go", on
            these as shown: "3. Phone scope: which JustWrite features run on the phone? A phone
            can't run the local AI engine, the search index or the file autosave. Lean: the book,
@@ -771,7 +771,7 @@ STATE:  DECIDED 2026-10-08, step by step (the record, with every option shown, i
            now (adding it to the family list would fail JustVoice's and docgen's tests)." So: the
            phone runs the book, its images and versions, sync, and online AI providers; the four
            choices stand.
-        9. DECIDED 2026-10-08 (the phone's plan, `../just-llm-runner/docs/plans/2026-10-08-the-phone.md`)
+        9. DECIDED 2026-10-08 (the phone's plan, `../just-core/docs/plans/2026-10-08-the-phone.md`)
            — the user: "keep going using yo9ur recs, think on your recs twice do it unitl the whole conversions is complete including the move to quasar dont stop", then "go". So the plan's leans stand, two of them changed on the second
            think: images are stored in scenes by id; the worker's DOM for scene merges is
            linkedom; AI calls go DIRECT from the worker (they stream) and fall back to native HTTP
@@ -814,7 +814,7 @@ BUILT:  2026-10-08, under "just-sqlite-sync you have a go on it all your recs co
         Earlier the same day: round 2 (the design doc's "Round 2"); the Android SDK at
         `E:\Android\Sdk` (AVD `jvtest`), `E:\Android\jdk-21` → Visual Studio's JDK 21.
 BUILT:  2026-10-08, on branch `quasar` (the Quasar item above): Settings → Sync — the kit's
-        `SyncPanel` (`../just-llm-runner/ui/src/components/SyncPanel.vue`, imported by path; it
+        `SyncPanel` (`../just-core/packages/ui/src/components/SyncPanel.vue`, imported by path; it
         needs `qrcode`, MIT): the status ("Synced 2 min ago · from …", Sync now), this device's
         name and how often it syncs, "Let my other devices connect" and the pairing code (a QR code
         plus copyable text), pairing with a code, the cloud folder (a note when it already holds
@@ -989,7 +989,7 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   the big-batch build record shows the accent nav row SHIPPED, probe-measured; the
   old "design call remains" line was stale. Batches 4-6 have nothing left open.)
 - **Big-batch residuals — your words owed** [extracted from the archived
-  `just-llm-runner/docs/plans/archive/2026-07-08-big-batch-queue.md`]: the §7.1
+  `just-core/docs/plans/archive/2026-07-08-big-batch-queue.md`]: the §7.1
   sub-questions (a) blast-radius confirm named-vs-generic (shipped as NAMED per the
   rec — one line changes it) · (b) the Apply verb/label · (c) the help-popover copy
   (built as a lede; the popover awaits the copy) · (d) provenance-badge wording ·
@@ -1102,7 +1102,7 @@ JV as of 2026-08-04; the convergence scope itself stands.)*
   failure (now self-reporting) · marketing screenshots · full RAG end-to-end + router-flag
   confirm · Windows AMD/Intel detection spot-check. Ledger §G.
 - **Providers-surface rounds 9–19** — the per-round box checks.
-  `just-llm-runner/docs/plans/archive/2026-07-06-providers-surface-redesign.md`.
+  `just-core/docs/plans/archive/2026-07-06-providers-surface-redesign.md`.
 
 ## Standing rulings (constraints, not tasks — they gate future work)
 
@@ -1148,14 +1148,14 @@ JV as of 2026-08-04; the convergence scope itself stands.)*
 
 *(Moved 2026-08-04 by the placement rule — runner-owned parked items (D5 · D6 · I3 ·
 the `--fit`/MTP upstream WATCH · the Harrier/KaLM model watchlist · the LICENCE flag ·
-the SDK-pivot re-open trigger) → `../just-llm-runner/docs/dev/TASKS.md`; JV-owned
+the SDK-pivot re-open trigger) → `../just-core/docs/dev/TASKS.md`; JV-owned
 (F3 · I6) → `../JustVioce/docs/dev/TASKS.md`.)*
 
 ## Fit redesign (family, runner-owned) — JW impact
 
-Tracked in `../just-llm-runner/docs/dev/TASKS.md` (THE resume surface — its fit
+Tracked in `../just-core/docs/dev/TASKS.md` (THE resume surface — its fit
 item now opens with a STATUS-NOW block; read that first); full plan
-`../just-llm-runner/docs/plans/2026-08-09-fit-redesign.md` (consensus 2026-08-13,
+`../just-core/docs/plans/2026-08-09-fit-redesign.md` (consensus 2026-08-13,
 amendments §13, ALL rulings §8.17–23a). JW-SIDE STATE — the redesign's BUILD
 PHASES ARE COMPLETE (0–7, all BUILT + GATED + PUSHED 2026-08-13; the standing
 fit-architecture story is the kit's `docs/dev/serving-design.md` fit section).

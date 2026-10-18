@@ -4,8 +4,8 @@
 // in keep the originals' names and answers. (The bundle itself — Hono in a web worker on
 // SQLite WASM — is run in a browser by the phone checks, not here: this is the same app on Node.)
 import { join } from "node:path";
-import { openDatabase } from "@delebash/llm-runner/platform/sql";
-import { createServer } from "@delebash/llm-runner/platform/server";
+import { openDatabase } from "@delebash/core/platform/sql";
+import { createServer } from "@delebash/core/platform/server";
 import { expect, test } from "vitest";
 import * as demoTwin from "../src/database/demo_seed.phone.js";
 import * as demo from "../src/database/demo_seed.js";

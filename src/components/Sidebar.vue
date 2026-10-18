@@ -4,13 +4,13 @@ import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
-import { promptDialog, confirmDialog, relativeTime, useAiTasksNav } from "@delebash/llm-ui";
+import { promptDialog, confirmDialog, relativeTime, useAiTasksNav } from "@delebash/ui";
 import { promptNewProject, openTutorialProject } from "../services/projectStart.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
-import { Icon } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { UiInput } from "@delebash/llm-ui";
+import { Icon } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
+import { UiInput } from "@delebash/ui";
 import { useRovingTabindexMap } from "@renderer/composables/useRovingTabindexMap.js";
 
 // The layout's drawer (layouts/MainLayout.vue) mounts this twice: its default slot the full

@@ -11,7 +11,7 @@
 // but `sk-` is the OpenAI key prefix — misleading for Anthropic/Gemini/DeepSeek/etc.
 // The hint is removed (user: "sk is misleading as that is only openai, just remove").
 //
-// WHY A SOURCE-READING TEST: these are kit SFCs (@delebash/llm-ui) — build:spa
+// WHY A SOURCE-READING TEST: these are kit SFCs (@delebash/ui) — build:spa
 // compiles without resolving that a toast call is present on the success path, and
 // biome doesn't read .vue identifiers. The precedent is chipPopoverStacking.test.js
 // next door (the kit has no harness of its own; JW's is where kit components get
@@ -24,7 +24,7 @@ import { fileURLToPath } from "node:url";
 const HERE = dirname(fileURLToPath(import.meta.url));
 // …/justwrite-app/src/components → …/Web, then into the kit —
 // the same repo-to-kit relationship vitest.config.js's alias encodes.
-const KIT = resolve(HERE, "../../../just-llm-runner/ui/src");
+const KIT = resolve(HERE, "../../../just-core/packages/ui/src");
 
 function readKit(rel) {
   const path = resolve(KIT, rel);

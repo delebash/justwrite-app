@@ -4,7 +4,7 @@
 // makes goes there through the kit's transport (`setServerTransport(workerFetch(worker))`); what
 // the server asks of the window (its device id, the storage guard's files) is answered from
 // plugins.js. Part of `#phone` (index.js).
-import { answerWorkerCalls, setServerTransport, workerFetch } from "@delebash/llm-ui";
+import { answerWorkerCalls, setServerTransport, workerFetch } from "@delebash/ui";
 import { workerCalls } from "./plugins.js";
 // The worker ships as built (`?url`: no second bundling — it is complete), SQLite's .wasm beside
 // it under its own name, handed to the worker in its address.

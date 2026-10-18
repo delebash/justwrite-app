@@ -8,8 +8,8 @@
 // mocked.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { request } from "@delebash/llm-ui/client.js";
-import { resolvedSourceLabel, useResolvedRoute } from "@delebash/llm-ui/composables/useResolvedRoute.js";
+import { request } from "@delebash/ui/client.js";
+import { resolvedSourceLabel, useResolvedRoute } from "@delebash/ui/composables/useResolvedRoute.js";
 
 function jsonResponse(obj) {
   return {

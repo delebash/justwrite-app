@@ -34,9 +34,9 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import AppModal from "@delebash/llm-ui/common/components/AppModal.vue";
+import AppModal from "@delebash/ui/common/components/AppModal.vue";
 // Quasar installed as in the real app — the kit's controls are Quasar components
-import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
+import { createTestApp } from "@delebash/ui/quasar/install.js";
 // JustWrite's real vue-i18n instance (the kit's catalog plus JustWrite's), installed as the app does.
 import { i18n } from "../i18n/index.js";
 
@@ -45,7 +45,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 // Same repo-to-kit relationship vitest.config.js's alias encodes; if one moves, so does
 // the other. (Identical to chipPopoverStacking.test.js — deliberately, so a kit move
 // breaks both loudly rather than one silently.)
-const KIT = resolve(HERE, "../../../just-llm-runner/ui/src");
+const KIT = resolve(HERE, "../../../just-core/packages/ui/src");
 
 function readKit(rel) {
   const path = resolve(KIT, rel);

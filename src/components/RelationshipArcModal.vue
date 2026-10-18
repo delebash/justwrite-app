@@ -19,11 +19,11 @@ import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiSelect, UiInput, UiTextarea, UiBanner } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiSelect, UiInput, UiTextarea, UiBanner } from "@delebash/ui";
 import { analyseRelationship, pairKey, TRAJECTORY_LABEL_KEYS } from "../services/analysis/relationshipArc.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
-import { relativeTime } from "@delebash/llm-ui";
+import { relativeTime } from "@delebash/ui";
 
 const { t } = useI18n();
 

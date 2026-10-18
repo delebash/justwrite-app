@@ -7,7 +7,7 @@
 // the kit barrel would drag styles.css into the test environment.
 import { describe, expect, it } from "vitest";
 
-import { SETTINGS_SECTION_ORDER } from "../../../just-llm-runner/ui/src/common/familyContract.js";
+import { SETTINGS_SECTION_ORDER } from "../../../just-core/packages/ui/src/common/familyContract.js";
 import { SETTINGS_SECTION_IDS } from "./settingsSections.js";
 
 describe("settings canon — section order", () => {

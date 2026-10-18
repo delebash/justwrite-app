@@ -16,15 +16,15 @@ jobs:
     timeout-minutes: 75
     steps:
       # The app needs the family kit and the sync engine beside it (server/package.json:
-      # file:../../just-llm-runner/server and file:../../just-sqlite-sync; quasar.config.js:
-      # ../just-llm-runner/ui), so all three are checked out side by side.
+      # file:../../just-core/packages/core and file:../../just-sqlite-sync; quasar.config.js:
+      # ../just-core/packages/ui), so all three are checked out side by side.
       - uses: actions/checkout@v4
         with:
           path: justwrite-app
       - uses: actions/checkout@v4
         with:
-          repository: delebash/just-llm-runner
-          path: just-llm-runner
+          repository: delebash/just-core
+          path: just-core
       - uses: actions/checkout@v4
         with:
           repository: delebash/just-sqlite-sync
@@ -37,11 +37,11 @@ jobs:
             justwrite-app/package-lock.json
             justwrite-app/src-capacitor/package-lock.json
             justwrite-app/e2e/package-lock.json
-            just-llm-runner/server/package-lock.json
+            just-core/packages/core/package-lock.json
             just-sqlite-sync/package-lock.json
       - name: Install
         run: |
-          (cd just-llm-runner/server && npm ci)
+          (cd just-core/packages/core && npm ci)
           (cd just-sqlite-sync && npm ci --omit=dev)
           (cd justwrite-app && npm ci)
           (cd justwrite-app/src-capacitor && npm ci)

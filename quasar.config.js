@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // JustWrite's ONE build config (Quasar CLI, app-structure §Q) — the renderer for every mode, the
 // desktop app (Electron mode on the kit's runDesktopApp) and the phone app (Capacitor mode).
-// Written from the family template (../just-llm-runner/template/quasar.config.js); what differs
+// Written from the family template (../just-core/template/quasar.config.js); what differs
 // is JustWrite's: the kit UI alias, the dev port, the installer's settings.
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
@@ -16,7 +16,7 @@ import { defineConfig } from '#q-app'
 delete process.env.npm_config_allow_scripts
 
 const root = import.meta.dirname
-const kitUi = path.resolve(root, '../just-llm-runner/ui')
+const kitUi = path.resolve(root, '../just-core/packages/ui')
 // The package.json version, for the "What's new" modal's dismissal pin.
 const version = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8')).version
 
@@ -48,9 +48,9 @@ export default defineConfig((ctx) => {
     css: [
       'fonts.css',
       'tokens.css',
-      '~@delebash/llm-ui/styles.css',
-      '~@delebash/llm-ui/common/styles.css',
-      '~@delebash/llm-ui/quasar/theme.css',
+      '~@delebash/ui/styles.css',
+      '~@delebash/ui/common/styles.css',
+      '~@delebash/ui/quasar/theme.css',
       'app.scss',
     ],
 
@@ -66,7 +66,7 @@ export default defineConfig((ctx) => {
       alias: {
         '@renderer': path.join(root, 'src'),
         // The kit's UI, consumed from source (the sibling checkout) for the dev/HMR loop.
-        '@delebash/llm-ui': path.join(kitUi, 'src'),
+        '@delebash/ui': path.join(kitUi, 'src'),
         // The phone's pieces (its in-app server, the share sheet, the code scanner); null on a
         // computer.
         '#phone': path.join(root, 'src', 'phone', inAppServer ? 'index.js' : 'none.js'),
@@ -175,7 +175,7 @@ export default defineConfig((ctx) => {
           oneClick: false,
           perMachine: false,
           allowToChangeInstallationDirectory: true,
-          include: path.resolve(root, '../just-llm-runner/server/src/shell/installer.nsh')
+          include: path.resolve(root, '../just-core/packages/core/src/shell/installer.nsh')
         },
         electronFuses: {
           runAsNode: true,

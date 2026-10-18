@@ -14,7 +14,7 @@ import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiSelect, UiBanner } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiSelect, UiBanner } from "@delebash/ui";
 import {
   mapToBeatSheet,
   BEAT_TEMPLATES,
@@ -22,7 +22,7 @@ import {
 } from "../services/analysis/beatSheet.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
-import { relativeTime } from "@delebash/llm-ui";
+import { relativeTime } from "@delebash/ui";
 
 const { t } = useI18n();
 

@@ -315,7 +315,7 @@ try {
       // the raw-object reactivity bug was pinned down when this probe was born).
       const tasks = await page.evaluate(async () => {
         try {
-          const kit = await import("/@id/@delebash/llm-ui");
+          const kit = await import("/@id/@delebash/ui");
           const s = kit.useAiTasksStore();
           return {
             running: s.order.map((id) => ({ f: s.tasks[id]?.feature, st: s.tasks[id]?.status })),

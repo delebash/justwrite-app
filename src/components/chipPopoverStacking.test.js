@@ -22,7 +22,7 @@
 // So we read the two literals from the kit's own sources and compare them.
 //
 // The kit has no test harness of its own (no vitest config, no test files under
-// just-llm-runner/ui) — JW's is where kit components get tested, the precedent being
+// just-core/packages/ui) — JW's is where kit components get tested, the precedent being
 // LuFeatureChip.save.test.js next door. NOTE the asymmetry: JustVoice consumes the same
 // kit and gets no guard from this.
 import { describe, expect, it } from "vitest";
@@ -33,8 +33,8 @@ import { fileURLToPath } from "node:url";
 const HERE = dirname(fileURLToPath(import.meta.url));
 // …/justwrite-app/src/components → …/Web, then into the kit.
 // Same repo-to-kit relationship vitest.config.js's alias encodes as
-// `resolve(__dirname, "../just-llm-runner/ui/src")`; if one moves, so does the other.
-const KIT = resolve(HERE, "../../../just-llm-runner/ui/src");
+// `resolve(__dirname, "../just-core/packages/ui/src")`; if one moves, so does the other.
+const KIT = resolve(HERE, "../../../just-core/packages/ui/src");
 
 function readKit(rel) {
   const path = resolve(KIT, rel);

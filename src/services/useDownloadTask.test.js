@@ -6,7 +6,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { watch } from "vue";
 
-import { createDownloadTask } from "@delebash/llm-ui/composables/useDownloadTask.js";
+import { createDownloadTask } from "@delebash/ui/composables/useDownloadTask.js";
 
 const MB = 1024 * 1024;
 const noop = async () => {};
@@ -171,7 +171,7 @@ describe("createDownloadTask", () => {
 import {
   engineInstallChannel, modelDownloadChannel, modelLoadChannel,
   readDownloadStatus, readEngineStatus, readLoadStatus,
-} from "@delebash/llm-ui/composables/useDownloadTask.js";
+} from "@delebash/ui/composables/useDownloadTask.js";
 
 describe("shared channel read-mappers", () => {
   it("engine: installed → done; error → error; else progress", () => {

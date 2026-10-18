@@ -9,7 +9,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { betterSqlite3Adapter, decodeFile, encodeFile, openSync } from "@delebash/sqlite-sync";
-import { openDatabase } from "@delebash/llm-runner/platform";
+import { openDatabase } from "@delebash/core/platform";
 import { expect, test } from "vitest";
 import * as Y from "yjs";
 import { TABLES } from "../src/database/models.js";

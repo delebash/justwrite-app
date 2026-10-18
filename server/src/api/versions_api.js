@@ -7,10 +7,10 @@
 // restore-undo), so PUT is a delete-all-then-insert for that (project, chapter) — the same
 // shape as chat sessions. project_id FKs projects, so deleting a book cascades its versions.
 
-import { opt, T } from "@delebash/llm-runner/platform/models";
-import { pyOr } from "@delebash/llm-runner/platform/py";
-import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { Hono, input } from "@delebash/llm-runner/platform/server";
+import { opt, T } from "@delebash/core/platform/models";
+import { pyOr } from "@delebash/core/platform/py";
+import { pyJson } from "@delebash/core/platform/pyjson";
+import { Hono, input } from "@delebash/core/platform/server";
 import { setdefault } from "../book_io.js";
 import { getDb } from "../database/session.js";
 

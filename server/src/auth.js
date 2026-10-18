@@ -7,8 +7,8 @@
 // config — the `auth` row of the settings document (`{ tokens: [...], requireForLoopback:
 // bool }`), read per /v1 request so a change applies live.
 
-import { getLogger } from "@delebash/llm-runner/platform/log";
-import { pyIter, pyOr, truthy } from "@delebash/llm-runner/platform/py";
+import { getLogger } from "@delebash/core/platform/log";
+import { pyIter, pyOr, truthy } from "@delebash/core/platform/py";
 import { pyGet, pyLoads } from "./book_io.js";
 import { state } from "./database/session.js";
 

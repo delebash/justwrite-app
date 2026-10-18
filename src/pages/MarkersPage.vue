@@ -16,11 +16,11 @@ import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { MARKER_CATEGORIES, categoryById, scanProjectMarkers, removeMarkerFromHtml } from "justwrite-server/editor/markers.js";
-import { Icon, pageFill } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
+import { Icon, pageFill } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
 import ForeshadowingScanModal from "../components/ForeshadowingScanModal.vue";
 import AiTellScanModal from "../components/AiTellScanModal.vue";
-import { PaneHeader } from "@delebash/llm-ui";
+import { PaneHeader } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

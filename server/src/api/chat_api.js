@@ -17,11 +17,11 @@
 // real content, so this DATA lift is explicit and idempotent.)
 
 import { randomBytes } from "node:crypto";
-import { HttpError } from "@delebash/llm-runner/platform/errors";
-import { nullable, opt, T } from "@delebash/llm-runner/platform/models";
-import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { pyOr, splitWs, strip, truthy } from "@delebash/llm-runner/platform/py";
-import { Hono, input } from "@delebash/llm-runner/platform/server";
+import { HttpError } from "@delebash/core/platform/errors";
+import { nullable, opt, T } from "@delebash/core/platform/models";
+import { pyJson } from "@delebash/core/platform/pyjson";
+import { pyOr, splitWs, strip, truthy } from "@delebash/core/platform/py";
+import { Hono, input } from "@delebash/core/platform/server";
 import { getDb } from "../database/session.js";
 
 // Per-session message cap — long threads waste storage and the model already truncates

@@ -5,7 +5,7 @@
 // fetch is stubbed so the engine status / install / load POSTs are observable.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { retryLoad, useRunnerModels } from "@delebash/llm-ui/composables/useRunnerModels.js";
+import { retryLoad, useRunnerModels } from "@delebash/ui/composables/useRunnerModels.js";
 
 function jsonOk(obj) {
   return {

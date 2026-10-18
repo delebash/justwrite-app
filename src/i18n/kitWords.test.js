@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// The kit's words through vue-i18n (just-llm-runner/docs/plans/2026-10-12-i18n-standard.md, Task 1):
+// The kit's words through vue-i18n (just-core/docs/plans/2026-10-12-i18n-standard.md, Task 1):
 // a kit component reads its `kit.*` keys from the app's instance in the app's language and follows
 // a switch live; an app's own `kit.*` key rewords the kit's; a language the kit has no catalog for
 // falls back to English, never a raw key; kit code outside a component (kitT) answers in English
@@ -9,10 +9,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { h, nextTick } from "vue";
 import { createI18n } from "vue-i18n";
 
-import { kitLocale, kitT, setKitI18n } from "../../../just-llm-runner/ui/src/common/services/kitI18n.js";
-import { kitMessages } from "../../../just-llm-runner/ui/src/i18n/index.js";
-import DownloadBar from "@delebash/llm-ui/common/components/DownloadBar.vue";
-import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
+import { kitLocale, kitT, setKitI18n } from "../../../just-core/packages/ui/src/common/services/kitI18n.js";
+import { kitMessages } from "../../../just-core/packages/ui/src/i18n/index.js";
+import DownloadBar from "@delebash/ui/common/components/DownloadBar.vue";
+import { createTestApp } from "@delebash/ui/quasar/install.js";
 import { i18n as jwI18n } from "./index.js";
 
 const KIT = kitMessages();

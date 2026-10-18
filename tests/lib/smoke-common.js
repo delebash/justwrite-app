@@ -3,7 +3,7 @@
 // (`bench/harness/`), the flow tests (`tests/flows/`).
 //
 // This file is JustWrite's DOOR to the family implementation in
-// `../just-llm-runner/scripts/lib/exec-resolve.js` (target-tree P7): it binds
+// `../just-core/scripts/lib/exec-resolve.js` (target-tree P7): it binds
 // JW's env override (JW_CHROME) and re-exports the helpers. Import from HERE;
 // never re-fork.
 //
@@ -19,7 +19,7 @@ import {
   isUp,
   sleep,
   waitReady,
-} from "../../../just-llm-runner/scripts/lib/exec-resolve.js";
+} from "../../../just-core/scripts/lib/exec-resolve.js";
 
 /** Path to a usable Chromium executable, or `undefined` (a SUCCESS value —
  *  Playwright then resolves from its own registry). `JW_CHROME` overrides. */
@@ -31,4 +31,4 @@ export const chromeLaunchOptions = () => kitChromeLaunchOptions({ env: "JW_CHROM
 export { isUp, sleep, waitReady };
 
 /** The kit's AI calls answered by the test (its ai-stub.js): `stubAi(page, (body) => reply)`. */
-export { stubAi } from "../../../just-llm-runner/scripts/lib/ai-stub.js";
+export { stubAi } from "../../../just-core/scripts/lib/ai-stub.js";

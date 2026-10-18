@@ -11,8 +11,8 @@
 // (POST /v1/projects/demo → the helper below). The old `demoSeeded` gate flag is no longer
 // written; existing DBs keep the inert row.
 
-import { loadFromConfigs, seedLlm, stores } from "@delebash/llm-runner/llm";
-import { getLogger } from "@delebash/llm-runner/platform/log";
+import { loadFromConfigs, seedLlm, stores } from "@delebash/core/llm";
+import { getLogger } from "@delebash/core/platform/log";
 import { seedAppSettings } from "./app_settings_seed.js";
 import { state } from "./session.js";
 

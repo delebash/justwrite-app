@@ -1,8 +1,8 @@
 # IDEAS — the master backlog (whole system)
 
 The **one** place to drop ideas that aren't yet scheduled work, across the system we
-work as a whole — **JustWrite**, the shared **AI stack** (`just-llm-runner` +
-`@delebash/llm-ui`), and **JustVoice**. Not a plan, not a spec — a holding pen so
+work as a whole — **JustWrite**, the shared **AI stack** (`just-core` +
+`@delebash/ui`), and **JustVoice**. Not a plan, not a spec — a holding pen so
 nothing good gets lost. Committed work lives in `docs/dev/TASKS.md`; when an idea is
 picked up it graduates to a `docs/plans/*` doc and gets a link here (or is struck
 through).
@@ -109,7 +109,7 @@ ternary 8B might fit the 8/16 GB classes outright. Full flag extraction: the rec
 **Trigger to promote:** the CUDA PR merges into a release we can pin **and** first
 independent evals appear → a 2070S **Lab A/B vs 26B-A4B** (the catalog's
 evidence-not-press-release law), plus a watch row in
-`just-llm-runner/docs/llama-cpp-watch.md`. *(from the 2026-07-19 LocalProse-comparison
+`just-core/docs/llama-cpp-watch.md`. *(from the 2026-07-19 LocalProse-comparison
 review.)*
 
 ### Single-source text system: docs → help/labels → translation (2026-07-19)

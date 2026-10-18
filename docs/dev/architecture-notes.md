@@ -7,7 +7,7 @@ per-task history lives in `docs/plans/*`.
 ## Layout
 
 - A Quasar app (the family layout, the kit's `docs/app-structure.md` §Q, since 2026-10-08): `quasar.config.js` is the one build config; the Vue 3 + Pinia renderer lives in `src/`, laid out as Quasar's CLI creates a project (since 2026-10-09): boot files `src/boot/i18n.js` and `src/boot/jw.js` (no `main.js`), `src/App.vue` a bare `<router-view>`, the chrome `src/layouts/MainLayout.vue` (Quasar's q-layout: the title bar in its header, the sidebar as its drawer — Quasar's mobile drawer at phone width), the screens `src/pages/` (each a q-page as tall as the window under the header, `pageFill` from the kit), the stylesheets `src/css/`.
-- `src-electron/electron-main.js` — the desktop app (Quasar's Electron mode): the kit's shared Electron main module (`runDesktopApp` from `@delebash/llm-runner/shell`) with this app's settings (id `justwrite`, port 17495, the 400 ms close hold). No logic lives there. It replaced `src-tauri/` on 2026-10-08, then `electron/main.js` with the Quasar move. `src-capacitor/` is the phone app (Quasar's Capacitor mode).
+- `src-electron/electron-main.js` — the desktop app (Quasar's Electron mode): the kit's shared Electron main module (`runDesktopApp` from `@delebash/core/shell`) with this app's settings (id `justwrite`, port 17495, the 400 ms close hold). No logic lives there. It replaced `src-tauri/` on 2026-10-08, then `electron/main.js` with the Quasar move. `src-capacitor/` is the phone app (Quasar's Capacitor mode).
 - `server/` — the server, its own package (`justwrite-server`, an npm workspace; the desktop app installs it): `src/` (Node, Hono, SQLite through the kit's SQL helper; `serve.js` is the entry; `editor/` the editor schema the renderer imports as `justwrite-server/editor/…`), `samples/` (the bundled tutorial book). It replaced the Python `server/justwrite_server/` the same day — a port with the same routes and database, checked by a route diff against the Python server.
 - `dist/` — Quasar's output: `dist/spa/` (the browser build the headless server serves at `/`), `dist/electron/` (`UnPackaged/` and the installer in `Packaged/`; the window loads the UI from `app://justwrite`).
 
@@ -111,11 +111,11 @@ identical. Otherwise a ⌘Z revert under an open editor re-records and clears th
 ## AI providers — current state
 
 **The legacy gateway is GONE.** This was once documented as current and misled an audit
-(corrected 2026-07-06). ALL LLM traffic goes through the shared `just-llm-runner` dispatch mounted
+(corrected 2026-07-06). ALL LLM traffic goes through the shared `just-core` dispatch mounted
 by `installLlm` on the server (`server/src/app.js`):
 
-- feature runs and streaming via `/v1/ai/run` and `/v1/ai/stream`, called through the kit's `runAiFeature` / `runAiFeatureStream` (`@delebash/llm-ui`; JW's old local `services/aiFeature.js` and `aiErrors.js` moved into the kit 2026-07-06, Decision 22), consumed by `services/writerAI.js`, `services/analysis/*` and `services/rag/*`;
-- embeddings via `/v1/ai/embeddings` through the kit's `embedTexts` / `ensureEmbeddingReady` (JW's `services/embedApi.js` moved into the kit at C5, 2026-07-06; `services/rag/*` import from `@delebash/llm-ui`);
+- feature runs and streaming via `/v1/ai/run` and `/v1/ai/stream`, called through the kit's `runAiFeature` / `runAiFeatureStream` (`@delebash/ui`; JW's old local `services/aiFeature.js` and `aiErrors.js` moved into the kit 2026-07-06, Decision 22), consumed by `services/writerAI.js`, `services/analysis/*` and `services/rag/*`;
+- embeddings via `/v1/ai/embeddings` through the kit's `embedTexts` / `ensureEmbeddingReady` (JW's `services/embedApi.js` moved into the kit at C5, 2026-07-06; `services/rag/*` import from `@delebash/ui`);
 - routing via `/v1/ai/routing` (`services/routingBackend.js` — JW's read-only pre-mount boot cache);
 - the provider LIST via `services/providerBackend.js` (read-only boot cache; provider CRUD lives in the kit's AiModelsArea → ProviderForm).
 
@@ -127,10 +127,10 @@ AI routing is **one-source** (2026-07-15): each action points at ONE engine pres
 (`feature_preset_refs`, seeded full) which owns the model and every tunable including
 think/reasoning; the action keeps only its prompt text and JSON contract; one `default_preset_id`
 RunnerSetting catches unassigned customs. The current model lives in
-`just-llm-runner/docs/plans/archive/2026-07-15-preset-one-source-rewrite.md`. The 2026-07-14 plan's Unit-2
+`just-core/docs/plans/archive/2026-07-15-preset-one-source-rewrite.md`. The 2026-07-14 plan's Unit-2
 reasoning BACKEND stands; its task-tier language is superseded. The whole-system open-work tracker
 is `docs/dev/TASKS.md`, which points at
-`just-llm-runner/docs/plans/archive/2026-07-06-outstanding-master-plan.md` (§A–J) for detail.
+`just-core/docs/plans/archive/2026-07-06-outstanding-master-plan.md` (§A–J) for detail.
 
 ## Manuscript export
 
@@ -189,8 +189,8 @@ Rules when adding or converting a string:
 - **A table of shown words names its keys** (`labelKey`), translated where it renders: an UPPER_CASE table (`MODE_OPTIONS`, `PROSE_RULES`) is invisible to the script-string lint, so English left in one is never flagged.
 - **An English prop default is a key fallback inside the component** (`placeholder || t("…")`), never a literal default.
 - **Time-ago labels are the kit's `relativeTime`** (`Intl.RelativeTimeFormat` in the app's language), never a hand-built "5m ago".
-- **The kit's words are the kit's catalog** (`kit.*` keys, `just-llm-runner/ui/src/i18n/locales/`; the
-  plan `just-llm-runner/docs/plans/2026-10-12-i18n-standard.md`). `i18n/index.js` starts the instance from
+- **The kit's words are the kit's catalog** (`kit.*` keys, `just-core/packages/ui/src/i18n/locales/`; the
+  plan `just-core/docs/plans/2026-10-12-i18n-standard.md`). `i18n/index.js` starts the instance from
   `kitMessages()` and merges `locales/*.json` over it, so the family's shared words — the sidebar trio,
   the shared Settings sections, the storage rows — are `$t("kit.…")` here, never a second JustWrite key;
   a `kit.*` key in `en.json` would reword the kit's. `i18n:report` reads both catalogs and leaves the
@@ -215,7 +215,7 @@ folder leaves the app building and running in every language it has.
 
 The gates (2026-10-08, after the move to Node): renderer vitest, `build:spa`, the server's vitest
 (`npm run test:server`, about 10 s on Electron's Node), the kit's own suite
-(`cd ../just-llm-runner/server && npm test`), the headless smoke (`npm run smoke`) and the e2e over
+(`cd ../just-core/packages/core && npm test`), the headless smoke (`npm run smoke`) and the e2e over
 the desktop app (`npm test`). Tests were never the bottleneck; don't skip them.
 
 Harnesses in the repo:

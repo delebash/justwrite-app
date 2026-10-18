@@ -22,7 +22,7 @@
 
 import { computed, onMounted, ref } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { AppModal, Icon, UiButton, UiCheckbox, UiTextarea, friendlyAiError } from "@delebash/llm-ui";
+import { AppModal, Icon, UiButton, UiCheckbox, UiTextarea, friendlyAiError } from "@delebash/ui";
 import {
   profileFromBook, voiceFromBook,
   profileFieldDefs, voiceFieldDefs, draftRows, emptyOnlyPicks, applyProfileDrafts,

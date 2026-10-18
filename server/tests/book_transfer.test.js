@@ -10,7 +10,7 @@
 // latin-1 (Python's export failed it with a 500; fixed 2026-10-08).
 import { randomBytes } from "node:crypto";
 import { expect, test } from "vitest";
-import { ZipReader, ZipWriter } from "@delebash/llm-runner/platform/zip";
+import { ZipReader, ZipWriter } from "@delebash/core/platform/zip";
 import { client, tmpPath, useHermeticKit } from "./helpers.js";
 
 useHermeticKit();

@@ -28,7 +28,7 @@ page.on("response", (r) => { if (r.status() >= 400 && !BENIGN.some((re) => re.te
 // a GPU in the product (CPU-only prose is unsupported; embeds stay CPU-fine) — this
 // container has NO GPU, so the WIZARD flow is exercised against a stubbed 8 GB card
 // below (the supported hardware class). For REAL load tests on GPU-less machines, the
-// tiny CPU test model is added via just-llm-runner/scripts/dev-seed-test-model.py
+// tiny CPU test model is added via just-core/scripts/dev-seed-test-model.py
 // (dev/container ONLY — the real seed deliberately does not carry it; user 2026-07-06).
 await page.route("**/v1/llm-runner/hardware", async (route) => {
   const real = await (await fetch(`${process.env.JW_API || "http://127.0.0.1:17495"}/v1/llm-runner/hardware`)).json();

@@ -21,9 +21,9 @@ import { computed, nextTick, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { htmlToText, textToHtml } from "../services/text.js";
 import { noteDate, useProjectStore } from "../stores/project.js";
-import { Icon } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { UiTextarea } from "@delebash/llm-ui";
+import { Icon } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
+import { UiTextarea } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

@@ -12,7 +12,7 @@
 // Deep import on purpose: the composable is kit-internal and the kit has no test
 // harness of its own (the useCatalogMeta.contract.test.js precedent).
 import { describe, expect, it } from "vitest";
-import { memberClassesOf, modelBelongsToClass } from "@delebash/llm-ui/classTunes.js";
+import { memberClassesOf, modelBelongsToClass } from "@delebash/ui/classTunes.js";
 
 // The 12 seeded hardware classes, exactly as listClassTunes() serves them
 // (camelCase; verified against the DB snapshot's hardware_classes table).

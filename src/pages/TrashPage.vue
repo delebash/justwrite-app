@@ -4,12 +4,12 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useProjectStore, TRASH_KINDS } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { PaneHeader, pageFill } from "@delebash/llm-ui";
-import { Icon } from "@delebash/llm-ui";
-import { confirmDialog } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { UiTable } from "@delebash/llm-ui";
-import { relativeTime } from "@delebash/llm-ui";
+import { PaneHeader, pageFill } from "@delebash/ui";
+import { Icon } from "@delebash/ui";
+import { confirmDialog } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
+import { UiTable } from "@delebash/ui";
+import { relativeTime } from "@delebash/ui";
 
 const project = useProjectStore();
 const ui = useUiStore();

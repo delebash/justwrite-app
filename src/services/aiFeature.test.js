@@ -13,14 +13,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 
-vi.mock("@delebash/llm-ui/common/services/toastBridge.js", () => ({
+vi.mock("@delebash/ui/common/services/toastBridge.js", () => ({
   pushToast: vi.fn(),
   clearToasts: vi.fn(),
 }));
 
-import { pushToast } from "@delebash/llm-ui/common/services/toastBridge.js";
-import { runAiFeature, runAiFeatureStream } from "@delebash/llm-ui/services/aiFeature.js";
-import { useAiTasksStore } from "@delebash/llm-ui/stores/aiTasks.js";
+import { pushToast } from "@delebash/ui/common/services/toastBridge.js";
+import { runAiFeature, runAiFeatureStream } from "@delebash/ui/services/aiFeature.js";
+import { useAiTasksStore } from "@delebash/ui/stores/aiTasks.js";
 
 // One-chunk SSE body: the client splits frames on \n\n, so a single read
 // carrying every frame exercises the same parse path as a live stream.
@@ -292,7 +292,7 @@ describe("prefill — prompt-eval progress (§7.4 B6-2)", () => {
     vi.stubGlobal("fetch", vi.fn(async () => streamResponse([
       { progress: 0.25 }, { progress: 1 }, { delta: "x" }, { done: true }, "[DONE]",
     ])));
-    const { requestStream } = await import("@delebash/llm-ui/client.js");
+    const { requestStream } = await import("@delebash/ui/client.js");
     const deltas = [];
     const progresses = [];
     await requestStream("/v1/ai/stream", { action: "chat" },

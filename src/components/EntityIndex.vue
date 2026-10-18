@@ -24,7 +24,7 @@
 // view — verified before extracting, styles.css:1051+), so the markup renders
 // identically to the copies it replaces.
 import { computed, ref, useSlots } from "vue";
-import { Icon, UiButton, UiInput, UiTable } from "@delebash/llm-ui";
+import { Icon, UiButton, UiInput, UiTable } from "@delebash/ui";
 
 const props = defineProps({
   /** Every row, unfiltered. Filtering happens here. */

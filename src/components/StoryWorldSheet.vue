@@ -3,7 +3,7 @@
 // fields from services/storyWorldSheet.js, each a SheetSection that starts folded while empty —
 // the character sheet's rule, so a new entry isn't a wall of empty boxes. The page keys this on
 // the entity's id, so switching entries re-folds to match the new one's fields.
-import { UiTextarea } from "@delebash/llm-ui";
+import { UiTextarea } from "@delebash/ui";
 import SheetSection from "./SheetSection.vue";
 import { sheetFieldLabelKeys, sheetFields, sheetValue } from "../services/storyWorldSheet.js";
 

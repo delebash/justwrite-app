@@ -126,7 +126,7 @@ if (process.env.JW_SEED === "0") {
 // component but written differently" stays the manual #32 audit — honest limit.)
 {
   const here = dirname(fileURLToPath(import.meta.url));
-  const pickerCheck = join(here, "..", "..", "just-llm-runner", "ui", "scripts", "check-shared-pickers.js");
+  const pickerCheck = join(here, "..", "..", "just-core", "packages", "ui", "scripts", "check-shared-pickers.js");
   if (existsSync(pickerCheck)) {
     try { execFileSync("node", [pickerCheck], { stdio: "inherit" }); }
     catch { failed++; console.log("✗ shared-picker check FAILED — a job picker was hand-rolled outside LuJobSelect"); }

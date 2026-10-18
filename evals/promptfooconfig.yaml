@@ -10,7 +10,7 @@ prompts:
   - "{{action}}"
 
 providers:
-  - id: file://../../just-llm-runner/scripts/evals/app-provider.js
+  - id: file://../../just-core/scripts/evals/app-provider.js
 
 tests: file://tests.js
 

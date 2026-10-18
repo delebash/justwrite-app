@@ -6,10 +6,10 @@
 // `<img src="…/v1/images/{id}">`.
 
 import { randomUUID } from "node:crypto";
-import { HttpError } from "@delebash/llm-runner/platform/errors";
-import { opt, T } from "@delebash/llm-runner/platform/models";
-import { b64decode, ValueError } from "@delebash/llm-runner/platform/py";
-import { Hono, input } from "@delebash/llm-runner/platform/server";
+import { HttpError } from "@delebash/core/platform/errors";
+import { opt, T } from "@delebash/core/platform/models";
+import { b64decode, ValueError } from "@delebash/core/platform/py";
+import { Hono, input } from "@delebash/core/platform/server";
 import { isoNowUtc } from "../book_io.js";
 import { getDb } from "../database/session.js";
 

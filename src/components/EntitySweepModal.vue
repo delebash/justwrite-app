@@ -12,7 +12,7 @@
 
 import { ref, computed, onMounted, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, Icon, AppModal, UiButton, UiCheckbox, confirmDialog, UiBanner } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, Icon, AppModal, UiButton, UiCheckbox, confirmDialog, UiBanner } from "@delebash/ui";
 import { isLikelyNonStoryTitle, scanAllChapters, stripChapterText } from "../services/analysis/entitySweep.js";
 import {
   clearSweepDraft, draftCounts, draftFoundTotal, emptyDraft, loadSweepDraft,

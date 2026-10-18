@@ -22,11 +22,11 @@ import { useSessionsStore } from "../stores/sessions.js";
 import { bootProviders } from "../services/providerBackend.js";
 import { bootRouting } from "../services/routingBackend.js";
 
-import { tooltipDirective } from "@delebash/llm-ui";
+import { tooltipDirective } from "@delebash/ui";
 import { i18n, detectLocale, setLocale as setI18nLocale } from "../i18n/index.js";
 import { startAutoRebuildWatcher } from "../services/rag/autoIndex.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
-import { startWarmOnBoot } from "@delebash/llm-ui";
+import { startWarmOnBoot } from "@delebash/ui";
 
 // The whole shared LLM front end, in ONE call (the UI twin of the server's
 // installLlm; the family shape — docgen is the reference). It resolves ONE
@@ -34,7 +34,7 @@ import { startWarmOnBoot } from "@delebash/llm-ui";
 // separate configure* calls here, the exact per-step wiring the installer
 // exists to make un-forgettable), wires the external opener, and registers
 // <LlmUiHosts /> (Toast + AppDialog, mounted once in layouts/MainLayout.vue).
-import { installLlmUi, checkServer, CHECK_SERVER_MS, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, watchSync } from "@delebash/llm-ui";
+import { installLlmUi, checkServer, CHECK_SERVER_MS, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, watchSync } from "@delebash/ui";
 import { hasShell, openPath, openUrl, saveFile, shellServerUrl } from "../services/native.js";
 import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "../services/helpDocs.js";
 import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "../services/labTestData.js";

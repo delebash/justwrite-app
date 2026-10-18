@@ -12,7 +12,7 @@
 // are migrated server-side at startup.) The active-id pointer + undo tail stay
 // in kv (storage.js).
 
-import { get, post, put, del } from "@delebash/llm-ui";
+import { get, post, put, del } from "@delebash/ui";
 
 const _snapshots = new Map(); // id -> snapshot object
 let _registry = [];           // [{id,title,author,savedAt}] derived from GET /v1/projects

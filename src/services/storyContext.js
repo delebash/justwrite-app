@@ -15,7 +15,7 @@
 // for the editor's Context line to translate; a linked entity has no id and shows its own name.
 
 /* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
-import { useResolvedRoute } from "@delebash/llm-ui";
+import { useResolvedRoute } from "@delebash/ui";
 import { useAiStore } from "../stores/ai.js";
 import { povLabel } from "./povOptions.js";
 import { buildEntityCards } from "./rag/cards.js";

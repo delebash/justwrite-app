@@ -19,7 +19,7 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { QSelect } from "quasar";
-import { promptDialog, Icon, useModalPopup } from "@delebash/llm-ui";
+import { promptDialog, Icon, useModalPopup } from "@delebash/ui";
 import { useProjectStore } from "../stores/project.js";
 
 const props = defineProps({

@@ -2,7 +2,7 @@
 // JustWrite's error answers — the problem-type prefix and the catch-all 500 — shared by the
 // server on a computer (app.js) and the phone's in-app server (phone.js).
 
-import { getLogger } from "@delebash/llm-runner/platform/log";
+import { getLogger } from "@delebash/core/platform/log";
 
 const log = getLogger("justwrite_server.app");
 

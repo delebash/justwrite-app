@@ -26,14 +26,14 @@ import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 // A DEEP import on purpose: useCatalogMeta is a kit-internal composable shared between
-// kit components and is deliberately not on the `@delebash/llm-ui` barrel. The contract
+// kit components and is deliberately not on the `@delebash/ui` barrel. The contract
 // under test is internal too — this file is here only because the kit has no test harness
 // of its own, and JW's vitest already aliases the kit source.
-import { useCatalogMeta } from "@delebash/llm-ui/composables/useCatalogMeta.js";
-import { useHardware } from "@delebash/llm-ui/composables/useHardware.js";
+import { useCatalogMeta } from "@delebash/ui/composables/useCatalogMeta.js";
+import { useHardware } from "@delebash/ui/composables/useHardware.js";
 
 // <repo>/src/components → the sibling kit checkout.
-const KIT_SRC = fileURLToPath(new URL("../../../just-llm-runner/ui/src", import.meta.url));
+const KIT_SRC = fileURLToPath(new URL("../../../just-core/packages/ui/src", import.meta.url));
 
 function sourceFiles(dir) {
   const out = [];

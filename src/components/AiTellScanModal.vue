@@ -15,10 +15,10 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { scanAiTells, TELL_KINDS } from "../services/analysis/aiTellScanner.js";
-import { Icon } from "@delebash/llm-ui";
-import { AppModal } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { EmptyState } from "@delebash/llm-ui";
+import { Icon } from "@delebash/ui";
+import { AppModal } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
+import { EmptyState } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

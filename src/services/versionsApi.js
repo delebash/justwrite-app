@@ -4,7 +4,7 @@
 // shape as chat threads. Replaces the justwrite:versions kv blob.
 // HTTP via the shared kit transport.
 
-import { get, put } from "@delebash/llm-ui";
+import { get, put } from "@delebash/ui";
 
 export async function getVersions(projectId) {
   return get(`/v1/versions?projectId=${encodeURIComponent(projectId)}`);

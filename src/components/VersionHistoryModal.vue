@@ -14,11 +14,11 @@ import { useVersionsStore } from "../stores/versions.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { diffVersions, renderDiffHtml, diffStats } from "../services/versionDiff.js";
-import { Icon } from "@delebash/llm-ui";
-import { AppModal } from "@delebash/llm-ui";
-import { EmptyState } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { UiInput } from "@delebash/llm-ui";
+import { Icon } from "@delebash/ui";
+import { AppModal } from "@delebash/ui";
+import { EmptyState } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
+import { UiInput } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
 const { t, d: fmtDate } = useI18n();

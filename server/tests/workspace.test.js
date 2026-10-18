@@ -7,7 +7,7 @@
 // demo book is created only on demand (POST /v1/projects/demo). These tests assert the
 // USER's data is gone and nothing project-shaped comes back.
 import { join } from "node:path";
-import { purePath } from "@delebash/llm-runner/platform/data_paths";
+import { purePath } from "@delebash/core/platform/data_paths";
 import { expect, test } from "vitest";
 import { client, tmpPath, useHermeticKit } from "./helpers.js";
 

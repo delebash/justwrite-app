@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const runAiFeatureStream = vi.fn(async () => ({ content: "Grounded answer.", usage: { promptTokens: 1 } }));
 const embedTexts = vi.fn(async () => [[0.1, 0.2, 0.3]]);
-vi.mock("@delebash/llm-ui", () => ({
+vi.mock("@delebash/ui", () => ({
   runAiFeatureStream: (...a) => runAiFeatureStream(...a),
   embedTexts: (...a) => embedTexts(...a),
   friendlyAiError: (e) => e,

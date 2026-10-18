@@ -1,13 +1,13 @@
 <script setup>
 // JustWrite's AI page. The HOST owns the page chrome (PaneHeader + .pane-card,
-// like every JW view); the SHARED @delebash/llm-ui control (providers / features
+// like every JW view); the SHARED @delebash/ui control (providers / features
 // / usage) is the naked, token-styled component dropped inside JW's card. Same
 // control JustVoice mounts in its own page chrome. (Boundary, per the user:
 // "jw has its card layout, we just put the control in it.")
 import { onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { PaneHeader, pageFill } from "@delebash/llm-ui";
-import { AiModelsArea, runAiFeatureStream } from "@delebash/llm-ui";
+import { PaneHeader, pageFill } from "@delebash/ui";
+import { AiModelsArea, runAiFeatureStream } from "@delebash/ui";
 import WritingAiSettings from "../components/WritingAiSettings.vue";
 import { useAiStore } from "../stores/ai.js";
 import { useI18n } from "vue-i18n";

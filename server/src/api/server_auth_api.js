@@ -9,11 +9,11 @@
 // to fix it. The tokens already sit plaintext in the app DB any local process can read, so
 // the loopback door exposes nothing new.
 
-import { HttpError } from "@delebash/llm-runner/platform/errors";
-import { T } from "@delebash/llm-runner/platform/models";
-import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { Hono, input } from "@delebash/llm-runner/platform/server";
-import { pyIter, pyOr, strip, truthy } from "@delebash/llm-runner/platform/py";
+import { HttpError } from "@delebash/core/platform/errors";
+import { T } from "@delebash/core/platform/models";
+import { pyJson } from "@delebash/core/platform/pyjson";
+import { Hono, input } from "@delebash/core/platform/server";
+import { pyIter, pyOr, strip, truthy } from "@delebash/core/platform/py";
 import { pyGet, pyLoads } from "../book_io.js";
 import { state } from "../database/session.js";
 

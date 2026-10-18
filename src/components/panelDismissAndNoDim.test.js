@@ -27,9 +27,9 @@ import { readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { usePanelDismiss } from "@delebash/llm-ui";
+import { usePanelDismiss } from "@delebash/ui";
 // Quasar installed as in the real app — the kit's controls are Quasar components
-import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
+import { createTestApp } from "@delebash/ui/quasar/install.js";
 // JustWrite's real vue-i18n instance (the kit's catalog plus JustWrite's), installed as the app does.
 import { i18n } from "../i18n/index.js";
 
@@ -38,7 +38,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 // Same repo-to-kit relationship vitest.config.js's alias encodes (identical to
 // modalDragAndScrim.test.js — deliberately, so a kit move breaks both at once).
 const WEB = resolve(HERE, "../../..");
-const readKit = (rel) => readFileSync(resolve(WEB, "just-llm-runner/ui/src", rel), "utf8");
+const readKit = (rel) => readFileSync(resolve(WEB, "just-core/packages/ui/src", rel), "utf8");
 const readJw = (rel) => readFileSync(resolve(HERE, "..", rel), "utf8");
 
 // The single <style> block of an SFC, comments stripped, so a rule match can anchor on a

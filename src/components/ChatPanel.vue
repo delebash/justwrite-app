@@ -21,7 +21,7 @@
 import { ref, computed, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect, confirmDialog, promptDialog, usePanelDismiss, UiBanner } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect, confirmDialog, promptDialog, usePanelDismiss, UiBanner } from "@delebash/ui";
 import { useUiStore } from "../stores/ui.js";
 import { askManuscript } from "../services/rag/chat.js";
 import { askAsCharacter } from "../services/rag/characterChat.js";
@@ -35,7 +35,7 @@ import IndexBuildModal from "./IndexBuildModal.vue";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import CharacterDraftModal from "./CharacterDraftModal.vue";
 import { useI18n } from "vue-i18n";
-import { relativeTime } from "@delebash/llm-ui";
+import { relativeTime } from "@delebash/ui";
 
 const { t } = useI18n();
 

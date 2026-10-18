@@ -15,7 +15,7 @@
 // premiseDraft under the feature planning); next beats and twists are Brainstorm's own
 // brainstormPlot.
 
-import { runAiFeature } from "@delebash/llm-ui";
+import { runAiFeature } from "@delebash/ui";
 import { brainstormAction, brainstormPrompt, freshIdeas, parseBrainstormLines } from "../brainstorm.js";
 import { povLabel } from "../povOptions.js";
 import { runJsonAnalysis } from "../runJson.js";

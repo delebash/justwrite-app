@@ -11,7 +11,7 @@ import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
 // useAiTasksStore stays for the READ (myTask feeds the inline AiTaskStrip);
 // the lifecycle rides withAiTask per the AI-call convention (2026-08-08).
-import { useAiTasksStore, withAiTask, AiTaskStrip, Icon, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
+import { useAiTasksStore, withAiTask, AiTaskStrip, Icon, AppModal, UiButton, UiBanner } from "@delebash/ui";
 import { buildOrUpdateIndex, rebuildIndex, indexStatus, clearIndex } from "../services/rag/indexer.js";
 import StatusRow from "./StatusRow.vue";
 import { useI18n } from "vue-i18n";

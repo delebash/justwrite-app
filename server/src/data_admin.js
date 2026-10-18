@@ -6,10 +6,10 @@
 // DB. `reset` drops every table, recreates them and reseeds.
 
 import path from "node:path";
-import { LLM_TABLES } from "@delebash/llm-runner/llm";
-import * as llmDb from "@delebash/llm-runner/llm/db";
-import { makeDataRouter } from "@delebash/llm-runner/platform";
-import * as lifecycle from "@delebash/llm-runner/runner/lifecycle";
+import { LLM_TABLES } from "@delebash/core/llm";
+import * as llmDb from "@delebash/core/llm/db";
+import { makeDataRouter } from "@delebash/core/platform";
+import * as lifecycle from "@delebash/core/runner/lifecycle";
 import { PRESERVED_FOLDER_KEYS } from "./api/settings_api.js";
 import { TABLES } from "./database/models.js";
 import { seedWorkspace } from "./database/seed.js";

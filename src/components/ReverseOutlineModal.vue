@@ -15,14 +15,14 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
 import {
   generateReverseOutline,
   STRUCTURE_LABEL_KEYS,
 } from "../services/analysis/reverseOutline.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
-import { relativeTime } from "@delebash/llm-ui";
+import { relativeTime } from "@delebash/ui";
 
 const { t } = useI18n();
 

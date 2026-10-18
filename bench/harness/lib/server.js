@@ -1,4 +1,4 @@
-// REST client for the JustWrite server (which mounts the shared just-llm-runner
+// REST client for the JustWrite server (which mounts the shared just-core
 // dispatch). Every route here was read from the runner source, not guessed:
 //
 //   /v1/ai/engine-presets            presets_api.py:132-155   (POST mints the id)

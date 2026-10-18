@@ -8,7 +8,7 @@
 // header's Draft with AI → From a description).
 // Precedent: the character page's own box, as it stood.
 import { computed, nextTick, ref } from "vue";
-import { Icon, UiButton, UiTextarea } from "@delebash/llm-ui";
+import { Icon, UiButton, UiTextarea } from "@delebash/ui";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },

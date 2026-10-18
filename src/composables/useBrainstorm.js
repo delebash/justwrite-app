@@ -8,7 +8,7 @@
 // the AI tasks store, which the running state is read from (AGENTS.md §2: a list that remounts
 // mid-run still shows it running); `label` is the run's name in the AI tasks panel.
 import { computed, ref, toValue } from "vue";
-import { runAiFeature, useAiTasksStore } from "@delebash/llm-ui";
+import { runAiFeature, useAiTasksStore } from "@delebash/ui";
 import { freshIdeas, parseBrainstormLines } from "../services/brainstorm.js";
 
 const isAbort = (e) => e?.name === "AbortError" || /abort/i.test(e?.message || "");

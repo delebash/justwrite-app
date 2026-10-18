@@ -8,9 +8,9 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { h, nextTick, ref } from "vue";
 
-import UiDate from "@delebash/llm-ui/common/components/UiDate.vue";
-import { dateLabel, isIsoDate } from "@delebash/llm-ui/common/services/isoDate.js";
-import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
+import UiDate from "@delebash/ui/common/components/UiDate.vue";
+import { dateLabel, isIsoDate } from "@delebash/ui/common/services/isoDate.js";
+import { createTestApp } from "@delebash/ui/quasar/install.js";
 import { i18n, setLocale } from "../i18n/index.js";
 
 let app;

@@ -15,13 +15,13 @@
 // The worker bundle swaps a module for its `<name>.phone.js` twin where one sits beside it
 // (app_state, autosave_api, database/demo_seed, editor/html, sync_platform); under Node (tests)
 // the originals load.
-import { installCloudLlm } from "@delebash/llm-runner/llm/install_cloud";
-import { setNotConfiguredMessage } from "@delebash/llm-runner/llm/dispatch";
-import { loadFromConfigs } from "@delebash/llm-runner/llm/registry";
-import { seedLlm } from "@delebash/llm-runner/llm/seed";
-import * as llmStores from "@delebash/llm-runner/llm/stores";
-import { getLogger } from "@delebash/llm-runner/platform/log";
-import { createServer, onClose } from "@delebash/llm-runner/platform/server";
+import { installCloudLlm } from "@delebash/core/llm/install_cloud";
+import { setNotConfiguredMessage } from "@delebash/core/llm/dispatch";
+import { loadFromConfigs } from "@delebash/core/llm/registry";
+import { seedLlm } from "@delebash/core/llm/seed";
+import * as llmStores from "@delebash/core/llm/stores";
+import { getLogger } from "@delebash/core/platform/log";
+import { createServer, onClose } from "@delebash/core/platform/server";
 import { router as autosaveRouter } from "#api/autosave_api";
 import { router as chatRouter } from "./api/chat_api.js";
 import { router as healthRouter } from "./api/health_api.js";

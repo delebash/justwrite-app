@@ -2,7 +2,7 @@
 // keepalive bytes in flight (2026-10-16): past that the browser refuses the request outright, which
 // is how the book's autosave failed for every book over 64 KB (projectApi.js sends keepalive).
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { serverFetch } from "@delebash/llm-ui/common/services/transport.js";
+import { serverFetch } from "@delebash/ui/common/services/transport.js";
 
 const KIB = 1024;
 const sent = [];

@@ -12,8 +12,8 @@
 // Fix for Python: set JUST_AI_HOME to a tmp folder in the suite.
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { pyPath } from "@delebash/llm-runner/runner/cache_registry";
-import * as lifecycle from "@delebash/llm-runner/runner/lifecycle";
+import { pyPath } from "@delebash/core/runner/cache_registry";
+import * as lifecycle from "@delebash/core/runner/lifecycle";
 import { expect, test } from "vitest";
 import { createApp } from "../src/app.js";
 import { client, tmpPath, useHermeticKit } from "./helpers.js";

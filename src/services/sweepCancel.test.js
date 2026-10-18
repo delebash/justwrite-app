@@ -31,8 +31,8 @@ vi.mock("./analysis/entityExtraction.js", () => ({ extractEntities: vi.fn() }));
 
 import { extractEntities } from "./analysis/entityExtraction.js";
 import { isLikelyNonStoryTitle, resolvePoolSize, scanAllChapters, watchdogTimeoutMs } from "./analysis/entitySweep.js";
-import { useAiTasksStore } from "@delebash/llm-ui/stores/aiTasks.js";
-import { useResolvedRoute } from "@delebash/llm-ui/composables/useResolvedRoute.js";
+import { useAiTasksStore } from "@delebash/ui/stores/aiTasks.js";
+import { useResolvedRoute } from "@delebash/ui/composables/useResolvedRoute.js";
 
 function projectWith(n) {
   const chapters = Array.from({ length: n }, (_, i) => ({ id: `c${i + 1}`, num: i + 1, title: `Chapter ${i + 1}` }));

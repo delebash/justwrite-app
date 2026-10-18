@@ -12,11 +12,11 @@
 // stores the document opaquely, like the autosave mirror. GET returns {"draft": null} rather
 // than 404 when absent — absence is the normal first-run state, not an error.
 
-import { HttpError } from "@delebash/llm-runner/platform/errors";
-import { T } from "@delebash/llm-runner/platform/models";
-import { pyOr } from "@delebash/llm-runner/platform/py";
-import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { Hono, input } from "@delebash/llm-runner/platform/server";
+import { HttpError } from "@delebash/core/platform/errors";
+import { T } from "@delebash/core/platform/models";
+import { pyOr } from "@delebash/core/platform/py";
+import { pyJson } from "@delebash/core/platform/pyjson";
+import { Hono, input } from "@delebash/core/platform/server";
 import { isoNowUtc } from "../book_io.js";
 import { getDb } from "../database/session.js";
 

@@ -1,5 +1,5 @@
 // QC-20/21/23/24 probe — asserts the USER'S WORDS on the live surfaces
-// (QC-22 is backend-only; its recreation lives in just-llm-runner/tests/test_autotune.py):
+// (QC-22 is backend-only; its recreation lives in just-core/tests/test_autotune.py):
 // QC-20 "the default provider is not set for llama after running quicksetup" —
 //   the provider list tags the current default row; its button reads "Default ✓".
 // QC-21 "when clicking on set default it falsely reports no embinding model is set" —

@@ -6,7 +6,7 @@
 // its aggregate). Was SuggestCharactersModal.vue; one window for both kinds since 2026-10-16,
 // when the Locations list gained Suggest locations… (the plan 2026-10-15, Task S5).
 import { computed, onBeforeUnmount, ref } from "vue";
-import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiBanner, UiButton, UiTextarea } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiBanner, UiButton, UiTextarea } from "@delebash/ui";
 import { useProjectStore } from "../stores/project.js";
 import { suggestCharacters } from "../services/analysis/characterDraft.js";
 import { suggestLocations } from "../services/analysis/sheetDraft.js";

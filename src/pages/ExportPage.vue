@@ -3,16 +3,16 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { PaneHeader, pageFill } from "@delebash/llm-ui";
-import { Icon } from "@delebash/llm-ui";
+import { PaneHeader, pageFill } from "@delebash/ui";
+import { Icon } from "@delebash/ui";
 import { buildManuscript, slug } from "../services/export/manuscript.js";
 // safeTitle, not slug(): the .zip keeps the display title verbatim (minus
 // characters illegal in a filename), so "Saves as …" must show what really lands.
-import { safeTitle } from "@delebash/llm-runner/platform/filename";
+import { safeTitle } from "@delebash/core/platform/filename";
 import { exportProject } from "../services/bookTransfer.js";
 import { saveBlob } from "../services/download.js";
-import { UiButton } from "@delebash/llm-ui";
-import { UiCheckbox } from "@delebash/llm-ui";
+import { UiButton } from "@delebash/ui";
+import { UiCheckbox } from "@delebash/ui";
 
 const project = useProjectStore();
 const ui = useUiStore();

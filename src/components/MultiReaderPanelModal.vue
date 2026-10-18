@@ -13,14 +13,14 @@
 import { ref, computed, onMounted } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
 import {
   runMultiReaderPanel,
   PERSONAS,
 } from "../services/analysis/multiReaderCritique.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
-import { relativeTime } from "@delebash/llm-ui";
+import { relativeTime } from "@delebash/ui";
 
 const { t } = useI18n();
 

@@ -9,10 +9,10 @@
 import { onMounted, ref } from "vue";
 import { useUiStore } from "../stores/ui.js";
 import { loadDoc } from "../services/helpDocs.js";
-import { renderHelpMarkdown, openHelp } from "@delebash/llm-ui";
-import { AppModal } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { Icon } from "@delebash/llm-ui";
+import { renderHelpMarkdown, openHelp } from "@delebash/ui";
+import { AppModal } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
+import { Icon } from "@delebash/ui";
 
 const ui = useUiStore();
 const open = ref(false);

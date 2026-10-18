@@ -3,7 +3,7 @@
 // routing store (the global default LLM + embedding), and the shared buildLlmConfig that
 // turns it into the dispatch view. Per-feature pins were removed 2026-07-15 (the action's
 // preset owns routing).
-import { buildLlmConfig } from "@delebash/llm-runner/llm";
+import { buildLlmConfig } from "@delebash/core/llm";
 import { expect, test } from "vitest";
 import { FEATURE_CATALOG } from "../src/feature_catalog.js";
 import { client, tmpPath, useHermeticKit } from "./helpers.js";

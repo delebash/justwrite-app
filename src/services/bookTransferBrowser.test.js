@@ -16,7 +16,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 // 2026-08-15) — so THAT behaviour is the kit's to test. What this file locks is
 // that the browser path still reaches the door with the right filename.
 const kitSaveBlob = vi.fn(async () => ({ ok: true, downloaded: true }));
-vi.mock("@delebash/llm-ui", () => ({
+vi.mock("@delebash/ui", () => ({
   requestBlob: vi.fn(async () => new Blob(["ZIPBYTES"], { type: "application/zip" })),
   post: vi.fn(async () => ({ id: "prj_new", title: "My Book" })),
   get: vi.fn(async () => ({ dataDir: "/data" })),
@@ -37,7 +37,7 @@ vi.mock("./native.js", () => ({
   storageGetRoot: vi.fn(async () => null),
 }));
 
-import { requestBlob } from "@delebash/llm-ui";
+import { requestBlob } from "@delebash/ui";
 
 let canSaveFiles;
 let canPickBooks;

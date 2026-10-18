@@ -2,11 +2,11 @@
 // Port of tests/test_ai_features.py — /v1/ai/run, server-side feature execution: renders the
 // action's server-side prompt template and dispatches through the shared dispatch, honoring
 // the user's default provider from the routing store.
-import { getLlmRegistry, LLMResponse, stores } from "@delebash/llm-runner/llm";
-import { StreamDelta } from "@delebash/llm-runner/llm/base";
-import { RoutingConfig } from "@delebash/llm-runner/llm/routing_api";
-import * as seed from "@delebash/llm-runner/llm/seed";
-import { model } from "@delebash/llm-runner/platform/models";
+import { getLlmRegistry, LLMResponse, stores } from "@delebash/core/llm";
+import { StreamDelta } from "@delebash/core/llm/base";
+import { RoutingConfig } from "@delebash/core/llm/routing_api";
+import * as seed from "@delebash/core/llm/seed";
+import { model } from "@delebash/core/platform/models";
 import { expect, test } from "vitest";
 import { state } from "../src/database/session.js";
 import { client as makeClient, tmpPath, useHermeticKit } from "./helpers.js";

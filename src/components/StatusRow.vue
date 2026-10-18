@@ -9,7 +9,7 @@
 // Status drives the icon, background tint, and spinner state.
 
 import { computed } from "vue";
-import { Icon } from "@delebash/llm-ui";
+import { Icon } from "@delebash/ui";
 
 const props = defineProps({
   status:  { type: String, default: "pending" }, // pending|working|done|skipped|error

@@ -17,7 +17,7 @@
     "#sync_platform": { "browser": "./src/sync_platform.phone.js", "default": "./src/sync_platform.js" }
   },
   "dependencies": {
-    "@delebash/llm-runner": "file:../../just-llm-runner/server",
+    "@delebash/core": "file:../../just-core/packages/core",
     "@delebash/sqlite-sync": "file:../../just-sqlite-sync",
     "@tiptap/core": "^3.31.4",
     "@tiptap/extension-character-count": "^3.31.4",

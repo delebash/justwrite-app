@@ -15,7 +15,7 @@
 // worldbuildingDraft under the feature storyWorld; suggestLocations under brainstorm). Name ideas
 // runs Brainstorm's own actions, as a character's does.
 
-import { runAiFeature } from "@delebash/llm-ui";
+import { runAiFeature } from "@delebash/ui";
 import { brainstormAction, brainstormPrompt } from "../brainstorm.js";
 import { runJsonAnalysis } from "../runJson.js";
 import { storyBudgetFor } from "../storyContext.js";

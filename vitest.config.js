@@ -39,7 +39,7 @@ export default defineConfig({
       "@renderer": resolve(__dirname, "src"),
       // Same source-alias as quasar.config.js (build.alias) — tests mock it with vi.mock where
       // network transport is involved.
-      "@delebash/llm-ui": resolve(__dirname, "../just-llm-runner/ui/src"),
+      "@delebash/ui": resolve(__dirname, "../just-core/packages/ui/src"),
       // Quasar's wrappers (defineBoot / defineRouter / defineStore) — the alias Quasar's own
       // build defines (@quasar/app-vite's lib/config-tools.js).
       "#q-app": "@quasar/app-vite",

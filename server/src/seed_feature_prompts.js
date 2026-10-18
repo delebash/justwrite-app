@@ -29,7 +29,7 @@
 // constants so behavior is identical; the user_template's input framing matches
 // what the client used to build.
 
-import { pyJson } from "@delebash/llm-runner/platform/pyjson";
+import { pyJson } from "@delebash/core/platform/pyjson";
 
 // ── critique.js (CRITIQUE_SYSTEM / STRUCTURE_SYSTEM) ────────────────────────
 const CRITIQUE_SYSTEM = `You are a sharp, honest fiction editor giving line-level notes on a single chapter.

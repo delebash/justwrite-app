@@ -1,16 +1,16 @@
 <script setup>
 import { computed, ref, watch } from "vue";
-import { UiInput, pageFill } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { UiSelect } from "@delebash/llm-ui";
-import { UiTag } from "@delebash/llm-ui";
+import { UiInput, pageFill } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
+import { UiSelect } from "@delebash/ui";
+import { UiTag } from "@delebash/ui";
 import EntityIndex from "../components/EntityIndex.vue";
 import { noteDate, useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
-import { Icon } from "@delebash/llm-ui";
+import { Icon } from "@delebash/ui";
 import RichEditor from "../components/RichEditor.vue";
-import { PaneHeader } from "@delebash/llm-ui";
+import { PaneHeader } from "@delebash/ui";
 import { parseFile } from "../services/import/index.js";
 import { useSelectNewName } from "../composables/useSelectNewName.js";
 import { useI18n } from "vue-i18n";

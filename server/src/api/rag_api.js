@@ -6,10 +6,10 @@
 // (via its provider) and PUTs them; diff is a `shas` fetch; retrieval is a POST that returns
 // the top-k chunks ranked server-side by the BM25 + cosine + RRF blend (rag_search.js).
 
-import { opt, T } from "@delebash/llm-runner/platform/models";
-import { pyFloatValue, pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { truthy } from "@delebash/llm-runner/platform/py";
-import { Hono, input } from "@delebash/llm-runner/platform/server";
+import { opt, T } from "@delebash/core/platform/models";
+import { pyFloatValue, pyJson } from "@delebash/core/platform/pyjson";
+import { truthy } from "@delebash/core/platform/py";
+import { Hono, input } from "@delebash/core/platform/server";
 import { dset, pyStrOf } from "../book_io.js";
 import { getDb } from "../database/session.js";
 import { hybridRank } from "../rag_search.js";

@@ -4,8 +4,8 @@
 // database is the save there, and the storage guard keeps its change files in the app's own
 // folder. The routes answer as "no autosave folder", so the window's autosave timer and Settings
 // → Backups behave as they do when a computer has none.
-import { HttpError } from "@delebash/llm-runner/platform/errors";
-import { Hono } from "@delebash/llm-runner/platform/server";
+import { HttpError } from "@delebash/core/platform/errors";
+import { Hono } from "@delebash/core/platform/server";
 
 export const router = new Hono();
 router.post("/v1/projects/:project_id/autosave", (c) => c.json({ ok: true, projectId: c.req.param("project_id"), key: null }));

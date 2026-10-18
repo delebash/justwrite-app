@@ -1,7 +1,7 @@
 // llama-bench leg: the RAW prompt-processing / generation matrix.
 //
 // This is the tool the CPU-band recipe prescribes
-// (just-llm-runner/docs/plans/2026-07-19-cpu-only-band-test.md): pp at several
+// (just-core/docs/plans/2026-07-19-cpu-only-band-test.md): pp at several
 // prompt sizes + tg, per model, with `-ngl 0` forcing pure CPU even on a CUDA
 // build. It measures the ENGINE in isolation — the feature legs measure the
 // whole app. Both land in the same results folder.

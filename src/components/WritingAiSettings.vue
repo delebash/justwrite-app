@@ -8,7 +8,7 @@
 // Lifted verbatim from the old App Settings → "Writing AI" tab (2026-06-24
 // AI consolidation); see docs/plans/2026-06-24-shared-platform-settings.md.
 import { computed } from "vue";
-import { UiCheckbox, UiButton, UiNumber } from "@delebash/llm-ui";
+import { UiCheckbox, UiButton, UiNumber } from "@delebash/ui";
 import { useAiStore } from "../stores/ai.js";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";

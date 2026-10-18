@@ -5,7 +5,7 @@
 // never be pre-picked, or the form silently arms an MTP config that fails at spawn.
 import { describe, expect, it } from "vitest";
 
-import { allDraftsUnloadable, pickDefaultDraftPath } from "@delebash/llm-ui/draftSelect.js";
+import { allDraftsUnloadable, pickDefaultDraftPath } from "@delebash/ui/draftSelect.js";
 
 describe("pickDefaultDraftPath", () => {
   it("never pre-picks an unloadable-arch draft — the Bonsai dspark case", () => {

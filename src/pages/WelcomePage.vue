@@ -16,7 +16,7 @@
 // navigation, gated on the `welcomeSeen` setting). Both CTAs mark the screen seen
 // FIRST, so a reload before choosing shows it again (correct-once) but a reload
 // after any choice does not.
-import { Icon, UiButton, pageFill } from "@delebash/llm-ui";
+import { Icon, UiButton, pageFill } from "@delebash/ui";
 import { promptNewProject, openTutorialProject } from "../services/projectStart.js";
 import { writeSetting } from "../services/settings.js";
 

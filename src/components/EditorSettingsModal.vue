@@ -7,10 +7,10 @@ import { useUiStore } from "../stores/ui.js";
 import {
   EDITOR_FONTS, LINE_SPACING_OPTIONS, PARAGRAPH_SPACING_OPTIONS, DEFAULT_EDITOR_SETTINGS,
 } from "../services/editorSettings.js";
-import { AppModal } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { UiSelect } from "@delebash/llm-ui";
-import { UiSegmented } from "@delebash/llm-ui";
+import { AppModal } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
+import { UiSelect } from "@delebash/ui";
+import { UiSegmented } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

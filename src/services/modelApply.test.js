@@ -10,22 +10,22 @@
 // client transport + the routing composable are mocked.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@delebash/llm-ui/client.js", () => ({ request: vi.fn() }));
-vi.mock("@delebash/llm-ui/composables/useRouting.js", () => ({
+vi.mock("@delebash/ui/client.js", () => ({ request: vi.fn() }));
+vi.mock("@delebash/ui/composables/useRouting.js", () => ({
   useRouting: () => ({
     loadRouting: vi.fn(),
     setDefaultEmbedding: vi.fn(),
   }),
 }));
 
-import { request } from "@delebash/llm-ui/client.js";
+import { request } from "@delebash/ui/client.js";
 
 import {
   currentDefaultId,
   currentDefaultProviderId,
   refreshApplied,
   setAsDefault,
-} from "@delebash/llm-ui/services/modelApply.js";
+} from "@delebash/ui/services/modelApply.js";
 
 const ASSIGN_URL = "/v1/ai/preset-assignments";
 const PRESETS_URL = "/v1/ai/engine-presets";

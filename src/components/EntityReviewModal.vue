@@ -13,11 +13,11 @@ import { useUiStore } from "../stores/ui.js";
 import { proposeSceneLinks } from "../services/rag/entityMatcher.js";
 import { isLikelyNonStoryTitle } from "../services/analysis/entitySweep.js";
 import { addProposedEntities } from "../services/entityProposals.js";
-import { Icon } from "@delebash/llm-ui";
-import { AppModal } from "@delebash/llm-ui";
-import { EmptyState } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { UiCheckbox } from "@delebash/llm-ui";
+import { Icon } from "@delebash/ui";
+import { AppModal } from "@delebash/ui";
+import { EmptyState } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
+import { UiCheckbox } from "@delebash/ui";
 
 const props = defineProps({
   // { characters: [...], locations: [...], objects: [...] }

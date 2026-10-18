@@ -5,15 +5,15 @@
 // deterministic (statuses resolve on the first poll).
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@delebash/llm-ui/client.js", () => ({ request: vi.fn() }));
+vi.mock("@delebash/ui/client.js", () => ({ request: vi.fn() }));
 
-import { request } from "@delebash/llm-ui/client.js";
+import { request } from "@delebash/ui/client.js";
 
 import {
   _resetEnsureCache,
   embedTexts,
   ensureEmbeddingReady,
-} from "@delebash/llm-ui/services/embedApi.js";
+} from "@delebash/ui/services/embedApi.js";
 
 const ENSURE_URL = "/v1/llm-runner/ensure-embedding";
 const RESIDENT_URL = "/v1/llm-runner/resident";

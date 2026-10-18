@@ -14,8 +14,8 @@
 // exists inside a Quasar build. Quasar is installed as in the real app: the
 // layout and the kit's controls are Quasar components.
 import { expect } from "vitest";
-import { registerBootSmoke } from "@delebash/llm-ui/test/bootSmoke.js";
-import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
+import { registerBootSmoke } from "@delebash/ui/test/bootSmoke.js";
+import { createTestApp } from "@delebash/ui/quasar/install.js";
 
 registerBootSmoke({
   boot: async () => {

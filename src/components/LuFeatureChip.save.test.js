@@ -17,9 +17,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { h, nextTick } from "vue";
 
-import LuFeatureChip from "@delebash/llm-ui/components/LuFeatureChip.vue";
+import LuFeatureChip from "@delebash/ui/components/LuFeatureChip.vue";
 // Quasar installed as in the real app — the kit's controls are Quasar components
-import { createTestApp } from "@delebash/llm-ui/quasar/install.js";
+import { createTestApp } from "@delebash/ui/quasar/install.js";
 // JustWrite's real vue-i18n instance (the kit's catalog plus JustWrite's), installed as the app does.
 import { i18n } from "../i18n/index.js";
 

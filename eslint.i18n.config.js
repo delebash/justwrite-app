@@ -1,5 +1,5 @@
 // The family's i18n lint — ONE file, byte-identical in every app and in the kit's ui/ (the guard
-// compares them; just-llm-runner/docs/app-structure.md §Q.11). Its only job is the i18n coverage
+// compares them; just-core/docs/app-structure.md §Q.11). Its only job is the i18n coverage
 // rules: Biome (biome.json) lints everything else, so no stylistic rule goes here.
 //
 //   npm run i18n:lint

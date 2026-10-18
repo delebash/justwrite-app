@@ -30,10 +30,10 @@
 //
 // Model per preset ships EMPTY ("" — QuickSetup/manual fills it, user 2026-07-06); a
 // bigger rig swaps it in the Lab. Sampler values are strings (they ride the per-call
-// `extra`). See just-llm-runner/docs/plans/2026-07-15-preset-one-source-rewrite.md.
+// `extra`). See just-core/docs/plans/2026-07-15-preset-one-source-rewrite.md.
 
 // ONE launch profile (2026-07-06 one-profile lock — executed by the model-per-hardware
-// plan, just-llm-runner/docs/plans/2026-07-06-model-per-hardware-plan.md Phase 1): a
+// plan, just-core/docs/plans/2026-07-06-model-per-hardware-plan.md Phase 1): a
 // single Gemma catalog row + launch config serves every task. Measured basis (on-box
 // A/B, docs/plans/2026-07-06-onbox-profile-ab-test.md RESULTS): the 32k/rb-1024 config
 // with per-request thinking OFF serves writer traffic at writer speed (TTFT 1.52 s vs
@@ -141,7 +141,7 @@ export const DEFAULT_MODEL_CATALOG_EXTRA = [
 // seed for everyone"). Tunes are MEASUREMENTS, owned by each (model, machine) pair —
 // they enter through the visible paths (the wizard's optimize sweep, a Tune-modal
 // Save) or, on the author's own box, by MANUALLY running
-// just-llm-runner/scripts/dev-seed-tunes.py (user: "keep it in seed i can run
+// just-core/scripts/dev-seed-tunes.py (user: "keep it in seed i can run
 // manually" — it never runs automatically; nothing happens behind the scenes). The
 // author's measured 8GB/32GB gemma values, for the sweep-parity test: n_gpu_layers 99
 // · n_cpu_moe 21 · ctx_len 32768 · batch/ubatch 512/512 · threads 8 (+ the 0.6B embed

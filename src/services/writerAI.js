@@ -3,10 +3,10 @@
 // Each public function takes a string of HTML (or plain text) and returns
 // a Promise that resolves to the LLM's reply. The stream plumbing (server-side
 // provider resolution, cancel signal, friendly errors, task-panel
-// registration) is the kit's runAiFeatureStream (@delebash/llm-ui) — we only
+// registration) is the kit's runAiFeatureStream (@delebash/ui) — we only
 // write the prompt variables.
 
-import { runAiFeatureStream } from "@delebash/llm-ui";
+import { runAiFeatureStream } from "@delebash/ui";
 import { useProjectStore } from "../stores/project.js";
 import { htmlToText, textToHtml } from "./text.js";
 import { buildVoiceFingerprint } from "./voiceFingerprint.js";

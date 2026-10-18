@@ -2,7 +2,7 @@
 // Filesystem locations for the JustWrite server — the port of justwrite_server/paths.py.
 //
 // Resolution order (THE family policy — the shape lives in the kit, never here:
-// `@delebash/llm-runner/platform/data_paths`):
+// `@delebash/core/platform/data_paths`):
 //   1. Explicit `--data-dir` CLI flag
 //   2. `JUSTWRITE_DATA_DIR` — the user's choice; also how the desktop shell hands down its
 //      resolved root
@@ -10,7 +10,7 @@
 //   4. The OS app-data dir, only when the install dir is not writable
 
 import path from "node:path";
-import { resolveDataDir } from "@delebash/llm-runner/platform";
+import { resolveDataDir } from "@delebash/core/platform";
 
 export const APP_NAME = "JustWrite";
 

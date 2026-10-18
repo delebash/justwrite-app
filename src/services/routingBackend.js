@@ -1,6 +1,6 @@
 // RoutingBackend — JustWrite's client for the SHARED routing router
 // (/v1/ai/routing, llm_runner.llm.routing_api) — the same surface the shared
-// @delebash/llm-ui views use. The routing config on the CURRENT wire
+// @delebash/ui views use. The routing config on the CURRENT wire
 // (llm_runner RoutingConfig) is `{ default }`: the global default
 // LLM/embedding. Pins left the wire in the 2026-07-15 one-source rewrite —
 // each action routes via its preset ref now (the per-JOB routes left even
@@ -9,7 +9,7 @@
 // A synchronous boot cache lets the AI store's bootstrap read the default
 // before Vue mounts (mirrors providerBackend).
 
-import { get, put } from "@delebash/llm-ui";
+import { get, put } from "@delebash/ui";
 
 let _routing = null; // full RoutingResponse { default, features }
 let _booted = false;

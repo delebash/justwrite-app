@@ -3,8 +3,8 @@ import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useSessionsStore } from "../stores/sessions.js";
-import { PaneHeader, pageFill, UiBanner } from "@delebash/llm-ui";
-import { Icon, AiTaskStrip, useAiTasksStore, UiTable, UiSegmented, UiButton } from "@delebash/llm-ui";
+import { PaneHeader, pageFill, UiBanner } from "@delebash/ui";
+import { Icon, AiTaskStrip, useAiTasksStore, UiTable, UiSegmented, UiButton } from "@delebash/ui";
 import StatPill from "../components/StatPill.vue";
 import {
   statusCounts, strandDistribution, characterPresence,

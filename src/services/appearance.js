@@ -1,6 +1,6 @@
 // Appearance / theming — JustWrite.
 //
-// The GENERIC engine + catalogs are shared (kit @delebash/llm-ui appearance):
+// The GENERIC engine + catalogs are shared (kit @delebash/ui appearance):
 // colour mode, accent/gold/functional hues, UI/display/mono fonts, button knobs,
 // surface tints, ink palettes, UI scale, sidebar nav typography. This file adds
 // JustWrite's MANUSCRIPT-EDITOR theming (paper tint, editor font/size/spacing,
@@ -14,7 +14,7 @@ import {
   resolveTint,
   displayStack,
   DEFAULT_APPEARANCE as GENERIC_DEFAULT,
-} from "@delebash/llm-ui";
+} from "@delebash/ui";
 
 // Re-export the shared catalogs (SettingsView / TitleBar import them from here).
 export {
@@ -23,7 +23,7 @@ export {
   ACCENT_PRESETS, GOLD_PRESETS, FUNCTIONAL_PRESETS,
   BUTTON_RADIUS_OPTIONS, BUTTON_DENSITY_OPTIONS, BUTTON_LABEL_CASE_OPTIONS,
   currentMode,
-} from "@delebash/llm-ui";
+} from "@delebash/ui";
 
 // ── JustWrite-specific: manuscript editor paper tints ────────────────
 export const PAPER_TINTS = {

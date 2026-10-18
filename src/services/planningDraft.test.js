@@ -8,7 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 const runJsonAnalysis = vi.fn();
 vi.mock("./runJson.js", () => ({ runJsonAnalysis: (...a) => runJsonAnalysis(...a) }));
 const runAiFeature = vi.fn();
-vi.mock("@delebash/llm-ui", () => ({ runAiFeature: (...a) => runAiFeature(...a) }));
+vi.mock("@delebash/ui", () => ({ runAiFeature: (...a) => runAiFeature(...a) }));
 
 const {
   cleanSummary, composePremiseDraftInput, composeSceneIdeasInput, composeSceneSummaryInput, composeStrandIdeasInput,

@@ -2,7 +2,7 @@
 // list (/v1/llm-providers, llm_runner.llm.provider_api). Pulled once before Vue
 // mounts so the AI store's synchronous bootstrap can read it (the same pattern
 // as routingBackend). READ-ONLY on purpose: provider create/update/delete lives
-// in the shared @delebash/llm-ui views (AiModelsArea → ProviderForm write the
+// in the shared @delebash/ui views (AiModelsArea → ProviderForm write the
 // endpoint directly) — the old per-app CRUD wrappers here were dead code once
 // the kit took over editing and were removed by the 2026-07-06
 // everything-LLM-shared audit (C4).
@@ -12,7 +12,7 @@
 //     timeoutSeconds, hasApiKey, registered }
 // `apiKey` is write-only — held server-side, never returned.
 
-import { get } from "@delebash/llm-ui";
+import { get } from "@delebash/ui";
 
 let _providers = null; // null = not yet booted
 let _booted = false;

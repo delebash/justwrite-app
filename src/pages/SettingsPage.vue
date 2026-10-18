@@ -4,7 +4,7 @@ import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor } from "../services/imageStore.js";
-import { promptDialog, confirmDialog, DataManagement, LogsPanel, SettingsShell, UpdatesPanel, renderHelpMarkdown, get, put, post, fmtBytes, refreshRunnerModels, serverUrl, pageFill } from "@delebash/llm-ui";
+import { promptDialog, confirmDialog, DataManagement, LogsPanel, SettingsShell, UpdatesPanel, renderHelpMarkdown, get, put, post, fmtBytes, refreshRunnerModels, serverUrl, pageFill } from "@delebash/ui";
 import { loadDoc } from "../services/helpDocs.js";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { exportProject, importProject, saveBackupBlob, canSaveFiles, canPickBooks } from "../services/bookTransfer.js";
@@ -14,18 +14,18 @@ import {
   setKeepRunning as nativeSetKeepRunning,
 } from "../services/native.js";
 import * as autosaveApi from "../services/autosaveApi.js";
-import { PaneHeader } from "@delebash/llm-ui";
-import { Icon } from "@delebash/llm-ui";
-import { UiInput } from "@delebash/llm-ui";
-import { UiDate } from "@delebash/llm-ui";
-import { UiTextarea } from "@delebash/llm-ui";
-import { UiCheckbox } from "@delebash/llm-ui";
-import { UiNumber } from "@delebash/llm-ui";
-import { UiSelect } from "@delebash/llm-ui";
-import { LanguagePicker } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { UiToggle } from "@delebash/llm-ui";
-import { UiColorPicker } from "@delebash/llm-ui";
+import { PaneHeader } from "@delebash/ui";
+import { Icon } from "@delebash/ui";
+import { UiInput } from "@delebash/ui";
+import { UiDate } from "@delebash/ui";
+import { UiTextarea } from "@delebash/ui";
+import { UiCheckbox } from "@delebash/ui";
+import { UiNumber } from "@delebash/ui";
+import { UiSelect } from "@delebash/ui";
+import { LanguagePicker } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
+import { UiToggle } from "@delebash/ui";
+import { UiColorPicker } from "@delebash/ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 import {
   ACCENT_PRESETS, GOLD_PRESETS, FUNCTIONAL_PRESETS, PAIRINGS, SURFACE_TINTS, PAPER_TINTS,
@@ -36,15 +36,15 @@ import {
 } from "../services/appearance.js";
 import { AVAILABLE_LOCALES } from "../i18n/index.js";
 import { PHONE_HIDDEN_SECTIONS, SETTINGS_SECTION_IDS } from "../services/settingsSections.js";
-import { SETTINGS_SECTION_ORDER } from "@delebash/llm-ui";
+import { SETTINGS_SECTION_ORDER } from "@delebash/ui";
 // The family Sync screen — by path, not the kit barrel (it needs `qrcode`; SyncPanel.vue's header).
-import SyncPanel from "@delebash/llm-ui/components/SyncPanel.vue";
+import SyncPanel from "@delebash/ui/components/SyncPanel.vue";
 import { useSyncPanel } from "../composables/useSyncPanel.js";
 import { useI18n } from "vue-i18n";
 
-import { UiTag } from "@delebash/llm-ui";
-import { UiTable } from "@delebash/llm-ui";
-import { UiSegmented } from "@delebash/llm-ui";
+import { UiTag } from "@delebash/ui";
+import { UiTable } from "@delebash/ui";
+import { UiSegmented } from "@delebash/ui";
 
 const props = defineProps({ section: { type: String, default: "" } });
 

@@ -6,7 +6,7 @@
 // a server-side hybrid (BM25 + cosine + RRF) search. See
 // server/src/api/rag_api.js + server/src/rag_search.js.
 
-import { get, post, put, del } from "@delebash/llm-ui";
+import { get, post, put, del } from "@delebash/ui";
 import { isPhone } from "../native.js";
 
 /** Does this app have the search index? The phone's in-app server has no vector store (the kit's

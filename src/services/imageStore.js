@@ -25,7 +25,7 @@
 // the path (server/src/editor/editorSchema.js `stableImageSrc`).
 // ============================================================
 
-import { inAppServer, serverUrl, post, del, requestBlob } from "@delebash/llm-ui";
+import { inAppServer, serverUrl, post, del, requestBlob } from "@delebash/ui";
 import { SERVER_IMAGE, stableImageSrc } from "justwrite-server/editor/editorSchema.js";
 
 const MIME_TO_EXT = {

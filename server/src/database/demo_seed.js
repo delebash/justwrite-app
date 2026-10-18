@@ -24,7 +24,7 @@
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
-import { RuntimeError } from "@delebash/llm-runner/platform/py";
+import { RuntimeError } from "@delebash/core/platform/py";
 import { getState } from "#app_state";
 
 // Which bundled sample the tutorial button seeds.

@@ -18,7 +18,7 @@
 // a 2-3 sentence prose comparison naming the specific shifts. Cheap
 // enough to run per-chapter on demand.
 
-import { runAiFeature } from "@delebash/llm-ui";
+import { runAiFeature } from "@delebash/ui";
 import { htmlToText, tailWords } from "../text.js";
 import { bookMetrics } from "./styleMetrics.js";
 import { n, t, tEnglish } from "../../i18n/index.js";

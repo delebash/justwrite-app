@@ -4,7 +4,7 @@
 **Read the section for your subject before researching anything** — before reading code to
 answer a question, before measuring, before briefing an agent. Then grep `docs/plans` for
 anything newer. The shared AI stack's facts (the kit, llama.cpp, the memory arbiter) are in
-[the kit's register](../../../just-llm-runner/docs/dev/RESEARCH.md).
+[the kit's register](../../../just-core/docs/dev/RESEARCH.md).
 
 ## The rule (family-wide, decided 2026-10-04)
 
@@ -16,7 +16,7 @@ all go". The kit's register carries the rule in full; in short:
   carries that section and the line *"don't re-derive these; re-check one only if the code it
   cites changed after its date"*.
 - **After research:** its facts land here in the same change. A research doc with no entry here
-  is not done. The family guard (`../just-llm-runner/scripts/check-family.js`, check 15) fails
+  is not done. The family guard (`../just-core/scripts/check-family.js`, check 15) fails
   any `docs/plans/YYYY-MM-DD-*.md` dated 2026-10-04 or later that this page does not link, and
   any link here that points nowhere.
 - **Filled as each subject comes up.** Until then a subject's records are indexed below, so
@@ -82,7 +82,7 @@ tools) are in the kit's register §2, "Phones".
 
 - **The screens never call the server directly.** No raw `fetch(` in `src/`; every call goes
   through the kit's `get/post/put/del/requestBlob` and its AI client's `fetch`
-  (`../just-llm-runner/ui/src/client.js`). Answering those two in-app is what a phone build without
+  (`../just-core/packages/ui/src/client.js`). Answering those two in-app is what a phone build without
   the server needs; the views would not change. (*code, 2026-10-08*.)
 - **The server is 32 files, 6,765 lines** (`server/src`, tests excluded). Node-only imports in 11
   files — `node:crypto` for ids, `node:path`, and `node:fs` in autosave snapshots, the data-folder
@@ -215,7 +215,7 @@ against the page by an agent, not re-checked by the session.
   characters; the largest character card is 1,746 characters (~440 tokens); scenes link 1–5
   characters, 4 in most. (*measured 2026-10-11*, a scratch vitest run on the copy's export.)
 - **The AI usage ledger has no book:** each row is feature, provider, model, tokens, cost and
-  timing (`../just-llm-runner/server/src/llm/usage_sink.js:24`). (*code 2026-10-11*.)
+  timing (`../just-core/packages/core/src/llm/usage_sink.js:24`). (*code 2026-10-11*.)
 - **Both AI rules a writer meets apply per book:** the Authors Guild issues Human Authored "per
   title" (FAQ #2, #17); KDP asks about AI-generated text when each book is published or
   republished, and AI-assisted editing needn't be disclosed (content guidelines G200672390).
@@ -284,7 +284,7 @@ toasts and hover tooltips were not opened; 147 strings matching book content wer
   catalog, and Appearance's theme, size, corner and accent names (53, `appearance.js`). Only the
   labels feed's ~20 words (`src/i18n/familyLabelsFeed.js`: dialogs, AI tabs, download bar,
   connection error) follow the app's language. The blessed decision 1 was vue-i18n as the kit's
-  peer dependency; what was built is the feed (`../../../just-llm-runner/docs/app-structure.md`
+  peer dependency; what was built is the feed (`../../../just-core/docs/app-structure.md`
   "Words relabel per app ONLY through the labels feed"). JustVoice depends on vue-i18n
   (`^11.4.13`); docgen does not. — *pseudo-locale run, 2026-10-12, before the i18n plan's Task 1*;
   since its step C the kit's screens render through vue-i18n in JustWrite's language.

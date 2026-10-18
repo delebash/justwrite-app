@@ -4,7 +4,7 @@
 // data of its own, so nothing else loads without the server; Retry reloads the window, and the boot
 // then returns to the page the user was on (the route's `from`) — and asks the desktop shell for the
 // server's URL, which starts a server again whose start had failed.
-import { ConnectionError, serverUrl } from "@delebash/llm-ui";
+import { ConnectionError, serverUrl } from "@delebash/ui";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { shellServerStatus } from "../services/native.js";

@@ -13,7 +13,7 @@ import {
   formatLogStamp,
   parseEngineRows,
   parseLogRows,
-} from "@delebash/llm-ui/services/logLines.js";
+} from "@delebash/ui/services/logLines.js";
 
 const EN_US = new Intl.DateTimeFormat("en-US", {
   year: "numeric",

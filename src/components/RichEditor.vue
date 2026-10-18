@@ -15,7 +15,7 @@ import { MARKER_CATEGORIES } from "justwrite-server/editor/markers.js";
 import * as writerAI from "@renderer/services/writerAI";
 import VariationsModal from "./VariationsModal.vue";
 import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
-import { useAiTasksStore, Icon, UiButton, AiTaskStrip } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, UiButton, AiTaskStrip } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 import { useUiStore } from "../stores/ui.js";
 import { CONTEXT_PART_KEYS } from "../services/storyContext.js";

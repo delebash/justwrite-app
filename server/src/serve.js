@@ -18,8 +18,8 @@
 
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { runServer } from "@delebash/llm-runner/platform";
-import { pyInt } from "@delebash/llm-runner/platform/py";
+import { runServer } from "@delebash/core/platform";
+import { pyInt } from "@delebash/core/platform/py";
 import { createApp } from "./app.js";
 import { APP_NAME, defaultDataDir } from "./paths.js";
 import { networkHost } from "./sync.js";

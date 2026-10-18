@@ -12,7 +12,7 @@
     "electron": true
   },
   "dependencies": {
-    "@delebash/llm-runner": "file:../../just-llm-runner/server",
+    "@delebash/core": "file:../../just-core/packages/core",
     "justwrite-server": "file:../server"
   }
 }

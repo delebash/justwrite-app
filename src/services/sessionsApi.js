@@ -3,7 +3,7 @@
 // then records the latest per-chapter count with a debounced POST — the
 // server computes the authoritative delta. HTTP via the shared kit transport.
 
-import { get, post, del } from "@delebash/llm-ui";
+import { get, post, del } from "@delebash/ui";
 
 export async function getSessions() {
   return get("/v1/sessions");

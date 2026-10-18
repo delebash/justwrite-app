@@ -15,7 +15,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { useAiTasksStore, AiTaskStrip, Icon, AppModal, EmptyState, UiButton, UiBanner } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, Icon, AppModal, EmptyState, UiButton, UiBanner } from "@delebash/ui";
 import { scanForDanglingThreads } from "../services/analysis/foreshadowingScan.js";
 import { addMarkerToSceneHtml } from "justwrite-server/editor/markers.js";
 import AiFeatureChip from "./AiFeatureChip.vue";

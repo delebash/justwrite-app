@@ -19,10 +19,10 @@
 // keyed per chooser); the first time, it defaults to the app's data folder.
 // ============================================================
 
-import { post, requestBlob } from "@delebash/llm-ui";
+import { post, requestBlob } from "@delebash/ui";
 // The filename stem — the display title minus the characters a filename can't hold, so "The
 // Ninth Facet" stays intact. The kit's one rule, the same the server names the zip with.
-import { safeTitle } from "@delebash/llm-runner/platform/filename";
+import { safeTitle } from "@delebash/core/platform/filename";
 import { chooserDir, rememberDir } from "./chooserDirs.js";
 import { saveBlob } from "./download.js";
 import { hasShell, pickFile } from "./native.js";

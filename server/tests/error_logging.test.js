@@ -5,7 +5,7 @@
 // server trace. These pin that (a) a 422 logs at WARNING with method+path, (b) it returns
 // the problem+json shape (not FastAPI's default), and (c) a 4xx HTTP error logs too.
 // pytest's caplog → a sink on the kit's log (every logger, as caplog's root handler saw).
-import { addSink, LEVELS } from "@delebash/llm-runner/platform/log";
+import { addSink, LEVELS } from "@delebash/core/platform/log";
 import { expect, onTestFinished, test } from "vitest";
 import { client, tmpPath, useHermeticKit } from "./helpers.js";
 

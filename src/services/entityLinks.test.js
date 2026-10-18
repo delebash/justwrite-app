@@ -6,7 +6,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 
-vi.mock("@delebash/llm-ui", () => ({
+vi.mock("@delebash/ui", () => ({
   runAiFeature: vi.fn(),
   embedTexts: vi.fn(),
   friendlyAiError: vi.fn((e) => e),
@@ -38,7 +38,7 @@ vi.mock("../stores/sessions.js", () => ({
   useSessionsStore: () => ({ recordChapterWords: vi.fn() }),
 }));
 
-import { runAiFeature } from "@delebash/llm-ui";
+import { runAiFeature } from "@delebash/ui";
 import { extractEntities } from "./analysis/entityExtraction.js";
 import { proposeSceneLinks } from "./rag/entityMatcher.js";
 import { useProjectStore } from "../stores/project.js";

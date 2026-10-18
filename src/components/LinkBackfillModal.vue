@@ -10,7 +10,7 @@
 // Label + entry-point placement are flag F7 (my wording, reverts on a word).
 
 import { computed, ref } from "vue";
-import { AppModal, EmptyState, Icon, UiButton, UiCheckbox } from "@delebash/llm-ui";
+import { AppModal, EmptyState, Icon, UiButton, UiCheckbox } from "@delebash/ui";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { collectEntities, proposeSceneLinks } from "../services/rag/entityMatcher.js";

@@ -13,7 +13,7 @@
 // server on the copy loads the user's installed engine and models instead of downloading its
 // own; the source database is never written.
 
-import { openDatabase } from "@delebash/llm-runner/platform";
+import { openDatabase } from "@delebash/core/platform";
 
 const [src, dest, flag, cacheRoot] = process.argv.slice(2);
 if (!src || !dest || (flag && (flag !== "--cache-root" || !cacheRoot))) {

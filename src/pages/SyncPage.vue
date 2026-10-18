@@ -4,12 +4,12 @@
 // before it has any (the welcome screen's "Your books are on another device?"). The same panel as
 // Settings → Sync (composables/useSyncPanel.js), inside the onboarding shell; project-less like
 // /ai and /help (boot/jw.js PROJECTLESS_ROUTES). When the first books arrive, the newest opens.
-import SyncPanel from "@delebash/llm-ui/components/SyncPanel.vue";
+import SyncPanel from "@delebash/ui/components/SyncPanel.vue";
 import { watch } from "vue";
 import { useRouter } from "vue-router";
 import { useSyncPanel } from "../composables/useSyncPanel.js";
 import { useProjectStore } from "../stores/project.js";
-import { pageFill } from "@delebash/llm-ui";
+import { pageFill } from "@delebash/ui";
 
 const syncPanel = useSyncPanel();
 const project = useProjectStore();

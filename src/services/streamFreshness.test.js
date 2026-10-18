@@ -11,7 +11,7 @@
 // The helper lives in the shared kit; imported REAL via the subpath alias.
 import { describe, expect, it } from "vitest";
 
-import { freshnessOf } from "@delebash/llm-ui/common/services/streamFreshness.js";
+import { freshnessOf } from "@delebash/ui/common/services/streamFreshness.js";
 
 // A streaming task whose mean inter-token gap is `meanGapMs`, last token `agoMs` ago.
 function task({ meanGapMs, deltas = 100, agoMs, first = 1000, status = "streaming" }) {

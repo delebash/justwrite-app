@@ -11,7 +11,7 @@ import {
   buildSlotOptions,
   fitWarning,
   speedBandLabel,
-} from "@delebash/llm-ui/common/services/modelPick.js";
+} from "@delebash/ui/common/services/modelPick.js";
 
 const MODELS = [
   { id: "flagship", name: "Flagship", fit: "ok", speedBand: "fine", predTokS: 8.7, measuredTokS: null },

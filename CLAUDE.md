@@ -3,22 +3,22 @@
 A novel-writing app: **a Quasar app (Vue 3) — Electron for the desktop, Capacitor for the phone —
 with a Node (Hono + SQLite) server** — plain JavaScript since 2026-10-08 (the family's move off
 Tauri and Python, then onto Quasar the same day: the kit's `docs/app-structure.md` §Q is the
-layout, `../just-llm-runner/template/` the reference app). Persistence is server-owned SQLite — the renderer
-holds no durable data. The whole AI/LLM stack is shared with the sibling apps: `just-llm-runner`
-(its JavaScript package `server/`, `@delebash/llm-runner`, beside this repo) + `@delebash/llm-ui`
+layout, `../just-core/template/` the reference app). Persistence is server-owned SQLite — the renderer
+holds no durable data. The whole AI/LLM stack is shared with the sibling apps: `just-core`
+(its JavaScript package `server/`, `@delebash/core`, beside this repo) + `@delebash/ui`
 (Vue).
 
 **Writing only.** All audio — Studio, TTS, audiobook export, speaker analysis, voice casting — lives
 in JustVoice, which JustWrite drives over an HTTP contract (JW hands JV the prose; JV does its own
 casting and narration). Do not reintroduce any of it here.
 
-The family rules every family repo follows: @../just-llm-runner/docs/family-rules.md
+The family rules every family repo follows: @../just-core/docs/family-rules.md
 
 ## Commands
 
 ```bash
 npm install            # the renderer + the server/ workspace; then once: cd src-electron && npm install
-                       # (the kit ../just-llm-runner and ../just-sqlite-sync sit beside this repo)
+                       # (the kit ../just-core and ../just-sqlite-sync sit beside this repo)
 npm run dev            # the desktop app: Quasar's dev server (:1420) + the Electron window; its server on data/
 npm run build          # the installer for the current OS (electron-builder → dist/electron/Packaged)
 npm run dev:spa        # Renderer only, in a browser tab (no desktop shell; data still via the server)
@@ -33,7 +33,7 @@ npm run test:server    # server vitest only (server/tests/, on Electron's Node)
 npm run test:flows     # click-through tests of the built UI, AI stubbed, 1280 + 390 px (tests/flows/)
 npm run eval           # every Lab sample on a real model (uses the GPU — ask JustVoice first)
 npm run i18n:report    # key coverage of the English catalogs — MISSING must always be zero
-node ../just-llm-runner/scripts/check-family.js   # the family guard — must pass before a commit
+node ../just-core/scripts/check-family.js   # the family guard — must pass before a commit
 ```
 
 **Server code runs on Electron's own Node.** Every npm script that runs the server or its tests
@@ -111,7 +111,7 @@ and `server/tests/`. i18n linting is a separate
 
 ## Where to look
 
-**Before researching anything — reading code to answer a question, measuring, briefing an agent — read the subject's section of `docs/dev/RESEARCH.md`** (what is already known, with the proof; the shared stack's facts are in `../just-llm-runner/docs/dev/RESEARCH.md`; the family rule, 2026-10-04). Research isn't done until its facts land there.
+**Before researching anything — reading code to answer a question, measuring, briefing an agent — read the subject's section of `docs/dev/RESEARCH.md`** (what is already known, with the proof; the shared stack's facts are in `../just-core/docs/dev/RESEARCH.md`; the family rule, 2026-10-04). Research isn't done until its facts land there.
 
 | For | Read |
 |---|---|

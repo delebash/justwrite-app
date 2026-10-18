@@ -4,7 +4,7 @@
 // exactly what went in (no data loss across the normalized tables). The fixture exercises
 // every entity, relationship, polymorphic attachment, AI artifact, and trash bucket.
 import { join } from "node:path";
-import { openDatabase } from "@delebash/llm-runner/platform/sql";
+import { openDatabase } from "@delebash/core/platform/sql";
 import { expect, test } from "vitest";
 import { ADDED_COLUMNS, TABLES } from "../src/database/models.js";
 import { client, tmpPath, useHermeticKit } from "./helpers.js";

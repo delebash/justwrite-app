@@ -9,9 +9,9 @@
 // DELETIONS (e.g. clearing a model-tier override drops a key from the `ai` section). Values
 // are real JSON the server parses, stored as Python's json.dumps text.
 
-import { T } from "@delebash/llm-runner/platform/models";
-import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { Hono, input } from "@delebash/llm-runner/platform/server";
+import { T } from "@delebash/core/platform/models";
+import { pyJson } from "@delebash/core/platform/pyjson";
+import { Hono, input } from "@delebash/core/platform/server";
 import { dset, pyLoads } from "../book_io.js";
 import { seedAppSettings } from "../database/app_settings_seed.js";
 import { getDb } from "../database/session.js";

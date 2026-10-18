@@ -10,7 +10,7 @@
 // open at the OS's own choice — the user's HOME dir (the "chooser opens at home"
 // bug) — so we always hand back a real path.
 
-import { get } from "@delebash/llm-ui";
+import { get } from "@delebash/ui";
 import { storageGetRoot } from "./native.js";
 import { readSetting, writeSetting } from "./settings.js";
 

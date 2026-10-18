@@ -5,15 +5,15 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Avatar from "../components/Avatar.vue";
-import { Icon, pageFill } from "@delebash/llm-ui";
-import { UiInput } from "@delebash/llm-ui";
-import { UiTextarea } from "@delebash/llm-ui";
-import { UiCheckbox } from "@delebash/llm-ui";
-import { UiNumber } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { UiSelect } from "@delebash/llm-ui";
-import { UiTag } from "@delebash/llm-ui";
-import { UiMenuItem } from "@delebash/llm-ui";
+import { Icon, pageFill } from "@delebash/ui";
+import { UiInput } from "@delebash/ui";
+import { UiTextarea } from "@delebash/ui";
+import { UiCheckbox } from "@delebash/ui";
+import { UiNumber } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
+import { UiSelect } from "@delebash/ui";
+import { UiTag } from "@delebash/ui";
+import { UiMenuItem } from "@delebash/ui";
 import EntityIndex from "../components/EntityIndex.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
@@ -32,8 +32,8 @@ import { nameIdeasRequest } from "../services/analysis/characterDraft.js";
 import TagEditor from "../components/TagEditor.vue";
 import SceneRefList from "../components/SceneRefList.vue";
 import MentionRefList from "../components/MentionRefList.vue";
-import { confirmDialog } from "@delebash/llm-ui";
-import { PaneHeader } from "@delebash/llm-ui";
+import { confirmDialog } from "@delebash/ui";
+import { PaneHeader } from "@delebash/ui";
 import {
   ARC_FIELDS, CAPABILITY_FIELDS, CONTINUITY_FIELDS, CORE_ENGINE_FIELDS, DEPTH_FIELDS, FUNCTION_FIELDS,
   IDENTITY_FIELDS, MOTIVATION_CORE, PRESENCE_FIELDS, VOICE_FIELDS, isThinCharacter, sectionCount,

@@ -19,12 +19,12 @@
 
 import { copyFileSync, mkdirSync, readdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { HttpError } from "@delebash/llm-runner/platform/errors";
-import { purePath, samePath } from "@delebash/llm-runner/platform/data_paths";
-import { T } from "@delebash/llm-runner/platform/models";
-import { pyJson } from "@delebash/llm-runner/platform/pyjson";
-import { pyOr, pySorted, strip } from "@delebash/llm-runner/platform/py";
-import { Hono, input } from "@delebash/llm-runner/platform/server";
+import { HttpError } from "@delebash/core/platform/errors";
+import { purePath, samePath } from "@delebash/core/platform/data_paths";
+import { T } from "@delebash/core/platform/models";
+import { pyJson } from "@delebash/core/platform/pyjson";
+import { pyOr, pySorted, strip } from "@delebash/core/platform/py";
+import { Hono, input } from "@delebash/core/platform/server";
 import { getState } from "#app_state";
 import { pyGet } from "../book_io.js";
 import { getDb } from "../database/session.js";

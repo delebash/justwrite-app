@@ -18,7 +18,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiButton, UiBanner } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiButton, UiBanner } from "@delebash/ui";
 import {
   profileFromBook, voiceFromBook,
   profileFieldDefs, voiceFieldDefs, draftRows, applyProfileDrafts,

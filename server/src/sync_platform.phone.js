@@ -13,7 +13,7 @@
 //   this device's changes go to the app's own folder (the window's `guard.*` calls), and a database
 //   found empty at start is rebuilt from them.
 import { folderSync, sqliteWasmAdapter } from "@delebash/sqlite-sync";
-import { callWindow } from "@delebash/llm-runner/platform/worker/runtime";
+import { callWindow } from "@delebash/core/platform/worker/runtime";
 
 export const syncDatabase = (raw) => sqliteWasmAdapter(raw.wasmDb);
 

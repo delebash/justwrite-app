@@ -5,7 +5,7 @@
 // makes each idea a button that emits `pick` (Name ideas: a click sets the name); the `actions`
 // slot adds a row's own controls (the page's Copy).
 import { computed } from "vue";
-import { Icon, UiButton } from "@delebash/llm-ui";
+import { Icon, UiButton } from "@delebash/ui";
 
 const props = defineProps({
   items: { type: Array, required: true }, // [{ text, liked }]

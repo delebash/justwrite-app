@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Port of tests/test_ai_prompts.py — /v1/ai/prompts, the Lab prompt editor: list / view /
 // edit / reset, all backed by the DB (the feature_prompts store).
-import { getLlmRegistry, LLMResponse } from "@delebash/llm-runner/llm";
-import * as seed from "@delebash/llm-runner/llm/seed";
+import { getLlmRegistry, LLMResponse } from "@delebash/core/llm";
+import * as seed from "@delebash/core/llm/seed";
 import { expect, test } from "vitest";
 import { state } from "../src/database/session.js";
 import { DEFAULT_FEATURE_PROMPTS } from "../src/seed_feature_prompts.js";
@@ -192,7 +192,7 @@ test("Draft from the premise keeps the book's facts; an unedited stored prompt h
 // predated {{storyContext}} / {{voiceCanon}} and did (found by `npm run eval`, 2026-10-16).
 test("every seeded Lab sample carries every variable its actions' prompts use", async () => {
   const SP = await import("../src/seed_presets.js");
-  const { render } = await import("@delebash/llm-runner/llm/prompts");
+  const { render } = await import("@delebash/core/llm/prompts");
   const gaps = [];
   for (const sample of SP.DEFAULT_TEST_SAMPLES) {
     for (const action of sample.actions) {

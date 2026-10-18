@@ -10,7 +10,7 @@
 // holds the window 400 ms on close before it stops the server — electron/main.js
 // `closeHoldMs`).
 
-import { get, post, put, del } from "@delebash/llm-ui";
+import { get, post, put, del } from "@delebash/ui";
 
 /** Rotate + write the on-disk autosave for a project. `opts` flows through to
  *  fetch — the close path passes { keepalive: true }. */

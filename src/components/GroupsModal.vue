@@ -1,9 +1,9 @@
 <script setup>
 import { computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { promptDialog } from "@delebash/llm-ui";
-import { Icon } from "@delebash/llm-ui";
-import { AppModal } from "@delebash/llm-ui";
+import { promptDialog } from "@delebash/ui";
+import { Icon } from "@delebash/ui";
+import { AppModal } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

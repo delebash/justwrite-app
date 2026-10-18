@@ -2,7 +2,7 @@
 // The phone's twin of app_state.js — the same API; the phone's in-app server keeps everything in
 // its SQLite database, so there is no data folder to create (the kit's
 // docs/plans/2026-10-08-the-phone.md).
-import { RuntimeError } from "@delebash/llm-runner/platform/py";
+import { RuntimeError } from "@delebash/core/platform/py";
 
 export class AppState {
   constructor(dataDir) {

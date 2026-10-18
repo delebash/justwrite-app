@@ -1,9 +1,9 @@
 <script setup>
 import { computed, ref, watch, onMounted, nextTick } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { PaneHeader, pageFill } from "@delebash/llm-ui";
-import { Icon } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
+import { PaneHeader, pageFill } from "@delebash/ui";
+import { Icon } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
 import {
   HELP_TOC,
   loadDoc,
@@ -11,7 +11,7 @@ import {
   titleForSlug,
   webUrlFor,
 } from "../services/helpDocs.js";
-import { openExternal, renderHelpMarkdown } from "@delebash/llm-ui";
+import { openExternal, renderHelpMarkdown } from "@delebash/ui";
 
 const props = defineProps({ slug: { type: String, default: "" } });
 

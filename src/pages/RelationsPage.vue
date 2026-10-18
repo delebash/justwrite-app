@@ -2,10 +2,10 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { PaneHeader, pageFill } from "@delebash/llm-ui";
-import { Icon } from "@delebash/llm-ui";
-import { UiButton } from "@delebash/llm-ui";
-import { UiCheckbox } from "@delebash/llm-ui";
+import { PaneHeader, pageFill } from "@delebash/ui";
+import { Icon } from "@delebash/ui";
+import { UiButton } from "@delebash/ui";
+import { UiCheckbox } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

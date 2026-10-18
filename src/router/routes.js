@@ -102,7 +102,7 @@ const pageRoutes = [
   // here. The first-run redirect to it lives in boot/jw.js (a run-once guard).
   { path: "welcome",           name: "Welcome",       component: () => import("../pages/WelcomePage.vue") },
 
-  // The SHARED @delebash/llm-ui "AI / Models" area (Providers & models · Features
+  // The SHARED @delebash/ui "AI / Models" area (Providers & models · Features
   // · Usage) — same view JustVoice mounts; appName passed as a static prop. The
   // Features tab now absorbs per-feature prompt editing + a test panel, so the
   // standalone Writer Lab + Feature prompts views were removed (2026-06-24).

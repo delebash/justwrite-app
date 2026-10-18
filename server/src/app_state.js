@@ -3,8 +3,8 @@
 // setState/getState, mirroring JustVoice. Holds the data dir.
 
 import { mkdirSync } from "node:fs";
-import { purePath } from "@delebash/llm-runner/platform/data_paths";
-import { RuntimeError } from "@delebash/llm-runner/platform/py";
+import { purePath } from "@delebash/core/platform/data_paths";
+import { RuntimeError } from "@delebash/core/platform/py";
 
 export class AppState {
   constructor(dataDir) {

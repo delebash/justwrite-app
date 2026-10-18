@@ -14,7 +14,7 @@
 
 import { ref, onMounted, onBeforeUnmount, computed } from "vue";
 import { VARIATION_TEMPERATURES } from "../services/writerAI.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/llm-ui";
+import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/ui";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
 

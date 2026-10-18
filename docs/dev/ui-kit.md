@@ -1,9 +1,9 @@
-# The shared UI kit — `@delebash/llm-ui`
+# The shared UI kit — `@delebash/ui`
 
 Reference for the shared component kit. Open when building or changing UI; `CLAUDE.md` keeps only
 the rules that bite.
 
-All UI primitives and shells come from `@delebash/llm-ui` (Vite alias → `../just-llm-runner/ui/src`).
+All UI primitives and shells come from `@delebash/ui` (Vite alias → `../just-core/packages/ui/src`).
 There is no local `components/ui/` directory — the `Jw*` forks were fully converged into the kit's
 `Ui*` family in 2026-06-24, matching JustVoice. Never re-fork a primitive locally; a capability gap
 gets promoted into the kit so both apps share it.

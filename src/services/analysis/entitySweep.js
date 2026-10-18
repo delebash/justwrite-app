@@ -19,8 +19,8 @@
 // downside is a few wasted output tokens per duplicate. Worth it for the
 // 3-4× wall-clock speed-up on a long book.
 
-import { useResolvedRoute, withAiTask } from "@delebash/llm-ui";
-import { LOCAL_RUNNER_ID } from "@delebash/llm-ui/services/modelApply.js";
+import { useResolvedRoute, withAiTask } from "@delebash/ui";
+import { LOCAL_RUNNER_ID } from "@delebash/ui/services/modelApply.js";
 
 import { normalizeName as normName } from "../text.js";
 import { extractEntities } from "./entityExtraction.js";

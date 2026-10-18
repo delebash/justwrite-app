@@ -9,7 +9,7 @@
 // RULE #1 precedent: CharacterDraftModal — the same shell, list and footer.
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiButton, UiBanner } from "@delebash/llm-ui";
+import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiButton, UiBanner } from "@delebash/ui";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import DraftReviewList from "./DraftReviewList.vue";
 
