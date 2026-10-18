@@ -91,9 +91,10 @@ HERE:   Task 3 (the last English: bound attributes, labels in JavaScript, dates 
         JustWrite's list first, as a docgen job (proposals only — es.json untouched until the
         user applies them in Review), the GPU free by JustVoice's word, which comes before each
         list. All three staged 2026-10-15: JustWrite's 2,980 keys, the kit's 1,453 of 1,454 (the
-        one left is "" on purpose — docgen's TASKS), docgen's 278; no locale file written. Next:
-        the user's review in docgen's Review page (start docgen with a project's config.json),
-        then Apply per catalog, then step 4's gates.
+        one left is "" on purpose — docgen's TASKS), docgen's 278; no locale file written.
+        Reviewed, applied and checked 2026-10-17 by the agentic review instead of by hand (the
+        user: "i dont want to review spanish can you do it"): the three catalogs, with step 4's
+        gates — TASKS "Automated testing".
 FOUND:  2026-10-13, older than this work — the model catalog at narrow windows (the License chip
         broken mid-word below 1280 px, the Bench header wider than its 5% column, Edit / Download / ⋯
         on three rows below 1280), and 2026-10-15 the Characters list pushing its page sideways.
@@ -420,23 +421,64 @@ FOUND:  2026-10-16, while freeing the card: the kit's `POST /v1/llm-runner/stop`
           failed; `es.json` byte-identical.
           Read: every beat key keeps "beat", every strand key says "hilo"; 155 of the 158 put
           the number first.
-OPEN:   1. Your review in docgen's Review (JustWrite's project), then Apply. Read before review:
-           - Three plural forms still put the number after the noun:
-             `settings.wbCategories.deleteMessage` ("Su artículo {n}…", where its twin
-             `sidebar.actions.deleteWbCategoryMoves` came out right),
-             `chapters.dialogs.deletePartMessage` ("Su capítulo {n}…"), and
-             `entityReview.linked` ("Vinculado a la {n} escena.").
-           - "reviravones" in `chapters.ai.twistsDesc` isn't Spanish.
-           - "Draft: {name}" is "Redactar:" in one key and "Borrador:" in another.
-           - "stale chunk" is "fragmento estancado", "desactualizado" and "rancio" in three keys.
-           - `characters.sweepPrompt.message` keeps "story bible" in English; other keys say
-             "biblia de la historia".
-           - `count.beat` in `es.json` is "compás" (a musical beat); its proposal is
-             "{n} beat | {n} beats".
+        The Spanish review, DECIDED 2026-10-17 — the user: "your rec what else is next i dont want
+        to review spanish can you do it"; then "realisitically you are a very smart ai, either you
+        can do most of the work find tools like you did in jv or if need be we make tools but i
+        want an agentic worflow with little human interaction". The tools are in docgen's RESEARCH
+        ("Automatic translation review: tools"). Asked as shown: "My rec: one saved workflow in
+        docgen's repo, reusable for any app's catalog. You'd see only a summary and a short list
+        of anything left over. 1. Translate: docgen's job, as now. 2. Machine checks: docgen's
+        checks, plus the Spanish spellchecker. 3. Review: 4 reviewer agents split the strings. Each
+        one marks errors in the MQM style and writes a fix, only for real errors and never for
+        style. They work from one term sheet built from the catalog plus your three rules. 4.
+        Verify: 4 verifier agents keep a fix only if they agree it improves the string (the MQM-APE
+        filter). A fix that breaks docgen's checks is dropped automatically. 5. Apply: through
+        docgen's own Apply and Save, so it's undoable and every `es.json` change shows in git. Then
+        docgen's `check` must pass. 6. On screen: JustWrite's flow tests run in Spanish at 1280 and
+        390 px, checking for overflow. 7. First run: all three catalogs waiting today (JustWrite,
+        the kit, docgen; about 4,800 strings), with 9 agents in total." NOT STANDARD: "the
+        workflow script and the small export and apply scripts around docgen". The user: "auto
+        compatcte re read docs rules notes so you know where you are at your rec on all think on
+        them again adversarially first go". What the attack changed, as shown: no GPU (the
+        reviewers write the kit's new strings through docgen's Save, no translate job);
+        acceptances recorded by the reviewer "Claude (AI review)", set on a scratch copy of
+        docgen's data ("the engine never signs off"); a pick in the strings where the file's
+        Spanish and the proposal differ; every final string compiled with vue-i18n's message
+        compiler; run from the scratchpad, saving it into docgen as a reusable tool asked by name
+        once it has worked; 1 term sheet + 6 reviewers + 2 verifiers.
+        Run 2026-10-17 (numbers in docgen's RESEARCH): the term sheet, 201 terms; 1,282 decisions;
+        the verifiers upheld 1,234 and rewrote 48; a last agent (the tenth) ruled on the 430 strings
+        still flagged — 2 fixed, 428 accepted with a reason; my own on the way: "P. ej." after a full
+        stop in 11 hints, the kit's speed band "bien" → "aceptable" (its settings call it that), and
+        17 counts given both forms ("{n} encontrado | {n} encontrados" — vue-i18n picks the form
+        from `n`, the kit's RESEARCH §8; docgen's placeholder check counts `{n}` across both forms,
+        so they are accepted). Applied through docgen's routes on a scratch-data server: every
+        `es.json` equals the decisions key by key — JustWrite 3,052 of 3,052 (was 2,092), the kit
+        1,480 (was 62), docgen 278 (new). Nothing left staged or unreviewed; `es.accepted.json`
+        written in each project. All six problems listed here before are fixed (the number first,
+        "reveses", "Redacción: {name}", "desactualizado", "biblia de la historia", "{n} beat").
+        Checked: docgen's `check` passes on JustWrite's and docgen's catalogs, and on the kit's but
+        for `kit.quickSetup.doneBody` (empty in English on purpose — docgen's TASKS, FOUND
+        2026-10-15); test:fast (unit 713, build, server 166); the kit's UI tests (12); i18n:report
+        MISSING 0; the smoke; the flows 16 of 16; every route in Spanish at 1280 and 390 px — no
+        sideways page, the same boxes scrolling in themselves as before (the tables at 390);
+        docgen's screens in Spanish from its real window. Fixed on the way: the kit's Icon shrank
+        beside a label that wraps (docgen's nav, "Configuración de la aplicación") — it keeps its
+        size now. User docs: whats-new.md.
+OPEN:   1. Saving the review as a reusable tool in docgen's repo (NOT STANDARD) — your word by name.
+        2. Code that puts English into Spanish screens, found by the reviewers: ImportPage passes
+           "chapter"/"note" into `{item}`/`{items}`; Sidebar builds "New …" by stripping a final
+           "s" from the translated label ("ubicacione"); the marketing pack shows the model's raw
+           "high/medium/low" in `confidenceLabel`; the backup restore title shows the raw
+           generation ("prev2") — `SettingsPage.vue:584` where its list uses `generationLabel()`.
+        3. Small Spanish calls the last pass left: the theme names "Fine Press" and "Ivory Press"
+           stay English while their siblings are translated.
 GO:     given 2026-10-16 for the eval and the flow tests ("think on your rec again always adversially
         go"; "carry on, your rec go"); for the five fixes, the three labels and the translation
         ("your rec on all go"); 2026-10-17 for the stop route and the Spanish ("go your rec";
-        "think on it adverserially your rec go").
+        "think on it adverserially your rec go"); 2026-10-17 for the Spanish review ("auto
+        compatcte re read docs rules notes so you know where you are at your rec on all think on
+        them again adversarially first go").
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's
@@ -931,12 +973,6 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
 
 ## Now / near-term (JustWrite)
 
-- **The kit's es values are HAND-TRANSLATED (2026-08-04)** — the words that were JustWrite's
-  `family.*` block (AI tabs, download-bar actions, connection-error copy, the lab group) and now
-  sit in the kit's `ui/src/i18n/locales/es.json` (the i18n plan's step A); run them through the docgen
-  translator + review workspace when that pipeline goes live, like the rest of es.json.
-  Same for the AI drafting's keys (2026-10-11): `characterDraft.*`, `characters.draft.*`,
-  `writingAi.storyContext*`, `characterProfile.nothingGrounded`.
 - **"Serve `/health` before `seed_workspace`" — recommend DROPPING; your ruling owed.**
   Measured 2026-07-25: it buys 36 ms of a ~975 ms pre-listen window dominated by framework
   imports that cannot be deferred. (Correction, docs campaign: there is no "re-measure

@@ -4,6 +4,14 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## 2026-10-17
+
+**All of JustWrite in Spanish.** With Spanish chosen in **Settings → Appearance**, every screen's
+words are now Spanish — the AI setup and model screens, sync, settings and the error messages
+included — where many were still English. A term means the same thing on every screen: a plot
+beat stays **beat**, a strand of the plot board is a **hilo**, and counts put the number first
+("3 notas").
+
 ## 2026-10-16
 
 **Locations, objects and groups have sheets.** Under the description, a location now has

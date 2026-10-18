@@ -1,0 +1,1242 @@
+{
+  "0086a20005bc4929": {
+    "key": "dateTime.pm",
+    "code": "untranslated",
+    "src": "PM",
+    "dst": "PM",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "038c9a7153280362": {
+    "key": "export.epubDesc",
+    "code": "terminology",
+    "src": "EPUB 3 — one HTML file per part and chapter, with a navigation document so readers like Apple Books, Kobo, and Calibre show the contents.",
+    "dst": "EPUB 3: un archivo HTML por parte y capítulo, con un documento de navegación para que lectores como Apple Books, Kobo y Calibre muestren el contenido.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "057e8e3f897aedcb": {
+    "key": "characters.fields.motivation.lieOrigin.hint",
+    "code": "terminology",
+    "src": "Write it as a scene: where, who said what, what they decided. e.g. the night her father called her gift a curse.",
+    "dst": "Escríbelo como una escena: dónde, quién dijo qué, qué decidieron. P. ej. la noche en que su padre llamó a su don una maldición.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "058531b90c6636c9": {
+    "key": "versionHistory.sideA",
+    "code": "untranslated",
+    "src": "A",
+    "dst": "A",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "0627244a9269eba1": {
+    "key": "richEditor.keys.alt",
+    "code": "untranslated",
+    "src": "Alt",
+    "dst": "Alt",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "08c638cc03c65740": {
+    "key": "analysisView.cols.sentence",
+    "code": "endpunc",
+    "src": "Sent",
+    "dst": "Orac.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "08cc619f4d608b08": {
+    "key": "settings.about.rendererValue",
+    "code": "untranslated",
+    "src": "Vue 3 + Pinia",
+    "dst": "Vue 3 + Pinia",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "09501d0122c83145": {
+    "key": "richEditor.matchCaseGlyph",
+    "code": "untranslated",
+    "src": "Aa",
+    "dst": "Aa",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "0b0b8d5fb1f7f41c": {
+    "key": "analysisView.tensionEmpty",
+    "code": "terminology",
+    "src": "No chapters have a structural analysis yet. Click the button above to walk every chapter and score tension (1–10), hook quality (1–10), pacing, and ending classification. Sequential — one LLM call per chapter — so longer books take a while. Cancel mid-sweep keeps partial results.",
+    "dst": "Aún no hay capítulos con análisis estructural. Haz clic en el botón de arriba para recorrer cada capítulo y calificar la tensión (1–10), la calidad del gancho (1–10), el ritmo y la clasificación del final. Es secuencial —una llamada a LLM por capítulo— por lo que los libros largos tardan un poco. Si cancelas a mitad del proceso, se conservarán los resultados parciales.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "0b8e794b6dae2197": {
+    "key": "richEditor.textColorGlyph",
+    "code": "untranslated",
+    "src": "A",
+    "dst": "A",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "0ea4e073d609691f": {
+    "key": "richEditor.h2Glyph",
+    "code": "untranslated",
+    "src": "H2",
+    "dst": "H2",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "104c688ac52d7c82": {
+    "key": "beatSheet.framework.saveTheCat.name",
+    "code": "untranslated",
+    "src": "Save the Cat",
+    "dst": "Save the Cat",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "10a6dce2fa196e46": {
+    "key": "plotHoles.dismissedCount",
+    "code": "placeholder-changed",
+    "src": "{n} dismissed",
+    "dst": "{n} descartado | {n} descartados",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "14c0e0a7021e144e": {
+    "key": "groups.emptyBody",
+    "code": "terminology",
+    "src": "Factions and organizations. Group members together to see alliances drawn as edges in the Relations graph.",
+    "dst": "Facciones y organizaciones. Agrupa miembros para ver las alianzas representadas como conexiones en el gráfico de Relaciones.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "1642154de5550701": {
+    "key": "home.strandChapters",
+    "code": "endpunc",
+    "src": "{n} ch",
+    "dst": "{n} cap.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "165e75227987f47b": {
+    "key": "sensory.category.social.label",
+    "code": "untranslated",
+    "src": "Social",
+    "dst": "Social",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "16877a270a89e323": {
+    "key": "analysisView.cols.dialogue",
+    "code": "endpunc",
+    "src": "Dial",
+    "dst": "Diál.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "16ed985d21fa62d2": {
+    "key": "settings.appearance.paper.sepia",
+    "code": "untranslated",
+    "src": "Sepia",
+    "dst": "Sepia",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "1a702c207f5a0897": {
+    "key": "marketingPack.chipLabel",
+    "code": "untranslated",
+    "src": "Marketing",
+    "dst": "Marketing",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "1b12f9173c00e71d": {
+    "key": "aiTell.note.theVeryFabricOf",
+    "code": "untranslated",
+    "src": "Cliché.",
+    "dst": "Cliché.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "1d96ca4bcea4a2ef": {
+    "key": "chapters.empty.message",
+    "code": "terminology",
+    "src": "Create the first chapter to start writing, or import an existing manuscript from a file.",
+    "dst": "Crea el primer capítulo para empezar a escribir o importa un manuscrito existente desde un archivo.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "1d9d9bb497b9cc70": {
+    "key": "settings.about.runtimeDesktop",
+    "code": "untranslated",
+    "src": "Electron ({version})",
+    "dst": "Electron ({version})",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "1e2212688f6a118b": {
+    "key": "settings.storage.diskUsageHint",
+    "code": "terminology",
+    "src": "Where your data folder's space goes. Downloaded models and engine logs can be cleared to reclaim space — your projects, settings and work are never touched.",
+    "dst": "Aquí se muestra el espacio ocupado por tu carpeta de datos. Puedes borrar los modelos descargados y los registros del motor para recuperar espacio; tus proyectos, ajustes y trabajo nunca se verán afectados.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "1e651412e9537ca6": {
+    "key": "batchFill.retryFailed",
+    "code": "brackets",
+    "src": "Retry {n} failed",
+    "dst": "Reintentar {n} fallido | Reintentar {n} fallidos",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "200c48a385d0483f": {
+    "key": "brainstorm.categories.place_name.placeholder",
+    "code": "numbers",
+    "src": "e.g. Creepy New England small-town shop names, 1920s setting.\n\nOr: Frontier-town tavern names that suggest both refuge and trouble.",
+    "dst": "p. ej., nombres inquietantes de tiendas de un pueblo de Nueva Inglaterra, años veinte.\n\nO: nombres de tabernas de un pueblo fronterizo que sugieran a la vez refugio y problemas.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "202cfc388618012a": {
+    "key": "readerKnowledge.legendPov",
+    "code": "untranslated",
+    "src": "POV",
+    "dst": "POV",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "203a935643785615": {
+    "key": "strands.beatPreset.crisis",
+    "code": "untranslated",
+    "src": "Crisis",
+    "dst": "Crisis",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "20db68cb43f936b6": {
+    "key": "analysisView.cols.adverbs",
+    "code": "endpunc",
+    "src": "Adv",
+    "dst": "Adv.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "23a87d12cf593b4e": {
+    "key": "richEditor.keys.ctrl",
+    "code": "untranslated",
+    "src": "Ctrl",
+    "dst": "Ctrl",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "2451ff7def80cf5a": {
+    "key": "entitySweep.pickFound",
+    "code": "placeholder-changed",
+    "src": "✓ {n} found",
+    "dst": "✓ {n} encontrado | ✓ {n} encontrados",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "24af8278bfc71186": {
+    "key": "homeShelf.doneCount",
+    "code": "brackets",
+    "src": "{n} done",
+    "dst": "{n} completado | {n} completados",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "2737cf0a9302bf4e": {
+    "key": "settings.about.tagline",
+    "code": "terminology",
+    "src": "A local-first writing studio for novels — chapters, cast, and world, all stored on your machine.",
+    "dst": "Un estudio de escritura local para novelas: capítulos, elenco y mundo, todo almacenado en tu máquina.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "29ef38c4a0acc4e4": {
+    "key": "foreshadowing.mentionedCount",
+    "code": "brackets",
+    "src": "{n} mentioned later",
+    "dst": "{n} mencionado más adelante | {n} mencionados más adelante",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "2b31788d8eb10402": {
+    "key": "sidebar.footer.untitledAuthor",
+    "code": "terminology",
+    "src": "Untitled author",
+    "dst": "Autor sin nombre",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "2c019d6f61f841ee": {
+    "key": "analysisView.cols.passive",
+    "code": "endpunc",
+    "src": "Pass",
+    "dst": "Pas.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "2e1317d04a9d6141": {
+    "key": "indexBuild.chatTerm",
+    "code": "untranslated",
+    "src": "Chat",
+    "dst": "Chat",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "3233a8f3895ddcb0": {
+    "key": "settings.wbCategories.hint",
+    "code": "terminology",
+    "src": "Group your worldbuilding articles — these drive the sidebar sections and the category picker. Pick a color for each. Deleting one moves its articles into another category.",
+    "dst": "Agrupa tus artículos de construcción de mundos; estas categorías definen las secciones de la barra lateral y el selector de categorías. Elige un color para cada una. Al eliminar una, sus artículos se moverán a otra categoría.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "36a784454f055374": {
+    "key": "settings.appearance.preset.editorial.name",
+    "code": "untranslated",
+    "src": "Editorial",
+    "dst": "Editorial",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "3807b4ac9acef9ce": {
+    "key": "strands.beatsTerm",
+    "code": "untranslated",
+    "src": "beats",
+    "dst": "beats",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "39857ff1bc30220a": {
+    "key": "groups.empty",
+    "code": "terminology",
+    "src": "No groups yet — create one below.",
+    "dst": "Aún no hay grupos; crea uno abajo.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "3a4f58324b7b5ec7": {
+    "key": "settings.appearance.preset.finePress.name",
+    "code": "untranslated",
+    "src": "Fine Press",
+    "dst": "Fine Press",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "3abecd9eb7b0c036": {
+    "key": "characters.fields.function.selfImage.label",
+    "code": "terminology",
+    "src": "Self-image",
+    "dst": "Autoimagen",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "3bed614af73540df": {
+    "key": "beatSheet.framework.saveTheCat.beat.debate.name",
+    "code": "untranslated",
+    "src": "Debate",
+    "dst": "Debate",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "3f1199e86444237e": {
+    "key": "strands.beatField",
+    "code": "untranslated",
+    "src": "Beat",
+    "dst": "Beat",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "3f6fe5f8fe39ad87": {
+    "key": "linkBackfill.proposedCount",
+    "code": "placeholder-changed",
+    "src": "{n} proposed",
+    "dst": "{n} propuesto | {n} propuestos",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "3fefef541e683824": {
+    "key": "sidebar.projectSwitcher.tutorialTooltip",
+    "code": "terminology",
+    "src": "Opens The Ninth Facet — a complete sample book to explore. Delete it from this menu when you're done.",
+    "dst": "Abre The Ninth Facet, un libro de muestra completo para explorar. Elimínalo de este menú cuando hayas terminado.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "417792305acf673d": {
+    "key": "indexBuild.dims",
+    "code": "untranslated",
+    "src": "{n}d",
+    "dst": "{n}d",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "44df36ac39189ffe": {
+    "key": "welcome.brandMark",
+    "code": "untranslated",
+    "src": "J",
+    "dst": "J",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "468648bf2c391dd9": {
+    "key": "variations.elapsedSeconds",
+    "code": "untranslated",
+    "src": "{n}s",
+    "dst": "{n}s",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "4a7849edaca28cec": {
+    "key": "entitySweep.rowDone",
+    "code": "brackets",
+    "src": "done · {n} found",
+    "dst": "completado · {n} encontrado | completado · {n} encontrados",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "4afc597fe999647b": {
+    "key": "richEditor.err.continueNeedsCursor",
+    "code": "terminology",
+    "src": "Place the cursor at the end of some prose to continue from.",
+    "dst": "Coloca el cursor al final de algún texto para continuar desde ahí.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "4b7436413b27cadb": {
+    "key": "foreshadowing.mentionedCount",
+    "code": "placeholder-changed",
+    "src": "{n} mentioned later",
+    "dst": "{n} mencionado más adelante | {n} mencionados más adelante",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "4bac50d8a3af42d0": {
+    "key": "chapters.footer.characters",
+    "code": "terminology",
+    "src": "characters",
+    "dst": "caracteres",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "4ccf6f25c9ea357f": {
+    "key": "projectReplace.matchCaseGlyph",
+    "code": "untranslated",
+    "src": "Aa",
+    "dst": "Aa",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "4df59f5ce802ee8c": {
+    "key": "entitySweep.retryFailed",
+    "code": "placeholder-changed",
+    "src": "Retry {n} failed",
+    "dst": "Reintentar {n} fallido | Reintentar {n} fallidos",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "4f4a41bf7889d9fe": {
+    "key": "analysisView.cols.pov",
+    "code": "untranslated",
+    "src": "POV",
+    "dst": "POV",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "52b7335d803f1016": {
+    "key": "foreshadowing.danglingCount",
+    "code": "brackets",
+    "src": "{n} dangling",
+    "dst": "{n} pendiente | {n} pendientes",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "52dc666d745979f2": {
+    "key": "entitySweep.resumeFailedPart",
+    "code": "placeholder-changed",
+    "src": " · {n} failed",
+    "dst": " · {n} fallido | {' '}· {n} fallidos",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "539693e381232324": {
+    "key": "plotBoard.ai.taskIdeas",
+    "code": "untranslated",
+    "src": "Ideas: {name}",
+    "dst": "Ideas: {name}",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "542c265fde256262": {
+    "key": "richEditor.fontIncGlyph",
+    "code": "untranslated",
+    "src": "A+",
+    "dst": "A+",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "54946ebe328aff8b": {
+    "key": "analysis.pace.total",
+    "code": "untranslated",
+    "src": "total",
+    "dst": "total",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "5917663f7c65da2d": {
+    "key": "settings.appearance.sectionHeadingHint",
+    "code": "terminology",
+    "src": "The small labels that group the sidebar nav (e.g. {manuscript}, {storyWorld}).",
+    "dst": "Las etiquetas pequeñas que agrupan la navegación de la barra lateral (p. ej., {manuscript}, {storyWorld}).",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "5a15a490e8095bef": {
+    "key": "foreshadowing.pinnedCount",
+    "code": "brackets",
+    "src": "{n} pinned",
+    "dst": "{n} fijado | {n} fijados",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "5ee568355d6ee941": {
+    "key": "strands.colorLabel",
+    "code": "untranslated",
+    "src": "Color",
+    "dst": "Color",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "5effcbd161d399a8": {
+    "key": "plotBoard.template.saveTheCat.label",
+    "code": "untranslated",
+    "src": "Save the Cat",
+    "dst": "Save the Cat",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "622f86b62f671de4": {
+    "key": "chapters.ai.continueDesc",
+    "code": "terminology",
+    "src": "Write 2–4 more paragraphs from where the cursor is, matching the voice, tense, and POV of what came before.",
+    "dst": "Escribe 2–4 párrafos más desde donde está el cursor, manteniendo la voz, el tiempo verbal y el punto de vista de lo anterior.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "626cd0000ec8c2c1": {
+    "key": "analysisView.cols.words",
+    "code": "endpunc",
+    "src": "W",
+    "dst": "Pal.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "6317ef8990cb94ff": {
+    "key": "common.no",
+    "code": "untranslated",
+    "src": "No",
+    "dst": "No",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "634b2eea46d89a92": {
+    "key": "chat.askAnything",
+    "code": "terminology",
+    "src": "Ask anything about your book — characters, scenes, threads. Follow-ups remember the conversation.",
+    "dst": "Pregunta cualquier cosa sobre tu libro: personajes, escenas, hilos. Las preguntas de seguimiento mantienen el contexto de la conversación.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "640748c3a6c19bfd": {
+    "key": "settings.tagVocabularies.hint",
+    "code": "terminology",
+    "src": "A curated set of tags per entity type. These appear first in the tag suggestion dropdown and canonicalize ad-hoc input — typing \"Antagonist\" resolves to \"antagonist\" when that's a curated tag. Freeform tags continue to work alongside them.",
+    "dst": "Un conjunto curado de etiquetas por tipo de entidad. Estas aparecen primero en el menú desplegable de sugerencias de etiquetas y normalizan la entrada ad hoc; escribir \"Antagonista\" se resuelve como \"antagonista\" cuando esa es una etiqueta curada. Las etiquetas de texto libre seguirán funcionando junto a ellas.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "6f6214e45d675514": {
+    "key": "foreshadowing.danglingCount",
+    "code": "placeholder-changed",
+    "src": "{n} dangling",
+    "dst": "{n} pendiente | {n} pendientes",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "71c223bdaf256274": {
+    "key": "beatSheet.blurb",
+    "code": "terminology",
+    "src": "Pick a framework. JustWrite maps each of its beats to the chapter that best fulfils it — and flags the beats your book doesn't cover. The model's instructed to be honest about {missing} beats; a clean map of every beat is suspicious. Best after a complete draft.",
+    "dst": "Elige un marco. JustWrite mapea cada uno de sus beats al capítulo que mejor lo cumpla y marca los beats que tu libro no cubre. Se le ha instruido al modelo que sea honesto sobre los beats con la etiqueta {missing}; un mapa perfecto de cada beat es sospechoso. Es mejor usarlo después de un borrador completo.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "739a20b3136a965d": {
+    "key": "analysisView.cols.paragraph",
+    "code": "endpunc",
+    "src": "Para",
+    "dst": "Párr.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "7445fda0a1e4fdb9": {
+    "key": "richEditor.h1Glyph",
+    "code": "untranslated",
+    "src": "H1",
+    "dst": "H1",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "7526de6d9f31444c": {
+    "key": "entitySweep.pickFound",
+    "code": "brackets",
+    "src": "✓ {n} found",
+    "dst": "✓ {n} encontrado | ✓ {n} encontrados",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "769f7024b4e35725": {
+    "key": "homeShelf.volNum",
+    "code": "untranslated",
+    "src": "i.",
+    "dst": "i.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "7a0a664e0f6cde5e": {
+    "key": "richEditor.subscriptGlyph",
+    "code": "untranslated",
+    "src": "x₂",
+    "dst": "x₂",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "7f3324154e569839": {
+    "key": "plotBoard.ai.fillLede",
+    "code": "terminology",
+    "src": "A note for each of the template's beats, for your book — from its premise, world and cast. Notes that still give the template's general advice come ticked; ones you've written don't. Edit any, then apply.",
+    "dst": "Una nota para cada uno de los beats de la plantilla para tu libro, basada en su premisa, mundo y elenco. Las notas que aún ofrecen los consejos generales de la plantilla aparecen marcadas; las que tú has escrito, no. Edita las que quieras y luego aplícalas.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "81ad90a3185464b8": {
+    "key": "homeShelf.doneCount",
+    "code": "placeholder-changed",
+    "src": "{n} done",
+    "dst": "{n} completado | {n} completados",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "81d57d17fd88e0a2": {
+    "key": "strands.beatsHeading",
+    "code": "untranslated",
+    "src": "Beats",
+    "dst": "Beats",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "83c3c49bc67d5f70": {
+    "key": "sidebar.brand.sub",
+    "code": "untranslated",
+    "src": "v0.1 · local",
+    "dst": "v0.1 · local",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "8423079f87740b25": {
+    "key": "settings.appearance.fontSpecimen",
+    "code": "untranslated",
+    "src": "Ag",
+    "dst": "Ag",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "84a13d7e05f50d7c": {
+    "key": "groups.colorLabel",
+    "code": "untranslated",
+    "src": "Color",
+    "dst": "Color",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "8728020cc60706bd": {
+    "key": "settings.appearance.tagError",
+    "code": "untranslated",
+    "src": "Error",
+    "dst": "Error",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "87c3b334df80639c": {
+    "key": "brainstorm.categories.character_name.placeholder",
+    "code": "numbers",
+    "src": "e.g. Norse-sounding female warrior names, sharp consonants, two syllables.\n\nOr: Reedy academic name for a 1920s English don, slightly ridiculous.",
+    "dst": "p. ej., nombres nórdicos de guerreras, consonantes marcadas, dos sílabas.\n\nO: un nombre afectado de académico para un profesor inglés de los años veinte, algo ridículo.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "89ceb1f2f4d81fbf": {
+    "key": "entitySweep.resumeFailedPart",
+    "code": "brackets",
+    "src": " · {n} failed",
+    "dst": " · {n} fallido | {' '}· {n} fallidos",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "8a1febd3a1f82eef": {
+    "key": "commandPalette.sub.export",
+    "code": "untranslated",
+    "src": "PDF / DOCX / EPUB",
+    "dst": "PDF / DOCX / EPUB",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "8a8cf05fbce1e3ed": {
+    "key": "richEditor.fontDecGlyph",
+    "code": "untranslated",
+    "src": "A−",
+    "dst": "A−",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "8d3e8326d1a5d1b8": {
+    "key": "entitySweep.rowDone",
+    "code": "placeholder-changed",
+    "src": "done · {n} found",
+    "dst": "completado · {n} encontrado | completado · {n} encontrados",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "913d47f795f8aebd": {
+    "key": "chapters.dialogs.dialoguePlaceholder",
+    "code": "terminology",
+    "src": "e.g. Nettle presses Cael about the token; Cael deflects.",
+    "dst": "p. ej. Nettle presiona a Cael sobre la ficha; Cael desvía el tema.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "921f37308a475393": {
+    "key": "editorSettings.fontSans",
+    "code": "untranslated",
+    "src": "Sans-serif",
+    "dst": "Sans-serif",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "930c440507f3f79b": {
+    "key": "richEditor.keys.shift",
+    "code": "untranslated",
+    "src": "Shift",
+    "dst": "Shift",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "94820d9921f0b9c8": {
+    "key": "editorSettings.capitalize",
+    "code": "terminology",
+    "src": "Capitalize first letter of sentences",
+    "dst": "Mayúscula al inicio de las oraciones",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "9798f17bc6b86b3f": {
+    "key": "linkBackfill.proposedCount",
+    "code": "brackets",
+    "src": "{n} proposed",
+    "dst": "{n} propuesto | {n} propuestos",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "98e6076f8059c748": {
+    "key": "entitySweep.retryFailed",
+    "code": "brackets",
+    "src": "Retry {n} failed",
+    "dst": "Reintentar {n} fallido | Reintentar {n} fallidos",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "9935fbf741c00678": {
+    "key": "settings.backups.importDesktopOnly",
+    "code": "terminology",
+    "src": "Importing a book needs the desktop app.",
+    "dst": "Importar un libro requiere la aplicación de escritorio.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "a1ef1120323f016b": {
+    "key": "import.startNewBookSub",
+    "code": "terminology",
+    "src": "Create a fresh project from this file. Your current project stays untouched.",
+    "dst": "Crea un proyecto nuevo a partir de este archivo. Tu proyecto actual permanecerá intacto.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "a298fd08d6cf9eea": {
+    "key": "marketingPack.pitchHeading",
+    "code": "untranslated",
+    "src": "Elevator pitch",
+    "dst": "Elevator pitch",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "a2bcd852ed236c71": {
+    "key": "reverseOutline.structure.loose",
+    "code": "terminology",
+    "src": "Loose / episodic",
+    "dst": "Laxo / episódico",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "a9379bd37879a1f5": {
+    "key": "readerKnowledge.status.neutral",
+    "code": "untranslated",
+    "src": "Neutral",
+    "dst": "Neutral",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "aaa129f69b286763": {
+    "key": "entitySweep.reviewFound",
+    "code": "placeholder-changed",
+    "src": "Review {n} found",
+    "dst": "Revisar {n} encontrado | Revisar {n} encontrados",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "abaddfe0a3ddb5f4": {
+    "key": "batchFill.retryFailed",
+    "code": "placeholder-changed",
+    "src": "Retry {n} failed",
+    "dst": "Reintentar {n} fallido | Reintentar {n} fallidos",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "ad277161ff5521de": {
+    "key": "foreshadowing.pinnedCount",
+    "code": "placeholder-changed",
+    "src": "{n} pinned",
+    "dst": "{n} fijado | {n} fijados",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "ad296fbff82c6163": {
+    "key": "chapters.footer.aiTokens",
+    "code": "untranslated",
+    "src": "· {n} tokens",
+    "dst": "· {n} tokens",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "b14f9194fc4bb06b": {
+    "key": "marketingPack.blurb",
+    "code": "terminology",
+    "src": "One LLM call returns the four artifacts a writer needs to query and pitch: a {logline} (one sentence), three {blurbs} from different angles, a one-page {synopsis} (including the ending — agents need it), and a three-paragraph {pitch}. Best after a complete draft. Each artifact has a copy button.",
+    "dst": "Una sola llamada a un LLM devuelve los cuatro elementos que un escritor necesita para enviar consultas y presentar su obra: un {logline} (una oración), tres {blurbs} desde diferentes ángulos, una {synopsis} de una página (incluido el final; los agentes lo necesitan) y un {pitch} de tres párrafos. Ideal después de completar un borrador. Cada elemento tiene un botón de copiar.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "b1ce9206400c6cd2": {
+    "key": "sceneNotes.placeholderChapter",
+    "code": "terminology",
+    "src": "Jot a chapter-level note…",
+    "dst": "Anota algo sobre el capítulo…",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "b26964d0aec63274": {
+    "key": "relations.kbdZoom",
+    "code": "untranslated",
+    "src": "zoom",
+    "dst": "zoom",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "b26e7228a4005618": {
+    "key": "foreshadowing.pinnedToast",
+    "code": "terminology",
+    "src": "Pinned {n} loose thread. | Pinned {n} loose threads.",
+    "dst": "Se fijó {n} cabo suelto. | Se fijaron {n} cabos sueltos.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "b2ec82329a9ac2a7": {
+    "key": "analysisView.badgeCliffhanger",
+    "code": "untranslated",
+    "src": "Cliffhanger",
+    "dst": "Cliffhanger",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "b9a221b03f980dbe": {
+    "key": "export.pdfTerm",
+    "code": "untranslated",
+    "src": "PDF",
+    "dst": "PDF",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "bb11e6edbfc541ee": {
+    "key": "stuck.err.empty",
+    "code": "terminology",
+    "src": "The model didn't return any usable moves. Try regenerating.",
+    "dst": "El modelo no devolvió movimientos útiles. Intenta regenerar.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "bbbb8c75013764f9": {
+    "key": "characterProfile.desc",
+    "code": "terminology",
+    "src": "Drafts this character's profile — and their voice, from lines they actually speak — out of the scenes that feature them. Grounded in your prose, nothing invented. Tick the fields you want, edit them inline, then apply. Fields you've already written are unticked by default so nothing overwrites your work without you.",
+    "dst": "Redacta el perfil de este personaje —y su voz, a partir de líneas que realmente dice— basándose en las escenas en las que aparece. Basado en tu prosa, nada inventado. Marca los campos que quieras, edítalos directamente y luego aplícalos. Los campos que ya has escrito aparecen desmarcados de forma predeterminada para que nada sobrescriba tu trabajo sin tu permiso.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "be0bfef25d0a499a": {
+    "key": "richEditor.h3Glyph",
+    "code": "untranslated",
+    "src": "H3",
+    "dst": "H3",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "c01eda0e4b9dea3d": {
+    "key": "critique.endingLabel.cliffhanger",
+    "code": "untranslated",
+    "src": "Cliffhanger",
+    "dst": "Cliffhanger",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "c1f4229f9a62b549": {
+    "key": "settings.appearance.preset.ivoryPress.name",
+    "code": "untranslated",
+    "src": "Ivory Press",
+    "dst": "Ivory Press",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "c380b32cde9a2627": {
+    "key": "marketingPack.loglineTerm",
+    "code": "untranslated",
+    "src": "logline",
+    "dst": "logline",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "c4895e3c7f0c1eb7": {
+    "key": "multiReader.noReaction",
+    "code": "terminology",
+    "src": "(no reaction returned)",
+    "dst": "(no se obtuvo ninguna reacción)",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "c533836e12bddec8": {
+    "key": "multiReader.idleBlurb",
+    "code": "terminology",
+    "src": "Send this chapter to four reader lenses in parallel — a {genre}, a {critic}, an {intern}, and a {bookClub}. Change the provider in the chip above first if you want.",
+    "dst": "Envía este capítulo a cuatro perspectivas de lectura en paralelo: un {genre}, un {critic}, un {intern} y un {bookClub}. Si lo deseas, cambia primero el proveedor en la etiqueta de arriba.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "c6a30f12daaadde9": {
+    "key": "sceneSummary.lede",
+    "code": "terminology",
+    "src": "Drafted from the scene's prose. Edit it inline if you like, then apply. A Summary you've already written is unticked, so nothing replaces it unless you tick it.",
+    "dst": "Redactado a partir de la prosa de la escena. Edítalo directamente si lo deseas y luego aplica los cambios. Un Resumen que ya hayas escrito aparece desmarcado, por lo que nada lo reemplazará a menos que lo marques.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "c79b9ef20fa82154": {
+    "key": "commandPalette.sub.import",
+    "code": "untranslated",
+    "src": "DOCX / EPUB / TXT",
+    "dst": "DOCX / EPUB / TXT",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "c8a3d66b5f23cc69": {
+    "key": "sensory.blurb",
+    "code": "terminology",
+    "src": "Short, concrete sensory phrases for {subject}. Click any phrase to drop it into your manuscript at the end of the selection — additive, your original prose stays untouched. Pick the ones that fit your scene; ignore the rest.",
+    "dst": "Frases sensoriales cortas y concretas para {subject}. Haz clic en cualquier frase para insertarla al final de tu selección; es una función aditiva, tu prosa original permanecerá intacta. Elige las que encajen con tu escena; ignora el resto.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "cb85b5a6fea996b7": {
+    "key": "markers.idea",
+    "code": "untranslated",
+    "src": "Idea",
+    "dst": "Idea",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "cbbd8539f1db6e37": {
+    "key": "marketingPack.loglineHeading",
+    "code": "untranslated",
+    "src": "Logline",
+    "dst": "Logline",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "ccfa39bba7af88a9": {
+    "key": "plotBoard.template.saveTheCat.beat.debate.label",
+    "code": "untranslated",
+    "src": "Debate",
+    "dst": "Debate",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "ce5e776c5ad06bb7": {
+    "key": "plotHoles.dismissedCount",
+    "code": "brackets",
+    "src": "{n} dismissed",
+    "dst": "{n} descartado | {n} descartados",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "d0955464d8ea3797": {
+    "key": "markers.intro",
+    "code": "terminology",
+    "src": "{markers} is the manuscript-wide view of every pin you've dropped while drafting — {fixLater}, {verify}, {weakProse}, {looseThread}, {todo}, {idea}. The timeline strip at the top shows where they cluster across the book; click any tick or row to jump to the marker in the editor. The {findDangling} button asks the AI to scan for setups that may never pay off.",
+    "dst": "{markers} es la vista general del manuscrito de cada marcador que has colocado mientras redactabas: {fixLater}, {verify}, {weakProse}, {looseThread}, {todo}, {idea}. La barra de la línea de tiempo en la parte superior muestra dónde se agrupan a lo largo del libro; haz clic en cualquier marca o fila para saltar al marcador en el editor. El botón {findDangling} le pide a la IA que escanee en busca de planteamientos que podrían no tener resolución.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "d2d72f8d298d10c8": {
+    "key": "settings.coverImage.storedInline",
+    "code": "terminology",
+    "src": "Stored inline",
+    "dst": "Incrustado en el proyecto",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "d3613a9671a040b4": {
+    "key": "connectionError.devHint",
+    "code": "terminology",
+    "src": "Dev: start it with `npm run server` in the project root, then retry.",
+    "dst": "Dev: inícialo con `npm run server` en la raíz del proyecto y luego reintenta.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "d58686b007af575c": {
+    "key": "settings.appearance.accentsHint",
+    "code": "terminology",
+    "src": "Accent drives selection, the active nav item, buttons and links. Accent 2 is the secondary — rings, rules, peak markers, and the {accent2Intent} intent on buttons and tags.",
+    "dst": "El acento define la selección, el elemento de navegación activo, los botones y los enlaces. El Acento 2 es el secundario: anillos, líneas, marcadores de pico y la intención {accent2Intent} en botones y etiquetas.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "d58a1840f4311b40": {
+    "key": "characters.fields.continuity.possessions.label",
+    "code": "terminology",
+    "src": "Possessions with story weight",
+    "dst": "Pertenencias con peso narrativo",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "d62ee418a1ed3772": {
+    "key": "marketingPack.pitchTerm",
+    "code": "untranslated",
+    "src": "elevator pitch",
+    "dst": "elevator pitch",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "d6de7c4d9af80a25": {
+    "key": "homeShelf.volLabel",
+    "code": "untranslated",
+    "src": "Vol. I",
+    "dst": "Vol. I",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "da0559ac79294c6b": {
+    "key": "entitySweep.reviewFound",
+    "code": "brackets",
+    "src": "Review {n} found",
+    "dst": "Revisar {n} encontrado | Revisar {n} encontrados",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "da30ae475c453b3b": {
+    "key": "characters.detail.oneLinerHint",
+    "code": "terminology",
+    "src": "Not traits — tension. \"A pacifist who keeps ending up in fights.\"",
+    "dst": "No son rasgos, es tensión. \"Un pacifista que siempre termina en peleas.\"",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "dd9d93a50b76011b": {
+    "key": "count.beat",
+    "code": "untranslated",
+    "src": "{n} beat | {n} beats",
+    "dst": "{n} beat | {n} beats",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "dee54cd30245d522": {
+    "key": "settings.about.imageStorageLabel",
+    "code": "terminology",
+    "src": "Image storage",
+    "dst": "Almacenamiento de imágenes",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "e0083c2c12e49037": {
+    "key": "characters.fields.function.escalation.hint",
+    "code": "terminology",
+    "src": "Aggression, withdrawal, sabotage, going over heads… e.g. goes cold and starts quietly planning.",
+    "dst": "Agresión, retraimiento, sabotaje, saltarse jerarquías… p. ej., se vuelve frío y empieza a planear en silencio.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "e031871387752650": {
+    "key": "marketingPack.compsSuggested",
+    "code": "brackets",
+    "src": "{n} suggested",
+    "dst": "{n} sugerido | {n} sugeridos",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "e4c65bb3782a41a1": {
+    "key": "chat.askPlaceholder",
+    "code": "terminology",
+    "src": "Ask anything about your book — characters, scenes, threads…",
+    "dst": "Pregunta cualquier cosa sobre tu libro: personajes, escenas, hilos…",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "e686dc6f0bfbfbdd": {
+    "key": "chapters.ai.guidedDesc",
+    "code": "terminology",
+    "src": "Same as Continue, but you give it a one-line instruction first (\"Elena confronts Marcus but he deflects with charm\"). The next 2–4 paragraphs honour your direction while matching the voice, tense, and POV of what came before.",
+    "dst": "Igual que Continuar, pero primero das una instrucción de una línea (\"Elena confronta a Marcus, pero él la esquiva con encanto\"). Los siguientes 2–4 párrafos siguen tu instrucción y mantienen la voz, el tiempo verbal y el punto de vista de lo anterior.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "e7198e1218f8c584": {
+    "key": "richEditor.superscriptGlyph",
+    "code": "untranslated",
+    "src": "x²",
+    "dst": "x²",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "e74a4fd17fbf5ce4": {
+    "key": "home.total",
+    "code": "untranslated",
+    "src": "Total",
+    "dst": "Total",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "e8e0ade8a4d54e10": {
+    "key": "dateTime.meridiemAriaLabel",
+    "code": "untranslated",
+    "src": "AM/PM",
+    "dst": "AM/PM",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "ea77283a77f64fe4": {
+    "key": "dateTime.am",
+    "code": "untranslated",
+    "src": "AM",
+    "dst": "AM",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "eb451d21b0b7b39b": {
+    "key": "commandPalette.escHint",
+    "code": "untranslated",
+    "src": "esc",
+    "dst": "esc",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "ebd092c2c0742e17": {
+    "key": "marketingPack.compsSuggested",
+    "code": "placeholder-changed",
+    "src": "{n} suggested",
+    "dst": "{n} sugerido | {n} sugeridos",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "edaff138309ea8fa": {
+    "key": "analysisView.thousandsShort",
+    "code": "untranslated",
+    "src": "{n}k",
+    "dst": "{n}k",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "f4c07f8b5e820643": {
+    "key": "readerKnowledge.povLabel",
+    "code": "untranslated",
+    "src": "POV",
+    "dst": "POV",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "f6b689128b1254d7": {
+    "key": "analysisView.beatSheetTooltip",
+    "code": "terminology",
+    "src": "Map the draft to Save the Cat, Heros Journey, or 7-Point Story Structure",
+    "dst": "Mapear el borrador a Save the Cat, el viaje del héroe o la estructura narrativa de 7 puntos",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "f82b411885648796": {
+    "key": "readerKnowledge.neutralTerm",
+    "code": "untranslated",
+    "src": "neutral",
+    "dst": "neutral",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "f9d2840e3c068cab": {
+    "key": "versionHistory.sideB",
+    "code": "untranslated",
+    "src": "B",
+    "dst": "B",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "fcd6e6d5e3a045fc": {
+    "key": "plotBoard.template.saveTheCat.beat.themeStated.note",
+    "code": "terminology",
+    "src": "Someone (not the hero) states the moral question of the story.",
+    "dst": "Alguien (que no es el héroe) plantea la cuestión moral de la historia.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "fdbf9a9928717a94": {
+    "key": "strands.intro",
+    "code": "terminology",
+    "src": "A {strandTerm} is a thread that runs through your manuscript — the main plot, a subplot, a character arc, a thematic spine. Write your synopsis and notes below; add {beats} to mark where the thread turns; tag scenes with this strand via each scene's {links} panel. Strand membership also feeds the {relations} graph.",
+    "dst": "Un {strandTerm} es un hilo que recorre tu manuscrito: la trama principal, una subtrama, el arco de un personaje, un eje temático. Escribe tu sinopsis y notas abajo; añade {beats} para marcar dónde gira el hilo; etiqueta las escenas con este hilo a través del panel {links} de cada escena. La pertenencia al hilo también alimenta el gráfico {relations}.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "fe19a2c3c1763f40": {
+    "key": "beatSheet.framework.sevenPoint.name",
+    "code": "terminology",
+    "src": "7-Point Story Structure",
+    "dst": "Estructura narrativa de 7 puntos",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "ff9c36884ba82ddf": {
+    "key": "objects.emptyBody",
+    "code": "terminology",
+    "src": "Items and artifacts that move through the story. Link them to scenes to track their journey across the Relations graph.",
+    "dst": "Objetos y artefactos que se mueven a través de la historia. Vincúlalos a las escenas para rastrear su trayectoria en el gráfico de Relaciones.",
+    "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  }
+}
