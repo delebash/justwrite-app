@@ -496,21 +496,43 @@ FOUND:  2026-10-16, while freeing the card: the kit's `POST /v1/llm-runner/stop`
         notes and as chapters with both tooltips, the restore title from a real autosave, the
         confidence chips) — every string as in the catalogs, no page errors; docgen's server
         tests 165, unit 5, lint. User docs: whats-new.md (both apps), docgen review.md.
+        2026-10-18, second round — three findings shown with recs: "1. Restore title … My rec is
+        one message per copy, for example `Restore "{title}" from the previous autosave?` … 2.
+        Import's notes tag … My rec: start the field with the word its placeholder already shows
+        ("nota" in Spanish) … 3. Seeded names … My rec is a plan before any code: each seeded row
+        keeps its catalog key and shows the translation until you rename it." With them, the
+        three cleanups named before (the smoke's `/v1/kv` probe, the passive-voice sample, the
+        voice prompt's scale). The user: "keep going until everything is done your rec but think on
+        your decisions twice before doing, finish everything dont stop". Done, with what the
+        second look changed:
+        - The restore title: three whole messages, the list's own words ("from the current /
+          previous / earlier autosave?"); the read error beside it ("Couldn't read the autosave
+          file.") was English in code — a key now.
+        - The notes tag: a new note took "note" from code too (`project.js` `addNote`), so
+          changing Import alone would have given a Spanish book two tags; one catalog word
+          `notes.defaultTag` for New note, Import's field and the store's import default. A tag
+          is free text, so it can't be translated when shown — it is written in the writer's
+          language. The server's load still fills an empty tag with "note" (the plan in 3).
+        - The smoke reads `/v1/settings` (what replaced `/v1/kv`) and its header says so.
+        - The passive-voice rule has its own Lab sample, "Passive paragraph" (a new label, so the
+          seeder adds it to existing databases); the voice passes' register line lost its scale,
+          both older stored texts heal. The eval on the three actions: 4 of 4 on gemma-4-26b and
+          on gemma-4-12b, both reading as intended (RESEARCH "Testing").
 OPEN:   1. Saving the review as a reusable tool in docgen's repo (NOT STANDARD) — your word by name.
-        2. Found 2026-10-18: the restore title reads "Restore "The Ninth Facet" from Previous?"
-           ("…desde Anterior?") — the list's label, capitalised, inside a sentence.
-        3. Found 2026-10-18: Import's notes tag defaults to the English word "note" in code
-           (`ImportPage.vue`, `notesTag = ref("note")`) and is saved on every imported note.
-        4. Found 2026-10-18: seeded names stay English on Spanish screens — chapter and strand
-           statuses ("Draft", "Done", "Open") are data, not catalog strings (as docgen's
-           "Built-in provider — llama.cpp", its TASKS FOUND 2026-10-17).
+        2. Seeded names stay English on Spanish screens — chapter and strand statuses ("Draft",
+           "Done", "Open") are data, not catalog strings (as docgen's "Built-in provider —
+           llama.cpp", its TASKS FOUND 2026-10-17): the plan is being written.
+        3. Found 2026-10-18: `tests/smoke/book-smoke.js` (no npm script runs it) still seeds its
+           book through `/v1/kv`, which no longer exists.
 GO:     given 2026-10-16 for the eval and the flow tests ("think on your rec again always adversially
         go"; "carry on, your rec go"); for the five fixes, the three labels and the translation
         ("your rec on all go"); 2026-10-17 for the stop route and the Spanish ("go your rec";
         "think on it adverserially your rec go"); 2026-10-17 for the Spanish review ("auto
         compatcte re read docs rules notes so you know where you are at your rec on all think on
         them again adversarially first go"); 2026-10-18 for the follow-ups 2–4 ("compacted re read
-        docs rules session your rec on all go").
+        docs rules session your rec on all go"); 2026-10-18 for the second round ("keep going until
+        everything is done your rec but think on your decisions twice before doing, finish
+        everything dont stop").
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's

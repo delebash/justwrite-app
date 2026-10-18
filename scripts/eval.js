@@ -2,7 +2,7 @@
 // `npm run eval` — every Lab sample on a real model, through the app's own server, each reply
 // held to its action's contract; no one has to click through the Lab (the user, 2026-10-16:
 // "tools to do testing … so there is minimal human interaction and can test with other ai
-// models"). docs/dev/evals.md.
+// models"). docs/dev/architecture-notes.md, "Test harness detail".
 //
 //   npm run eval                                              # each action on its own route
 //   npm run eval -- --models gemma-4-26b-a4b-qat,gemma-4-12b-qat   # each model in turn

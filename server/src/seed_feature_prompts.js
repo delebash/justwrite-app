@@ -350,6 +350,11 @@ Return ONLY the JSON object. No preface, no markdown fences.`;
 // The vocabulary line names its one-string shape (2026-10-16: gemma sent a list, which the
 // app's sanitizer dropped); the heal below gives an unedited stored prompt the line.
 const VOCABULARY_SHAPE = " — one string, the phrases separated by semicolons";
+// The register line describes the field without a value-like scale in front: worded
+// "formal ↔ casual — …", the from-book pass copied the scale into its answer ("formal ↔ casual —
+// formal and direct…", the eval, 2026-10-16). The heal below moves an unedited stored prompt.
+const REGISTER_LINE = "where their speech sits between formal and casual, and when it slips";
+const OLD_REGISTER_LINE = "formal ↔ casual — where their speech sits, and when it slips";
 
 const CHARACTER_VOICE_SYSTEM = `You describe how ONE character speaks, using only their actual dialogue in the scenes given.
 
@@ -362,7 +367,7 @@ Your job: read every line this character SPEAKS in these scenes and report their
 Return ONLY a JSON object (every value a string):
 
 {
-  "register":    "formal ↔ casual — where their speech sits, and when it slips",
+  "register":    "${REGISTER_LINE}",
   "rhythm":      "clipped or flowing; do they interrupt; do they trail off",
   "vocabulary":  "3-5 words or phrases only THIS character uses, drawn from their actual lines${VOCABULARY_SHAPE}",
   "subtext":     "their subtext habit — deflects with jokes, answers questions with questions, agrees then does the opposite",
@@ -449,7 +454,7 @@ Your job: invent this character's voice so that it fits the description and the 
 Return ONLY a JSON object (every value a string):
 
 {
-  "register":    "formal ↔ casual — where their speech sits, and when it slips",
+  "register":    "${REGISTER_LINE}",
   "rhythm":      "clipped or flowing; do they interrupt; do they trail off",
   "vocabulary":  "3-5 words or phrases only THIS character would use${VOCABULARY_SHAPE}",
   "subtext":     "their subtext habit — deflects with jokes, answers questions with questions, agrees then does the opposite",
@@ -1530,9 +1535,16 @@ export const FEATURE_PROMPT_HEALS = {
     "writerAI.guided-continue": [PRE_STORY_WRITER_SYSTEM],
     // Draft from the premise, before its rule named the facts to keep (2026-10-16).
     "premiseDraft": [PREMISE_DRAFT_SYSTEM.replace(PREMISE_FACTS_RULE, "")],
-    // The two voice passes, before the vocabulary line named its one-string shape (2026-10-16).
-    "characterVoice": [CHARACTER_VOICE_SYSTEM.replace(VOCABULARY_SHAPE, "")],
-    "characterVoiceDraft": [CHARACTER_VOICE_DRAFT_SYSTEM.replace(VOCABULARY_SHAPE, "")],
+    // The two voice passes: before the vocabulary line named its one-string shape (2026-10-16),
+    // then before the register line lost its "formal ↔ casual" scale (2026-10-18).
+    "characterVoice": [
+        CHARACTER_VOICE_SYSTEM.replace(REGISTER_LINE, OLD_REGISTER_LINE).replace(VOCABULARY_SHAPE, ""),
+        CHARACTER_VOICE_SYSTEM.replace(REGISTER_LINE, OLD_REGISTER_LINE),
+    ],
+    "characterVoiceDraft": [
+        CHARACTER_VOICE_DRAFT_SYSTEM.replace(REGISTER_LINE, OLD_REGISTER_LINE).replace(VOCABULARY_SHAPE, ""),
+        CHARACTER_VOICE_DRAFT_SYSTEM.replace(REGISTER_LINE, OLD_REGISTER_LINE),
+    ],
     // Pre-Move-1 "chat": before the excerpts could contain Story Bible cards.
     "chat": [
         "You are an assistant answering questions about a novel manuscript. " +

@@ -385,14 +385,23 @@ toasts and hover tooltips were not opened; 147 strings matching book content wer
   keeps Mira, "she" and "her father"; both voice passes return `vocabulary` as one string of
   semicolon-separated phrases. Each of the three plot samples returns 18 plot beats, using only the
   names its sample gives (Renn, Harbek, the harbor-master).
-  Read, not asserted:
-  - The passive-voice rule returns "Flabby paragraph" nearly unchanged, which is correct: the
-    passage has no passive verb ("which was blowing" is progressive), so this sample doesn't test
-    that rule.
-  - The audit voice pass copied the prompt's scale into its answer ("register": "formal ↔ casual —
-    formal and direct…"). The draft pass didn't.
 
   — *evals/results/2026-10-16-23-44-09 (git-ignored); 12 samples in about 108 s of model time.*
+- **The two read-not-asserted findings, fixed 2026-10-18** (the three actions, 4 samples, 4 of 4 on
+  gemma-4-26b and on gemma-4-12b):
+  - the passive-voice rule has its own sample, "Passive paragraph" (two passives whose doer
+    matters, two agentless states). Both models made exactly the two active ("Mara found the
+    letter … and broke the seal") and left "had been abandoned" and "was boarded up" alone;
+  - the voice passes' register line no longer opens with a scale ("where their speech sits between
+    formal and casual, and when it slips"); the from-book pass now answers "formal and direct;
+    avoids casual pleasantries". The two older stored texts heal (`FEATURE_PROMPT_HEALS`).
+
+  The first 26b run that day failed all four at load ("could not load its speculative-decoding
+  (MTP) draft even on its own", 286 MB held by other programs, the card otherwise empty), right
+  after JustVoice released the card; the next three runs, two minutes later, loaded it each time.
+  Not reproduced; the engine's log went with the run's data copy. — *evals/results/
+  2026-10-18-16-14-52 (the failure), 2026-10-18-16-16-47 (12b), 2026-10-18-16-18-34 (26b);
+  git-ignored.*
 
 ## Records not yet distilled
 

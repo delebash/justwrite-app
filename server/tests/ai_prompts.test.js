@@ -172,9 +172,25 @@ test("the voice passes ask for vocabulary as one string; an unedited stored prom
   for (const [key, line] of Object.entries(lines)) {
     const now = DEFAULT_FEATURE_PROMPTS[key].system;
     expect(now, key).toContain(`${line} — one string, the phrases separated by semicolons",`);
-    const [old] = FEATURE_PROMPT_HEALS[key];
+    const [old, since] = FEATURE_PROMPT_HEALS[key];
     expect(old, key).toContain(`${line}",`); // the text a database seeded before 2026-10-16 holds
-    expect(old.length, key).toBe(now.length - " — one string, the phrases separated by semicolons".length);
+    expect(old.length, key).toBe(since.length - " — one string, the phrases separated by semicolons".length);
+  }
+});
+
+test("the voice passes' register line has no scale to copy; both older stored prompts heal to it", async () => {
+  // The eval, 2026-10-16: the from-book pass answered "formal ↔ casual — formal and direct…".
+  const { FEATURE_PROMPT_HEALS } = await import("../src/seed_feature_prompts.js");
+  const OLD = '"register":    "formal ↔ casual — where their speech sits, and when it slips",';
+  const NOW = '"register":    "where their speech sits between formal and casual, and when it slips",';
+  for (const key of ["characterVoice", "characterVoiceDraft"]) {
+    const now = DEFAULT_FEATURE_PROMPTS[key].system;
+    expect(now, key).toContain(NOW);
+    expect(now, key).not.toContain("↔");
+    const heals = FEATURE_PROMPT_HEALS[key];
+    expect(heals.length, key).toBe(2);
+    for (const old of heals) expect(old, key).toContain(OLD);
+    expect(heals[1], key).toBe(now.replace(NOW, OLD)); // what a database seeded 2026-10-16 holds
   }
 });
 

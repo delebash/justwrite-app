@@ -47,7 +47,7 @@ In **Add existing**, the **Add to part** dropdown lists every existing Part in t
 
 The **Add notes** mode applies two settings to every note in the batch:
 
-- **Tag** — a single keyword (e.g. `research`, `plot`, `structure`). Defaults to `note`. A datalist suggests tags already in use elsewhere in the project, so your note vocabulary doesn't splinter over time.
+- **Tag** — a single keyword (e.g. `research`, `plot`, `structure`). Defaults to `note` (your interface language's word for it — `nota` in Spanish), the tag a new note gets. A datalist suggests tags already in use elsewhere in the project, so your note vocabulary doesn't splinter over time.
 - **Pin to** — where the notes attach. Default is **Story-wide** (no anchor). Pick a specific chapter or scene to pin every imported note there in one shot — useful when the file is research for a particular scene. You can re-anchor any individual note later from the Notes view.
 
 **Multi-file drop**: dropping several files at once batches them into a single import. Each file's detected sections become entries in the same preview list, and the whole batch ingests as one undoable action. Useful for bringing in a folder of `.txt` notes from another tool.

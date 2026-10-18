@@ -327,6 +327,15 @@ export const DEFAULT_TEST_SAMPLES = [
                    // voiceCanonVar / storyContextVar); the line edits read only {{voiceCanon}}.
                    "voiceCanon": "",
                    "storyContext": ""}},
+    // The passive-voice rule's own passage (2026-10-18): "Flabby paragraph" has no passive verb
+    // ("which was blowing" is progressive), so it never tested the rule. Two passives whose doer
+    // matters (the rule should make them active), two agentless states (it should leave them).
+    // A new label, so the seeder adds it to a database that already has the others.
+    {"actions": ["writerAI.rule.passive-voice"], "label": "Passive paragraph",
+     "variables": {"passage": "The letter was found by Mara under the floorboards, and the seal " +
+                              "was broken by her before she could stop herself. The house had " +
+                              "been abandoned for years. Every window was boarded up.",
+                   "voiceCanon": ""}},
     // ── ideation (brainstorm/brainstormPlot: {{user_content}} is the
     // BrainstormView buildUserPrompt shape — Category/Seed + the output line;
     // {{label}}/{{kind}} are the client-filled SYSTEM variables) ──

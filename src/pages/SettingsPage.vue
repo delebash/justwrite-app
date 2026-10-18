@@ -581,7 +581,7 @@ async function restoreFromAutosave(entry) {
   backupError.value = null;
   const when = entry.savedAt ? fmtDate(new Date(entry.savedAt), "dateTime") : t("settings.backups.unknownTime");
   const yes = await confirmDialog({
-    title: t("settings.backups.restoreTitle", { title: entry.title || t("settings.backups.untitledProject"), generation: generationLabel(entry.generation) }),
+    title: restoreTitle(entry),
     message: t("settings.backups.restoreMessage", { when }),
     confirmLabel: t("settings.backups.restoreConfirm"),
     danger: true,
@@ -590,7 +590,7 @@ async function restoreFromAutosave(entry) {
   try {
     const snap = await autosaveApi.readAutosave(entry.key);
     if (!snap || typeof snap !== "object" || !snap.project) {
-      throw new Error("Couldn't read the autosave file.");
+      throw new Error(t("settings.backups.readFailed"));
     }
     const { workspaceRestored } = project.loadSnapshot(snap) || {};
     ui.showToast({ message: t("settings.backups.restoredToast", { title: snap.project.title || t("settings.backups.untitledProject") }) });
@@ -609,6 +609,14 @@ function generationLabel(gen) {
   if (gen === "prev")    return t("settings.backups.generationPrevious");
   if (gen === "prev2")   return t("settings.backups.generationEarlier");
   return gen || "";
+}
+// The restore question, one whole message per copy: the list's label pasted into the sentence
+// read "Restore "X" from Previous?". The server writes only these three generations.
+function restoreTitle(entry) {
+  const title = entry.title || t("settings.backups.untitledProject");
+  if (entry.generation === "prev")  return t("settings.backups.restoreTitlePrevious", { title });
+  if (entry.generation === "prev2") return t("settings.backups.restoreTitleEarlier", { title });
+  return t("settings.backups.restoreTitleCurrent", { title });
 }
 
 const lastAutosaveLabel = computed(() => {

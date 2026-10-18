@@ -1691,7 +1691,7 @@ export const useProjectStore = defineStore("project", {
       // anchor = null     → story-wide note (default)
       // anchor = { chapterId }            → pinned to a chapter
       // anchor = { chapterId, sceneId }   → pinned to a specific scene
-      this.notes.push({ id, title: t("sceneNotes.untitledNote"), body: "", tag: "note", updated: now, anchor: null, ...input });
+      this.notes.push({ id, title: t("sceneNotes.untitledNote"), body: "", tag: t("notes.defaultTag"), updated: now, anchor: null, ...input });
       this._persist();
       return id;
     },
@@ -1713,10 +1713,12 @@ export const useProjectStore = defineStore("project", {
     // Bulk-add an array of { title, html } notes as a single history entry.
     // Mirrors importChapters — used by the import wizard so a many-note
     // ingest is one undo.
-    //   tag    — applied to every imported note (default "note").
+    //   tag    — applied to every imported note (default: notes.defaultTag, the word a
+    //            new note gets, in the writer's language — a tag is free text, so it
+    //            can't be translated when shown).
     //   anchor — story-wide (null) | { chapterId } | { chapterId, sceneId }.
     // Returns { noteIds }.
-    importNotes({ notes = [], tag = "note", anchor = null } = {}) {
+    importNotes({ notes = [], tag = "", anchor = null } = {}) {
       const list = (notes || []).filter((n) => n && (n.html || n.title));
       if (!list.length) return { noteIds: [] };
       this._record("importNotes");
@@ -1732,7 +1734,7 @@ export const useProjectStore = defineStore("project", {
           id,
           title: n.title || t("sceneNotes.untitledNote"),
           body: n.html || "",
-          tag: tag || "note",
+          tag: tag || t("notes.defaultTag"),
           updated: now,
           anchor: cloneAnchor(),
         });

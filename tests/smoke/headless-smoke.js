@@ -1,8 +1,8 @@
 // Headless smoke / whole-app sweep for the server-backed renderer (Linux —
 // Playwright + Chromium). Drives `npm run dev:spa` against a running
 // justwrite-server: asserts the app boots, every top-level route renders, and
-// the whole run produces ZERO JS errors. A bootStorage failure logs a console
-// error, so a clean run also proves storage.js reached /v1/kv.
+// the whole run produces ZERO JS errors. A bootSettings failure logs a console
+// error, so a clean run also proves settings.js reached /v1/settings.
 //
 // Complements e2e/ (the real desktop app through Playwright's Electron driver — needs a
 // built app). This one runs headless anywhere Node + a Chromium build exist.
@@ -458,10 +458,10 @@ try {
   }
 
   try {
-    const kv = await (await fetch(`${SERVER}/v1/kv`)).json();
-    console.log(`\nserver kv keys: ${JSON.stringify(Object.keys(kv))}`);
+    const settings = await (await fetch(`${SERVER}/v1/settings`)).json();
+    console.log(`\nserver settings keys: ${JSON.stringify(Object.keys(settings))}`);
   } catch (e) {
-    console.log("kv read failed: " + String(e.message || e).slice(0, 120));
+    console.log("settings read failed: " + String(e.message || e).slice(0, 120));
   }
   if (notFound.length) {
     console.log(`404s (benign): ${JSON.stringify([...new Set(notFound.map((u) => u.slice(0, 100)))])}`);

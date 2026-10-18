@@ -8,9 +8,9 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 **No more English words on Spanish screens.** Import's chapter and note wording, the sidebar's
 **+** buttons, the confidence chips on comp titles and the **Fine Press** and **Ivory Press**
-theme names now follow your language. In **Settings → Backups**, restoring a copy names it the
-way the list does — "Previous", "Earlier" — instead of "prev2". See
-[Backups and data](backups-and-data.md).
+theme names now follow your language, and a new note's tag starts as your language's word
+("nota" in Spanish). In **Settings → Backups**, restoring a copy asks "Restore … from the previous
+autosave?" instead of naming it "prev2". See [Backups and data](backups-and-data.md).
 
 ## 2026-10-17
 

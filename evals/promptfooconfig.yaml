@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
-# JustWrite's real-model eval (2026-10-16; docs/dev/evals.md): every Lab sample run through the
+# JustWrite's real-model eval (2026-10-16; docs/dev/architecture-notes.md, "Test harness detail"): every Lab sample run through the
 # app's own server — its stored prompts, presets and dispatch — on one model, each reply held to its
 # action's contract. Run it with `npm run eval`, which starts a server on a copy of your data and
 # runs this once per model; promptfoo itself is run through npx at a pinned version.
