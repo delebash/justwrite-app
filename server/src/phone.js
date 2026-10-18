@@ -31,7 +31,7 @@ import { router as sessionsRouter } from "./api/sessions_api.js";
 import { router as settingsRouter } from "./api/settings_api.js";
 import { router as sweepDraftRouter } from "./api/sweep_draft_api.js";
 import { router as versionsRouter } from "./api/versions_api.js";
-import { errorEnvelope, TYPE_BASE } from "./app_errors.js";
+import { TYPE_BASE } from "./app_errors.js";
 import { AppState, setState } from "#app_state";
 import { seedAppSettings } from "./database/app_settings_seed.js";
 import { ADDED_COLUMNS, TABLES } from "./database/models.js";
@@ -77,7 +77,8 @@ export async function createPhoneApp({ handle, dataDir = PHONE_DATA_DIR, deviceI
   // then keep them current after every write
   const guard = startGuard ? await startGuard({ sync: getSync(), isEmpty: () => !handle.value("SELECT count(*) FROM projects"), log }) : null;
 
-  const app = createServer({ typeBase: TYPE_BASE, onUnhandled: errorEnvelope });
+  // an unhandled exception answers the kit's family envelope (§15: problem+json, request id)
+  const app = createServer({ typeBase: TYPE_BASE });
   // as on a computer (app.js): stamp what the triggers noted after every request that may have
   // written; stop the auto-sync timers on close
   app.use("*", async (c, next) => {

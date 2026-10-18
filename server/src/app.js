@@ -61,7 +61,7 @@ import {
   JW_EMBED_TEMPLATES,
 } from "./seed_presets.js";
 import { PRODUCT } from "./version.js";
-import { errorEnvelope, TYPE_BASE } from "./app_errors.js";
+import { TYPE_BASE } from "./app_errors.js";
 
 const log = getLogger("justwrite_server.app");
 
@@ -154,7 +154,8 @@ export async function createApp(dataDir = null) {
   installLogRing();
   installFileLog(path.join(dataDir, "logs", "justwrite.log"));
 
-  const app = createServer({ typeBase: TYPE_BASE, onUnhandled: errorEnvelope });
+  // an unhandled exception answers the kit's family envelope (§15: problem+json, request id)
+  const app = createServer({ typeBase: TYPE_BASE });
 
   // Python's middleware order, outermost first: CSRF, then CORS, then bearer auth (Starlette
   // ran the last-added first). Hono runs middleware in the order added, and only for the routes
