@@ -353,10 +353,9 @@ BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV 
         typed word unmarked, the count, Mark as mine).
 OPEN:   the Lab check is now `npm run eval` (TASKS "Automated testing", 2026-10-16): every sample
         ran on gemma; its findings are listed there.
-        Slice 4's bench leg (the plan's D4): Draft from plan on the local presets — waits for your
-        word: you told JustVoice's session "i ran another ai task on another app, stop testing just
-        for a bit i will let you know when to resume" (2026-10-18), so the card stays free until
-        then.
+        Slice 4's bench leg (the plan's D4) done 2026-10-18 on the user's "run it now go": Draft
+        from plan passes on gemma-4-26b and gemma-4-12b; 26b lands the scene's turn, 12b softens
+        it — 26b is fit for Scene drafting, so the feature carries no warning (RESEARCH "Testing").
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;
         "your rec go" for the third round (Task 0, Tasks 9b and 11b, Task 12 in the chat panel);

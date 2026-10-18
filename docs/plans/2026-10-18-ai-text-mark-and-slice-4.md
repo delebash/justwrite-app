@@ -99,6 +99,10 @@ after a second look, with what the look changed. Nothing here is NOT STANDARD.
 - `npm run eval -- --actions sceneDraft` on the local presets; read the drafts. Whether the local
   presets are recommended for it, and what the feature says when they aren't, follows from what
   they write — recorded in RESEARCH "Testing".
+- **Done 2026-10-18** (the user's "run it now go"): both pass; gemma-4-26b lands every beat and the
+  scene's turn, gemma-4-12b keeps the voices but softens the turn. 26b — the default local model
+  — is fit for Scene drafting, so the feature says nothing more; one sample each is too little to
+  warn off a smaller model. evals/results/2026-10-18-18-39-15.
 
 ## 4. Standards each piece follows
 

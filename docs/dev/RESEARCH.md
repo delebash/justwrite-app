@@ -439,6 +439,16 @@ toasts and hover tooltips were not opened; 147 strings matching book content wer
   Not reproduced; the engine's log went with the run's data copy. — *evals/results/
   2026-10-18-16-14-52 (the failure), 2026-10-18-16-16-47 (12b), 2026-10-18-16-18-34 (26b);
   git-ignored.*
+- **Draft from plan on the local models** (slice 4's D4; the Lab sample "Scene from its plan": Ines
+  radios the harbor, Brannock talks around it, she hears in his evasions that the boat is gone):
+  both pass the contract. gemma-4-26b (2,557 characters, 36.1 s) lands every beat — Ines counts
+  aloud and never asks a question, Brannock's "now then" before the hard part, and the turn: "The
+  boat is gone … The supply boat is at the bottom of the channel." One slip: Brannock says "if
+  anything happened" and the next line says "He didn't say *if*." gemma-4-12b (1,625 characters,
+  38.2 s) keeps both voices but softens the turn — the call ends on "The silence of the tower felt
+  heavier than the wind", not on Ines knowing. So 26b, the default local model, is fit for Scene
+  drafting and the feature carries no warning; one sample each is too little to warn off a smaller
+  model. — *evals/results/2026-10-18-18-39-15 (git-ignored).*
 - **`tests/smoke/book-smoke.js` runs off :1420 by forwarding the page's `/v1` calls.** The kit's
   origin-aware resolver takes any port but the dev ports (`devPorts: ["1420"]`, `src/boot/jw.js`)
   for a same-origin server, so a dev renderer on another port calls itself; and the server's CSRF
