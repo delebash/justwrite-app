@@ -200,7 +200,10 @@ If you don't want to fiddle, the defaults are fine. If you do want to tune, a se
 
 The language picker lives here in **Settings → Appearance** (it travels with the
 look-and-feel settings). Switching it changes the interface language and
-date/number formatting — never your manuscript prose. English and Spanish ship
+date/number formatting — never your manuscript prose. The names JustWrite
+ships — the statuses, the worldbuilding categories, and on the AI page the
+features, presets and providers — follow it too until you rename one; a name you
+have changed stays as you wrote it in every language. English and Spanish ship
 today; more arrive with app updates. (For contributors: a language is one JSON
 file in `src/i18n/locales/` — no registry to edit — and the picker names each
 language in itself.)

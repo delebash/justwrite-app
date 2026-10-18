@@ -4044,5 +4044,257 @@
   },
   "planning": {
     "chipLabel": "Planning"
+  },
+  "seeded": {
+    "status": {
+      "todo": "To do",
+      "draft": "Draft",
+      "revise": "Revise",
+      "done": "Done",
+      "open": "Open",
+      "resolved": "Resolved",
+      "abandoned": "Abandoned"
+    },
+    "wbCategory": {
+      "geography": "Geography",
+      "history": "History",
+      "cultures": "Cultures",
+      "languages": "Languages",
+      "factions": "Factions",
+      "lore": "Lore & myth"
+    }
+  },
+  "aiData": {
+    "feature": {
+      "writerAI": {
+        "label": "Writer actions",
+        "hint": "The AI menu in each scene's strip — Rewrite, Expand, Tighten, Continue, Describe, Rewrite with direction…, Continue with direction…, Write dialogue…, plus all Line edits."
+      },
+      "sceneDrafting": {
+        "label": "Scene drafting",
+        "hint": "Draft from plan in a scene's AI menu: the scene drafted from its Summary and the story context, from the cursor to its end — only in a book with AI scene drafting on (Settings → Project)."
+      },
+      "sensory": {
+        "label": "Research feel",
+        "hint": "Structured sensory pack (smell / sound / touch / …) for a selected subject — the editor's “Research feel” modal."
+      },
+      "unstuck": {
+        "label": "Unstuck",
+        "hint": "Five ways to unblock the current scene — goal shift / interrupt / setting / reveal / time cut."
+      },
+      "brainstorm": {
+        "label": "Brainstorm",
+        "hint": "The Brainstorm view — name / title / freeform idea generation with thumbs-up steering — plus Name ideas at a name box, Suggest characters and Suggest locations on their pages, and a strand's next beats and plot twists on the Plot board."
+      },
+      "planning": {
+        "label": "Planning",
+        "hint": "Summarize this scene, Fill this template for my story on the Plot board, and Draft from the premise on the Fabula and Setting — reviewed before anything saves."
+      },
+      "critique": {
+        "label": "Critique",
+        "hint": "The Critique modal — line-level Notes (flags / suggestions / observations) and the Structure pass (tension, hook, pacing, ending)."
+      },
+      "multiReader": {
+        "label": "Multi-reader panel",
+        "hint": "Four reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel."
+      },
+      "plotHoles": {
+        "label": "Plot-hole audit",
+        "hint": "Whole-book continuity scan for contradictions, timeline issues, and character-knowledge errors."
+      },
+      "reverseOutline": {
+        "label": "Reverse outline",
+        "hint": "Reads the whole draft and produces the act structure the book actually has — plot points, act breaks, per-chapter beats."
+      },
+      "beatSheet": {
+        "label": "Beat sheet",
+        "hint": "Maps your draft to Save the Cat, Hero's Journey, or 7-Point Story Structure beats."
+      },
+      "marketingPack": {
+        "label": "Marketing pack",
+        "hint": "Logline, back-cover blurbs, synopsis, and elevator pitch for querying and pitching."
+      },
+      "foreshadowing": {
+        "label": "Foreshadowing scan",
+        "hint": "Whole-book scan for setups that may not have paid off."
+      },
+      "readerKnowledge": {
+        "label": "Reader knowledge",
+        "hint": "Tracks dramatic irony — what the reader knows vs. what the POV character knows, chapter by chapter."
+      },
+      "voiceDrift": {
+        "label": "Voice drift",
+        "hint": "Diagnoses what shifted between an outlier chapter and the writer's baseline voice in the Analysis dashboard."
+      },
+      "entitySweep": {
+        "label": "Entity sweep",
+        "hint": "Scans chapters for new characters / locations / objects to add to the story bible."
+      },
+      "characterAudit": {
+        "label": "Character audit",
+        "hint": "Per-character consistency audit (profile + their scenes → flagged actions) on the Characters view."
+      },
+      "characterProfile": {
+        "label": "Character profile",
+        "hint": "Drafts a character's profile fields (description, motivation, arc, backstory) from their scenes, from your description, or a sheet section at a time — reviewed before anything saves."
+      },
+      "characterVoice": {
+        "label": "Character voice",
+        "hint": "Drafts how a character speaks (register, rhythm, sample lines) from their actual dialogue, or from your description — reviewed before anything saves."
+      },
+      "relationshipArc": {
+        "label": "Relationship arc",
+        "hint": "Chapter-by-chapter warmth / tension / power tracking for a pair of characters."
+      },
+      "storyWorld": {
+        "label": "Story-world sheets",
+        "hint": "Drafts a location's, object's or group's sheet from your description, and a worldbuilding article's body from its title and summary — reviewed before anything saves."
+      },
+      "chat": {
+        "label": "Ask the book",
+        "hint": "RAG question/answer over your manuscript — the chat panel's “Ask the book” mode."
+      },
+      "characterChat": {
+        "label": "Character chat",
+        "hint": "The chat panel's “Talk to a character” mode — first-person, in-voice answers from your cast."
+      },
+      "briefing": {
+        "label": "Resume briefing",
+        "hint": "Generates the Home “Previously on your novel” recap card."
+      },
+      "recap": {
+        "label": "Session recap",
+        "hint": "End-of-day “Wrap up session” recap + open-thread suggestions."
+      }
+    },
+    "group": {
+      "writing": "Writing",
+      "draftingTools": "Drafting tools",
+      "analysis": "Analysis",
+      "multiReaderPanel": "Multi-reader panel",
+      "wholeBook": "Whole book",
+      "characters": "Characters",
+      "storyWorld": "Story world",
+      "chat": "Chat",
+      "home": "Home"
+    },
+    "action": {
+      "critique": {
+        "label": "Notes",
+        "description": "Line-level editorial notes — flags, suggestions, and observations."
+      },
+      "critiqueStructure": {
+        "label": "Structure",
+        "description": "Structural pass — tension, hook, pacing, and how the ending lands."
+      },
+      "characterProfile": {
+        "description": "Drafts a character's profile from the scenes that feature them."
+      },
+      "characterVoice": {
+        "description": "Drafts how a character speaks from the lines they actually say."
+      },
+      "characterProfileDraft": {
+        "description": "Invents a character's profile from your description and the book."
+      },
+      "characterVoiceDraft": {
+        "description": "Invents how a character speaks — register, rhythm, sample lines — from your description."
+      },
+      "characterSection": {
+        "description": "Drafts one section of a character sheet, field by field."
+      },
+      "suggestCharacters": {
+        "description": "Proposes characters the book doesn't have yet, from its premise and cast."
+      },
+      "locationDraft": {
+        "description": "Drafts a location's sheet — atmosphere, history — from your description and the book."
+      },
+      "objectDraft": {
+        "description": "Drafts an object's sheet — properties, history, where it is now — from your description and the book."
+      },
+      "groupDraft": {
+        "description": "Drafts a group's sheet — goals, leadership, history — from your description and the book."
+      },
+      "worldbuildingDraft": {
+        "description": "Writes a worldbuilding article's body from its title, its summary and the book."
+      },
+      "suggestLocations": {
+        "description": "Proposes locations the book doesn't have yet, from its premise and the places it has."
+      },
+      "sceneSummary": {
+        "description": "Drafts a scene's Summary from its prose — what happens and what changes."
+      },
+      "templateFill": {
+        "description": "Fills a plot template's beats with what happens at each in this book."
+      },
+      "premiseDraft": {
+        "description": "Drafts the Fabula or the Setting document from the book's premise."
+      },
+      "multiReaderGenre": {
+        "label": "Genre",
+        "description": "A fan of the genre reacts — what delivers, what disappoints."
+      },
+      "multiReaderLiterary": {
+        "label": "Literary",
+        "description": "A literary critic's read — craft, theme, and prose."
+      },
+      "multiReaderAgent": {
+        "label": "Agent",
+        "description": "An agent's intern triaging the slush — request or pass, and why."
+      },
+      "multiReaderBookClub": {
+        "label": "Book club",
+        "description": "A book-club reader — what sparks discussion and divides the room."
+      },
+      "brainstorm": {
+        "label": "Ideas",
+        "description": "Freeform idea generation — names, titles, and concepts with thumbs-up steering."
+      },
+      "brainstormPlot": {
+        "label": "Plot",
+        "description": "Plot-focused ideas — what-ifs, complications, and next beats."
+      },
+      "writerAIRewrite": {
+        "description": "Make the passage more vivid and specific while keeping meaning, tense, and voice."
+      },
+      "writerAIExpand": {
+        "description": "Add sensory detail, interiority, and small actions — roughly double the length."
+      },
+      "writerAITighten": {
+        "description": "Cut filler, hedges, and redundancy; keep meaning and voice. Noticeably shorter."
+      },
+      "writerAIContinue": {
+        "description": "Write 2–4 more paragraphs from where the passage ends, matching voice and POV."
+      },
+      "writerAIDescribe": {
+        "description": "Fresh sensory prose about the named subject, to insert after the passage."
+      },
+      "writerAIGuidedContinue": {
+        "label": "Guided continue",
+        "description": "Continue the passage following a one-line direction you give."
+      },
+      "writerAIGuidedRewrite": {
+        "description": "Rewrite the selection following a one-line direction you give."
+      },
+      "writerAIDialogue": {
+        "description": "Write dialogue at the cursor for the scene's characters, in their story-bible voices, following a direction you give."
+      },
+      "sceneDraft": {
+        "description": "Drafts a scene from its Summary and the story context, from the cursor to the scene's end."
+      }
+    },
+    "subgroup": {
+      "proseActions": "Prose actions"
+    },
+    "preset": {
+      "proseVoiced": "Generate prose",
+      "proseEdit": "Edit prose",
+      "ideation": "Ideation",
+      "chat": "Grounded chat",
+      "digest": "Grounded summary",
+      "extract": "Structured extraction",
+      "creativeStructured": "Structured creative",
+      "judge": "Judgment & scoring",
+      "readerPanels": "Reader panels"
+    }
   }
 }

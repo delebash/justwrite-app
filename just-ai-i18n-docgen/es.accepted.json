@@ -615,12 +615,28 @@
     "by": "Claude (AI review, 2026-10-17)",
     "at": "2026-10-18"
   },
+  "77562705f3b6d994": {
+    "key": "aiData.action.brainstorm.label",
+    "code": "untranslated",
+    "src": "Ideas",
+    "dst": "Ideas",
+    "by": "Claude (AI review, 2026-10-18)",
+    "at": "2026-10-18"
+  },
   "7a0a664e0f6cde5e": {
     "key": "richEditor.subscriptGlyph",
     "code": "untranslated",
     "src": "x₂",
     "dst": "x₂",
     "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "7cdc3785057db664": {
+    "key": "aiData.feature.beatSheet.hint",
+    "code": "terminology",
+    "src": "Maps your draft to Save the Cat, Hero's Journey, or 7-Point Story Structure beats.",
+    "dst": "Mapea tu borrador a los beats de Save the Cat, del viaje del héroe o de la estructura narrativa de 7 puntos.",
+    "by": "Claude (AI review, 2026-10-18)",
     "at": "2026-10-18"
   },
   "7f3324154e569839": {
@@ -669,6 +685,14 @@
     "src": "Color",
     "dst": "Color",
     "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "86f83aaf6620df39": {
+    "key": "aiData.group.chat",
+    "code": "untranslated",
+    "src": "Chat",
+    "dst": "Chat",
+    "by": "Claude (AI review, 2026-10-18)",
     "at": "2026-10-18"
   },
   "8728020cc60706bd": {

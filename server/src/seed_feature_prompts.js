@@ -1521,6 +1521,53 @@ for (const [k, lbl] of Object.entries(ACTION_LABELS)) {
   ACTION_META[k].label = lbl;
 }
 
+// The catalog keys for each action's label, description and sub-group (the seeded-words plan,
+// 2026-10-18): the kit's AI page shows them in the interface's language, the English above as
+// the fallback. An existing key where the editor already says the same words.
+const ACTION_KEYS = {
+  "critique": { labelKey: "aiData.action.critique.label", descriptionKey: "aiData.action.critique.description" },
+  "critiqueStructure": { labelKey: "aiData.action.critiqueStructure.label", descriptionKey: "aiData.action.critiqueStructure.description" },
+  "characterProfile": { labelKey: "characters.header.fillFromBook", descriptionKey: "aiData.action.characterProfile.description" },
+  "characterVoice": { labelKey: "characters.header.fillFromBook", descriptionKey: "aiData.action.characterVoice.description" },
+  "characterProfileDraft": { labelKey: "characters.draft.fromDescription", descriptionKey: "aiData.action.characterProfileDraft.description" },
+  "characterVoiceDraft": { labelKey: "characters.draft.fromDescription", descriptionKey: "aiData.action.characterVoiceDraft.description" },
+  "characterSection": { labelKey: "characters.draft.draftSection", descriptionKey: "aiData.action.characterSection.description" },
+  "suggestCharacters": { labelKey: "characters.suggest.title", descriptionKey: "aiData.action.suggestCharacters.description" },
+  "locationDraft": { labelKey: "nav.locations", descriptionKey: "aiData.action.locationDraft.description" },
+  "objectDraft": { labelKey: "nav.objects", descriptionKey: "aiData.action.objectDraft.description" },
+  "groupDraft": { labelKey: "nav.groups", descriptionKey: "aiData.action.groupDraft.description" },
+  "worldbuildingDraft": { labelKey: "nav.worldbuilding", descriptionKey: "aiData.action.worldbuildingDraft.description" },
+  "suggestLocations": { labelKey: "locations.suggest.title", descriptionKey: "aiData.action.suggestLocations.description" },
+  "sceneSummary": { labelKey: "sceneLinks.summarize", descriptionKey: "aiData.action.sceneSummary.description" },
+  "templateFill": { labelKey: "plotBoard.ai.fill", descriptionKey: "aiData.action.templateFill.description" },
+  "premiseDraft": { labelKey: "architecture.draft.button", descriptionKey: "aiData.action.premiseDraft.description" },
+  "multiReaderGenre": { labelKey: "aiData.action.multiReaderGenre.label", descriptionKey: "aiData.action.multiReaderGenre.description" },
+  "multiReaderLiterary": { labelKey: "aiData.action.multiReaderLiterary.label", descriptionKey: "aiData.action.multiReaderLiterary.description" },
+  "multiReaderAgent": { labelKey: "aiData.action.multiReaderAgent.label", descriptionKey: "aiData.action.multiReaderAgent.description" },
+  "multiReaderBookClub": { labelKey: "aiData.action.multiReaderBookClub.label", descriptionKey: "aiData.action.multiReaderBookClub.description" },
+  "brainstorm": { labelKey: "aiData.action.brainstorm.label", descriptionKey: "aiData.action.brainstorm.description" },
+  "brainstormPlot": { labelKey: "aiData.action.brainstormPlot.label", descriptionKey: "aiData.action.brainstormPlot.description" },
+  "writerAI.rewrite": { labelKey: "richEditor.actionName.rewrite", descriptionKey: "aiData.action.writerAIRewrite.description", groupKey: "aiData.subgroup.proseActions" },
+  "writerAI.expand": { labelKey: "richEditor.actionName.expand", descriptionKey: "aiData.action.writerAIExpand.description", groupKey: "aiData.subgroup.proseActions" },
+  "writerAI.tighten": { labelKey: "richEditor.actionName.tighten", descriptionKey: "aiData.action.writerAITighten.description", groupKey: "aiData.subgroup.proseActions" },
+  "writerAI.continue": { labelKey: "richEditor.actionName.continue", descriptionKey: "aiData.action.writerAIContinue.description", groupKey: "aiData.subgroup.proseActions" },
+  "writerAI.describe": { labelKey: "richEditor.actionName.describe", descriptionKey: "aiData.action.writerAIDescribe.description", groupKey: "aiData.subgroup.proseActions" },
+  "writerAI.guided-continue": { labelKey: "aiData.action.writerAIGuidedContinue.label", descriptionKey: "aiData.action.writerAIGuidedContinue.description", groupKey: "aiData.subgroup.proseActions" },
+  "writerAI.guided-rewrite": { labelKey: "richEditor.actionName.rewriteDirected", descriptionKey: "aiData.action.writerAIGuidedRewrite.description", groupKey: "aiData.subgroup.proseActions" },
+  "writerAI.dialogue": { labelKey: "richEditor.actionName.dialogue", descriptionKey: "aiData.action.writerAIDialogue.description", groupKey: "aiData.subgroup.proseActions" },
+  "sceneDraft": { labelKey: "richEditor.actionName.draftFromPlan", descriptionKey: "aiData.action.sceneDraft.description" },
+  "writerAI.rule.show-dont-tell": { labelKey: "richEditor.rules.showDontTell.label", descriptionKey: "richEditor.rules.showDontTell.description", groupKey: "chapters.ai.groupLineEdits" },
+  "writerAI.rule.passive-voice": { labelKey: "richEditor.rules.passiveVoice.label", descriptionKey: "richEditor.rules.passiveVoice.description", groupKey: "chapters.ai.groupLineEdits" },
+  "writerAI.rule.filter-words": { labelKey: "richEditor.rules.filterWords.label", descriptionKey: "richEditor.rules.filterWords.description", groupKey: "chapters.ai.groupLineEdits" },
+  "writerAI.rule.dialogue-tags": { labelKey: "richEditor.rules.dialogueTags.label", descriptionKey: "richEditor.rules.dialogueTags.description", groupKey: "chapters.ai.groupLineEdits" },
+  "writerAI.rule.sensory-grounding": { labelKey: "richEditor.rules.sensoryGrounding.label", descriptionKey: "richEditor.rules.sensoryGrounding.description", groupKey: "chapters.ai.groupLineEdits" },
+  "writerAI.rule.sentence-variety": { labelKey: "richEditor.rules.sentenceVariety.label", descriptionKey: "richEditor.rules.sentenceVariety.description", groupKey: "chapters.ai.groupLineEdits" },
+  "writerAI.rule.prose-tightening": { labelKey: "richEditor.rules.proseTightening.label", descriptionKey: "richEditor.rules.proseTightening.description", groupKey: "chapters.ai.groupLineEdits" },
+};
+for (const [key, keys] of Object.entries(ACTION_KEYS)) {
+  if (!Object.hasOwn(ACTION_META, key)) ACTION_META[key] = {};
+  Object.assign(ACTION_META[key], keys);
+}
 for (const [key, meta] of Object.entries(ACTION_META)) {
   // dict.update: existing keys keep their place, new ones are appended
   if (Object.hasOwn(DEFAULT_FEATURE_PROMPTS, key)) Object.assign(DEFAULT_FEATURE_PROMPTS[key], meta);

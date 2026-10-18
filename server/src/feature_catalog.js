@@ -56,3 +56,47 @@ export const FEATURE_CATALOG = [
   e("briefing", "Resume briefing", "Generates the Home “Previously on your novel” recap card.", "Home"),
   e("recap", "Session recap", "End-of-day “Wrap up session” recap + open-thread suggestions.", "Home"),
 ];
+
+// The catalog keys for each row's words (the seeded-words plan, the kit's
+// docs/plans/2026-10-18-seeded-words-in-the-users-language.md): the kit's AI page shows a feature,
+// its hint and its group in the interface's language. The words above stay as they are — the
+// English the kit falls back to.
+const FEATURE_KEYS = {
+  "writerAI": { labelKey: "aiData.feature.writerAI.label", hintKey: "aiData.feature.writerAI.hint" },
+  "sceneDrafting": { labelKey: "aiData.feature.sceneDrafting.label", hintKey: "aiData.feature.sceneDrafting.hint" },
+  "sensory": { labelKey: "aiData.feature.sensory.label", hintKey: "aiData.feature.sensory.hint" },
+  "unstuck": { labelKey: "aiData.feature.unstuck.label", hintKey: "aiData.feature.unstuck.hint" },
+  "brainstorm": { labelKey: "aiData.feature.brainstorm.label", hintKey: "aiData.feature.brainstorm.hint" },
+  "planning": { labelKey: "aiData.feature.planning.label", hintKey: "aiData.feature.planning.hint" },
+  "critique": { labelKey: "aiData.feature.critique.label", hintKey: "aiData.feature.critique.hint" },
+  "multiReader": { labelKey: "aiData.feature.multiReader.label", hintKey: "aiData.feature.multiReader.hint" },
+  "plotHoles": { labelKey: "aiData.feature.plotHoles.label", hintKey: "aiData.feature.plotHoles.hint" },
+  "reverseOutline": { labelKey: "aiData.feature.reverseOutline.label", hintKey: "aiData.feature.reverseOutline.hint" },
+  "beatSheet": { labelKey: "aiData.feature.beatSheet.label", hintKey: "aiData.feature.beatSheet.hint" },
+  "marketingPack": { labelKey: "aiData.feature.marketingPack.label", hintKey: "aiData.feature.marketingPack.hint" },
+  "foreshadowing": { labelKey: "aiData.feature.foreshadowing.label", hintKey: "aiData.feature.foreshadowing.hint" },
+  "readerKnowledge": { labelKey: "aiData.feature.readerKnowledge.label", hintKey: "aiData.feature.readerKnowledge.hint" },
+  "voiceDrift": { labelKey: "aiData.feature.voiceDrift.label", hintKey: "aiData.feature.voiceDrift.hint" },
+  "entitySweep": { labelKey: "aiData.feature.entitySweep.label", hintKey: "aiData.feature.entitySweep.hint" },
+  "characterAudit": { labelKey: "aiData.feature.characterAudit.label", hintKey: "aiData.feature.characterAudit.hint" },
+  "characterProfile": { labelKey: "aiData.feature.characterProfile.label", hintKey: "aiData.feature.characterProfile.hint" },
+  "characterVoice": { labelKey: "aiData.feature.characterVoice.label", hintKey: "aiData.feature.characterVoice.hint" },
+  "relationshipArc": { labelKey: "aiData.feature.relationshipArc.label", hintKey: "aiData.feature.relationshipArc.hint" },
+  "storyWorld": { labelKey: "aiData.feature.storyWorld.label", hintKey: "aiData.feature.storyWorld.hint" },
+  "chat": { labelKey: "aiData.feature.chat.label", hintKey: "aiData.feature.chat.hint" },
+  "characterChat": { labelKey: "aiData.feature.characterChat.label", hintKey: "aiData.feature.characterChat.hint" },
+  "briefing": { labelKey: "aiData.feature.briefing.label", hintKey: "aiData.feature.briefing.hint" },
+  "recap": { labelKey: "aiData.feature.recap.label", hintKey: "aiData.feature.recap.hint" },
+};
+const GROUP_KEYS = {
+  "Writing": "aiData.group.writing",
+  "Drafting tools": "aiData.group.draftingTools",
+  "Analysis": "aiData.group.analysis",
+  "Multi-reader panel": "aiData.group.multiReaderPanel",
+  "Whole book": "aiData.group.wholeBook",
+  "Characters": "aiData.group.characters",
+  "Story world": "aiData.group.storyWorld",
+  "Chat": "aiData.group.chat",
+  "Home": "aiData.group.home",
+};
+for (const f of FEATURE_CATALOG) Object.assign(f, FEATURE_KEYS[f.key] ?? {}, { groupKey: GROUP_KEYS[f.group] ?? "" });

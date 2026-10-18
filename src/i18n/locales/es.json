@@ -752,7 +752,7 @@
     "blurb": "Para cada personaje principal, JustWrite envía su perfil (rol, descripción breve, voz, arco, motivación, trasfondo, muestras de voz establecidas) además de la prosa de cada escena en la que aparece. El modelo marca {flagged} que parecen inconsistentes con la psicología establecida, es decir, que no se justifican con lo que has definido sobre ellos. Las preocupaciones incluyen evidencia; los desvíos leves o limítrofes reciben una alerta más suave que las rupturas de personalidad.",
     "flaggedTerm": "acciones, reacciones o diálogos",
     "noMainTitle": "No hay personajes principales",
-    "noMainMessage": "Marca un personaje como 'principal' en su página de detalles y luego vuelve a abrir este modal.",
+    "noMainMessage": "Marca un personaje como 'principal' en su página de detalles y luego vuelve a abrir esta ventana.",
     "idleBlurb": "Lee cada escena en la que aparece este personaje y realiza una auditoría de consistencia con su perfil. Si lo deseas, cambia primero el proveedor en la etiqueta de arriba.",
     "action": "Auditar este personaje",
     "summary": "{concerns} preocupaciones totales en {characters} personajes principales",
@@ -795,7 +795,7 @@
     "openThreads": "Cabos sueltos",
     "pinAll": "Fijar todo",
     "pinAllTooltip": "Colocar marcadores de cabo suelto en todos los fragmentos sin marcar",
-    "threadsBlurb": "Fragmentos que la IA marcó como planteamientos sin resolución en lo que escribiste hoy. Fija uno para colocar un marcador {looseThread} en el capítulo y que aparezca en el informe de continuación de mañana.",
+    "threadsBlurb": "Fragmentos que la IA marcó como planteamientos sin resolución en lo que escribiste hoy. Fija uno para colocar un marcador {looseThread} en el capítulo y que aparezca en el resumen para retomar de mañana.",
     "looseThreadTerm": "Cabo suelto",
     "pin": "Fijar",
     "pinTooltip": "Colocar un marcador de cabo suelto en esta frase del capítulo",
@@ -1414,7 +1414,7 @@
       "none": "tu último capítulo abierto"
     },
     "centred": "centrado en el cap. {num} — {sub}",
-    "statusTodo": "Por hacer",
+    "statusTodo": "Pendiente",
     "doneCount": "{n} completado | {n} completados",
     "centredOn": "centrado en {num}",
     "tail": {
@@ -1482,8 +1482,8 @@
     "contradictionsTerm": "contradicciones, imposibilidades temporales, deriva de continuidad",
     "knowledgeErrorsTerm": "errores de conocimiento del personaje",
     "worldRulesSummary": "Reglas del mundo a aplicar",
-    "on": "encendido",
-    "off": "apagado",
+    "on": "activado",
+    "off": "desactivado",
     "worldRulesHelp": "Texto libre con {rules}: restricciones del sistema de magia (\"la magia de sangre cuesta un año de vida por uso\"), física de ciencia ficción dura (\"los motores FTL necesitan 48 horas para recargarse\"), límites tecnológicos, estructuras sociales. Cuando no esté vacío, la auditoría revisará cada capítulo basándose en estos criterios en la misma pasada. Si un capítulo rompe una regla pero la prosa {earns} (un costo pagado, un recurso alternativo, una excepción declarada), no se marcará. Deja esto en blanco para proyectos que no sean de ciencia ficción o fantasía; el resto de la auditoría se ejecutará de la misma manera.",
     "worldRulesTerm": "reglas que el escritor ha declarado explícitamente que este mundo impone",
     "earnsException": "justifica la excepción",
@@ -2166,7 +2166,7 @@
       "adverbs": "Adverbios / 1k",
       "passive": "Voz pasiva / 1k"
     },
-    "statusDone": "Listo",
+    "statusDone": "Completado",
     "statusRevise": "Revisar",
     "statusDraft": "Borrador",
     "statusTodo": "Pendiente"
@@ -4044,5 +4044,257 @@
   },
   "planning": {
     "chipLabel": "Planificación"
+  },
+  "seeded": {
+    "status": {
+      "todo": "Pendiente",
+      "draft": "Borrador",
+      "revise": "Revisar",
+      "done": "Completado",
+      "open": "Abierto",
+      "resolved": "Resuelto",
+      "abandoned": "Abandonado"
+    },
+    "wbCategory": {
+      "geography": "Geografía",
+      "history": "Historia",
+      "cultures": "Culturas",
+      "languages": "Idiomas",
+      "factions": "Facciones",
+      "lore": "Mitos y leyendas"
+    }
+  },
+  "aiData": {
+    "feature": {
+      "writerAI": {
+        "label": "Acciones del escritor",
+        "hint": "El menú de IA en la franja de cada escena: Reescribir, Expandir, Condensar, Continuar, Describir, Reescribir con instrucciones…, Continuar con instrucciones…, Escribir diálogo…, además de todas las Ediciones de línea."
+      },
+      "sceneDrafting": {
+        "label": "Redacción de escenas",
+        "hint": "Redactar desde el plan, en el menú de IA de una escena: la escena se redacta a partir de su Resumen y del contexto de la historia, desde el cursor hasta su final; solo en un libro que tenga activada la redacción de escenas con IA (Configuración → Proyecto)."
+      },
+      "sensory": {
+        "label": "Investigar sensaciones",
+        "hint": "Paquete sensorial estructurado (olor / sonido / tacto / …) para un tema seleccionado: la ventana “Investigar sensaciones” del editor."
+      },
+      "unstuck": {
+        "label": "Desbloquear",
+        "hint": "Cinco formas de desbloquear la escena actual: cambio de objetivo / interrupción / cambio de escenario / revelación / salto temporal."
+      },
+      "brainstorm": {
+        "label": "Lluvia de ideas",
+        "hint": "La vista Lluvia de ideas —generación de nombres / títulos / ideas libres, orientada con pulgares arriba—, además de Ideas de nombres en un campo de nombre, Sugerir personajes y Sugerir ubicaciones en sus páginas, y los próximos beats y giros argumentales de un hilo en el Tablero de trama."
+      },
+      "planning": {
+        "label": "Planificación",
+        "hint": "Resumir esta escena, Completar esta plantilla para mi historia en el Tablero de trama y Redactar desde la premisa en la Fábula y la Ambientación — revisas el resultado antes de que se guarde nada."
+      },
+      "critique": {
+        "label": "Crítica",
+        "hint": "La ventana Crítica: Notas a nivel de línea (alertas / sugerencias / observaciones) y la pasada de Estructura (tensión, gancho, ritmo, final)."
+      },
+      "multiReader": {
+        "label": "Panel de múltiples lectores",
+        "hint": "Cuatro perfiles de lector (lector experto en el género / crítico literario / pasante de agente literario / lector de club de lectura) reaccionan a un capítulo en paralelo."
+      },
+      "plotHoles": {
+        "label": "Auditoría de agujeros de guion",
+        "hint": "Escaneo de continuidad de todo el libro en busca de contradicciones, problemas de cronología y errores de conocimiento de los personajes."
+      },
+      "reverseOutline": {
+        "label": "Esquema inverso",
+        "hint": "Lee el borrador completo y genera la estructura de actos que realmente tiene el libro: puntos de giro, transiciones entre actos, beats por capítulo."
+      },
+      "beatSheet": {
+        "label": "Hoja de beats",
+        "hint": "Mapea tu borrador a los beats de Save the Cat, del viaje del héroe o de la estructura narrativa de 7 puntos."
+      },
+      "marketingPack": {
+        "label": "Paquete de marketing",
+        "hint": "Logline, textos de contraportada, sinopsis y elevator pitch para propuestas y presentaciones."
+      },
+      "foreshadowing": {
+        "label": "Escaneo de presagios",
+        "hint": "Escaneo de todo el libro en busca de planteamientos que quizá no se hayan resuelto."
+      },
+      "readerKnowledge": {
+        "label": "Conocimiento del lector",
+        "hint": "Sigue la ironía dramática: lo que sabe el lector frente a lo que sabe el personaje del punto de vista, capítulo a capítulo."
+      },
+      "voiceDrift": {
+        "label": "Desviación de voz",
+        "hint": "Diagnostica qué cambió entre un capítulo atípico y la voz base del escritor en el tablero de Análisis."
+      },
+      "entitySweep": {
+        "label": "Barrido de entidades",
+        "hint": "Escanea los capítulos en busca de nuevos personajes / ubicaciones / objetos para añadir a la biblia de la historia."
+      },
+      "characterAudit": {
+        "label": "Auditoría de personajes",
+        "hint": "Auditoría de consistencia por personaje (perfil + sus escenas → acciones marcadas) en la vista Personajes."
+      },
+      "characterProfile": {
+        "label": "Perfil del personaje",
+        "hint": "Redacta los campos del perfil de un personaje (descripción, motivación, arco, trasfondo) a partir de sus escenas o de tu descripción, o sección por sección de la ficha — revisas el resultado antes de que se guarde nada."
+      },
+      "characterVoice": {
+        "label": "Voz del personaje",
+        "hint": "Redacta cómo habla un personaje (registro, ritmo, líneas de muestra) a partir de sus diálogos reales o de tu descripción — revisas el resultado antes de que se guarde nada."
+      },
+      "relationshipArc": {
+        "label": "Arco de la relación",
+        "hint": "Seguimiento capítulo a capítulo de la calidez / tensión / poder entre dos personajes."
+      },
+      "storyWorld": {
+        "label": "Fichas del mundo de la historia",
+        "hint": "Redacta la ficha de una ubicación, un objeto o un grupo a partir de tu descripción, y el cuerpo de un artículo de construcción de mundos a partir de su título y su resumen — revisas el resultado antes de que se guarde nada."
+      },
+      "chat": {
+        "label": "Pregúntale al libro",
+        "hint": "Preguntas y respuestas con RAG sobre tu manuscrito: el modo “Pregúntale al libro” del panel de chat."
+      },
+      "characterChat": {
+        "label": "Chat de personaje",
+        "hint": "El modo “Hablar con un personaje” del panel de chat: los personajes de tu elenco responden en primera persona y con su propia voz."
+      },
+      "briefing": {
+        "label": "Resumen para retomar",
+        "hint": "Genera la tarjeta de resumen “Anteriormente en tu novela” de Inicio."
+      },
+      "recap": {
+        "label": "Resumen de la sesión",
+        "hint": "El resumen de “Finalizar sesión” al final del día + sugerencias de cabos sueltos."
+      }
+    },
+    "group": {
+      "writing": "Escritura",
+      "draftingTools": "Herramientas de redacción",
+      "analysis": "Análisis",
+      "multiReaderPanel": "Panel de múltiples lectores",
+      "wholeBook": "Libro completo",
+      "characters": "Personajes",
+      "storyWorld": "Mundo de la historia",
+      "chat": "Chat",
+      "home": "Inicio"
+    },
+    "action": {
+      "critique": {
+        "label": "Notas",
+        "description": "Notas editoriales a nivel de línea: alertas, sugerencias y observaciones."
+      },
+      "critiqueStructure": {
+        "label": "Estructura",
+        "description": "Pasada estructural: tensión, gancho, ritmo y cómo funciona el final."
+      },
+      "characterProfile": {
+        "description": "Redacta el perfil de un personaje a partir de las escenas en las que aparece."
+      },
+      "characterVoice": {
+        "description": "Redacta cómo habla un personaje a partir de las líneas que realmente dice."
+      },
+      "characterProfileDraft": {
+        "description": "Inventa el perfil de un personaje a partir de tu descripción y del libro."
+      },
+      "characterVoiceDraft": {
+        "description": "Inventa cómo habla un personaje —registro, ritmo, líneas de muestra— a partir de tu descripción."
+      },
+      "characterSection": {
+        "description": "Redacta una sección de la ficha de un personaje, campo por campo."
+      },
+      "suggestCharacters": {
+        "description": "Propone personajes que el libro aún no tiene, a partir de su premisa y su elenco."
+      },
+      "locationDraft": {
+        "description": "Redacta la ficha de una ubicación —atmósfera, historia— a partir de tu descripción y del libro."
+      },
+      "objectDraft": {
+        "description": "Redacta la ficha de un objeto —propiedades, historial, dónde está ahora— a partir de tu descripción y del libro."
+      },
+      "groupDraft": {
+        "description": "Redacta la ficha de un grupo —metas, liderazgo, historia— a partir de tu descripción y del libro."
+      },
+      "worldbuildingDraft": {
+        "description": "Escribe el cuerpo de un artículo de construcción de mundos a partir de su título, su resumen y el libro."
+      },
+      "suggestLocations": {
+        "description": "Propone ubicaciones que el libro aún no tiene, a partir de su premisa y de los lugares que ya tiene."
+      },
+      "sceneSummary": {
+        "description": "Redacta el Resumen de una escena a partir de su prosa: qué pasa y qué cambia."
+      },
+      "templateFill": {
+        "description": "Completa los beats de una plantilla de trama con lo que ocurre en cada uno en este libro."
+      },
+      "premiseDraft": {
+        "description": "Redacta el documento de Fábula o de Ambientación a partir de la premisa del libro."
+      },
+      "multiReaderGenre": {
+        "label": "Género",
+        "description": "Un aficionado al género reacciona: qué cumple y qué decepciona."
+      },
+      "multiReaderLiterary": {
+        "label": "Literario",
+        "description": "La lectura de un crítico literario: técnica, tema y prosa."
+      },
+      "multiReaderAgent": {
+        "label": "Agente",
+        "description": "El pasante de un agente literario filtra los manuscritos no solicitados: solicitar el manuscrito o descartarlo, y por qué."
+      },
+      "multiReaderBookClub": {
+        "label": "Club de lectura",
+        "description": "Un lector de club de lectura: qué genera conversación y qué divide al grupo."
+      },
+      "brainstorm": {
+        "label": "Ideas",
+        "description": "Generación libre de ideas: nombres, títulos y conceptos, orientada con pulgares arriba."
+      },
+      "brainstormPlot": {
+        "label": "Trama",
+        "description": "Ideas centradas en la trama: situaciones hipotéticas, complicaciones y próximos beats."
+      },
+      "writerAIRewrite": {
+        "description": "Vuelve el pasaje más vívido y específico, manteniendo el significado, el tiempo verbal y la voz."
+      },
+      "writerAIExpand": {
+        "description": "Añade detalles sensoriales, interioridad y pequeñas acciones; duplica aproximadamente la longitud."
+      },
+      "writerAITighten": {
+        "description": "Elimina el relleno, las vacilaciones y las redundancias; mantiene el significado y la voz. Notablemente más corto."
+      },
+      "writerAIContinue": {
+        "description": "Escribe 2–4 párrafos más desde donde termina el pasaje, manteniendo la voz y el punto de vista."
+      },
+      "writerAIDescribe": {
+        "description": "Prosa sensorial nueva sobre el tema indicado, para insertarla después del pasaje."
+      },
+      "writerAIGuidedContinue": {
+        "label": "Continuar con instrucciones",
+        "description": "Continúa el pasaje siguiendo una instrucción de una línea que le das."
+      },
+      "writerAIGuidedRewrite": {
+        "description": "Reescribe la selección siguiendo una instrucción de una línea que le das."
+      },
+      "writerAIDialogue": {
+        "description": "Escribe diálogo en el cursor para los personajes de la escena, con sus voces de la biblia de la historia, siguiendo una instrucción que le das."
+      },
+      "sceneDraft": {
+        "description": "Redacta una escena a partir de su Resumen y del contexto de la historia, desde el cursor hasta el final de la escena."
+      }
+    },
+    "subgroup": {
+      "proseActions": "Acciones de prosa"
+    },
+    "preset": {
+      "proseVoiced": "Generar prosa",
+      "proseEdit": "Editar prosa",
+      "ideation": "Ideación",
+      "chat": "Chat con base en datos",
+      "digest": "Resumen con base en datos",
+      "extract": "Extracción estructurada",
+      "creativeStructured": "Creatividad estructurada",
+      "judge": "Evaluación y puntuación",
+      "readerPanels": "Paneles de lectores"
+    }
   }
 }

@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
-import { useProjectStore, TRASH_KINDS } from "../stores/project.js";
+import { statusLabelShown, useProjectStore, TRASH_KINDS } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { PaneHeader, pageFill } from "@delebash/ui";
 import { Icon } from "@delebash/ui";
@@ -48,7 +48,7 @@ function titleOf(kind, item) {
   if (kind === "notes")         return item.title;
   if (kind === "worldbuilding") return item.title;
   if (kind === "events")        return item.title || t("events.untitled");
-  if (kind === "statuses")      return item.label;
+  if (kind === "statuses")      return statusLabelShown(item);
   if (kind === "tagVocab")      return item.label;
   return item.name;
 }

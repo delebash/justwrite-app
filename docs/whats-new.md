@@ -25,6 +25,12 @@ now follow your language, and a new note's tag starts as your language's word ("
 Spanish). In **Settings → Backups**, restoring a copy asks "Restore … from the previous autosave?"
 instead of naming it "prev2". See [Backups and data](backups-and-data.md).
 
+**Ready-made names in your language.** The statuses (Draft, Revise, Done…), the worldbuilding
+categories, and on the AI page the features, actions, presets and the built-in providers now show
+in your language — until you rename one, which then stays as you wrote it. A status or category
+you add starts with your language's word, and a note whose tag you leave blank stays blank. See
+[UI language](appearance.md#ui-language).
+
 ## 2026-10-17
 
 **All of JustWrite in Spanish.** With Spanish chosen in **Settings → Appearance**, every screen's

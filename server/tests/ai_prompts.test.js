@@ -247,3 +247,21 @@ test("Draft from plan: its own feature row, the prose system with the story cont
   expect(FEATURE_CATALOG.find((f) => f.key === "sceneDrafting")?.label).toBe("Scene drafting");
   expect(SP.DEFAULT_TEST_SAMPLES.some((s) => s.actions.includes("sceneDraft") && s.variables.storyContext.includes("## Summary\n"))).toBe(true);
 });
+
+test("every catalog key the AI page's seed names exists in the English catalog", async () => {
+  // The seeded-words plan (2026-10-18): a missing key would show the English silently.
+  const { readFileSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const { FEATURE_CATALOG } = await import("../src/feature_catalog.js");
+  const SP = await import("../src/seed_presets.js");
+  const flatten = (o, p = "") => Object.entries(o).flatMap(([k, v]) => (typeof v === "object" ? flatten(v, `${p}${k}.`) : [`${p}${k}`]));
+  const en = new Set(flatten(JSON.parse(readFileSync(join(import.meta.dirname, "..", "..", "src", "i18n", "locales", "en.json"), "utf8"))));
+  const named = [
+    ...FEATURE_CATALOG.flatMap((f) => [f.labelKey, f.hintKey, f.groupKey]),
+    ...Object.values(DEFAULT_FEATURE_PROMPTS).flatMap((s) => [s.labelKey, s.descriptionKey, s.groupKey]),
+    ...SP.DEFAULT_ENGINE_PRESETS.map((p) => p.nameKey),
+  ].filter(Boolean);
+  expect(named.length).toBeGreaterThan(100);
+  expect(named.filter((k) => !en.has(k))).toEqual([]);
+  expect(FEATURE_CATALOG.every((f) => f.labelKey && f.groupKey), "every feature names its label and group").toBe(true);
+});

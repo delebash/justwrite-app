@@ -3,7 +3,7 @@ import { computed, ref, onBeforeUnmount, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useUiStore } from "../stores/ui.js";
-import { useProjectStore } from "../stores/project.js";
+import { categoryLabelShown, useProjectStore } from "../stores/project.js";
 import { promptDialog, confirmDialog, relativeTime, useAiTasksNav } from "@delebash/ui";
 import { promptNewProject, openTutorialProject } from "../services/projectStart.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
@@ -196,7 +196,7 @@ const expandableChildren = computed(() => ({
   architecture: [{ subgroupId: "all", items: Object.values(project.architecture).filter(Boolean).map((d) => ({ id: d.id, label: archDocTitle(d.id, d.title), ...navStatus(d.status), subgroupId: "all" })) }],
   worldbuilding: project.worldbuildingCategories.map((c) => ({
     subgroupId: c.id,
-    group: c.label,
+    group: categoryLabelShown(c),
     items: project.worldbuilding.filter((a) => a.category === c.id).map((a) => ({ id: a.id, label: a.title, ...navStatus(a.status), subgroupId: c.id })),
   })),
 }));
@@ -737,7 +737,7 @@ async function deleteWbCat(catId, label) {
   const count = project.worldbuilding.filter((a) => a.category === catId).length;
   const fallback = project.worldbuildingCategories.find((c) => c.id !== catId);
   const message = count
-    ? t("sidebar.actions.deleteWbCategoryMoves", { n: count, category: fallback.label }, count)
+    ? t("sidebar.actions.deleteWbCategoryMoves", { n: count, category: categoryLabelShown(fallback) }, count)
     : t("sidebar.actions.deleteWbCategoryEmpty");
   const yes = await confirmDialog({
     title: t("sidebar.actions.deleteWbCategoryTitle", { label }), message, confirmLabel: t("sidebar.actions.deleteWbCategoryConfirm"), danger: true,

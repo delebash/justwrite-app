@@ -1,13 +1,17 @@
-// /book round-trip smoke (Linux — Playwright + Chromium). Proves the renderer
+// /book round-trip smoke (Playwright + Chrome). Proves the renderer
 // uses the NORMALIZED book backend end-to-end:
-//   LOAD — pre-seed a book via PUT /v1/projects/{id}/book (+ kv pointers), boot
-//          the app, assert the seeded chapter renders.
+//   LOAD — pre-seed a book via PUT /v1/projects/{id}/book and make it the open
+//          book (PATCH /v1/settings activeProjectId — the registry is derived
+//          from the projects table), boot the app, assert the seeded chapter renders.
 //   SAVE — drive a real edit through the dev store hook (window.__jwProject,
 //          DEV-only), assert it lands in the tables via GET /book.
 //
-// Assumes server + vite are already running (the orchestrator starts them):
-//   server: justwrite-server serve --port 17495 --data-dir <fresh tmp>
-//   vite:   npm run dev:spa           (renderer on :1420)
+// Assumes server + vite are already running, on a fresh data dir — never the
+// user's live :1420 / :17495 (CLAUDE.md):
+//   server: node scripts/node24.js server/src/serve.js serve --port <P> --data-dir <fresh tmp>
+//   vite:   npx quasar dev --port <Q>   (the DEV build carries the store hook)
+// Off :1420 the renderer takes its own origin for the server (the kit's
+// origin-aware resolver), so the page's /v1 calls are forwarded to JW_SERVER here.
 // Env: JW_APP, JW_SERVER, JW_CHROME.
 
 import { createRequire } from "node:module";
@@ -45,9 +49,10 @@ await waitReady(`${SERVER}/v1/health`);
 await waitReady(APP);
 
 await put(`/v1/projects/${seedId}/book`, book);
-await put(`/v1/kv/justwrite:projects:active`, { value: JSON.stringify(seedId) });
-await put(`/v1/kv/justwrite:projects:registry`, {
-  value: JSON.stringify([{ id: seedId, title: "Book Smoke", author: "Harness", savedAt: new Date().toISOString() }]),
+await fetch(`${SERVER}/v1/settings`, {
+  method: "PATCH",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ activeProjectId: seedId }),
 });
 
 const exe = findChrome();
@@ -59,10 +64,23 @@ page.on("console", (m) => {
   if (m.type() === "error" && !/ERR_CERT|404|favicon|Failed to load resource/.test(m.text())) errors.push("CONSOLE: " + m.text().slice(0, 200));
 });
 
+// Off :1420 the page calls its own origin: hand those calls to the server, without
+// the page's Origin (the server's CSRF guard allows only the app's own origins).
+const appOrigin = new URL(APP).origin;
+if (new URL(APP).port !== "1420") {
+  await page.route(`${appOrigin}/v1/**`, async (route) => {
+    const req = route.request();
+    const { origin: _origin, referer: _referer, ...headers } = req.headers();
+    const response = await route.fetch({ url: req.url().replace(appOrigin, SERVER), headers });
+    await route.fulfill({ response });
+  });
+}
+
 let failed = 0;
 try {
   await page.goto(APP, { waitUntil: "networkidle" });
-  await sleep(2000);
+  // Booted = the dev store hook is installed (a cold dev server compiles on first load).
+  await page.waitForFunction(() => !!window.__jwProject, null, { timeout: 60000 }).catch(() => {});
   await page.evaluate(() => { window.location.hash = "#/chapters"; });
   await sleep(900);
   const text = await page.evaluate(() => document.body?.innerText || "");

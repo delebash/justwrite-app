@@ -550,16 +550,48 @@ FOUND:  2026-10-16, while freeing the card: the kit's `POST /v1/llm-runner/stop`
           seeder adds it to existing databases); the voice passes' register line lost its scale,
           both older stored texts heal. The eval on the three actions: 4 of 4 on gemma-4-26b and
           on gemma-4-12b, both reading as intended (RESEARCH "Testing").
-OPEN:   1. Saving the review as a reusable tool in docgen's repo (NOT STANDARD) — your word by name.
-        2. Seeded words stay English on Spanish screens — statuses, worldbuilding categories, the
-           AI page's preset, feature and action names, the kit's provider names. The plan, with
-           the inventory of all four repos: the kit's
-           `docs/plans/2026-10-18-seeded-words-in-the-users-language.md` (rec: show an unrenamed
-           seeded row by key — the stored English stays, so nothing changes in what syncs). It is
-           the i18n standard's "next, each its own go" (database-seeded words, "English for now"),
-           so it waits for your go.
-        3. Found 2026-10-18: `tests/smoke/book-smoke.js` (no npm script runs it) still seeds its
-           book through `/v1/kv`, which no longer exists.
+        2026-10-18, third round — the user: "your rec on all go dont stop dont ask me again do it all
+        untill all your tasks are done you keep saying things like needs your word, dont stop
+        instead think adversiarally on these things and take your on rec go on all". Done:
+        - OPEN 1, the review saved as docgen's tool (NOT STANDARD, taken on that go): docgen
+          `34af5fb`, `docs/dev/agentic-review.md`. The second look changed: a run folder instead of
+          fixed paths; the message compiler a dev dependency at the apps' vue-i18n version; the
+          guide split into the method, the language's rules and each project's context.
+        - OPEN 2, seeded words, in the kit, here and in docgen (the plan's §5 says what was built
+          and what the second look changed): statuses and worldbuilding categories show the
+          catalog's word until renamed, everywhere they render — the store's getters, and Trash and
+          the sidebar's delete message, found by the re-grep; the AI page's features, actions and
+          presets and the kit's five descriptive provider names by key; a status or category the
+          writer adds starts with the catalog's word; a note's blank tag stays blank on save. Knob
+          help and measurement labels stay English (technical text, as the model catalog's).
+          The Spanish of the 134 new strings (here 122, the kit 5, docgen 7), through docgen's
+          tool (`--new`): one reviewer translated them, a refuting verifier upheld all 134, and
+          the 12 strings docgen or the spellchecker still flagged were accepted as correct (names,
+          words Spanish shares, valid words the dictionary lacks), by "Claude (AI review,
+          2026-10-18)". Six consistency fixes the reviewer noted, saved through docgen's Save:
+          "Done" and "To do" as the statuses say on Analysis and Home ("Completado", "Pendiente"),
+          the plot-hole audit's world-rules pill "activado/desactivado" (was "encendido/apagado";
+          the kit's switches say "Activado"), "esta ventana" for "this modal", and the session
+          recap's blurb naming the resume briefing as its feature does.
+        - OPEN 3, `book-smoke.js`: it seeds through `/v1/settings`, forwards the page's `/v1`
+          off :1420 and waits for the store hook; LOAD and SAVE pass on scratch ports (RESEARCH
+          "Testing").
+        - Checked: docgen's `check` exit 0 on all three catalogs (here 3,204 of 3,204, the kit
+          1,486, docgen 285); test:fast (unit 728, build, server 170 with the blank-tag test);
+          i18n:report MISSING 0; the smoke; the flows 20 of 20; the seeded words on screen in Spanish
+          and English on a snapshot of your data (Settings → Project, the sidebar, Analysis, the
+          AI page and its providers) — your renamed "Magic & lore" stays as written; the kit's
+          tests (core 1,226, ui 18 with `seeded_words.test.js`) and lint; docgen's tests (server
+          165, unit 5) and lint; the family guard. User docs: appearance.md, whats-new.md (here);
+          settings.md, whats-new.md (docgen).
+        Found and left as found: one action has three English names ("Guided continue" on the AI
+        page, "Continue (guided)" and "Continue with direction…" in the editor) — the Spanish
+        follows each, and naming it once is an English wording choice. The sample book's copy in
+        a data folder is made once and never refreshed (`server/src/app.js` `materializeSamples`),
+        so a fixed bundled sample — the ISO dates of 2026-10-15 — never reaches an existing
+        install's tutorial; refreshing it would overwrite a folder in your data, so it is yours to
+        decide.
+OPEN:   nothing of this item's rounds. Slice 4's bench leg (D4) is in "AI drafting".
 GO:     given 2026-10-16 for the eval and the flow tests ("think on your rec again always adversially
         go"; "carry on, your rec go"); for the five fixes, the three labels and the translation
         ("your rec on all go"); 2026-10-17 for the stop route and the Spanish ("go your rec";
@@ -568,7 +600,8 @@ GO:     given 2026-10-16 for the eval and the flow tests ("think on your rec aga
         them again adversarially first go"); 2026-10-18 for the follow-ups 2–4 ("compacted re read
         docs rules session your rec on all go"); 2026-10-18 for the second round ("keep going until
         everything is done your rec but think on your decisions twice before doing, finish
-        everything dont stop").
+        everything dont stop"); 2026-10-18 for the third round ("your rec on all go dont stop dont
+        ask me again … take your on rec go on all").
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's
@@ -604,8 +637,8 @@ BUILT:  slice 5 — the kit fdbc100, 33ab9fe; JustWrite 321a6a5 (the 390 px pass
         and fixed: the title bar under the status bar and island, the editor's word count under the
         home indicator (the kit's theme, a4e4639, b35e0e4). Screenshots, Android and iPhone:
         claude.ai/artifact/GVRYsL1qV9jU5JR9RkPUAr.
-OPEN:   1. your review of the screenshots; 2. the phone's no-model error wording (it names Quick
-        Setup, which the phone doesn't have) — your words; 3. the camera line on iOS ("JustWrite uses
+OPEN:   1. your review of the screenshots; 2. done 2026-10-16 (`e10b65b`: the phone's own way to set
+        a model up, decided in "AI drafting"); 3. the camera line on iOS ("JustWrite uses
         the camera to scan the pairing code your computer shows.") — written by me, yours to change;
         4. not run: sync with a paired computer from iOS, the unsigned device build for the sideload
         route (the cloud-folder item, OPEN 1).
@@ -1218,7 +1251,6 @@ JV as of 2026-08-04; the convergence scope itself stands.)*
 - **Bench harness `--restore` fire-test** — one deliberate mid-leg kill → `npm run bench --
   --restore bench/results/<run-id>` → the Routing tab shows the original assignments. Still only
   proven against a fake client. `docs/plans/archive/2026-07-19-llm-bench-harness.md`.
-- **`book-smoke.js`** — unverified since the shared-helper extraction; needs port 1420 free once.
 - **19 probe scripts still carry a Linux-only `findChrome()`** — they cannot find a browser on
   Windows at all; convert to the shared `tests/lib/smoke-common.js` import or delete the dead
   ones. Same plan doc.

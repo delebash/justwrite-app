@@ -1255,3 +1255,20 @@ export const JW_CLASS_TUNE_IDENTITY = {
     "gryphe-styletune-v2": {"hf_repo": "mradermacher/Gemma-4-26B-A4B-StyleTune-V2-GGUF",
                             "quant": "Q4_K_M"},
 };
+
+// The catalog key for each seeded preset's name (the seeded-words plan, 2026-10-18): the kit shows
+// the name in the interface's language while the stored name is still this seed's; a renamed
+// preset shows its own name.
+const PRESET_NAME_KEYS = {
+  "p_prose_voiced": "aiData.preset.proseVoiced",
+  "p_prose_edit": "aiData.preset.proseEdit",
+  "p_ideation": "aiData.preset.ideation",
+  "p_chat": "aiData.preset.chat",
+  "p_character_chat": "chat.taskCharacterShort",
+  "p_digest": "aiData.preset.digest",
+  "p_extract": "aiData.preset.extract",
+  "p_creative_structured": "aiData.preset.creativeStructured",
+  "p_judge": "aiData.preset.judge",
+  "p_reader_panels": "aiData.preset.readerPanels",
+};
+for (const p of DEFAULT_ENGINE_PRESETS) if (PRESET_NAME_KEYS[p.id]) p.nameKey = PRESET_NAME_KEYS[p.id];

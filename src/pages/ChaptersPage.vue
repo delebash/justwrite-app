@@ -145,7 +145,7 @@ const indexColumns = computed(() => [
   { accessorKey: "words", header: t("chapters.index.columns.words"), sortable: true, headerStyle: "min-width: 100px" },
 ]);
 const statusOptions = computed(() =>
-  project.statuses.map((s) => ({ value: s.id, label: s.label })),
+  project.statusesShown.map((s) => ({ value: s.id, label: s.label })),
 );
 const partOptions = computed(() =>
   project.parts.map((p) => ({ value: p.id, label: p.title || t("sidebar.placeholders.untitledPart") })),

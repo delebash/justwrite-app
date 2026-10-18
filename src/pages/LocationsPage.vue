@@ -85,7 +85,7 @@ function deleteLocation() {
 const rows = computed(() => project.locations);
 
 const statusOptions = computed(() =>
-  project.statuses.map((s) => ({ value: s.id, label: s.label })),
+  project.statusesShown.map((s) => ({ value: s.id, label: s.label })),
 );
 // Kind options derived from in-use kind values only.
 const allKinds = computed(() => {

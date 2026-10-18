@@ -11,7 +11,7 @@
 
 import { computed, unref, watchEffect } from "vue";
 import { useRouter } from "vue-router";
-import { LuFeatureChip, useResolvedRoute } from "@delebash/ui";
+import { LuFeatureChip, providerDisplayName, useResolvedRoute } from "@delebash/ui";
 import { useAiStore } from "../stores/ai.js";
 import { useI18n } from "vue-i18n";
 
@@ -41,7 +41,8 @@ const providerName = computed(() => {
   // the old "run Quick Setup" pushed the local-only wizard at users who
   // want an online provider. Clicking already opens the AI settings page.
   if (!r.configured) return t("aiChip.noModel");
-  return ai.providerById(r.providerId)?.name || r.providerId || "—";
+  const p = ai.providerById(r.providerId);
+  return p ? providerDisplayName(p) : r.providerId || "—";
 });
 const model = computed(() => {
   const r = route.value;

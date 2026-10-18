@@ -324,7 +324,11 @@ toasts and hover tooltips were not opened; 147 strings matching book content wer
   `()` calls in 8 files (ChatPanel, DateTimePicker, Sidebar, VersionHistoryModal, AnalysisPage,
   EventsTimelinePage, HomeShelfPage, TimelinePage), and `DateTimePicker.vue:20` lists the month
   names in English.
-- **Seeded database words stay English by decision 4** (marker types, statuses, roles).
+- **Seeded database words stayed English by decision 4** (marker types, statuses, roles) until
+  2026-10-18: the marker types are a code table with keys now; statuses and worldbuilding
+  categories show by key until renamed (the kit's
+  `docs/plans/2026-10-18-seeded-words-in-the-users-language.md` §5); a character's role is the
+  writer's own text.
 - **How the i18n lint's settings came about** (JustWrite's `eslint.i18n.config.js`, now the family's
   one file): `code` joined `ignoreNodes` 2026-07-26, when the HTML-in-message hints moved to
   `<i18n-t>` slots (a `<code>` holds identifiers like `.zip`, `accent2`); `\p{S}` joined
@@ -427,6 +431,14 @@ toasts and hover tooltips were not opened; 147 strings matching book content wer
   Not reproduced; the engine's log went with the run's data copy. — *evals/results/
   2026-10-18-16-14-52 (the failure), 2026-10-18-16-16-47 (12b), 2026-10-18-16-18-34 (26b);
   git-ignored.*
+- **`tests/smoke/book-smoke.js` runs off :1420 by forwarding the page's `/v1` calls.** The kit's
+  origin-aware resolver takes any port but the dev ports (`devPorts: ["1420"]`, `src/boot/jw.js`)
+  for a same-origin server, so a dev renderer on another port calls itself; and the server's CSRF
+  guard admits only `APP_ORIGINS` (`server/src/app.js`). The script hands `<app>/v1/**` to
+  `JW_SERVER` with Playwright's `route.fetch` and `route.fulfill`, without the page's Origin and
+  Referer. Its old fixed 2 s wait failed on a cold vite (it compiles on first load); it waits for
+  the dev store hook now. LOAD and SAVE both passed (vite on :1433, the server on :17510, a temp
+  data dir). — *run 2026-10-18.*
 
 ## Records not yet distilled
 

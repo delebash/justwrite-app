@@ -555,6 +555,38 @@ const DEFAULT_WB_CATEGORIES = [
   { id: "lore",      label: "Lore & myth", icon: "Sparkle",   hue: 320 },
 ];
 
+// Seeded words shown in the interface's language (the kit's
+// docs/plans/2026-10-18-seeded-words-in-the-users-language.md): a seeded status or worldbuilding
+// category whose label is still the seed's English shows the catalog's word; one the writer
+// renamed shows theirs. The stored label stays the seed's English — synced data never changes
+// language, and text the AI reads keeps it.
+const SEEDED_STATUS_KEYS = {
+  todo: "seeded.status.todo",
+  draft: "seeded.status.draft",
+  revise: "seeded.status.revise",
+  done: "seeded.status.done",
+  open: "seeded.status.open",
+  resolved: "seeded.status.resolved",
+  abandoned: "seeded.status.abandoned",
+};
+const SEEDED_CATEGORY_KEYS = {
+  geography: "seeded.wbCategory.geography",
+  history: "seeded.wbCategory.history",
+  cultures: "seeded.wbCategory.cultures",
+  languages: "seeded.wbCategory.languages",
+  factions: "seeded.wbCategory.factions",
+  lore: "seeded.wbCategory.lore",
+};
+const seededLabel = (seed, keys) => (row) => {
+  if (!row) return "";
+  const english = seed.find((x) => x.id === row.id)?.label;
+  return english !== undefined && row.label === english && keys[row.id] ? t(keys[row.id]) : row.label ?? "";
+};
+/** A status's label as shown: the catalog's word while it is still the seed's English. */
+export const statusLabelShown = seededLabel(DEFAULT_STATUSES, SEEDED_STATUS_KEYS);
+/** A worldbuilding category's label as shown — the same rule. */
+export const categoryLabelShown = seededLabel(DEFAULT_WB_CATEGORIES, SEEDED_CATEGORY_KEYS);
+
 // The ONE blank-project state shape — used by createProject() and by
 // deleteProject()'s last-project branch (which resets the in-memory state
 // without minting a registry row). Fresh copies each call.
@@ -765,7 +797,13 @@ export const useProjectStore = defineStore("project", {
     // mount ONLY when this is true, so the zero-project state can't render a
     // phantom "Untitled" project's chrome.
     hasActiveProject:  (s) => s._activeId != null,
-    statusById:        (s) => (id) => s.statuses.find((x) => x.id === id) || null,
+    // Shown labels (statusLabelShown): a copy for reading — Settings renames through the raw list.
+    statusById:        (s) => (id) => {
+      const x = s.statuses.find((y) => y.id === id);
+      return x ? { ...x, label: statusLabelShown(x) } : null;
+    },
+    statusesShown:     (s) => s.statuses.map((x) => ({ ...x, label: statusLabelShown(x) })),
+    categoriesShown:   (s) => s.worldbuildingCategories.map((c) => ({ ...c, label: categoryLabelShown(c) })),
   },
 
   actions: {
@@ -1779,7 +1817,7 @@ export const useProjectStore = defineStore("project", {
     },
 
     // ── Worldbuilding categories (user-definable) ───────────
-    addWorldbuildingCategory({ label = "New category", icon = "Sparkle", hue } = {}) {
+    addWorldbuildingCategory({ label = t("defaults.category"), icon = "Sparkle", hue } = {}) {
       this._record("addWorldbuildingCategory");
       const id = uid("wbc");
       const finalHue = hue ?? nextHue(this.worldbuildingCategories.length);
@@ -2152,7 +2190,7 @@ export const useProjectStore = defineStore("project", {
     },
 
     // ── Statuses (user-definable palette) ───────────────────
-    addStatusDef({ label = "New status", color = "var(--status-todo)" } = {}) {
+    addStatusDef({ label = t("defaults.status"), color = "var(--status-todo)" } = {}) {
       this._record("addStatusDef");
       const id = uid("st");
       this.statuses = [...this.statuses, { id, label, color }];

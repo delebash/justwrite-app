@@ -40,7 +40,7 @@ const current = computed(() => real.value || unsetStatus.value);
 const options = computed(() => [
   { value: "", label: t("status.unset"), unset: true },
   { value: "__rule_1__", rule: true, disable: true },
-  ...project.statuses.map((s) => ({ value: s.id, label: s.label, color: s.color })),
+  ...project.statusesShown.map((s) => ({ value: s.id, label: s.label, color: s.color })),
   { value: "__rule_2__", rule: true, disable: true },
   { value: NEW_SENTINEL, label: t("status.new"), add: true },
 ]);

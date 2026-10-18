@@ -257,5 +257,4 @@ these are the load-bearing facts it carried that this doc lacked:
 - The hard-question answer keys live in
   `../plans/archive/2026-07-20-mtp-verify-think-ab-bench.md` §6.
 - **Standing debt** (also tracked): no end-to-end bench run has reached a live
-  model through the harness; `--restore` proven only against a fake client;
-  `book-smoke.js` needs port 1420 free.
+  model through the harness; `--restore` proven only against a fake client.

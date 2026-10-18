@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch } from "vue";
-import { useProjectStore } from "../stores/project.js";
+import { categoryLabelShown, useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import { PaneHeader, pageFill } from "@delebash/ui";
@@ -80,7 +80,7 @@ async function addArticle() {
         label: t("common.category"),
         type: "select",
         defaultValue: "geography",
-        options: project.worldbuildingCategories.map((c) => ({ value: c.id, label: c.label })),
+        options: project.categoriesShown.map((c) => ({ value: c.id, label: c.label })),
       },
     ],
   });
@@ -110,7 +110,7 @@ const rows = computed(() =>
     const c = project.worldbuildingCategories.find((x) => x.id === a.category);
     return {
       ...a,
-      categoryLabel: c?.label || a.category,
+      categoryLabel: c ? categoryLabelShown(c) : a.category,
       categoryIcon:  c?.icon  || FALLBACK_CATEGORY_ICON,
       categoryHue:   c?.hue   || 200,
     };
@@ -118,10 +118,10 @@ const rows = computed(() =>
 );
 
 const categoryOptions = computed(() =>
-  project.worldbuildingCategories.map((c) => ({ value: c.id, label: c.label })),
+  project.categoriesShown.map((c) => ({ value: c.id, label: c.label })),
 );
 const statusOptions = computed(() =>
-  project.statuses.map((s) => ({ value: s.id, label: s.label })),
+  project.statusesShown.map((s) => ({ value: s.id, label: s.label })),
 );
 const allTags = computed(() => {
   const set = new Set();
@@ -233,7 +233,7 @@ function onRowClick(event) {
     </template>
 
     <template v-else>
-      <PaneHeader :crumbs="[{ label: cat?.label || $t('nav.worldbuilding'), to: '/worldbuilding' }]"
+      <PaneHeader :crumbs="[{ label: (cat && categoryLabelShown(cat)) || $t('nav.worldbuilding'), to: '/worldbuilding' }]"
         editable :title="article.title" :placeholder="$t('worldbuilding.titlePlaceholder')"
         @update:title="(v) => update('title', v)">
         <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch, watchEffect } from "vue";
 import { useAiStore } from "../stores/ai.js";
-import { useProjectStore } from "../stores/project.js";
+import { categoryLabelShown, statusLabelShown, useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor } from "../services/imageStore.js";
 import { promptDialog, confirmDialog, DataManagement, LogsPanel, SettingsShell, UpdatesPanel, renderHelpMarkdown, get, put, post, fmtBytes, refreshRunnerModels, serverUrl, pageFill } from "@delebash/ui";
@@ -667,7 +667,7 @@ function renameStatus(id, label) { project.updateStatusDef(id, { label }); }
 function recolorStatus(id, color) { project.updateStatusDef(id, { color }); editingColorId.value = null; }
 async function deleteStatus(s) {
   const yes = await confirmDialog({
-    title: t("settings.statuses.deleteTitle", { label: s.label }),
+    title: t("settings.statuses.deleteTitle", { label: statusLabelShown(s) }),
     message: t("settings.statuses.deleteMessage"),
     confirmLabel: t("settings.statuses.deleteConfirm"),
     danger: true,
@@ -706,9 +706,10 @@ async function deleteCategory(c) {
     return;
   }
   const count = project.worldbuilding.filter((a) => a.category === c.id).length;
-  const into = project.worldbuildingCategories.find((x) => x.id !== c.id)?.label;
+  const other = project.worldbuildingCategories.find((x) => x.id !== c.id);
+  const into = other ? categoryLabelShown(other) : "";
   const yes = await confirmDialog({
-    title: t("settings.wbCategories.deleteTitle", { label: c.label }),
+    title: t("settings.wbCategories.deleteTitle", { label: categoryLabelShown(c) }),
     message: count ? t("settings.wbCategories.deleteMessage", { n: count, into }, count) : t("settings.wbCategories.deleteMessageEmpty"),
     confirmLabel: t("sidebar.actions.deleteWbCategoryConfirm"),
     danger: true,
@@ -830,9 +831,9 @@ async function deleteCategory(c) {
                     </label>
                   </div>
                 </div>
-                <UiInput style="max-width:220px" :model-value="s.label"
+                <UiInput style="max-width:220px" :model-value="statusLabelShown(s)"
                   @update:model-value="(v) => renameStatus(s.id, v)" :placeholder="$t('settings.statuses.namePlaceholder')" />
-                <span :style="`font-size:11px;font-weight:600;text-transform:lowercase;color:${s.color}`">{{ s.label }}</span>
+                <span :style="`font-size:11px;font-weight:600;text-transform:lowercase;color:${s.color}`">{{ statusLabelShown(s) }}</span>
                 <UiButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="$t('settings.statuses.deleteConfirm')" @click="deleteStatus(s)">
                   <template #icon><Icon name="Trash" :size="13" /></template>
                 </UiButton>
@@ -852,7 +853,7 @@ async function deleteCategory(c) {
             </p>
             <div style="display:flex;flex-direction:column;gap:8px">
               <div v-for="c in project.worldbuildingCategories" :key="c.id" style="display:flex;align-items:center;gap:10px">
-                <UiInput style="max-width:220px" :model-value="c.label"
+                <UiInput style="max-width:220px" :model-value="categoryLabelShown(c)"
                   @update:model-value="(v) => renameCategory(c.id, v)" :placeholder="$t('sidebar.actions.newWbCategoryLabel')" />
                 <UiColorPicker :presets="PRESET_COLORS"
                   :model-value="`oklch(0.62 0.13 ${c.hue})`"

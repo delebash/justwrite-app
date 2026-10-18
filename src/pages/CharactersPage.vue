@@ -246,7 +246,7 @@ const rows = computed(() =>
 );
 
 const statusOptions = computed(() =>
-  project.statuses.map((s) => ({ value: s.id, label: s.label })),
+  project.statusesShown.map((s) => ({ value: s.id, label: s.label })),
 );
 const allGenders = computed(() => {
   const set = new Set();

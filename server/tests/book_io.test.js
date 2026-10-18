@@ -215,6 +215,16 @@ test("an_older_database_gains_the_added_columns", async () => {
   expect((await c.get("/v1/projects/prj1/book")).json()).toEqual(book);
 });
 
+// A note saved with no tag comes back with none: the server used to fill the English "note"
+// (2026-10-18), whatever the writer's language — the app gives a new note its default tag.
+test("a_blank_note_tag_stays_blank", async () => {
+  const c = await client(tmpPath());
+  const book = canonicalBook();
+  book.notes[0].tag = "";
+  await c.put("/v1/projects/prj1/book", { json: book });
+  expect((await c.get("/v1/projects/prj1/book")).json().notes[0].tag).toBe("");
+});
+
 test("book_404_when_absent", async () => {
   expect((await (await client(tmpPath())).get("/v1/projects/nope/book")).statusCode).toBe(404);
 });

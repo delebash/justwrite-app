@@ -202,7 +202,7 @@ const sortedBeats = computed(() => {
 const rows = computed(() => project.strands);
 
 const statusOptions = computed(() =>
-  project.statuses.map((s) => ({ value: s.id, label: s.label })),
+  project.statusesShown.map((s) => ({ value: s.id, label: s.label })),
 );
 
 // Declarative facets for the shared EntityIndex — the filtering, the chip markup

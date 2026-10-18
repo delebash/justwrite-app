@@ -368,7 +368,9 @@ export function bookRows(projectId, snapIn) {
       position: i,
       title: s_(pyGet(n, "title")),
       body: s_(pyGet(n, "body")),
-      tag: s_(pyOr(pyGet(n, "tag"), "note")),
+      // An empty tag stays empty (2026-10-18): filled here it was the English "note" on every
+      // device, whatever the writer's language — a new note gets its default tag in the app.
+      tag: s_(pyGet(n, "tag")),
       updated: s_(pyGet(n, "updated")),
       anchor_chapter_id: ref(pyGet(anchor, "chapterId")),
       anchor_scene_id: ref(pyGet(anchor, "sceneId")),

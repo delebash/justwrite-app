@@ -624,7 +624,7 @@ const milestoneState = computed(() => {
               <div v-for="s in donut.segs" :key="s.k"
                 style="display:grid;grid-template-columns:auto 1fr auto;gap:10px;font-size:12.5px;align-items:center">
                 <span :style="`width:10px;height:10px;border-radius:2px;background:${s.color}`" />
-                <span>{{ $t(s.labelKey) }}</span>
+                <span>{{ project.statusById(s.k)?.label || $t(s.labelKey) }}</span>
                 <span class="t-num" style="color:var(--ink-2)">{{ s.value }}</span>
               </div>
             </div>
