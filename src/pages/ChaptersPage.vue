@@ -183,8 +183,8 @@ const nextScene = computed(() => activeSceneIdx.value >= 0 && activeSceneIdx.val
 
 // The editor's prose actions send their scene's story context (slice 2): the scene at the cursor
 // in the stitched chapter, else the scene being edited.
-function storyContextFor({ sceneId, action } = {}) {
-  return proseStoryContext(project, { chapterId: ch.value?.id, sceneId: sceneId || activeScene.value?.id, action });
+function storyContextFor({ sceneId, action, feature } = {}) {
+  return proseStoryContext(project, { chapterId: ch.value?.id, sceneId: sceneId || activeScene.value?.id, action, feature });
 }
 
 // Live word/char counts for the active scene, shown in the editor card's
@@ -479,6 +479,23 @@ function callProse(key, e) {
 // #42: any AI strikethrough (pending original or kept history) enables the
 // clean-up item; the command lives in the editor's aiDiff extension.
 const hasStrikes = computed(() => (editorRef.value?.strikeCount || 0) > 0);
+// The AI-text mark (2026-10-18): AI-written text in the selection, or in the scene with nothing
+// selected, enables Mark as mine.
+const aiTextHere = computed(() => !!editorRef.value?.aiTextHere);
+function callMarkAsMine() {
+  editorRef.value?.markAsMine?.();
+}
+
+// Draft from plan (slice 4, the AI drafting spec §6): only in a book with AI scene drafting on
+// (Settings → Project); a scene's plan is its Summary. A stitched chapter's scene is checked when
+// the draft runs (the editor knows the scene at the cursor).
+const sceneDrafting = computed(() => !!project.project.aiSceneDrafting);
+const planReady = computed(() => continuousMode.value || !!String(activeScene.value?.summary || "").trim());
+const showDraftCta = computed(() => sceneDrafting.value && !continuousMode.value && !!activeScene.value
+  && !plainText(activeScene.value.body).trim());
+function callDraftFromPlan(e) {
+  editorRef.value?.runDraftFromPlan?.({ shiftKey: !!e?.shiftKey });
+}
 
 // B5-7 (#43): the AI-complete notice lives HERE, on the editor's bottom bar
 // (right of the word count), instead of a toast — writerAI tasks register
@@ -492,7 +509,7 @@ const aiNotice = computed(() => {
   // sits in visibleTasks for 5 s BEFORE reaching history — reading history alone
   // made this notice fire 5 s late. Ids survive archival, so a dismissal during
   // the linger still covers the same task's history incarnation.
-  const match = (x) => x.feature === "writerAI" && x.status === "done" && x.finishedAt >= noticeSince;
+  const match = (x) => (x.feature === "writerAI" || x.feature === "sceneDrafting") && x.status === "done" && x.finishedAt >= noticeSince;
   const h = aiTasks.visibleTasks.find(match) || (aiTasks.history || []).find(match);
   return h && h.id !== dismissedNoticeId.value ? h : null;
 });
@@ -1253,6 +1270,10 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
             </UiMenuItem>
             <UiMenuSeparator class="ai-strip-divider" />
             <div class="ai-strip-section">{{ $t('chapters.ai.groupFromCursor') }}</div>
+            <UiMenuItem v-if="sceneDrafting" class="ai-strip-item" :disabled="aiRunning || !planReady" @select="(ev) => callDraftFromPlan(ev.detail.originalEvent)">
+              <div class="ai-strip-label">{{ $t('chapters.ai.draftFromPlanLabel') }}</div>
+              <div class="ai-strip-desc">{{ planReady ? $t('chapters.ai.draftFromPlanDesc') : $t('chapters.ai.draftFromPlanNeedsSummary') }}</div>
+            </UiMenuItem>
             <UiMenuItem class="ai-strip-item" :disabled="aiRunning" @select="(ev) => callAi('continue', ev.detail.originalEvent)">
               <div class="ai-strip-label">{{ $t('chapters.ai.continueLabel') }}</div>
               <div class="ai-strip-desc">{{ $t('chapters.ai.continueDesc') }}</div>
@@ -1294,6 +1315,10 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
               <div class="ai-strip-label">{{ $t('chapters.ai.clearStrikesLabel') }}</div>
               <div class="ai-strip-desc">{{ $t('chapters.ai.clearStrikesDesc') }}</div>
             </UiMenuItem>
+            <UiMenuItem class="ai-strip-item" :disabled="!aiTextHere" @select="callMarkAsMine">
+              <div class="ai-strip-label">{{ $t('chapters.ai.markAsMineLabel') }}</div>
+              <div class="ai-strip-desc">{{ $t('chapters.ai.markAsMineDesc') }}</div>
+            </UiMenuItem>
           </UiMenu>
           <StatusSelect
             :model-value="activeScene.status || ''"
@@ -1330,6 +1355,15 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
         :chapter-id="ch.id"
         :scene-id="activeScene.id"
         @close="linksOpen = false" />
+
+      <!-- Draft from plan in an empty scene (slice 4) — only in a book with AI scene drafting on. -->
+      <div v-if="showDraftCta" class="scene-draft-cta">
+        <UiButton intent="secondary" size="small" :disabled="aiRunning || !planReady" @click="callDraftFromPlan">
+          <template #icon><Icon name="Sparkle" :size="13" /></template>
+          {{ $t('chapters.ai.draftFromPlanLabel') }}
+        </UiButton>
+        <span class="scene-draft-cta-hint">{{ planReady ? $t('chapters.ai.draftFromPlanDesc') : $t('chapters.ai.draftFromPlanNeedsSummary') }}</span>
+      </div>
 
       <!-- Continuous-chapter editor — one big stitched document; on
            change we split it back and apply atomically. -->
@@ -1816,6 +1850,12 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   background: var(--surface-2);
   flex-wrap: wrap;
 }
+/* Draft from plan in an empty scene (slice 4): one button and its line, on the strip's gutter. */
+.scene-draft-cta {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 22px 0;
+}
+.scene-draft-cta-hint { font-size: 12px; color: var(--muted); max-width: 60ch; }
 .scene-pill {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 2px 10px;

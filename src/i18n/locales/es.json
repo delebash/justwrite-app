@@ -697,12 +697,19 @@
     "paragraphSpacing": "Espaciado de párrafo",
     "spellCheck": "Corrector ortográfico",
     "keepStrikethrough": "Mantener el original tachado al aceptar un cambio de la IA",
+    "highlightAiText": "Resaltar el texto escrito por la IA",
     "save": "guardar",
     "back": "atrás",
     "fontThemeDefault": "Predeterminada del tema",
     "fontSystemSerif": "Serif del sistema",
     "fontSans": "Sans-serif",
-    "fontMono": "Monoespaciada"
+    "fontMono": "Monoespaciada",
+    "optTheme": "tema",
+    "optSmall": "pequeño",
+    "optMedium": "mediano",
+    "optBig": "grande",
+    "optEnabled": "activado",
+    "optDisabled": "desactivado"
   },
   "notes": {
     "importing": "Importando…",
@@ -1791,6 +1798,7 @@
       "describeNeedsSelection": "Selecciona lo que quieres describir (un lugar, una persona, un objeto o un momento).",
       "emptyResponse": "La IA devolvió una respuesta vacía. Inténtalo de nuevo y verifica que el modelo se esté ejecutando y no esté devolviendo solo etiquetas de pensamiento.",
       "continueNeedsCursor": "Coloca el cursor al final de algún texto para continuar desde ahí.",
+      "draftNeedsSummary": "Esta escena no tiene un Resumen a partir del cual redactar. Escribe uno en los Enlaces de la escena.",
       "sceneEmpty": "No hay nada con qué trabajar; la escena está vacía.",
       "selectFirst": "Primero selecciona algo de texto.",
       "insertImage": "No se pudo insertar la imagen — {error}"
@@ -1805,7 +1813,8 @@
       "continueDirected": "Continuar con instrucciones",
       "rewrite": "Reescribir",
       "expand": "Expandir",
-      "tighten": "Condensar"
+      "tighten": "Condensar",
+      "draftFromPlan": "Redactar desde el plan"
     },
     "placeholder": "Empieza a escribir…",
     "action": {
@@ -1824,6 +1833,7 @@
       "scene": "escena"
     },
     "pickDescription": "Elige una descripción para insertar",
+    "pickDraft": "Elige un borrador para insertar",
     "pickContinuation": "Elige una continuación para insertar",
     "pickVariation": "Elige una variación para aplicar",
     "pickLineEdit": "Elige una pasada de edición de línea para aplicar",
@@ -2985,7 +2995,10 @@
       "fieldGenrePlaceholder": "Literario, misterio, ciencia ficción…",
       "fieldStartedPlaceholder": "p. ej. 11 de marzo de 2026",
       "fieldDeadlinePlaceholder": "p. ej. 1 de diciembre de 2026",
-      "fieldPremisePlaceholder": "Pitch de una o dos frases. Se utiliza en el tablero de Inicio y en las exportaciones."
+      "fieldPremisePlaceholder": "Pitch de una o dos frases. Se utiliza en el tablero de Inicio y en las exportaciones.",
+      "fieldAiSceneDrafting": "Redacción de escenas con IA",
+      "aiSceneDraftingHint": "Permite que el menú de IA de una escena la redacte a partir de su Resumen (Redactar desde el plan). Si está desactivado, este libro lo escribes tú; el texto que escribe la IA se marca en ambos casos.",
+      "aiWrittenWords": "Palabras escritas por la IA en este libro: {n}"
     },
     "goals": {
       "cardTitle": "Metas",
@@ -3154,11 +3167,14 @@
       "deleteAllConfirm": "Eliminar todo",
       "unknownTime": "hora desconocida",
       "unknownTimeLabel": "Hora desconocida",
-      "restoreTitle": "¿Restaurar \"{title}\" desde {generation}?",
+      "restoreTitleCurrent": "¿Restaurar \"{title}\" desde el autoguardado actual?",
+      "restoreTitlePrevious": "¿Restaurar \"{title}\" desde el autoguardado anterior?",
+      "restoreTitleEarlier": "¿Restaurar \"{title}\" desde el autoguardado más antiguo?",
       "untitledProject": "proyecto",
       "restoreMessage": "Guardado el {when}. Tu espacio de trabajo actual se sobrescribirá: cada proyecto, cuerpo de capítulo y proveedor de IA. Exporta una copia de seguridad primero si quieres conservar lo que tienes.",
       "restoreConfirm": "Restaurar desde el autoguardado",
       "restoredToast": "Se restauró \"{title}\".",
+      "readFailed": "No se pudo leer el archivo de autoguardado.",
       "generationCurrent": "Actual",
       "generationPrevious": "Anterior",
       "generationEarlier": "Más antigua",
@@ -3238,6 +3254,7 @@
     "storage": {
       "clearModelsTitle": "¿Borrar los modelos descargados?",
       "clearModelsMessage": "Esto libera {size} de archivos de modelos descargados. Tus modelos permanecen en el catálogo, y se conservan tus elecciones de modelo predeterminadas y por tarea; cada uno se vuelve a descargar automáticamente la próxima vez que se use.",
+      "clearModelsShared": "Esta caché se comparte con las demás aplicaciones de la familia en esta computadora: borrarla también borra los modelos de esas aplicaciones.",
       "clearModelsConfirm": "Borrar caché de modelos",
       "clearModelsLoadedError": "Hay un modelo cargado; quítalo de la memoria primero (página de IA → Quitar de la memoria) e inténtalo de nuevo.",
       "clearModelsError": "No se pudo borrar la caché de modelos.",
@@ -3417,6 +3434,9 @@
       "groupFromCursor": "Desde el cursor",
       "continueLabel": "Continuar",
       "continueDesc": "Escribe 2–4 párrafos más desde donde está el cursor, manteniendo la voz, el tiempo verbal y el punto de vista de lo anterior.",
+      "draftFromPlanLabel": "Redactar desde el plan",
+      "draftFromPlanDesc": "Redacta la escena a partir de su Resumen y del contexto de la historia, desde el cursor hasta el final de la escena, manteniendo la voz, el tiempo verbal y el punto de vista de lo anterior.",
+      "draftFromPlanNeedsSummary": "Necesita el Resumen de la escena — escríbelo en Enlaces.",
       "guidedLabel": "Continuar con instrucciones…",
       "guidedDesc": "Igual que Continuar, pero primero das una instrucción de una línea (\"Elena confronta a Marcus, pero él la esquiva con encanto\"). Los siguientes 2–4 párrafos siguen tu instrucción y mantienen la voz, el tiempo verbal y el punto de vista de lo anterior.",
       "unstuckLabel": "Desbloquear: cinco salidas",
@@ -3428,6 +3448,8 @@
       "groupCleanUp": "Limpiar",
       "clearStrikesLabel": "Borrar todos los tachados",
       "clearStrikesDesc": "Elimina cada original tachado que haya quedado tras aceptar cambios de la IA (y los originales de los que aún están pendientes, lo que los acepta). El texto nuevo permanece.",
+      "markAsMineLabel": "Marcar como mío",
+      "markAsMineDesc": "Quita de la selección, o de la escena completa si no hay nada seleccionado, la marca de texto escrito por la IA — para las palabras que hiciste tuyas.",
       "guidedRewriteLabel": "Reescribir con instrucciones…",
       "guidedRewriteDesc": "Igual que Reescribir, pero primero dices cómo (\"hazla más fría\"). Mantiene el significado, la voz y el tiempo verbal a menos que tus instrucciones los cambien.",
       "dialogueLabel": "Escribir diálogo…",
@@ -3997,6 +4019,8 @@
     "projectLoadFailed": "No se pudo cargar ese proyecto.",
     "status": "Nuevo estado",
     "category": "Nueva categoría",
+    "tag": "Nueva etiqueta",
+    "noteTag": "nota",
     "importedBook": "Libro importado",
     "importedPart": "Importada"
   },

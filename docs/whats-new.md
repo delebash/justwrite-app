@@ -6,11 +6,24 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-18
 
+**Draft from plan — a scene from its Summary.** Turn on **AI scene drafting** for a book in
+**Settings → Project**, write a scene's **Summary** in its Links panel, and **Draft from plan**
+drafts the scene — from an empty scene's button, or from the cursor in the AI dropdown — as an
+accept/reject change. It has its own row in Settings → AI, **Scene drafting**, so it can run on a
+bigger model. See [Draft from plan](writing.md#draft-from-plan-a-scene-from-its-summary).
+
+**The AI's words are marked.** Text the AI writes keeps a violet ink once you accept it. The words
+you type are yours; **Mark as mine** clears the rest; **Writing settings → Highlight AI-written
+text** turns the colour off. Settings → Project counts the AI's words still in the book. See
+[AI-written text](writing.md#ai-written-text-the-ais-words-marked).
+
 **No more English words on Spanish screens.** Import's chapter and note wording, the sidebar's
-**+** buttons, the confidence chips on comp titles and the **Fine Press** and **Ivory Press**
-theme names now follow your language, and a new note's tag starts as your language's word
-("nota" in Spanish). In **Settings → Backups**, restoring a copy asks "Restore … from the previous
-autosave?" instead of naming it "prev2". See [Backups and data](backups-and-data.md).
+**+** buttons, the confidence chips on comp titles, the marker categories, the Architecture
+documents in the sidebar, the choices in Writing settings, a new tag's name and the **Fine Press**
+and **Ivory Press** theme names
+now follow your language, and a new note's tag starts as your language's word ("nota" in
+Spanish). In **Settings → Backups**, restoring a copy asks "Restore … from the previous autosave?"
+instead of naming it "prev2". See [Backups and data](backups-and-data.md).
 
 ## 2026-10-17
 

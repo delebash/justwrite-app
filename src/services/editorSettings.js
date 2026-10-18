@@ -34,6 +34,8 @@ export const DEFAULT_EDITOR_SETTINGS = {
   // replacing it outright. Default = keep, per the user's "it leaves a strike
   // through of the original text, this is good".
   keepStrikethroughOnAccept: true,
+  // The AI-text mark's colour (2026-10-18): on by default; off drops the colour, the marks stay.
+  highlightAiText: true,
 };
 
 export const LINE_SPACING_OPTIONS = [1, 1.3, 1.4, 1.5, 2];

@@ -23,7 +23,7 @@ export const TABLES = [
   },
   {
     "name": "projects",
-    "ddl": "CREATE TABLE projects (\n\tid VARCHAR NOT NULL, \n\ttitle VARCHAR NOT NULL, \n\tauthor VARCHAR NOT NULL, \n\tsubtitle VARCHAR NOT NULL, \n\tgenre VARCHAR NOT NULL, \n\twords_goal INTEGER NOT NULL, \n\tdaily_target INTEGER NOT NULL, \n\twords_written INTEGER NOT NULL, \n\tstarted_on VARCHAR NOT NULL, \n\tdeadline VARCHAR NOT NULL, \n\tpremise TEXT NOT NULL, \n\tworld_rules TEXT NOT NULL, \n\tcover_image TEXT, \n\tupdated_at VARCHAR NOT NULL, \n\tdata TEXT NOT NULL, \n\tPRIMARY KEY (id)\n)",
+    "ddl": "CREATE TABLE projects (\n\tid VARCHAR NOT NULL, \n\ttitle VARCHAR NOT NULL, \n\tauthor VARCHAR NOT NULL, \n\tsubtitle VARCHAR NOT NULL, \n\tgenre VARCHAR NOT NULL, \n\twords_goal INTEGER NOT NULL, \n\tdaily_target INTEGER NOT NULL, \n\twords_written INTEGER NOT NULL, \n\tstarted_on VARCHAR NOT NULL, \n\tdeadline VARCHAR NOT NULL, \n\tpremise TEXT NOT NULL, \n\tworld_rules TEXT NOT NULL, \n\tcover_image TEXT, \n\tupdated_at VARCHAR NOT NULL, \n\tdata TEXT NOT NULL, \n\tai_scene_drafting BOOLEAN NOT NULL DEFAULT 0, \n\tPRIMARY KEY (id)\n)",
     "indexes": [],
     "columns": {
       "id": {
@@ -98,6 +98,11 @@ export const TABLES = [
         "kind": "text",
         "notNull": true,
         "default": "{}"
+      },
+      "ai_scene_drafting": {
+        "kind": "bool",
+        "notNull": true,
+        "default": false
       }
     }
   },

@@ -12,6 +12,7 @@ import { EDITOR_TOOLBAR_FULL } from "@renderer/services/editorToolbars";
 import { imageView, saveImage, storedSrcFor } from "@renderer/services/imageStore";
 import { hasPendingChanges, hasStrikethroughs, listPendingChanges } from "justwrite-server/editor/aiDiff.js";
 import { MARKER_CATEGORIES } from "justwrite-server/editor/markers.js";
+import { hasAiText } from "justwrite-server/editor/aiText.js";
 import * as writerAI from "@renderer/services/writerAI";
 import VariationsModal from "./VariationsModal.vue";
 import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
@@ -238,10 +239,10 @@ function sceneIdAtCursor() {
 }
 /** The story context for `action` ("" without the prop); null when composing it failed (the
  *  error is shown and the action doesn't run). */
-async function proseContext(action) {
+async function proseContext(action, feature = "writerAI") {
   if (!props.storyContext) { contextParts.value = null; return ""; }
   try {
-    const c = await props.storyContext({ sceneId: sceneIdAtCursor(), action });
+    const c = await props.storyContext({ sceneId: sceneIdAtCursor(), action, feature });
     contextParts.value = c?.parts || [];
     return c?.text || "";
   } catch (err) {
@@ -277,8 +278,8 @@ const variationsFlow = ref(null);
 // LLM-call shape and the target range, then opens the modal. The
 // modal runs the runner three times concurrently; on Use this we
 // apply the chosen result via the editor's existing diff machinery.
-function startVariations({ runnerFactory, mode, from, to, originalHtml, label, eyebrow }) {
-  variationsFlow.value = { runnerFactory, mode, from, to, originalHtml, label, eyebrow };
+function startVariations({ runnerFactory, mode, from, to, originalHtml, label, eyebrow, aiWritten = false }) {
+  variationsFlow.value = { runnerFactory, mode, from, to, originalHtml, label, eyebrow, aiWritten };
 }
 function onVariationChosen(result) {
   const flow = variationsFlow.value;
@@ -289,12 +290,24 @@ function onVariationChosen(result) {
       from: flow.from, to: flow.to,
       originalHtml: flow.originalHtml,
       newHtml: result.html,
+      aiWritten: flow.aiWritten,
     }).run();
   } else if (flow.mode === "continue-at") {
     editor.value.chain().focus().proposeContinuation({
-      at: flow.from, newHtml: result.html,
+      at: flow.from, newHtml: result.html, aiWritten: flow.aiWritten,
     }).run();
   }
+}
+
+// Which AI results carry the AI-text mark once accepted (the design,
+// docs/plans/2026-10-18-ai-text-mark-and-slice-4.md §2.1): text the AI writes — Continue,
+// Expand, Describe, the direction actions at the cursor, Draft from plan, a whole-document
+// draft; an AI edit of the writer's own words (Rewrite, Tighten, the line edits, Rewrite with
+// direction…) only when it replaces text that is already marked.
+const AI_WRITES = new Set(["continue", "expand", "describe"]);
+function landsAsAiText(actionKey, from, to) {
+  if (AI_WRITES.has(actionKey)) return true;
+  return !!editor.value && from < to && hasAiText(editor.value.state, from, to);
 }
 function onVariationsClose() {
   variationsFlow.value = null;
@@ -313,11 +326,16 @@ const currentChangeId = ref(null);
 // Any AI strikethrough at all (pending or resolved) — enables the scene
 // strip's "Clear all strikethroughs" item (#42).
 const strikeCount = ref(0);
+// AI-written text in the selection — or in the document when nothing is selected — enables
+// the scene strip's "Mark as mine" (the AI-text mark, 2026-10-18).
+const aiTextHere = ref(false);
 
 function syncDiffState(ed) {
   const list = listPendingChanges(ed);
   pendingCount.value = list.length;
   strikeCount.value = hasStrikethroughs(ed) ? 1 : 0;
+  const sel = ed.state.selection;
+  aiTextHere.value = sel.empty ? hasAiText(ed.state) : hasAiText(ed.state, sel.from, sel.to);
   // If the cursor is inside an aiIns or aiDel mark, surface its
   // changeId so the inline overlay can show Accept / Reject buttons
   // for just that change. Resolved (kept) strikethroughs are history —
@@ -394,6 +412,7 @@ async function runWriterAction(actionKey, opts = {}) {
         originalHtml: "",
         eyebrow: t("richEditor.variationsEyebrow", { action: t("richEditor.actionName.describe") }),
         label: t("richEditor.pickDescription"),
+        aiWritten: true,
       });
       return;
     }
@@ -403,7 +422,7 @@ async function runWriterAction(actionKey, opts = {}) {
       if (!result?.html?.trim()) {
         aiError.value = t("richEditor.err.emptyResponse");
       } else {
-        editor.value.chain().focus().proposeContinuation({ at: to, newHtml: result.html }).run();
+        editor.value.chain().focus().proposeContinuation({ at: to, newHtml: result.html, aiWritten: true }).run();
       }
     } catch (err) {
       if (!isAiAbort(err)) aiError.value = err?.message || String(err);
@@ -427,6 +446,7 @@ async function runWriterAction(actionKey, opts = {}) {
         originalHtml: "",
         eyebrow: t("richEditor.variationsEyebrow", { action: t("richEditor.actionName.continue") }),
         label: t("richEditor.pickContinuation"),
+        aiWritten: true,
       });
       return;
     }
@@ -439,7 +459,7 @@ async function runWriterAction(actionKey, opts = {}) {
       if (!result?.html?.trim()) {
         aiError.value = t("richEditor.err.emptyResponse");
       } else {
-        editor.value.chain().focus().proposeContinuation({ at: from, newHtml: result.html }).run();
+        editor.value.chain().focus().proposeContinuation({ at: from, newHtml: result.html, aiWritten: true }).run();
       }
     } catch (err) {
       if (!isAiAbort(err)) aiError.value = err?.message || String(err);
@@ -476,6 +496,7 @@ async function runWriterAction(actionKey, opts = {}) {
       mode: "replace", from, to, originalHtml: html,
       eyebrow: t("richEditor.variationsEyebrow", { action: labelText.replace(/[….]+$/, "") }),
       label: t("richEditor.pickVariation"),
+      aiWritten: landsAsAiText(actionKey, from, to),
     });
     return;
   }
@@ -485,6 +506,7 @@ async function runWriterAction(actionKey, opts = {}) {
              : actionKey === "expand" ? writerAI.expand
              : actionKey === "tighten" ? writerAI.tighten
              : writerAI.continueFrom;
+    const aiWritten = landsAsAiText(actionKey, from, to);
     const result = await fn({ html, storyContext });
     // Guard empty/whitespace-only responses — proposeReplacement would
     // deleteRange()+insertContentAt("") and silently nuke the selection
@@ -492,7 +514,7 @@ async function runWriterAction(actionKey, opts = {}) {
     if (!result?.html?.trim()) {
       aiError.value = t("richEditor.err.emptyResponse");
     } else {
-      editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html }).run();
+      editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html, aiWritten }).run();
     }
   } catch (err) {
     if (!isAiAbort(err)) aiError.value = err?.message || String(err);
@@ -521,16 +543,18 @@ async function runProsePass(ruleKey, opts = {}) {
       mode: "replace", from, to, originalHtml: html,
       eyebrow: t("richEditor.variationsEyebrowScoped", { action: ruleLabel, scope: t(`richEditor.scope.${scope}`) }),
       label: t("richEditor.pickLineEdit"),
+      aiWritten: landsAsAiText(ruleKey, from, to),
     });
     return;
   }
   aiError.value = "";
   try {
+    const aiWritten = landsAsAiText(ruleKey, from, to);
     const result = await writerAI.applyRule(ruleKey, { html });
     if (!result?.html?.trim()) {
       aiError.value = t("richEditor.err.emptyResponse");
     } else {
-      editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html }).run();
+      editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html, aiWritten }).run();
     }
   } catch (err) {
     if (!isAiAbort(err)) aiError.value = err?.message || String(err);
@@ -599,6 +623,12 @@ watch(() => ctxMenu.value.open, (open) => {
   else document.removeEventListener("keydown", onCtxDocKey, true);
 });
 onBeforeUnmount(() => document.removeEventListener("keydown", onCtxDocKey, true));
+
+// Writing settings → Highlight AI-written text (the AI-text mark's colour; per device, on by default).
+const highlightAiText = computed(() => {
+  const v = ui.editorSettings?.highlightAiText;
+  return v === undefined ? DEFAULT_EDITOR_SETTINGS.highlightAiText : !!v;
+});
 
 // #42: accept honors the editor setting — keep the original as a resolved
 // strikethrough (track-changes history) or replace it outright.
@@ -1210,6 +1240,7 @@ async function runDirectedAtCursor(kind, instruction, opts = {}) {
       originalHtml: "",
       eyebrow: t("richEditor.variationsEyebrow", { action: t(spec.eyebrowKey) }),
       label: t("richEditor.pickContinuation"),
+      aiWritten: true,
     });
     return;
   }
@@ -1219,12 +1250,60 @@ async function runDirectedAtCursor(kind, instruction, opts = {}) {
     if (!result?.html?.trim()) {
       aiError.value = t("richEditor.err.emptyResponse");
     } else {
-      editor.value.chain().focus().proposeContinuation({ at: pos, newHtml: result.html }).run();
+      editor.value.chain().focus().proposeContinuation({ at: pos, newHtml: result.html, aiWritten: true }).run();
     }
   } catch (err) {
     if (!isAiAbort(err)) aiError.value = err?.message || String(err);
   }
 }
+// Draft from plan (slice 4; the design docs/plans/2026-10-18-ai-text-mark-and-slice-4.md §3 D2):
+// the scene its Summary sets out, from the cursor to the scene's end, on its own feature row. It
+// lands as Continue does — an insertion at the cursor, or 3 variations — and, in an empty
+// document, as the document's only change (proposeDocument's shape). The passage is the prose
+// before the cursor; the Summary arrives in the story context, and without one there is no plan.
+async function runDraftFromPlan(opts = {}) {
+  if (!editor.value || aiRunning.value) return;
+  const ed = editor.value;
+  const empty = !ed.state.doc.textContent.trim();
+  const pos = ed.state.selection.from;
+  const ctx = empty ? "" : grabContextBeforeCursor(1600);
+  proseMenuOpen.value = false;
+  const storyContext = await proseContext("sceneDraft", writerAI.SCENE_DRAFTING_FEATURE);
+  if (storyContext === null) return;
+  if (!(contextParts.value || []).some((p) => p.id === "summary")) { aiError.value = t("richEditor.err.draftNeedsSummary"); return; }
+  const html = ctx.trim() ? `<p>${ctx}</p>` : "";
+  const label = t("richEditor.actionName.draftFromPlan");
+  const at = empty ? { mode: "replace", from: 0, to: ed.state.doc.content.size } : { mode: "continue-at", from: pos, to: pos };
+  if (shouldUseVariations(opts.shiftKey)) {
+    startVariations({
+      runnerFactory: (temperature, signal, onDelta, taskMeta) => writerAI.draftFromPlan({
+        html, storyContext, signal, onDelta, temperature,
+        task: { label: t("richEditor.taskLabel", { action: label }), meta: { ...(taskMeta || {}), action: "sceneDraft" } },
+      }),
+      ...at, originalHtml: "",
+      eyebrow: t("richEditor.variationsEyebrow", { action: label }),
+      label: t("richEditor.pickDraft"),
+      aiWritten: true,
+    });
+    return;
+  }
+  aiError.value = "";
+  try {
+    const result = await writerAI.draftFromPlan({ html, storyContext });
+    if (!result?.html?.trim()) aiError.value = t("richEditor.err.emptyResponse");
+    else if (empty) proposeDocument(result.html);
+    else editor.value.chain().focus().proposeContinuation({ at: pos, newHtml: result.html, aiWritten: true }).run();
+  } catch (err) {
+    if (!isAiAbort(err)) aiError.value = err?.message || String(err);
+  }
+}
+
+// Mark as mine (the design §2.3): the AI-text mark off the selection, or off the whole document
+// when nothing is selected — the writer's statement that those words are now theirs.
+function markAsMine() {
+  editor.value?.chain().focus().unsetAiText().run();
+}
+
 function runGuidedContinue(instruction, opts = {}) { return runDirectedAtCursor("continue", instruction, opts); }
 function runWriteDialogue(instruction, opts = {}) { return runDirectedAtCursor("dialogue", instruction, opts); }
 
@@ -1248,16 +1327,18 @@ async function runGuidedRewrite(instruction, opts = {}) {
       mode: "replace", from, to, originalHtml: html,
       eyebrow: t("richEditor.variationsEyebrow", { action: t("richEditor.actionName.rewriteDirected") }),
       label: t("richEditor.pickVariation"),
+      aiWritten: landsAsAiText("guided-rewrite", from, to),
     });
     return;
   }
   aiError.value = "";
   try {
+    const aiWritten = landsAsAiText("guided-rewrite", from, to);
     const result = await writerAI.guidedRewrite({ html, instruction: text, storyContext });
     if (!result?.html?.trim()) {
       aiError.value = t("richEditor.err.emptyResponse");
     } else {
-      editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html }).run();
+      editor.value.chain().focus().proposeReplacement({ from, to, originalHtml: html, newHtml: result.html, aiWritten }).run();
     }
   } catch (err) {
     if (!isAiAbort(err)) aiError.value = err?.message || String(err);
@@ -1311,6 +1392,7 @@ function proposeDocument(newHtml) {
     from: 0, to: ed.state.doc.content.size,
     originalHtml: empty ? "" : ed.getHTML(),
     newHtml,
+    aiWritten: true, // a drafted document is the AI's text (the AI-text mark, §2.1)
   }).run();
 }
 
@@ -1324,8 +1406,11 @@ defineExpose({
   runGuidedContinue,
   runGuidedRewrite,
   runWriteDialogue,
+  runDraftFromPlan,
   clearAllStrikethroughs,
   strikeCount,
+  markAsMine,
+  aiTextHere,
   grabUnstuckContext,
   grabSensorySubject,
   insertSensoryPhrase,
@@ -1338,7 +1423,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="rich-editor" :class="[`rich-editor--${variant}`, { 'rich-editor--fill': fill, 'focus-on': focusMode, 'typewriter-on': focusMode && typewriter }]" @keydown="onKeydown">
+  <div class="rich-editor" :class="[`rich-editor--${variant}`, { 'rich-editor--fill': fill, 'focus-on': focusMode, 'typewriter-on': focusMode && typewriter, 'no-ai-highlight': !highlightAiText }]" @keydown="onKeydown">
     <div class="editor-toolbar" v-if="editor && !focusMode">
       <div class="group" v-if="show('undo') || show('redo')">
         <button v-if="show('undo')" class="tb-btn" :disabled="!editor.can().undo()" @click="run('undo')" :data-tip="tip.undo"><Icon name="Refresh" :size="14" style="transform:scaleX(-1)" /></button>
@@ -1609,7 +1694,7 @@ defineExpose({
             :style="{ '--marker-c': c.color }"
             @click="markerState.category = c.id">
             <span class="marker-pop-cat-dot" :style="{ background: c.color }" />
-            {{ c.label }}
+            {{ $t(c.labelKey) }}
           </button>
         </div>
       </div>
@@ -2053,6 +2138,13 @@ defineExpose({
 .ai-bar-step:hover:not(:disabled) { opacity: 1; }
 .ai-spinner { animation: ai-spin 1.2s linear infinite; }
 @keyframes ai-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* The AI-text mark (2026-10-18; docs/plans/2026-10-18-ai-text-mark-and-slice-4.md §2.2): the
+   AI's words in their own ink — the one channel no other mark uses. Writing settings → Highlight
+   AI-written text turns the colour off; the marks stay. A struck original stays muted. */
+.tiptap-content .ai-text { color: var(--ai-text-ink); }
+.rich-editor.no-ai-highlight .tiptap-content .ai-text,
+.tiptap-content .ai-del .ai-text { color: inherit; }
 
 /* AI diff marks — inline insert/delete styling */
 .tiptap-content .ai-ins {

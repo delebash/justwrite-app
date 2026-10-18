@@ -1312,6 +1312,23 @@ export const DEFAULT_FEATURE_PROMPTS = {
             "\n\n--- BEGIN PASSAGE ---\n{{passage}}\n--- END PASSAGE ---"
         ),
     },
+    // Draft from plan (slice 4, 2026-10-18; the design docs/plans/2026-10-18-ai-text-mark-and-slice-4.md
+    // §3 D2): the scene its Summary sets out — the Summary arrives in {{storyContext}} — from where
+    // the passage ends to the scene's end; an empty passage is a scene not yet started. Routed on its
+    // own feature row, so it can run on a larger model than the other writer actions.
+    "sceneDraft": {
+        "feature": "sceneDrafting",
+        "system": WRITER_PROSE_SYSTEM,
+        "user_template": (
+            "Draft the scene that the Summary in the story context sets out, continuing from where the " +
+            "passage below ends. When the passage is empty, the scene begins here. Write the scene through " +
+            "to its end as the Summary describes it, in full prose — action, dialogue and interiority. " +
+            "Write from the scene's POV, and match the voice and tense of the passage. Keep every name and " +
+            "fact the story context gives. Do not summarize, do not restate the Summary, and add no title " +
+            "or heading." +
+            "\n\n--- BEGIN PASSAGE ---\n{{passage}}\n--- END PASSAGE ---"
+        ),
+    },
     // ── writerAI line-edit rules (temperature 0.6) ──
     "writerAI.rule.show-dont-tell": writer(
         "Revise the passage to show rather than tell. Replace statements about emotion or state " +
@@ -1446,6 +1463,7 @@ const ACTION_META = {
     "sceneSummary": {"description": "Drafts a scene's Summary from its prose — what happens and what changes."},
     "templateFill": {"description": "Fills a plot template's beats with what happens at each in this book."},
     "premiseDraft": {"description": "Drafts the Fabula or the Setting document from the book's premise."},
+    "sceneDraft": {"description": "Drafts a scene from its Summary and the story context, from the cursor to the scene's end."},
 };
 
 // Canonical action labels — the ONE name the user sees wherever they meet the
@@ -1463,6 +1481,7 @@ const ACTION_LABELS = {
     "writerAI.guided-continue": "Guided continue",
     "writerAI.guided-rewrite": "Rewrite with direction",
     "writerAI.dialogue": "Write dialogue",
+    "sceneDraft": "Draft from plan",
     "writerAI.rule.show-dont-tell": "Show don't tell",
     "writerAI.rule.passive-voice": "Passive voice",
     "writerAI.rule.filter-words": "Filter words",

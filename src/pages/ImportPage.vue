@@ -36,7 +36,7 @@ const intent = ref("edit");
 const asNotes = computed(() => intent.value === "notes");
 
 // "notes" intent options — applied to every imported note.
-const notesTag = ref(t("notes.defaultTag"));
+const notesTag = ref(t("defaults.noteTag"));
 // notesAnchor encodes the same scheme as NotesView's UiSelect:
 //   ""                       → story-wide (null)
 //   "ch:<id>"                → { chapterId }
@@ -227,7 +227,7 @@ function ingest() {
   if (intent.value === "notes") {
     const { noteIds } = project.importNotes({
       notes: list,
-      tag: (notesTag.value || "").trim() || t("notes.defaultTag"),
+      tag: (notesTag.value || "").trim() || t("defaults.noteTag"),
       anchor: anchorFromKey(notesAnchor.value),
     });
     nav = noteIds[0] ? `/notes/${noteIds[0]}` : "/notes";

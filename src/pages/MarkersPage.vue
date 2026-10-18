@@ -109,7 +109,7 @@ function closeTellScan() { tellScanOpen.value = false; }
               class="markers-tick"
               :class="[`cat-${m.category}`, { dimmed: activeCategory && m.category !== activeCategory }]"
               :style="{ left: `calc(${m.projectPos * 100}% - 1px)`, background: categoryById(m.category).color }"
-              :title="`${categoryById(m.category).label} — ${locationLabel(m)}${m.label ? ' · ' + m.label : ''}`"
+              :title="`${$t(categoryById(m.category).labelKey)} — ${locationLabel(m)}${m.label ? ' · ' + m.label : ''}`"
               @click="jumpTo(m)" />
           </div>
           <div class="markers-timeline-ends">
@@ -134,7 +134,7 @@ function closeTellScan() { tellScanOpen.value = false; }
           :style="{ '--marker-c': c.color }"
           @click="activeCategory = activeCategory === c.id ? null : c.id">
           <span class="markers-chip-dot" :style="{ background: c.color }" />
-          {{ c.label }}
+          {{ $t(c.labelKey) }}
           <span class="markers-chip-count">{{ counts[c.id] || 0 }}</span>
         </button>
       </div>
@@ -146,7 +146,7 @@ function closeTellScan() { tellScanOpen.value = false; }
           :style="{ '--marker-c': categoryById(m.category).color }">
           <header class="markers-item-head">
             <span class="markers-item-dot" :style="{ background: categoryById(m.category).color }" />
-            <span class="markers-item-cat">{{ categoryById(m.category).label }}</span>
+            <span class="markers-item-cat">{{ $t(categoryById(m.category).labelKey) }}</span>
             <span class="markers-item-where">{{ locationLabel(m) }}</span>
             <div class="markers-item-actions">
               <UiButton intent="ghost" size="small" @click="jumpTo(m)">{{ $t("markers.jumpTo") }}</UiButton>

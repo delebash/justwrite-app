@@ -40,7 +40,10 @@ const log = getLogger("justwrite_server.sync");
 // 4 (2026-10-16): the location, object and group sheets gained their fields (locations
 // `atmosphere`, `history`; objects `properties`, `history`, `where_now`; groups `goals`,
 // `leadership`, `history`) and scenes gained `summary`. Same reason as 2.
-export const SYNC_SCHEMA_VERSION = 4;
+// 5 (2026-10-18): projects gained `ai_scene_drafting` (slice 4's switch), and the scene adapter's
+// editor schema the AI-text mark (`<span data-ai-text>`, server/src/editor/aiText.js) — an older
+// device would drop the mark from a scene it merges. Same reason as 2.
+export const SYNC_SCHEMA_VERSION = 5;
 
 // ── scene text: merged edit by edit through Yjs, on the editor's own schema ──────────────
 

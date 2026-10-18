@@ -31,6 +31,7 @@ import Underline from "@tiptap/extension-underline";
 import { AllSelection, TextSelection } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
 import { AiDiff } from "./aiDiff.js";
+import { AiText } from "./aiText.js";
 import { Marker } from "./markers.js";
 import { SearchReplace } from "./searchReplace.js";
 
@@ -381,6 +382,7 @@ export function editorExtensions({ placeholder = "", sceneBoundaryView = null, i
     TableCell,
     SearchReplace,
     AiDiff,
+    AiText,
     Marker,
     Indent,
     PageBreak,

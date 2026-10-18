@@ -15,6 +15,7 @@ import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { AiTaskStrip, UiBanner, useAiTasksStore } from "@delebash/ui";
 import { PLANNING_FEATURE, draftFromPremise } from "../services/analysis/planningDraft.js";
 import { tEnglish } from "../i18n/index.js";
+import { ARCH_DOCS } from "../services/architectureDocs.js";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
@@ -24,14 +25,8 @@ const project = useProjectStore();
 const ui = useUiStore();
 const router = useRouter();
 
-// The three foundation docs are a FIXED set — their name and their "what this is"
-// line are not per-book data (they never change), so both are hardcoded here rather
-// than stored/edited. The body (the rich editor) is the only thing the user writes.
-const ARCH_DOCS = {
-  premise: { titleKey: "architecture.doc.premise.title", descriptionKey: "architecture.doc.premise.description" },
-  fabula:  { titleKey: "architecture.doc.fabula.title",  descriptionKey: "architecture.doc.fabula.description" },
-  setting: { titleKey: "architecture.doc.setting.title", descriptionKey: "architecture.doc.setting.description" },
-};
+// The three foundation docs are a FIXED set (services/architectureDocs.js — shared with the
+// sidebar): their name and "what this is" line come from the catalog by id.
 function docMeta(id) {
   const d = ARCH_DOCS[id];
   return d ? { title: t(d.titleKey), description: t(d.descriptionKey) } : { title: id, description: "" };

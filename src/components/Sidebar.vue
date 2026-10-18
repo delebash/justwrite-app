@@ -7,6 +7,7 @@ import { useProjectStore } from "../stores/project.js";
 import { promptDialog, confirmDialog, relativeTime, useAiTasksNav } from "@delebash/ui";
 import { promptNewProject, openTutorialProject } from "../services/projectStart.js";
 import { NEW_ENTITY_META } from "../services/entityMeta.js";
+import { archDocTitle } from "../services/architectureDocs.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { Icon } from "@delebash/ui";
 import { UiButton } from "@delebash/ui";
@@ -192,7 +193,7 @@ const expandableChildren = computed(() => ({
   strands: [{ subgroupId: "all", items: project.strands.map((s) => ({ id: s.id, label: s.name, color: s.color, ...navStatus(s.status), subgroupId: "all" })) }],
   groups:    [{ subgroupId: "all", items: project.groups.map((g) => ({ id: g.id, label: g.name, color: g.color, ...navStatus(g.status), subgroupId: "all" })) }],
   notes:     [{ subgroupId: "all", items: project.notes.map((n) => ({ id: n.id, label: n.title, sub: noteSub(n), subgroupId: "all" })) }],
-  architecture: [{ subgroupId: "all", items: Object.values(project.architecture).filter(Boolean).map((d) => ({ id: d.id, label: d.title, ...navStatus(d.status), subgroupId: "all" })) }],
+  architecture: [{ subgroupId: "all", items: Object.values(project.architecture).filter(Boolean).map((d) => ({ id: d.id, label: archDocTitle(d.id, d.title), ...navStatus(d.status), subgroupId: "all" })) }],
   worldbuilding: project.worldbuildingCategories.map((c) => ({
     subgroupId: c.id,
     group: c.label,

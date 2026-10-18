@@ -196,7 +196,7 @@ test("seed_presets_refs_and_samples", async () => {
 
   // the per-action refs, exactly the mint map; each points at a real preset.
   expect(refs).toEqual(SP.DEFAULT_FEATURE_PRESETS);
-  expect(Object.keys(refs).length).toBe(53); // +3: slice 3 (2026-10-16); +4: the AI drafting actions, +2: Rewrite with direction / Write dialogue (2026-10-11); +5: the story-world sheets, a worldbuilding article, Suggest locations (2026-10-16)
+  expect(Object.keys(refs).length).toBe(54); // +1: Draft from plan (slice 4, 2026-10-18); +3: slice 3 (2026-10-16); +4: the AI drafting actions, +2: Rewrite with direction / Write dialogue (2026-10-11); +5: the story-world sheets, a worldbuilding article, Suggest locations (2026-10-16)
   const ids = new Set(presets.map((p) => p.id));
   expect(Object.values(refs).every((pid) => ids.has(pid))).toBe(true);
 

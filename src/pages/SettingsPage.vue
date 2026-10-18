@@ -25,6 +25,7 @@ import { UiSelect } from "@delebash/ui";
 import { LanguagePicker } from "@delebash/ui";
 import { UiButton } from "@delebash/ui";
 import { UiToggle } from "@delebash/ui";
+import { bookAiWrittenWords } from "../services/aiText.js";
 import { UiColorPicker } from "@delebash/ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 import {
@@ -160,7 +161,11 @@ async function clearModelsCache() {
   const size = fmtBytes(diskUsage.value?.modelsCache) || "0 MB";
   const yes = await confirmDialog({
     title: t("settings.storage.clearModelsTitle"),
-    message: t("settings.storage.clearModelsMessage", { size }),
+    // a cache shared with the family's other apps (the kit's `cacheShared`, as the template's
+    // Storage section — kit d716a8b): clearing it clears theirs too
+    message: diskUsage.value?.cacheShared
+      ? `${t("settings.storage.clearModelsMessage", { size })} ${t("settings.storage.clearModelsShared")}`
+      : t("settings.storage.clearModelsMessage", { size }),
     confirmLabel: t("settings.storage.clearModelsConfirm"),
   });
   if (!yes) return;
@@ -316,6 +321,9 @@ async function copyHeadlessUrl() {
 function setMeta(key, value) {
   project.updateProjectMeta({ [key]: value });
 }
+// The per-book record of AI-written text (the AI-text mark, 2026-10-18): words in the book's
+// scenes the AI wrote and the writer hasn't retyped or marked as their own.
+const aiWrittenWords = computed(() => bookAiWrittenWords(project));
 function setMetaNumber(key, value) {
   const n = Number(value);
   project.updateProjectMeta({ [key]: Number.isFinite(n) ? n : 0 });
@@ -765,6 +773,16 @@ async function deleteCategory(c) {
               <UiTextarea auto-resize rows="3" :model-value="project.project.premise"
                 @update:model-value="(v) => setMeta('premise', v)"
                 :placeholder="$t('settings.project.fieldPremisePlaceholder')" />
+              <!-- AI scene drafting (slice 4, the AI drafting spec §9.7): per book, off by default;
+                   the record under it — the words of the book's scenes the AI wrote (the AI-text mark). -->
+              <span class="t-muted" style="align-self:start;padding-top:2px">{{ $t('settings.project.fieldAiSceneDrafting') }}</span>
+              <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0">
+                <UiToggle :model-value="!!project.project.aiSceneDrafting"
+                  :aria-label="$t('settings.project.fieldAiSceneDrafting')"
+                  @update:model-value="(v) => setMeta('aiSceneDrafting', !!v)" />
+                <span class="t-muted" style="font-size:11.5px;max-width:60ch">{{ $t('settings.project.aiSceneDraftingHint') }}</span>
+                <span class="t-muted" style="font-size:11.5px">{{ $t('settings.project.aiWrittenWords', { n: $n(aiWrittenWords) }) }}</span>
+              </div>
             </div>
           </div>
           <div class="card">

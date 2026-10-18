@@ -10,6 +10,10 @@ while quick ones stay local. How routing, presets and providers work is
 
 - **Writer actions** — the AI menu in each scene's strip: Rewrite, Expand,
   Tighten, Continue, Describe, plus all Line edits.
+- **Scene drafting** — **Draft from plan**: a scene drafted from its Summary and the
+  story context, from the cursor to its end. Only in a book with **AI scene drafting**
+  on (Settings → Project). Its own row, so it can run on a larger or online model.
+  See [Draft from plan](writing.md#draft-from-plan-a-scene-from-its-summary).
 
 ## Drafting tools
 

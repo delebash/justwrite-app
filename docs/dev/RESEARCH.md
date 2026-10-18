@@ -261,6 +261,31 @@ against the page by an agent, not re-checked by the session.
 - **The kit's additive columns needed quoting** for a keyword column (`when`): fixed in the kit's
   `1ab9a69`, with a test. (*measured 2026-10-11*.)
 
+### Marking AI-written text (2026-10-18)
+
+The design and slice 4's plan: [`../plans/2026-10-18-ai-text-mark-and-slice-4.md`](../plans/2026-10-18-ai-text-mark-and-slice-4.md).
+
+- **Sudowrite** shows AI-generated text purple "when first inserted"; "The purple formatting
+  disappears once you edit the text". Its users ask for the colour to stay through edits.
+  (*web: docs.sudowrite.com, Write; feedback.sudowrite.com; read 2026-10-18.*)
+- **iA Writer's Authorship** shows AI text "with a colorful gradient", human text "in subtle
+  tones"; Show Authors (⇧⌘A) toggles it; "Writer relies on you defining the authorship by yourself"
+  (Mark Selection); the metadata sits at the end of the file and every export drops it. The page
+  doesn't say what an edit to AI text does. (*web: ia.net/writer/support/editor/authorship; read
+  2026-10-18.*)
+- **KDP counts AI text as AI-generated "even if you applied substantial edits afterwards"**; AI
+  that edits or refines content you created is AI-assisted and needn't be disclosed — the line
+  JustWrite's mark follows: AI-written text marked, AI edits of the writer's words not.
+  (*web: KDP content guidelines G200672390, read 2026-10-11 — the spec §9.7.*)
+- **ProseMirror: `Mapping.appendMapping(mapping.slice(n))` ignores the slice's bounds** — it
+  appends every map, so a position mapped through it moved past the step it should have started
+  after (the typing rule unmarked the word after the one typed). Map through
+  `tr.mapping.slice(n)` directly. (*measured 2026-10-18, @tiptap/pm 3 — `server/src/editor/aiText.js`.*)
+- **A typed character inside a marked run inherits the mark** (`Transaction.insertText` takes
+  `$from.marks()`), so "the words you type are yours" needs a plugin; `inclusive: false` only covers
+  the run's end. ProseMirror tags paste and drop `uiEvent`, and prosemirror-history tags Undo
+  `history$` — the two the rule leaves alone. (*code and tests, 2026-10-18.*)
+
 ## Translation: what still shows in English (2026-10-12)
 
 The July research and its seven decisions: [`../plans/2026-07-26-i18n-single-source-research.md`](../plans/2026-07-26-i18n-single-source-research.md)

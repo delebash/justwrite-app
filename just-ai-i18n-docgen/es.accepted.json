@@ -103,6 +103,14 @@
     "by": "Claude (AI review, 2026-10-17)",
     "at": "2026-10-18"
   },
+  "11a4d24037be92d4": {
+    "key": "chapters.ai.draftFromPlanNeedsSummary",
+    "code": "terminology",
+    "src": "Needs the scene's Summary — write it in Links.",
+    "dst": "Necesita el Resumen de la escena — escríbelo en Enlaces.",
+    "by": "Claude (AI review, 2026-10-18)",
+    "at": "2026-10-18"
+  },
   "14c0e0a7021e144e": {
     "key": "groups.emptyBody",
     "code": "terminology",
@@ -1189,6 +1197,14 @@
     "src": "Map the draft to Save the Cat, Heros Journey, or 7-Point Story Structure",
     "dst": "Mapear el borrador a Save the Cat, el viaje del héroe o la estructura narrativa de 7 puntos",
     "by": "Claude (AI review, 2026-10-17)",
+    "at": "2026-10-18"
+  },
+  "f6e884a26c75ed00": {
+    "key": "chapters.ai.draftFromPlanDesc",
+    "code": "terminology",
+    "src": "Draft the scene from its Summary and the story context, from the cursor to the scene's end, matching the voice, tense, and POV of what came before.",
+    "dst": "Redacta la escena a partir de su Resumen y del contexto de la historia, desde el cursor hasta el final de la escena, manteniendo la voz, el tiempo verbal y el punto de vista de lo anterior.",
+    "by": "Claude (AI review, 2026-10-18)",
     "at": "2026-10-18"
   },
   "f82b411885648796": {

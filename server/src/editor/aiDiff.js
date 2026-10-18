@@ -8,6 +8,10 @@
 // Visual rendering: <ins data-ai-ins data-change-id="…"> and
 // <del data-ai-del data-change-id="…">. CSS in RichEditor.vue styles
 // them as green-underlined and red-strikethrough respectively.
+//
+// An insertion that is text the AI wrote (not an edit of the writer's own words) carries
+// `aiWritten` (`data-ai-written`); accepting it leaves the AI-text mark (aiText.js) in place of
+// the insertion mark — the design: docs/plans/2026-10-18-ai-text-mark-and-slice-4.md §2.
 
 import { Mark, Extension } from "@tiptap/core";
 
@@ -26,7 +30,16 @@ export const AiInsMark = Mark.create({
   inclusive: false,
   // Allow nesting with em / strong / etc. — only excludes other AI marks.
   excludes: "aiDel",
-  addAttributes() { return { changeId: changeIdAttr }; },
+  addAttributes() {
+    return {
+      changeId: changeIdAttr,
+      aiWritten: {
+        default: false,
+        parseHTML: (el) => el.hasAttribute("data-ai-written"),
+        renderHTML: (attrs) => (attrs.aiWritten ? { "data-ai-written": "" } : {}),
+      },
+    };
+  },
   parseHTML() { return [{ tag: "ins[data-ai-ins]" }]; },
   renderHTML({ HTMLAttributes }) {
     return ["ins", { "data-ai-ins": "", class: "ai-ins", ...HTMLAttributes }, 0];
@@ -91,17 +104,19 @@ function splitParagraphs(html) {
 // wrapped in <del>, followed by the new paragraphs each wrapped in <ins>.
 // Each mark carries the same change-id so accept/reject can target the
 // whole change as a unit.
-function buildDiffHtml(changeId, originalHtml, newHtml) {
+function buildDiffHtml(changeId, originalHtml, newHtml, aiWritten = false) {
   const oldParas = splitParagraphs(originalHtml);
   const newParas = splitParagraphs(newHtml);
   const out = [];
   for (const p of oldParas) {
     out.push(`<p><del data-ai-del data-change-id="${changeId}">${p}</del></p>`);
   }
-  for (const p of newParas) {
-    out.push(`<p><ins data-ai-ins data-change-id="${changeId}">${p}</ins></p>`);
-  }
+  for (const p of newParas) out.push(`<p>${insHtml(changeId, p, aiWritten)}</p>`);
   return out.join("");
+}
+
+function insHtml(changeId, inner, aiWritten) {
+  return `<ins data-ai-ins data-change-id="${changeId}"${aiWritten ? " data-ai-written" : ""}>${inner}</ins>`;
 }
 
 // A command finds its ranges in `state.doc` and maps them only through the steps IT adds: in a
@@ -118,15 +133,16 @@ function ownStepsMap(tr) {
 // with a matching change-id. Returns an array of { from, to } ranges
 // (text-level, not block-level), sorted ascending. Resolved (kept-
 // strikethrough) dels are excluded unless `includeResolved` — they are
-// history, not pending changes.
-function findRanges(doc, markName, changeId, { includeResolved = false } = {}) {
+// history, not pending changes. `aiWrittenOnly`: only insertions the AI wrote (aiIns.aiWritten).
+function findRanges(doc, markName, changeId, { includeResolved = false, aiWrittenOnly = false } = {}) {
   const ranges = [];
   doc.descendants((node, pos) => {
     if (!node.isText) return;
     const mark = node.marks.find(
       (m) => m.type.name === markName
         && (!changeId || m.attrs.changeId === changeId)
-        && (includeResolved || !m.attrs.resolved),
+        && (includeResolved || !m.attrs.resolved)
+        && (!aiWrittenOnly || m.attrs.aiWritten),
     );
     if (mark) ranges.push({ from: pos, to: pos + node.nodeSize });
   });
@@ -182,11 +198,12 @@ export const AiDiff = Extension.create({
       // newly-minted changeId via the editor's transaction meta — callers
       // can retrieve it from the editor's state after run() if they need
       // to scroll to / focus the change.
+      // `aiWritten`: the new text is the AI's own (see the header) — the caller decides.
       proposeReplacement:
-        ({ from, to, originalHtml, newHtml }) =>
+        ({ from, to, originalHtml, newHtml, aiWritten = false }) =>
         ({ chain, state }) => {
           const changeId = uid();
-          const html = buildDiffHtml(changeId, originalHtml, newHtml);
+          const html = buildDiffHtml(changeId, originalHtml, newHtml, aiWritten);
           const range = from != null && to != null
             ? { from, to }
             : { from: state.selection.from, to: state.selection.to };
@@ -196,12 +213,12 @@ export const AiDiff = Extension.create({
       // Append new content at the end of the doc as an Ins-only change
       // (used by "Continue from cursor" — there's no original to delete).
       proposeContinuation:
-        ({ at, newHtml }) =>
+        ({ at, newHtml, aiWritten = false }) =>
         ({ chain, state }) => {
           const changeId = uid();
           const newParas = splitParagraphs(newHtml);
           const html = newParas
-            .map((p) => `<p><ins data-ai-ins data-change-id="${changeId}">${p}</ins></p>`)
+            .map((p) => `<p>${insHtml(changeId, p, aiWritten)}</p>`)
             .join("");
           const pos = at != null ? at : state.selection.from;
           return chain().insertContentAt(pos, html).run();
@@ -234,10 +251,17 @@ export const AiDiff = Extension.create({
               tr.delete(map(r.from), map(r.to));
             }
           }
-          // Unwrap surviving <ins> ranges (positions remapped through tr).
+          // Unwrap surviving <ins> ranges (positions remapped through tr); text the AI wrote keeps
+          // the AI-text mark in their place.
           const insType = state.schema.marks.aiIns;
           for (const r of ins) {
             tr.removeMark(map(r.from), map(r.to), insType);
+          }
+          const aiTextType = state.schema.marks.aiText;
+          if (aiTextType) {
+            for (const r of mergeRanges(findRanges(state.doc, "aiIns", changeId, { aiWrittenOnly: true }))) {
+              tr.addMark(map(r.from), map(r.to), aiTextType.create());
+            }
           }
           if (dispatch) dispatch(tr);
           return true;

@@ -697,12 +697,19 @@
     "paragraphSpacing": "Paragraph spacing",
     "spellCheck": "Spell check",
     "keepStrikethrough": "Keep original as strikethrough when accepting an AI change",
+    "highlightAiText": "Highlight AI-written text",
     "save": "save",
     "back": "back",
     "fontThemeDefault": "Theme default",
     "fontSystemSerif": "System serif",
     "fontSans": "Sans-serif",
-    "fontMono": "Monospace"
+    "fontMono": "Monospace",
+    "optTheme": "theme",
+    "optSmall": "small",
+    "optMedium": "medium",
+    "optBig": "big",
+    "optEnabled": "enabled",
+    "optDisabled": "disabled"
   },
   "notes": {
     "importing": "Importing…",
@@ -717,7 +724,6 @@
     "anchorTooltip": "Pin this note to a chapter or scene — it appears in that chapter's Notes panel",
     "anchorAriaLabel": "Note anchor",
     "tagPlaceholder": "tag",
-    "defaultTag": "note",
     "updated": "Updated {when}",
     "noteTerm": "note",
     "intro": "A {noteTerm} is anything that doesn't fit one of the structured surfaces — research clippings, half-formed scene ideas, cut prose, beta feedback, a thought you want to come back to. Tag it to find it later; pin it to a chapter or scene above so it surfaces there too.",
@@ -1792,6 +1798,7 @@
       "describeNeedsSelection": "Highlight the subject to describe (a place, person, object, or moment).",
       "emptyResponse": "AI returned an empty response. Try again — and verify the model is running and isn't returning only thinking tags.",
       "continueNeedsCursor": "Place the cursor at the end of some prose to continue from.",
+      "draftNeedsSummary": "This scene has no Summary to draft from. Write one in the scene's Links.",
       "sceneEmpty": "Nothing to work with — the scene is empty.",
       "selectFirst": "Select some text first.",
       "insertImage": "Couldn't insert image — {error}"
@@ -1806,7 +1813,8 @@
       "continueDirected": "Continue with direction",
       "rewrite": "Rewrite",
       "expand": "Expand",
-      "tighten": "Tighten"
+      "tighten": "Tighten",
+      "draftFromPlan": "Draft from plan"
     },
     "placeholder": "Start writing…",
     "action": {
@@ -1825,6 +1833,7 @@
       "scene": "scene"
     },
     "pickDescription": "Pick a description to insert",
+    "pickDraft": "Pick a draft to insert",
     "pickContinuation": "Pick a continuation to insert",
     "pickVariation": "Pick a variation to apply",
     "pickLineEdit": "Pick a line-edit pass to apply",
@@ -2986,7 +2995,10 @@
       "fieldGenrePlaceholder": "Literary, mystery, sci-fi…",
       "fieldStartedPlaceholder": "e.g. March 11, 2026",
       "fieldDeadlinePlaceholder": "e.g. December 1, 2026",
-      "fieldPremisePlaceholder": "One- or two-sentence pitch. Used on the Home dashboard and exports."
+      "fieldPremisePlaceholder": "One- or two-sentence pitch. Used on the Home dashboard and exports.",
+      "fieldAiSceneDrafting": "AI scene drafting",
+      "aiSceneDraftingHint": "Lets a scene's AI menu draft it from its Summary (Draft from plan). Off keeps this book written by you; text the AI writes is marked either way.",
+      "aiWrittenWords": "AI-written words in this book: {n}"
     },
     "goals": {
       "cardTitle": "Goals",
@@ -3242,6 +3254,7 @@
     "storage": {
       "clearModelsTitle": "Clear downloaded models?",
       "clearModelsMessage": "This frees {size} of downloaded model files. Your models stay in the catalog, and your default and per-task model choices are kept — each re-downloads automatically the next time it's used.",
+      "clearModelsShared": "This cache is shared with the family's other apps on this computer: clearing it clears their models too.",
       "clearModelsConfirm": "Clear models cache",
       "clearModelsLoadedError": "A model is loaded — unload it first (AI page → Unload), then try again.",
       "clearModelsError": "Couldn't clear the models cache.",
@@ -3421,6 +3434,9 @@
       "groupFromCursor": "From the cursor",
       "continueLabel": "Continue",
       "continueDesc": "Write 2–4 more paragraphs from where the cursor is, matching the voice, tense, and POV of what came before.",
+      "draftFromPlanLabel": "Draft from plan",
+      "draftFromPlanDesc": "Draft the scene from its Summary and the story context, from the cursor to the scene's end, matching the voice, tense, and POV of what came before.",
+      "draftFromPlanNeedsSummary": "Needs the scene's Summary — write it in Links.",
       "guidedLabel": "Continue with direction…",
       "guidedDesc": "Same as Continue, but you give it a one-line instruction first (\"Elena confronts Marcus but he deflects with charm\"). The next 2–4 paragraphs honour your direction while matching the voice, tense, and POV of what came before.",
       "unstuckLabel": "Unstuck — five ways out",
@@ -3432,6 +3448,8 @@
       "groupCleanUp": "Clean up",
       "clearStrikesLabel": "Clear all strikethroughs",
       "clearStrikesDesc": "Remove every struck-through original left behind by accepted AI changes (and the originals of still-pending ones — that accepts them). The new text stays.",
+      "markAsMineLabel": "Mark as mine",
+      "markAsMineDesc": "Remove the AI-written mark from the selection, or from the whole scene when nothing is selected — for words you've made your own.",
       "guidedRewriteLabel": "Rewrite with direction…",
       "guidedRewriteDesc": "Same as Rewrite, but you say how first (\"make her colder\"). Keeps meaning, voice and tense unless your direction changes them.",
       "dialogueLabel": "Write dialogue…",
@@ -4001,6 +4019,8 @@
     "projectLoadFailed": "That project couldn't be loaded.",
     "status": "New status",
     "category": "New category",
+    "tag": "New tag",
+    "noteTag": "note",
     "importedBook": "Imported book",
     "importedPart": "Imported"
   },

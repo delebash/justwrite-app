@@ -2,7 +2,7 @@
 // Writing settings panel (font, size, spacing, indent, capitalize, spell
 // check). Edits a local draft; Save commits to the ui store (which applies
 // the CSS vars globally), Back discards.
-import { reactive } from "vue";
+import { computed, reactive } from "vue";
 import { useUiStore } from "../stores/ui.js";
 import {
   EDITOR_FONTS, LINE_SPACING_OPTIONS, PARAGRAPH_SPACING_OPTIONS, DEFAULT_EDITOR_SETTINGS,
@@ -18,23 +18,25 @@ const { t } = useI18n();
 // Options for the segmented controls below. `null` means "follow the
 // project's theme default" for the three tri-state fields (font size,
 // indent, line/paragraph spacing). The boolean fields are two-state.
-const FONT_SIZE_OPTS = [
-  { value: null,     label: "theme" },
-  { value: "small",  label: "small" },
-  { value: "medium", label: "medium" },
-  { value: "big",    label: "big" },
-];
-const INDENT_OPTS = [
-  { value: null,  label: "theme" },
-  { value: true,  label: "enabled" },
-  { value: false, label: "disabled" },
-];
-const BOOL_OPTS = [
-  { value: true,  label: "enabled" },
-  { value: false, label: "disabled" },
-];
-const LINE_SPACING_OPTS  = [{ value: null, label: "theme" }, ...LINE_SPACING_OPTIONS.map((o) => ({ value: o, label: o }))];
-const PARA_SPACING_OPTS  = [{ value: null, label: "theme" }, ...PARAGRAPH_SPACING_OPTIONS.map((o) => ({ value: o, label: o }))];
+// Computed, so the words follow a language switch (2026-10-18: they were English literals, and
+// a Spanish screen showed "theme", "enabled", "disabled").
+const FONT_SIZE_OPTS = computed(() => [
+  { value: null,     label: t("editorSettings.optTheme") },
+  { value: "small",  label: t("editorSettings.optSmall") },
+  { value: "medium", label: t("editorSettings.optMedium") },
+  { value: "big",    label: t("editorSettings.optBig") },
+]);
+const INDENT_OPTS = computed(() => [
+  { value: null,  label: t("editorSettings.optTheme") },
+  { value: true,  label: t("editorSettings.optEnabled") },
+  { value: false, label: t("editorSettings.optDisabled") },
+]);
+const BOOL_OPTS = computed(() => [
+  { value: true,  label: t("editorSettings.optEnabled") },
+  { value: false, label: t("editorSettings.optDisabled") },
+]);
+const LINE_SPACING_OPTS = computed(() => [{ value: null, label: t("editorSettings.optTheme") }, ...LINE_SPACING_OPTIONS.map((o) => ({ value: o, label: o }))]);
+const PARA_SPACING_OPTS = computed(() => [{ value: null, label: t("editorSettings.optTheme") }, ...PARAGRAPH_SPACING_OPTIONS.map((o) => ({ value: o, label: o }))]);
 
 const emit = defineEmits(["close"]);
 const ui = useUiStore();
@@ -87,6 +89,12 @@ function back() { emit("close"); }
         <span class="es-label">{{ $t("editorSettings.keepStrikethrough") }}</span>
         <UiSegmented v-model="draft.keepStrikethroughOnAccept" :options="BOOL_OPTS"
           :aria-label="$t('editorSettings.keepStrikethrough')" />
+      </div>
+
+      <div class="es-row">
+        <span class="es-label">{{ $t("editorSettings.highlightAiText") }}</span>
+        <UiSegmented v-model="draft.highlightAiText" :options="BOOL_OPTS"
+          :aria-label="$t('editorSettings.highlightAiText')" />
       </div>
     </div>
 

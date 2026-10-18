@@ -22,6 +22,8 @@ const e = (key, label, hint, group) => FeatureCatalogEntry({ key, label, hint, g
 export const FEATURE_CATALOG = [
   // ── Writing — the scene-editor AI menu (Rewrite / Expand / … + Line edits) ──
   e("writerAI", "Writer actions", "The AI menu in each scene's strip — Rewrite, Expand, Tighten, Continue, Describe, Rewrite with direction…, Continue with direction…, Write dialogue…, plus all Line edits.", "Writing"),
+  // ── Scene drafting (2026-10-18, slice 4) — its own row so it can run on another model ──
+  e("sceneDrafting", "Scene drafting", "Draft from plan in a scene's AI menu: the scene drafted from its Summary and the story context, from the cursor to its end — only in a book with AI scene drafting on (Settings → Project).", "Writing"),
   // ── Drafting tools — get-unstuck / research / ideas ──
   e("sensory", "Research feel", "Structured sensory pack (smell / sound / touch / …) for a selected subject — the editor's “Research feel” modal.", "Drafting tools"),
   e("unstuck", "Unstuck", "Five ways to unblock the current scene — goal shift / interrupt / setting / reveal / time cut.", "Drafting tools"),

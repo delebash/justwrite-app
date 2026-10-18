@@ -337,9 +337,24 @@ BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV 
         Summary, the Plot board's strand menu, Draft from the premise (`891ce9e`); the phone's
         sentence (`e10b65b`). Fixed on the way: the bare @ in mentionRefs.empty (`b1c584b`), the
         Apply template list's outside click (`f1d8128`).
+        The AI-text mark's design and slice 4 (2026-10-18), under the user's "keep going until
+        everything is done your rec but think on your decisions twice before doing, finish
+        everything dont stop" — the design with each decision's second look is
+        `docs/plans/2026-10-18-ai-text-mark-and-slice-4.md`: every AI-written passage is marked
+        (KDP's line: AI-written, not AI edits of your words — those only where they rewrite marked
+        text), a violet ink in the editor only; the AI's words stay marked through edits, the words
+        you type are yours, Mark as mine clears it; Highlight AI-written text in Writing settings;
+        Settings → Project's AI scene drafting switch and the count of AI-written words; Draft from
+        plan on its own row, Scene drafting (sync schema 5: the column and the mark). Checked:
+        unit (the mark on the app's schema: accept, an edit of unmarked and marked text, typing,
+        paste, Enter, Undo, Mark as mine), server (the column round trip, sync 5, the row, prompt,
+        preset and Lab sample), a new flow test (`tests/flows/scene-draft.spec.js`, 1280 and 390
+        px: off by default, the switch, an empty scene drafted from its Summary and accepted, a
+        typed word unmarked, the count, Mark as mine).
 OPEN:   the Lab check is now `npm run eval` (TASKS "Automated testing", 2026-10-16): every sample
         ran on gemma; its findings are listed there.
-        Slice 4 after the AI-text mark's design, which I bring.
+        Slice 4's bench leg (the plan's D4): Draft from plan on the local presets — waits for the
+        graphics card (JustVoice holds it, 2026-10-18).
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;
         "your rec go" for the third round (Task 0, Tasks 9b and 11b, Task 12 in the chat panel);
@@ -510,18 +525,39 @@ FOUND:  2026-10-16, while freeing the card: the kit's `POST /v1/llm-runner/stop`
           file.") was English in code — a key now.
         - The notes tag: a new note took "note" from code too (`project.js` `addNote`), so
           changing Import alone would have given a Spanish book two tags; one catalog word
-          `notes.defaultTag` for New note, Import's field and the store's import default. A tag
-          is free text, so it can't be translated when shown — it is written in the writer's
-          language. The server's load still fills an empty tag with "note" (the plan in 3).
+          `defaults.noteTag` (with the other create-time words) for New note, Import's field and
+          the store's import default. A tag is free text, so it can't be translated when shown —
+          it is written in the writer's language (the 2026-10-13 ruling: new-thing names in the
+          app's language when created). The server's save still fills an empty tag with "note"
+          (the seeded-words plan, OPEN 2).
+        - Found by the seeded-words sweep and fixed, as the existing rulings say: the marker
+          categories (a code table — it names its keys; the chips showed the English constant);
+          the Architecture documents in the sidebar and search (a fixed set shown by key, as the
+          page — one table, `services/architectureDocs.js`); a new tag-vocabulary entry ("New
+          tag", `defaults.tag`). And, from JustVoice's sibling session: Clear models cache says
+          when the cache is shared (the template's line, kit `d716a8b`) — though the kit's
+          `cacheShared` can't see apps that share JustWrite's own cache (told to that session).
+          And the Writing settings window's choices ("theme", "small", "enabled", "disabled" —
+          English literals in `EditorSettingsModal.vue`, found by the Spanish verifier) take keys.
+        - The Spanish of this round's 25 new strings (slice 4's, the restore question, the
+          create-time words, the shared-cache line, the Writing settings choices): one agent
+          wrote them, a refuting verifier upheld them; saved through docgen's Save (docgen pruned
+          the replaced key). Two advisory terminology flags accepted as false alarms ("de lo
+          anterior" is `continueDesc`'s own closing phrase; "escríbelo" is "escribe" with its
+          pronoun), by the reviewer "Claude (AI review, 2026-10-18)".
         - The smoke reads `/v1/settings` (what replaced `/v1/kv`) and its header says so.
         - The passive-voice rule has its own Lab sample, "Passive paragraph" (a new label, so the
           seeder adds it to existing databases); the voice passes' register line lost its scale,
           both older stored texts heal. The eval on the three actions: 4 of 4 on gemma-4-26b and
           on gemma-4-12b, both reading as intended (RESEARCH "Testing").
 OPEN:   1. Saving the review as a reusable tool in docgen's repo (NOT STANDARD) — your word by name.
-        2. Seeded names stay English on Spanish screens — chapter and strand statuses ("Draft",
-           "Done", "Open") are data, not catalog strings (as docgen's "Built-in provider —
-           llama.cpp", its TASKS FOUND 2026-10-17): the plan is being written.
+        2. Seeded words stay English on Spanish screens — statuses, worldbuilding categories, the
+           AI page's preset, feature and action names, the kit's provider names. The plan, with
+           the inventory of all four repos: the kit's
+           `docs/plans/2026-10-18-seeded-words-in-the-users-language.md` (rec: show an unrenamed
+           seeded row by key — the stored English stays, so nothing changes in what syncs). It is
+           the i18n standard's "next, each its own go" (database-seeded words, "English for now"),
+           so it waits for your go.
         3. Found 2026-10-18: `tests/smoke/book-smoke.js` (no npm script runs it) still seeds its
            book through `/v1/kv`, which no longer exists.
 GO:     given 2026-10-16 for the eval and the flow tests ("think on your rec again always adversially

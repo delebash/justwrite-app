@@ -1,5 +1,7 @@
 
-import { t } from "../i18n/index.js";// ============================================================
+import { t } from "../i18n/index.js";
+import { archDocTitle } from "./architectureDocs.js";
+// ============================================================
 // search.js — full-text search across every entity in the project.
 //
 // Builds a lightweight inverted index (Map<token, Set<docId>>)
@@ -196,7 +198,7 @@ export function buildIndex(project) {
     indexDoc({
       id: `architecture:${id}`,
       kind: "architecture",
-      title: doc.title,
+      title: archDocTitle(id, doc.title),
       sub: "",
       body: stripHtml(doc.body),
       route: `/architecture`,

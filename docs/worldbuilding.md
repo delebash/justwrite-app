@@ -31,7 +31,7 @@ For cross-cutting decisions and project-wide reminders ("no flashbacks", "always
 
 Each Architecture document has:
 
-- A **title** (inline-editable, though "Premise", "Fabula", "Setting" are sensible defaults)
+- A fixed **name** — Premise, Fabula, Setting — in your interface language
 - A **blurb** — a short italic summary at the top
 - A **status** — the same project-wide palette as everything else
 - A **rich-text body** with the full editor toolbar

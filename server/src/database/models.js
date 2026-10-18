@@ -80,4 +80,6 @@ export const ADDED_COLUMNS = [
   ["groups", "goals", "TEXT NOT NULL DEFAULT ''"],
   ["groups", "leadership", "TEXT NOT NULL DEFAULT ''"],
   ["groups", "history", "TEXT NOT NULL DEFAULT ''"],
+  // 2026-10-18: slice 4's per-book switch, AI scene drafting (the AI drafting spec §9.7).
+  ["projects", "ai_scene_drafting", "BOOLEAN NOT NULL DEFAULT 0"],
 ];

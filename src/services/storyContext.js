@@ -197,9 +197,10 @@ export async function storyBudgetFor(feature, action, budgetTokens) {
 }
 
 /** A prose action's story context (slice 2): its scene's, within the budget of the model the
- *  action is routed to. No scene → nothing (the action runs on its passage alone). */
-export async function proseStoryContext(project, { chapterId, sceneId, action, budgetTokens } = {}) {
+ *  action is routed to. No scene → nothing (the action runs on its passage alone). `feature`: the
+ *  row the action routes under — Draft from plan's is its own, sceneDrafting (slice 4). */
+export async function proseStoryContext(project, { chapterId, sceneId, action, feature = "writerAI", budgetTokens } = {}) {
   if (!chapterId || !sceneId) return { text: "", names: [], parts: [], tokens: 0 };
-  const budget = await storyBudgetFor("writerAI", action, budgetTokens);
+  const budget = await storyBudgetFor(feature, action, budgetTokens);
   return composeSceneContext(project, { chapterId, sceneId, budgetTokens: budget });
 }

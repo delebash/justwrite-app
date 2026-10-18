@@ -12,14 +12,16 @@
 import { Mark } from "@tiptap/core";
 
 // Built-in categories. Hard-coded for now — promoting to a user-editable
-// palette (like statuses) is a small refactor when the time comes.
+// palette (like statuses) is a small refactor when the time comes. Each names
+// its catalog key; the screens translate it (2026-10-18: the chips showed the
+// English constant on Spanish screens though the keys were translated).
 export const MARKER_CATEGORIES = [
-  { id: "fix",     label: "Fix later",    color: "var(--marker-fix)" },
-  { id: "verify",  label: "Verify",       color: "var(--marker-verify)" },
-  { id: "weak",    label: "Weak prose",   color: "var(--marker-weak)" },
-  { id: "thread",  label: "Loose thread", color: "var(--marker-thread)" },
-  { id: "todo",    label: "TODO",         color: "var(--marker-todo)" },
-  { id: "idea",    label: "Idea",         color: "var(--marker-idea)" },
+  { id: "fix",     labelKey: "markers.fixLater",    color: "var(--marker-fix)" },
+  { id: "verify",  labelKey: "markers.verify",      color: "var(--marker-verify)" },
+  { id: "weak",    labelKey: "markers.weakProse",   color: "var(--marker-weak)" },
+  { id: "thread",  labelKey: "markers.looseThread", color: "var(--marker-thread)" },
+  { id: "todo",    labelKey: "markers.todo",        color: "var(--marker-todo)" },
+  { id: "idea",    labelKey: "markers.idea",        color: "var(--marker-idea)" },
 ];
 
 export function categoryById(id) {

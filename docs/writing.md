@@ -262,7 +262,7 @@ The dropdown groups actions by what they operate on, so you can tell at a glance
 
 - **Selection only** — Rewrite, Rewrite with direction…, Expand, and Describe. Greyed out until you select text in the editor.
 - **Selection or whole scene** — Tighten. Runs on the selection if you have one, on the entire scene otherwise.
-- **From the cursor** — Continue, Continue with direction…, Write dialogue…, Unstuck, Next plot beats, and Plot twists. Generate the next paragraphs from wherever the cursor sits; the last three offer ideas to pick from first.
+- **From the cursor** — Draft from plan (in a book with AI scene drafting on), Continue, Continue with direction…, Write dialogue…, Unstuck, Next plot beats, and Plot twists. Generate the next paragraphs from wherever the cursor sits; the last three offer ideas to pick from first.
 - **Line edits** — surgical, single-issue revisions (Show don't tell, Filter words, Dialogue tags, Sensory grounding, etc.) that run on the selection, or on the whole scene if nothing is selected.
 
 ### Whole-passage actions
@@ -329,6 +329,23 @@ Plain Rewrite decides for itself how to improve a passage. **Rewrite with direct
 Put the cursor where the exchange should start, choose **Write dialogue…** in the AI dropdown, and say what it's about — "Nettle presses Cael about the token; Cael deflects". Name who speaks if it matters. JustWrite writes the exchange from the cursor: mostly dialogue, with brief beats of action between the lines, in the tense and point of view of what came before. It lands as an accept/reject diff like Continue.
 
 **Who speaks, and how.** The voices come from the story context: the characters linked to the scene in its **Links** panel, with what their sheets say about how they talk — register, vocabulary, speech tics, sample lines. The more of a character's **Voice** section you've filled, the more they sound like themselves; a character who isn't linked to the scene isn't in the context, so link them first. See [Story context](#story-context-the-ai-knows-the-scene).
+
+### Draft from plan — a scene from its Summary
+
+> *"I know what this scene has to do. I want a first draft of it to push against."*
+
+**Draft from plan** writes a scene from its plan: the **Summary** in the scene's **Links** panel, read with the story context (the book, the scene's characters, places and objects, how the previous scene ends). In an empty scene a **Draft from plan** button sits above the page; in a scene you've started, it's the first item under **From the cursor** in the AI dropdown and drafts from the cursor to the scene's end, matching the voice, tense and POV of what came before. Without a Summary there's no plan — the item says so. It lands as an accept/reject diff like Continue; shift-click (or the variations switch) gives three drafts to pick from.
+
+**It's off until you turn it on, per book:** **Settings → Project → AI scene drafting**. One book can stay entirely yours while another uses drafting. It runs on its own row in Settings → AI → Routing by feature, **Scene drafting**, so you can send it to a larger or online model while the other writer actions stay local.
+
+### AI-written text — the AI's words, marked
+
+Text the AI writes — Draft from plan, Continue, Continue with direction…, Write dialogue…, Expand, Describe, an idea's Write this, a drafted document — keeps a mark once you accept it, shown in its own violet ink. AI edits of your own words (Rewrite, Tighten, the line edits, Rewrite with direction…) aren't marked, unless they rewrite text that already was.
+
+- **It stays true as you revise.** Words you type — inside an AI passage too — are yours and lose the colour; the AI's words around them keep it. Deleting AI words removes them; copying and pasting AI text keeps its mark; Undo brings it back.
+- **Mark as mine** (AI dropdown → **Clean up**) clears the mark from the selection, or from the whole scene when nothing is selected — for passages you've made your own without retyping them.
+- **Highlight AI-written text** in the editor's **Writing settings** turns the colour off on this device; the marks stay.
+- **Settings → Project** shows how many of the book's words the AI wrote and are still there — the record you'll want if a publisher asks. Read mode and every export show plain text.
 
 ### Unstuck — five ways out
 
@@ -472,6 +489,8 @@ That's it. Everything else in the app is in service of this loop.
 - **Clean up → Clear strikethroughs.** After an AI diff session leaves
   struck-through rejected text behind, this one item in the AI dropdown removes
   every strikethrough in the scene at once — no hunting.
+- **Clean up → Mark as mine.** Clears the AI-written mark from the selection, or
+  the whole scene — see [AI-written text](#ai-written-text-the-ais-words-marked).
 - **The per-change diff stepper.** When an AI rewrite comes back as a diff, the
   stepper walks change-by-change — accept this one, reject that one — instead of
   the all-or-nothing buttons. The habit worth building: step through the first

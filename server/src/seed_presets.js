@@ -208,6 +208,8 @@ export const DEFAULT_FEATURE_PRESETS = {
     "sceneSummary": "p_digest",
     "templateFill": "p_creative_structured",
     "premiseDraft": "p_prose_voiced",
+    // Slice 4 (2026-10-18): a drafted scene is generated prose in the book's voice.
+    "sceneDraft": "p_prose_voiced",
     "sensory": "p_creative_structured",
     "marketingPack": "p_creative_structured",
     // Judgment & scoring
@@ -317,6 +319,22 @@ export const DEFAULT_TEST_SAMPLES = [
                                    "Afraid of the sea at night, and would never say so.\n\n" +
                                    "## Previous scene\nHow the previous scene ends:\n…the radio gave her nothing but " +
                                    "static, and she logged it anyway: 21:40, no contact."}},
+    // ── Draft from plan (slice 4, 2026-10-18): the scene's story context with its Summary
+    // (storyContext.js composeSceneContext, "## Summary" — "What this scene is meant to do: …") and
+    // the prose before the cursor, as writerAI.js draftFromPlan sends them ──
+    {"actions": ["sceneDraft"], "label": "Scene from its plan",
+     "variables": {"passage": "Ines keyed the radio twice before the harbor answered.",
+                   "voiceCanon": "Close third person, past tense; spare coastal imagery.",
+                   "storyContext": "\n\nSTORY CONTEXT\n" +
+                                   "## Premise\nA lighthouse keeper on a storm coast learns the supply boat " +
+                                   "she has been waiting for sank a week ago.\n\n" +
+                                   "## Summary\nWhat this scene is meant to do: Ines radios the harbor about the " +
+                                   "overdue supply boat; Brannock, the harbormaster, talks around it, and she " +
+                                   "hears in his evasions that the boat is gone.\n\n" +
+                                   "## Ines Varga\nKeeper of the Harrow Point light for nine years. " +
+                                   "Voice: clipped; counts things aloud; never asks a question she can make a statement.\n\n" +
+                                   "## Aldo Brannock\nHarbormaster. Kind, evasive, talks around bad news. " +
+                                   "Voice: warm, rambling; says \"now then\" before anything hard."}},
     // ── prose.edit (writerAI rewrite/tighten + the 7 line-edit rules:
     // {{passage}} + {{voiceCanon}}) ──
     {"actions": ["writerAI.rewrite", "writerAI.tighten", "writerAI.rule.show-dont-tell", "writerAI.rule.passive-voice", "writerAI.rule.filter-words", "writerAI.rule.dialogue-tags", "writerAI.rule.sensory-grounding", "writerAI.rule.sentence-variety", "writerAI.rule.prose-tightening"], "label": "Flabby paragraph",

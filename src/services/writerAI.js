@@ -185,6 +185,27 @@ export function guidedRewrite(opts = {}) {
   return runDirected("writerAI.guided-rewrite", "richEditor.actionName.rewriteDirected", opts);
 }
 
+/** The feature row Draft from plan routes under — its own, so it can run on a larger model
+ *  (Settings → AI → Routing by feature, "Scene drafting"; slice 4). */
+export const SCENE_DRAFTING_FEATURE = "sceneDrafting";
+
+/**
+ * Draft from plan (slice 4; the design docs/plans/2026-10-18-ai-text-mark-and-slice-4.md §3 D2):
+ * the scene its Summary sets out — the Summary arrives in `storyContext` — from where `html` (the
+ * prose before the cursor; "" in a scene not yet started) ends, to the scene's end.
+ */
+export async function draftFromPlan({ html = "", storyContext = "", signal, onDelta, meta, provider, model, temperature, task } = {}) {
+  const source = htmlToText(html, { stripSceneMarks: false, trim: false });
+  const result = await runAiFeatureStream({
+    action: "sceneDraft", feature: SCENE_DRAFTING_FEATURE,
+    variables: { passage: source, voiceCanon: voiceCanonVar(), storyContext: storyContextVar(storyContext) },
+    temperature: typeof temperature === "number" ? temperature : undefined,
+    signal, onDelta, provider, model, meta,
+    task: editorTask(task, t("richEditor.taskLabel", { action: t("richEditor.actionName.draftFromPlan") }), meta),
+  });
+  return { html: textToHtml(result.content), raw: result.content, usage: result.usage };
+}
+
 /** Write dialogue… (Task 14): dialogue from the passage before the cursor, about what the
  *  writer's `instruction` says, in the voices of the characters the story context carries. Same
  *  options as guidedContinue. */

@@ -231,3 +231,19 @@ test("the prose actions share a story-context Lab sample, in the shape the clien
   expect(sample.variables.storyContext.startsWith("\n\nSTORY CONTEXT\n## ")).toBe(true);
   expect(sample.variables.direction).toBeTruthy(); // guided continue's {{direction}}
 });
+
+test("Draft from plan: its own feature row, the prose system with the story context, and its preset", async () => {
+  // Slice 4 (2026-10-18): the Summary arrives in {{storyContext}}; the prose before the cursor in
+  // {{passage}}, empty when the scene isn't started.
+  const SP = await import("../src/seed_presets.js");
+  const { FEATURE_CATALOG } = await import("../src/feature_catalog.js");
+  const p = DEFAULT_FEATURE_PROMPTS.sceneDraft;
+  expect(p.feature).toBe("sceneDrafting");
+  expect(p.system).toContain("{{voiceCanon}}{{storyContext}}");
+  expect(p.user_template).toContain("the Summary in the story context");
+  expect(p.user_template).toContain("When the passage is empty, the scene begins here.");
+  expect(p.user_template).toContain("--- BEGIN PASSAGE ---\n{{passage}}\n--- END PASSAGE ---");
+  expect(SP.DEFAULT_FEATURE_PRESETS.sceneDraft).toBe("p_prose_voiced");
+  expect(FEATURE_CATALOG.find((f) => f.key === "sceneDrafting")?.label).toBe("Scene drafting");
+  expect(SP.DEFAULT_TEST_SAMPLES.some((s) => s.actions.includes("sceneDraft") && s.variables.storyContext.includes("## Summary\n"))).toBe(true);
+});

@@ -24,6 +24,7 @@ function canonicalBook() {
       startedOn: "March 11, 2026",
       deadline: "December 1, 2026",
       premise: "A mapmaker's daughter inherits a ledger.",
+      aiSceneDrafting: true,
       coverImage: null,
     },
     parts: [

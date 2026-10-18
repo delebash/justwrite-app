@@ -65,6 +65,8 @@ function blocksFromHtml(html, fallbackTitle = "", { stripSceneStructure = false 
   // keep the underlying text (the comment text itself lives in a data-attr
   // and is invisible in the exported document).
   div.querySelectorAll("span.comment-mark").forEach((el) => { el.replaceWith(...el.childNodes); });
+  // The AI-text mark is the writer's own record, never part of the published text (2026-10-18).
+  div.querySelectorAll("span[data-ai-text]").forEach((el) => { el.replaceWith(...el.childNodes); });
 
   // Ensure every chapter has a top-level heading.
   let sawHeading = false;
