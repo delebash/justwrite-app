@@ -581,7 +581,7 @@ async function restoreFromAutosave(entry) {
   backupError.value = null;
   const when = entry.savedAt ? fmtDate(new Date(entry.savedAt), "dateTime") : t("settings.backups.unknownTime");
   const yes = await confirmDialog({
-    title: t("settings.backups.restoreTitle", { title: entry.title || t("settings.backups.untitledProject"), generation: entry.generation }),
+    title: t("settings.backups.restoreTitle", { title: entry.title || t("settings.backups.untitledProject"), generation: generationLabel(entry.generation) }),
     message: t("settings.backups.restoreMessage", { when }),
     confirmLabel: t("settings.backups.restoreConfirm"),
     danger: true,

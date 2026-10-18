@@ -35,6 +35,14 @@ function angleWord(b, field) {
   return field === "labelKey" ? b.label || "" : b.description || "";
 }
 
+// A comp's confidence is the model's "high"/"medium"/"low" — data, one whole message per level
+// (marketingPack.js already turns anything else into "low").
+function confidenceLabel(level) {
+  if (level === "high") return t("marketingPack.confidenceHigh");
+  if (level === "medium") return t("marketingPack.confidenceMedium");
+  return t("marketingPack.confidenceLow");
+}
+
 const myTask = computed(() => aiTasks.runningTasks.find(
   (t) => t.feature === "marketingPack"
 ));
@@ -235,7 +243,7 @@ function formatComps(comps) {
               <span v-if="c.year" class="mp-comp-year">({{ c.year }})</span>
               <span class="mp-spacer" />
               <span class="mp-comp-conf" :data-confidence="c.confidence">
-                {{ $t("marketingPack.confidenceLabel", { level: c.confidence }) }}
+                {{ confidenceLabel(c.confidence) }}
               </span>
             </div>
             <p v-if="c.rationale" class="mp-comp-rationale">{{ c.rationale }}</p>

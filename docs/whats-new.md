@@ -4,6 +4,14 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## 2026-10-18
+
+**No more English words on Spanish screens.** Import's chapter and note wording, the sidebar's
+**+** buttons, the confidence chips on comp titles and the **Fine Press** and **Ivory Press**
+theme names now follow your language. In **Settings → Backups**, restoring a copy names it the
+way the list does — "Previous", "Earlier" — instead of "prev2". See
+[Backups and data](backups-and-data.md).
+
 ## 2026-10-17
 
 **All of JustWrite in Spanish.** With Spanish chosen in **Settings → Appearance**, every screen's

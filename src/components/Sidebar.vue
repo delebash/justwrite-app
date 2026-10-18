@@ -119,21 +119,21 @@ const NAV = [
   { id: "search",        label: "nav.search",        icon: "Search",   kbd: "⌘F" },
   { id: "home",          label: "nav.home",          icon: "Home" },
   { id: "architecture",  label: "nav.architecture",  icon: "Building", expandable: "architecture", fixed: true },
-  { id: "strands",       label: "nav.strands",       icon: "Strands",  expandable: "strands" },
+  { id: "strands",       label: "nav.strands",       icon: "Strands",  expandable: "strands", newLabel: "plotBoard.newStrand" },
   { id: "chapters",      label: "nav.chapters",      icon: "Book",     expandable: "chapters" },
   { id: "ask",           label: "sidebar.nav.askTheBook", icon: "Sparkle", kbd: "⌘J", action: "toggleChatPanel" },
 
   { section: "sidebar.sections.storyWorld" },
-  { id: "characters",    label: "nav.characters",    icon: "Users",     expandable: "characters" },
-  { id: "locations",     label: "nav.locations",     icon: "Pin",       expandable: "locations" },
-  { id: "objects",       label: "nav.objects",       icon: "Cube",      expandable: "objects" },
-  { id: "groups",        label: "nav.groups",        icon: "GroupIcon", expandable: "groups" },
+  { id: "characters",    label: "nav.characters",    icon: "Users",     expandable: "characters", newLabel: "characters.header.newCharacter" },
+  { id: "locations",     label: "nav.locations",     icon: "Pin",       expandable: "locations", newLabel: "locations.newLocation" },
+  { id: "objects",       label: "nav.objects",       icon: "Cube",      expandable: "objects", newLabel: "objects.newObject" },
+  { id: "groups",        label: "nav.groups",        icon: "GroupIcon", expandable: "groups", newLabel: "groups.newGroup" },
   { id: "worldbuilding", label: "nav.worldbuilding", icon: "Sparkle",   expandable: "worldbuilding" },
 
   { section: "sidebar.sections.planning" },
   { id: "plot",      label: "sidebar.nav.plotBoard", icon: "Grid" },
   { id: "timeline",  label: "sidebar.nav.timeline",  icon: "Timeline" },
-  { id: "notes",     label: "nav.notes",             icon: "Note",     expandable: "notes" },
+  { id: "notes",     label: "nav.notes",             icon: "Note",     expandable: "notes", newLabel: "notes.newNote" },
   { id: "brainstorm", label: "sidebar.nav.brainstorm", icon: "Sparkle" },
   { id: "markers",   label: "sidebar.nav.markers",   icon: "Pin" },
   { id: "relations", label: "sidebar.nav.relations", icon: "Network" },
@@ -927,8 +927,8 @@ const authorInitials = computed(() => {
                 @click.stop="addWbCategory">
                 <template #icon><Icon name="Plus" :size="11" /></template>
               </UiButton>
-              <UiButton v-else-if="!n.fixed" intent="ghost" class="nav-add" v-tooltip.bottom="$t('sidebar.tooltips.newItem', { label: $t(n.label).toLowerCase().replace(/s$/, '') })"
-                :aria-label="$t('sidebar.tooltips.newItem', { label: $t(n.label).toLowerCase().replace(/s$/, '') })"
+              <UiButton v-else-if="!n.fixed" intent="ghost" class="nav-add" v-tooltip.bottom="$t(n.newLabel)"
+                :aria-label="$t(n.newLabel)"
                 @click.stop="addItem(n.expandable)">
                 <template #icon><Icon name="Plus" :size="11" /></template>
               </UiButton>

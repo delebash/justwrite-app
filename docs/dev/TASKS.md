@@ -465,20 +465,52 @@ FOUND:  2026-10-16, while freeing the card: the kit's `POST /v1/llm-runner/stop`
         docgen's screens in Spanish from its real window. Fixed on the way: the kit's Icon shrank
         beside a label that wraps (docgen's nav, "Configuración de la aplicación") — it keeps its
         size now. User docs: whats-new.md.
+        2026-10-18 — the run's follow-ups, decided as shown: "2. Four code bugs put English into
+        Spanish screens. The backups dialog shows the raw name "prev2". The fix is the label
+        function the backups list already uses. The Import page inserts the English words
+        "chapter" and "note" into sentences. The sidebar makes "New …" by cutting the "s" off a
+        translated word, which gives "ubicacione". The marketing pack shows the raw
+        "high/medium/low". My rec for the last three: whole messages per case, or one key per
+        item, with the same English as today. Pasting a noun into a sentence breaks Spanish gender
+        ("este nota"); that point changed my rec. The Spanish for the new keys goes through the
+        same review. 3. Two theme names stay English. "Fine Press" and "Ivory Press" are
+        untranslated while their sibling themes are translated. My rec: "Imprenta fina" and
+        "Imprenta marfil". 4. Three docgen fixes, each with a test: Check placeholders form by
+        form, so a Spanish string with more forms isn't flagged. Count a string that is blank in
+        English as done. Name languages in the interface's language; Spanish screens show "Spanish
+        (es)" today." The user: "compacted re read docs rules session your rec on all go".
+        Done: the restore title through `generationLabel()`; Import's wording as whole messages per
+        case (8 new `import.*` keys, `count.chapterNoun` / `count.noteNoun` after `count.flagNoun`,
+        the "Untitled note/chapter" placeholders reuse `sceneNotes.untitledNote` and
+        `chapters.outline.untitledChapter`); each sidebar + button names its entity's existing
+        "New …" key (`newLabel` on the nav row — the reuse-before-mint rule, so no new key); the
+        confidence chip one key per level. The Spanish: one agent wrote the 13 new strings, a
+        refuting verifier upheld 9 and rewrote 4, and ruled the Import button's "Eliminar" a
+        terminology error (it only leaves a section out; the term sheet's "quitar" — the thing
+        survives) → "Quitar", with its tooltips and line; the theme names as approved. Saved
+        through docgen's Save (16 strings; docgen pruned the 7 replaced keys itself). docgen's
+        three fixes: its TASKS, Task 6. Checked: docgen's `check` passes with exit 0 on all three
+        catalogs (JustWrite 3,058 of 3,058; the kit 1,481 of 1,481; docgen 278); test:fast (unit
+        713, build, server 166); i18n:report MISSING 0; the smoke; the flows 16 of 16; each touched
+        screen driven in Spanish and English on the scratch server (the six + buttons, Import as
+        notes and as chapters with both tooltips, the restore title from a real autosave, the
+        confidence chips) — every string as in the catalogs, no page errors; docgen's server
+        tests 165, unit 5, lint. User docs: whats-new.md (both apps), docgen review.md.
 OPEN:   1. Saving the review as a reusable tool in docgen's repo (NOT STANDARD) — your word by name.
-        2. Code that puts English into Spanish screens, found by the reviewers: ImportPage passes
-           "chapter"/"note" into `{item}`/`{items}`; Sidebar builds "New …" by stripping a final
-           "s" from the translated label ("ubicacione"); the marketing pack shows the model's raw
-           "high/medium/low" in `confidenceLabel`; the backup restore title shows the raw
-           generation ("prev2") — `SettingsPage.vue:584` where its list uses `generationLabel()`.
-        3. Small Spanish calls the last pass left: the theme names "Fine Press" and "Ivory Press"
-           stay English while their siblings are translated.
+        2. Found 2026-10-18: the restore title reads "Restore "The Ninth Facet" from Previous?"
+           ("…desde Anterior?") — the list's label, capitalised, inside a sentence.
+        3. Found 2026-10-18: Import's notes tag defaults to the English word "note" in code
+           (`ImportPage.vue`, `notesTag = ref("note")`) and is saved on every imported note.
+        4. Found 2026-10-18: seeded names stay English on Spanish screens — chapter and strand
+           statuses ("Draft", "Done", "Open") are data, not catalog strings (as docgen's
+           "Built-in provider — llama.cpp", its TASKS FOUND 2026-10-17).
 GO:     given 2026-10-16 for the eval and the flow tests ("think on your rec again always adversially
         go"; "carry on, your rec go"); for the five fixes, the three labels and the translation
         ("your rec on all go"); 2026-10-17 for the stop route and the Spanish ("go your rec";
         "think on it adverserially your rec go"); 2026-10-17 for the Spanish review ("auto
         compatcte re read docs rules notes so you know where you are at your rec on all think on
-        them again adversarially first go").
+        them again adversarially first go"); 2026-10-18 for the follow-ups 2–4 ("compacted re read
+        docs rules session your rec on all go").
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's

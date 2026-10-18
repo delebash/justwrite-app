@@ -31,9 +31,9 @@ const intent = ref("edit");
 
 // Notes intent uses the same parser (one detected section = one note), so
 // "chapters" in this view doubles as the note list when intent === "notes".
-// Keep label helpers in one place so the wizard reads naturally either way.
-const itemLabel = computed(() => intent.value === "notes" ? "note" : "chapter");
-const itemLabelPlural = computed(() => intent.value === "notes" ? "notes" : "chapters");
+// Each wording is a whole message per case: a noun pasted into a sentence can't
+// agree with it in another language ("este nota").
+const asNotes = computed(() => intent.value === "notes");
 
 // "notes" intent options — applied to every imported note.
 const notesTag = ref("note");
@@ -414,7 +414,7 @@ function finishAfterSweep() {
               <div class="ps-stats">
                 <div class="ps-stat">
                   <div class="ps-num">{{ validChapters.length }}</div>
-                  <div class="ps-lbl">{{ validChapters.length === 1 ? itemLabel : itemLabelPlural }}</div>
+                  <div class="ps-lbl">{{ asNotes ? $t("count.noteNoun", validChapters.length) : $t("count.chapterNoun", validChapters.length) }}</div>
                 </div>
                 <div class="ps-stat">
                   <div class="ps-num">{{ $n(totalWords) }}</div>
@@ -443,18 +443,20 @@ function finishAfterSweep() {
           </section>
 
           <section class="wiz-section">
-            <h2 class="wiz-h">{{ $t("import.detectedHeading", { items: itemLabelPlural }) }}</h2>
+            <h2 class="wiz-h">{{ asNotes ? $t("import.detectedNotes") : $t("import.detectedChapters") }}</h2>
             <p class="t-muted" style="font-size:12.5px;margin:0 0 12px">
-              {{ $t("import.editTitles", { items: itemLabelPlural }) }}
+              {{ asNotes ? $t("import.editNoteTitles") : $t("import.editChapterTitles") }}
             </p>
             <ol class="ch-list">
               <li v-for="(c, i) in chapters" :key="i" class="ch-row" :class="{ dropped: c.drop }">
                 <span class="ch-num">{{ i + 1 }}</span>
-                <UiInput class="ch-title" v-model="c.title" :placeholder="$t('import.untitledItem', { item: itemLabel })" :disabled="c.drop" />
+                <UiInput class="ch-title" v-model="c.title" :placeholder="asNotes ? $t('sceneNotes.untitledNote') : $t('chapters.outline.untitledChapter')" :disabled="c.drop" />
                 <span class="ch-words">{{ $t("import.wordsShort", { n: $n(wordCount(c.html)) }) }}</span>
                 <UiButton intent="ghost" size="small" class="ch-drop"
                   @click="dropChapter(i)"
-                  v-tooltip.bottom="c.drop ? $t('import.keepItem', { item: itemLabel }) : $t('import.dropItem', { item: itemLabel })">
+                  v-tooltip.bottom="c.drop
+                    ? (asNotes ? $t('import.keepNote') : $t('import.keepChapter'))
+                    : (asNotes ? $t('import.dropNote') : $t('import.dropChapter'))">
                   <Icon :name="c.drop ? 'Plus' : 'Trash'" :size="12" />
                   {{ c.drop ? $t("import.keep") : $t("import.drop") }}
                 </UiButton>

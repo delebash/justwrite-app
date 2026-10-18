@@ -145,6 +145,8 @@
     "sharedScene": "{n} escena compartida | {n} escenas compartidas",
     "hotChapter": "{n} capítulo destacado | {n} capítulos destacados",
     "flagNoun": "alerta | alertas",
+    "chapterNoun": "capítulo | capítulos",
+    "noteNoun": "nota | notas",
     "chapterDone": "{n} capítulo terminado | {n} capítulos terminados",
     "member": "{n} miembro | {n} miembros"
   },
@@ -1547,7 +1549,9 @@
     "compsWarning": "{verify} Los modelos inventan con seguridad títulos comparativos que no existen o los atribuyen erróneamente. Las etiquetas de confianza son la propia autoevaluación del modelo; trátalas como un punto de partida para la investigación, no como una lista terminada. Los agentes quieren comparables publicados en los últimos 5 años; si una sugerencia es más antigua, busca un equivalente más reciente.",
     "verifyTerm": "Verifica esto antes de enviarlo a cualquier parte.",
     "untitledComp": "(sin título)",
-    "confidenceLabel": "{level} confianza",
+    "confidenceHigh": "confianza alta",
+    "confidenceMedium": "confianza media",
+    "confidenceLow": "confianza baja",
     "clearPack": "Borrar paquete",
     "err": {
       "noProvider": "Configura un proveedor de IA en Configuración → IA para generar el paquete de marketing.",
@@ -1991,14 +1995,17 @@
     "statSource": "origen",
     "chooseDifferent": "Elegir un archivo diferente",
     "parserNotes": "Notas del analizador",
-    "detectedHeading": "Se detectaron {items}",
-    "editTitles": "Edita los títulos o elimina {items} que no quieras.",
-    "untitledItem": "{item} sin título",
+    "detectedChapters": "Capítulos detectados",
+    "detectedNotes": "Notas detectadas",
+    "editChapterTitles": "Edita los títulos o quita los capítulos que no quieras.",
+    "editNoteTitles": "Edita los títulos o quita las notas que no quieras.",
     "wordsShort": "{n} palabras",
-    "keepItem": "Mantener este {item}",
-    "dropItem": "Eliminar este {item}",
+    "keepChapter": "Mantener este capítulo",
+    "keepNote": "Mantener esta nota",
+    "dropChapter": "Quitar este capítulo",
+    "dropNote": "Quitar esta nota",
     "keep": "Mantener",
-    "drop": "Eliminar",
+    "drop": "Quitar",
     "willNotImport": "No se importará.",
     "afterImportHeading": "Después de la importación",
     "scanAfterLabel": "Escanea los capítulos importados en busca de nuevos personajes, ubicaciones y objetos",
@@ -2866,7 +2873,6 @@
       "expandSidebar": "Expandir barra lateral",
       "newPart": "Nueva parte",
       "newCategory": "Nueva categoría",
-      "newItem": "Añadir {label}",
       "addChapterToPart": "Añadir capítulo a esta parte",
       "addSceneToChapter": "Añadir escena a este capítulo",
       "addArticleToCategory": "Añadir artículo a esta categoría",
@@ -3114,11 +3120,11 @@
           "hint": "Geist + verde azulado, superficies blancas: el aspecto limpio original."
         },
         "finePress": {
-          "name": "Fine Press",
+          "name": "Imprenta fina",
           "hint": "Fraunces + color sangre de buey, editor de ancho completo."
         },
         "ivoryPress": {
-          "name": "Ivory Press",
+          "name": "Imprenta marfil",
           "hint": "Superficies de marfil, papel crema, encabezados en cursiva."
         },
         "calmModern": {
