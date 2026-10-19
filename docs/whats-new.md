@@ -6,6 +6,11 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-19
 
+**Sign in from another computer.** When JustWrite's server asks for a token (Settings → Server →
+API access), a browser on another computer now gets a page asking for one, and keeps it once it's
+accepted; before, it said it couldn't reach the server. See
+[API access](headless-access.md#api-access-bearer-tokens).
+
 **Spelling that works in the desktop app.** On Windows the desktop app marked no misspellings at
 all: the spellchecker it borrowed from Electron, the engine it's built on, has flagged nothing since
 Electron 41. JustWrite now checks spelling itself, the same in the desktop app, a browser tab and the

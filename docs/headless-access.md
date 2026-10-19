@@ -80,7 +80,9 @@ Two things worth knowing:
   keeps working normally. If you'd rather require a token even there, switch on
   **Require a token even on localhost**.
 - **The app itself always loads.** Tokens guard the API, not the page — so a
-  browser can always reach JustWrite and sign in.
+  browser can always reach JustWrite and sign in: on another computer the page
+  asks for an access token; paste one of yours and **Connect**. The browser keeps
+  it for that server, so you sign in once.
 
 Treat a token like a password: anyone holding one can read and change
 everything in your library.
