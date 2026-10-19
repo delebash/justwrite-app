@@ -294,6 +294,44 @@ The design and slice 4's plan: [`../plans/2026-10-18-ai-text-mark-and-slice-4.md
   the run's end. ProseMirror tags paste and drop `uiEvent`, and prosemirror-history tags Undo
   `history$` — the two the rule leaves alone. (*code and tests, 2026-10-18.*)
 
+### The writer's editor: highlights, spelling, a book language (2026-10-18)
+
+The plan: [`../plans/2026-10-18-editor-expansion.md`](../plans/2026-10-18-editor-expansion.md).
+
+- **No thesaurus from WordNet.** `natural` 8.1.1 (14 MB, plus `wordnet-db` 34 MB) depends on
+  mongoose, pg, redis and memjs. `wordnet` 2.0.0 (27 MB) and `synonyms` 1.0.1 (2.1 MB) give
+  WordNet's synonym sets, too thin for writing: *walk* → walking; *angry*, *beautiful* → nothing;
+  *looked*, *ran*, *said* → no entry. The npm `moby` 1.1.2 depends on express and jade. (*measured
+  2026-10-18, a scratch install.*)
+- **Electron draws no right-click menu by itself** — the app builds one in `webContents`'
+  `context-menu` event (electronjs.org/docs/latest/tutorial/spellchecker); the kit's shell had none,
+  so the editor's "Show browser menu" did nothing in the desktop app. The shell now uses
+  `electron-context-menu` 5.1.0, which reads its `labels` each time the menu opens and shows *Copy
+  image* when Chromium reports an image or canvas under the click. (*the package's source; probed in
+  JustWrite's built app with the popup intercepted, 2026-10-18.*)
+- **`session.addWordToSpellCheckerDictionary` also writes to the OS's own dictionary** on Windows
+  10+ and macOS (Electron's session docs) — why the story bible's names get `spellcheck="false"`
+  instead. That attribute applies per element: text is checked when its nearest ancestor with a
+  spellcheck state says true (the HTML spec; MDN). **Unverified on screen:** from this session
+  Chromium's spellchecker flagged nothing in an Electron 44 window — not "walkd", not a typed
+  "Zorbly" — with the Windows checker or Hunspell forced (`disable-features=WinUseBrowserSpellChecker`,
+  the en-US dictionary initialized); `capturePage` failed (UnknownVizError) and an offscreen window
+  painted no squiggles. The spans are checked in the DOM. (*2026-10-18.*)
+- **The spellchecker's languages here:** `getSpellCheckerLanguages()` → `["en-US"]`;
+  `availableSpellCheckerLanguages` → 57 codes, `en` and `es-419` among them (asked for
+  `["es-419", "en"]`, the shell set exactly those).
+  (*Electron 44.7, Windows 11, 2026-10-18.*)
+- **Decorations over a 10,000-word chapter:** a full pass of the three highlight lists 13–38 ms in
+  jsdom, so an edit maps the old marks and rescans only the blocks it touched — under 1 ms a
+  keystroke (`src/services/editorDecorations.js`). (*the unit test, 2026-10-18.*)
+- **A book's language in its exports:** EPUB 3.3's `dc:language` and each page's `xml:lang`/`lang`;
+  docx's run `language` (Word's proofing language); pdfmake's `language` (its Printer writes it as
+  the PDF's `/Lang`). vue-i18n falls back by itself (`es-419` → `es` → the fallback locale); the
+  exporters pick the catalog themselves (`bookLocale`). (*the libraries' sources, 2026-10-18.*)
+- **QSelect renders only the visible part of a long list** (42 of the 77 languages): read the
+  total from an option's `aria-setsize`, and pick by typing (QSelect's type-ahead), not by finding
+  the option. (*measured 2026-10-18.*)
+
 ## Translation: what still shows in English (2026-10-12)
 
 The July research and its seven decisions: [`../plans/2026-07-26-i18n-single-source-research.md`](../plans/2026-07-26-i18n-single-source-research.md)

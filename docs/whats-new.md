@@ -6,6 +6,25 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-18
 
+**Your book's language.** **Settings → Project → Book language** says what the book is written in.
+Its PDF, Word and EPUB files declare it — e-readers and Word then hyphenate and proof in it — and
+write their own few words in it (Contents, Chapter 3) when JustWrite speaks it. Until now every EPUB
+said English. A new book starts in the language of JustWrite's screens. See
+[The book's language](import-and-export.md#the-books-language).
+
+**Prose highlights.** **Writing settings** can underline filter words (*saw*, *felt*), adverbs and
+AI-tell phrases as you write — the lists Analysis counts — each in its own colour, with the reason
+on hover. Off until you turn them on; English books only. See
+[Prose highlights](writing.md#prose-highlights).
+
+**Spelling knows your story bible.** Your characters', places', objects' and groups' names are never
+underlined as misspellings. In the desktop app, the editor's **Show browser menu** now opens a real
+spelling menu — suggestions, **Add to dictionary**, cut, copy and paste — and the spellchecker
+checks in your book's language. See [Spelling](writing.md#spelling).
+
+**The daily target counts.** Home's **Today's session** card shows a bar toward the **daily target**
+set in Settings → Project (0 hides it); before, the target was stored and nothing used it.
+
 **Draft from plan — a scene from its Summary.** Turn on **AI scene drafting** for a book in
 **Settings → Project**, write a scene's **Summary** in its Links panel, and **Draft from plan**
 drafts the scene — from an empty scene's button, or from the cursor in the AI dropdown — as an
@@ -36,7 +55,9 @@ you add starts with your language's word, and a note whose tag you leave blank s
 Spanish, "Ejecutar configuración rápida") puts the button under its text instead of squeezing the
 text into a narrow column, and the "Your graphics hardware changed" notice shows its title.
 **Try tutorial project** now opens the tutorial book this version ships, also on a computer that
-had an older JustWrite.
+had an older JustWrite. Writing settings fits a phone's screen, the chapter footer says "Saved as you
+type" (it claimed local storage), and the AI engine panel has no download settings any more —
+downloads use several connections and retry by themselves.
 
 ## 2026-10-17
 

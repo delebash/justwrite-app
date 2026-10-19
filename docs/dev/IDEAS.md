@@ -71,9 +71,10 @@ AI alternatives; small-medium), **3)** prose highlights / linguistic focus (surf
 styleMetrics + aiTellScanner catalogs we already own as toggleable editor decorations;
 small, best value-per-work on the list), **4)** session word target (small UI over data
 we already record; per-chapter targets deliberately not in v1), **5)** dictation
-(whisper.cpp — parked, unscheduled). **Rows 1 (spelling only), 3 and 4 are being built from
-`docs/plans/2026-10-18-editor-expansion.md` (2026-10-18); row 2 was dropped there after a quality
-check, and Harper's grammar is "not now".**
+(whisper.cpp — parked, unscheduled). **Built 2026-10-18 from `docs/plans/2026-10-18-editor-expansion.md`:
+row 3, row 4, and row 1's spelling (the story bible's names, the desktop's spelling menu). Row 2 was
+dropped after a quality check (WordNet too thin; Rewrite gives alternatives in context). What's left:
+row 1's grammar (Harper — "not now", 2026-10-18) and row 5.**
 Rejected-with-reasons (autocorrect, track changes, footnotes, read-aloud→JV) are in the
 doc §5 so they don't come back as "missing".
 
@@ -178,15 +179,6 @@ The house rule (nothing hardcoded) would put them in the seeded prompts — a te
 `brainstorm` / `brainstormPlot` actions, its heal entry and the Lab sample. Not started.
 
 ## UI / UX
-
-### A book language, for the words JustWrite writes into an export (2026-10-13)
-
-An exported book's own words — "Contents", "Chapter 3", the cover page's title — and its EPUB
-language tag (hardcoded `en` today) should follow the language the book is written in, not the
-interface's: an English novel exported from a Spanish screen must not get "Capítulo 3". Shape: a
-"Book language" field in the book's details; the exporters translate their words in that language
-(vue-i18n takes a locale per call) and write it as the EPUB's `dc:language`. Ruled 2026-10-13 that
-these words stay English until then (the i18n plan, kit TASKS).
 
 ### Customizable editor / context menus (was ledger §J1; big-batch #52a)
 

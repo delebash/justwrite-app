@@ -1,5 +1,14 @@
 # The writer's editor, rebuilt plan (2026-10-18)
 
+**Shipped the same day.** 1 `46fd6e7` · 2 `8657619` (kit `73de113`, `531de29`; docgen `c821cdf`) ·
+3 `4f353dd` · 4 `eeb72b7` (kit `1689b3e`). Where the build went past this plan, each on a second
+look: an edit rescans only the blocks it touched (a full pass was 13–38 ms over 10,000 words); a
+name word starting lowercase isn't a name ("the" in an alias would have marked every "the"); the
+spellchecker keeps the variety it already uses (an English book on a US machine stays en-US, not the
+alphabetically first en-AU); the exporters' cover-page title and image text, and the DOCX and PDF
+language, follow the book too; Writing settings stacks its rows at phone width. Still to see with
+the user's own eyes: the squiggles (TASKS).
+
 Replaces the 2026-07-26 executor plan (archived: `archive/2026-07-26-editor-expansion-executor-plan.md`),
 which was never launched and had gone stale (Moby, Harper 2.4.0, pre-Quasar paths). The research it
 came from stays live: [`2026-07-26-writers-editor-gap-research.md`](2026-07-26-writers-editor-gap-research.md).
