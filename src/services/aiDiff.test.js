@@ -34,7 +34,7 @@ function twoPendingChanges() {
 }
 
 const text = () => editor.state.doc.textContent;
-const paragraphs = () => { const out = []; editor.state.doc.forEach((n) => out.push(n.textContent)); return out; };
+const paragraphs = () => { const out = []; editor.state.doc.forEach((n) => { out.push(n.textContent); }); return out; };
 
 describe("with two pending changes", () => {
   it("Reject all restores both originals", () => {
