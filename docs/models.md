@@ -495,13 +495,11 @@ one empty and that side embeds raw. If you edit a template after building an ind
 > shows the estimated tokens-per-second instead of a label (10 % by default; 0 turns it
 > off; measured speeds always keep their label), and **Recommend down to (% under Fine)** —
 > how far under the *fine* line Quick Setup still recommends a model on a PC with no
-> preset (20 % by default; 0 = the *fine* line itself). The **download settings**
-> sit in the same group, and the engine-binaries editor below keeps just the download
-> URLs and the pinned build. Downloads are **segmented** by
-> default: one file is fetched as several parallel connections, so one slow server path
-> can't cap the whole download — the settings let you turn it off, change how many
-> connections run, the size floor below which files stay single-stream, and the retries
-> per connection. An in-flight install's progress bar and any error stay visible
+> preset (20 % by default; 0 = the *fine* line itself). The engine-binaries editor
+> below keeps just the download URLs and the pinned build. Downloads need no settings:
+> each file comes over several connections at once, so one slow server path can't cap
+> the whole download, and a dropped connection retries from the byte it had reached.
+> An in-flight install's progress bar and any error stay visible
 > even with Details collapsed. The installed check reads your **disk**, not a stored
 > setting: if the engine folder holds the engine, the app reports it installed and shows
 > that folder's version — so resetting the app's data can never make an engine that is
