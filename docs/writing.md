@@ -128,12 +128,16 @@ From left to right (approximate; some buttons collapse into menus on narrower wi
 - **Inline comment** — attach a private note to selected text; the marked text is visually distinguished and clicking it shows the note in a popover
 - **Find / Replace bar** — search within this chapter
 - **Focus mode** — distraction-free full-screen writing
-- **Editor settings** — per-document overrides for font, size, line spacing, layout (Page or Full-width)
+- **Writing settings** (the gear) — on this device: font, size, indent, line and paragraph spacing, spell check, and what the editor highlights (see **Prose highlights** below)
 - **Undo / Redo**
 
 ### The bubble menu
 
 Select any text and a small floating menu appears next to your selection with the formatting palette — bold, italic, underline, text colour, font size, link, comment. The bubble is formatting only; the AI actions live in the scene strip's **AI** dropdown (see below) so they're one click away even when you don't have a selection yet.
+
+### Prose highlights
+
+**Writing settings** can mark three of Analysis' lists as you write: **filter words** (*saw*, *felt*, *noticed* — words that can put the narrator between the reader and the scene), **adverbs** (*-ly* words, with common non-adverbs like *only* left out) and **AI-tell phrases** (the AI-tell scan's list). Each gets its own underline — gold, blue, orange — and hovering a marked word says why it's marked. They're off until you turn them on and never change your text. The lists are English, so they mark English books only: the book's language is **Book language** in Settings → Project.
 
 ### `@`-mentions
 

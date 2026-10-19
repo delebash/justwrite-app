@@ -85,6 +85,19 @@ const COMPILED = RAW_PHRASES.map((entry) => ({
   source: entry.p,
 }));
 
+/** The phrases in `text` as [{ from, to, blurbKey }] — the same patterns the scan runs, for the
+ *  editor's prose highlights (services/proseHighlights.js, 2026-10-18). */
+export function tellRanges(text) {
+  const out = [];
+  const s = String(text || "");
+  for (const entry of COMPILED) {
+    for (const m of s.matchAll(new RegExp(entry.re.source, "gi"))) {
+      if (m[0]) out.push({ from: m.index, to: m.index + m[0].length, blurbKey: entry.blurbKey });
+    }
+  }
+  return out;
+}
+
 export const TELL_KINDS = {
   catalog:  { labelKey: "aiTell.kind.catalog", colour: "var(--accent-ink)" },
   body:     { labelKey: "aiTell.kind.body", colour: "var(--gold)" },

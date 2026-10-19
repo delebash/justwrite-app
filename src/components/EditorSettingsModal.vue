@@ -4,6 +4,8 @@
 // the CSS vars globally), Back discards.
 import { computed, reactive } from "vue";
 import { useUiStore } from "../stores/ui.js";
+import { useProjectStore } from "../stores/project.js";
+import { languageName } from "@delebash/ui";
 import {
   EDITOR_FONTS, LINE_SPACING_OPTIONS, PARAGRAPH_SPACING_OPTIONS, DEFAULT_EDITOR_SETTINGS,
 } from "../services/editorSettings.js";
@@ -37,6 +39,16 @@ const BOOL_OPTS = computed(() => [
 ]);
 const LINE_SPACING_OPTS = computed(() => [{ value: null, label: t("editorSettings.optTheme") }, ...LINE_SPACING_OPTIONS.map((o) => ({ value: o, label: o }))]);
 const PARA_SPACING_OPTS = computed(() => [{ value: null, label: t("editorSettings.optTheme") }, ...PARAGRAPH_SPACING_OPTIONS.map((o) => ({ value: o, label: o }))]);
+
+// The prose highlights' switches; their lists are English, so a book in another language says so.
+const PROSE_HIGHLIGHTS = [
+  { field: "highlightFilterWords", labelKey: "editorSettings.highlightFilterWords" },
+  { field: "highlightAdverbs", labelKey: "editorSettings.highlightAdverbs" },
+  { field: "highlightAiTells", labelKey: "editorSettings.highlightAiTells" },
+];
+const project = useProjectStore();
+const bookLanguage = computed(() => project.project?.language || "en");
+const englishBook = computed(() => /^en(-|$)/i.test(bookLanguage.value));
 
 const emit = defineEmits(["close"]);
 const ui = useUiStore();
@@ -96,6 +108,15 @@ function back() { emit("close"); }
         <UiSegmented v-model="draft.highlightAiText" :options="BOOL_OPTS"
           :aria-label="$t('editorSettings.highlightAiText')" />
       </div>
+
+      <!-- Prose highlights (2026-10-18): Analysis' English lists, marked as you write. -->
+      <div v-for="h in PROSE_HIGHLIGHTS" :key="h.field" class="es-row">
+        <span class="es-label">{{ $t(h.labelKey) }}</span>
+        <UiSegmented v-model="draft[h.field]" :options="BOOL_OPTS" :aria-label="$t(h.labelKey)" />
+      </div>
+      <p v-if="!englishBook" class="es-note">
+        {{ $t("editorSettings.highlightsEnglishOnly", { language: languageName(bookLanguage) }) }}
+      </p>
     </div>
 
     <template #footer>
@@ -113,4 +134,12 @@ function back() { emit("close"); }
 }
 .es-label { font-size: 12.5px; font-weight: 600; color: var(--ink-2); text-align: right; line-height: 1.3; }
 .es-select { max-width: 260px; }
+.es-note { margin: -4px 0 0 226px; max-width: 60ch; font-size: 11.5px; line-height: 1.45; color: var(--muted); }
+/* A phone (Quasar's xs, under 600px): each label over its control — the two columns cut the
+   controls off at 390px (seen 2026-10-18). */
+@media (max-width: 599.98px) {
+  .es-row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .es-label { text-align: left; }
+  .es-note { margin-left: 0; }
+}
 </style>

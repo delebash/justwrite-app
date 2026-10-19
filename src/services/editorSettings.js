@@ -36,6 +36,11 @@ export const DEFAULT_EDITOR_SETTINGS = {
   keepStrikethroughOnAccept: true,
   // The AI-text mark's colour (2026-10-18): on by default; off drops the colour, the marks stay.
   highlightAiText: true,
+  // Prose highlights (2026-10-18): Analysis' lists marked as you write, English books only. Off
+  // until the writer turns one on.
+  highlightFilterWords: false,
+  highlightAdverbs: false,
+  highlightAiTells: false,
 };
 
 export const LINE_SPACING_OPTIONS = [1, 1.3, 1.4, 1.5, 2];

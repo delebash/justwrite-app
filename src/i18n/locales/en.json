@@ -698,6 +698,10 @@
     "spellCheck": "Spell check",
     "keepStrikethrough": "Keep original as strikethrough when accepting an AI change",
     "highlightAiText": "Highlight AI-written text",
+    "highlightFilterWords": "Highlight filter words",
+    "highlightAdverbs": "Highlight adverbs",
+    "highlightAiTells": "Highlight AI-tell phrases",
+    "highlightsEnglishOnly": "These three lists are English, so they mark nothing in this book: it's in {language} (Settings → Project).",
     "save": "save",
     "back": "back",
     "fontThemeDefault": "Theme default",
@@ -1720,6 +1724,10 @@
     "tabLabel": "Writing AI"
   },
   "richEditor": {
+    "highlight": {
+      "filterNote": "Filter word: it can put the narrator between the reader and what the character sees, hears or feels.",
+      "adverbNote": "Adverb: a stronger verb may do its work."
+    },
     "superscriptGlyph": "x²",
     "subscriptGlyph": "x₂",
     "removeHighlight": "Remove highlight",

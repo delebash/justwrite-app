@@ -123,14 +123,24 @@ function stdev(values) {
 }
 
 function adverbCount(text) {
-  if (!text) return 0;
-  let count = 0;
-  const m = text.match(/\b\w{4,}ly\b/gi);
-  if (!m) return 0;
-  for (const w of m) {
-    if (!ADVERB_EXCLUDES.has(w.toLowerCase())) count++;
+  return adverbRanges(text).length;
+}
+
+// The same catalogs as character ranges in a text — the editor's prose highlights mark them
+// (services/proseHighlights.js, 2026-10-18), so the editor and Analysis count the same words.
+/** Filter words in `text`, as [{ from, to }]. */
+export function filterWordRanges(text) {
+  const out = [];
+  for (const m of String(text || "").matchAll(new RegExp(FILTER_RE.source, "gi"))) out.push({ from: m.index, to: m.index + m[0].length });
+  return out;
+}
+/** -ly adverbs in `text`, as [{ from, to }] — the common non-adverbs above ("only", "family"…) left out. */
+export function adverbRanges(text) {
+  const out = [];
+  for (const m of String(text || "").matchAll(/\b\w{4,}ly\b/gi)) {
+    if (!ADVERB_EXCLUDES.has(m[0].toLowerCase())) out.push({ from: m.index, to: m.index + m[0].length });
   }
-  return count;
+  return out;
 }
 
 // Words inside paired straight or curly quotes — a dialogue-share signal.

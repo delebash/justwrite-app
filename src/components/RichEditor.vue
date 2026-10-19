@@ -22,6 +22,7 @@ import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
 import { CONTEXT_PART_KEYS } from "../services/storyContext.js";
 import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
+import { ProseHighlights, proseHighlightsKey } from "../services/proseHighlights.js";
 import EditorSettingsModal from "./EditorSettingsModal.vue";
 
 const props = defineProps({
@@ -63,6 +64,7 @@ const emit = defineEmits(["update:modelValue", "change"]);
 const router = useRouter();
 const ui = useUiStore();
 const project = useProjectStore();
+const { t, locale } = useI18n();
 // The open book's language (Settings → Project; BCP-47).
 const bookLanguage = computed(() => project.project?.language || "en");
 const settingsOpen = ref(false);
@@ -111,6 +113,18 @@ const extensions = editorExtensions({
   // a server image is stored by its path and shown through this window's address for it
   imageView,
   mention: props.mentions ? buildMentionExtension() : null,
+}).concat(
+  // The renderer's view-only additions (never in the server's schema): Writing settings' prose highlights.
+  ProseHighlights.configure({ on: () => proseHighlightsOn.value, note: (key) => t(key) }),
+);
+
+// Writing settings' prose highlights — the manuscript's, and only for an English book (the lists are
+// English); null when there's nothing to mark, so nothing is scanned.
+const proseHighlightsOn = computed(() => {
+  if (!isManuscript.value || !/^en(-|$)/i.test(bookLanguage.value)) return null;
+  const s = { ...DEFAULT_EDITOR_SETTINGS, ...ui.editorSettings };
+  const on = { filter: !!s.highlightFilterWords, adverbs: !!s.highlightAdverbs, tells: !!s.highlightAiTells };
+  return on.filter || on.adverbs || on.tells ? on : null;
 });
 
 // --- live counters ----------------------------------------------------
@@ -211,6 +225,11 @@ watch(() => ui.editorSettings.spellCheck, (on) => {
 watch(bookLanguage, (lang) => {
   if (editor.value?.view?.dom) editor.value.view.dom.lang = lang;
 });
+// The highlights recompute when a switch, the book's language or the notes' language changes.
+watch([proseHighlightsOn, locale], () => {
+  const ed = editor.value;
+  if (ed && !ed.isDestroyed) ed.view.dispatch(ed.state.tr.setMeta(proseHighlightsKey, true));
+}, { deep: true });
 
 onBeforeUnmount(() => editor.value?.destroy());
 
@@ -233,7 +252,6 @@ const aiError = ref("");
 // Slice 2 (the AI drafting spec §4): the prose actions — Rewrite, Expand, Tighten, Continue,
 // Describe, Continue with direction — send the story context of the scene they run in, and the
 // AI strip's Context line names what was sent. Line edits never get it (spec §9.5).
-const { t } = useI18n();
 const contextParts = ref(null); // the parts the running action was sent; null = no Context line
 function sceneIdAtCursor() {
   const ed = editor.value;
@@ -1993,6 +2011,16 @@ defineExpose({
 /* Find/replace match highlights */
 .search-match { background: color-mix(in oklch, var(--accent) 22%, transparent); border-radius: 2px; }
 .search-match--current { background: var(--accent); color: var(--on-accent); }
+/* Writing settings' prose highlights (services/proseHighlights.js): a solid underline per list, in
+   three token hues — never a background (search and comments use those) and never wavy (the
+   browser's spelling line is). The note is the span's title. */
+.ph-filter, .ph-adverb, .ph-tell {
+  text-decoration-line: underline; text-decoration-thickness: 2px; text-underline-offset: 3px;
+  text-decoration-skip-ink: none;
+}
+.ph-filter { text-decoration-color: color-mix(in oklch, var(--gold) 85%, transparent); }
+.ph-adverb { text-decoration-color: color-mix(in oklch, var(--info) 80%, transparent); }
+.ph-tell { text-decoration-color: color-mix(in oklch, var(--status-revise) 85%, transparent); }
 
 /* @-mention chips */
 .mention {
