@@ -998,14 +998,6 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   `docs/dev/measured-performance.md` §Boot.)
 - **Fit-estimate label wording — your veto still open.** Shipped with the PC-class work;
   `docs/plans/archive/2026-07-22-igpu-research-and-cpu-band-recovery.md` §25 addendum 9.
-- **One look in the desktop app — the spelling I couldn't see from my session (2026-10-18).** The
-  editor-expansion plan shipped (`docs/plans/2026-10-18-editor-expansion.md`), but Chromium's
-  spellchecker never flagged a word in my test windows (RESEARCH, "The writer's editor"). In a
-  scene: a misspelling gets the red underline, a character's name doesn't; the editor menu's
-  **Show browser menu**, then a right-click on the misspelling, lists suggestions and **Add to
-  dictionary**. If nothing is underlined at all, the cause sits under JustWrite: on 2026-10-19 a bare
-  Electron window (44.7 and 41.10) reported spellcheck off for its editable while the session said
-  on (RESEARCH, "The renderer says spellcheck is off").
 - **The 2026-07-19..26 unauthorized-changes review — 77 user-visible commits await YOUR
   verdict; only you can say which you approved.** Next candidate: `ea543ae` (panels dismiss on
   Esc/outside-click + nav toggle). Method (both proven the hard way): enumerate with the FULL

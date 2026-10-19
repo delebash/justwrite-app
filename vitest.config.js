@@ -45,6 +45,9 @@ export default defineConfig({
       "#q-app": "@quasar/app-vite",
       // as quasar.config.js on a computer: the server is a separate process, nothing to start
       "#phone": resolve(__dirname, "src/phone/none.js"),
+      // as quasar.config.js: the spellchecker's dictionaries, read as text
+      "dictionary-en": resolve(__dirname, "node_modules/dictionary-en"),
+      "dictionary-es": resolve(__dirname, "node_modules/dictionary-es"),
     },
     // Same dedupe list as quasar.config.js (extendViteConf), and for the same reason: the aliased kit
     // imports its peer deps by bare specifier from its OWN dir, which has no

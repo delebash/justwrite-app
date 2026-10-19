@@ -25,6 +25,9 @@ import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
 import { ProseHighlights, proseHighlightRanges, proseHighlightsKey } from "../services/proseHighlights.js";
 import { StoryNames, storyNameRanges, storyNameWords, storyNamesKey } from "../services/storyNames.js";
 import { refreshDecorations } from "../services/editorDecorations.js";
+import {
+  Spelling, configureSpelling, dictionaryCode, onSpellingChange, spellingKey, spellingMarks, suggestSpelling,
+} from "../services/spelling/index.js";
 import EditorSettingsModal from "./EditorSettingsModal.vue";
 
 const props = defineProps({
@@ -117,16 +120,26 @@ const extensions = editorExtensions({
   mention: props.mentions ? buildMentionExtension() : null,
 }).concat(
   // The renderer's view-only marks (never in the server's schema; services/editorDecorations.js):
-  // Writing settings' prose highlights, and the story bible's names kept out of the spellchecker.
+  // Writing settings' prose highlights, the story bible's names kept out of the browser's
+  // spellchecker, and JustWrite's own spellchecker's misspellings (services/spelling).
   ProseHighlights.configure({ ranges: () => proseHighlightRanges(proseHighlightsOn.value, t) }),
   StoryNames.configure({ ranges: () => storyNameMarks.value }),
+  Spelling.configure({ ranges: () => spellingMarks(), hideAtCursor: true }),
 );
 
+// Spell check (Writing settings): JustWrite's own checker where it has the book's language
+// (services/spelling, 2026-10-19 — the desktop app's Chromium checker flags nothing on Windows
+// since Electron 41), else the browser's.
+const spellCheckOn = computed(() => ui.editorSettings?.spellCheck !== false);
+const ownSpelling = computed(() => spellCheckOn.value && !!dictionaryCode(bookLanguage.value));
+const nativeSpellcheck = computed(() => spellCheckOn.value && !ownSpelling.value);
+
 // The open book's names (characters and their aliases, locations, objects, groups), as one string
-// so a change elsewhere in an entity doesn't redraw; no marks while spell check is off.
+// so a change elsewhere in an entity doesn't redraw; marked only for the browser's spellchecker
+// (JustWrite's own takes the names as words).
 const storyNameKey = computed(() => storyNameWords(project).join("\n"));
 const storyNameMarks = computed(() => {
-  if (ui.editorSettings?.spellCheck === false || !storyNameKey.value) return null;
+  if (!nativeSpellcheck.value || !storyNameKey.value) return null;
   return storyNameRanges(storyNameKey.value.split("\n"));
 });
 
@@ -158,7 +171,7 @@ const editor = useEditor({
   autofocus: props.autofocus,
   extensions,
   editorProps: {
-    attributes: { class: "tiptap-content", spellcheck: String(ui.editorSettings.spellCheck), lang: bookLanguage.value },
+    attributes: { class: "tiptap-content", spellcheck: String(nativeSpellcheck.value), lang: bookLanguage.value },
     // Auto-capitalize the first letter of a sentence as the user types,
     // when the setting is on. Returns true to take over the insertion.
     handleTextInput(view, from, to, text) {
@@ -175,7 +188,7 @@ const editor = useEditor({
       return true;
     },
   },
-  onCreate({ editor }) { syncCounts(editor); syncDiffState(editor); editor.view.dom.spellcheck = ui.editorSettings.spellCheck; },
+  onCreate({ editor }) { syncCounts(editor); syncDiffState(editor); editor.view.dom.spellcheck = nativeSpellcheck.value; },
   onUpdate({ editor }) {
     const html = editor.getHTML();
     emit("update:modelValue", html);
@@ -228,10 +241,21 @@ watch(() => props.modelValue, (val) => {
   }
 });
 
-// Spell check toggles live on the editor's DOM node.
-watch(() => ui.editorSettings.spellCheck, (on) => {
+// The browser's spell check toggles live on the editor's DOM node.
+watch(nativeSpellcheck, (on) => {
   if (editor.value?.view?.dom) editor.value.view.dom.spellcheck = on;
 });
+// JustWrite's own: what it checks with (the switch, the book's language, the book's names and its
+// dictionary), and a redraw whenever an answer or a dictionary arrives.
+watch([spellCheckOn, bookLanguage, storyNameKey, () => project.dictionary], () => {
+  configureSpelling({
+    enabled: spellCheckOn.value,
+    language: bookLanguage.value,
+    words: [...(storyNameKey.value ? storyNameKey.value.split("\n") : []), ...(project.dictionary || [])],
+  });
+}, { immediate: true });
+const offSpelling = onSpellingChange(() => refreshDecorations(editor.value, spellingKey));
+onBeforeUnmount(offSpelling);
 // So does the book's language (Settings → Project): the browser's spelling, hyphenation and
 // screen readers follow the editor's `lang`.
 watch(bookLanguage, (lang) => {
@@ -641,17 +665,50 @@ function onEditorContextMenu(e) {
   if (ctxNativeOnce.value) { ctxNativeOnce.value = false; return; } // the browser menu, once
   e.preventDefault();
   ctxMenu.value = { open: true, x: e.clientX, y: e.clientY };
-  // Clamp into the viewport once the menu has a size.
+  openSpellingTarget(e);
+  clampCtxMenu();
+}
+// Clamp into the viewport once the menu has a size (again when the suggestions arrive).
+function clampCtxMenu() {
   nextTick(() => {
     const el = ctxMenuEl.value;
-    if (!el) return;
+    if (!el || !ctxMenu.value.open) return;
     const r = el.getBoundingClientRect();
     const x = Math.min(ctxMenu.value.x, window.innerWidth - r.width - 8);
     const y = Math.min(ctxMenu.value.y, window.innerHeight - r.height - 8);
     ctxMenu.value = { open: true, x: Math.max(8, x), y: Math.max(8, y) };
   });
 }
-function closeCtxMenu() { ctxMenu.value = { open: false, x: 0, y: 0 }; }
+function closeCtxMenu() { ctxMenu.value = { open: false, x: 0, y: 0 }; spellTarget.value = null; }
+
+// The marked word under a right-click (services/spelling): its corrections and Add to dictionary
+// head the menu — the spelling menu the desktop app's Chromium no longer gives on Windows.
+const spellTarget = ref(null); // { from, to, word, suggestions: null (asking) | [...] }
+function openSpellingTarget(e) {
+  spellTarget.value = null;
+  const ed = editor.value;
+  if (!ed || !ownSpelling.value) return;
+  const hit = ed.view.posAtCoords({ left: e.clientX, top: e.clientY });
+  const mark = hit && spellingKey.getState(ed.state)?.find(hit.pos, hit.pos)[0];
+  if (!mark) return;
+  const target = { from: mark.from, to: mark.to, word: ed.state.doc.textBetween(mark.from, mark.to), suggestions: null };
+  spellTarget.value = target;
+  suggestSpelling(target.word).then((list) => {
+    if (spellTarget.value?.from !== target.from || spellTarget.value.word !== target.word) return;
+    spellTarget.value = { ...spellTarget.value, suggestions: list };
+    clampCtxMenu();
+  });
+}
+// A correction replaces the word — if it's still the word that was marked (the guide's check). The
+// target is passed in: closing the menu (ctxRun, before the action) clears it.
+function replaceMisspelling(tgt, text) {
+  const ed = editor.value;
+  if (!tgt || !ed || ed.state.doc.textBetween(tgt.from, tgt.to) !== tgt.word) return;
+  ed.chain().focus().command(({ tr }) => { tr.insertText(text, tgt.from, tgt.to); return true; }).run();
+}
+function addToDictionary(tgt) {
+  if (tgt) project.addDictionaryWord(tgt.word);
+}
 function ctxShowBrowserMenu() { ctxNativeOnce.value = true; closeCtxMenu(); }
 function ctxRun(fn, ...args) { closeCtxMenu(); fn(...args); }
 // Esc must close the menu wherever focus sits (the menu's own keydown only
@@ -1661,6 +1718,19 @@ defineExpose({
     <div v-if="ctxMenu.open" ref="ctxMenuEl" class="ctx-menu" role="menu"
       :style="{ left: `${ctxMenu.x}px`, top: `${ctxMenu.y}px` }"
       @keydown.escape="closeCtxMenu">
+      <template v-if="spellTarget">
+        <button v-for="s in spellTarget.suggestions || []" :key="s" class="ctx-item ctx-item-suggestion" role="menuitem"
+          @click="ctxRun(replaceMisspelling, spellTarget, s)">
+          <span class="ctx-label">{{ s }}</span>
+        </button>
+        <div v-if="spellTarget.suggestions && !spellTarget.suggestions.length" class="ctx-item ctx-item-none">
+          <span class="ctx-label">{{ $t("kit.shellMenu.noSuggestions") }}</span>
+        </div>
+        <button class="ctx-item" role="menuitem" @click="ctxRun(addToDictionary, spellTarget)">
+          <Icon name="Plus" :size="13" class="ctx-ic" /><span class="ctx-label">{{ $t("kit.shellMenu.addToDictionary") }}</span>
+        </button>
+        <div class="ctx-divider" />
+      </template>
       <div class="ctx-section">
         {{ $t("richEditor.ctxSelectionOnly") }}
         <span v-if="!hasSelection" class="ctx-section-hint">{{ $t("richEditor.ctxSelectionHint") }}</span>
@@ -1697,8 +1767,10 @@ defineExpose({
            browser's own menu programmatically, so this arms a one-shot
            passthrough — the NEXT right-click is the native menu (with
            spell-check suggestions). Sticky at the menu's bottom so the
-           spell-check door stays visible when the item list scrolls. -->
-      <button class="ctx-item ctx-item-passthrough" role="menuitem" @click="ctxShowBrowserMenu">
+           spell-check door stays visible when the item list scrolls. Only for
+           a book JustWrite's own spellchecker can't check (its suggestions head
+           this menu otherwise). -->
+      <button v-if="!ownSpelling" class="ctx-item ctx-item-passthrough" role="menuitem" @click="ctxShowBrowserMenu">
         <span class="ctx-label">{{ $t("richEditor.ctxBrowserMenu") }}</span><kbd class="ctx-kbd">{{ $t("richEditor.ctxBrowserMenuHint") }}</kbd>
       </button>
     </div>
@@ -1979,6 +2051,8 @@ defineExpose({
 .ctx-item:hover:not(:disabled) { background: var(--surface-2); }
 .ctx-item:disabled { color: var(--muted); cursor: default; }
 .ctx-item:disabled .ctx-ic { opacity: .5; }
+.ctx-item-suggestion { font-weight: 600; }
+.ctx-item-none { color: var(--muted); cursor: default; }
 .ctx-item-passthrough {
   position: sticky; bottom: -6px; flex-shrink: 0;
   background: var(--surface); border-top: 1px solid var(--border-soft);
@@ -2035,6 +2109,12 @@ defineExpose({
 .ph-filter { text-decoration-color: color-mix(in oklch, var(--gold) 85%, transparent); }
 .ph-adverb { text-decoration-color: color-mix(in oklch, var(--info) 80%, transparent); }
 .ph-tell { text-decoration-color: color-mix(in oklch, var(--status-revise) 85%, transparent); }
+/* JustWrite's own spellchecker's misspellings (services/spelling): the wavy line every
+   spellchecker draws, in the danger hue. */
+.spell-error {
+  text-decoration-line: underline; text-decoration-style: wavy; text-decoration-thickness: 1.5px;
+  text-decoration-color: var(--danger); text-underline-offset: 3px; text-decoration-skip-ink: none;
+}
 
 /* @-mention chips */
 .mention {

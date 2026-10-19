@@ -331,7 +331,9 @@ function liftAiArtifacts(snap) {
 // The one normalize pass every snapshot goes through, on all three load
 // routes (boot, loadSnapshot, switchProject).
 function normalizeSnapshot(snap) {
-  return liftAiArtifacts(normalizeStrands(snap));
+  const out = liftAiArtifacts(normalizeStrands(snap));
+  // the book's dictionary (2026-10-19): a book from before it has none
+  return out && !Array.isArray(out.dictionary) ? { ...out, dictionary: [] } : out;
 }
 const EMPTY_TRASH = {
   chapters: [], scenes: [], characters: [], locations: [], objects: [],
@@ -389,6 +391,7 @@ const DOMAIN_SLICES = {
   meta:          ["project"],
   statuses:      ["statuses", "trash.statuses"],
   tagVocab:      ["tagVocabularies", "trash.tagVocab"],
+  dictionary:    ["dictionary"],
   events:        ["events", "trash.events"],
 };
 
@@ -429,6 +432,7 @@ const ACTION_DOMAINS = {
   addStatusDef: "statuses", updateStatusDef: "statuses", removeStatusDef: "statuses",
   reorderStatusDefs: "statuses",
   addTagVocab: "tagVocab", renameTagVocab: "tagVocab", removeTagVocab: "tagVocab",
+  addDictionaryWord: "dictionary", removeDictionaryWord: "dictionary",
   addEvent: "events", updateEvent: "events", removeEvent: "events",
 };
 
@@ -604,6 +608,7 @@ function blankSnapshot({ title = "Untitled", author = "", language = BLANK_PROJE
     worldbuilding: [],
     worldbuildingCategories: DEFAULT_WB_CATEGORIES.map((c) => ({ ...c })),
     tagVocabularies: { characters: [], locations: [], objects: [], worldbuilding: [] },
+    dictionary: [],
     statuses: DEFAULT_STATUSES.map((s) => ({ ...s })),
     scenes: {},
     images: {}, events: {},
@@ -641,6 +646,8 @@ export const useProjectStore = defineStore("project", {
     worldbuilding: loaded.worldbuilding || [],
     worldbuildingCategories: loaded.worldbuildingCategories || DEFAULT_WB_CATEGORIES.map((c) => ({ ...c })),
     tagVocabularies: { characters: [], locations: [], objects: [], worldbuilding: [], ...(loaded.tagVocabularies || {}) },
+    // The book's own words, never marked as misspellings (Add to dictionary, 2026-10-19).
+    dictionary: loaded.dictionary || [],
     statuses: loaded.statuses || DEFAULT_STATUSES.map((s) => ({ ...s })),
     // Scenes registry: { [chapterId]: [{ id, title, body, ...links }] }.
     // A fresh project has none; the server-seeded demo (and any saved project)
@@ -1854,6 +1861,22 @@ export const useProjectStore = defineStore("project", {
       this._persist();
     },
 
+    // ── The book's dictionary (the spellchecker's own words for this book) ──
+    addDictionaryWord(word) {
+      const w = String(word || "").trim();
+      if (!w || this.dictionary.includes(w)) return;
+      this._record("addDictionaryWord");
+      // in the server's order (SQLite's ORDER BY word: by code unit), so a reload doesn't reorder it
+      this.dictionary = [...this.dictionary, w].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+      this._persist();
+    },
+    removeDictionaryWord(word) {
+      if (!this.dictionary.includes(word)) return;
+      this._record("removeDictionaryWord");
+      this.dictionary = this.dictionary.filter((w) => w !== word);
+      this._persist();
+    },
+
     // ── Tag vocabularies (per-kind curated suggestions) ──────
     addTagVocab(kind, label = t("defaults.tag")) {
       this._record("addTagVocab");
@@ -2246,6 +2269,7 @@ export const useProjectStore = defineStore("project", {
         strands: this.strands, notes: this.notes, architecture: this.architecture,
         worldbuilding: this.worldbuilding, worldbuildingCategories: this.worldbuildingCategories,
         tagVocabularies: this.tagVocabularies,
+        dictionary: this.dictionary,
         images: this.images, events: this.events,
         statuses: this.statuses,
         trash: this.trash,

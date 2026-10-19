@@ -3243,6 +3243,11 @@
       "placeholder": "Tag label",
       "empty": "No curated tags yet — add one to suggest it across all entries of this type."
     },
+    "dictionary": {
+      "cardTitle": "Dictionary",
+      "hint": "Words the spellchecker accepts in this book, besides your story bible's names. Add one from the editor: right-click a marked word, then Add to dictionary.",
+      "empty": "No words added yet."
+    },
     "coverImage": {
       "cardTitle": "Cover image",
       "hint": "Shows up as the book cover in EPUB and PDF exports. Recommended size: 1600 × 2400 px (2:3 ratio), JPEG or PNG.",

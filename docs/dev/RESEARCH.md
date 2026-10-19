@@ -312,20 +312,26 @@ The plan: [`../plans/2026-10-18-editor-expansion.md`](../plans/2026-10-18-editor
 - **`session.addWordToSpellCheckerDictionary` also writes to the OS's own dictionary** on Windows
   10+ and macOS (Electron's session docs) — why the story bible's names get `spellcheck="false"`
   instead. That attribute applies per element: text is checked when its nearest ancestor with a
-  spellcheck state says true (the HTML spec; MDN). **Unverified on screen:** from this session
-  Chromium's spellchecker flagged nothing in an Electron 44 window — not "walkd", not a typed
-  "Zorbly" — with the Windows checker or Hunspell forced (`disable-features=WinUseBrowserSpellChecker`,
-  the en-US dictionary initialized); `capturePage` failed (UnknownVizError) and an offscreen window
-  painted no squiggles. The spans are checked in the DOM. (*2026-10-18.*)
-  **The renderer says spellcheck is off.** A bare Electron window (no JustWrite code: a visible,
-  focused `contenteditable` with `spellcheck="true"`, words typed key by key with `sendInputEvent`,
-  then a synthesized right-click on each): every `context-menu` reports `isEditable: true`,
-  `spellcheckEnabled: false`, no `misspelledWord`, while the session says
-  `isSpellCheckerEnabled()` true and fires `spellcheck-dictionary-initialized` for en-US. The same
-  on Electron 44.7.0 and 41.10.7, so not a 44 regression; and the same after toggling the session's
-  spellchecker off and on, re-setting its languages, or starting it (dictionary ready) before the
-  window existed. Not ruled out: that synthesized input differs from a real mouse and keyboard, or
-  a Windows setting. A look in the desktop app with real input settles it. (*2026-10-19.*)
+  spellcheck state says true (the HTML spec; MDN). (*2026-10-18.*)
+- **Electron's spellchecker flags nothing on Windows since Electron 41** — electron/electron#54729
+  (bisected there: 40.10.6 works, 41.10.7 through 44.4.3 don't; closed by a bot for its missing
+  template, never triaged; no fix in flight on 2026-10-19 — #52085 is another Windows spelling
+  change, #52712 a Linux one). Measured here with a bare Electron window (no JustWrite code; text typed
+  with `sendInputEvent`, software rendering so `capturePage` works): **40.10.6** draws the squiggles
+  under "walkd", "Zorbly", "tolkd", "storry" and right-clicking "walkd" gives `misspelledWord`
+  "walkd", suggestions walked/walk/walks…; **41.10.7, 44.7.0 (ours), 44.9.0 (latest) and
+  45.0.0-beta.5** draw nothing and report no `misspelledWord`, while the session says enabled and
+  fires `spellcheck-dictionary-initialized`. Chrome 149 on the same box draws the squiggles, so it's
+  Electron's wiring, not Chromium or Windows. `params.spellcheckEnabled` is false on 40 too — not a
+  symptom. Nothing in the session fixes it (toggling it, re-setting languages, starting it before
+  the window, Hunspell forced). (*2026-10-19.*)
+- **JustWrite checks spelling itself since 2026-10-19** (docs/plans/2026-10-19-spelling.md): nspell
+  2.1.5 in a module Web Worker with wooorm's `dictionary-en` / `dictionary-es` 4.0.0 — TipTap's
+  documented second route (tiptap.dev/docs/guides/spellcheck). Measured in Node: en loads in 89 ms
+  (+12 MB heap), es in 652 ms (+37 MB); 100,000 words checked in 8–14 ms; a suggestion 2–10 ms. Inside
+  the built desktop app (app://, the kit shell's CSP `worker-src 'self' blob:`): the bundled worker
+  and dictionary chunks load, English in 111 ms, "walkd"/"storry" flagged, "storry" →
+  story/sorry/starry/stormy. The flow test drives it in the browser build at 1280 and 390 px.
 - **The spellchecker's languages here:** `getSpellCheckerLanguages()` → `["en-US"]`;
   `availableSpellCheckerLanguages` → 57 codes, `en` and `es-419` among them (asked for
   `["es-419", "en"]`, the shell set exactly those).
