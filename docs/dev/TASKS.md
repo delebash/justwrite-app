@@ -995,7 +995,15 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   2026-10-18).** The kit's new guard check 17 wants a `useSurfaceTask("<feature>")` for each
   feature a screen starts; JustWrite gets advisories (`node ../just-core/scripts/check-family.js
   --info`) until its hand-written `aiTasks.runningTasks.find(...)` computeds (useBrainstorm's
-  `myTask`, for one) move onto it, then the check can fail. Not started.
+  `myTask`, for one) move onto it, then the check can fail. Not started. Sized 2026-10-18: 28
+  lookups in 26 files, most a one-line swap; nothing a user sees changes (each screen already shows
+  its task). Three things the swap alone won't settle: (1) DraftReviewModal and IdeaListModal take
+  their feature as a prop (SceneLinks, SheetDraftModal, StuckDiagnosticModal, ChaptersPage) — the
+  check reads literals only, so the caller must name it; (2) the features are "planning" and
+  "storyWorld" (constants PLANNING_FEATURE, STORY_WORLD_FEATURE — the check resolves them and no
+  longer counts those calls' actions since just-core `81b086e`), and "sceneDrafting"; (3) chat/characterChat and
+  characterProfile/characterVoice are one strip each (two lookups OR'ed), and the multi-reader
+  panel filters several running tasks.
 - **"Serve `/health` before `seed_workspace`" — recommend DROPPING; your ruling owed.**
   Measured 2026-07-25: it buys 36 ms of a ~975 ms pre-listen window dominated by framework
   imports that cannot be deferred. (Correction, docs campaign: there is no "re-measure
