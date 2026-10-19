@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Marks the editor draws over the text without changing it — the renderer's view-only additions
 // to the editor (2026-10-18, the editor-expansion plan): Writing settings' prose highlights
-// (proseHighlights.js), the story bible's names kept out of the browser's spellchecker
-// (storyNames.js) and JustWrite's own spellchecker's misspellings (spelling/index.js, 2026-10-19).
+// (proseHighlights.js) and the story bible's names kept out of the spellchecker (storyNames.js).
 //
 // ProseMirror inline decorations (prosemirror.net/docs/ref/#view.Decoration^inline), the way
 // searchReplace.js marks its matches: never in the document or the undo history. An edit maps the
@@ -65,18 +64,16 @@ export function updateDecorations(old, tr, ranges) {
 /**
  * A TipTap extension drawing one kind of mark. Its option `ranges: () => ((text) => [...]) | null`
  * is read on every change; after what it depends on changes (a setting, the book's names), dispatch
- * a transaction with `setMeta(key, true)` and everything is scanned again. `hideAtCursor` leaves
- * out a mark that ends where the cursor stands — the word being typed (the spellchecker's, which,
- * like Chrome's, waits until you've finished the word).
+ * a transaction with `setMeta(key, true)` and everything is scanned again.
  */
 export function decorationExtension(name, key) {
   return Extension.create({
     name,
     addOptions() {
-      return { ranges: () => null, hideAtCursor: false };
+      return { ranges: () => null };
     },
     addProseMirrorPlugins() {
-      const { ranges, hideAtCursor } = this.options;
+      const { ranges } = this.options;
       return [
         new Plugin({
           key,
@@ -88,13 +85,7 @@ export function decorationExtension(name, key) {
             },
           },
           props: {
-            decorations(state) {
-              const set = key.getState(state);
-              if (!hideAtCursor || !state.selection.empty) return set;
-              const head = state.selection.head;
-              const typing = set.find(head, head).filter((d) => d.to === head);
-              return typing.length ? set.remove(typing) : set;
-            },
+            decorations(state) { return key.getState(state); },
           },
         }),
       ];

@@ -71,10 +71,6 @@ export default defineConfig((ctx) => {
         // The phone's pieces (its in-app server, the share sheet, the code scanner); null on a
         // computer.
         '#phone': path.join(root, 'src', 'phone', inAppServer ? 'index.js' : 'none.js'),
-        // The spellchecker's dictionaries (src/services/spelling/dictionaries.js), read as text:
-        // their packages export only index.js, which reads the files with Node's fs.
-        'dictionary-en': path.join(root, 'node_modules', 'dictionary-en'),
-        'dictionary-es': path.join(root, 'node_modules', 'dictionary-es'),
       },
 
       beforeDev: buildPhoneWorker,

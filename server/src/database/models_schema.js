@@ -1072,23 +1072,6 @@ export const TABLES = [
     }
   },
   {
-    "name": "dictionary_words",
-    "ddl": "CREATE TABLE dictionary_words (\n\tproject_id VARCHAR NOT NULL, \n\tword VARCHAR NOT NULL, \n\tPRIMARY KEY (project_id, word), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
-    "indexes": [],
-    "columns": {
-      "project_id": {
-        "kind": "text",
-        "pk": true,
-        "notNull": true
-      },
-      "word": {
-        "kind": "text",
-        "pk": true,
-        "notNull": true
-      }
-    }
-  },
-  {
     "name": "architecture",
     "ddl": "CREATE TABLE architecture (\n\tproject_id VARCHAR NOT NULL, \n\tid VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\ttitle VARCHAR NOT NULL, \n\tstatus VARCHAR NOT NULL, \n\twords INTEGER NOT NULL, \n\tbody TEXT NOT NULL, \n\tPRIMARY KEY (project_id, id), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
     "indexes": [],

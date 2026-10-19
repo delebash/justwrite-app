@@ -17,20 +17,6 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
-## Spelling in the plain text boxes [2026-10-19]
-STATE:  PROPOSED — the plan: `docs/plans/2026-10-19-spelling.md`, "The plain text boxes". The user,
-        on the Electron report: "dont post bug report they dont like ai doitn stuff, find another
-        solutions, think on it adversialy surely theere is a easy already built solution", then
-        "your rec on all go". Measured first (RESEARCH, "No app-side switch brings it back on
-        41+"): nothing built in brings Chromium's checker back on Windows — Electron's own provider
-        hook is never asked — and no maintained package draws marks in a textarea.
-WHY:    JustWrite's 28 plain boxes go unchecked in the Windows desktop app.
-NOT:    the upstream report (the user's ruling); one-line boxes; other book languages (IDEAS).
-OPEN:   the user's word on the one NOT STANDARD piece, by name: **the layer over the textarea**
-        (the kit's `UiTextarea` draws our marks on a see-through copy of its text). Everything
-        else in the plan is standard or already ours.
-GO:     "your rec on all go" (2026-10-19) — doesn't cover a NOT STANDARD piece.
-
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
 STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the
         plan `docs/plans/2026-10-11-ai-drafting-plan.md` (each task ticked there with its commit). First round, asked as shown (after Fable's review of the first design, whose changes were
@@ -1012,6 +998,12 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   `docs/dev/measured-performance.md` §Boot.)
 - **Fit-estimate label wording — your veto still open.** Shipped with the PC-class work;
   `docs/plans/archive/2026-07-22-igpu-research-and-cpu-band-recovery.md` §25 addendum 9.
+- **One look in the desktop app — the spelling (2026-10-18).** In a scene: a misspelling gets the red
+  underline, a character's name doesn't; the editor menu's **Show browser menu**, then a right-click
+  on the misspelling, lists suggestions and **Add to dictionary**. What's settled (2026-10-19,
+  RESEARCH "Electron's spellchecker works on Windows — with real input"): Electron 44.7 underlines
+  with real typing (the user, in Just House Paint), and a name in a `spellcheck="false"` span is
+  skipped; the earlier "spellcheck is off" was my probes' scripted focus and `char`-only typing.
 - **The 2026-07-19..26 unauthorized-changes review — 77 user-visible commits await YOUR
   verdict; only you can say which you approved.** Next candidate: `ea543ae` (panels dismiss on
   Esc/outside-click + nav toggle). Method (both proven the hard way): enumerate with the FULL

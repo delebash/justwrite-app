@@ -919,21 +919,6 @@ async function deleteCategory(c) {
             </div>
           </div>
 
-          <!-- ── The book's dictionary (the spellchecker's words for this book, 2026-10-19) ── -->
-          <div class="card">
-            <div class="card-title">{{ $t('settings.dictionary.cardTitle') }}</div>
-            <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-              {{ $t('settings.dictionary.hint') }}
-            </p>
-            <div v-if="project.dictionary.length" style="display:flex;flex-wrap:wrap;gap:6px">
-              <UiTag v-for="w in project.dictionary" :key="w" intent="secondary" :value="w" removable
-                @remove="project.removeDictionaryWord(w)" />
-            </div>
-            <div v-else class="t-muted" style="font-size:12.5px;font-style:italic">
-              {{ $t('settings.dictionary.empty') }}
-            </div>
-          </div>
-
           <!-- ── Cover image ──────────────────────────────────── -->
           <div class="card">
             <div class="card-title">{{ $t('settings.coverImage.cardTitle') }}</div>

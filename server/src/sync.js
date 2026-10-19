@@ -44,8 +44,10 @@ const log = getLogger("justwrite_server.sync");
 // editor schema the AI-text mark (`<span data-ai-text>`, server/src/editor/aiText.js) — an older
 // device would drop the mark from a scene it merges. Same reason as 2.
 // 6 (2026-10-18): projects gained `language` (the book's language). Same reason as 2.
-// 7 (2026-10-19): a new table, `dictionary_words` (the book's own words for the spellchecker) — an
-// older device doesn't know it and would drop the rows. Same reason as 2.
+// 7 (2026-10-19): a table `dictionary_words` came and went the same day (JustWrite's own
+// spellchecker, removed — docs/plans/archive/2026-10-19-spelling.md). Kept at 7, not back to 6: a
+// device that synced at 7 must not have its changes refused as newer; the engine skips rows of a
+// table it doesn't know, so devices with and without the table sync as they are.
 export const SYNC_SCHEMA_VERSION = 7;
 
 // ── scene text: merged edit by edit through Yjs, on the editor's own schema ──────────────

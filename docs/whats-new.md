@@ -11,14 +11,6 @@ API access), a browser on another computer now gets a page asking for one, and k
 accepted; before, it said it couldn't reach the server. See
 [API access](headless-access.md#api-access-bearer-tokens).
 
-**Spelling that works in the desktop app.** On Windows the desktop app marked no misspellings at
-all: the spellchecker it borrowed from Electron, the engine it's built on, has flagged nothing since
-Electron 41. JustWrite's editor now checks spelling itself, the same in the desktop app, a browser tab
-and the phone, for English and Spanish books — a wavy red line under a misspelling, its corrections at the
-top of the editor's right-click menu, and **Add to dictionary** for a word this book uses, listed in
-**Settings → Project → Dictionary**. Your story bible's names are never marked. See
-[Spelling](writing.md#spelling).
-
 **Draft from plan shows its progress where you write.** Its progress strip and **Context:** line
 now sit under the editor, as every other AI action's do, and the other AI actions wait until it
 finishes; before, its progress showed only in the AI tasks panel.
@@ -37,8 +29,9 @@ on hover. Off until you turn them on; English books only. See
 [Prose highlights](writing.md#prose-highlights).
 
 **Spelling knows your story bible.** Your characters', places', objects' and groups' names are never
-underlined as misspellings. (The desktop spelling menu this entry promised showed nothing on Windows;
-2026-10-19's spellchecker replaces it.) See [Spelling](writing.md#spelling).
+underlined as misspellings. In the desktop app, the editor's **Show browser menu** now opens a real
+spelling menu — suggestions, **Add to dictionary**, cut, copy and paste — and the spellchecker
+checks in your book's language. See [Spelling](writing.md#spelling).
 
 **The daily target counts.** Home's **Today's session** card shows a bar toward the **daily target**
 set in Settings → Project (0 hides it); before, the target was stored and nothing used it.

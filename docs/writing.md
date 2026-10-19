@@ -141,11 +141,9 @@ Select any text and a small floating menu appears next to your selection with th
 
 ### Spelling
 
-With **Spell check** on (Writing settings), JustWrite marks misspelled words with a wavy red line — once you've finished the word, not while you're still typing it — and never the names in your story bible: every character's name and alias, every location, object and group is left alone, possessives too, so neither *Cael* nor *Cael's* is flagged. It checks in your book's language (**Book language** in Settings → Project) — English and Spanish for now — the same way in the desktop app, a browser tab and the phone.
+With **Spell check** on (Writing settings), misspelled words get the usual red underline — but never the names in your story bible: every character's name and alias, every location, object and group is left alone, so *Cael* and *Threnn* aren't flagged as typos. In the desktop app the spellchecker checks in your book's language (**Book language** in Settings → Project) and in the language of JustWrite's screens, when your computer has them; in a browser tab it uses the browser's own languages.
 
-Right-click a marked word and its corrections head the editor's menu: pick one to replace the word. **Add to dictionary** keeps the word unmarked everywhere in this book. The words you've added are listed in **Settings → Project → Dictionary**, where ✕ takes one back, and they travel with the book when you export it.
-
-A book in another language uses the browser's own spellchecker instead: the last item of the editor's menu, **Show browser menu (spell check)**, makes your next right-click the browser's spelling menu. So do the plain text boxes outside the editor — a character's fields, a scene's notes and Summary, the premise. In the Windows desktop app that spellchecker marks nothing at the moment — a fault in Electron, the engine the desktop app is built on, since its version 41.
+For suggestions, right-click in the text: the last item of the editor's menu, **Show browser menu (spell check)**, makes your next right-click the spelling menu — its suggestions, **Add to dictionary**, and cut, copy and paste. In the desktop app this menu is JustWrite's own; in a browser tab it's the browser's.
 
 ### `@`-mentions
 

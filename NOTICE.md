@@ -16,16 +16,6 @@ Code in this app that was copied or ported from another project, with its licenc
   Sans Mono), each under the SIL Open Font License 1.1; each package's `LICENSE` holds its copyright and
   the licence.
 
-## Bundled with this app
-
-- **The spellchecker's dictionaries** (`src/services/spelling/dictionaries.js`, 2026-10-19) — wooorm's
-  Hunspell dictionaries, each bundled whole: `dictionary-en` 4.0.0, the en_US dictionary derived from
-  SCOWL (wordlist.sourceforge.net), Copyright 2000-2018 by Kevin Atkinson and the others its `license`
-  file names, under the SCOWL licence (MIT AND BSD); `dictionary-es` 4.0.0, the es_ES dictionary of
-  LibreOffice/Apache OpenOffice by Santiago Bosio, offered under GPL 3, LGPL 3 or MPL 1.1 — used here
-  under the Mozilla Public License 1.1. Each package's `license` file holds its notices and terms.
-- **The spellchecker** (`nspell` 2.1.5) — MIT License, Copyright (c) 2016 Titus Wormer.
-
 The MIT licence text, which each MIT notice above refers to:
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and

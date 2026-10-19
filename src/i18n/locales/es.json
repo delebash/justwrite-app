@@ -3243,11 +3243,6 @@
       "placeholder": "Nombre de la etiqueta",
       "empty": "Aún no hay etiquetas curadas; añade una para sugerirla en todas las entradas de este tipo."
     },
-    "dictionary": {
-      "cardTitle": "Diccionario",
-      "hint": "Palabras que el corrector ortográfico acepta en este libro, además de los nombres de tu biblia de la historia. Añade una desde el editor: haz clic derecho en una palabra marcada y luego elige Añadir al diccionario.",
-      "empty": "Aún no hay palabras añadidas."
-    },
     "coverImage": {
       "cardTitle": "Imagen de portada",
       "hint": "Se muestra como la portada del libro en las exportaciones de EPUB y PDF. Tamaño recomendado: 1600 × 2400 px (relación 2:3), JPEG o PNG.",

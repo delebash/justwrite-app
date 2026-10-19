@@ -62,7 +62,7 @@ const pageRoutes = [
   ...entityEventRoutes("architecture/setting", "setting", { fixedId: "setting", namePrefix: "setting" }),
 
   { path: "architecture/:id?",  name: "Architecture",  component: () => import("../pages/ArchitecturePage.vue"), props: true, meta: { undoDomains: ["architecture"] } },
-  { path: "chapters/:id?/:sceneId?", name: "Chapters",      component: () => import("../pages/ChaptersPage.vue"), props: true, meta: { undoDomains: ["manuscript", "dictionary"] } },
+  { path: "chapters/:id?/:sceneId?", name: "Chapters",      component: () => import("../pages/ChaptersPage.vue"), props: true, meta: { undoDomains: ["manuscript"] } },
   { path: "search",             name: "Search",        component: () => import("../pages/SearchPage.vue") },
 
   // Per-entity event routes are declared BEFORE the dynamic :id? routes
@@ -94,7 +94,7 @@ const pageRoutes = [
   { path: "import",            name: "Import",        component: () => import("../pages/ImportPage.vue") },
   { path: "export",            name: "Export",        component: () => import("../pages/ExportPage.vue") },
   { path: "trash",             name: "Trash",         component: () => import("../pages/TrashPage.vue") },
-  { path: "settings/:section?", name: "Settings",      component: () => import("../pages/SettingsPage.vue"), props: true, meta: { undoDomains: ["meta", "statuses", "tagVocab", "dictionary"] } },
+  { path: "settings/:section?", name: "Settings",      component: () => import("../pages/SettingsPage.vue"), props: true, meta: { undoDomains: ["meta", "statuses", "tagVocab"] } },
   { path: "help/:slug?",       name: "Help",          component: () => import("../pages/HelpPage.vue"), props: true },
 
   // QC-46 — the first-run welcome screen (the user's "W-A hero" pick). No
