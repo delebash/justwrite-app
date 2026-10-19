@@ -3503,7 +3503,7 @@
       "aiTokens": "· {n} tokens",
       "viewTaskQueue": "View task queue",
       "dismiss": "Dismiss",
-      "autosaves": "Autosaves to local storage"
+      "autosaves": "Saved as you type"
     },
     "empty": {
       "title": "No chapters yet",
