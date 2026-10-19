@@ -6,13 +6,15 @@
 // ready to download.
 // ============================================================
 
+import { tBook } from "../../i18n/index.js";
+
 let docxPromise = null;
 async function getDocx() {
   if (!docxPromise) docxPromise = import("docx");
   return docxPromise;
 }
 
-/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
+/* eslint-disable i18next/no-literal-string -- markup, styles and file names; the book's words come from tBook, in the book's language (2026-10-18) */
 export async function exportDocx({ manuscript, onProgress } = {}) {
   onProgress?.({ stage: "loading-docx" });
   const lib = await getDocx();
@@ -65,13 +67,14 @@ export async function exportDocx({ manuscript, onProgress } = {}) {
   if (manuscript.subtitle) children.push(cover(manuscript.subtitle, { italics: true, color: "666666", size: 28 }));
   if (manuscript.author) {
     children.push(cover(""), cover(""), cover(""));
-    children.push(cover(`by ${manuscript.author}`, { size: 30 }));
+    children.push(cover(tBook(manuscript.language, "export.book.byAuthor", { author: manuscript.author }), { size: 30 }));
   }
   children.push(pageBreak());
 
   // ── TOC ─────────────────────────────────────────────────
-  children.push(heading("Contents", HeadingLevel.HEADING_1));
-  children.push(new TableOfContents("Contents", {
+  const contents = tBook(manuscript.language, "export.book.contents");
+  children.push(heading(contents, HeadingLevel.HEADING_1));
+  children.push(new TableOfContents(contents, {
     // Auto-link entries and refresh on document open.
     hyperlink: true,
     // Range of heading levels to include — Parts use H1, Chapter titles H2,
@@ -97,7 +100,7 @@ export async function exportDocx({ manuscript, onProgress } = {}) {
 
     for (const ch of part.chapters) {
       children.push(pageBreak());
-      children.push(chapterEyebrow(`Chapter ${ch.num}`));
+      children.push(chapterEyebrow(tBook(manuscript.language, "export.book.chapter", { num: ch.num })));
       children.push(new Paragraph({
         alignment: AlignmentType.CENTER,
         heading: HeadingLevel.HEADING_2,
@@ -139,7 +142,8 @@ export async function exportDocx({ manuscript, onProgress } = {}) {
     features: { updateFields: true },
     styles: {
       default: {
-        document: { run: { font: "Georgia", size: 23 } },  // 11.5pt
+        // 11.5pt; the book's language, so Word proofs it in that language
+        document: { run: { font: "Georgia", size: 23, language: { value: manuscript.language } } },
       },
     },
     sections: [{

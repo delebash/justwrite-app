@@ -99,6 +99,18 @@ export function t(...args) { return i18n.global.t(...args); }
 // interface language (ruled 2026-10-13, the i18n plan), so a table the screen and a prompt share
 // names its keys once and the prompt side asks for them in English.
 export function tEnglish(key, params = {}) { return i18n.global.t(key, params, { locale: "en" }); }
+// A book's own words — an export's "Contents", "Chapter 3" — in the book's language, not the
+// interface's (2026-10-18, the editor-expansion plan's piece 2; an English novel exported from a
+// Spanish screen gets "Contents"): our catalog for that language, or for its base language
+// ("es-419" → "es"), else English.
+export function bookLocale(language) {
+  const code = String(language || "").toLowerCase();
+  const codes = AVAILABLE_LOCALES.map((l) => l.code);
+  return codes.find((c) => c.toLowerCase() === code)
+    || codes.find((c) => c.toLowerCase() === code.split("-")[0])
+    || AVAILABLE_LOCALES[0].code;
+}
+export function tBook(language, key, params = {}) { return i18n.global.t(key, params, { locale: bookLocale(language) }); }
 // Numbers and dates in the interface language (vue-i18n's n() and d()): a named format above, or
 // Intl options for a one-off shape.
 export function n(...args) { return i18n.global.n(...args); }

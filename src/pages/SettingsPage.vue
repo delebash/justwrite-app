@@ -22,7 +22,8 @@ import { UiTextarea } from "@delebash/ui";
 import { UiCheckbox } from "@delebash/ui";
 import { UiNumber } from "@delebash/ui";
 import { UiSelect } from "@delebash/ui";
-import { LanguagePicker } from "@delebash/ui";
+import { LanguagePicker, languageOptionsFrom } from "@delebash/ui";
+import { LANGUAGE_CODES } from "@delebash/core/platform/languages";
 import { UiButton } from "@delebash/ui";
 import { UiToggle } from "@delebash/ui";
 import { bookAiWrittenWords } from "../services/aiText.js";
@@ -53,7 +54,7 @@ const ai = useAiStore();
 const project = useProjectStore();
 const ui = useUiStore();
 
-const { t, d: fmtDate } = useI18n({ useScope: "global" });
+const { t, d: fmtDate, locale } = useI18n({ useScope: "global" });
 // The language picker's list: the app's catalogs (the kit's LanguagePicker names each language
 // and switches vue-i18n; the ui store keeps the choice).
 const LOCALE_CODES = AVAILABLE_LOCALES.map((l) => l.code);
@@ -324,6 +325,12 @@ function setMeta(key, value) {
 // The per-book record of AI-written text (the AI-text mark, 2026-10-18): words in the book's
 // scenes the AI wrote and the writer hasn't retyped or marked as their own.
 const aiWrittenWords = computed(() => bookAiWrittenWords(project));
+// The book's language (the editor-expansion plan's piece 2): the family's languages, named in the
+// interface's language; a book's own language stays listed even when the list lacks it (an import).
+const bookLanguageOptions = computed(() => {
+  void locale.value; // named again when the interface's language changes
+  return languageOptionsFrom([...LANGUAGE_CODES, project.project.language || "en"]);
+});
 function setMetaNumber(key, value) {
   const n = Number(value);
   project.updateProjectMeta({ [key]: Number.isFinite(n) ? n : 0 });
@@ -763,6 +770,13 @@ async function deleteCategory(c) {
               <span class="t-muted">{{ $t('settings.project.fieldGenre') }}</span>
               <UiInput :model-value="project.project.genre"
                 @update:model-value="(v) => setMeta('genre', v)" :placeholder="$t('settings.project.fieldGenrePlaceholder')" />
+              <span class="t-muted" style="align-self:start;padding-top:8px">{{ $t('settings.project.fieldLanguage') }}</span>
+              <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0">
+                <UiSelect width="fit" :model-value="project.project.language || 'en'" :options="bookLanguageOptions"
+                  :aria-label="$t('settings.project.fieldLanguage')"
+                  @update:model-value="(v) => setMeta('language', v)" />
+                <span class="t-muted" style="font-size:11.5px;max-width:60ch">{{ $t('settings.project.languageHint') }}</span>
+              </div>
               <span class="t-muted">{{ $t('settings.project.fieldStarted') }}</span>
               <!-- Dates since 2026-10-15 (ISO, picked from a calendar); words typed before show as typed. -->
               <UiDate :model-value="project.project.startedOn"

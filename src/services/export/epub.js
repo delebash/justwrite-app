@@ -21,6 +21,8 @@
 // `compression: "STORE"` option handles that.
 // ============================================================
 
+import { tBook } from "../../i18n/index.js";
+
 let jszipPromise = null;
 async function getJSZip() {
   if (!jszipPromise) jszipPromise = import("jszip").then((m) => m.default || m);
@@ -89,14 +91,14 @@ export async function exportEpub({ manuscript, onProgress } = {}) {
   manuscript.parts.forEach((part, pi) => {
     const partId = `part-${pi + 1}`;
     const partHref = `${partId}.xhtml`;
-    zip.file(`OEBPS/${partHref}`, partPageHtml(part));
+    zip.file(`OEBPS/${partHref}`, partPageHtml(part, manuscript.language));
     manifest.push({ id: partId, href: partHref, type: "application/xhtml+xml" });
     spine.push({ id: partId });
 
     part.chapters.forEach((ch) => {
       const chId = `ch-${ch.id}`;
       const chHref = `${chId}.xhtml`;
-      zip.file(`OEBPS/${chHref}`, chapterHtml(ch));
+      zip.file(`OEBPS/${chHref}`, chapterHtml(ch, manuscript.language));
       manifest.push({ id: chId, href: chHref, type: "application/xhtml+xml" });
       spine.push({ id: chId });
     });
@@ -115,7 +117,7 @@ export async function exportEpub({ manuscript, onProgress } = {}) {
   zip.file("OEBPS/content.opf", contentOpf({
     title: manuscript.title,
     author: manuscript.author,
-    language: "en",
+    language: manuscript.language,
     identifier: uuid(),
     coverItemId: cover ? cover.id : null,
     manifest,
@@ -135,10 +137,11 @@ export async function exportEpub({ manuscript, onProgress } = {}) {
 
 // ── HTML fragments ───────────────────────────────────────────────────
 
-function htmlShell(title, body) {
+// `lang`: the book's language (BCP-47), the page's xml:lang and lang.
+function htmlShell(title, body, lang) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="en" lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${xmlEscape(lang)}" lang="${xmlEscape(lang)}">
 <head>
   <meta charset="utf-8" />
   <title>${xmlEscape(title)}</title>
@@ -152,38 +155,38 @@ ${body}
 
 function titlePageHtml(m) {
   const subtitle = m.subtitle ? `<p class="subtitle">${xmlEscape(m.subtitle)}</p>` : "";
-  const author = m.author ? `<p class="author">by ${xmlEscape(m.author)}</p>` : "";
+  const author = m.author ? `<p class="author">${xmlEscape(tBook(m.language, "export.book.byAuthor", { author: m.author }))}</p>` : "";
   return htmlShell(m.title, `
 <section epub:type="titlepage" class="titlepage">
   <h1 class="book-title">${xmlEscape(m.title)}</h1>
   ${subtitle}
   ${author}
-</section>`);
+</section>`, m.language);
 }
 
-function partPageHtml(part) {
+function partPageHtml(part, lang) {
   return htmlShell(part.title, `
 <section epub:type="part" class="partpage">
   <h1>${xmlEscape(part.title)}</h1>
-</section>`);
+</section>`, lang);
 }
 
-/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
+/* eslint-disable i18next/no-literal-string -- markup, styles and file names; the book's words come from tBook, in the book's language (2026-10-18) */
 function coverPageHtml(m, coverHref) {
   // Full-bleed cover image. The wrapping <section> uses
   // epub:type="cover" so EPUB 3 readers handle navigation correctly.
-  return htmlShell(`${m.title} — Cover`, `
+  return htmlShell(tBook(m.language, "export.book.coverTitle", { title: m.title }), `
 <section epub:type="cover" class="cover">
-  <img src="${xmlEscape(coverHref)}" alt="${xmlEscape(m.title)} cover" />
-</section>`);
+  <img src="${xmlEscape(coverHref)}" alt="${xmlEscape(tBook(m.language, "export.book.coverAlt", { title: m.title }))}" />
+</section>`, m.language);
 }
 /* eslint-enable i18next/no-literal-string */
 
-/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
-function chapterHtml(ch) {
+/* eslint-disable i18next/no-literal-string -- markup, styles and file names; the book's words come from tBook, in the book's language (2026-10-18) */
+function chapterHtml(ch, lang) {
   const body = [];
   body.push(`<section epub:type="chapter">`);
-  body.push(`<p class="chapter-num">Chapter ${ch.num}</p>`);
+  body.push(`<p class="chapter-num">${xmlEscape(tBook(lang, "export.book.chapter", { num: ch.num }))}</p>`);
   body.push(`<h2 class="chapter-title">${xmlEscape(ch.title)}</h2>`);
   for (const b of ch.blocks) {
     if (b.kind === "h1") continue;
@@ -195,11 +198,11 @@ function chapterHtml(ch) {
     else body.push(`<p>${xmlEscape(b.text)}</p>`);
   }
   body.push(`</section>`);
-  return htmlShell(`Ch. ${ch.num} — ${ch.title}`, body.join("\n"));
+  return htmlShell(tBook(lang, "common.chapterRefDash", { num: ch.num, title: ch.title }), body.join("\n"), lang);
 }
 /* eslint-enable i18next/no-literal-string */
 
-/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
+/* eslint-disable i18next/no-literal-string -- markup, styles and file names; the book's words come from tBook, in the book's language (2026-10-18) */
 function navHtml(m) {
   const items = [];
   for (const part of m.parts) {
@@ -215,16 +218,16 @@ function navHtml(m) {
   }
   const body = `
 <nav epub:type="toc" id="toc">
-  <h1>Contents</h1>
+  <h1>${xmlEscape(tBook(m.language, "export.book.contents"))}</h1>
   <ol>
     ${items.join("\n    ")}
   </ol>
 </nav>`;
-  return htmlShell("Contents", body);
+  return htmlShell(tBook(m.language, "export.book.contents"), body, m.language);
 }
 /* eslint-enable i18next/no-literal-string */
 
-/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
+/* eslint-disable i18next/no-literal-string -- markup, styles and file names; the book's words come from tBook, in the book's language (2026-10-18) */
 function stylesheet() {
   return `body { font-family: Georgia, "Times New Roman", serif; line-height: 1.6; }
 .cover { margin: 0; padding: 0; text-align: center; }
@@ -260,7 +263,7 @@ function containerXml() {
 </container>`;
 }
 
-/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
+/* eslint-disable i18next/no-literal-string -- markup, styles and file names; the book's words come from tBook, in the book's language (2026-10-18) */
 function contentOpf({ title, author, language, identifier, coverItemId, manifest, spine }) {
   const manifestXml = manifest
     .map((m) => `<item id="${m.id}" href="${m.href}" media-type="${m.type}"${m.properties ? ` properties="${m.properties}"` : ""} />`)

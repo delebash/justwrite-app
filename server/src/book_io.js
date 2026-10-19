@@ -216,6 +216,7 @@ export function bookRows(projectId, snapIn) {
     deadline: s_(pyGet(proj, "deadline")),
     premise: s_(pyGet(proj, "premise")),
     ai_scene_drafting: truthy(pyGet(proj, "aiSceneDrafting")),
+    language: s_(pyGet(proj, "language")) || "en",
     world_rules: s_(pyGet(snap, "worldRules")),
     cover_image: jsonOrNone(pyGet(proj, "coverImage")),
     updated_at: s_(pyGet(snap, "savedAt")),
@@ -793,6 +794,7 @@ export function assemble(h, projectId) {
     deadline: proj.deadline,
     premise: proj.premise,
     aiSceneDrafting: !!proj.ai_scene_drafting,
+    language: proj.language,
     coverImage: proj.cover_image ? pyLoads(proj.cover_image) : null,
   };
 

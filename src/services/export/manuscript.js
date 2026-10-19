@@ -4,7 +4,7 @@
 // the same shape.
 //
 //   {
-//     title, author, subtitle, genre,
+//     title, author, subtitle, genre, language,
 //     parts: [{ id, title, chapters: [{ id, num, title, blocks }] }],
 //   }
 //
@@ -15,13 +15,17 @@
 // so downstream renderers always have at least a heading to lay out.
 // ============================================================
 
-/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
+import { tBook } from "../../i18n/index.js";
+
 export function buildManuscript(project, { stripSceneStructure = false } = {}) {
+  // The book's language (Settings → Project): the exporters write their own words in it.
+  const language = project.project.language || "en";
   return {
-    title:    project.project.title || "Untitled",
+    title:    project.project.title || tBook(language, "common.untitled"),
     author:   project.project.author || "",
     subtitle: project.project.subtitle || "",
     genre:    project.project.genre || "",
+    language,
     // Optional cover image (imageStore record). EPUB / PDF adapters
     // resolve it to bytes via `readImageBytes` so this stays serializable.
     coverImage: project.project.coverImage || null,
@@ -37,7 +41,6 @@ export function buildManuscript(project, { stripSceneStructure = false } = {}) {
     })),
   };
 }
-/* eslint-enable i18next/no-literal-string */
 
 /**
  * Walk a chapter's HTML body and emit a flat list of blocks. We don't

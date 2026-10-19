@@ -85,6 +85,10 @@ Four cards: **PDF**, **DOCX**, **EPUB**, and **JustWrite book**. Pick one to see
 
 The first three are **finished reading files** — one manuscript, typeset for a reader. The fourth is **your whole book**, everything JustWrite holds, in a file you can put back.
 
+### The book's language
+
+The reading files follow the **Book language** in **Settings → Project**, not the language of JustWrite's screens. Each one declares it — so an e-reader hyphenates and looks words up in the right language, and Word proofs the right one — and writes its own few words in it (**Contents**, **Chapter 3**, **by** *author*) when JustWrite speaks that language; otherwise those words stay English. A new book starts in the language of JustWrite's screens; every book from before the field existed is English.
+
 ### PDF
 
 > *"My agent wants a clean read. I need something that looks like a real manuscript, not a Google Doc export."*
@@ -134,7 +138,7 @@ A reflowable EPUB 3 e-book with:
 - One HTML file per part and chapter
 - A navigation document
 - Full compatibility with Apple Books, Kobo, and Calibre
-- Optional cover image and metadata (title, author, language)
+- Optional cover image and metadata (title, author, and the **Book language**)
 
 **Engine:** JSZip, loaded on first use (shared with import, so it is usually already in memory).
 
@@ -204,7 +208,7 @@ This is a sanity check — confirm the right scope before clicking Export.
 
 For a typical novel ready to go to an agent:
 
-1. **Set your metadata** in **Settings → Project**: title, author, subtitle, genre.
+1. **Set your metadata** in **Settings → Project**: title, author, subtitle, genre, book language.
 2. **Add a cover image** in **Settings → Project → Cover image** if you want one in the PDF and EPUB.
 3. **Open Export.**
 4. **Pick PDF** for the agent submission.

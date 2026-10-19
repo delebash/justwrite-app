@@ -7,6 +7,8 @@
 // manuscript model from `manuscript.js`.
 // ============================================================
 
+import { tBook } from "../../i18n/index.js";
+
 // The font the docDefinition's defaultStyle asks for; pdfmake resolves "Roboto"
 // bold to this file. Asserting it is present turns a silent 0.2→0.3-style API
 // drift into a named error instead of a hang (see below).
@@ -47,7 +49,7 @@ async function getPdfMake() {
  *   manuscript : output of buildManuscript()
  *   onProgress : optional cb({ stage }) for UI status
  */
-/* eslint-disable i18next/no-literal-string -- words inside an exported book stay English until a book language exists (ruled 2026-10-13; IDEAS) */
+/* eslint-disable i18next/no-literal-string -- markup, styles and file names; the book's words come from tBook, in the book's language (2026-10-18) */
 export async function exportPdf({ manuscript, onProgress } = {}) {
   onProgress?.({ stage: "loading-pdfmake" });
   const pdfMake = await getPdfMake();
@@ -76,13 +78,13 @@ export async function exportPdf({ manuscript, onProgress } = {}) {
     { text: manuscript.title, style: "coverTitle" },
     manuscript.subtitle ? { text: manuscript.subtitle, style: "coverSubtitle" } : "",
     { text: "", margin: [0, 80, 0, 0] },
-    { text: manuscript.author ? `by ${manuscript.author}` : "", style: "coverAuthor" },
+    { text: manuscript.author ? tBook(manuscript.language, "export.book.byAuthor", { author: manuscript.author }) : "", style: "coverAuthor" },
     { text: "", pageBreak: "after" },
   );
 
   // ── TOC ─────────────────────────────────────────────────
   content.push(
-    { text: "Contents", style: "tocHead" },
+    { text: tBook(manuscript.language, "export.book.contents"), style: "tocHead" },
     { toc: { textStyle: "tocItem" } },
     { text: "", pageBreak: "after" },
   );
@@ -100,7 +102,7 @@ export async function exportPdf({ manuscript, onProgress } = {}) {
 
     for (const ch of part.chapters) {
       content.push({
-        text: `Chapter ${ch.num}`,
+        text: tBook(manuscript.language, "export.book.chapter", { num: ch.num }),
         style: "chapterNum",
         pageBreak: "before",
       });
@@ -134,6 +136,8 @@ export async function exportPdf({ manuscript, onProgress } = {}) {
       author: manuscript.author,
       creator: "JustWrite",
     },
+    // the book's language — the PDF's /Lang (pdfmake's Printer passes it as `lang`)
+    language: manuscript.language,
     pageSize: "A4",
     pageMargins: [80, 70, 80, 80],
     content,

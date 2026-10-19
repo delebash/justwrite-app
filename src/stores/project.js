@@ -18,7 +18,7 @@ import * as autosaveApi from "../services/autosaveApi.js";
 import { replaceInHtml } from "../services/projectReplace.js";
 import { splitHtmlIntoScenes } from "../services/sceneSplit.js";
 import { nextColor, nextHue } from "../services/categoricalColors.js";
-import { d as fmtDate, t } from "../i18n/index.js";
+import { currentLocale, d as fmtDate, t } from "../i18n/index.js";
 
 // Multi-project storage (all server-side SQL — no kv, no IndexedDB):
 //   projects table (/v1/projects) — book snapshots; the registry is DERIVED
@@ -531,6 +531,9 @@ const BLANK_PROJECT_META = {
   premise: "",
   // AI scene drafting (slice 4, the AI drafting spec §9.7): per book, off until the writer turns it on.
   aiSceneDrafting: false,
+  // The book's language (BCP-47): its exports and the editor follow it. A new book starts in the
+  // interface's language (createProject); every book from before 2026-10-18 is English.
+  language: "en",
   coverImage: null,
 };
 
@@ -590,9 +593,9 @@ export const categoryLabelShown = seededLabel(DEFAULT_WB_CATEGORIES, SEEDED_CATE
 // The ONE blank-project state shape — used by createProject() and by
 // deleteProject()'s last-project branch (which resets the in-memory state
 // without minting a registry row). Fresh copies each call.
-function blankSnapshot({ title = "Untitled", author = "" } = {}) {
+function blankSnapshot({ title = "Untitled", author = "", language = BLANK_PROJECT_META.language } = {}) {
   return {
-    project: { ...BLANK_PROJECT_META, title, author, coverImage: null, wordsWritten: 0 },
+    project: { ...BLANK_PROJECT_META, title, author, language, coverImage: null, wordsWritten: 0 },
     strands: [], characters: [], characterExtras: {},
     locations: [], objects: [], groups: [], notes: [],
     // eslint-disable-next-line i18next/no-literal-string -- a new project's starter content stays English (ruled 2026-10-13)
@@ -2382,7 +2385,7 @@ export const useProjectStore = defineStore("project", {
       if (this._activeId) this._persist();
       const id = uid("prj");
       this._activeId = id;
-      Object.assign(this.$state, blankSnapshot({ title, author }));
+      Object.assign(this.$state, blankSnapshot({ title, author, language: currentLocale() }));
       this.clearHistory();
       this._persist();
       return id;

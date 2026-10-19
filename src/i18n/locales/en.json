@@ -1203,6 +1203,13 @@
       "docx": "Word-compatible.",
       "epub": "Reflowable e-book.",
       "zip": "The whole book, to move or share."
+    },
+    "book": {
+      "contents": "Contents",
+      "chapter": "Chapter {num}",
+      "byAuthor": "by {author}",
+      "coverTitle": "{title} — Cover",
+      "coverAlt": "{title} cover"
     }
   },
   "versionHistory": {
@@ -2992,6 +2999,8 @@
       "fieldAuthorPlaceholder": "Pen name or legal name",
       "fieldSubtitlePlaceholder": "Optional",
       "fieldGenrePlaceholder": "Literary, mystery, sci-fi…",
+      "fieldLanguage": "Book language",
+      "languageHint": "The language the book is written in. Its exports declare it and write their own words in it (Contents, Chapter 3) when JustWrite speaks it.",
       "fieldStartedPlaceholder": "e.g. March 11, 2026",
       "fieldDeadlinePlaceholder": "e.g. December 1, 2026",
       "fieldPremisePlaceholder": "One- or two-sentence pitch. Used on the Home dashboard and exports.",

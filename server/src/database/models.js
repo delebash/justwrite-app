@@ -82,4 +82,7 @@ export const ADDED_COLUMNS = [
   ["groups", "history", "TEXT NOT NULL DEFAULT ''"],
   // 2026-10-18: slice 4's per-book switch, AI scene drafting (the AI drafting spec §9.7).
   ["projects", "ai_scene_drafting", "BOOLEAN NOT NULL DEFAULT 0"],
+  // 2026-10-18: the book's language (the editor-expansion plan's piece 2) — `en` for every book
+  // made before it, which is what each one's EPUB declared.
+  ["projects", "language", "VARCHAR NOT NULL DEFAULT 'en'"],
 ];

@@ -19,6 +19,7 @@ import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
 import { useAiTasksStore, Icon, UiButton, AiTaskStrip } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 import { useUiStore } from "../stores/ui.js";
+import { useProjectStore } from "../stores/project.js";
 import { CONTEXT_PART_KEYS } from "../services/storyContext.js";
 import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
 import EditorSettingsModal from "./EditorSettingsModal.vue";
@@ -61,6 +62,9 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue", "change"]);
 const router = useRouter();
 const ui = useUiStore();
+const project = useProjectStore();
+// The open book's language (Settings → Project; BCP-47).
+const bookLanguage = computed(() => project.project?.language || "en");
 const settingsOpen = ref(false);
 
 const isManuscript = computed(() => props.variant === "manuscript");
@@ -128,7 +132,7 @@ const editor = useEditor({
   autofocus: props.autofocus,
   extensions,
   editorProps: {
-    attributes: { class: "tiptap-content", spellcheck: String(ui.editorSettings.spellCheck) },
+    attributes: { class: "tiptap-content", spellcheck: String(ui.editorSettings.spellCheck), lang: bookLanguage.value },
     // Auto-capitalize the first letter of a sentence as the user types,
     // when the setting is on. Returns true to take over the insertion.
     handleTextInput(view, from, to, text) {
@@ -201,6 +205,11 @@ watch(() => props.modelValue, (val) => {
 // Spell check toggles live on the editor's DOM node.
 watch(() => ui.editorSettings.spellCheck, (on) => {
   if (editor.value?.view?.dom) editor.value.view.dom.spellcheck = on;
+});
+// So does the book's language (Settings → Project): the browser's spelling, hyphenation and
+// screen readers follow the editor's `lang`.
+watch(bookLanguage, (lang) => {
+  if (editor.value?.view?.dom) editor.value.view.dom.lang = lang;
 });
 
 onBeforeUnmount(() => editor.value?.destroy());

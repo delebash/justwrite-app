@@ -25,6 +25,7 @@ function canonicalBook() {
       deadline: "December 1, 2026",
       premise: "A mapmaker's daughter inherits a ledger.",
       aiSceneDrafting: true,
+      language: "es",
       coverImage: null,
     },
     parts: [
@@ -223,6 +224,16 @@ test("a_blank_note_tag_stays_blank", async () => {
   book.notes[0].tag = "";
   await c.put("/v1/projects/prj1/book", { json: book });
   expect((await c.get("/v1/projects/prj1/book")).json().notes[0].tag).toBe("");
+});
+
+// A book saved without a language (one from before 2026-10-18, a hand-made book.json) is English —
+// what every book's EPUB declared until the book language existed.
+test("a_book_without_a_language_is_english", async () => {
+  const c = await client(tmpPath());
+  const book = canonicalBook();
+  delete book.project.language;
+  await c.put("/v1/projects/prj1/book", { json: book });
+  expect((await c.get("/v1/projects/prj1/book")).json().project.language).toBe("en");
 });
 
 test("book_404_when_absent", async () => {

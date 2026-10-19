@@ -43,7 +43,8 @@ const log = getLogger("justwrite_server.sync");
 // 5 (2026-10-18): projects gained `ai_scene_drafting` (slice 4's switch), and the scene adapter's
 // editor schema the AI-text mark (`<span data-ai-text>`, server/src/editor/aiText.js) — an older
 // device would drop the mark from a scene it merges. Same reason as 2.
-export const SYNC_SCHEMA_VERSION = 5;
+// 6 (2026-10-18): projects gained `language` (the book's language). Same reason as 2.
+export const SYNC_SCHEMA_VERSION = 6;
 
 // ── scene text: merged edit by edit through Yjs, on the editor's own schema ──────────────
 
