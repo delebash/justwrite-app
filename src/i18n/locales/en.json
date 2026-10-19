@@ -1925,6 +1925,7 @@
     "todaysSession": "Today's session",
     "liveTag": "live",
     "wordsUnit": "words",
+    "dailyTarget": "Daily target: {target}",
     "streak": "Streak",
     "thisFortnight": "This fortnight",
     "avgPerDay": "Avg / day",
@@ -3003,7 +3004,7 @@
       "wordGoal": "Word goal",
       "wordGoalHint": "total words for the manuscript",
       "dailyTarget": "Daily target",
-      "dailyTargetHint": "words/day — drives the Home streak ring"
+      "dailyTargetHint": "words a day — the bar on Home's Today's session card; 0 hides it"
     },
     "appearance": {
       "presetCardTitle": "Theme preset",

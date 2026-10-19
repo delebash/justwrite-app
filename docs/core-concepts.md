@@ -183,5 +183,5 @@ Project → Tag vocabularies** holds an optional curated list per entity kind �
 when one exists, tags you type are canonicalised against it on save, so the
 three spellings above become one tag. The lists ship **empty on purpose** (your
 taxonomy is your own; a starter set was considered and rejected). Alongside the
-word goal, the goals card also takes a **daily target** — the number your Home
-streak and session cards measure the day against.
+word goal, the goals card also takes a **daily target** — the words a day that the
+bar on Home's **Today's session** card measures against (0 hides the bar).

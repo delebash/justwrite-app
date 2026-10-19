@@ -5,7 +5,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore, reorderForMonday } from "../stores/sessions.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, UiButton, pageFill, dateLabel } from "@delebash/ui";
+import { useAiTasksStore, Icon, AiTaskStrip, UiButton, UiProgress, pageFill, dateLabel } from "@delebash/ui";
 import { PaneHeader } from "@delebash/ui";
 import { buildBriefingContext, gapPhrase, generateResumeBriefing } from "../services/resumeBriefing.js";
 import { useWritingNav } from "../composables/useWritingNav.js";
@@ -61,6 +61,9 @@ const sparkPts = computed(() => {
 // Day-of-week averages — sessions returns Sun-first, we re-order to Mon-first.
 const dowAvg = computed(() => reorderForMonday(sessions.averageByDow()));
 const dowMax = computed(() => Math.max(...dowAvg.value, 1));
+
+// Settings → Project's daily target: today's words toward it on the session card; 0 hides the bar.
+const dailyTarget = computed(() => Number(project.project.dailyTarget) || 0);
 
 // Streak heatmap — last 14 days as booleans.
 const streakSquares = computed(() => history14.value.map((d) => d.words > 0));
@@ -401,6 +404,8 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
         <div class="card">
           <div class="gcard-h">{{ $t("home.todaysSession") }} <span class="tag">{{ $t("home.liveTag") }}</span></div>
           <div class="gstat">{{ $n(sessions.todayWords) }}<small>{{ $t("home.wordsUnit") }}</small></div>
+          <UiProgress v-if="dailyTarget > 0" class="gtarget" :value="sessions.todayWords" :max="dailyTarget"
+                      :label="$t('home.dailyTarget', { target: $n(dailyTarget) })" />
           <div class="gkv">
             <span class="k">{{ $t("home.streak") }}</span><span class="v">{{ $t("count.day", { n: sessions.streak }, sessions.streak) }}</span>
             <span class="k">{{ $t("home.thisFortnight") }}</span><span class="v">{{ $n(totals14.total) }}</span>
@@ -636,6 +641,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 .gstat { font-family: var(--font-serif); font-size: 40px; font-weight: 500; line-height: 1; letter-spacing: -0.01em; }
 .gstat small { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 0.05em; margin-left: 6px; }
 
+.gtarget { margin-top: 12px; }
 .gkv { display: grid; grid-template-columns: auto 1fr; gap: 7px 16px; margin-top: 16px; font-size: 12.5px; }
 .gkv .k { color: var(--muted); }
 .gkv .v { text-align: right; font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; }

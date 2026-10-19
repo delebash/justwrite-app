@@ -18,7 +18,7 @@ What you see at the top:
 
 Below those:
 
-- **Today's session** — words written today, current writing streak, last 14 days total, and a 14-square activity heatmap. The card has a **Wrap up session** button that generates an end-of-day AI recap — see below.
+- **Today's session** — words written today with a bar toward your **daily target** (Settings → Project; 0 hides it), current writing streak, last 14 days total, and a 14-square activity heatmap. The card has a **Wrap up session** button that generates an end-of-day AI recap — see below.
 - **The fortnight** — a 14-day sparkline of your daily word counts.
 - **Cadence** — a bar chart of your average word count by day of the week. Your best day is highlighted in gold.
 - **Narrative strands** — a row per strand with a progress bar showing how many chapters that strand appears in.
