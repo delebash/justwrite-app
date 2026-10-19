@@ -22,7 +22,7 @@ import SensoryResearchModal from "../components/SensoryResearchModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
 import { EmptyState } from "@delebash/ui";
 import StatusSelect from "../components/StatusSelect.vue";
-import { promptDialog, confirmDialog, useAiTasksStore } from "@delebash/ui";
+import { promptDialog, confirmDialog, useAiTasksStore, useSurfaceTask } from "@delebash/ui";
 import { stitchChapter, splitChapter } from "../services/chapterStitch.js";
 import { vSceneImages, withSceneImages } from "../services/imageStore.js";
 import { EDITOR_TOOLBAR_FULL } from "../services/editorToolbars.js";
@@ -550,6 +550,7 @@ function onStuckUseMove(move) {
 // Brainstorm's plot ideas from the cursor, in the shared ideas window; "Write this" does what
 // Unstuck's does — the next 2-4 paragraphs in that direction, as the accept/reject diff.
 const ideas = ref(null); // { category, sceneId, proseTail, seen } while the window is open
+const ideasTask = useSurfaceTask("brainstorm", () => ({ kind: `scene-${ideas.value?.category}` }));
 function openIdeas(category) {
   if (!editorRef.value) {
     ui.showToast({ message: t("chapters.ai.openChapterFirst") });
@@ -1529,7 +1530,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
       :eyebrow="$t(`brainstorm.categories.${ideas.category}.label`)"
       :title="ch?.title || $t('sidebar.projectSwitcher.untitled')"
       :lede="$t(ideas.category === 'twist' ? 'chapters.ai.twistsDesc' : 'chapters.ai.nextBeatsDesc')"
-      feature="brainstorm" :chip-label="$t('brainstorm.title')" :task-meta="{ kind: `scene-${ideas.category}` }"
+      feature="brainstorm" :chip-label="$t('brainstorm.title')" :task="ideasTask"
       auto-run :pick-label="$t('stuck.writeThis')" :empty-text="$t('plotBoard.ai.empty')" :run="runIdeas"
       @pick="onIdeaPick" @close="ideas = null" />
 

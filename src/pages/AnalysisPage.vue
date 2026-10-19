@@ -4,7 +4,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useSessionsStore } from "../stores/sessions.js";
 import { PaneHeader, pageFill, UiBanner } from "@delebash/ui";
-import { Icon, AiTaskStrip, useAiTasksStore, UiTable, UiSegmented, UiButton } from "@delebash/ui";
+import { Icon, AiTaskStrip, useAiTasksStore, useSurfaceTask, UiTable, UiSegmented, UiButton } from "@delebash/ui";
 import StatPill from "../components/StatPill.vue";
 import {
   statusCounts, strandDistribution, characterPresence,
@@ -261,11 +261,11 @@ const TREND_COLOURS = {
 // runStructuralAnalysis already records on chapter.critique.structure.
 // One bulk-run button covers chapters that haven't been analysed yet.
 
-const tensionTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "critique"));
+const tensionTask = useSurfaceTask("critique");
 const tensionRunning = computed(() => !!tensionTask.value);
 // QC-30b: the voice-drift Explain leg gets the shared strip too (same
 // pattern as tensionTask above; explainHot registers feature "voiceDrift").
-const driftTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "voiceDrift"));
+const driftTask = useSurfaceTask("voiceDrift");
 const tensionRunningChapterId = ref(null);
 const tensionError = ref("");
 

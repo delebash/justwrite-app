@@ -17,7 +17,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore } from "../stores/sessions.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/ui";
+import { useSurfaceTask, Icon, AiTaskStrip, AppModal, UiButton } from "@delebash/ui";
 import { generateSessionRecap } from "../services/sessionRecap.js";
 import { addMarkerToSceneHtml } from "justwrite-server/editor/markers.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
@@ -31,7 +31,6 @@ const project = useProjectStore();
 const ui = useUiStore();
 const sessions = useSessionsStore();
 const ai = useAiStore();
-const aiTasks = useAiTasksStore();
 
 function todayKey(d = new Date()) {
   const y = d.getFullYear();
@@ -40,7 +39,7 @@ function todayKey(d = new Date()) {
   return `${y}-${m}-${day}`;
 }
 
-const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "recap"));
+const myTask = useSurfaceTask("recap");
 const running = computed(() => !!myTask.value);
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 const err = ref("");

@@ -6,7 +6,7 @@
 // its aggregate). Was SuggestCharactersModal.vue; one window for both kinds since 2026-10-16,
 // when the Locations list gained Suggest locations… (the plan 2026-10-15, Task S5).
 import { computed, onBeforeUnmount, ref } from "vue";
-import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiBanner, UiButton, UiTextarea } from "@delebash/ui";
+import { useSurfaceTask, AiTaskStrip, AppModal, Icon, UiBanner, UiButton, UiTextarea } from "@delebash/ui";
 import { useProjectStore } from "../stores/project.js";
 import { suggestCharacters } from "../services/analysis/characterDraft.js";
 import { suggestLocations } from "../services/analysis/sheetDraft.js";
@@ -37,9 +37,7 @@ const k = computed(() => KINDS[props.kind]);
 const key = (name) => `${k.value.ns}.suggest.${name}`;
 
 const project = useProjectStore();
-const aiTasks = useAiTasksStore();
-const myTask = computed(() => aiTasks.runningTasks.find(
-  (task) => task.feature === "brainstorm" && task.meta?.kind === k.value.task));
+const myTask = useSurfaceTask("brainstorm", () => ({ kind: k.value.task }));
 const running = computed(() => !!myTask.value);
 
 const lookingFor = ref("");

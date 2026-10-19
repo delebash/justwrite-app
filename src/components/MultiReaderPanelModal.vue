@@ -13,7 +13,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
+import { useAiTasksStore, useSurfaceTask, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
 import {
   runMultiReaderPanel,
   PERSONAS,
@@ -45,17 +45,11 @@ function personaWord(key, field) {
 }
 const liveColumns = ref(null);  // null until first run; map { personaKey: 'running' | 'done' | 'error' }
 
-// Find this chapter's multi-reader task. QC-31 (#229): the whole 4-persona
-// panel is now ONE task entry (feature "multiReader" + meta.chapterId), not
-// four — so the filter matches that single running entry for this chapter.
-const myTasks = computed(() =>
-  aiTasks.runningTasks.filter(
-    (t) => t.feature === "multiReader" && t.meta?.chapterId === props.chapterId
-  )
-);
-const running = computed(() => myTasks.value.length > 0);
-// QC-30b: the shared strip is THE progress surface — one entry per QC-31.
-const myTask = computed(() => myTasks.value[0] || null);
+// This chapter's multi-reader task. QC-31 (#229): the whole 4-persona panel is
+// ONE task entry (feature "multiReader" + meta.chapterId), not four; QC-30b: the
+// shared strip is THE progress surface.
+const myTask = useSurfaceTask("multiReader", () => ({ chapterId: props.chapterId }));
+const running = computed(() => !!myTask.value);
 
 const panel = computed(() => cached.value?.panel || []);
 
@@ -105,11 +99,8 @@ function clearPanel() {
   project.clearChapterMultiReader(props.chapterId);
 }
 function cancel() {
-  // Cancel every running persona task for this chapter — each is its
-  // own entry in the aiTasks store. Snapshot ids first because cancel
-  // mutates the running list.
-  const ids = myTasks.value.map((t) => t.id);
-  for (const id of ids) aiTasks.cancel(id);
+  // The panel's one task: its signal aborts all four personas (QC-31).
+  if (myTask.value) aiTasks.cancel(myTask.value.id);
   liveColumns.value = null;
 }
 

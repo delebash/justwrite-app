@@ -15,7 +15,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { useAiTasksStore, AiTaskStrip, Icon, AppModal, EmptyState, UiButton, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, AiTaskStrip, Icon, AppModal, EmptyState, UiButton, UiBanner } from "@delebash/ui";
 import { scanForDanglingThreads } from "../services/analysis/foreshadowingScan.js";
 import { addMarkerToSceneHtml } from "justwrite-server/editor/markers.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
@@ -28,13 +28,10 @@ const emit = defineEmits(["close"]);
 
 const project = useProjectStore();
 const ui = useUiStore();
-const aiTasks = useAiTasksStore();
 
 // QC-31: the scan is ONE user action → ONE task entry (started by
 // scanForDanglingThreads, which owns the controller every chapter rides).
-const myTask = computed(() => aiTasks.runningTasks.find(
-  (t) => t.feature === "foreshadowing"
-));
+const myTask = useSurfaceTask("foreshadowing");
 const running = computed(() => !!myTask.value);
 
 // Our controller: the ONE thing that stops the pool (see the watch below).

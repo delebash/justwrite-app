@@ -15,8 +15,8 @@ import { MARKER_CATEGORIES } from "justwrite-server/editor/markers.js";
 import { hasAiText } from "justwrite-server/editor/aiText.js";
 import * as writerAI from "@renderer/services/writerAI";
 import VariationsModal from "./VariationsModal.vue";
-import { PROSE_RULES, PROSE_RULE_ORDER } from "@renderer/services/writerAI";
-import { useAiTasksStore, Icon, UiButton, AiTaskStrip } from "@delebash/ui";
+import { PROSE_RULES, PROSE_RULE_ORDER, SCENE_DRAFTING_FEATURE } from "@renderer/services/writerAI";
+import { useSurfaceTask, Icon, UiButton, AiTaskStrip } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
@@ -254,8 +254,11 @@ const show = (b) => props.toolbar.includes(b);
 // (Rewrite / Expand / Tighten / Continue + Line edits). Each call
 // replaces the selection with a paired <del>/<ins> diff that the
 // user accepts or rejects.
-const aiTasks = useAiTasksStore();
-const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "writerAI"));
+// The editor's run, shown in place: a writer action's, or Draft from plan's — its own feature row
+// since slice 4, which this strip missed until 2026-10-19 (it showed only in the AI tasks panel).
+const writerTask = useSurfaceTask("writerAI");
+const draftTask = useSurfaceTask(SCENE_DRAFTING_FEATURE);
+const myTask = computed(() => writerTask.value || draftTask.value);
 const aiRunning = computed(() => !!myTask.value);
 function isAiAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 const aiError = ref("");
@@ -1600,7 +1603,7 @@ defineExpose({
            click away (and not gated by a text selection appearing). -->
     </bubble-menu>
 
-    <!-- AI progress strip — shown while a writerAI call is running. -->
+    <!-- AI progress strip — shown while the editor's AI call runs (a writer action, Draft from plan). -->
     <div v-if="aiRunning" class="ai-progress-wrap">
       <AiTaskStrip :task="myTask" />
       <div v-if="contextLine" class="ai-context">{{ contextLine }}</div>

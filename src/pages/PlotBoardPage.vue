@@ -7,7 +7,7 @@ import { promptDialog, confirmDialog, pageFill } from "@delebash/ui";
 import { PaneHeader } from "@delebash/ui";
 import { Icon } from "@delebash/ui";
 import { UiButton } from "@delebash/ui";
-import { UiMenu, UiMenuItem } from "@delebash/ui";
+import { UiMenu, UiMenuItem, useSurfaceTask } from "@delebash/ui";
 import { PLANNING_FEATURE, fillTemplate, strandIdeas, templateOfStrand } from "../services/analysis/planningDraft.js";
 import DraftReviewModal from "../components/DraftReviewModal.vue";
 import { useI18n } from "vue-i18n";
@@ -26,6 +26,8 @@ const chapters = computed(() => project.allChapters);
 // twists (Brainstorm's plot categories) — each into the shared review window; Apply is one undo
 // step (applyBeatNotes / addStrandBeats).
 const aiReview = ref(null); // { kind: "fill" | "next_beat" | "twist", strand }
+const fillTask = useSurfaceTask(PLANNING_FEATURE, () => ({ strandId: aiReview.value?.strand.id }));
+const ideasTask = useSurfaceTask("brainstorm", () => ({ strandId: aiReview.value?.strand.id }));
 const reviewProps = computed(() => {
   const r = aiReview.value;
   if (!r) return null;
@@ -640,7 +642,7 @@ function sceneBadge(beat) {
 
     </div>
     <DraftReviewModal v-if="reviewProps" v-bind="reviewProps" :title="aiReview.strand.name"
-      :task-meta="{ strandId: aiReview.strand.id }" :loading-text="$t('sheetDraft.drafting', { name: aiReview.strand.name })"
+      :task="aiReview.kind === 'fill' ? fillTask : ideasTask" :loading-text="$t('sheetDraft.drafting', { name: aiReview.strand.name })"
       @close="aiReview = null" />
   </q-page>
 </template>

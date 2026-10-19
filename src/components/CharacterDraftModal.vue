@@ -18,7 +18,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiButton, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, AiTaskStrip, AppModal, Icon, UiButton, UiBanner } from "@delebash/ui";
 import {
   profileFromBook, voiceFromBook,
   profileFieldDefs, voiceFieldDefs, draftRows, applyProfileDrafts,
@@ -41,9 +41,10 @@ const emit = defineEmits(["close"]);
 
 const { t } = useI18n({ useScope: "global" });
 const project = useProjectStore();
-const aiTasks = useAiTasksStore();
-const myTask = computed(() =>
-  aiTasks.runningTasks.find((task) => task.feature === "characterProfile" || task.feature === "characterVoice"));
+// The two passes run as two features; the strip shows whichever is running.
+const profileTask = useSurfaceTask("characterProfile");
+const voiceTask = useSurfaceTask("characterVoice");
+const myTask = computed(() => profileTask.value || voiceTask.value);
 
 const ch = computed(() => (project.characters || []).find((c) => c.id === props.characterId));
 const extras = computed(() => project.characterExtras?.[props.characterId] || {});

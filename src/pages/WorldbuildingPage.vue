@@ -18,7 +18,7 @@ import { UiButton } from "@delebash/ui";
 import { UiTextarea } from "@delebash/ui";
 import { UiCheckbox } from "@delebash/ui";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
-import { AiTaskStrip, UiBanner, useAiTasksStore } from "@delebash/ui";
+import { AiTaskStrip, UiBanner, useSurfaceTask } from "@delebash/ui";
 import { draftArticle, STORY_WORLD_FEATURE } from "../services/analysis/sheetDraft.js";
 import { useI18n } from "vue-i18n";
 
@@ -39,9 +39,7 @@ function update(k, v) { project.updateWorldbuilding(article.value.id, { [k]: v }
 // the book, landing in the editor as one change to accept or reject (RichEditor proposeDocument).
 // Progress and Cancel are the shared AiTaskStrip's.
 const bodyEditor = ref(null);
-const aiTasks = useAiTasksStore();
-const draftTask = computed(() => aiTasks.runningTasks.find(
-  (task) => task.feature === STORY_WORLD_FEATURE && task.meta?.entityId === article.value?.id));
+const draftTask = useSurfaceTask(STORY_WORLD_FEATURE, () => ({ entityId: article.value?.id }));
 const draftError = ref("");
 watch(() => article.value?.id, () => { draftError.value = ""; });
 async function draftBody() {

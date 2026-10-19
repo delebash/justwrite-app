@@ -12,7 +12,7 @@ import { UiTable } from "@delebash/ui";
 import StatusSelect from "../components/StatusSelect.vue";
 import { PaneHeader } from "@delebash/ui";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
-import { AiTaskStrip, UiBanner, useAiTasksStore } from "@delebash/ui";
+import { AiTaskStrip, UiBanner, useSurfaceTask } from "@delebash/ui";
 import { PLANNING_FEATURE, draftFromPremise } from "../services/analysis/planningDraft.js";
 import { tEnglish } from "../i18n/index.js";
 import { ARCH_DOCS } from "../services/architectureDocs.js";
@@ -41,9 +41,7 @@ function update(k, v) { project.updateArchitecture(doc.value.id, { [k]: v }); }
 // proposeDocument). The model reads the document's name and purpose in English.
 const PREMISE_DRAFTED = ["fabula", "setting"];
 const docEditor = ref(null);
-const aiTasks = useAiTasksStore();
-const draftTask = computed(() => aiTasks.runningTasks.find(
-  (task) => task.feature === PLANNING_FEATURE && task.meta?.docId === doc.value?.id));
+const draftTask = useSurfaceTask(PLANNING_FEATURE, () => ({ docId: doc.value?.id }));
 const draftError = ref("");
 watch(() => doc.value?.id, () => { draftError.value = ""; });
 async function draftDoc() {

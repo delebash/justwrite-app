@@ -10,6 +10,7 @@ import { useProjectStore } from "../stores/project.js";
 import { draftRows } from "../services/analysis/characterProfile.js";
 import { applySheetDrafts, draftSheet, sheetDraftDefs, STORY_WORLD_FEATURE } from "../services/analysis/sheetDraft.js";
 import { STORY_WORLD_SHEETS } from "../services/storyWorldSheet.js";
+import { useSurfaceTask } from "@delebash/ui";
 import DraftReviewModal from "./DraftReviewModal.vue";
 
 const props = defineProps({
@@ -23,6 +24,7 @@ const emit = defineEmits(["close"]);
 const { t } = useI18n({ useScope: "global" });
 const project = useProjectStore();
 const entity = computed(() => (project[STORY_WORLD_SHEETS[props.kind].plural] || []).find((x) => x.id === props.entityId));
+const draftTask = useSurfaceTask(STORY_WORLD_FEATURE, () => ({ entityId: props.entityId }));
 
 async function run(signal) {
   const r = await draftSheet({ project, kind: props.kind, entityId: props.entityId, description: props.description, signal });
@@ -36,6 +38,6 @@ function apply(picked) {
 <template>
   <DraftReviewModal :eyebrow="$t('characters.draft.fromDescription')" :title="entity?.name || ''"
     :lede="$t('sheetDraft.desc')" :feature="STORY_WORLD_FEATURE" :chip-label="$t('sheetDraft.chipLabel')"
-    :task-meta="{ entityId }" :loading-text="$t('sheetDraft.drafting', { name: entity?.name || '' })"
+    :task="draftTask" :loading-text="$t('sheetDraft.drafting', { name: entity?.name || '' })"
     :run="run" :apply="apply" @close="emit('close')" />
 </template>

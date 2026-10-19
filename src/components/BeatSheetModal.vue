@@ -14,7 +14,7 @@ import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiSelect, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, Icon, AiTaskStrip, AppModal, UiButton, UiSelect, UiBanner } from "@delebash/ui";
 import {
   mapToBeatSheet,
   BEAT_TEMPLATES,
@@ -31,12 +31,9 @@ const emit = defineEmits(["close"]);
 const project = useProjectStore();
 const ai = useAiStore();
 const router = useRouter();
-const aiTasks = useAiTasksStore();
 const error = ref("");
 
-const myTask = computed(() => aiTasks.runningTasks.find(
-  (t) => t.feature === "beatSheet"
-));
+const myTask = useSurfaceTask("beatSheet");
 const running = computed(() => !!myTask.value);
 
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }

@@ -9,9 +9,9 @@
 import { ref, computed, onMounted } from "vue";
 import { useAiStore } from "../stores/ai.js";
 import { useProjectStore } from "../stores/project.js";
-// useAiTasksStore stays for the READ (myTask feeds the inline AiTaskStrip);
+// The kit's useSurfaceTask is the READ (myTask feeds the inline AiTaskStrip);
 // the lifecycle rides withAiTask per the AI-call convention (2026-08-08).
-import { useAiTasksStore, withAiTask, AiTaskStrip, Icon, AppModal, UiButton, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, withAiTask, AiTaskStrip, Icon, AppModal, UiButton, UiBanner } from "@delebash/ui";
 import { buildOrUpdateIndex, rebuildIndex, indexStatus, clearIndex } from "../services/rag/indexer.js";
 import StatusRow from "./StatusRow.vue";
 import { useI18n } from "vue-i18n";
@@ -27,13 +27,12 @@ const emit = defineEmits(["close", "built"]);
 
 const ai = useAiStore();
 const project = useProjectStore();
-const aiTasks = useAiTasksStore();
 
 // Embedding doesn't go through runAiStream (it uses client.embed in a
 // loop, one call per scene), so we register the task directly with the
 // store rather than via the chat-stream wrapper. Looking it up by
 // feature is enough — only one index build runs at a time.
-const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "ragIndex"));
+const myTask = useSurfaceTask("ragIndex");
 const running = computed(() => !!myTask.value);
 // The aiTasks handle for the in-flight call, captured at start time so
 // we can call finish/cancel from outside the run() closure.

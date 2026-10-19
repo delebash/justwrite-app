@@ -13,7 +13,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, EmptyState, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, Icon, AiTaskStrip, AppModal, UiButton, EmptyState, UiBanner } from "@delebash/ui";
 import { scanPlotHoles } from "../services/analysis/plotHoleScan.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
@@ -26,12 +26,9 @@ const emit = defineEmits(["close"]);
 const project = useProjectStore();
 const ai = useAiStore();
 const router = useRouter();
-const aiTasks = useAiTasksStore();
 const error = ref("");
 
-const myTask = computed(() => aiTasks.runningTasks.find(
-  (t) => t.feature === "plotHoles"
-));
+const myTask = useSurfaceTask("plotHoles");
 const running = computed(() => !!myTask.value);
 
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }

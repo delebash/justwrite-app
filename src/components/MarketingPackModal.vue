@@ -12,7 +12,7 @@ import { ref, computed, onMounted } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
 import { BLURB_ANGLES, generateMarketingPack } from "../services/analysis/marketingPack.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
@@ -25,7 +25,6 @@ const emit = defineEmits(["close"]);
 const project = useProjectStore();
 const ui = useUiStore();
 const ai = useAiStore();
-const aiTasks = useAiTasksStore();
 const error = ref("");
 // A blurb angle's label or description in the interface language, found by its key (older
 // saved packs also carry an English copy, the fallback).
@@ -43,9 +42,7 @@ function confidenceLabel(level) {
   return t("marketingPack.confidenceLow");
 }
 
-const myTask = computed(() => aiTasks.runningTasks.find(
-  (t) => t.feature === "marketingPack"
-));
+const myTask = useSurfaceTask("marketingPack");
 const running = computed(() => !!myTask.value);
 
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }

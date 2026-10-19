@@ -9,7 +9,7 @@
 // RULE #1 precedent: CharacterDraftModal — the same shell, list and footer.
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiButton, UiBanner } from "@delebash/ui";
+import { AiTaskStrip, AppModal, Icon, UiButton, UiBanner } from "@delebash/ui";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import DraftReviewList from "./DraftReviewList.vue";
 
@@ -17,11 +17,11 @@ const props = defineProps({
   eyebrow: { type: String, default: "" },
   title: { type: String, default: "" },
   lede: { type: String, default: "" },
-  // The routed feature (the header's model chip) and the meta its run carries, which picks out
-  // this window's task among the running ones.
+  // The routed feature (the header's model chip), and the run's task as the screen that starts it
+  // finds it (the kit's useSurfaceTask, app-structure §8): the strip, and no closing mid-run.
   feature: { type: String, required: true },
   chipLabel: { type: String, required: true },
-  taskMeta: { type: Object, default: () => ({}) },
+  task: { type: Object, default: null },
   loadingText: { type: String, default: "" },
   // What the window says when the draft has no rows.
   emptyText: { type: String, default: "" },
@@ -35,10 +35,7 @@ const props = defineProps({
 const emit = defineEmits(["close"]);
 
 const { t } = useI18n({ useScope: "global" });
-const aiTasks = useAiTasksStore();
-const myTask = computed(() => aiTasks.runningTasks.find((task) => task.feature === props.feature
-  && Object.entries(props.taskMeta).every(([k, v]) => task.meta?.[k] === v)));
-const running = computed(() => !!myTask.value);
+const running = computed(() => !!props.task);
 
 const loading = ref(true);
 const error = ref("");
@@ -81,7 +78,7 @@ function onClose() {
       <AiFeatureChip :feature="feature" :label="chipLabel" editable />
     </template>
 
-    <AiTaskStrip :task="myTask" />
+    <AiTaskStrip :task="task" />
     <UiBanner v-if="error">{{ error }}</UiBanner>
     <div v-if="loading" class="drm-empty">{{ loadingText }}</div>
     <DraftReviewList v-else :rows="rows" />

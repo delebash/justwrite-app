@@ -13,6 +13,7 @@ import {
   MOVE_BLURB_I18N,
   MOVE_KIND_I18N,
 } from "../services/stuckDiagnostic.js";
+import { useSurfaceTask } from "@delebash/ui";
 import IdeaListModal from "./IdeaListModal.vue";
 import { useI18n } from "vue-i18n";
 
@@ -28,6 +29,7 @@ const props = defineProps({
 const emit = defineEmits(["close", "useMove"]);
 
 const ai = useAiStore();
+const stuckTask = useSurfaceTask("unstuck");
 
 // Each move kind's colour on its card.
 const KIND_ACCENT = {
@@ -67,7 +69,7 @@ async function run() {
 
 <template>
   <IdeaListModal :eyebrow="$t('stuck.eyebrow')" :title="$t('stuck.title')" :lede="$t('stuck.blurb')"
-    feature="unstuck" :chip-label="$t('stuck.chipLabel')"
+    feature="unstuck" :chip-label="$t('stuck.chipLabel')" :task="stuckTask"
     :idle-text="$t('stuck.idleBlurb')" :start-label="$t('stuck.action')"
     :pick-label="$t('stuck.writeThis')" :empty-text="$t('stuck.err.empty')" :run="run"
     @pick="(it) => emit('useMove', it.move)" @close="emit('close')" />

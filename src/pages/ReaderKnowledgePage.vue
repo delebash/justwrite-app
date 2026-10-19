@@ -20,7 +20,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, PaneHeader, EmptyState, UiButton, pageFill, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, Icon, AiTaskStrip, PaneHeader, EmptyState, UiButton, pageFill, UiBanner } from "@delebash/ui";
 import {
   scanReaderKnowledge,
   STATUS_LABEL_KEYS,
@@ -36,9 +36,8 @@ const project = useProjectStore();
 const ui = useUiStore();
 const ai = useAiStore();
 const router = useRouter();
-const aiTasks = useAiTasksStore();
 
-const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "readerKnowledge"));
+const myTask = useSurfaceTask("readerKnowledge");
 const running = computed(() => !!myTask.value);
 
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }

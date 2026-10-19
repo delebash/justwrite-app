@@ -15,7 +15,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
 import {
   generateReverseOutline,
   STRUCTURE_LABEL_KEYS,
@@ -31,10 +31,9 @@ const emit = defineEmits(["close"]);
 const project = useProjectStore();
 const ai = useAiStore();
 const router = useRouter();
-const aiTasks = useAiTasksStore();
 const error = ref("");
 
-const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "reverseOutline"));
+const myTask = useSurfaceTask("reverseOutline");
 const running = computed(() => !!myTask.value);
 
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }

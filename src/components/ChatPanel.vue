@@ -21,7 +21,7 @@
 import { ref, computed, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect, confirmDialog, promptDialog, usePanelDismiss, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, AiTaskStrip, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect, confirmDialog, promptDialog, usePanelDismiss, UiBanner } from "@delebash/ui";
 import { useUiStore } from "../stores/ui.js";
 import { askManuscript } from "../services/rag/chat.js";
 import { askAsCharacter } from "../services/rag/characterChat.js";
@@ -50,14 +50,13 @@ const emit = defineEmits(["update:modelValue"]);
 
 const router = useRouter();
 const project = useProjectStore();
-const aiTasks = useAiTasksStore();
 const ui = useUiStore();
 
 // Task lookup covers both chat modes — book mode uses "chat", character
 // mode uses "characterChat". We match whichever is currently running.
-const myTask = computed(() => aiTasks.runningTasks.find(
-  (t) => t.feature === "chat" || t.feature === "characterChat"
-));
+const chatTask = useSurfaceTask("chat");
+const characterChatTask = useSurfaceTask("characterChat");
+const myTask = computed(() => chatTask.value || characterChatTask.value);
 const running = computed(() => !!myTask.value);
 
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }

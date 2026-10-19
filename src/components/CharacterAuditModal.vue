@@ -15,7 +15,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AppModal, AiTaskStrip, EmptyState, UiButton, UiBanner } from "@delebash/ui";
+import { useAiTasksStore, useSurfaceTask, Icon, AppModal, AiTaskStrip, EmptyState, UiButton, UiBanner } from "@delebash/ui";
 import { auditAllCharacters } from "../services/analysis/characterAudit.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import StatusRow from "./StatusRow.vue";
@@ -30,9 +30,7 @@ const ai = useAiStore();
 const router = useRouter();
 const aiTasks = useAiTasksStore();
 
-const myTask = computed(() => aiTasks.runningTasks.find(
-  (t) => t.feature === "characterAudit"
-));
+const myTask = useSurfaceTask("characterAudit");
 const running = computed(() => !!myTask.value);
 
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }

@@ -9,7 +9,7 @@
 
 import { ref, computed, onMounted } from "vue";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
 import { generateSensoryPack, SENSORY_CATEGORIES } from "../services/sensoryResearch.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
@@ -23,10 +23,9 @@ const props = defineProps({
 const emit = defineEmits(["close", "insert"]);
 
 const ai = useAiStore();
-const aiTasks = useAiTasksStore();
 const pack = ref(null);
 
-const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "sensory"));
+const myTask = useSurfaceTask("sensory");
 const running = computed(() => !!myTask.value);
 
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }

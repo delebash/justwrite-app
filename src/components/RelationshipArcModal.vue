@@ -19,7 +19,7 @@ import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiSelect, UiInput, UiTextarea, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, Icon, AiTaskStrip, AppModal, UiButton, UiSelect, UiInput, UiTextarea, UiBanner } from "@delebash/ui";
 import { analyseRelationship, pairKey, TRAJECTORY_LABEL_KEYS } from "../services/analysis/relationshipArc.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
@@ -32,10 +32,9 @@ const emit = defineEmits(["close"]);
 const project = useProjectStore();
 const ai = useAiStore();
 const router = useRouter();
-const aiTasks = useAiTasksStore();
 const error = ref("");
 
-const myTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "relationshipArc"));
+const myTask = useSurfaceTask("relationshipArc");
 const running = computed(() => !!myTask.value);
 
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }

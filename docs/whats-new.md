@@ -4,6 +4,12 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## 2026-10-19
+
+**Draft from plan shows its progress where you write.** Its progress strip and **Context:** line
+now sit under the editor, as every other AI action's do, and the other AI actions wait until it
+finishes; before, its progress showed only in the AI tasks panel.
+
 ## 2026-10-18
 
 **Your book's language.** **Settings → Project → Book language** says what the book is written in.

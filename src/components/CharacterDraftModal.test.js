@@ -8,29 +8,25 @@
 // stubbed the draft calls whole, so none saw it; this one mounts the window with a voice pass
 // that awaits before its task exists, as the real one does.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { h, nextTick, reactive } from "vue";
+import { h, nextTick } from "vue";
 import { createPinia } from "pinia";
 import en from "../i18n/locales/en.json";
 import { i18n } from "../i18n/index.js";
 
-const tasks = reactive({ runningTasks: [] });
-vi.mock("@delebash/ui", async (importOriginal) => ({
-  ...(await importOriginal()),
-  useAiTasksStore: () => tasks,
-}));
 vi.mock("./AiFeatureChip.vue", () => ({ default: { render: () => null } }));
 vi.mock("../stores/project.js", () => ({
   useProjectStore: () => ({ characters: [{ id: "c1", name: "Mira" }], characterExtras: {} }),
 }));
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
-// A pass as the real ones run: an optional await first (the route), then a task while it calls.
+// A pass as the real ones run: an optional await first (the route), then a task in the kit's store
+// while it calls (the window finds it there, through useSurfaceTask).
 async function pass(feature, fields, { awaitFirst = false, signal } = {}) {
   if (awaitFirst) await tick();
   if (signal?.aborted) throw new DOMException("aborted", "AbortError");
-  tasks.runningTasks.push({ feature });
+  const task = useAiTasksStore().start({ feature, label: feature, lingerMs: 0 });
   await tick();
-  tasks.runningTasks.splice(0);
+  task.finish();
   return { fields, model: "stub" };
 }
 const voice = vi.fn((a) => pass("characterVoice", { voice: { register: "clipped" } }, { awaitFirst: true, signal: a.signal }));
@@ -41,6 +37,7 @@ vi.mock("../services/analysis/characterDraft.js", () => ({
 }));
 
 const { createTestApp } = await import("@delebash/ui/quasar/install.js");
+const { useAiTasksStore } = await import("@delebash/ui");
 const { default: CharacterDraftModal } = await import("./CharacterDraftModal.vue");
 
 let app;

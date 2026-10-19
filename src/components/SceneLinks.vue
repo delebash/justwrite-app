@@ -11,7 +11,7 @@ import { Icon } from "@delebash/ui";
 import DateTimePicker from "./DateTimePicker.vue";
 import { UiButton } from "@delebash/ui";
 import { POV_OPTIONS } from "../services/povOptions.js";
-import { UiTextarea } from "@delebash/ui";
+import { UiTextarea, useSurfaceTask } from "@delebash/ui";
 import { PLANNING_FEATURE, summarizeScene } from "../services/analysis/planningDraft.js";
 import DraftReviewModal from "./DraftReviewModal.vue";
 import { useI18n } from "vue-i18n";
@@ -275,7 +275,7 @@ function onBackdrop(e) {
     </div>
     <DraftReviewModal v-if="summarizing" :eyebrow="$t('sceneLinks.summarize')" :title="scene?.title || $t('sceneLinks.summary')"
       :lede="$t('sceneSummary.lede')" :feature="PLANNING_FEATURE" :chip-label="$t('planning.chipLabel')"
-      :task-meta="{ sceneId }" :loading-text="$t('sceneSummary.loading')"
+      :task="summaryTask" :loading-text="$t('sceneSummary.loading')"
       :run="draftSummary" :apply="applySummary" @close="summarizing = false" />
   </div>
 </template>

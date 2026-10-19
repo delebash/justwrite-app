@@ -6,19 +6,19 @@
 // from it. Progress and Cancel ride the shared AiTaskStrip; the window can't close mid-run;
 // Regenerate asks again. Its users: Unstuck (StuckDiagnosticModal.vue) and the editor's plot
 // ideas (ChaptersPage.vue).
-import { computed, onMounted, ref } from "vue";
-import { useAiTasksStore, AiTaskStrip, AppModal, Icon, UiBanner, UiButton } from "@delebash/ui";
+import { onMounted, ref } from "vue";
+import { AiTaskStrip, AppModal, Icon, UiBanner, UiButton } from "@delebash/ui";
 import AiFeatureChip from "./AiFeatureChip.vue";
 
 const props = defineProps({
   eyebrow: { type: String, default: "" },
   title: { type: String, default: "" },
   lede: { type: String, default: "" },
-  // The routed feature (the header's model chip) and the meta its run carries, which picks out
-  // this window's task among the running ones.
+  // The routed feature (the header's model chip), and the run's task as the screen that starts it
+  // finds it (the kit's useSurfaceTask, app-structure §8) for the strip.
   feature: { type: String, required: true },
   chipLabel: { type: String, required: true },
-  taskMeta: { type: Object, default: () => ({}) },
+  task: { type: Object, default: null },
   // Run on open — or wait for the start button under `idleText`, so the model can be changed in
   // the chip before anything is spent.
   autoRun: { type: Boolean, default: false },
@@ -33,9 +33,6 @@ const props = defineProps({
 });
 const emit = defineEmits(["close", "pick"]);
 
-const aiTasks = useAiTasksStore();
-const myTask = computed(() => aiTasks.runningTasks.find((task) => task.feature === props.feature
-  && Object.entries(props.taskMeta).every(([k, v]) => task.meta?.[k] === v)));
 
 const loading = ref(false);
 const error = ref("");
@@ -81,7 +78,7 @@ function onClose() {
       </template>
     </UiBanner>
 
-    <AiTaskStrip v-if="loading" :task="myTask" />
+    <AiTaskStrip v-if="loading" :task="task" />
 
     <div v-else-if="!items.length && !error" class="il-empty">
       <Icon name="Sparkle" :size="20" />

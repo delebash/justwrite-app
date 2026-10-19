@@ -5,7 +5,7 @@ import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useSessionsStore, reorderForMonday } from "../stores/sessions.js";
 import { useAiStore } from "../stores/ai.js";
-import { useAiTasksStore, Icon, AiTaskStrip, UiButton, UiProgress, pageFill, dateLabel } from "@delebash/ui";
+import { useAiTasksStore, useSurfaceTask, Icon, AiTaskStrip, UiButton, UiProgress, pageFill, dateLabel } from "@delebash/ui";
 import { PaneHeader } from "@delebash/ui";
 import { buildBriefingContext, gapPhrase, generateResumeBriefing } from "../services/resumeBriefing.js";
 import { useWritingNav } from "../composables/useWritingNav.js";
@@ -116,7 +116,7 @@ function resume() {
 // same-day reloads reuse the cached prose. Dismissal is per-day so the
 // card stays hidden until tomorrow.
 
-const briefingTask = computed(() => aiTasks.runningTasks.find((t) => t.feature === "briefing"));
+const briefingTask = useSurfaceTask("briefing");
 const briefingRunning = computed(() => !!briefingTask.value);
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 const briefingError = ref(null);

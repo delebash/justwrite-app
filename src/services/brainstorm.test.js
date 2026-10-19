@@ -8,10 +8,10 @@ import en from "../i18n/locales/en.json";
 import es from "../i18n/locales/es.json";
 
 const runAiFeature = vi.fn();
-const runningTasks = [];
 vi.mock("@delebash/ui", () => ({
   runAiFeature: (...a) => runAiFeature(...a),
-  useAiTasksStore: () => ({ runningTasks }),
+  // no round's task is ever running here: the model is stubbed whole
+  useSurfaceTask: () => ({ value: null }),
 }));
 
 const {

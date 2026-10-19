@@ -12,7 +12,7 @@
 
 import { ref, computed, onMounted, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, AiTaskStrip, Icon, AppModal, UiButton, UiCheckbox, confirmDialog, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, AiTaskStrip, Icon, AppModal, UiButton, UiCheckbox, confirmDialog, UiBanner } from "@delebash/ui";
 import { isLikelyNonStoryTitle, scanAllChapters, stripChapterText } from "../services/analysis/entitySweep.js";
 import {
   clearSweepDraft, draftCounts, draftFoundTotal, emptyDraft, loadSweepDraft,
@@ -34,16 +34,13 @@ const props = defineProps({
 const emit = defineEmits(["close", "committed"]);
 
 const project = useProjectStore();
-const aiTasks = useAiTasksStore();
 
 // QC-31: the sweep is ONE user action → ONE task entry (started by scanAllChapters,
 // which owns the controller every chapter rides). `find` is exact now — before
 // 2026-07-17 each chapter registered its own rival "entitySweep" task and this
 // found only the first, which is why Cancel stopped one chapter and the pool
 // marched on.
-const myTask = computed(() => aiTasks.runningTasks.find(
-  (t) => t.feature === "entitySweep"
-));
+const myTask = useSurfaceTask("entitySweep");
 const running = computed(() => !!myTask.value);
 
 // Our own controller: the ONE thing that stops the pool. The task strip's Cancel

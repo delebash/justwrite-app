@@ -13,7 +13,7 @@
 
 import { ref, computed } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { useAiTasksStore, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
 import { runCritique, runStructuralAnalysis, PACING_LABEL_KEYS, ENDING_LABEL_KEYS } from "../services/analysis/critique.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
@@ -27,7 +27,6 @@ const props = defineProps({
 const emit = defineEmits(["close"]);
 
 const project = useProjectStore();
-const aiTasks = useAiTasksStore();
 
 const ch = computed(() => project.chapterById(props.chapterId));
 const critique = computed(() => ch.value?.critique || null);
@@ -40,12 +39,8 @@ const err = ref("");
 // aiTasks store by feature + chapter id + meta.kind. When the call
 // finishes, the task leaves runningTasks and these computeds turn null,
 // which hides the inline strips automatically.
-const notesTask  = computed(() => aiTasks.runningTasks.find(
-  (t) => t.feature === "critique" && t.meta?.chapterId === props.chapterId && t.meta?.kind === "notes"
-));
-const structTask = computed(() => aiTasks.runningTasks.find(
-  (t) => t.feature === "critique" && t.meta?.chapterId === props.chapterId && t.meta?.kind === "structure"
-));
+const notesTask  = useSurfaceTask("critique", () => ({ chapterId: props.chapterId, kind: "notes" }));
+const structTask = useSurfaceTask("critique", () => ({ chapterId: props.chapterId, kind: "structure" }));
 const runningNotes  = computed(() => !!notesTask.value);
 const runningStruct = computed(() => !!structTask.value);
 
