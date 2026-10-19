@@ -150,6 +150,7 @@ function canonicalBook() {
       objects: [],
       worldbuilding: [{ id: "tv2", label: "setting" }],
     },
+    dictionary: ["Brackish", "selkie"],
     images: {
       c1: [{ id: "img1", addedAt: 1700000000000, kind: "file", path: "/x/a.png", name: "a.png", mime: "image/png" }],
     },
@@ -234,6 +235,18 @@ test("a_book_without_a_language_is_english", async () => {
   delete book.project.language;
   await c.put("/v1/projects/prj1/book", { json: book });
   expect((await c.get("/v1/projects/prj1/book")).json().project.language).toBe("en");
+});
+
+// The book's dictionary (2026-10-19): a book from before it has none, and a word saved twice is
+// kept once (the table's key is the word).
+test("a_book_without_a_dictionary_has_none_and_a_word_is_kept_once", async () => {
+  const c = await client(tmpPath());
+  const book = canonicalBook();
+  delete book.dictionary;
+  await c.put("/v1/projects/prj1/book", { json: book });
+  expect((await c.get("/v1/projects/prj1/book")).json().dictionary).toEqual([]);
+  await c.put("/v1/projects/prj1/book", { json: { ...book, dictionary: ["selkie", "selkie", " ", "Brackish"] } });
+  expect((await c.get("/v1/projects/prj1/book")).json().dictionary).toEqual(["Brackish", "selkie"]);
 });
 
 test("book_404_when_absent", async () => {

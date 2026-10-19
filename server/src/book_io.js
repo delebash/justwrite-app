@@ -53,6 +53,7 @@ export const PROJECT_TABLES = [
   "worldbuilding_categories",
   "statuses",
   "tag_vocab",
+  "dictionary_words",
   "architecture",
   "images",
   "events",
@@ -439,6 +440,10 @@ export function bookRows(projectId, snapIn) {
     }
   }
 
+  // The book's dictionary: each word once (the table's key), blanks dropped.
+  const words = new Set(pyIter(pyOr(pyGet(snap, "dictionary"), [])).map((w) => s_(w).trim()).filter(Boolean));
+  for (const word of words) add("dictionary_words", { word });
+
   for (const [i, [aid, docIn]] of pyItems(pyOr(pyGet(snap, "architecture"), {})).entries()) {
     const doc = pyOr(docIn, {});
     add("architecture", {
@@ -747,6 +752,7 @@ export function assemble(h, projectId) {
 
   const tagVocab = Object.fromEntries(TAG_KINDS.map((k) => [k, []]));
   for (const t of all("tag_vocab", "tag_vocab.position")) setdefault(tagVocab, t.kind, []).push({ id: t.id, label: t.label });
+  const dictionary = all("dictionary_words", "dictionary_words.word").map((r) => r.word);
 
   const architecture = {};
   for (const a of ordered("architecture")) {
@@ -813,6 +819,7 @@ export function assemble(h, projectId) {
     worldbuilding,
     worldbuildingCategories: wbCategories,
     tagVocabularies: tagVocab,
+    dictionary,
     images,
     events,
     statuses,

@@ -32,6 +32,7 @@
 //   chapter_strands, group_members, characters, locations, objects, groups, notes,
 //   strands, strand_beats, worldbuilding, worldbuilding_categories, statuses, tag_vocab,
 //   architecture          the book's entities (per project)
+//   dictionary_words      the book's own words, never marked as misspellings (2026-10-19)
 //   images, events        polymorphic per-entity attachments
 //   project_artifacts     per-project AI artifacts (`kind` + `key`, freeform JSON)
 //   trash                 soft-deleted entities (a tombstone payload — the one legit blob)
