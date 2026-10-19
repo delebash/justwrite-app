@@ -14,7 +14,7 @@ import { useProjectStore } from "../stores/project.js";
 import { applyAppearance } from "../services/appearance.js";
 import { applyEditorSettings } from "../services/editorSettings.js";
 import { onShellEvent, setContextMenuLabels, setKeepRunning, setSpellCheckerLanguages, setTrayLabels } from "../services/native.js";
-import { BootModelLoad, shellMenuLabels, warmModelId } from "@delebash/ui";
+import { BootModelLoad, shellMenuLabels, shellTrayLabels, warmModelId } from "@delebash/ui";
 import TitleBar from "../components/TitleBar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import OnboardingHeader from "../components/OnboardingHeader.vue";
@@ -184,21 +184,11 @@ onMounted(() => {
     }
   });
   // The tray menu's words follow the UI language (parity batch 2026-08-05 —
-  // the menu was hardcoded English inside an es-localized app). Fed at boot +
-  // on every locale switch; a no-op in plain `vite dev`.
+  // the menu was hardcoded English inside an es-localized app; the words are the
+  // kit's since 2026-10-19, the same in every app). Fed at boot + on every locale
+  // switch; a no-op in plain `vite dev`.
   watch(i18n.global.locale, () => {
-    setTrayLabels({
-      show: t("tray.show"),
-      hide: t("tray.hide"),
-      serverStart: t("tray.serverStart"),
-      serverStop: t("tray.serverStop"),
-      serverRestart: t("tray.serverRestart"),
-      openSettings: t("tray.openSettings"),
-      copyUrl: t("tray.copyUrl"),
-      openLogs: t("tray.openLogs"),
-      about: t("tray.about"),
-      quit: t("tray.quit"),
-    });
+    setTrayLabels(shellTrayLabels(t, t("welcome.wordmark")));
     // …and so do the right-click menu's (spelling suggestions, cut/copy/paste — the kit's shell).
     setContextMenuLabels(shellMenuLabels(t));
   }, { immediate: true });

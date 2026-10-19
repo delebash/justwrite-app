@@ -92,16 +92,6 @@
     "narrativeStrands": "Narrative strands"
   },
   "tray": {
-    "show": "📺 Show window",
-    "hide": "🔵 Hide window",
-    "serverStart": "▶️ Start server",
-    "serverStop": "⏹ Stop server",
-    "serverRestart": "🔄 Restart server",
-    "openSettings": "⚙️ Open settings",
-    "copyUrl": "📋 Copy server URL",
-    "openLogs": "📜 Open log file",
-    "about": "ℹ️ About JustWrite",
-    "quit": "🚪 Quit JustWrite",
     "urlCopiedTitle": "Server URL copied",
     "copyFailedTitle": "Copy failed"
   },

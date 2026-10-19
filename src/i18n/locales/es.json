@@ -92,16 +92,6 @@
     "narrativeStrands": "Hilos narrativos"
   },
   "tray": {
-    "show": "📺 Mostrar ventana",
-    "hide": "🔵 Ocultar ventana",
-    "serverStart": "▶️ Iniciar servidor",
-    "serverStop": "⏹ Detener servidor",
-    "serverRestart": "🔄 Reiniciar servidor",
-    "openSettings": "⚙️ Abrir configuración",
-    "copyUrl": "📋 Copiar URL del servidor",
-    "openLogs": "📜 Abrir archivo de registro",
-    "about": "ℹ️ Acerca de JustWrite",
-    "quit": "🚪 Salir de JustWrite",
     "urlCopiedTitle": "URL del servidor copiada",
     "copyFailedTitle": "Error al copiar"
   },
