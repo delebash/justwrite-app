@@ -42,3 +42,29 @@ test("a misspelling is marked, corrected from the menu, and a word added to the 
   await expect.poll(() => inStore(page, (s) => s.dictionary)).toEqual([]);
   await expectNoSidewaysScroll(page);
 });
+
+test("in an inline editor (a location's description) a marked word's menu is its corrections alone", async ({ page }) => {
+  await page.goto("/#/locations");
+  const id = await inStore(page, (s) => {
+    s.updateProjectMeta({ language: "en" });
+    return s.locations[0]?.id;
+  });
+  expect(id, "a location").toBeTruthy();
+  await navigate(page, `/locations/${id}`);
+  const editor = page.locator(".inline-editor-body .ProseMirror").first();
+  await editor.click();
+  await page.keyboard.press("Control+End");
+  await page.keyboard.press("Enter");
+  await page.keyboard.type("The quay smelld of tar ");
+  const para = editor.locator("p").filter({ hasText: "The quay smelld of" }).last();
+  const mark = para.locator(".spell-error", { hasText: "smelld" });
+  await expect(mark).toHaveCount(1);
+
+  await mark.click({ button: "right" });
+  const menu = page.locator(".ctx-menu");
+  await expect(menu.getByRole("menuitem", { name: "Add to dictionary" })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: /Cut/ })).toHaveCount(0);
+  await menu.getByRole("menuitem", { name: "smelled", exact: true }).click();
+  await expect(editor).toContainText("The quay smelled of tar");
+  await expectNoSidewaysScroll(page);
+});

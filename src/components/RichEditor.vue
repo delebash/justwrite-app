@@ -661,11 +661,13 @@ const CTX_AI_ANY = [
 ];
 
 function onEditorContextMenu(e) {
-  if (props.variant !== "manuscript") return;
   if (ctxNativeOnce.value) { ctxNativeOnce.value = false; return; } // the browser menu, once
+  openSpellingTarget(e);
+  // An inline editor (a note, a sheet's field) has no menu of its own: a marked word's corrections,
+  // else the browser's menu as before.
+  if (!isManuscript.value && !spellTarget.value) return;
   e.preventDefault();
   ctxMenu.value = { open: true, x: e.clientX, y: e.clientY };
-  openSpellingTarget(e);
   clampCtxMenu();
 }
 // Clamp into the viewport once the menu has a size (again when the suggestions arrive).
@@ -1698,7 +1700,7 @@ defineExpose({
         <div class="page-folio">{{ folioLabel || "⁂" }}</div>
       </div>
     </div>
-    <div v-else class="inline-editor-body" @click="onBodyClick" :style="inlineBodyStyle">
+    <div v-else class="inline-editor-body" @click="onBodyClick" @contextmenu="onEditorContextMenu" :style="inlineBodyStyle">
       <editor-content :editor="editor" />
     </div>
 
@@ -1729,8 +1731,10 @@ defineExpose({
         <button class="ctx-item" role="menuitem" @click="ctxRun(addToDictionary, spellTarget)">
           <Icon name="Plus" :size="13" class="ctx-ic" /><span class="ctx-label">{{ $t("kit.shellMenu.addToDictionary") }}</span>
         </button>
-        <div class="ctx-divider" />
+        <div v-if="isManuscript" class="ctx-divider" />
       </template>
+      <!-- the rest is the manuscript's; an inline editor's menu is a marked word's alone -->
+      <template v-if="isManuscript">
       <div class="ctx-section">
         {{ $t("richEditor.ctxSelectionOnly") }}
         <span v-if="!hasSelection" class="ctx-section-hint">{{ $t("richEditor.ctxSelectionHint") }}</span>
@@ -1773,6 +1777,7 @@ defineExpose({
       <button v-if="!ownSpelling" class="ctx-item ctx-item-passthrough" role="menuitem" @click="ctxShowBrowserMenu">
         <span class="ctx-label">{{ $t("richEditor.ctxBrowserMenu") }}</span><kbd class="ctx-kbd">{{ $t("richEditor.ctxBrowserMenuHint") }}</kbd>
       </button>
+      </template>
     </div>
 
     <EditorSettingsModal v-if="settingsOpen" @close="settingsOpen = false" />
