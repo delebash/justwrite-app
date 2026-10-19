@@ -39,14 +39,15 @@ export default defineConfig((ctx) => {
     // before Quasar mounts the app.
     boot: ['i18n', 'jw'],
 
-    // The stylesheets, in cascade order: the self-hosted fonts first (so they land earliest in the
-    // emitted stylesheet), the design tokens the family theme reads, the kit's own (its AI views, its
-    // controls, its Quasar theme — `~` = imported as written, through the alias), then the app's, so
-    // JustWrite's rules win a tie with the kit's, as they always have (until the stylesheets moved
-    // here from the boot file, the kit's loaded first because the boot's modules imported the kit
-    // before it imported styles.css). Plain names are src/css/.
+    // The stylesheets, in cascade order: the kit's self-hosted fonts first (so they land earliest in
+    // the emitted stylesheet; JustWrite's own copy until 2026-10-18), the design tokens the family
+    // theme reads, the kit's own (its AI views, its controls, its Quasar theme — `~` = imported as
+    // written, through the alias), then the app's, so JustWrite's rules win a tie with the kit's, as
+    // they always have (until the stylesheets moved here from the boot file, the kit's loaded first
+    // because the boot's modules imported the kit before it imported styles.css). Plain names are
+    // src/css/.
     css: [
-      'fonts.css',
+      '~@delebash/ui/common/fonts.css',
       'tokens.css',
       '~@delebash/ui/styles.css',
       '~@delebash/ui/common/styles.css',
@@ -54,7 +55,7 @@ export default defineConfig((ctx) => {
       'app.scss',
     ],
 
-    // No Quasar icon font or Roboto: JustWrite's fonts are its own (src/css/fonts.css), and the
+    // No Quasar icon font or Roboto: JustWrite's fonts are the kit's bundled set (common/fonts.css), and the
     // icons Quasar's components draw are the kit's line icons (its icon set).
     extras: [],
 

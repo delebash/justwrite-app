@@ -2,7 +2,7 @@
 // JustWrite — the renderer's start-up, as a Quasar boot file (app-structure §Q.4). Quasar creates
 // the app (root: App.vue), Pinia (stores/index.js) and the router (router/index.js), runs the boot
 // files in quasar.config.js order (i18n.js, then this one), then installs the router and mounts.
-// The stylesheets (css/fonts.css, tokens.css, app.scss) are quasar.config.js's `css` list, as
+// The stylesheets (the kit's fonts, css/tokens.css, app.scss) are quasar.config.js's `css` list, as
 // Quasar's CLI wires them — the fonts first, so they land earliest in the emitted stylesheet.
 // Until the Quasar move (2026-10-08) this was src/main.js, which created and mounted the app
 // itself; the sequence below is unchanged.

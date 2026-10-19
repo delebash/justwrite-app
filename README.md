@@ -295,7 +295,7 @@ justwrite-app/                 ← a Quasar app (the family layout: the kit's do
 │   ├── layouts/MainLayout.vue ← the chrome: q-layout — the title bar, the sidebar (q-drawer), the page
 │   ├── pages/                 ← one <Name>Page.vue per route (each a q-page); ConnectionErrorPage at /offline
 │   ├── router/                ← index.js (the router) · routes.js (the pages under the layout)
-│   ├── css/                   ← fonts.css · tokens.css · app.scss · quasar.variables.scss (the kit's theme)
+│   ├── css/                   ← tokens.css · app.scss · quasar.variables.scss (the kit's theme); the fonts are the kit's
 │   ├── i18n/                  ← vue-i18n setup + locales/ (en, es)
 │   ├── stores/                ← project, ui, ai, sessions (Pinia)
 │   ├── services/              ← native.js (the desktop shell's calls) · rag/ · export/ · …
