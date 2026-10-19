@@ -13,8 +13,8 @@ import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
 import { applyAppearance } from "../services/appearance.js";
 import { applyEditorSettings } from "../services/editorSettings.js";
-import { onShellEvent, setKeepRunning, setTrayLabels } from "../services/native.js";
-import { BootModelLoad, warmModelId } from "@delebash/ui";
+import { onShellEvent, setContextMenuLabels, setKeepRunning, setSpellCheckerLanguages, setTrayLabels } from "../services/native.js";
+import { BootModelLoad, shellMenuLabels, warmModelId } from "@delebash/ui";
 import TitleBar from "../components/TitleBar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import OnboardingHeader from "../components/OnboardingHeader.vue";
@@ -199,6 +199,13 @@ onMounted(() => {
       about: t("tray.about"),
       quit: t("tray.quit"),
     });
+    // …and so do the right-click menu's (spelling suggestions, cut/copy/paste — the kit's shell).
+    setContextMenuLabels(shellMenuLabels(t));
+  }, { immediate: true });
+  // The desktop spellchecker checks in the book's language, then the interface's (Settings →
+  // Project's Book language, 2026-10-18); a browser tab's spellchecker is the browser's own.
+  watch([() => project.project?.language, i18n.global.locale], ([book, ui]) => {
+    setSpellCheckerLanguages([book || "en", ui]);
   }, { immediate: true });
 });
 onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: true }));

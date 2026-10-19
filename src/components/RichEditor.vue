@@ -22,7 +22,9 @@ import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
 import { CONTEXT_PART_KEYS } from "../services/storyContext.js";
 import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
-import { ProseHighlights, proseHighlightsKey } from "../services/proseHighlights.js";
+import { ProseHighlights, proseHighlightRanges, proseHighlightsKey } from "../services/proseHighlights.js";
+import { StoryNames, storyNameRanges, storyNameWords, storyNamesKey } from "../services/storyNames.js";
+import { refreshDecorations } from "../services/editorDecorations.js";
 import EditorSettingsModal from "./EditorSettingsModal.vue";
 
 const props = defineProps({
@@ -114,9 +116,19 @@ const extensions = editorExtensions({
   imageView,
   mention: props.mentions ? buildMentionExtension() : null,
 }).concat(
-  // The renderer's view-only additions (never in the server's schema): Writing settings' prose highlights.
-  ProseHighlights.configure({ on: () => proseHighlightsOn.value, note: (key) => t(key) }),
+  // The renderer's view-only marks (never in the server's schema; services/editorDecorations.js):
+  // Writing settings' prose highlights, and the story bible's names kept out of the spellchecker.
+  ProseHighlights.configure({ ranges: () => proseHighlightRanges(proseHighlightsOn.value, t) }),
+  StoryNames.configure({ ranges: () => storyNameMarks.value }),
 );
+
+// The open book's names (characters and their aliases, locations, objects, groups), as one string
+// so a change elsewhere in an entity doesn't redraw; no marks while spell check is off.
+const storyNameKey = computed(() => storyNameWords(project).join("\n"));
+const storyNameMarks = computed(() => {
+  if (ui.editorSettings?.spellCheck === false || !storyNameKey.value) return null;
+  return storyNameRanges(storyNameKey.value.split("\n"));
+});
 
 // Writing settings' prose highlights — the manuscript's, and only for an English book (the lists are
 // English); null when there's nothing to mark, so nothing is scanned.
@@ -226,10 +238,9 @@ watch(bookLanguage, (lang) => {
   if (editor.value?.view?.dom) editor.value.view.dom.lang = lang;
 });
 // The highlights recompute when a switch, the book's language or the notes' language changes.
-watch([proseHighlightsOn, locale], () => {
-  const ed = editor.value;
-  if (ed && !ed.isDestroyed) ed.view.dispatch(ed.state.tr.setMeta(proseHighlightsKey, true));
-}, { deep: true });
+watch([proseHighlightsOn, locale], () => refreshDecorations(editor.value, proseHighlightsKey), { deep: true });
+// …and the names when the book's names or the spell check switch change.
+watch(storyNameMarks, () => refreshDecorations(editor.value, storyNamesKey));
 
 onBeforeUnmount(() => editor.value?.destroy());
 
@@ -1685,7 +1696,7 @@ defineExpose({
            spell-check suggestions). Sticky at the menu's bottom so the
            spell-check door stays visible when the item list scrolls. -->
       <button class="ctx-item ctx-item-passthrough" role="menuitem" @click="ctxShowBrowserMenu">
-        <span class="ctx-label">{{ $t("richEditor.ctxBrowserMenu") }}</span><kbd class="ctx-kbd">right-click again</kbd>
+        <span class="ctx-label">{{ $t("richEditor.ctxBrowserMenu") }}</span><kbd class="ctx-kbd">{{ $t("richEditor.ctxBrowserMenuHint") }}</kbd>
       </button>
     </div>
 

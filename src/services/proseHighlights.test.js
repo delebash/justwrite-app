@@ -10,7 +10,11 @@ import { expect, test } from "vitest";
 import { editorExtensions } from "justwrite-server/editor/editorSchema.js";
 import { chapterMetrics } from "./analysis/styleMetrics.js";
 import { EditorState, TextSelection } from "@tiptap/pm/state";
-import { highlightRanges, proseDecorations, updateProseDecorations } from "./proseHighlights.js";
+import { fullDecorations, updateDecorations } from "./editorDecorations.js";
+import { highlightRanges, proseHighlightRanges } from "./proseHighlights.js";
+
+const proseDecorations = (doc, on, note) => fullDecorations(doc, proseHighlightRanges(on, note));
+const updateProseDecorations = (old, tr, on, note) => updateDecorations(old, tr, proseHighlightRanges(on, note));
 
 const ALL = { filter: true, adverbs: true, tells: true };
 const schema = getSchema(editorExtensions());

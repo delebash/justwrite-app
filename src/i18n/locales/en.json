@@ -1769,6 +1769,7 @@
     "ctxPaste": "Paste",
     "ctxAddComment": "Add comment",
     "ctxBrowserMenu": "Show browser menu (spell check)",
+    "ctxBrowserMenuHint": "right-click again",
     "commentPlaceholder": "Add a comment…",
     "save": "Save",
     "edit": "Edit",

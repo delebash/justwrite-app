@@ -115,6 +115,20 @@ export function setTrayLabels(labels) {
   return call("setTrayLabels", { labels }).catch(() => {});
 }
 
+/** The right-click menu's words (the kit's shellMenuLabels, fed like the tray's) — the menu the
+ *  shell draws for spelling suggestions and cut/copy/paste (2026-10-18). */
+export function setContextMenuLabels(labels) {
+  if (!hasShell()) return Promise.resolve();
+  return call("setContextMenuLabels", { labels }).catch(() => {});
+}
+
+/** The spellchecker's languages, most wanted first (the book's, then the interface's); the shell
+ *  keeps the ones its spellchecker has. A no-op in a browser, whose spellchecker is its own. */
+export function setSpellCheckerLanguages(languages) {
+  if (!hasShell()) return Promise.resolve([]);
+  return call("setSpellCheckerLanguages", { languages }).catch(() => []);
+}
+
 // ─── Openers (handed to the kit's installLlmUi as `external`) ────────
 
 /** Open a web link in the user's browser. */
