@@ -76,11 +76,10 @@ row 3, row 4, and row 1's spelling (the story bible's names, the desktop's spell
 dropped after a quality check (WordNet too thin; Rewrite gives alternatives in context). What's left:
 row 1's grammar (Harper — "not now", 2026-10-18) and row 5.** Row 1's spelling became JustWrite's
 own checker on 2026-10-19 (`docs/plans/2026-10-19-spelling.md`: Electron's flags nothing on Windows
-since 41). Its loose ends, unscheduled: **more book languages** (wooorm ships ~90 dictionaries; each
+since 41). Its loose end, unscheduled: **more book languages** (wooorm ships ~90 dictionaries; each
 needs its licence checked and its size weighed — the installer can't carry them all, so a download
-on first use, like a model, is the likely shape); **the other text boxes** (a character's
-description, notes in plain fields, the Summary) still use Chromium's spellchecker, so on Windows'
-desktop app they're unchecked until Electron fixes #54729 — a kit-level answer would serve every app.
+on first use, like a model, is the likely shape). The other text boxes moved to TASKS (2026-10-19,
+"Spelling in the plain text boxes").
 Rejected-with-reasons (autocorrect, track changes, footnotes, read-aloud→JV) are in the
 doc §5 so they don't come back as "missing".
 

@@ -145,7 +145,7 @@ With **Spell check** on (Writing settings), JustWrite marks misspelled words wit
 
 Right-click a marked word and its corrections head the editor's menu: pick one to replace the word. **Add to dictionary** keeps the word unmarked everywhere in this book. The words you've added are listed in **Settings → Project → Dictionary**, where ✕ takes one back, and they travel with the book when you export it.
 
-A book in another language uses the browser's own spellchecker instead: the last item of the editor's menu, **Show browser menu (spell check)**, makes your next right-click the browser's spelling menu. In the Windows desktop app that spellchecker marks nothing at the moment — a fault in Electron, the engine the desktop app is built on, since its version 41.
+A book in another language uses the browser's own spellchecker instead: the last item of the editor's menu, **Show browser menu (spell check)**, makes your next right-click the browser's spelling menu. So do the plain text boxes outside the editor — a character's fields, a scene's notes and Summary, the premise. In the Windows desktop app that spellchecker marks nothing at the moment — a fault in Electron, the engine the desktop app is built on, since its version 41.
 
 ### `@`-mentions
 

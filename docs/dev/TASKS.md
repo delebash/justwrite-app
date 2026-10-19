@@ -17,6 +17,20 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
+## Spelling in the plain text boxes [2026-10-19]
+STATE:  PROPOSED — the plan: `docs/plans/2026-10-19-spelling.md`, "The plain text boxes". The user,
+        on the Electron report: "dont post bug report they dont like ai doitn stuff, find another
+        solutions, think on it adversialy surely theere is a easy already built solution", then
+        "your rec on all go". Measured first (RESEARCH, "No app-side switch brings it back on
+        41+"): nothing built in brings Chromium's checker back on Windows — Electron's own provider
+        hook is never asked — and no maintained package draws marks in a textarea.
+WHY:    JustWrite's 28 plain boxes go unchecked in the Windows desktop app.
+NOT:    the upstream report (the user's ruling); one-line boxes; other book languages (IDEAS).
+OPEN:   the user's word on the one NOT STANDARD piece, by name: **the layer over the textarea**
+        (the kit's `UiTextarea` draws our marks on a see-through copy of its text). Everything
+        else in the plan is standard or already ours.
+GO:     "your rec on all go" (2026-10-19) — doesn't cover a NOT STANDARD piece.
+
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
 STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the
         plan `docs/plans/2026-10-11-ai-drafting-plan.md` (each task ticked there with its commit). First round, asked as shown (after Fable's review of the first design, whose changes were

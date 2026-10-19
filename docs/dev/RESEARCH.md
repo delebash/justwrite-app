@@ -325,6 +325,30 @@ The plan: [`../plans/2026-10-18-editor-expansion.md`](../plans/2026-10-18-editor
   Electron's wiring, not Chromium or Windows. `params.spellcheckEnabled` is false on 40 too — not a
   symptom. Nothing in the session fixes it (toggling it, re-setting languages, starting it before
   the window, Hunspell forced). (*2026-10-19.*)
+- **No app-side switch brings it back on 41+** (*measured 2026-10-19, the same bare window; Electron
+  44.7.0 vs 40.10.6*). Electron's own provider hook, `webFrame.setSpellCheckProvider` (a preload
+  handing Blink a checker; `spellcheck: false` or true): on 40.10.6 Blink asks it for every word
+  typed, on 44.7.0 it's **never asked** — so Blink requests no check at all, and any checker that
+  waits to be asked is dead too (#54729's reporter found the same). Also no change: a visible
+  foreground window (`document.visibilityState` was "hidden" for a covered probe window — not the
+  cause), `lang="en-US"`, keyDown/char/keyUp typing, `insertText`, a value set by script then focused,
+  `--disable-features=LazyInitializeSpellcheckCharAttribute` (and #54729's
+  WinUseBrowserSpellChecker / UseBrowserSpellChecker / WinDelaySpellcheckServiceInit). No newer
+  release to try: 44.9.0 is `latest` and 45.0.0-beta.5 `beta` on 2026-10-19; 40.x is out of support.
+  Chromium's Windows renderer path (spellcheck_provider.cc, main) asks the browser to initialize
+  dictionaries first and returns no results when the renderer ends up with no languages — a likely
+  place for the break, out of an app's reach. The issue isn't re-filed: the user's ruling, 2026-10-19.
+- **A plain text box can carry our own marks** (*measured 2026-10-19, a scratch page in Chrome 149
+  and Electron 44.7*): a layer laid exactly over the `<textarea>` / `<input>` (its computed font,
+  padding, borders, `clientWidth` so a classic scrollbar is excluded; `white-space: pre-wrap`, or
+  `pre` for an input; scroll copied from the box), its text the box's value in transparent ink,
+  `pointer-events: none`, and the misspellings drawn on it with the CSS Custom Highlight API
+  (`CSS.highlights`, `::highlight(name) { text-decoration: underline wavy }` — no markup built). The
+  marks stay under their words through wrapping, vertical and sideways scrolling, a narrower box
+  and typing before them. The API can't reach inside a textarea itself (its text lives in a
+  user-agent shadow tree — web.dev, "contenteditable plaintext-only baseline"), hence the layer;
+  it's the technique of the old jQuery highlight-within-textarea (codersblock.com, "highlight text
+  inside a textarea"), which no maintained package carries.
 - **JustWrite checks spelling itself since 2026-10-19** (docs/plans/2026-10-19-spelling.md): nspell
   2.1.5 in a module Web Worker with wooorm's `dictionary-en` / `dictionary-es` 4.0.0 — TipTap's
   documented second route (tiptap.dev/docs/guides/spellcheck). Measured in Node: en loads in 89 ms

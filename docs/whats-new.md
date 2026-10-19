@@ -13,8 +13,8 @@ accepted; before, it said it couldn't reach the server. See
 
 **Spelling that works in the desktop app.** On Windows the desktop app marked no misspellings at
 all: the spellchecker it borrowed from Electron, the engine it's built on, has flagged nothing since
-Electron 41. JustWrite now checks spelling itself, the same in the desktop app, a browser tab and the
-phone, for English and Spanish books — a wavy red line under a misspelling, its corrections at the
+Electron 41. JustWrite's editor now checks spelling itself, the same in the desktop app, a browser tab
+and the phone, for English and Spanish books — a wavy red line under a misspelling, its corrections at the
 top of the editor's right-click menu, and **Add to dictionary** for a word this book uses, listed in
 **Settings → Project → Dictionary**. Your story bible's names are never marked. See
 [Spelling](writing.md#spelling).
