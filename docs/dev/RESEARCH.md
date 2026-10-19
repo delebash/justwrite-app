@@ -317,6 +317,15 @@ The plan: [`../plans/2026-10-18-editor-expansion.md`](../plans/2026-10-18-editor
   "Zorbly" — with the Windows checker or Hunspell forced (`disable-features=WinUseBrowserSpellChecker`,
   the en-US dictionary initialized); `capturePage` failed (UnknownVizError) and an offscreen window
   painted no squiggles. The spans are checked in the DOM. (*2026-10-18.*)
+  **The renderer says spellcheck is off.** A bare Electron window (no JustWrite code: a visible,
+  focused `contenteditable` with `spellcheck="true"`, words typed key by key with `sendInputEvent`,
+  then a synthesized right-click on each): every `context-menu` reports `isEditable: true`,
+  `spellcheckEnabled: false`, no `misspelledWord`, while the session says
+  `isSpellCheckerEnabled()` true and fires `spellcheck-dictionary-initialized` for en-US. The same
+  on Electron 44.7.0 and 41.10.7, so not a 44 regression; and the same after toggling the session's
+  spellchecker off and on, re-setting its languages, or starting it (dictionary ready) before the
+  window existed. Not ruled out: that synthesized input differs from a real mouse and keyboard, or
+  a Windows setting. A look in the desktop app with real input settles it. (*2026-10-19.*)
 - **The spellchecker's languages here:** `getSpellCheckerLanguages()` → `["en-US"]`;
   `availableSpellCheckerLanguages` → 57 codes, `en` and `es-419` among them (asked for
   `["es-419", "en"]`, the shell set exactly those).
