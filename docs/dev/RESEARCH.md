@@ -465,7 +465,7 @@ touches the subject. History in [`../plans/archive/`](../plans/archive/) is not 
 
 **The writer's editor** —
 [`2026-07-26-writers-editor-gap-research.md`](../plans/2026-07-26-writers-editor-gap-research.md) ·
-[`2026-07-26-editor-expansion-executor-plan.md`](../plans/2026-07-26-editor-expansion-executor-plan.md).
+[`2026-10-18-editor-expansion.md`](../plans/2026-10-18-editor-expansion.md).
 
 **Single-source text and translation** —
 [`2026-07-26-i18n-single-source-research.md`](../plans/2026-07-26-i18n-single-source-research.md).

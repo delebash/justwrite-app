@@ -1003,11 +1003,12 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   `docs/dev/measured-performance.md` §Boot.)
 - **Fit-estimate label wording — your veto still open.** Shipped with the PC-class work;
   `docs/plans/archive/2026-07-22-igpu-research-and-cpu-band-recovery.md` §25 addendum 9.
-- **Writer's-editor expansion — decision-closed plan written, NOT launched; launch = your
-  word.** Order 3→2→1-spike→4 (prose highlights · thesaurus · bible-aware spell/grammar
-  spike · session word target). Plan: `docs/plans/2026-07-26-editor-expansion-executor-plan.md`;
-  findings: `docs/plans/2026-07-26-writers-editor-gap-research.md` + the IDEAS.md gap table.
-  Wait-gates: i18n Phase 1a is merged (done); confirm no bench is running at launch.
+- **Writer's-editor expansion — building (2026-10-18, your "your rec on all keep going unitl you
+  have no more porblems … take your own rec").** The rebuilt plan,
+  `docs/plans/2026-10-18-editor-expansion.md`: 1 the daily target on Home (done) · 2 the book
+  language · 3 prose highlights · 4 spelling (the story bible's names, the desktop's spelling
+  menu). A book language yes; Harper grammar not now; the thesaurus dropped (its quality check is
+  in the plan).
 - **The 2026-07-19..26 unauthorized-changes review — 77 user-visible commits await YOUR
   verdict; only you can say which you approved.** Next candidate: `ea543ae` (panels dismiss on
   Esc/outside-click + nav toggle). Method (both proven the hard way): enumerate with the FULL

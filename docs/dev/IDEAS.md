@@ -71,8 +71,9 @@ AI alternatives; small-medium), **3)** prose highlights / linguistic focus (surf
 styleMetrics + aiTellScanner catalogs we already own as toggleable editor decorations;
 small, best value-per-work on the list), **4)** session word target (small UI over data
 we already record; per-chapter targets deliberately not in v1), **5)** dictation
-(whisper.cpp — parked, unscheduled). **The decision-closed executor plan for 3→2→1-spike→4
-is `docs/plans/2026-07-26-editor-expansion-executor-plan.md` — written, NOT launched.**
+(whisper.cpp — parked, unscheduled). **Rows 1 (spelling only), 3 and 4 are being built from
+`docs/plans/2026-10-18-editor-expansion.md` (2026-10-18); row 2 was dropped there after a quality
+check, and Harper's grammar is "not now".**
 Rejected-with-reasons (autocorrect, track changes, footnotes, read-aloud→JV) are in the
 doc §5 so they don't come back as "missing".
 

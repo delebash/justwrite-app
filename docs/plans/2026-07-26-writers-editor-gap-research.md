@@ -221,9 +221,10 @@ row is visibly decided, not forgotten.
 Independent rows; any subset works. The order that front-loads value: **3 → 2 → 1 → 4**
 (prose highlights first because it's small and pure-win; thesaurus next; Harper as the one
 medium-sized adoption — spike-gated; the session target as the gap-filler). **The
-decision-closed executor plan for exactly this order is
-`docs/plans/2026-07-26-editor-expansion-executor-plan.md`** (written 2026-07-26 on the
-user's order, NOT launched — other Opus batches were still running). All
+decision-closed executor plan for exactly this order was
+`docs/plans/archive/2026-07-26-editor-expansion-executor-plan.md`** (written 2026-07-26 on the
+user's order, never launched; replaced 2026-10-18 by `2026-10-18-editor-expansion.md`, which
+drops the thesaurus and Harper — its quality check and reasons are there). All
 editor-touching rows are renderer work — **bench-gated** like everything else this week
 (no `src/renderer/**` edits while a bench runs). New user-facing strings land through the
 i18n key machinery once Phase 1 merges (`2026-07-26-i18n-single-source-research.md`), and
