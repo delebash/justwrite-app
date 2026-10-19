@@ -698,6 +698,10 @@
     "spellCheck": "Corrector ortográfico",
     "keepStrikethrough": "Mantener el original tachado al aceptar un cambio de la IA",
     "highlightAiText": "Resaltar el texto escrito por la IA",
+    "highlightFilterWords": "Resaltar las palabras filtro",
+    "highlightAdverbs": "Resaltar los adverbios",
+    "highlightAiTells": "Resaltar las frases con indicios de IA",
+    "highlightsEnglishOnly": "Estas tres listas están en inglés, así que no marcan nada en este libro: está en {language} (Configuración → Proyecto).",
     "save": "guardar",
     "back": "atrás",
     "fontThemeDefault": "Predeterminada del tema",
@@ -1203,6 +1207,13 @@
       "docx": "Compatible con Word.",
       "epub": "Libro electrónico con reajuste de texto.",
       "zip": "El libro completo, para moverlo o compartirlo."
+    },
+    "book": {
+      "contents": "Índice",
+      "chapter": "Capítulo {num}",
+      "byAuthor": "por {author}",
+      "coverTitle": "{title} — Portada",
+      "coverAlt": "Portada de {title}"
     }
   },
   "versionHistory": {
@@ -1713,6 +1724,10 @@
     "tabLabel": "IA de escritura"
   },
   "richEditor": {
+    "highlight": {
+      "filterNote": "Palabra filtro: puede interponer al narrador entre el lector y lo que el personaje ve, oye o siente.",
+      "adverbNote": "Adverbio: un verbo más fuerte podría hacer su trabajo."
+    },
     "superscriptGlyph": "x²",
     "subscriptGlyph": "x₂",
     "removeHighlight": "Quitar resaltado",
@@ -1754,6 +1769,7 @@
     "ctxPaste": "Pegar",
     "ctxAddComment": "Añadir comentario",
     "ctxBrowserMenu": "Mostrar menú del navegador (corrector ortográfico)",
+    "ctxBrowserMenuHint": "haz clic derecho de nuevo",
     "commentPlaceholder": "Añade un comentario…",
     "save": "Guardar",
     "edit": "Editar",
@@ -1925,6 +1941,7 @@
     "todaysSession": "Sesión de hoy",
     "liveTag": "en vivo",
     "wordsUnit": "palabras",
+    "dailyTarget": "Meta diaria: {target}",
     "streak": "Racha",
     "thisFortnight": "Esta quincena",
     "avgPerDay": "Promedio / día",
@@ -2991,6 +3008,8 @@
       "fieldAuthorPlaceholder": "Seudónimo o nombre legal",
       "fieldSubtitlePlaceholder": "Opcional",
       "fieldGenrePlaceholder": "Literario, misterio, ciencia ficción…",
+      "fieldLanguage": "Idioma del libro",
+      "languageHint": "El idioma en que está escrito el libro. Sus exportaciones lo declaran y escriben en él sus propias palabras (Índice, Capítulo 3) si JustWrite habla ese idioma.",
       "fieldStartedPlaceholder": "p. ej. 11 de marzo de 2026",
       "fieldDeadlinePlaceholder": "p. ej. 1 de diciembre de 2026",
       "fieldPremisePlaceholder": "Pitch de una o dos frases. Se utiliza en el tablero de Inicio y en las exportaciones.",
@@ -3003,7 +3022,7 @@
       "wordGoal": "Meta de palabras",
       "wordGoalHint": "total de palabras para el manuscrito",
       "dailyTarget": "Meta diaria",
-      "dailyTargetHint": "palabras/día — determina el anillo de racha en Inicio"
+      "dailyTargetHint": "palabras al día — la barra de la tarjeta Sesión de hoy en Inicio; 0 la oculta"
     },
     "appearance": {
       "presetCardTitle": "Preajuste de tema",
@@ -3484,7 +3503,7 @@
       "aiTokens": "· {n} tokens",
       "viewTaskQueue": "Ver cola de tareas",
       "dismiss": "Descartar",
-      "autosaves": "Se guarda automáticamente en el almacenamiento local"
+      "autosaves": "Se guarda mientras escribes"
     },
     "empty": {
       "title": "Aún no hay capítulos",
