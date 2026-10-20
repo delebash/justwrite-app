@@ -34,7 +34,7 @@ import { startWarmOnBoot } from "@delebash/ui";
 // separate configure* calls here, the exact per-step wiring the installer
 // exists to make un-forgettable), wires the external opener, and registers
 // <LlmUiHosts /> (Toast + AppDialog, mounted once in layouts/MainLayout.vue).
-import { installLlmUi, checkServer, CHECK_SERVER_MS, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, watchSync } from "@delebash/ui";
+import { installLlmUi, installErrorReporting, checkServer, CHECK_SERVER_MS, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, watchSync } from "@delebash/ui";
 import { hasShell, openPath, openUrl, saveFile, shellServerUrl } from "../services/native.js";
 import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "../services/helpDocs.js";
 import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "../services/labTestData.js";
@@ -82,6 +82,9 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
     // the kit's AI surfaces leave out the local engine's and the embeddings' parts.
     ...(phone ? { capabilities: { localEngine: false, embeddings: false } } : {}),
   });
+  // Renderer errors reach the server's log (Settings → Logs, beside the server's) and are said
+  // once to the writer (the kit's installErrorReporting, app-structure §15 — the template's boot).
+  installErrorReporting(app);
 
   // The native "save as", wired ONCE (2026-08-15) — every export in the app and in
   // the kit's shared panels now goes through the same door, instead of each

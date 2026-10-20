@@ -8,7 +8,7 @@ import { defineStore } from "pinia";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
 import { DEFAULT_APPEARANCE, migrateAppearance } from "../services/appearance.js";
-import { pushToast, clearToasts } from "@delebash/ui";
+import { pushToast, clearToasts, useModelApply } from "@delebash/ui";
 import { t } from "../i18n/index.js";
 
 const SECTION = "ui";
@@ -132,7 +132,7 @@ export const useUiStore = defineStore("ui", {
       lastSeenVersion: null,
       // Cmd+/ keyboard shortcut cheatsheet overlay.
       shortcutsOpen: false,
-      // One-time AI setup prompt — opened by projectStart.js right after the
+      // One-time AI setup prompt — opened by maybeOfferAiSetup right after the
       // user's FIRST project is created/opened (gated on the `aiSetupPrompted`
       // setting). Transient (never persisted): the once-ever gate lives in the
       // setting, this flag only controls the modal's mount at App level.
@@ -232,7 +232,22 @@ export const useUiStore = defineStore("ui", {
     toggleShortcuts() { this.shortcutsOpen = !this.shortcutsOpen; },
 
     // ── One-time AI setup prompt (post-first-project) ────────────────
-    openAiSetupPrompt()  { this.aiSetupPromptOpen = true; },
+    /** The once-ever AI offer, at JustWrite's first-project moment (services/projectStart.js) —
+     *  the family's (§11; the template's ui.maybeOfferAiSetup): shown only when no AI provider is
+     *  the default at all — an online default is AI too. The `aiSetupPrompted` setting is the
+     *  once-ever gate, set when the offer opens (it survives a reload and a delete-all-then-recreate). */
+    async maybeOfferAiSetup() {
+      if (readSetting("aiSetupPrompted")) return;
+      try {
+        const { refreshApplied, currentDefaultProviderId } = useModelApply();
+        await refreshApplied();
+        if (currentDefaultProviderId.value) return;
+      } catch {
+        return; // unknown → no offer; AI Settings still serves
+      }
+      writeSetting("aiSetupPrompted", true);
+      this.aiSetupPromptOpen = true;
+    },
     closeAiSetupPrompt() { this.aiSetupPromptOpen = false; },
 
     // ── What's new modal ─────────────────────────────────────────────

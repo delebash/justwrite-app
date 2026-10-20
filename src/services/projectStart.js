@@ -15,21 +15,17 @@ import { router } from "../router/index.js";
 import { t } from "../i18n/index.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
-import { readSetting, writeSetting } from "./settings.js";
 
 /**
  * Offer AI setup ONCE, right after the user's very first project is created or
- * opened. `wasFirstProject` is captured BEFORE the create/open so an existing
- * user adding a second project never sees it; the `aiSetupPrompted` setting is
- * the once-ever gate (survives reloads and a delete-all-then-recreate). Opening
- * the dialog is deferred to the ui store so it mounts at App level (surviving
- * the projectless header → sidebar swap the new project triggers).
+ * opened (the ui store's maybeOfferAiSetup — no offer when an AI provider is
+ * already the default). `wasFirstProject` is captured BEFORE the create/open so
+ * an existing user adding a second project never sees it. The dialog mounts at
+ * App level (surviving the projectless header → sidebar swap the new project
+ * triggers).
  */
-function maybePromptAiSetup(wasFirstProject) {
-  if (!wasFirstProject) return;
-  if (readSetting("aiSetupPrompted")) return;
-  writeSetting("aiSetupPrompted", true);
-  useUiStore().openAiSetupPrompt();
+function maybeOfferAiSetup(wasFirstProject) {
+  if (wasFirstProject) useUiStore().maybeOfferAiSetup();
 }
 
 /**
@@ -50,7 +46,7 @@ export async function promptNewProject() {
   if (!values?.title) return false;
   store.createProject({ title: values.title, author: values.author || "" });
   router.push("/");
-  maybePromptAiSetup(wasFirstProject);
+  maybeOfferAiSetup(wasFirstProject);
   return true;
 }
 
@@ -64,7 +60,7 @@ export async function openTutorialProject() {
   const id = await store.openDemoProject();
   if (id) {
     router.push("/");
-    maybePromptAiSetup(wasFirstProject);
+    maybeOfferAiSetup(wasFirstProject);
   }
   return !!id;
 }

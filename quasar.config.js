@@ -201,6 +201,10 @@ export default defineConfig((ctx) => {
         mac: {
           category: 'public.app-category.productivity',
           target: [ { target: 'dmg', arch: [ 'universal' ] } ],
+          // koffi installs both of its macOS builds (@koromix/koffi-darwin-arm64 and -x64) in each half of
+          // the universal app, so each koffi.node is the same file in both: @electron/universal joins only
+          // files that differ, and an identical one must be named here (the release dry run, 2026-10-20)
+          x64ArchFiles: '**/node_modules/@koromix/koffi-darwin-*/**',
           extraResources: [ { from: path.join(root, 'build', 'launcher'), to: '.', filter: [ '!*.cmd' ] } ]
         },
         linux: {

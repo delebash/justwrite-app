@@ -971,15 +971,6 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
 
 ## Found by the 2026-08-05 family audit
 
-- **Found by the 2026-08-05 s2 three-app parity audit** (the bundle-extra branch
-  pin from the earlier note is FIXED — it pinned the stale July branch
-  `claude/admiring-galileo-il3q0o`; now `@main`, matching its own "never goes
-  stale" comment):
-  - **`100vh` violation:** `src/components/SceneLinks.vue:264` —
-    `max-height: calc(100vh - 48px)` on the popover. Under the UI-scale zoom,
-    100vh references the UNZOOMED viewport (the family rule's stated reason),
-    so the popover can overflow at zoom ≠ 1. Fix with a zoom-safe bound; the
-    shell chain itself is clean.
 - *(Non-issue, recorded: `family.lab.changeData` is fed but JW passes no
   dataLinks — JW has no promptless features, so the line never renders; the key
   is future-proofing.)*

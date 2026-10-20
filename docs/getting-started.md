@@ -19,7 +19,7 @@ The very first time you open JustWrite, a **welcome screen** greets you. It sums
 - **Start a new project** — give it a title and (optionally) an author, and you're writing.
 - **Try the tutorial project** — opens *The Ninth Facet*, a complete sample novel (more below).
 
-The same screen introduces the optional AI features: **Run Quick Setup** installs a free local model that runs privately on your own PC, **Connect an online provider** points JustWrite at any OpenAI-compatible service, and you can skip both — everything is available later in AI settings. The welcome screen shows once; you can reopen it any time from the **Help** page (sidebar → Help → "Show welcome screen").
+The same screen introduces the optional AI features: **Run Quick Setup** installs a free local model that runs privately on your own PC, **Connect an online provider** points JustWrite at any OpenAI-compatible service, and you can skip both — everything is available later in AI settings. The welcome screen shows once; you can reopen it any time from the **Help** page (sidebar → Help → "Show welcome screen"). When your first project opens, JustWrite offers the AI setup once more — unless an AI provider is already your default.
 
 A fresh workspace has **no projects yet** — the welcome screen is where the first one is born, and it stays your home screen until one exists. Once you have projects, the sidebar's project switcher at the top of the left rail is where you rename them, create more, and move between them.
 

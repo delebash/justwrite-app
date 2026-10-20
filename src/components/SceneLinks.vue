@@ -288,6 +288,9 @@ function onBackdrop(e) {
   background: transparent;
   z-index: 200;
   display: grid; place-items: center;
+  /* one row as tall as the window inside the padding: the panel's max-height: 100% resolves
+     against it — 100vh is the unzoomed window, wrong under the UI scale (the family rule) */
+  grid-template-rows: minmax(0, 100%);
   padding: 24px;
 }
 .links-panel {
@@ -297,7 +300,7 @@ function onBackdrop(e) {
   box-shadow: 0 16px 48px color-mix(in oklab, var(--ink), transparent 75%);
   width: 100%;
   max-width: 920px;
-  max-height: calc(100vh - 48px);
+  max-height: 100%;
   display: flex; flex-direction: column;
   min-height: 0;
   /* A grid item's automatic minimum is its content's: without this the Summary field's 60ch
