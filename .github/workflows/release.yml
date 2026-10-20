@@ -1,20 +1,45 @@
+# The release: each platform's installer and electron-updater's feed (latest*.yml and the
+# .blockmaps), built on GitHub's runners, each started as a user starts it, and attached to the
+# tag's GitHub release only when every check has passed — the family template's workflow
+# (../just-core/template/.github/workflows/release.yml), with JustWrite's own: the sync engine
+# checked out beside the kit, the user docs packed for the website, and the website's rebuild.
+#
+# Manual only. The build is NEVER triggered by push, PR, or tag — only by `npm run release`
+# (scripts/release.js, which calls `gh workflow run release.yml`) or the "Run workflow" button on
+# the Actions page. `publish: false` is a dry run: the same builds and checks, kept as the run's
+# artifacts instead of a release — a branch name works as the ref
+# (`gh workflow run release.yml -f tag=master -f publish=false`). `core_ref` / `sync_ref` are the
+# kit's and the sync engine's commits the app was built and tested with (release.js passes them):
+# both are shared by the family, so their main moves on while a release is being prepared.
 name: Release
 
-# Manual only. The build is NEVER triggered by push, PR, or tag — only
-# by `npm run release` (which calls `gh workflow run release.yml`) or
-# the "Run workflow" button on the Actions page.
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to build (e.g. v0.2.0). Must already exist on origin.'
+        description: "Tag to build (e.g. v0.2.0). Must already exist on origin. A dry run takes a branch too."
         required: true
         type: string
+      publish:
+        description: "Attach the files to the tag's release (off: a dry run — the files stay on this run)."
+        required: false
+        type: boolean
+        default: true
+      core_ref:
+        description: "The kit's commit to build with (release.js passes the one the app was tested with). Empty: the kit's main."
+        required: false
+        type: string
+        default: ""
+      sync_ref:
+        description: "The sync engine's commit to build with (release.js passes the one the app was tested with). Empty: its main."
+        required: false
+        type: string
+        default: ""
       platforms:
-        description: 'Which platforms to build.'
+        description: "Which platforms to build."
         required: true
         type: choice
-        default: 'all'
+        default: all
         options:
           - all
           - windows
@@ -22,7 +47,12 @@ on:
           - linux
 
 permissions:
-  contents: write   # needed to create / update the GitHub release
+  contents: write # creates the release and attaches the files
+
+# one release run per tag at a time (a second waits; it never attaches beside the first)
+concurrency:
+  group: release-${{ inputs.tag }}
+  cancel-in-progress: false
 
 jobs:
   setup:
@@ -50,28 +80,29 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
-
     runs-on: ${{ matrix.platform }}
     steps:
       # The app needs the family kit and the sync engine beside it (server/package.json:
       # file:../../just-core/packages/core and file:../../just-sqlite-sync; quasar.config.js:
       # ../just-core/packages/ui), so all three are checked out side by side.
-      - name: Checkout (at tag)
+      - name: Checkout the app (at the tag)
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
-          path: justwrite-app
+          path: app
 
-      - name: Checkout the kit
+      - name: Checkout the kit (at the commit the app was tested with)
         uses: actions/checkout@v4
         with:
           repository: delebash/just-core
+          ref: ${{ inputs.core_ref }}
           path: just-core
 
-      - name: Checkout the sync engine
+      - name: Checkout the sync engine (at the commit the app was tested with)
         uses: actions/checkout@v4
         with:
           repository: delebash/just-sqlite-sync
+          ref: ${{ inputs.sync_ref }}
           path: just-sqlite-sync
 
       - name: Setup Node
@@ -80,51 +111,193 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: |
-            justwrite-app/package-lock.json
-            justwrite-app/src-electron/package-lock.json
+            app/package-lock.json
+            app/src-electron/package-lock.json
             just-core/packages/core/package-lock.json
             just-sqlite-sync/package-lock.json
 
-      # better-sqlite3 and koffi ship per-platform N-API prebuilds, so nothing native is
-      # compiled here; electron-builder (Quasar's Electron mode, quasar.config.js) packages the
-      # Electron src-electron/package.json pins.
-      - name: Install the kit's server deps
-        working-directory: just-core/packages/core
-        run: npm ci
+      # The kit's packages: core's dependencies, and ui's — the fonts every app bundles
+      # (packages/ui/src/common/fonts.css). ui keeps no lockfile (its .gitignore), so `npm install`.
+      - name: Install the kit
+        shell: bash
+        run: |
+          (cd just-core/packages/core && npm ci)
+          (cd just-core/packages/ui && npm install --no-audit --no-fund)
+
       - name: Install the sync engine's deps
         working-directory: just-sqlite-sync
         run: npm ci --omit=dev
 
-      - name: Install JS deps (the renderer and the server/ workspace)
-        working-directory: justwrite-app
+      - name: Install the app (the renderer and the server/ workspace)
+        working-directory: app
         run: npm ci
 
       - name: Install the desktop app's deps
-        working-directory: justwrite-app/src-electron
+        working-directory: app/src-electron
         run: npm ci
 
+      # Native modules ship per-platform prebuilds (better-sqlite3 and koffi as N-API builds), so
+      # nothing native is compiled here.
       - name: Build the installers
-        working-directory: justwrite-app
-        # Quasar's CLI run as node (app-structure §Q.6); -P never: publishing is the next step's job
+        working-directory: app
+        # Quasar's CLI run as node (app-structure §Q.6); -P never: the publish job attaches the files
         run: node node_modules/@quasar/app-vite/bin/quasar.js build -m electron -T ${{ matrix.target }} -P never
 
-      - name: Publish to the release
-        working-directory: justwrite-app
+      # The packaged app started as a user starts it, on a fresh data folder: it must answer on its
+      # port with its own version before anything is kept or attached (the macOS and Linux builds
+      # are never opened by hand). Linux needs a display (Xvfb) for the window.
+      - name: Start the packaged app
+        working-directory: app
+        shell: bash
+        run: |
+          if [ "${{ matrix.target }}" = linux ]; then
+            command -v xvfb-run >/dev/null || (sudo apt-get update && sudo apt-get install -y xvfb)
+            xvfb-run -a node scripts/start-packaged.js
+          else
+            node scripts/start-packaged.js
+          fi
+
+      # The server on its own through the app's launcher, as the help tells a user to start it
+      # (docs/headless-access.md): no window and no display — it must answer with its version and
+      # serve the app's page.
+      - name: Start the server on its own
+        working-directory: app
+        shell: bash
+        run: node scripts/start-packaged.js --headless
+
+      # No data folder named: the window and the server on its own use the app's default — one folder
+      # (Windows' and the unpacked Linux build's beside the executable; never inside a Mac app's
+      # bundle, which an update replaces whole).
+      - name: The window and the server on its own share one data folder
+        working-directory: app
+        shell: bash
+        run: |
+          window="node"
+          if [ "${{ matrix.target }}" = linux ]; then window="xvfb-run -a node"; fi
+          # each run's lines shown and kept in a file (Git Bash on Windows has no /dev/stderr to tee to)
+          $window scripts/start-packaged.js --default-data | tee window.log
+          node scripts/start-packaged.js --headless --default-data | tee headless.log
+          a=$(sed -n 's/^data folder used: //p' window.log)
+          b=$(sed -n 's/^data folder used: //p' headless.log)
+          echo "the window: $a"; echo "on its own: $b"
+          test -n "$a" && test "$a" = "$b"
+
+      # every platform's files go to the jobs below: the Linux user's check, then the release —
+      # nothing is attached before every check has passed (a dry run keeps them here 7 days)
+      - name: Keep the files for the next jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ matrix.target }}
+          path: |
+            app/dist/electron/Packaged/*.exe
+            app/dist/electron/Packaged/*.dmg
+            app/dist/electron/Packaged/*.zip
+            app/dist/electron/Packaged/*.AppImage
+            app/dist/electron/Packaged/*.deb
+            app/dist/electron/Packaged/*.blockmap
+            app/dist/electron/Packaged/latest*.yml
+          if-no-files-found: error
+          retention-days: 7
+
+  # The AppImage opened the way a Linux user opens it — the file itself, no flags — on the current
+  # Ubuntu LTS, whose AppArmor keeps unprivileged programs out of user namespaces (Chromium's sandbox
+  # needs them), and without FUSE 2 installed.
+  linux-user:
+    needs: [setup, build]
+    if: ${{ contains(needs.setup.outputs.matrix, 'linux') }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout the app (at the tag) — the check's script and the app's port
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+          path: app
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: The Linux build
+        uses: actions/download-artifact@v4
+        with:
+          name: installers-linux
+          path: app/dist/electron/Packaged
+
+      - name: Open the AppImage as a user does
+        working-directory: app
+        shell: bash
+        run: |
+          echo "user namespaces restricted: $(cat /proc/sys/kernel/apparmor_restrict_unprivileged_userns 2>/dev/null || echo n/a)"
+          echo "libfuse.so.2: $(ldconfig -p | grep -c 'libfuse.so.2') found"
+          chmod +x dist/electron/Packaged/*.AppImage
+          command -v xvfb-run >/dev/null || (sudo apt-get update && sudo apt-get install -y xvfb)
+          xvfb-run -a node scripts/start-packaged.js --appimage
+
+      - name: Start the AppImage's server on its own
+        working-directory: app
+        shell: bash
+        run: node scripts/start-packaged.js --appimage --headless
+
+      - name: The AppImage and its server on its own share one data folder
+        working-directory: app
+        shell: bash
+        run: |
+          xvfb-run -a node scripts/start-packaged.js --appimage --default-data | tee window.log
+          node scripts/start-packaged.js --appimage --headless --default-data | tee headless.log
+          a=$(sed -n 's/^data folder used: //p' window.log)
+          b=$(sed -n 's/^data folder used: //p' headless.log)
+          echo "the AppImage: $a"; echo "on its own: $b"
+          test -n "$a" && test "$a" = "$b"
+
+  # The release: every platform's files attached at once, only when every check above passed.
+  publish:
+    needs: [build, linux-user]
+    if: ${{ inputs.publish && !cancelled() && needs.build.result == 'success' && (needs.linux-user.result == 'success' || needs.linux-user.result == 'skipped') }}
+    # pinned, with its own Node: ubuntu-latest moves to a new image now and then
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout the app (at the tag) — its name
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+          path: app
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Every platform's files
+        uses: actions/download-artifact@v4
+        with:
+          pattern: installers-*
+          merge-multiple: true
+          path: app/dist/electron/Packaged
+
+      - name: Attach to the release
+        working-directory: app
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ inputs.tag }}
         run: |
-          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "JustWrite $TAG" \
-            --notes "JustWrite $TAG. See \`docs.tar.gz\` for the bundled user documentation that the marketing site mirrors for this release." \
-            || gh release view "$TAG" >/dev/null  # another platform's job created it first
+          PRODUCT=$(node -p "require('./package.json').productName")
+          # JustWrite's What's new is dated, not versioned: the notes point at the bundled docs
+          printf '%s %s. See `docs.tar.gz` for the bundled user documentation that the marketing site mirrors for this release.\n' "$PRODUCT" "$TAG" > release-notes.md
+          PRE=""
+          case "$TAG" in *-*) PRE="--prerelease" ;; esac
+          # a new release is a draft until every file is attached: published first, it was the "Latest" an
+          # installed copy's update check read before its latest.yml was there (the template's)
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" $PRE --draft --title "$PRODUCT $TAG" --notes-file release-notes.md
           shopt -s nullglob
-          # the updater's feed (latest*.yml) and the blockmaps its downloads are checked against go up
-          # with the installers
-          gh release upload "$TAG" dist/electron/Packaged/*.exe dist/electron/Packaged/*.dmg dist/electron/Packaged/*.AppImage dist/electron/Packaged/*.deb dist/electron/Packaged/latest*.yml dist/electron/Packaged/*.blockmap --clobber
+          cd dist/electron/Packaged
+          # the installers, and electron-updater's feed: latest*.yml (one per platform) and the .blockmaps
+          gh release upload "$TAG" *.exe *.dmg *.zip *.AppImage *.deb *.blockmap latest*.yml --clobber
+          gh release edit "$TAG" --draft=false
 
   attach-docs:
-    needs: build
+    needs: publish
     runs-on: ubuntu-latest
     steps:
       - name: Checkout (at tag)

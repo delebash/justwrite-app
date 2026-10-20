@@ -16,6 +16,9 @@
 // Preconditions (verified here):
 //   - gh CLI installed and authenticated
 //   - tag v<version> exists on origin
+//   - the kit's and the sync engine's commits this app was built and tested with are on origin —
+//     the runners build with those (core_ref, sync_ref), not their main, which every family app's
+//     work moves on (the template's release.js)
 
 import { readFile } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
@@ -30,7 +33,7 @@ function run(cmd, opts = {}) {
   return execSync(cmd, { encoding: "utf8", cwd: ROOT, ...opts }).trim();
 }
 function tryRun(cmd) {
-  try { return run(cmd); } catch { return null; }
+  try { return run(cmd, { stdio: ["ignore", "pipe", "ignore"] }); } catch { return null; }
 }
 
 function fail(msg) {
@@ -83,7 +86,24 @@ if (!remoteTag) {
   );
 }
 
-// 4. Confirm ---------------------------------------------------------
+// 4. The kit's and the sync engine's commits ----------------------------
+// beside the app, where the server's package.json points (`file:<dir>`)
+const serverPkg = JSON.parse(await readFile(resolve(ROOT, "server", "package.json"), "utf8"));
+function testedCommit(dep, label) {
+  const dir = resolve(ROOT, "server", (serverPkg.dependencies?.[dep] || "").replace(/^file:/, ""));
+  const repo = tryRun(`git -C "${dir}" rev-parse --show-toplevel`);
+  const ref = repo && tryRun(`git -C "${repo}" rev-parse HEAD`);
+  if (!ref) fail(`${label} (${dir}) isn't a git checkout.`);
+  if (!tryRun(`git -C "${repo}" branch -r --contains ${ref}`)) fail(`${label}'s commit ${ref.slice(0, 7)} isn't on origin — push it first.`);
+  if (tryRun(`git -C "${repo}" status --porcelain`)) {
+    console.log(`Note: ${label} has changes not committed — the release builds its last commit, without them.`);
+  }
+  return ref;
+}
+const coreRef = testedCommit("@delebash/core", "the kit");
+const syncRef = testedCommit("@delebash/sqlite-sync", "the sync engine");
+
+// 5. Confirm ---------------------------------------------------------
 const ARTIFACTS = {
   all:     ".dmg (macOS universal), .exe (Windows), .AppImage + .deb (Linux)",
   windows: ".exe (Windows only)",
@@ -91,7 +111,7 @@ const ARTIFACTS = {
   linux:   ".AppImage + .deb (Linux only)",
 };
 console.log(`Tag ${tag} found on origin. Ready to trigger the release workflow.`);
-console.log(`Platforms: ${platform}`);
+console.log(`Platforms: ${platform}; the kit at ${coreRef.slice(0, 7)}, the sync engine at ${syncRef.slice(0, 7)}`);
 console.log("");
 console.log("This will:");
 console.log(`  - Build ${ARTIFACTS[platform]}`);
@@ -108,15 +128,18 @@ if (answer !== "y" && answer !== "yes") {
   process.exit(0);
 }
 
-// 5. Trigger ---------------------------------------------------------
+// 6. Trigger ---------------------------------------------------------
 console.log("Triggering...");
 try {
   // Close stdin explicitly. With a fully inherited stdio the prior
   // readline prompt leaves a closed-pipe stdin behind when invoked
   // from a piped context (e.g. `echo y | npm run release`), which gh
   // then exits non-zero on. Inherit stdout/stderr so the run URL
-  // still streams live.
-  run(`gh workflow run release.yml -f tag=${tag} -f platforms=${platform}`, {
+  // still streams live — so execSync returns null: never run(), whose
+  // trim() of that null threw and reported a run that had started as
+  // failed (the template's v0.1.0, 2026-10-19).
+  execSync(`gh workflow run release.yml -f tag=${tag} -f platforms=${platform} -f core_ref=${coreRef} -f sync_ref=${syncRef}`, {
+    cwd: ROOT,
     stdio: ["ignore", "inherit", "inherit"],
   });
 } catch {

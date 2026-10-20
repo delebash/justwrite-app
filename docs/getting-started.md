@@ -168,11 +168,15 @@ npm run release:linux       # only Linux
 
 The GitHub Release picks up whichever binaries land first; re-running with a different platform later adds those binaries to the same release.
 
-The workflow runs three jobs:
+The workflow runs these jobs:
 
-1. **`build`** — matrix build with [electron-builder](https://www.electron.build/) on macOS (universal `.dmg`), Windows (`.exe` installer), and Linux (`.AppImage` + `.deb`). Each runner checks out the shared kit beside the app. The matrix is computed dynamically from the `platforms` workflow input (`all` / `windows` / `macos` / `linux`). Creates the GitHub Release and uploads the installers.
-2. **`attach-docs`** — packs the `docs/` folder into `docs.tar.gz` and attaches it to the release. The marketing site treats this as the source of truth for the docs at this version.
-3. **`notify-website`** — fires a `repository_dispatch` to [`justwrite-website`](https://github.com/delebash/justwrite-website), which rebuilds and redeploys with the new docs.
+1. **`build`** — matrix build with [electron-builder](https://www.electron.build/) on macOS (universal `.dmg`), Windows (`.exe` installer), and Linux (`.AppImage` + `.deb`). Each runner checks out the shared kit and the sync engine beside the app, at the commits the app was tested with (`npm run release` passes them). The matrix is computed dynamically from the `platforms` workflow input (`all` / `windows` / `macos` / `linux`). Each runner then starts the packaged app as a user would, starts the server on its own through `justwrite-server`, and checks that both use the same data folder.
+2. **`linux-user`** — opens the AppImage the way a Linux user does, on the current Ubuntu LTS.
+3. **`publish`** — only when every check passed: creates the GitHub Release and attaches the installers and the update feed.
+4. **`attach-docs`** — packs the `docs/` folder into `docs.tar.gz` and attaches it to the release. The marketing site treats this as the source of truth for the docs at this version.
+5. **`notify-website`** — fires a `repository_dispatch` to [`justwrite-website`](https://github.com/delebash/justwrite-website), which rebuilds and redeploys with the new docs.
+
+A dry run builds and checks everything without publishing: `gh workflow run release.yml -f tag=master -f publish=false` (the files stay on the run for 7 days).
 
 **One-time setup for releases:**
 
@@ -181,7 +185,7 @@ The workflow runs three jobs:
 
 **Code signing.** Skipped intentionally. macOS users see a "unidentified developer" Gatekeeper prompt on first launch (right-click → Open to bypass); Windows users may see SmartScreen warnings. Add an Apple Developer Certificate + Windows code-signing cert later if the friction becomes a problem.
 
-**Auto-update.** On. The desktop app checks the GitHub Releases page for a newer version when it starts; **Settings → Updates** says when one is out, **Download** fetches it, and it installs when the app quits (or at once with **Restart now**). On a Mac, which can't install an unsigned update, it opens the release page instead. The updater finds the installer by its file name, which therefore has no spaces.
+**Auto-update.** On. The desktop app checks the GitHub Releases page for a newer version when it starts, every six hours while it runs, and when the computer wakes from sleep; **Settings → Updates** says when one is out, **Download** fetches it, and it installs when the app quits (or at once with **Restart now**). On a Mac, which can't install an unsigned update, it opens the release page instead. The updater finds the installer by its file name, which therefore has no spaces.
 
 ---
 

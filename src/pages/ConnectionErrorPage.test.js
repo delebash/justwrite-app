@@ -52,6 +52,23 @@ test("another JustWrite server on the data folder: the shell's words, as they ar
   expect(el.textContent).not.toContain("is in use by another program");
 });
 
+test("another person's copy on the port, a port Windows reserved, a server that stopped: the template's words", async () => {
+  status.mockResolvedValue({ url: null, portTaken: 17495, portOtherUser: 17495, dataFolderInUse: null });
+  await mount();
+  expect(el.textContent).toContain("Another person signed in to this computer has the app open, on port 17495.");
+  expect(el.textContent).not.toContain("is in use by another program");
+  app.unmount();
+  el.remove();
+  status.mockResolvedValue({ url: null, portTaken: 17495, portReserved: 17495, dataFolderInUse: null });
+  await mount();
+  expect(el.textContent).toContain("Windows has reserved port 17495 for another use");
+  app.unmount();
+  el.remove();
+  status.mockResolvedValue({ url: null, portTaken: null, dataFolderInUse: null, serverError: "SQLITE_CANTOPEN: unable to open database file" });
+  await mount();
+  expect(el.textContent).toContain("Its server stopped as it started: SQLITE_CANTOPEN: unable to open database file");
+});
+
 test("nothing known (a browser, or the server simply down): no extra sentence", async () => {
   status.mockResolvedValue(null);
   await mount();

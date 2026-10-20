@@ -39,11 +39,11 @@ justwrite-server serve
 It starts on `127.0.0.1:17495` and prints the address to open. It is the same server the
 desktop app runs, on the same data folder — only without the window.
 
-On macOS and Linux there is no separate command yet: run the app's own program with the
-environment variable `ELECTRON_RUN_AS_NODE=1`, followed by the path to
-`resources/app.asar/server/src/serve.js` inside the installed app (`Contents/Resources/…` in
-the macOS app bundle) and the same options. From a
-copy of the source code, `npm run server` does it for you (options go after `--`).
+On macOS and Linux the command is **`justwrite-server`** too: on Linux it sits beside the
+`justwrite` program (for the AppImage, run the AppImage with `--appimage-extract` first; the
+command is then in the `squashfs-root` folder it makes), and on macOS it is inside the app, in
+`JustWrite.app/Contents/Resources`. From a copy of the source code, `npm run server` does it for
+you (options go after `--`).
 
 Three options let you change that:
 

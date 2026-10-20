@@ -4006,7 +4006,10 @@
   "connectionError": {
     "need": "load and save your work",
     "devHint": "Dev: start it with `npm run server` in the project root, then retry.",
-    "portTaken": "Port {port} is in use by another program — close that program, then press {retry}."
+    "portTaken": "Port {port} is in use by another program — close that program, then press {retry}.",
+    "portOtherUser": "Another person signed in to this computer has the app open, on port {port}. One copy runs at a time: they can quit theirs (its tray icon), then press {retry}.",
+    "portReserved": "Windows has reserved port {port} for another use (Hyper-V, WSL or Docker), so the app can't use it.",
+    "serverError": "Its server stopped as it started: {error}"
   },
   "bookTransfer": {
     "exportTitle": "Export book",

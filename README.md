@@ -243,10 +243,11 @@ npm run release:windows      # or one
 
 What the workflow does (see `.github/workflows/release.yml`):
 
-1. Builds .dmg (macOS universal), .exe (Windows, NSIS), .AppImage + .deb (Linux) with Quasar's Electron mode (electron-builder) on per-platform runners — each checks out the kit (`delebash/just-core`) and the sync engine (`delebash/just-sqlite-sync`) beside the app. Not yet run since the Quasar move (it needs a tag).
-2. Creates / updates GitHub Release `v<version>` with the binaries attached.
-3. Packs `docs/` into `docs.tar.gz` and attaches it to the release.
-4. Fires a `repository_dispatch` at the marketing-site repo so it rebuilds with the new docs.
+1. Builds .dmg (macOS universal), .exe (Windows, NSIS), .AppImage + .deb (Linux) with Quasar's Electron mode (electron-builder) on per-platform runners — each checks out the kit (`delebash/just-core`) and the sync engine (`delebash/just-sqlite-sync`) beside the app, at the commits the app was tested with.
+2. Starts each packaged app as a user would, and its server on its own through `justwrite-server`; opens the AppImage on the current Ubuntu LTS (`scripts/start-packaged.js`, the family template's).
+3. Only when every check passed: creates / updates GitHub Release `v<version>` with the binaries and the update feed attached.
+4. Packs `docs/` into `docs.tar.gz` and attaches it to the release.
+5. Fires a `repository_dispatch` at the marketing-site repo so it rebuilds with the new docs.
 
 Watch with `gh run watch` or open the workflow runs page. A full all-platform build is roughly 9-15 min wall time.
 

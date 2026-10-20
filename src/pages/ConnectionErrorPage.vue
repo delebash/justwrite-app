@@ -13,12 +13,18 @@ const { t } = useI18n();
 
 // Why the desktop app's server didn't start, when its shell knows: another JustWrite server holds
 // the data folder — the shell's words, the kit's platform/data_lock.js (2026-10-15) — or another
-// program holds the port (the approved words, 2026-10-15; {retry} is the button's own label).
+// program holds the port (the approved words, 2026-10-15; {retry} is the button's own label). And,
+// as the template's page says them (2026-10-20): another person signed in to this computer has the
+// app open on the port (the shell never stops their server), Windows has reserved the port, or the
+// server stopped as it started (its own first error line).
 const detail = ref("");
 onMounted(async () => {
   const status = await shellServerStatus();
   if (status?.dataFolderInUse) detail.value = status.dataFolderInUse;
+  else if (status?.portOtherUser) detail.value = t("connectionError.portOtherUser", { port: status.portOtherUser, retry: t("kit.common.retry") });
+  else if (status?.portReserved) detail.value = t("connectionError.portReserved", { port: status.portReserved });
   else if (status?.portTaken) detail.value = t("connectionError.portTaken", { port: status.portTaken, retry: t("kit.common.retry") });
+  else if (status?.serverError) detail.value = t("connectionError.serverError", { error: status.serverError });
 });
 </script>
 

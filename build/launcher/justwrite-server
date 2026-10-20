@@ -1,0 +1,22 @@
+#!/bin/sh
+# justwrite-server: the headless server on macOS and Linux - the app's own executable run as Node, the
+# same server and UI the desktop app runs, no window and no display needed (app-structure.md Q.3; Windows has
+# the .cmd beside it). Linux: beside the executable (an AppImage: after --appimage-extract, in squashfs-root);
+# macOS: in the app's Contents/Resources.
+self=$(readlink -f "$0" 2>/dev/null || printf '%s' "$0")
+here=$(cd "$(dirname "$self")" && pwd)
+name=$(basename "$self" -server)
+if [ -d "$here/../MacOS" ]; then
+  # the bundle's own executable, named by its Info.plist (CFBundleExecutable; PlistBuddy ships with macOS): another
+  # program an app puts in Contents/MacOS never runs in its place (JustVoice's audiocpp_dsp, 2026-10-20)
+  exe="$here/../MacOS/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$here/../Info.plist")"
+  res="$here"
+else
+  exe="$here/$name"
+  res="$here/resources"
+fi
+# the OS's certificates trusted too (Node's NODE_USE_SYSTEM_CA, nodejs.org/api/cli.html#node_use_system_ca1):
+# a network that inspects TLS signs with a certificate only the OS knows. A value already set is kept.
+NODE_USE_SYSTEM_CA="${NODE_USE_SYSTEM_CA:-1}"
+export NODE_USE_SYSTEM_CA
+ELECTRON_RUN_AS_NODE=1 exec "$exe" "$res/app.asar/node_modules/$name-server/src/serve.js" "$@"

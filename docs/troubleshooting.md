@@ -63,6 +63,15 @@ fails, this page says why, if it knows:
   has the same data folder open. Stop it, then press **Retry**.
 - *"Port 17495 is in use by another program — close that program, then press Retry."* — another
   program holds JustWrite's port.
+- *"Another person signed in to this computer has the app open, on port 17495…"* — someone else
+  signed in to this computer is running JustWrite, and only one copy can run at a time. They quit
+  theirs from its tray icon; then press **Retry**.
+- *"Windows has reserved port 17495 for another use (Hyper-V, WSL or Docker)…"* — Windows keeps
+  that port for one of those tools, so the desktop app can't start its server there. You can still
+  run the server yourself on another port with `--port` and open it in a browser
+  ([Headless access](headless-access.md)).
+- *"Its server stopped as it started: …"* — the server's own error follows, such as a database it
+  couldn't open or a data folder it couldn't use ([Storage & engine](storage.md)).
 
 **Retry** starts the server again.
 

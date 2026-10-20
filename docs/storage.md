@@ -19,8 +19,10 @@ you differently.
 
 ## Moving your data to another folder
 
-In **Settings → Storage**, click **Change folder…**, pick a new location, and
-confirm. JustWrite moves everything to the new folder and restarts.
+In **Settings → Storage**, click **Change folder…**, pick a location, and
+confirm. JustWrite makes a new folder for itself inside the one you picked, moves
+everything into it, and restarts. One move runs at a time, and it first checks
+that the drive has room.
 
 Your work is never at risk: the move only takes effect once the copy has fully
 finished, and if anything goes wrong the app keeps using the old folder. Large

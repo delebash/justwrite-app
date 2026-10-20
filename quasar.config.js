@@ -156,7 +156,11 @@ export default defineConfig((ctx) => {
         // the updater's feed (https://www.electron.build/publish): app-update.yml in the app and
         // latest*.yml beside the installers, written even under -P never; the release workflow
         // uploads them
-        publish: [ { provider: 'github', owner: 'delebash', repo: 'justwrite-app' } ],
+        publish: { provider: 'github', owner: 'delebash', repo: 'justwrite-app' },
+        // file names without spaces (the package name, the version, the platform; the template's): the
+        // feed names each file as written, and GitHub turns an uploaded name's spaces into dots
+        // biome-ignore lint/suspicious/noTemplateCurlyInString: electron-builder's own ${…} macros
+        artifactName: '${name}-${version}-${os}-${arch}.${ext}',
         files: [
           '**/*',
           '!**/node_modules/better-sqlite3/{deps,src,build/Release/obj,build/Release/obj.target,build/deps}/**',
@@ -165,14 +169,20 @@ export default defineConfig((ctx) => {
         // native modules can't load from inside the asar archive; the bundled samples stay
         // outside it, as they did before the move
         asarUnpack: [ '**/*.node', 'node_modules/justwrite-server/samples/**' ],
-        // the headless launcher (justwrite-server.cmd) beside the exe
-        extraResources: [ { from: path.join(root, 'build', 'launcher'), to: '..' } ],
-        win: { target: 'nsis', executableName: 'justwrite' },
+        // the headless launcher, per platform (the template's): justwrite-server.cmd beside the
+        // Windows exe, justwrite-server beside the Linux one and in the Mac app's Resources
+        win: {
+          target: 'nsis',
+          executableName: 'justwrite',
+          extraResources: [ { from: path.join(root, 'build', 'launcher'), to: '..', filter: [ '*.cmd' ] } ]
+        },
         nsis: {
           // no spaces: GitHub renames a spaced asset on upload (spaces → dots), and latest.yml names
-          // electron-builder's dashed form — the updater would download a file that isn't there
+          // electron-builder's dashed form — the updater would download a file that isn't there.
+          // "-Setup-" kept: the website's download button finds the installer by `-setup.exe`
+          // (justwrite-website src/components/Hero.astro)
           // biome-ignore lint/suspicious/noTemplateCurlyInString: electron-builder's own ${…} macros
-          artifactName: '${productName}-Setup-${version}.${ext}',
+          artifactName: '${name}-Setup-${version}.${ext}',
           oneClick: false,
           perMachine: false,
           allowToChangeInstallationDirectory: true,
@@ -188,8 +198,23 @@ export default defineConfig((ctx) => {
           grantFileProtocolExtraPrivileges: false
         },
         // macOS: one universal .dmg (Intel and Apple silicon), as the release has shipped
-        mac: { category: 'public.app-category.productivity', target: [ { target: 'dmg', arch: [ 'universal' ] } ] },
-        linux: { target: [ 'AppImage', 'deb' ], category: 'Office' }
+        mac: {
+          category: 'public.app-category.productivity',
+          target: [ { target: 'dmg', arch: [ 'universal' ] } ],
+          extraResources: [ { from: path.join(root, 'build', 'launcher'), to: '.', filter: [ '!*.cmd' ] } ]
+        },
+        linux: {
+          target: [ 'AppImage', 'deb' ],
+          category: 'Office',
+          // the .deb's maintainer field, published in the package (electron-builder refuses a .deb
+          // without one): the repository owner's GitHub no-reply address, never a real one
+          maintainer: 'delebash <delebash@users.noreply.github.com>',
+          extraResources: [ { from: path.join(root, 'build', 'launcher'), to: '..', filter: [ '!*.cmd' ] } ]
+        },
+        // the AppImage on the AppImage project's static runtime (type2-runtime): it needs no FUSE 2
+        // library, which Ubuntu 24.04 doesn't install — the legacy toolset's AppImage stopped there with
+        // "AppImages require FUSE to run" (the template's; just-house-paint RESEARCH §13)
+        toolsets: { appimage: '1.0.3' }
       }
     }
   }

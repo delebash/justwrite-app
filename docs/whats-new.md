@@ -24,6 +24,22 @@ clipboard there, and now says so: **Ctrl+V** pastes.
 the changes already being saved finish first and new ones are refused with a message, so none of
 them lands in the middle of it.
 
+**`justwrite-server` on macOS and Linux.** The command that runs the server on its own, without
+the window, now comes with the Mac and Linux apps too, as it does on Windows. See
+[Running the server yourself](headless-access.md#running-the-server-yourself).
+
+**Why the app can't reach its server, in more cases.** The connection page now also says when
+another person signed in to the computer has JustWrite open, when Windows has reserved its port,
+and the server's own error when it stopped as it started. See
+[The app can't reach its server](troubleshooting.md#the-app-cant-reach-its-server).
+
+**Change folder makes its own folder.** **Settings → Storage → Change folder…** now moves your data
+into a new JustWrite folder inside the one you pick, after checking the drive has room. See
+[Moving your data](storage.md#moving-your-data-to-another-folder).
+
+**Update checks while it runs.** The desktop app looks for a new version every six hours and when
+the computer wakes, not only when it starts.
+
 ## 2026-10-19
 
 **Sign in from another computer.** When JustWrite's server asks for a token (Settings → Server →
