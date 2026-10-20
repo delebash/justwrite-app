@@ -19,13 +19,13 @@
 // never by the address of the server that showed it: a scene syncs to devices
 // whose servers are elsewhere, and the phone's server is inside the app (a
 // worker an <img> can't reach). `displaySrc` turns a stored src into one this
-// window can show — the server's address on a computer, a blob from the in-app
-// server on the phone; the editor's `imageView` and `vSceneImages` (read views)
-// use it. The schema reads an absolute address stored before 2026-10-08 back to
+// window can show — a blob read through the kit's transport (the access token,
+// the phone's in-app server); the editor's `imageView` and `vSceneImages` (read
+// views) use it. The schema reads an absolute address stored before 2026-10-08 back to
 // the path (server/src/editor/editorSchema.js `stableImageSrc`).
 // ============================================================
 
-import { inAppServer, serverUrl, post, del, requestBlob } from "@delebash/ui";
+import { post, del, requestBlob } from "@delebash/ui";
 import { SERVER_IMAGE, stableImageSrc } from "justwrite-server/editor/editorSchema.js";
 
 const MIME_TO_EXT = {
@@ -82,14 +82,16 @@ export async function storedSrcFor(image) {
 const blobUrls = new Map(); // path → Promise<blob: URL>, for the session
 
 /**
- * A stored image src as something this window can show: a server image's path through the
- * server's address on a computer, or as a blob read from the in-app server on the phone; any
- * other src (a data URL, an image on the web) as it is.
+ * A stored image src as something this window can show: a server image's path as a blob read
+ * through the kit's transport (requestBlob — the window's access token when the server asks for
+ * one; the phone's in-app server), any other src (a data URL, an image on the web) as it is. Never
+ * the server's address in an <img>: that sends no token (a server requiring one never showed the
+ * picture), and from the desktop window (app://justwrite) it's a cross-site load with no Origin,
+ * which the server's resource isolation refuses (the kit's useServerImage, kit 7680aca).
  */
 export function displaySrc(src) {
   const path = stableImageSrc(src);
   if (!SERVER_IMAGE.test(path ?? "")) return Promise.resolve(src ?? "");
-  if (!inAppServer()) return Promise.resolve(serverUrl(path));
   let url = blobUrls.get(path);
   if (!url) {
     url = requestBlob(path).then((blob) => URL.createObjectURL(blob));

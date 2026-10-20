@@ -121,6 +121,15 @@
   --success-line: oklch(0.82 0.07 var(--success-hue));
   --success:     oklch(0.6 0.13 var(--success-hue));
 
+  /* the toasts (the kit's --ui-toast-{kind}-ink / -bg / -edge, tokens.contract.css) on JustWrite's own
+     inks, as the template's — each pair 4.5:1 or more in both themes (2026-10-20: plain 17.31 / 14.85,
+     success 6.96 / 9.33 at every hue, info 7.58 / 9.72, warning 8.59 / 9.51, error 6.21 / 7.80) */
+  --ui-toast-normal-ink: var(--ink); --ui-toast-normal-bg: var(--surface); --ui-toast-normal-edge: var(--border-field);
+  --ui-toast-success-ink: var(--success-ink); --ui-toast-success-bg: var(--success-bg);
+  --ui-toast-info-ink: var(--info-ink); --ui-toast-info-bg: var(--info-bg);
+  --ui-toast-warning-ink: var(--warn-ink); --ui-toast-warning-bg: var(--warn-bg);
+  --ui-toast-error-ink: var(--danger-ink); --ui-toast-error-bg: var(--danger-bg);
+
   --info-bg:     oklch(0.95 0.025 var(--info-hue));
   --info-ink:    oklch(0.4 0.08 var(--info-hue));
   --info-line:   oklch(0.82 0.05 var(--info-hue));

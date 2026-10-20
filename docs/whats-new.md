@@ -11,6 +11,11 @@ read JustWrite's server on your computer — your books, a backup and your AI pr
 included. The server now answers only JustWrite's own windows. If you run it behind a reverse
 proxy, see [Behind a reverse proxy](headless-access.md#behind-a-reverse-proxy).
 
+**Pictures show when the server asks for a token.** Covers, portraits and scene images now load
+through the window's access token, so they appear in a browser signed in to a server that requires
+one; before, they stayed blank. And a page on another site can no longer make the server start a
+backup by linking to it.
+
 **Your access tokens stay with the server.** Resetting the workspace or restoring a backup keeps
 the server's tokens and its **Require a token even on localhost** switch, and a backup no longer
 contains them. See [API access](headless-access.md#api-access-bearer-tokens).

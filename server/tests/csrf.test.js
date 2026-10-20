@@ -140,3 +140,21 @@ test("a reverse proxy's public name (JUSTWRITE_ALLOWED_HOSTS) may write through 
     delete process.env.JUSTWRITE_ALLOWED_HOSTS;
   }
 });
+
+test("a read the browser marks cross-site is refused, but the app's own windows and a navigation to the UI pass", async () => {
+  // Fetch Metadata resource isolation (the kit's nineteenth review): a cross-site <img> of /v1/data/backup made a backup
+  const c = await client(tmpPath());
+  const cross = { "sec-fetch-site": "cross-site", "sec-fetch-mode": "no-cors", "sec-fetch-dest": "image" };
+  expect((await c.get("/v1/data/backup", { headers: cross })).statusCode).toBe(403);
+  expect((await c.get("/v1/projects", { headers: cross })).statusCode).toBe(403);
+  // the desktop window fetches its server cross-site, with its Origin
+  const win = { "sec-fetch-site": "cross-site", "sec-fetch-mode": "cors", origin: "app://justwrite" };
+  expect((await c.get("/v1/projects", { headers: win })).statusCode).toBe(200);
+  // same-origin (the headless UI), and a request with no Fetch Metadata (curl, another app)
+  expect((await c.get("/v1/projects", { headers: { "sec-fetch-site": "same-origin" } })).statusCode).toBe(200);
+  expect((await c.get("/v1/projects")).statusCode).toBe(200);
+  // a link from elsewhere to the UI's page opens it; to the API it doesn't
+  const nav = { "sec-fetch-site": "cross-site", "sec-fetch-mode": "navigate", "sec-fetch-dest": "document" };
+  expect((await c.get("/", { headers: nav })).statusCode).not.toBe(403);
+  expect((await c.get("/v1/data/backup", { headers: nav })).statusCode).toBe(403);
+});

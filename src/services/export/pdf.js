@@ -59,8 +59,15 @@ export async function exportPdf({ manuscript, onProgress } = {}) {
   let coverDataUrl = null;
   if (manuscript.coverImage) {
     try {
-      const { urlFor } = await import("../imageStore.js");
-      coverDataUrl = await urlFor(manuscript.coverImage);
+      // the bytes through the kit's transport (a server image: the access token; an inline one:
+      // its data URL), then a data URL — never the server's address or a blob: URL
+      const { readImageBytes } = await import("../imageStore.js");
+      const img = await readImageBytes(manuscript.coverImage);
+      if (img) {
+        let binary = "";
+        for (let i = 0; i < img.bytes.length; i += 0x8000) binary += String.fromCharCode(...img.bytes.subarray(i, i + 0x8000));
+        coverDataUrl = `data:${img.mime};base64,${btoa(binary)}`;
+      }
     } catch { /* fall through to coverless PDF */ }
   }
 

@@ -21,6 +21,7 @@ import {
   makeLogsRouter,
   makeShutdownRouter,
   onClose,
+  resourceIsolation,
   SHUTDOWN_PATH,
   serveStatic,
   starletteCors,
@@ -213,6 +214,19 @@ export async function createApp(dataDir = null) {
     csrfOrigin({
       appOrigins: APP_ORIGINS,
       extraOrigins: [...pyOr(corsOrigins, []), ...proxyOrigins],
+      typeBase: TYPE_BASE,
+    }),
+  );
+  // ...and a read the browser marks cross-site (Fetch Metadata: a cross-site <img> of /v1/data/backup
+  // made a backup — the kit's nineteenth review), but the app's own windows by their Origin (the
+  // desktop window's app://justwrite, the dev server, the phone, the `cors` setting's origins and
+  // pattern, a reverse proxy's name) and a navigation to the UI's pages — the template's.
+  app.use(
+    "*",
+    resourceIsolation({
+      appOrigins: APP_ORIGINS,
+      extraOrigins: [...pyOr(corsOrigins, []), ...proxyOrigins],
+      originRegex: pyOr(corsRegex, ""),
       typeBase: TYPE_BASE,
     }),
   );
