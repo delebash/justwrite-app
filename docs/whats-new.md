@@ -39,6 +39,11 @@ the drive has room. The old folder keeps its copy until you remove it from the s
 the old copy…**), and **Move back to the default folder…** returns it. See
 [Moving your data](storage.md#moving-your-data-to-another-folder).
 
+**Requiring a token on this computer no longer locks the window out.** Switching on **Require a
+token even on localhost** (Settings → Server) left the window without a token: everything it asked
+was refused, and a reload showed the welcome screen as if your books were gone (they never were).
+The window now keeps one of your tokens.
+
 **Fields and warnings easier to see.** Text boxes, menus and the segmented switches have an edge
 you can see against every background, in both themes, and the red of delete buttons and error text
 is darker, so the words on and in it are easy to read in every danger colour you can choose.

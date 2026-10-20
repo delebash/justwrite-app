@@ -87,7 +87,8 @@ Two things worth knowing:
 
 - **Connections from the machine itself skip the check**, so the desktop app
   keeps working normally. If you'd rather require a token even there, switch on
-  **Require a token even on localhost**.
+  **Require a token even on localhost**: the window you switch it on in keeps one
+  of your tokens, so it stays signed in.
 - **The app itself always loads.** Tokens guard the API, not the page — so a
   browser can always reach JustWrite and sign in: on another computer the page
   asks for an access token; paste one of yours and **Connect**. The browser keeps

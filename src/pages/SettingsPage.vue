@@ -5,7 +5,7 @@ import { useAiStore } from "../stores/ai.js";
 import { categoryLabelShown, statusLabelShown, useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor } from "../services/imageStore.js";
-import { promptDialog, confirmDialog, DataManagement, LogsPanel, SettingsShell, StoragePanel, UpdatesPanel, renderHelpMarkdown, get, put, serverUrl, pageFill } from "@delebash/ui";
+import { promptDialog, confirmDialog, DataManagement, LogsPanel, SettingsShell, StoragePanel, UpdatesPanel, renderHelpMarkdown, get, put, serverUrl, pageFill, getServerToken, setServerToken } from "@delebash/ui";
 import { loadDoc } from "../services/helpDocs.js";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { exportProject, importProject, saveBackupBlob, canSaveFiles, canPickBooks } from "../services/bookTransfer.js";
@@ -200,6 +200,10 @@ async function saveAuthCfg() {
     });
     authTokens.value = a.tokens;
     requireLoopbackAuth.value = !!a.requireForLoopback;
+    // a token required on this computer too: this window keeps one of them, or everything it asks next is
+    // refused (it would have no token to send) — the kit's ServerPanel; without it the window's every /v1
+    // call answered 401 and a reload opened on Welcome as if there were no books (2026-10-20)
+    if (requireLoopbackAuth.value && authTokens.value.length && !authTokens.value.includes(getServerToken())) setServerToken(authTokens.value[0]);
   } catch (e) {
     ui.showToast({ message: String(e?.message || e) });
   }
