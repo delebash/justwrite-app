@@ -29,7 +29,7 @@ await sleep(1500);
 // nav lists ACTIONS directly (grouped by feature, display-only). Selecting an action
 // mounts its <FeatureLab> — the SAME test-input markup the task pane used to host.
 await page.evaluate(() => {
-  [...document.querySelectorAll(".lu-subnav a")].find((a) => a.textContent.trim() === "Routing by feature")?.click();
+  [...document.querySelectorAll(".lu-subnav [role=tab]")].find((a) => a.textContent.trim() === "Routing by feature")?.click();
 });
 await sleep(2000);
 

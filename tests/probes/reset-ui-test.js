@@ -29,7 +29,7 @@ await fetch(SERVER + "/v1/ai/jobs", { method: "POST", headers: { "Content-Type":
 async function gotoProviders() {
   await page.evaluate(() => { window.location.hash = "#/ai"; });
   await sleep(1200);
-  await page.evaluate(() => { const t = [...document.querySelectorAll(".lu-subnav a")].find((a) => /providers/i.test(a.textContent)); t && t.click(); });
+  await page.evaluate(() => { const t = [...document.querySelectorAll(".lu-subnav [role=tab]")].find((a) => /providers/i.test(a.textContent)); t && t.click(); });
   await sleep(1000);
   return await page.evaluate(() => {
     const txt = document.querySelector("#q-app")?.innerText || "";
@@ -49,7 +49,7 @@ log.push(["BEFORE", JSON.stringify(before)]);
 await page.evaluate(() => { window.location.hash = "#/settings"; });
 await sleep(1200);
 const backupsClicked = await page.evaluate(() => {
-  const el = [...document.querySelectorAll("button, a, [role=tab], .lu-subnav a, li")].find((e) => /^\s*backups\s*$/i.test(e.textContent || ""));
+  const el = [...document.querySelectorAll("button, a, [role=tab], .lu-subnav [role=tab], li")].find((e) => /^\s*backups\s*$/i.test(e.textContent || ""));
   if (el) { el.click(); return true; } return false;
 });
 await sleep(900);

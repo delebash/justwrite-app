@@ -111,8 +111,8 @@ try {
 
   // ── N1: no Presets tab; Routing by feature opens ──
   const nav = await page.evaluate(() => {
-    const links = [...document.querySelectorAll(".lu-subnav a")].map((a) => a.textContent.trim());
-    const rbf = [...document.querySelectorAll(".lu-subnav a")].find((a) => a.textContent.trim() === "Routing by feature");
+    const links = [...document.querySelectorAll(".lu-subnav [role=tab]")].map((a) => a.textContent.trim());
+    const rbf = [...document.querySelectorAll(".lu-subnav [role=tab]")].find((a) => a.textContent.trim() === "Routing by feature");
     rbf?.click();
     return { links, opened: !!rbf };
   });

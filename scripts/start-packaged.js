@@ -16,9 +16,12 @@
 // help says) — no window, no display: it must answer with its version and serve the UI at `/`.
 // `--default-data` names no data folder: the app's own default is used and printed ("data folder
 // used: …"), and on macOS and Linux it must lie outside the app (the release compares the window's
-// and the launcher's). Exit 0 = it answered; 1 = it didn't.
+// and the launcher's). The build is started from a copy in the system's temp folder, never inside the checkout:
+// there Node's package lookup walks up out of app.asar into the repo's own node_modules and finds a package the
+// build left out — JustWrite's server lacked a package on every installed computer, and only the AppImage (mounted
+// under /tmp) failed the check (2026-10-20). Exit 0 = it answered; 1 = it didn't.
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, statSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -41,11 +44,33 @@ const extraPaths = process.argv
   .filter((a) => !a.startsWith("--"))
   .map((a) => `/${a.replace(/^\/+/, "")}`);
 
-/** The packaged app's own executable in electron-builder's unpacked folder for this platform. */
-function findExecutable(dir = out, platform = process.platform) {
+/** electron-builder's unpacked folder for this platform, by name (`mac-arm64`, `win-unpacked`, `linux-unpacked`). */
+function unpackedName(dir = out, platform = process.platform) {
   const sub = readdirSync(dir).find((d) => (platform === "darwin" ? /^mac/.test(d) : d === `${platform === "win32" ? "win" : "linux"}-unpacked`));
   if (!sub) throw new Error(`no unpacked ${platform} build in ${dir}`);
-  const at = path.join(dir, sub);
+  return sub;
+}
+
+/** The unpacked build copied into `into` (a temp folder), as it is — a Mac app's framework links kept links
+ *  (Node's verbatimSymlinks) — so it runs with nothing of the checkout above it. Returns `into`, its real path (a
+ *  Windows runner's temp folder is an 8.3 short name, RUNNER~1, that the app reports long). */
+function copyUnpacked(into) {
+  const sub = unpackedName();
+  cpSync(path.join(out, sub), path.join(into, sub), { recursive: true, verbatimSymlinks: true });
+  return realpathSync.native(into);
+}
+
+/** A data folder inside the copy, said where it is in the build itself (each start runs its own copy, and Windows'
+ *  and the unpacked Linux build's default is beside the executable): the window's and the launcher's compare. */
+function inBuild(dir, copy) {
+  if (!copy) return dir;
+  const rel = path.relative(copy, realpathSync.native(dir));
+  return rel && !rel.startsWith("..") && !path.isAbsolute(rel) ? path.join(out, rel) : dir;
+}
+
+/** The packaged app's own executable in electron-builder's unpacked folder for this platform. */
+function findExecutable(dir = out, platform = process.platform) {
+  const at = path.join(dir, unpackedName(dir, platform));
   if (platform === "darwin") {
     const app = readdirSync(at).find((f) => f.endsWith(".app"));
     if (!app) throw new Error(`no .app in ${at}`);
@@ -96,10 +121,10 @@ function stop(child) {
   }
 }
 
-/** The headless launcher to start: the unpacked build's, or the AppImage's after `--appimage-extract` into
- *  `scratch` (as the help tells a Linux user). */
-function headlessLauncher(appImage, scratch) {
-  if (!appImage) return findLauncher();
+/** The headless launcher to start: the unpacked build's (its copy in `copy`), or the AppImage's after
+ *  `--appimage-extract` into `scratch` (as the help tells a Linux user). */
+function headlessLauncher(appImage, scratch, copy) {
+  if (!appImage) return findLauncher(copy);
   const r = spawnSync(path.join(out, appImage), ["--appimage-extract"], { cwd: scratch, stdio: "ignore" });
   if (r.status !== 0) throw new Error(`the AppImage didn't extract (exit ${r.status ?? r.error?.code})`);
   return findLauncher(path.join(scratch, "squashfs-root"));
@@ -111,7 +136,9 @@ async function run() {
   if (asUser && !appImage) throw new Error(`no .AppImage in ${out}`);
   const dataDir = defaultData ? null : mkdtempSync(path.join(os.tmpdir(), "start-packaged-"));
   const scratch = headless && appImage ? mkdtempSync(path.join(os.tmpdir(), "start-packaged-appimage-")) : null;
-  const exe = headless ? headlessLauncher(appImage, scratch) : appImage ? path.join(out, appImage) : findExecutable();
+  // the unpacked build runs from a copy outside the checkout (the AppImage mounts or extracts outside it already)
+  const copy = appImage ? null : copyUnpacked(mkdtempSync(path.join(os.tmpdir(), "start-packaged-app-")));
+  const exe = headless ? headlessLauncher(appImage, scratch, copy) : appImage ? path.join(out, appImage) : findExecutable(copy);
   // the unpacked folder on Linux: chrome-sandbox isn't setuid there, so Chromium's sandbox can't start;
   // the AppImage runs exactly as a user's double-click runs it; the launcher takes the server's own command
   const args = headless ? ["serve"] : process.platform === "linux" && !appImage ? ["--no-sandbox"] : [];
@@ -162,7 +189,7 @@ async function run() {
           const app = exe.includes(".app/Contents/") ? exe.slice(0, exe.indexOf(".app/Contents/") + 4) : path.dirname(exe);
           const rel = path.relative(app, h.dataDir);
           if (bundle && (!rel.startsWith("..") || /\/\.mount_/.test(h.dataDir))) throw new Error(`its data folder ${h.dataDir} is inside the app (${app})`);
-          console.log(`data folder used: ${h.dataDir}`);
+          console.log(`data folder used: ${inBuild(h.dataDir, copy)}`);
         }
         if (headless) {
           // the whole app with no window: the server serves its UI too
@@ -198,7 +225,7 @@ async function run() {
   } finally {
     stop(child);
     await new Promise((r) => setTimeout(r, 1500)); // let the files go before the folder is removed
-    for (const dir of [dataDir, scratch].filter(Boolean)) {
+    for (const dir of [dataDir, scratch, copy].filter(Boolean)) {
       try {
         rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 500 });
       } catch (e) {

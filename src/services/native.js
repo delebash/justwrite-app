@@ -65,18 +65,34 @@ export async function saveFile({ blob, suggestedName, title, filterName, filterE
 
 // ─── The portable data root ──────────────────────────────────────────
 
-/** `{ root, default, portable }`, or null outside the shell. */
+/** `{ root, default, portable, … }`, or null outside the shell. */
 export function storageGetRoot() {
   if (!hasShell()) return Promise.resolve(null);
   return call("storageGetRoot").catch(() => null);
 }
 
-/** MOVE all app data to `newRoot`. Throws on failure. On success the app restarts
- *  itself (Chromium's own files live under the data root and can only move with a
- *  restart), so nothing after this call runs. Pick the folder with `pickDirectory`
- *  first. */
-export function storageRelocate(newRoot) {
-  return call("storageRelocate", { newRoot });
+/** MOVE all app data to `newRoot` (a new folder for the app inside it, or the default folder itself).
+ *  Throws on failure. On success the app restarts itself (Chromium's own files live under the data
+ *  root and can only move with a restart), so nothing after this call runs. `token`: the window's
+ *  access token, which goes with the data (the template's). Pick the folder with `pickDirectory` first. */
+export function storageRelocate(newRoot, { token } = {}) {
+  return call("storageRelocate", { newRoot, token });
+}
+
+/** The old copies earlier moves left: `[{ root, bytes }]` ([] outside the shell). */
+export function storageOldCopies() {
+  if (!hasShell()) return Promise.resolve([]);
+  return call("storageOldCopies");
+}
+
+/** Remove the old copy in `root` — only what the move copied. Throws on failure; resolves the list after. */
+export function storageRemoveOldCopy(root) {
+  return call("storageRemoveOldCopy", { root });
+}
+
+/** "Use the default folder from now on": the folder this start couldn't use is forgotten. */
+export function storageUseDefault() {
+  return call("storageUseDefault");
 }
 
 // ─── The server's address ────────────────────────────────────────────

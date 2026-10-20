@@ -321,11 +321,11 @@ try {
   try {
     await page.evaluate(() => { window.location.hash = "#/ai"; });
     await sleep(800);
-    const tabCount = (await page.$$(".lu-subnav a")).length;
+    const tabCount = (await page.$$(".lu-subnav [role=tab]")).length;
     console.log(`ai-area: ${tabCount} sub-tabs`);
     for (let i = 0; i < tabCount; i++) {
       mark = errors.length;
-      const tabs = await page.$$(".lu-subnav a");
+      const tabs = await page.$$(".lu-subnav [role=tab]");
       if (!tabs[i]) break;
       const label = (await tabs[i].innerText().catch(() => `tab ${i}`)).trim().replace(/\s+/g, " ");
       await tabs[i].click();
@@ -348,7 +348,7 @@ try {
   // in Phase A). Assert the engine panel + the fit-grouped catalog render, the search + sort
   // toolbar + Add-model modal work, the old Models-tab pointer is gone, 0 errors.
   try {
-    await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /providers/i.test(a.textContent))?.click());
+    await page.evaluate(() => [...document.querySelectorAll(".lu-subnav [role=tab]")].find((a) => /providers/i.test(a.textContent))?.click());
     await sleep(500);
     mark = errors.length;
     await page.evaluate(() => [...document.querySelectorAll(".lu-prow button, .lu-prow .lu-btn")].find((b) => /edit/i.test(b.textContent))?.click());
@@ -403,7 +403,7 @@ try {
     await page.keyboard.press("Escape").catch(() => {}); // defensive: clear any modal a prior probe left open
     await page.evaluate(() => { window.location.hash = "#/ai"; });
     await sleep(500);
-    await page.locator(".lu-subnav a", { hasText: /^Routing by feature$/ }).click();
+    await page.locator(".lu-subnav [role=tab]", { hasText: /^Routing by feature$/ }).click();
     await sleep(700);
     await page.locator(".lu-fw-card").first().click();
     await sleep(500);

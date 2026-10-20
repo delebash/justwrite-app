@@ -701,6 +701,13 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
   display: flex; align-items: center; gap: 8px;
   margin: 0 0 10px;
 }
+/* The kit's panels (StoragePanel) frame a section the family's way — `section.card` with an h2, a
+   .hint, .card__actions / .card__note (the template's app.scss) — drawn here in JustWrite's card look:
+   the h2 as .card-title, the hint as the cards' own muted lead, at most 70 characters a line. */
+.card > h2 { font-size: 12.5px; font-weight: 600; color: var(--ink); margin: 0 0 10px; }
+.card .hint { color: var(--muted); font-size: 12.5px; line-height: 1.5; margin: 4px 0 10px; max-width: 70ch; }
+.card__actions { margin-top: 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.card__note { margin: 10px 0 0; font-size: 12px; }
 .card-title .pill {
   font-size: 10.5px; font-weight: 500; color: var(--muted);
   background: var(--surface-3); border-radius: 4px; padding: 1px 6px;

@@ -4,3 +4,6 @@
 *.bat text eol=crlf
 *.cmd text eol=crlf
 *.sh text eol=lf
+# the headless launcher for macOS and Linux has no extension (build/launcher/<app>-server): a shell script
+build/launcher/* text eol=lf
+build/launcher/*.cmd text eol=crlf

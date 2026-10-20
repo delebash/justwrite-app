@@ -36,7 +36,7 @@ page.on("response", (r) => { if (r.status() >= 400 && !BENIGN.some((re) => re.te
 
 try {
   await page.goto(`${APP}/#/ai`, { waitUntil: "networkidle" });
-  await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /providers/i.test(a.textContent))?.click());
+  await page.evaluate(() => [...document.querySelectorAll(".lu-subnav [role=tab]")].find((a) => /providers/i.test(a.textContent))?.click());
   await sleep(500);
   await page.evaluate(() => [...document.querySelectorAll(".lu-prow button, .lu-prow .lu-btn")].find((b) => /edit/i.test(b.textContent))?.click());
   await sleep(800);

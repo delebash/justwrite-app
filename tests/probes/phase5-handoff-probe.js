@@ -33,7 +33,7 @@ const check = (label, ok, extra = "") => {
 try {
   await page.goto(`${APP}/#/ai`, { waitUntil: "networkidle" });
   // Open the Tasks tab (subnav <a> is a @click tab with no href → not a link role).
-  await page.locator(".lu-subnav a", { hasText: /^Tasks$/ }).click();
+  await page.locator(".lu-subnav [role=tab]", { hasText: /^Tasks$/ }).click();
   await sleep(800);
   // The default seed's first task has members → FeatureLab + one base CompareStrip column.
   await page.waitForSelector(".lu-cmp-col", { timeout: 8000 });

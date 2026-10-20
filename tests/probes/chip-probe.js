@@ -92,7 +92,7 @@ try {
   await page.evaluate(() => { window.location.hash = "#/ai"; });
   await sleep(1500);
   await page.evaluate(() => {
-    [...document.querySelectorAll(".lu-subnav a")].find((a) => a.textContent.trim() === "Routing by feature")?.click();
+    [...document.querySelectorAll(".lu-subnav [role=tab]")].find((a) => a.textContent.trim() === "Routing by feature")?.click();
   });
   await sleep(2000);
   await page.evaluate(() => {

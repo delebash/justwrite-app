@@ -20,13 +20,19 @@ you differently.
 ## Moving your data to another folder
 
 In **Settings → Storage**, click **Change folder…**, pick a location, and
-confirm. JustWrite makes a new folder for itself inside the one you picked, moves
-everything into it, and restarts. One move runs at a time, and it first checks
-that the drive has room.
+confirm. JustWrite makes a new folder for itself inside the one you picked, copies
+everything into it, and restarts on it. One move runs at a time, and it first
+checks that the drive has room.
 
 Your work is never at risk: the move only takes effect once the copy has fully
 finished, and if anything goes wrong the app keeps using the old folder. Large
 model files make the move take a while — that's expected.
+
+The old folder keeps its copy until you remove it: Settings → Storage lists it as
+an **Old copy** with its size and **Remove the old copy…**, which deletes only
+what the move copied there. **Move back to the default folder…** returns the data
+to where it started. When the `JUSTWRITE_DATA_DIR` variable names the folder, the
+moves are off and the page says where the folder is set.
 
 ## Reclaiming disk space
 

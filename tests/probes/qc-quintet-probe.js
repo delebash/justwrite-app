@@ -122,7 +122,7 @@ await sleep(500);
 // ── Routing-by-feature tab — QC-24 + QC-23 (2026-07-15: the task tier is gone; the
 // per-action test affordances live on the Workbench, selected by action card) ──
 await page.evaluate(() => {
-  [...document.querySelectorAll(".lu-subnav a")].find((a) => a.textContent.trim() === "Routing by feature")?.click();
+  [...document.querySelectorAll(".lu-subnav [role=tab]")].find((a) => a.textContent.trim() === "Routing by feature")?.click();
 });
 await sleep(2000);
 

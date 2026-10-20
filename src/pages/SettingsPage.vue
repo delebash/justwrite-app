@@ -5,13 +5,14 @@ import { useAiStore } from "../stores/ai.js";
 import { categoryLabelShown, statusLabelShown, useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor } from "../services/imageStore.js";
-import { promptDialog, confirmDialog, DataManagement, LogsPanel, SettingsShell, UpdatesPanel, renderHelpMarkdown, get, put, post, fmtBytes, refreshRunnerModels, serverUrl, pageFill } from "@delebash/ui";
+import { promptDialog, confirmDialog, DataManagement, LogsPanel, SettingsShell, StoragePanel, UpdatesPanel, renderHelpMarkdown, get, put, serverUrl, pageFill } from "@delebash/ui";
 import { loadDoc } from "../services/helpDocs.js";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { exportProject, importProject, saveBackupBlob, canSaveFiles, canPickBooks } from "../services/bookTransfer.js";
 import { serverDataDir, chooserDir, rememberDir } from "../services/chooserDirs.js";
 import {
-  desktopUpdater, hasShell, isPhone, pickDirectory, shellVersion, storageGetRoot, storageRelocate,
+  desktopUpdater, hasShell, isPhone, pickDirectory, shellVersion, storageGetRoot, storageOldCopies, storageRelocate,
+  storageRemoveOldCopy, storageUseDefault,
   setKeepRunning as nativeSetKeepRunning,
 } from "../services/native.js";
 import * as autosaveApi from "../services/autosaveApi.js";
@@ -126,111 +127,23 @@ const dataDir = ref("");
   dataDir.value = await serverDataDir();
 })();
 
-// ── Storage: the portable data root — ONE folder for all app data (projects,
-// images, the AI engine + models, logs). Desktop-only (the desktop shell); in a plain
-// browser the root is read-only (the dataDir above).
-const storageRoot = ref(null); // { root, default, portable } from the shell
-const relocating = ref(false);
-const storageErr = ref("");
-
+// ── Storage: the kit's StoragePanel (JustWrite's Data location and Disk usage cards were its donor —
+// kit 2026-10-19): where the data folder is, Change folder… and the old copy a move leaves, where the
+// folder's space goes. The desktop shell's folder calls (each answers null in a browser); the Backups
+// section still shows the folder read-only (storageRoot).
+const storageRoot = ref(null); // { root, default, portable, … } from the shell
 async function loadStorageRoot() {
   storageRoot.value = await storageGetRoot();
 }
+const storageShell = {
+  getRoot: storageGetRoot,
+  pickDirectory,
+  relocate: storageRelocate,
+  oldCopies: storageOldCopies,
+  removeOldCopy: storageRemoveOldCopy,
+  useDefault: storageUseDefault,
+};
 
-// ── Disk usage: the on-disk footprint + the two reclaim actions. Sizes come from
-// the shared platform GET /v1/disk/usage; the Clear actions call the runner's own
-// reclaim endpoints. Loaded when the Storage section opens, refreshed after a clear.
-const diskUsage = ref(null); // { database, appLogs, modelsCache, engineBuilds, spawnLogs, total, diskFree, diskTotal }
-const diskBusy = ref("");    // which reclaim op is running: "models" | "spawn" | "" (idle)
-const diskErr = ref("");     // a refusal / failure message shown inline
-
-async function loadDiskUsage() {
-  try {
-    diskUsage.value = await get("/v1/disk/usage");
-  } catch {
-    diskUsage.value = null; // offline — the rows stay em-dashes
-  }
-}
-
-// Loading state = an em-dash per row; a real 0 formats as "0 MB" (the kit's
-// fmtBytes returns "" for 0). fmtBytes stays the ONE source for the number.
-function diskSize(n) {
-  if (diskUsage.value == null) return "—";
-  return fmtBytes(n) || "0 MB";
-}
-
-async function clearModelsCache() {
-  const size = fmtBytes(diskUsage.value?.modelsCache) || "0 MB";
-  const yes = await confirmDialog({
-    title: t("settings.storage.clearModelsTitle"),
-    // a cache shared with the family's other apps (the kit's `cacheShared`, as the template's
-    // Storage section — kit d716a8b): clearing it clears theirs too
-    message: diskUsage.value?.cacheShared
-      ? `${t("settings.storage.clearModelsMessage", { size })} ${t("settings.storage.clearModelsShared")}`
-      : t("settings.storage.clearModelsMessage", { size }),
-    confirmLabel: t("settings.storage.clearModelsConfirm"),
-  });
-  if (!yes) return;
-  diskBusy.value = "models";
-  diskErr.value = "";
-  try {
-    const res = await post("/v1/llm-runner/models-cache/clear");
-    if (res?.ok === false) {
-      diskErr.value =
-        res.detail === "unload models first"
-          ? t("settings.storage.clearModelsLoadedError")
-          : res.detail || t("settings.storage.clearModelsError");
-    }
-  } catch {
-    diskErr.value = t("settings.storage.clearModelsError");
-  } finally {
-    diskBusy.value = "";
-    await loadDiskUsage();
-    // Re-stat the shared model catalog so cleared models flip from "disk" (→ "Re-download")
-    // to "missing" (→ "Download") — the AI-page catalog singleton doesn't re-fetch on its
-    // own after an out-of-band cache clear from this tab.
-    refreshRunnerModels();
-  }
-}
-
-async function clearSpawnLogs() {
-  diskBusy.value = "spawn";
-  diskErr.value = "";
-  try {
-    await post("/v1/llm-runner/spawn-logs/clear");
-  } catch {
-    diskErr.value = t("settings.storage.clearSpawnLogsError");
-  } finally {
-    diskBusy.value = "";
-    await loadDiskUsage();
-  }
-}
-
-// Immediate so a direct deep-link to #/settings/storage loads both cards too (the
-// tab-click path already re-triggers this).
-watch(active, (a) => { if (a === "storage") { loadStorageRoot(); loadDiskUsage(); } }, { immediate: true });
-
-async function changeFolder() {
-  const picked = await pickDirectory({ title: t("settings.storage.chooseFolderTitle") });
-  if (!picked) return;
-  const yes = await confirmDialog({
-    title: t("settings.storage.moveDataTitle"),
-    message: t("settings.storage.moveDataMessage", { path: picked }),
-    confirmLabel: t("settings.storage.moveDataConfirm"),
-  });
-  if (!yes) return;
-  relocating.value = true;
-  storageErr.value = "";
-  // try/catch, not `{ ok, error }` — the Electron-shaped return died with the
-  // bridge (2026-08-14); this is now the same shape JustVoice's Settings uses.
-  try {
-    await storageRelocate(picked);
-    window.location.reload();
-  } catch (e) {
-    storageErr.value = String(e || "") || t("settings.storage.moveFailed");
-    relocating.value = false;
-  }
-}
 // ── Per-project export / import: a book travels as a single <title>.zip ──
 const transferBusy = ref("");   // "export" | "import" | ""
 const transferErr = ref(null);
@@ -1444,71 +1357,7 @@ async function deleteCategory(c) {
 
         <!-- ── STORAGE (the portable data root — one folder for ALL app data) ─── -->
         <div v-else-if="active === 'storage'" style="display:flex;flex-direction:column;gap:14px">
-          <div class="card">
-            <div class="card-title">{{ $t('settings.storage.dataLocationTitle') }}</div>
-            <p class="t-muted" style="font-size:12.5px;margin:4px 0 10px;line-height:1.5">
-              {{ $t('settings.storage.dataLocationHint') }}
-            </p>
-            <div style="display:grid;grid-template-columns:140px 1fr;gap:8px 14px;font-size:13px;align-items:center">
-              <span class="t-muted">{{ $t('settings.storage.folderLabel') }}</span>
-              <code style="word-break:break-all">{{ (storageRoot && storageRoot.root) || dataDir || "—" }}</code>
-              <template v-if="storageRoot">
-                <span class="t-muted">{{ $t('settings.storage.typeLabel') }}</span>
-                <span>{{ storageRoot.portable ? $t('settings.storage.typePortable') : $t('settings.storage.typeUser') }}</span>
-              </template>
-            </div>
-            <div v-if="storageRoot" style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-              <UiButton intent="secondary" size="small" :loading="relocating" @click="changeFolder">{{ $t('settings.storage.changeFolder') }}</UiButton>
-              <span v-if="relocating" class="t-muted" style="font-size:12.5px">{{ $t('settings.storage.moving') }}</span>
-            </div>
-            <p v-else class="t-muted" style="font-size:12px;margin:10px 0 0">{{ $t('settings.storage.desktopOnly') }}</p>
-            <p v-if="storageErr" style="font-size:12.5px;color:var(--danger,#b91c1c);margin:8px 0 0">{{ storageErr }}</p>
-          </div>
-
-          <!-- Disk usage — where the data folder's space goes + the reclaim actions
-               (sizes from GET /v1/disk/usage; deletes via the runner endpoints). -->
-          <div class="card">
-            <div class="card-title">{{ $t('settings.storage.diskUsageTitle') }}</div>
-            <p class="t-muted" style="font-size:12.5px;margin:4px 0 10px;line-height:1.5">
-              {{ $t('settings.storage.diskUsageHint') }}
-            </p>
-            <div style="display:grid;grid-template-columns:140px 1fr;gap:10px 14px;font-size:13px;align-items:center">
-              <span class="t-muted">{{ $t('settings.storage.modelsCacheLabel') }}</span>
-              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-                <span>{{ diskSize(diskUsage?.modelsCache) }}</span>
-                <UiButton intent="secondary" size="small" :loading="diskBusy === 'models'" :disabled="!!diskBusy" @click="clearModelsCache">{{ $t('kit.storage.clearShort') }}</UiButton>
-              </div>
-
-              <span class="t-muted">{{ $t('settings.storage.engineBuildsLabel') }}</span>
-              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-                <span>{{ diskSize(diskUsage?.engineBuilds) }}</span>
-                <span class="t-muted" style="font-size:12px">{{ $t('settings.storage.managedOnAiPage') }}</span>
-              </div>
-
-              <span class="t-muted">{{ $t('kit.storage.serverLogs') }}</span>
-              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-                <span>{{ diskSize(diskUsage?.appLogs) }}</span>
-                <span class="t-muted" style="font-size:12px">{{ $t('settings.storage.managedInLogs') }}</span>
-              </div>
-
-              <span class="t-muted">{{ $t('settings.storage.spawnLogsLabel') }}</span>
-              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-                <span>{{ diskSize(diskUsage?.spawnLogs) }}</span>
-                <UiButton intent="secondary" size="small" :loading="diskBusy === 'spawn'" :disabled="!!diskBusy" @click="clearSpawnLogs">{{ $t('kit.storage.clearShort') }}</UiButton>
-              </div>
-
-              <span class="t-muted">{{ $t('settings.storage.databaseLabel') }}</span>
-              <span>{{ diskSize(diskUsage?.database) }}</span>
-
-              <!-- The Total row — docgen's invention, canon BOTH apps render (ruling R2). -->
-              <span class="t-muted">{{ $t('kit.storage.total') }}</span>
-              <span>{{ diskSize(diskUsage?.total) }}</span>
-
-              <span class="t-muted">{{ $t('kit.storage.freeSpace') }}</span>
-              <span>{{ diskSize(diskUsage?.diskFree) }}</span>
-            </div>
-            <p v-if="diskErr" style="font-size:12.5px;color:var(--danger,#b91c1c);margin:10px 0 0">{{ diskErr }}</p>
-          </div>
+          <StoragePanel :data-dir="dataDir" :shell="storageShell" :saves="t('settings.storage.saves')" />
         </div>
 
         <!-- ── SERVER (headless + API access) ─────────── -->

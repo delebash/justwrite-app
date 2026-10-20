@@ -77,7 +77,7 @@ const RESIDENT = {
     await page.evaluate(() => { window.location.hash = "#/ai"; });
     await sleep(800);
     // Providers tab → Edit the built-in provider (same nav as the smoke's provider-form probe).
-    await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /providers/i.test(a.textContent))?.click());
+    await page.evaluate(() => [...document.querySelectorAll(".lu-subnav [role=tab]")].find((a) => /providers/i.test(a.textContent))?.click());
     await sleep(500);
     await page.evaluate(() => [...document.querySelectorAll(".lu-prow button, .lu-prow .lu-btn")].find((b) => /edit/i.test(b.textContent))?.click());
     await sleep(900);
@@ -127,7 +127,7 @@ const RESIDENT = {
     await sleep(1500);
     await page.evaluate(() => { window.location.hash = "#/ai"; });
     await sleep(800);
-    await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /providers/i.test(a.textContent))?.click());
+    await page.evaluate(() => [...document.querySelectorAll(".lu-subnav [role=tab]")].find((a) => /providers/i.test(a.textContent))?.click());
     await sleep(500);
     await page.evaluate(() => [...document.querySelectorAll(".lu-prow button, .lu-prow .lu-btn")].find((b) => /edit/i.test(b.textContent))?.click());
     await sleep(900);

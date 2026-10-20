@@ -458,6 +458,20 @@ toasts and hover tooltips were not opened; 147 strings matching book content wer
   The smoke didn't catch it: its routes are the list pages, which never show the message.
   — *found driving the sheet pages in a browser, 2026-10-16 (`b1c584b`)*.
 
+## Colours against the kit's token contract (2026-10-20)
+
+WCAG 2 contrast from OKLCH by CSS Color 4's matrices (the kit's `packages/ui/tests/ink_palettes.test.js`
+method), at every hue the appearance engine lets the user set (accent and danger, 0–359).
+
+- **A field's edge was 1.35:1 (light) and 1.85:1 (dark).** Without `--border-field` a field fell back
+  to `--border-strong`. JustWrite's own greys that clear 3:1 on `--bg`, `--surface(-2/-3)` and every
+  surface tint: `oklch(0.61 0.006 85)` (worst 3.12:1) and `oklch(0.545 0.008 250)` (3.16:1).
+- **White on the light danger fill was 3.09:1 at worst, 3.93:1 at the default hue 35** — a danger
+  button's label under AA, and `--danger` as text 2.71–3.09:1 on the light grounds. The template's
+  measured `oklch(0.517 0.137 H)`: white on it 4.86:1 or more, as text 4.26:1 or more. The dark
+  theme's `--on-accent` (near-black) on accent and danger is 6.41:1 and 7.28:1 at worst;
+  `--danger-ink` on its banner and `--info-ink` on `--info-bg` clear 4.5:1 in both themes.
+
 ## Page layout: measured on the story-world pages (2026-10-16)
 
 - **A flex column that is itself the scroller squashes its fields instead of scrolling.** With

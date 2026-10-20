@@ -75,7 +75,7 @@ await sleep(1200);
 // the nav COLUMN caps (≤ ~400px) so card text wraps early — one-line descriptions
 // must not drag the column to 40% of the window; a long description renders on
 // MULTIPLE lines.
-await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /routing by feature/i.test(a.textContent))?.click());
+await page.evaluate(() => [...document.querySelectorAll(".lu-subnav [role=tab]")].find((a) => /routing by feature/i.test(a.textContent))?.click());
 await sleep(900);
 const qc14 = await page.evaluate(() => {
   const list = document.querySelector(".lu-fw-list");
@@ -91,7 +91,7 @@ check("QC-14: nav column ≤ 400px and a long description wraps onto multiple li
   qc14.listWidth > 0 && qc14.listWidth <= 400 && qc14.longDescLines >= 2, JSON.stringify(qc14));
 await page.screenshot({ path: `${OUT}/qc14-routing.png` });
 
-await page.evaluate(() => [...document.querySelectorAll(".lu-subnav a")].find((a) => /providers/i.test(a.textContent))?.click());
+await page.evaluate(() => [...document.querySelectorAll(".lu-subnav [role=tab]")].find((a) => /providers/i.test(a.textContent))?.click());
 await sleep(600);
 await page.evaluate(() => [...document.querySelectorAll(".lu-prow button, .lu-prow .lu-btn")].find((b) => /edit/i.test(b.textContent))?.click());
 await sleep(900);

@@ -33,9 +33,15 @@ another person signed in to the computer has JustWrite open, when Windows has re
 and the server's own error when it stopped as it started. See
 [The app can't reach its server](troubleshooting.md#the-app-cant-reach-its-server).
 
-**Change folder makes its own folder.** **Settings → Storage → Change folder…** now moves your data
-into a new JustWrite folder inside the one you pick, after checking the drive has room. See
+**Change folder makes its own folder, and keeps the old one.** **Settings → Storage → Change
+folder…** now copies your data into a new JustWrite folder inside the one you pick, after checking
+the drive has room. The old folder keeps its copy until you remove it from the same page (**Remove
+the old copy…**), and **Move back to the default folder…** returns it. See
 [Moving your data](storage.md#moving-your-data-to-another-folder).
+
+**Fields and warnings easier to see.** Text boxes, menus and the segmented switches have an edge
+you can see against every background, in both themes, and the red of delete buttons and error text
+is darker, so the words on and in it are easy to read in every danger colour you can choose.
 
 **Update checks while it runs.** The desktop app looks for a new version every six hours and when
 the computer wakes, not only when it starts.

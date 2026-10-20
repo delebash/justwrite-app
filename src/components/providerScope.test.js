@@ -47,6 +47,9 @@ function jsonOk(obj) {
 }
 
 beforeEach(() => {
+  // the kit's AI page sits on Quasar's QTabs (kit 70e6df1), which measures with ResizeObserver —
+  // jsdom has none (just-house-paint's tests stub it the same way)
+  vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
   vi.stubGlobal("fetch", vi.fn(async (url) => {
     const u = String(url);
     if (u.includes("/v1/llm-providers") && !u.includes("/ping")) {

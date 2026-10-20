@@ -23,6 +23,9 @@
   --border:        oklch(0.91 0.005 85);
   --border-soft:   oklch(0.94 0.004 85);
   --border-strong: oklch(0.84 0.006 85);
+  /* a field's edge (the kit's contract, WCAG 1.4.11): 3.12:1 or more on --bg, --surface(-2/-3) and every
+     surface tint — --border-strong measured 1.35:1 (2026-10-20, the kit's contrast method) */
+  --border-field:  oklch(0.61 0.006 85);
 
   /* Ink ----------------------------------------------------- */
   --ink:    oklch(0.22 0.008 85);
@@ -97,7 +100,10 @@
   --danger-bg:   oklch(0.97 0.03 var(--danger-hue));
   --danger-ink:  oklch(0.4 0.13 var(--danger-hue));
   --danger-line: oklch(0.88 0.06 var(--danger-hue));
-  --danger:      oklch(0.62 0.17 var(--danger-hue));
+  /* the template's measured fill (the kit's contract): --on-accent (white) on it 4.86:1 or more at every
+     --danger-hue, and as text on these grounds 4.26:1 or more — oklch(0.62 0.17) measured 3.09:1 and
+     2.71:1 (2026-10-20) */
+  --danger:      oklch(0.517 0.137 var(--danger-hue));
 
   --warn-bg:     oklch(0.97 0.03 75);
   --warn-ink:    oklch(0.4 0.1 65);
@@ -195,6 +201,8 @@ html[data-theme="dark"] {
   --border:        oklch(0.31 0.007 250);
   --border-soft:   oklch(0.27 0.005 250);
   --border-strong: oklch(0.42 0.008 250);
+  /* a field's edge: 3.16:1 or more on every dark ground and surface tint (--border-strong 1.85:1) */
+  --border-field:  oklch(0.545 0.008 250);
 
   --ink:    oklch(0.94 0.005 85);
   --ink-2:  oklch(0.78 0.006 85);
