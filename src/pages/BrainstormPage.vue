@@ -1,4 +1,5 @@
 <script setup>
+import { copyToClipboard } from "quasar";
 // The Brainstorm page — names, titles, plot moves, anything: a list at a time, steered by
 // thumbs-up and More like these. The categories and the prompt (services/brainstorm.js), the
 // rounds (composables/useBrainstorm.js) and the list (components/BrainstormResults.vue) are
@@ -33,7 +34,7 @@ const canGenerate = computed(() => seed.value.trim().length > 0 && !running.valu
 
 async function copy(text) {
   try {
-    await navigator.clipboard.writeText(text);
+    await copyToClipboard(text);
     ui.showToast({ message: t("brainstorm.copied", { text }) });
   } catch {
     ui.showToast({ message: t("brainstorm.copyFailed") });

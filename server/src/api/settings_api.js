@@ -24,6 +24,12 @@ import { getDb } from "../database/session.js";
 // whitelist so there's one source of truth).
 export const PRESERVED_FOLDER_KEYS = ["autosaveDir", "chooserDirs"];
 
+// The rows that are this server's, not the data's: its access tokens (`auth` — the tokens and
+// "require a token on this computer too"). Every clear and reset keeps them, as the folder paths:
+// a reset on an exposed headless server must never open it to the network (the template's
+// data_admin.js; the family's security review, 2026-10-20).
+export const KEPT_KEYS = [...PRESERVED_FOLDER_KEYS, "auth"];
+
 /** Every row decoded into one document (an unreadable value reads as null). */
 export function readAll(h) {
   const out = {};
@@ -48,9 +54,9 @@ export function writeMany(h, patch) {
   });
 }
 
-/** Wipe every section EXCEPT the folder-path config whitelist (D3b). */
-export function clearKeepingFolders(h) {
-  h.run(`DELETE FROM settings WHERE settings."key" NOT IN (${PRESERVED_FOLDER_KEYS.map(() => "?").join(", ")})`, PRESERVED_FOLDER_KEYS);
+/** Wipe every section EXCEPT the KEPT_KEYS: the folder-path config (D3b) and the access tokens. */
+export function clearKeepingKeptKeys(h) {
+  h.run(`DELETE FROM settings WHERE settings."key" NOT IN (${KEPT_KEYS.map(() => "?").join(", ")})`, KEPT_KEYS);
 }
 
 export const router = new Hono();
@@ -64,7 +70,7 @@ router.patch("/v1/settings", input({ body: T.Record(T.String(), T.Any()) }), (c)
 
 router.delete("/v1/settings", (c) => {
   const h = getDb();
-  clearKeepingFolders(h);
+  clearKeepingKeptKeys(h);
   seedAppSettings(h); // a reset returns the seeded values, as a fresh install has them
   return c.body(null, 204);
 });

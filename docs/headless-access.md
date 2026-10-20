@@ -61,6 +61,15 @@ justwrite-server serve --host 0.0.0.0
 
 Leave the desktop app closed while doing this — both use the same port.
 
+### Behind a reverse proxy
+
+The server answers only to this computer's own names — `localhost`, its IP addresses and its
+computer name — so a web page can't trick your browser into reaching it under another name. If
+you put it behind a reverse proxy on the same computer (nginx, Caddy) that serves it under a
+public name, set the environment variable **`JUSTWRITE_ALLOWED_HOSTS`** to that name before
+starting the server, for example `JUSTWRITE_ALLOWED_HOSTS=write.example.com` (several names are
+separated by commas). Without it, requests for that name are refused.
+
 ## API access (bearer tokens)
 
 The **API access** card, also under **Settings → Server**, controls who may
@@ -86,3 +95,6 @@ Two things worth knowing:
 
 Treat a token like a password: anyone holding one can read and change
 everything in your library.
+
+Your tokens belong to this server, not to your data: resetting the workspace keeps them,
+restoring a backup keeps the ones the server has now, and a backup file never contains them.

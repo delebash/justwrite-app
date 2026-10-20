@@ -1,4 +1,5 @@
 <script setup>
+import { copyToClipboard } from "quasar";
 // Marketing pack modal ("Shrink Ray" equivalent).
 //
 // One LLM call over a whole-book digest produces four artifacts for
@@ -81,7 +82,7 @@ function clearAll() {
 
 async function copyText(text, label) {
   try {
-    await navigator.clipboard.writeText(text);
+    await copyToClipboard(text);
     ui.showToast({ message: t("marketingPack.copiedToast", { label }) });
   } catch {
     ui.showToast({ message: t("marketingPack.err.copy") });

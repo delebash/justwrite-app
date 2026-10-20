@@ -77,6 +77,30 @@ The family's move, step 4 (2026-10-08). The plan is JustVoice's
   copy went from "May 2, 2026 / March 1, 2027" to "2026-05-02 / 2027-03-01". A tutorial project
   already in the database keeps its stored words, as notes do (the 2026-10-13 ruling). (*measured
   2026-10-18*, `server/tests/samples_materialize.test.js`.)
+- **CORS `*` let any web page read the server.** With no token set (the default), or with the
+  loopback skip on, a page from another site read the answers: `GET /v1/data/backup` from
+  `Origin: https://evil.example` answered 200 `application/zip` with
+  `access-control-allow-origin: *`, and so did `/v1/server-auth` (the tokens); a preflight asking
+  for `authorization` was allowed. CSRF guarded only writes. Since 2026-10-20 CORS answers the
+  app's own origins (`APP_ORIGINS` + the kit's `CAPACITOR_ORIGINS`), as the template's. No caller
+  lost: the server-hosted UI is same-origin, device-to-device sync is server to server (no
+  `Origin`), and JustVoice's and docgen's screens never call JustWrite's server (grepped).
+  (*measured 2026-10-20* on an isolated server, port 17497; `server/tests/csrf.test.js`.)
+- **A reset wiped the access tokens; a restore kept them but not the loopback switch.** A
+  workspace reset (and `DELETE /v1/settings`) kept only the folder-path rows, so a reset on an
+  exposed headless server turned its sign-in off. A restore put the tokens back through the sync
+  engine's `auth.set` after the commit, but the `requireForLoopback` switch came from the backup.
+  Since 2026-10-20 the whole `auth` row is kept by every reset and clear, a restore keeps it inside
+  its transaction (data_admin.js `keepAuth`, the template's), and a backup carries none.
+  (*code + tests*, `server/tests/workspace.test.js`.)
+- **The clipboard on a page that isn't a secure context.** A browser at a plain `http://` name
+  (another computer on the network) has no `navigator.clipboard`: `window.isSecureContext` false,
+  `typeof navigator.clipboard` "undefined", so `writeText` threw and the four Copy buttons failed.
+  Quasar's `copyToClipboard` falls back to `execCommand("copy")` there and copied (the toast
+  "Server URL copied"). Reading has no such fallback — browsers allow it only on a secure page — so
+  the editor's Paste button says so and names Ctrl+V. (*measured 2026-10-20*, Chrome mapping a
+  test name to 127.0.0.1 with `--host-resolver-rules`, an isolated server with
+  `JUSTWRITE_ALLOWED_HOSTS` set to it.)
 
 ---
 

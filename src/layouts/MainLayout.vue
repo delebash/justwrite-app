@@ -7,7 +7,7 @@
 // header sits under the title bar. Until 2026-10-09 this was AppShell.vue, a hand-made grid.
 import { computed, onMounted, onBeforeUnmount, watch, watchEffect, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useQuasar } from "quasar";
+import { copyToClipboard, useQuasar } from "quasar";
 import { i18n, t } from "../i18n/index.js";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
@@ -177,7 +177,7 @@ onMounted(() => {
   onShellEvent("tray:about", () => router.push("/settings/about"));
   onShellEvent("tray:copy-url", async (url) => {
     try {
-      await navigator.clipboard.writeText(String(url));
+      await copyToClipboard(String(url));
       pushToast({ kind: "success", title: t("tray.urlCopiedTitle"), description: String(url) });
     } catch (err) {
       pushToast({ kind: "error", title: t("tray.copyFailedTitle"), description: String(err?.message || err) });

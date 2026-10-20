@@ -123,7 +123,7 @@ From left to right (approximate; some buttons collapse into menus on narrower wi
 - **Image insert** — embed an image inline
 - **Table**
 - **Clear formatting**
-- **Copy / Cut / Paste**
+- **Copy / Cut / Paste** — in a browser at a plain `http://` address (another computer on your network), the browser won't let the **Paste** button read the clipboard; it says so, and **Ctrl+V** (**⌘V** on a Mac) pastes as always
 - **Print**
 - **Inline comment** — attach a private note to selected text; the marked text is visually distinguished and clicking it shows the note in a popover
 - **Find / Replace bar** — search within this chapter

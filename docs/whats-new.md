@@ -4,6 +4,26 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## 2026-10-20
+
+**Websites can't read your JustWrite server.** Until now a web page open in your browser could
+read JustWrite's server on your computer — your books, a backup and your AI providers' keys
+included. The server now answers only JustWrite's own windows. If you run it behind a reverse
+proxy, see [Behind a reverse proxy](headless-access.md#behind-a-reverse-proxy).
+
+**Your access tokens stay with the server.** Resetting the workspace or restoring a backup keeps
+the server's tokens and its **Require a token even on localhost** switch, and a backup no longer
+contains them. See [API access](headless-access.md#api-access-bearer-tokens).
+
+**Copy works from another computer.** In a browser at a plain `http://` address — JustWrite on
+another computer on your network — the **Copy** buttons (the server address, Brainstorm, the
+marketing pack) now copy; before, they failed. The editor's **Paste** button can't read the
+clipboard there, and now says so: **Ctrl+V** pastes.
+
+**A restore waits for the saves under way.** While a backup is restored or the workspace is reset,
+the changes already being saved finish first and new ones are refused with a message, so none of
+them lands in the middle of it.
+
 ## 2026-10-19
 
 **Sign in from another computer.** When JustWrite's server asks for a token (Settings → Server →

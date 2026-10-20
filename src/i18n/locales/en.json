@@ -1757,6 +1757,7 @@
     "ctxCut": "Cut",
     "ctxCopy": "Copy",
     "ctxPaste": "Paste",
+    "pasteBlocked": "The browser didn't let JustWrite read the clipboard here — paste with {keys}.",
     "ctxAddComment": "Add comment",
     "ctxBrowserMenu": "Show browser menu (spell check)",
     "ctxBrowserMenuHint": "right-click again",

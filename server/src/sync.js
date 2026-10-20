@@ -139,10 +139,8 @@ const appSync = createAppSync({
       const tokens = Array.isArray(cfg.tokens) ? cfg.tokens.filter((t) => typeof t === "string" && t) : [];
       writeRow("auth", { tokens: [...tokens, token], requireForLoopback: !!cfg.requireForLoopback });
     },
-    // after a restore: this device's tokens go back into the restored `auth` row (the backup's
-    // would lock out a device paired since, or let one removed since back in); the rest of the row
-    // stays as restored
-    set: (tokens) => writeRow("auth", { ...readRow("auth"), tokens }),
+    // no `set`: a restore keeps this server's whole `auth` row inside its transaction
+    // (data_admin.js keepAuth), so the engine has no tokens to put back after it
   },
   units: {
     // a book and the images it uses
@@ -179,7 +177,8 @@ export const flushSync = () => appSync.flush();
  * A restore's steps, as the kit's data router names them (data_admin.js): before the copy, a
  * backup from another sync library is refused while this device syncs (a cloud folder or a paired
  * device is set); the backup's sync stamps come with its rows; after it, this device's own sync
- * settings and bearer tokens go back and it continues as a new device in sync — the other
+ * settings go back (its bearer tokens are kept by data_admin.js) and it continues as a new device
+ * in sync — the other
  * devices' newer work comes back and wins (decided 2026-10-15; docs/sync.md "Good to know").
  */
 export const restoreSyncHooks = appSync.restoreHooks;

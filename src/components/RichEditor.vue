@@ -1086,11 +1086,16 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onWindowKeydown));
 // --- clipboard / print / clear formatting -----------------------------
 function doCopy() { editor.value?.chain().focus().run(); try { document.execCommand("copy"); } catch {} }
 function doCut()  { editor.value?.chain().focus().run(); try { document.execCommand("cut"); } catch {} }
+// Reading the clipboard needs a secure page and the browser's leave: a browser at a plain
+// http:// address (another computer on the network) has no navigator.clipboard at all, so the
+// writer is told the keys that always paste.
 async function doPaste() {
   try {
     const text = await navigator.clipboard.readText();
     if (text) editor.value?.chain().focus().insertContent(text).run();
-  } catch {}
+  } catch {
+    ui.showToast({ message: t("richEditor.pasteBlocked", { keys: sc("mod+V") }) });
+  }
 }
 function clearFormat() { editor.value?.chain().focus().unsetAllMarks().clearNodes().run(); }
 function doPrint() {

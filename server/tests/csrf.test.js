@@ -3,7 +3,8 @@
 // the vector directly" hardening, and the CORS hook that sits inside it. +2 tests beyond
 // Python: the settings-driven CORS branch (no Python test covered it; its answers are hono/cors's
 // since 2026-10-13), and the Electron window's origin (`app://justwrite`),
-// which the desktop app's mutating calls carry.
+// which the desktop app's mutating calls carry. Since 2026-10-20 CORS answers the app's own
+// origins only (never "*"), and a reverse proxy's public name may write.
 import { expect, test } from "vitest";
 import { client, tmpPath, useHermeticKit } from "./helpers.js";
 
@@ -46,7 +47,7 @@ test("cross_site_read_allowed", async () => {
 });
 
 test("settings_driven_cors", async () => {
-  // The `cors` settings section (read at boot) switches CORS from allow-all to an explicit
+  // The `cors` settings section (read at boot) switches CORS from the app's own origins to an explicit
   // list + regex with credentials. The CORS answers are hono/cors's (the kit's platform/cors.js
   // since 2026-10-13, `a4ef14d`; hono.dev/docs/middleware/builtin/cors) — the kit's
   // server/tests/cors.test.js asserts the same. The CSRF guard still doesn't take the regex
@@ -106,5 +107,36 @@ test("electron_window_origin_allowed", async () => {
   const c = await client(tmpPath());
   const r = await c.put("/v1/projects/e/book", { json: { project: { title: "T" } }, headers: { origin: "app://justwrite" } });
   expect(r.statusCode).toBe(204);
-  expect(r.headers["access-control-allow-origin"]).toBe("*");
+  expect(r.headers["access-control-allow-origin"]).toBe("app://justwrite");
+});
+
+test("a foreign page can't read this server: CORS answers the app's own origins only", async () => {
+  // Under allowOrigins "*" any web page the user opened could read a backup (every API key in it)
+  // and the access tokens (measured 2026-10-20; the family's security review). The app's own
+  // origins — the desktop window, the dev server, the phone — are answered; the UI the server
+  // hosts is its own origin and needs none.
+  const c = await client(tmpPath());
+  for (const path of ["/v1/data/backup", "/v1/server-auth", "/v1/health"]) {
+    const r = await c.get(path, { headers: { origin: "https://evil.example" } });
+    expect(r.headers["access-control-allow-origin"]).toBeUndefined();
+  }
+  const pre = await c.options("/v1/server-auth", {
+    headers: { origin: "https://evil.example", "access-control-request-method": "GET", "access-control-request-headers": "authorization" },
+  });
+  expect(pre.headers["access-control-allow-origin"]).toBeUndefined();
+  for (const origin of ["app://justwrite", "http://localhost:1420", "http://127.0.0.1:1420", "https://localhost", "capacitor://localhost"]) {
+    const r = await c.get("/v1/health", { headers: { origin } });
+    expect(r.headers["access-control-allow-origin"]).toBe(origin);
+  }
+});
+
+test("a reverse proxy's public name (JUSTWRITE_ALLOWED_HOSTS) may write through the CSRF guard", async () => {
+  const write = (c) => c.put("/v1/projects/p/book", { json: { project: { title: "T" } }, headers: { origin: "https://write.example.com" } });
+  expect((await write(await client(tmpPath()))).statusCode).toBe(403);
+  process.env.JUSTWRITE_ALLOWED_HOSTS = "write.example.com";
+  try {
+    expect((await write(await client(tmpPath()))).statusCode).toBe(204);
+  } finally {
+    delete process.env.JUSTWRITE_ALLOWED_HOSTS;
+  }
 });

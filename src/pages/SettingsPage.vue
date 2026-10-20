@@ -1,4 +1,5 @@
 <script setup>
+import { copyToClipboard } from "quasar";
 import { ref, computed, watch, watchEffect } from "vue";
 import { useAiStore } from "../stores/ai.js";
 import { categoryLabelShown, statusLabelShown, useProjectStore } from "../stores/project.js";
@@ -311,9 +312,11 @@ function generateToken() {
 }
 async function copyHeadlessUrl() {
   try {
-    await navigator.clipboard.writeText(headlessUrl.value);
+    await copyToClipboard(headlessUrl.value);
     ui.showToast({ message: t("settings.server.copied") });
-  } catch { /* clipboard blocked — no-op */ }
+  } catch {
+    ui.showToast({ message: t("brainstorm.copyFailed") });
+  }
 }
 
 // ── Project meta editing ───────────────────────────────────────────

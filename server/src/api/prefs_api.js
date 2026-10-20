@@ -10,14 +10,14 @@
 // typed /v1/settings, renderer sections here only) is recorded future work.
 //
 // DELETE here = the D3b-aware clear settings_api's DELETE performs: a user-changed folder
-// path never resets, so the PRESERVED_FOLDER_KEYS whitelist survives.
+// path never resets, nor do the access tokens — the KEPT_KEYS survive.
 
 import { makePrefsRouter } from "@delebash/core/platform";
 import { getDb } from "../database/session.js";
-import { clearKeepingFolders, readAll, writeMany } from "./settings_api.js";
+import { clearKeepingKeptKeys, readAll, writeMany } from "./settings_api.js";
 
 export const router = makePrefsRouter({
   readAll: () => readAll(getDb()),
   writeMany: (patch) => writeMany(getDb(), patch),
-  clear: () => clearKeepingFolders(getDb()),
+  clear: () => clearKeepingKeptKeys(getDb()),
 });

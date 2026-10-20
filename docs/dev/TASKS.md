@@ -975,11 +975,6 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   pin from the earlier note is FIXED — it pinned the stale July branch
   `claude/admiring-galileo-il3q0o`; now `@main`, matching its own "never goes
   stale" comment):
-  - **No Origin-header CORS test.** §6's rule — "the test that bites sends an
-    `Origin:` header and asserts `access-control-allow-origin` comes back" —
-    exists in docgen (`tests/test_app.py`) and JV (`tests/test_error_cors.py`)
-    but NOT in JW, the app the standard cites as the canonical envelope+CORS
-    text. Mirror docgen's test.
   - **`100vh` violation:** `src/components/SceneLinks.vue:264` —
     `max-height: calc(100vh - 48px)` on the popover. Under the UI-scale zoom,
     100vh references the UNZOOMED viewport (the family rule's stated reason),

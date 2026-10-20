@@ -11,10 +11,12 @@ import path from "node:path";
 import { installLlm, runnerRouter } from "@delebash/core/llm";
 import {
   bearerAuth,
+  CAPACITOR_ORIGINS,
   createServer,
   csrfOrigin,
   installFileLog,
   installLogRing,
+  MaintenanceGate,
   makeDiskRouter,
   makeLogsRouter,
   makeShutdownRouter,
@@ -74,6 +76,12 @@ export { TYPE_BASE };
 export const DESKTOP_ORIGIN = "app://justwrite";
 export const APP_ORIGINS = ["http://localhost:1420", "http://127.0.0.1:1420", DESKTOP_ORIGIN];
 
+// The writes a restore doesn't wait for (the maintenance gate below): an AI run or an
+// embedding, the engine's work (/v1/llm-runner/*), a provider's ping, model probe or key
+// reveal, a search of the book index, and the logs. Every other write is the data's.
+export const NOT_DATA_WRITES =
+  /^\/v1\/(ai\/(run|stream|embeddings)$|llm-runner\/|llm-providers\/(probe-models$|[^/]+\/(ping|key\/reveal)$)|rag\/[^/]+\/search$|logs\/)/;
+
 /**
  * The `cors` settings section ({origins, originRegex}) read at boot, or {} if
  * unset/unavailable. CORS is configured once at app construction (changing it needs a
@@ -86,7 +94,7 @@ function readCors() {
     const row = h.get("settings", "cors");
     return row ? pyOr(pyLoads(row.value), {}) : {};
   } catch (e) {
-    log.warning(`cors config read failed (allow-all fallback): ${e?.message ?? e}`);
+    log.warning(`cors config read failed (the app's own origins only): ${e?.message ?? e}`);
     return {};
   }
 }
@@ -191,6 +199,12 @@ export async function createApp(dataDir = null) {
   const cors = readCors();
   const corsOrigins = pyGet(cors, "origins");
   const corsRegex = pyGet(cors, "originRegex");
+  // A reverse proxy's public names (JUSTWRITE_ALLOWED_HOSTS, comma-separated — the template's
+  // FAMILY_TEMPLATE_ALLOWED_HOSTS): bearer auth answers this computer's own names only (DNS
+  // rebinding), and a browser there sends the proxy's origin (https://write.example.com), the
+  // server's own though it sees another scheme and host behind the proxy.
+  const allowedHosts = (process.env.JUSTWRITE_ALLOWED_HOSTS || "").split(",").map((s) => s.trim()).filter(Boolean);
+  const proxyOrigins = allowedHosts.flatMap((s) => [`https://${s}`, `http://${s}`]);
 
   // CSRF: reject cross-site browser mutations to /v1 (no token — can't lock anyone out).
   // Reuses the CORS origins as the allowlist.
@@ -198,16 +212,20 @@ export async function createApp(dataDir = null) {
     "*",
     csrfOrigin({
       appOrigins: APP_ORIGINS,
-      extraOrigins: pyOr(corsOrigins, []),
+      extraOrigins: [...pyOr(corsOrigins, []), ...proxyOrigins],
       typeBase: TYPE_BASE,
     }),
   );
 
-  // CORS — settings-driven (the `cors` section: origins / originRegex) so an exposed/headless
-  // server can lock origins down; allow-all for the local + dev + headless paths when unset.
-  // The desktop window's own origin stays allowed when the user locks origins down (decided
-  // 2026-10-08, JustVoice TASKS, the Electron move: the window IS the app — under Tauri its
-  // requests were never refused).
+  // CORS — the app's own origins only: the desktop window (app://), the dev server, the phone,
+  // which call this port directly; the UI this server hosts is its own origin and needs none.
+  // Never every origin: any web page the user opened could then read this computer's server —
+  // a backup (every API key in it) and the access tokens (measured 2026-10-20 against "*":
+  // GET /v1/data/backup from https://evil.example answered 200 with
+  // access-control-allow-origin: *; the family's security review, the kit's RESEARCH §2).
+  // The `cors` settings section (origins / originRegex) names the origins instead; the desktop
+  // window's own origin stays allowed then (decided 2026-10-08, JustVoice TASKS, the Electron
+  // move: the window IS the app — under Tauri its requests were never refused).
   if (pyOr(corsOrigins, null) || pyOr(corsRegex, null)) {
     app.use(
       "*",
@@ -220,13 +238,22 @@ export async function createApp(dataDir = null) {
       }),
     );
   } else {
-    app.use("*", starletteCors({ allowOrigins: ["*"], allowMethods: ["*"], allowHeaders: ["*"] }));
+    app.use("*", starletteCors({ allowOrigins: [...APP_ORIGINS, ...CAPACITOR_ORIGINS], allowMethods: ["*"], allowHeaders: ["*"] }));
   }
 
   // Bearer auth — OFF unless tokens are configured in Settings (the `auth` section). Gates
   // /v1/* only. The desktop shell's POST /v1/shutdown carries no token: it stays open from this
   // machine (and the route itself refuses anyone else).
-  app.use("*", bearerAuth({ readAuth, typeBase: TYPE_BASE, loopbackOpenPaths: [SHUTDOWN_PATH] }));
+  app.use("*", bearerAuth({ readAuth, typeBase: TYPE_BASE, loopbackOpenPaths: [SHUTDOWN_PATH], allowedHosts }));
+
+  // While a restore or a reset replaces the data, the other writes are refused (503,
+  // Retry-After) and the ones already running finish first — never a save that lands half-way
+  // or over the restored book (the kit's MaintenanceGate; the data router closes it). Only the
+  // data's writes: an AI run, the engine's work, a provider's ping or a search is no reason to
+  // hold a restore up (house-paint's thirteenth review), so those pass; a route not named here
+  // counts as a data write. The shell's shutdown always passes.
+  const gate = new MaintenanceGate({ exempt: [SHUTDOWN_PATH], isDataWrite: (c) => !NOT_DATA_WRITES.test(c.req.path) });
+  app.use("*", gate.middleware());
 
   // Sync: stamp what the triggers noted after every request that may have written (the order
   // edits were made in is the order their stamps run); stop the auto-sync timer on close.
@@ -253,7 +280,7 @@ export async function createApp(dataDir = null) {
   app.route("/", settingsRouter);
   app.route("/", prefsRouter); // the family /v1/prefs door over the same document (P9)
   app.route("/", versionsRouter);
-  app.route("/", getDataRouter()); // shared backup/restore/reset (/v1/data/*)
+  app.route("/", getDataRouter({ gate })); // shared backup/restore/reset (/v1/data/*)
   app.route("/", makeLogsRouter("JustWrite")); // shared /v1/logs/*
   app.route("/", makeDiskRouter(dataDir)); // shared /v1/disk/usage (reclaim-disk panel)
   app.route("/", ragRouter);
