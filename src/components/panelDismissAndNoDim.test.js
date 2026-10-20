@@ -99,7 +99,7 @@ describe("no overlay dims or blurs the page behind it (user ruling, 2026-07-19)"
     expect(src).toMatch(/<QDialog[^>]*class="help-drawer-overlay"/);
     expect(src).not.toMatch(/backdrop-filter|backdropFilter/);
     const theme = readKit("quasar/theme.css").replace(/\/\*[\s\S]*?\*\//g, "");
-    expect(ruleBody(theme, ":where(.ui-modal-overlay, .help-drawer-overlay) .q-dialog__backdrop")).toMatch(/background:\s*transparent/);
+    expect(ruleBody(theme, ":where(.ui-modal-overlay, .help-drawer-overlay, .aip-overlay) .q-dialog__backdrop")).toMatch(/background:\s*transparent/);
   });
 
   it("app.scss no longer declares the dead blurring `.modal-overlay` rule", () => {
@@ -265,8 +265,13 @@ describe("the dismissal logic lives in ONE place (R3)", () => {
     expect(CHAT).not.toMatch(/document\.addEventListener\(\s*["']keydown["']/);
   });
 
-  it("AiStatusPanel calls the shared composable and keeps no copy either", () => {
-    expect(AIP).toMatch(/usePanelDismiss\(/);
+  // Since kit f066ec9 the AI tasks panel is Quasar's QDialog (position="right"): QDialog's own backdrop
+  // click and Escape close it and give the focus back — one mechanism, on the shared transparent
+  // backdrop (no dim), and still no hand-rolled document listener.
+  it("AiStatusPanel dismisses through QDialog on the shared transparent backdrop, and keeps no copy either", () => {
+    expect(AIP).toMatch(/<QDialog[^>]*class="aip-overlay"/);
+    const theme = readKit("quasar/theme.css").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(ruleBody(theme, ":where(.ui-modal-overlay, .help-drawer-overlay, .aip-overlay) .q-dialog__backdrop")).toMatch(/background:\s*transparent/);
     expect(AIP).not.toMatch(/document\.addEventListener\(/);
   });
 

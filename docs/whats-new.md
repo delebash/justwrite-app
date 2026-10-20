@@ -44,6 +44,10 @@ token even on localhost** (Settings → Server) left the window without a token:
 was refused, and a reload showed the welcome screen as if your books were gone (they never were).
 The window now keeps one of your tokens.
 
+**Number boxes say what's wrong.** **Enter** takes the number you typed; text that isn't a number
+stays in the box with a note saying so, instead of being cleared; and a box emptied where a number
+is needed says **Required**.
+
 **Fields and warnings easier to see.** Text boxes, menus and the segmented switches have an edge
 you can see against every background, in both themes, and the red of delete buttons and error text
 is darker, so the words on and in it are easy to read in every danger colour you can choose.

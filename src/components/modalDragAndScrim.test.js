@@ -77,7 +77,8 @@ function ruleBody(css, selector) {
 const MODAL_SRC = readKit("common/components/AppModal.vue");
 const MODAL = styleOf(MODAL_SRC);
 const THEME = readKit("quasar/theme.css").replace(/\/\*[\s\S]*?\*\//g, "");
-const BACKDROP = ":where(.ui-modal-overlay, .help-drawer-overlay) .q-dialog__backdrop";
+// the AI tasks panel shares it since kit f066ec9 (a QDialog too)
+const BACKDROP = ":where(.ui-modal-overlay, .help-drawer-overlay, .aip-overlay) .q-dialog__backdrop";
 
 let app;
 let host;
