@@ -77,6 +77,22 @@ The family's move, step 4 (2026-10-08). The plan is JustVoice's
   copy went from "May 2, 2026 / March 1, 2027" to "2026-05-02 / 2027-03-01". A tutorial project
   already in the database keeps its stored words, as notes do (the 2026-10-13 ruling). (*measured
   2026-10-18*, `server/tests/samples_materialize.test.js`.)
+- **The installed server couldn't start: a peer dependency left out of the package.** electron-builder
+  packs only the server's declared dependency tree into `app.asar`; `@tiptap/extension-mention`'s
+  required peer `@tiptap/suggestion` (and its own peer `@floating-ui/dom`, imported as it loads) was
+  installed in the checkout but not declared, so the package lacked it. The AppImage stopped with
+  "Cannot find package '@tiptap/suggestion'", and a copy of the Windows build started from `%TEMP%`
+  did the same. The template's start check had passed it on Windows and macOS because the unpacked
+  build sits inside the checkout, where Node's lookup walks up into the repo's `node_modules`; only
+  the AppImage (mounted under /tmp) showed it. Fixed by declaring both (2026-10-20);
+  `server/tests/packaging.test.js` checks every required peer in the server's tree is declared.
+  (*measured 2026-10-20*, release dry runs 39414593872 and 39416175224.)
+- **The release dry run passes on every platform** (*measured 2026-10-20*, run 39416175224, the kit
+  at 24a51e5): Windows, a universal macOS app (`mac.x64ArchFiles` names koffi's macOS packages and
+  better-sqlite3's prebuilds — each ships every CPU's binary, so both halves hold the same file) and
+  Linux (AppImage + `.deb`, which needs `homepage` and `linux.maintainer`) each start their window
+  and their server on its own on one data folder; the AppImage opens on Ubuntu 24.04 with user
+  namespaces restricted and no FUSE 2 (the static AppImage runtime, `toolsets.appimage` 1.0.3).
 - **CORS `*` let any web page read the server.** With no token set (the default), or with the
   loopback skip on, a page from another site read the answers: `GET /v1/data/backup` from
   `Origin: https://evil.example` answered 200 `application/zip` with
