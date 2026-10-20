@@ -102,6 +102,12 @@ The family's move, step 4 (2026-10-08). The plan is JustVoice's
   lost: the server-hosted UI is same-origin, device-to-device sync is server to server (no
   `Origin`), and JustVoice's and docgen's screens never call JustWrite's server (grepped).
   (*measured 2026-10-20* on an isolated server, port 17497; `server/tests/csrf.test.js`.)
+- **A server picture in an `<img>` by the server's address fails twice.** It sends no access token, and
+  from the desktop window (`app://justwrite`) it is a cross-site load with no Origin, which the kit's
+  `resourceIsolation` (Fetch Metadata, wired 2026-10-20) refuses. `displaySrc` now reads every server
+  image as a blob through the kit's transport, as the phone already did: the cover loaded in a browser,
+  in a browser on a server requiring a token, and in the built desktop app, with nothing refused.
+  (*measured 2026-10-20*, scratch servers and dist/electron/UnPackaged on a scratch data folder.)
 - **A reset wiped the access tokens; a restore kept them but not the loopback switch.** A
   workspace reset (and `DELETE /v1/settings`) kept only the folder-path rows, so a reset on an
   exposed headless server turned its sign-in off. A restore put the tokens back through the sync
