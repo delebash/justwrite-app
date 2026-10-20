@@ -12,7 +12,7 @@ import { exportProject, importProject, saveBackupBlob, canSaveFiles, canPickBook
 import { serverDataDir, chooserDir, rememberDir } from "../services/chooserDirs.js";
 import {
   desktopUpdater, hasShell, isPhone, pickDirectory, shellVersion, storageGetRoot, storageOldCopies, storageRelocate,
-  storageRemoveOldCopy, storageUseDefault,
+  storageForgetOldCopy, storageRemoveOldCopy, storageUseDefault,
   setKeepRunning as nativeSetKeepRunning,
 } from "../services/native.js";
 import * as autosaveApi from "../services/autosaveApi.js";
@@ -141,6 +141,7 @@ const storageShell = {
   relocate: storageRelocate,
   oldCopies: storageOldCopies,
   removeOldCopy: storageRemoveOldCopy,
+  forgetOldCopy: storageForgetOldCopy,
   useDefault: storageUseDefault,
 };
 

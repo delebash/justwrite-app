@@ -30,7 +30,9 @@ model files make the move take a while — that's expected.
 
 The old folder keeps its copy until you remove it: Settings → Storage lists it as
 an **Old copy** with its size and **Remove the old copy…**, which deletes only
-what the move copied there. **Move back to the default folder…** returns the data
+what the move copied there. An old copy on a drive that isn't connected shows as **Not found**:
+connect the drive to remove it, or **Forget…** it — the app stops listing it and nothing on any drive
+is touched. **Move back to the default folder…** returns the data
 to where it started. When the `JUSTWRITE_DATA_DIR` variable names the folder, the
 moves are off and the page says where the folder is set.
 
@@ -43,12 +45,13 @@ free space the disk has left.
 
 Two of those can be cleared right from the card:
 
-- **Models cache — Clear…** removes the downloaded model files. This is always
-  safe: your models stay in the catalog and simply re-download the next time
-  they're used. If a model is currently loaded, JustWrite asks you to unload it
+- **Models cache — Clear…** removes the model files JustWrite downloaded — the
+  models in its catalog — and nothing else: other files in the folder, and a folder
+  you linked elsewhere, are left alone. This is always safe: your models stay in the
+  catalog and simply re-download the next time they're used. If a model is currently loaded, JustWrite asks you to unload it
   first (on the AI page) before clearing. This is usually where most of the
   space goes — model files run to several gigabytes each.
-- **Engine spawn logs — Clear…** removes the local engine's start-up logs.
+- **Engine logs — Clear…** removes the local engine's start-up logs.
   They're only useful when diagnosing a model that won't load, and they
   accumulate over time.
 
