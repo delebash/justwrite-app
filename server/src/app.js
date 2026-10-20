@@ -23,7 +23,7 @@ import {
   onClose,
   resourceIsolation,
   SHUTDOWN_PATH,
-  serveStatic,
+  serveUi,
   starletteCors,
 } from "@delebash/core/platform";
 import { purePath } from "@delebash/core/platform/data_paths";
@@ -344,19 +344,15 @@ export async function createApp(dataDir = null) {
   // Headless UI — serve the built UI (dist/spa/; the app root when packaged) so the headless server + a browser at the
   // server's origin gives the full app WITHOUT the desktop shell (the renderer's
   // origin-aware serverApi targets window.location.origin). Every /v1/* route wins first (it
-  // was added first). Starlette's StaticFiles(html=True) semantics: "/" is
-  // index.html; a missing file answers FastAPI's {"detail": "Not Found"}; any method but
-  // GET/HEAD on an unrouted path answers 405 (measured on the Python server, 2026-10-08).
+  // was added first). The kit's serveUi (the template's, kit 7e617b7): a write there answers 405
+  // with Allow (an unknown /v1 write stays the API's 404), files carry an ETag and answer 304,
+  // Vite's hashed assets are kept for good and the rest revalidated. /ui is the Python-era address.
   const uiDir = locateUiDir();
   if (uiDir !== null) {
     const toRoot = (c) => c.redirect("/", 307);
     app.get("/ui", toRoot);
     app.get("/ui/", toRoot);
-    // GET (and HEAD) only, as the static files were; a missing file falls through to the 404.
-    app.get("/*", serveStatic({ root: uiDir }));
-    // StaticFiles raised Starlette's own HTTPException, which FastAPI's default handler
-    // answers (not the kit's problem+json).
-    app.on(["POST", "PUT", "PATCH", "DELETE", "OPTIONS"], "/*", (c) => c.json({ detail: "Method Not Allowed" }, 405));
+    serveUi(app, uiDir);
     log.info(`UI served from ${uiDir}`);
   } else {
     log.warning("UI build not found — headless UI disabled. Run `npm run build:spa` to produce dist/spa/, or set JUSTWRITE_UI_DIR.");
