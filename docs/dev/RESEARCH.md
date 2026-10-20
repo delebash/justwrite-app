@@ -349,6 +349,11 @@ The plan: [`../plans/2026-10-18-editor-expansion.md`](../plans/2026-10-18-editor
   built its own spellchecker on it and removed it the same day
   (`docs/plans/archive/2026-10-19-spelling.md`). `params.spellcheckEnabled` reads false even when
   checking works — not a signal.
+  **In JustWrite's own desktop build** (*measured 2026-10-20*, dist/electron/UnPackaged on a scratch
+  data folder, Playwright's mouse clicks and key events): "quikly" typed in a scene gets the red
+  underline, "Halvorn" (a character's name) sits in a `spellcheck="false"` span and gets none, and
+  with the editor menu's **Show browser menu** a right-click on "quikly" gives the native menu
+  `misspelledWord` "quikly" with quickly / quakily / quirkily / quaky.
 - **Spellchecking in JavaScript, measured while it was tried (2026-10-19):** nspell 2.1.5 with
   wooorm's `dictionary-en` / `dictionary-es` 4.0.0 in a module Web Worker (TipTap's documented second
   route, tiptap.dev/docs/guides/spellcheck): en loads in 89 ms (+12 MB heap), es in 652 ms (+37 MB);

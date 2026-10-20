@@ -984,12 +984,6 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   `docs/dev/measured-performance.md` §Boot.)
 - **Fit-estimate label wording — your veto still open.** Shipped with the PC-class work;
   `docs/plans/archive/2026-07-22-igpu-research-and-cpu-band-recovery.md` §25 addendum 9.
-- **One look in the desktop app — the spelling (2026-10-18).** In a scene: a misspelling gets the red
-  underline, a character's name doesn't; the editor menu's **Show browser menu**, then a right-click
-  on the misspelling, lists suggestions and **Add to dictionary**. What's settled (2026-10-19,
-  RESEARCH "Electron's spellchecker works on Windows — with real input"): Electron 44.7 underlines
-  with real typing (the user, in Just House Paint), and a name in a `spellcheck="false"` span is
-  skipped; the earlier "spellcheck is off" was my probes' scripted focus and `char`-only typing.
 - **The 2026-07-19..26 unauthorized-changes review — 77 user-visible commits await YOUR
   verdict; only you can say which you approved.** Next candidate: `ea543ae` (panels dismiss on
   Esc/outside-click + nav toggle). Method (both proven the hard way): enumerate with the FULL
