@@ -11,6 +11,12 @@ most questions land), then pointers for everything else.
 - For local providers: the server isn't running. Start it from the terminal.
 - Check the URL doesn't have a typo. For the **Ollama (native)** preset the default is `http://localhost:11434` — no `/v1`. For a generic **OpenAI-compatible** provider (LM Studio, llama.cpp's own server, vLLM) the URL usually needs the `/v1` suffix — LM Studio's default is `http://localhost:1234/v1`.
 
+**"The AI provider can't be reached" on a long answer, while short ones work.**
+
+- The answer took longer than the provider's **Timeout (seconds)**. Raise it: AI page → the
+  provider's **Edit**. The built-in provider's is 900 seconds; a local model thinking at High can
+  need several minutes.
+
 **Local model is very slow.**
 
 - Most likely you don't have enough RAM. A 7B model wants ~8 GB free; a 13B model wants ~16 GB. Try a smaller model.

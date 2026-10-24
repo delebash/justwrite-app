@@ -590,8 +590,10 @@ method), at every hue the appearance engine lets the user set (accent and danger
   82 s). A stream gets its headers at once and a frame per token, so the same run streamed went
   144 s cleanly. The renderer streams everything and uses `/run` only as the stream's fallback.
   The seed gives the built-in provider 900 s since 2026-10-07; a database made before keeps 60
-  (the seeder fills empty fields only), and the provider form has no field for it — sent to the
-  kit. — *measured 2026-10-24 on the 2070S, a scratch server over the user's data.*
+  (the seeder fills empty fields only), and the provider form had no field for it. Kit 0b8e7ad
+  added the field and upgrades a stored 60 to 900 at the next start (a user's own value is never
+  touched); a copy of the user's data read 60 before and 900 after. — *measured 2026-10-24 on the
+  2070S, a scratch server over the user's data.*
 - **A probe reading a UiCheckbox's state must read `aria-checked`, not the hidden input.**
   QCheckbox's `input.q-checkbox__native` is display:none and keeps its own `checked`, which lags
   the model. A `<label>` around UiCheckbox does toggle it on a click on the text (the click reaches
@@ -611,7 +613,8 @@ method), at every hue the appearance engine lets the user set (accent and danger
   use.** The linked `../just-sqlite-sync` keeps its own `node_modules/yjs` (13.6.33, as ours), and
   its `src/text.js` imports it as the default even though JustWrite hands it its own (`yjs: Y`,
   server/src/sync.js — the library's documented option, used by `textOps`). The built app holds one
-  copy (`app.asar` lists a single `node_modules/yjs`), so it never warns. — *2026-10-24.*
+  copy (`app.asar` lists a single `node_modules/yjs`), so it never warns. Since just-sqlite-sync
+  e32dde4 the package imports no Yjs at all: text columns need openSync's `yjs`. — *2026-10-24.*
 - **A built Electron app can't be driven by Playwright's Electron launcher here:** the build sets
   the `enableNodeCliInspectArguments` fuse off (quasar.config.js), so `_electron.launch` times out.
   `--remote-debugging-port` still opens the window to `chromium.connectOverCDP`, and the app's own

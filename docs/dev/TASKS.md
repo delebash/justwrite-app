@@ -1094,11 +1094,11 @@ waited for), and the data folder moved through the built app (a custom folder �
 default folder → restart → the book there → the old copy listed → Remove the old copy; only the OS
 folder picker of Change folder was not driven). Closed as stale: the 31B row, the 2070S spawn
 failure, the Python boot timing, the probes' findChrome (8 dead probes deleted, the rest need
-JW_APP + JW_API). The kit findings went to web-0d: the model id where its name belongs (splash,
-Quick Setup) and the Fit hover's run-on sentence are fixed in kit 43b19a9; the Tune header's "Not
-tuned" beside the catalog's "Tuned by PC class config", the pricing table's row rule and its
-always-on Saves, and the provider timeout (60 s in databases made before 2026-10-07, no field to
-change it) wait for a word in web-0d's session.)*
+JW_APP + JW_API). The kit findings are all fixed: the model's name on the splash and in Quick Setup
+and the Fit hover's sentence (kit 43b19a9); one tune word in the Tune dialog and the catalog, the
+pricing table's Save, the provider timeout (a field in the provider form, and a database still on the
+old seeded 60 s gets 900 at the next start — checked on a copy of yours), and whole sizes (a no-break
+space between number and unit) (kit 0b8e7ad); just-sqlite-sync's second Yjs (sync e32dde4).)*
 
 - **AMD / Intel graphics detection** (Ledger §G6): needs a Windows machine with an AMD or Intel GPU
   (the Core Ultra 7 laptop) — the AI page's hardware strip names the adapter, its VRAM and class.

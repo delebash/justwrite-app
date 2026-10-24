@@ -98,7 +98,7 @@ describe("createDownloadTask", () => {
     watch(() => task.label, (v) => labels.push(v), { flush: "sync" });
     await task.start();
     expect(task.state).toBe("done");
-    expect(labels.some((l) => l.includes("50 MB / 100 MB"))).toBe(true);
+    expect(labels.some((l) => l.includes("50\u00a0MB / 100\u00a0MB"))).toBe(true);
   });
 
   it("waiting() shows a held, indeterminate running state without polling", () => {

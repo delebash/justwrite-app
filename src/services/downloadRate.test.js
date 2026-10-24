@@ -65,11 +65,11 @@ describe("createRateTracker", () => {
 describe("formatters", () => {
   it("fmtSpeed picks sane units", () => {
     expect(fmtSpeed(0)).toBe("");
-    expect(fmtSpeed(512)).toBe("1 KB/s"); // floor at 1 KB/s, never "0 KB/s"
-    expect(fmtSpeed(200 * 1024)).toBe("200 KB/s");
-    expect(fmtSpeed(5.5 * MB)).toBe("5.5 MB/s");
-    expect(fmtSpeed(38 * MB)).toBe("38 MB/s");
-    expect(fmtSpeed(2048 * MB)).toBe("2.0 GB/s");
+    expect(fmtSpeed(512)).toBe("1\u00a0KB/s"); // floor at 1 KB/s, never "0 KB/s"
+    expect(fmtSpeed(200 * 1024)).toBe("200\u00a0KB/s");
+    expect(fmtSpeed(5.5 * MB)).toBe("5.5\u00a0MB/s");
+    expect(fmtSpeed(38 * MB)).toBe("38\u00a0MB/s");
+    expect(fmtSpeed(2048 * MB)).toBe("2.0\u00a0GB/s");
   });
 
   it("fmtEta rounds honestly by scale", () => {
@@ -84,24 +84,24 @@ describe("formatters", () => {
 
   it("fmtBytes matches the composables' historical output", () => {
     expect(fmtBytes(0)).toBe("");
-    expect(fmtBytes(500 * MB)).toBe("500 MB");
-    expect(fmtBytes(2 * 1024 * MB)).toBe("2.0 GB");
+    expect(fmtBytes(500 * MB)).toBe("500\u00a0MB");
+    expect(fmtBytes(2 * 1024 * MB)).toBe("2.0\u00a0GB");
   });
 
   it("rateSuffix composes speed and ETA, and hides when unknown", () => {
     expect(rateSuffix(0, 0, 0)).toBe("");
-    expect(rateSuffix(5 * MB, 100 * MB, 0)).toBe(" · 5.0 MB/s"); // unknown total → no ETA
-    expect(rateSuffix(5 * MB, 100 * MB, 700 * MB)).toBe(" · 5.0 MB/s · ~2m left");
+    expect(rateSuffix(5 * MB, 100 * MB, 0)).toBe(" · 5.0\u00a0MB/s"); // unknown total → no ETA
+    expect(rateSuffix(5 * MB, 100 * MB, 700 * MB)).toBe(" · 5.0\u00a0MB/s · ~2m left");
   });
 });
 
 describe("progressCaption", () => {
   it("builds phase · done / total + the rate suffix (the shared bar caption)", () => {
     expect(progressCaption("Downloading the model", 500 * MB, 4200 * MB, " · 22 MB/s · ~2m left"))
-      .toBe("Downloading the model · 500 MB / 4.1 GB · 22 MB/s · ~2m left");
+      .toBe("Downloading the model · 500\u00a0MB / 4.1\u00a0GB · 22 MB/s · ~2m left");
   });
   it("drops the total when it is unknown, and is bare phase with no bytes", () => {
     expect(progressCaption("Loading it into your graphics card", 0, 0)).toBe("Loading it into your graphics card");
-    expect(progressCaption("Working", 90 * MB, 0)).toBe("Working · 90 MB");
+    expect(progressCaption("Working", 90 * MB, 0)).toBe("Working · 90\u00a0MB");
   });
 });

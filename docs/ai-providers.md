@@ -51,6 +51,10 @@ Most users start with **one** provider and add more later as needed.
 
 The connection test shows green (Online), yellow (Checking), or red (Offline). Offline usually means a wrong URL, a wrong key, or a local server that isn't running.
 
+Every provider also has a **Timeout (seconds)**: how long JustWrite waits for an answer before
+giving up. A local model thinking at High can take several minutes, so the built-in provider's is
+900; raise a provider's if long answers from it fail.
+
 ---
 
 **Want local AI with zero decisions?** The **Quick Setup** wizard (AI page →

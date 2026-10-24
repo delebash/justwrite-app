@@ -4,6 +4,18 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## 2026-10-24
+
+**Long local answers no longer give up after a minute.** The built-in provider waited only 60
+seconds in libraries set up before 2026-10-07, so a model thinking at High could fail with "The AI
+provider can't be reached" while it was still answering. It now waits 900 seconds, like a new
+install, and every provider's **Timeout (seconds)** can be changed in its **Edit**.
+
+**The start-up screen names the model it's loading**, "Gemma 4 26B-A4B (QAT)" rather than its id,
+and shows the whole progress line; Quick Setup names it the same way.
+
+---
+
 ## 2026-10-20
 
 **Websites can't read your JustWrite server.** Until now a web page open in your browser could
