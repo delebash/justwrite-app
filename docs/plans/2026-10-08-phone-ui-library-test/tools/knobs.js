@@ -6,11 +6,9 @@
 // usage (from justwrite-app): node <this> <outDir> [locationId]
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { createRequire } from "node:module";
+import { chromium } from "playwright";
 import { chromeLaunchOptions } from "file:///E:/Dev/Web/just-llm-runner/scripts/lib/exec-resolve.js";
 
-const require = createRequire(path.join(process.cwd(), "package.json"));
-const { chromium } = require("playwright");
 const BASE = process.env.JW_UI || "http://localhost:1420";
 const out = process.argv[2];
 const locId = process.argv[3] || "l1";

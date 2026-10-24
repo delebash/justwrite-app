@@ -6,11 +6,9 @@
 // set) is done by a curl of /v1/ai/engine-presets + /v1/ai/routing AFTER this probe.
 // Reuses findChrome() from headless-smoke.js (never hardcode the Chromium path).
 import { existsSync, readdirSync } from "node:fs";
-import { createRequire } from "node:module";
+import { chromium } from "playwright";
 
-const require = createRequire(import.meta.url);
 import { findChrome, probeTarget } from "../lib/smoke-common.js";
-const { chromium } = require("playwright");
 const { app: APP, api: API } = probeTarget();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

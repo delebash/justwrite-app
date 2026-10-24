@@ -384,4 +384,14 @@ the kit's [`docs/app-structure.md`](https://github.com/delebash/just-core/blob/m
   filled in the kit so every app gets it. Copies drift and share bugs.
 - **Code copied from another project keeps its licence notice** and gets an entry in the repo's
   `NOTICE.md`. MIT, Apache and BSD licences all require it.
+- **Every AI engine and model goes through the kit, the way llama.cpp does.** Its builds are
+  seeded rows, its models catalog rows in the kit's cache, its features routed by a preset, its
+  graphics-card use booked with the kit's VRAM arbiter, its screens the kit's. An engine the kit
+  doesn't have yet is a kit gap: it goes into the kit first and the app is built on it — never
+  inside the app.
+- **Modern ES modules everywhere.** `.js` files with standard `import` — app and kit code,
+  scripts, tests and tools alike — never `require`, `createRequire`, `.mjs` or `.cjs`. The only
+  CommonJS is what a platform forces, named with its doc: Electron's sandboxed preload
+  (electronjs.org/docs/latest/tutorial/esm) and Capacitor's `.js` config
+  (quasar.dev/quasar-cli-vite/developing-capacitor-apps/configuring-capacitor).
 <!-- family-rules:end -->

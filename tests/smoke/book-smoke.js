@@ -14,13 +14,11 @@
 // origin-aware resolver), so the page's /v1 calls are forwarded to JW_SERVER here.
 // Env: JW_APP, JW_SERVER, JW_CHROME.
 
-import { createRequire } from "node:module";
+import { chromium } from "playwright";
 // Shared with headless-smoke + the bench harness (extracted 2026-07-19) — one
 // findChrome(), never a hardcoded browser path (the CLAUDE.md law).
 import { findChrome, sleep, waitReady } from "../lib/smoke-common.js";
 
-const require = createRequire(import.meta.url);
-const { chromium } = require("playwright");
 
 const APP = process.env.JW_APP || "http://localhost:1420";
 const SERVER = process.env.JW_SERVER || "http://127.0.0.1:17495";

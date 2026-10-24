@@ -16,16 +16,16 @@
 // unpacked app has no checkout of its own). JUSTWRITE_DEV_NO_SERVER=1 keeps the shell from
 // starting a server (the suite then talks to one you started on :17495).
 
-import { createRequire } from "node:module";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { _electron } from "playwright-core";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "../..");
 const APP_ROOT = path.join(REPO_ROOT, "dist", "electron", "UnPackaged");
-// Electron is the desktop app's dependency, installed in src-electron/ (Quasar's Electron mode).
-const ELECTRON = createRequire(path.join(REPO_ROOT, "src-electron", "package.json"))("electron");
+// Electron is the desktop app's dependency, installed in src-electron/ (Quasar's Electron mode); its
+// package's main export is the binary's path, imported as an ES module by file URL (the template's).
+const { default: ELECTRON } = await import(pathToFileURL(path.join(REPO_ROOT, "src-electron", "node_modules", "electron", "index.js")).href);
 
 export class Driver {
   constructor() {

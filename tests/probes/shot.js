@@ -3,11 +3,9 @@
 // first, on scratch ports, and named by JW_APP + JW_API (never your running JustWrite).
 // Usage: node tests/probes/shot.js '#/ai' out.png
 import { existsSync, readdirSync } from "node:fs";
-import { createRequire } from "node:module";
+import { chromium } from "playwright";
 
-const require = createRequire(import.meta.url);
 import { findChrome, probeTarget } from "../lib/smoke-common.js";
-const { chromium } = require("playwright");
 
 const { app: APP } = probeTarget();
 const hash = process.argv[2] || "#/";

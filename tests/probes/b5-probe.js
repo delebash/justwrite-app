@@ -24,11 +24,9 @@
 // The probe is a REAL round-trip on the live API + UI; every write is restored
 // (book snapshot + chat thread). findChrome copied from scripts/headless-smoke.js.
 import { existsSync, readdirSync } from "node:fs";
-import { createRequire } from "node:module";
+import { chromium } from "playwright";
 
-const require = createRequire(import.meta.url);
 import { findChrome, probeTarget } from "../lib/smoke-common.js";
-const { chromium } = require("playwright");
 const { app: APP, api: API } = probeTarget();
 
 

@@ -1,10 +1,8 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
-import { createRequire } from "node:module";
+import { chromium } from "playwright";
 import { pathToFileURL } from "node:url";
 import { chromeLaunchOptions } from "file:///E:/Dev/Web/just-llm-runner/scripts/lib/exec-resolve.js";
-const require = createRequire(path.join(process.cwd(), "package.json"));
-const { chromium } = require("playwright");
 const [dir, states, x, y, cw, ch, scale] = [process.argv[2], process.argv[3].split(","), ...process.argv.slice(4).map(Number)];
 const b = await chromium.launch(chromeLaunchOptions());
 const p = await b.newPage();

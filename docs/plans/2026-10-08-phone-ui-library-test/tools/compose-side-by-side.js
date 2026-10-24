@@ -1,10 +1,8 @@
 import { readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { createRequire } from "node:module";
+import { chromium } from "playwright";
 import { pathToFileURL } from "node:url";
 import { chromeLaunchOptions } from "file:///E:/Dev/Web/just-llm-runner/scripts/lib/exec-resolve.js";
-const require = createRequire(path.join(process.cwd(), "package.json"));
-const { chromium } = require("playwright");
 const dir = process.argv[2];
 const states = [...new Set(readdirSync(dir).filter((f) => f.startsWith("real-") && f.endsWith(".png")).map((f) => f.slice(5, -4)))];
 const b = await chromium.launch(chromeLaunchOptions());

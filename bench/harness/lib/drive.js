@@ -11,13 +11,11 @@
 
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { createRequire } from "node:module";
+import { chromium } from "playwright";
 import { dirname, join } from "node:path";
 import { resolveAppDataRoot } from "./dataRoot.js";
 import { findChrome, isUp, sleep, waitReady } from "../../../tests/lib/smoke-common.js";
 
-const require = createRequire(import.meta.url);
-const { chromium } = require("playwright");
 
 /** Wait for the bench hook to exist on the page (it installs after mount). */
 async function waitForHook(page, tries = 60) {

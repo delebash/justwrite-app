@@ -14,7 +14,7 @@
 
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { createRequire } from "node:module";
+import { chromium } from "playwright";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 // findChrome/waitReady/sleep are SHARED (extracted 2026-07-19) — this script,
@@ -22,8 +22,6 @@ import { fileURLToPath } from "node:url";
 // CLAUDE.md forbids a hand-rolled/hardcoded browser path. One copy: scripts/lib.
 import { findChrome, sleep, waitReady } from "../lib/smoke-common.js";
 
-const require = createRequire(import.meta.url);
-const { chromium } = require("playwright");
 
 const APP = process.env.JW_APP || "http://localhost:1420";
 const SERVER = process.env.JW_SERVER || "http://127.0.0.1:17495";
@@ -140,7 +138,7 @@ if (process.env.JW_SEED === "0") {
     // failed identically whether the code was clean or not. A gate that fails
     // for a reason it doesn't name is worse than no gate. Resolving the bin
     // keeps it shell-free (no DEP0190) and works on every platform.
-    execFileSync(process.execPath, [require.resolve("jscpd/run-jscpd.js")], {
+    execFileSync(process.execPath, [fileURLToPath(import.meta.resolve("jscpd/run-jscpd.js"))], {
       cwd: join(here, ".."), stdio: "ignore",
     });
     console.log("✓ jscpd (JW renderer): duplication under threshold");

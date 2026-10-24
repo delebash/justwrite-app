@@ -11,11 +11,9 @@
 // (f) B2 no-clobber: a hand-typed description survives a re-read.
 // Reuses findChrome() from smoke-common.js. Prereqs: JW_APP + JW_API naming a scratch renderer + server.
 import { existsSync, readdirSync } from "node:fs";
-import { createRequire } from "node:module";
+import { chromium } from "playwright";
 
-const require = createRequire(import.meta.url);
 import { findChrome, probeTarget } from "../lib/smoke-common.js";
-const { chromium } = require("playwright");
 const { app: APP } = probeTarget();
 const GEMMA = "unsloth/gemma-4-26B-A4B-it-qat-GGUF";
 
