@@ -9,9 +9,9 @@ import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-import { findChrome } from "../lib/smoke-common.js";
+import { findChrome, probeTarget } from "../lib/smoke-common.js";
 const { chromium } = require("playwright");
-const APP = process.env.JW_APP || "http://localhost:1420";
+const { app: APP, api: API } = probeTarget();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -31,13 +31,13 @@ page.on("response", (r) => { if (r.status() >= 400 && !BENIGN.some((re) => re.te
 // tiny CPU test model is added via just-core/scripts/dev-seed-test-model.py
 // (dev/container ONLY — the real seed deliberately does not carry it; user 2026-07-06).
 await page.route("**/v1/llm-runner/hardware", async (route) => {
-  const real = await (await fetch(`${process.env.JW_API || "http://127.0.0.1:17495"}/v1/llm-runner/hardware`)).json();
+  const real = await (await fetch(`${API}/v1/llm-runner/hardware`)).json();
   real.gpus = [{ vendor: "nvidia", name: "RTX probe", vramMb: 8192 }];
   real.runtimes = { ...(real.runtimes || {}), cuda: true };
   return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(real) });
 });
 await page.route("**/v1/llm-runner/models**", async (route) => {
-  const real = await (await fetch(`${process.env.JW_API || "http://127.0.0.1:17495"}/v1/llm-runner/models`)).json();
+  const real = await (await fetch(`${API}/v1/llm-runner/models`)).json();
   real.vramMb = 8192;
   for (const m of real.models || []) {
     // What an 8 GB / 32 GB box reports: the MoEs fit, the 12B is tight, big dense won't.
@@ -117,7 +117,6 @@ try {
   // minVram <= the stubbed 8 GB card minus the chat pick's floor. The chat pick post-reset
   // is the APPLIED seeded Gemma default (hard-asserted at "confirm preselects the APPLIED
   // model" below). NOTE the stub marks every embed's fit "ok", so runnability never filters.
-  const API = process.env.JW_API || "http://127.0.0.1:17495";
   // Deterministic start: reset to the SEEDED state (pre-production decree) — the D4-1
   // "configured box" assertions depend on it (all presets on the seeded gemma + this
   // container's gemma tune rows), and earlier probe runs mutate the presets.

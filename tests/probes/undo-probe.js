@@ -22,17 +22,16 @@
 //
 // Assumes NOTHING about ambient DB state: works in its own temp project and
 // restores the active pointer + deletes the temp project afterwards.
-// Run: JW server :17495 + vite :1420 up, then `node scripts/undo-probe.js`.
+// Run: JW_APP + JW_API naming a scratch renderer + server, then `node tests/probes/undo-probe.js`.
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-import { findChrome } from "../lib/smoke-common.js";
+import { findChrome, probeTarget } from "../lib/smoke-common.js";
 const { chromium } = require("playwright");
 
 
-const BASE = process.env.JW_BASE || "http://localhost:1420";
-const API = process.env.JW_API || "http://127.0.0.1:17495";
+const { app: BASE, api: API } = probeTarget();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let pass = 0, fail = 0;
 function check(name, ok, extra = "") {

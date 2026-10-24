@@ -1080,63 +1080,34 @@ JV as of 2026-08-04; the convergence scope itself stands.)*
 
 ## Your-box checks (only the Windows / 2070S machine can finish these)
 
-- **Boot splash after the kit adoption (2026-08-04):** the load group is the
-  kit's `<BootModelLoad />` now and the model bar shows the MODEL NAME (your shared-behavior
-  ruling) instead of "Loading your writing model". One boot with warm-start on is the look
-  pass. Gates already green: 567/567 vitest, build, i18n report (its `literal`/`nav.settings`
-  rows pre-exist, proven on a stashed clean tree). `warmStartup.js` deleted; the bench
-  suppression rides the kit's `skip` option (`main.js`).
+*(Worked through 2026-10-24 on a scratch server over a copy of your data, real models on the 2070S:
+the boot splash, the plate, the self-hosted fonts, the catalog's layout / needs line / Fit hover /
+badges, Quick Setup, the download bars, the PC classes panel (This PC line, Use for this PC → Set
+manually → Use auto-detect, Copy in the list and the editor), the hardware-changed toast, the engine
+builds table, the pricing editor, Unload / Load / Set as default, Load & measure → the history,
+2-minute optimize → Skip → "Optimize cancelled.", batch Fill from book in review and auto-apply mode
+(only empty fields filled, read back from the database), Ask the book end to end (index, cited
+answer, chat + embedding resident together), the MTP draft load (43 tok/s, acceptance 0.81) and the
+thinking budget, `--restore` after a hard kill, the bench's `--autostart` on the Node server (it left
+the server and vite on :17495 / :1420 after the run — fixed: no shell in between, the tree kill
+waited for), and the data folder moved through the built app (a custom folder → Move back to the
+default folder → restart → the book there → the old copy listed → Remove the old copy; only the OS
+folder picker of Change folder was not driven). Closed as stale: the 31B row, the 2070S spawn
+failure, the Python boot timing, the probes' findChrome (8 dead probes deleted, the rest need
+JW_APP + JW_API). The kit findings went to web-0d: the model id where its name belongs (splash,
+Quick Setup) and the Fit hover's run-on sentence are fixed in kit 43b19a9; the Tune header's "Not
+tuned" beside the catalog's "Tuned by PC class config", the pricing table's row rule and its
+always-on Saves, and the provider timeout (60 s in databases made before 2026-10-07, no field to
+change it) wait for a word in web-0d's session.)*
 
-- **QC the shipped 2026-07-24/25 batch — pushed; your eyes are the only outstanding half:**
-  the boot-splash plate (fit = fill) · self-hosted fonts (**needs one fresh `npm run dev`** —
-  `vite.config.js` changed) · boot 4.1 s → 2.3 s · the downloader rate-limit fix · the Model
-  Catalog layout. (Cite CORRECTED by the docs campaign: these were §20-33 of the
-  mtp-verify doc, not the igpu doc; the numbers are distilled in
-  `docs/dev/measured-performance.md` §Boot + downloads.)
-- **Bench legs still owed on your box** [extracted from the archived igpu doc §7]:
-  the CPU raw llama-bench pp/tg matrices (unmeasured since the `-c` flag fix) · the
-  GPU RAG bible-vs-index comparison (`forceBibleOnly` + permanent `-bible` legs —
-  your "i cant believe we did not do that in the first place") · the characterChat
-  bible-leg variant · Bonsai's CPU leg under the corrected id
-  `ternary-bonsai-27b-q2-g64` (loads in 13 s; 0/10 chats completed last try).
-- **drive.js autostart has still never fired** — the 13:46 bench attached to
-  your live server; closes on any `--autostart` bench with the app closed (since
-  2026-10-08 it starts the Node server on Electron's Node). Plus two glances: PricingEditor + LuRunnerBinaries have never been
-  RENDERED by eyes (code-verified only) · StyleTune's drafter re-scope — the 8 GB
-  class tune sets `spec_type: none` BY DESIGN, so a drafter load needs a deliberate
-  override or a bigger box (and its drafter measured no gain anyway:
-  `docs/dev/measured-performance.md` §MTP).
-- **LOOK at the PC-class surfaces the 2026-07-27 look pass did not cover:** the catalog row's
-  needs line beside the download size · the Fit hover's "Estimated / not yet tested on your PC
-  class" wording · the renamed badge with your class after it. (The class-configs modal and the
-  QuickSetup wizard were QC'd good 2026-07-27.) Same plan doc, §24.
-- **Quick Setup wizard EMBEDDING check** — the fix shipped + contract-tested 2026-07-26, but
-  only the GUI can prove the wizard: open it, confirm EMBEDDING populates and the banner is gone.
-- **Model-download Cancel/Dismiss glance** — server + tests verified 2026-07-26; one look at the
-  failed / "Getting ready" states is all that's left.
-- **Delete the 31B row in your local catalog UI if you want it gone** — the seeder is
-  insert-only, so the 2026-07-26 removal reaches fresh installs only.
-- **Batch Fill-from-book: the review phase + auto-apply write have never had a live
-  run** [attributed: `docs/plans/archive/2026-07-19-batch-fill-from-book.md` — shipped from
-  unit-tested pieces; "get their first live run on the user's box"]. One real batch
-  on your box is the acceptance.
-- **Pass-1 execution tail** [attributed: `docs/plans/archive/2026-07-22-pass1-execution-plan.md`
-  tail — "paused pending the planner's decision"]: the smoke's splash-aware wait ·
-  your box-look at the new panel line / editor Copy / override flow / the rename ·
-  the iGPU laptop kit queue.
-- **Bench harness `--restore` fire-test** — one deliberate mid-leg kill → `npm run bench --
-  --restore bench/results/<run-id>` → the Routing tab shows the original assignments. Still only
-  proven against a fake client. `docs/plans/archive/2026-07-19-llm-bench-harness.md`.
-- **19 probe scripts still carry a Linux-only `findChrome()`** — they cannot find a browser on
-  Windows at all; convert to the shared `tests/lib/smoke-common.js` import or delete the dead
-  ones. Same plan doc.
-- **Unit 2 reasoning acceptance** — one local High chat run stopping at the hardware cap · one
-  new-Anthropic run with reasoning words on the wire, no 400. Ledger §G.
-- **Ledger §G1–G6** — Plan B on-device gates · portable data folder · the RTX 2070S spawn
-  failure (now self-reporting) · marketing screenshots · full RAG end-to-end + router-flag
-  confirm · Windows AMD/Intel detection spot-check. Ledger §G.
-- **Providers-surface rounds 9–19** — the per-round box checks.
-  `just-core/docs/plans/archive/2026-07-06-providers-surface-redesign.md`.
+- **AMD / Intel graphics detection** (Ledger §G6): needs a Windows machine with an AMD or Intel GPU
+  (the Core Ultra 7 laptop) — the AI page's hardware strip names the adapter, its VRAM and class.
+- **A thinking run on Anthropic** (Unit 2's cloud half): needs an Anthropic key, and none is set;
+  the request shape is unit-tested only (`adapter_extra.test.js`).
+- **The engine update replacing its build** (providers round 10, the 2026-09-19 safe-update flow):
+  reachable only when a newer pinned build exists.
+- **Marketing screenshots** (Ledger §G4): `npm run screenshots` after `npm run build`, with
+  warm-start off — part of preparing a release.
 
 ## Standing rulings (constraints, not tasks — they gate future work)
 

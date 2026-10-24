@@ -9,8 +9,10 @@
 // The browser launch reuses the SHARED findChrome() (scripts/lib) — never a
 // hardcoded path.
 
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
 import { resolveAppDataRoot } from "./dataRoot.js";
 import { findChrome, isUp, sleep, waitReady } from "../../../tests/lib/smoke-common.js";
 
@@ -30,12 +32,14 @@ async function waitForHook(page, tries = 60) {
   );
 }
 
-/** Start a child process, streaming a labelled tail of its output. */
+/** Start a child process, streaming a labelled tail of its output. No shell in between: the pid we
+ *  hold is the process itself, so the tree kill on close reaches everything under it. Through a
+ *  shell (Windows' `shell: true`), the shell went and the server and vite under it kept JustWrite's
+ *  ports after the run (2026-10-24, the first `--autostart` on the Node server). */
 function startProcess(label, cmd, args, { env, cwd, onLog } = {}) {
   const child = spawn(cmd, args, {
     env: { ...process.env, ...(env || {}) },
     cwd,
-    shell: process.platform === "win32",
     stdio: ["ignore", "pipe", "pipe"],
   });
   const pipe = (stream) => {
@@ -48,6 +52,16 @@ function startProcess(label, cmd, args, { env, cwd, onLog } = {}) {
   pipe(child.stdout);
   pipe(child.stderr);
   return child;
+}
+
+/** `npm run <script>` without a shell: npm's own CLI run by this node (app-structure §Q.6: never
+ *  through npm's .cmd shim — scripts/eval.js does the same for npx) — the one `npm run` names in
+ *  npm_execpath, else Windows' beside node; else `npm` itself, which runs without a shell on macOS
+ *  and Linux. */
+function npmRun(script) {
+  const cli = [process.env.npm_execpath, join(dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js")]
+    .find((p) => p && /npm-cli\.js$/.test(p) && existsSync(p));
+  return cli ? [process.execPath, [cli, "run", script]] : ["npm", ["run", script]];
 }
 
 /**
@@ -68,7 +82,7 @@ async function ensureBrowserStack({ app, server, autostart, repoRoot, onLog }) {
     // The server on Electron's own Node (scripts/node24.js) — the runtime it ships on,
     // and the one its native modules are built for. Quoted: startProcess runs through
     // a shell on Windows, and node's path can hold spaces.
-    started.push(startProcess("server", `"${process.execPath}"`, ["scripts/node24.js", "server/src/serve.js", "serve", "--port", new URL(server).port || "17495"], {
+    started.push(startProcess("server", process.execPath, ["scripts/node24.js", "server/src/serve.js", "serve", "--port", new URL(server).port || "17495"], {
       cwd: repoRoot, env: { JUSTWRITE_DATA_DIR: dataRoot }, onLog,
     }));
     await waitReady(`${server}/v1/health`, "server", 120);
@@ -79,7 +93,7 @@ async function ensureBrowserStack({ app, server, autostart, repoRoot, onLog }) {
   if (!(await isUp(app))) {
     if (!autostart) throw new Error(`no vite dev server at ${app} (run \`npm run dev:spa\`, or pass --autostart)`);
     onLog?.(`starting vite (nothing answering at ${app})`);
-    started.push(startProcess("vite", "npm", ["run", "dev:spa"], { cwd: repoRoot, onLog }));
+    started.push(startProcess("vite", ...npmRun("dev:spa"), { cwd: repoRoot, onLog }));
     await waitReady(app, "vite", 120);
   } else {
     onLog?.(`vite already up at ${app}`);
@@ -100,10 +114,11 @@ export async function openDriver({
 } = {}) {
   const spawned = [];
 
+  // Waited for: the run ends right after close(), and a kill still under way when it did left them.
   const closeSpawned = () => {
     for (const child of spawned.reverse()) {
       try {
-        if (process.platform === "win32") spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+        if (process.platform === "win32") spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
         else child.kill("SIGTERM");
       } catch { /* already gone */ }
     }

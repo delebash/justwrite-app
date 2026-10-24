@@ -1,8 +1,8 @@
 // Preset-workflow acceptance probe (2026-07-15 one-source rewrite; REBUILT the same
 // day for the user's correction: the separate Presets page was DELETED — Routing by
 // feature is the ONE routing surface, and the Lab bar is the ONE preset control,
-// restored to its original 1302f88 shape). Drives the live app (dev:spa :1420 +
-// server :17495):
+// restored to its original 1302f88 shape). Drives the app JW_APP + JW_API name
+// (a scratch renderer + server — never your running one):
 //   N1  the AI subnav has NO "Presets" tab; "Routing by feature" opens;
 //   N2  the feature nav cards carry "→ <preset> · assigned/default" provenance;
 //   N3  the selected action's Lab bar preselects the production preset and shows
@@ -26,11 +26,10 @@ import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-import { findChrome } from "../lib/smoke-common.js";
+import { findChrome, probeTarget } from "../lib/smoke-common.js";
 const { chromium } = require("playwright");
 
-const APP = process.env.JW_APP || "http://localhost:1420";
-const API = process.env.JW_API || "http://127.0.0.1:17495";
+const { app: APP, api: API } = probeTarget();
 
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

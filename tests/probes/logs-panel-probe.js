@@ -3,15 +3,14 @@
 // stored days from /v1/logs/days; (b) the level filter reduces/empties the row
 // list; (c) Clear (live mode) empties the tail; (d) "Delete all logs" raises the
 // kit confirmDialog (cancelled — no destructive side effect); (e) 0 page errors.
-// Reuses findChrome() from headless-smoke.js. Prereqs: server :17495 + vite :1420.
+// Reuses findChrome() from smoke-common.js. Prereqs: JW_APP + JW_API naming a scratch renderer + server.
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-import { findChrome } from "../lib/smoke-common.js";
+import { findChrome, probeTarget } from "../lib/smoke-common.js";
 const { chromium } = require("playwright");
-const APP = process.env.JW_APP || "http://localhost:1420";
-const API = process.env.JW_API || "http://127.0.0.1:17495";
+const { app: APP, api: API } = probeTarget();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

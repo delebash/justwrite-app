@@ -65,6 +65,26 @@ with zero tune rows). StyleTune's drafter earns nothing (10.85-11.71 ≈ without
 Goetia is fastest (16.3 tok/s) but REJECTED — leaks `<|channel|>thought` raw and
 returns empty messages on `/v1/chat/completions`.
 
+## The JavaScript runner on the 2070S (2026-10-24)
+
+The first measurements since the 2026-10-08 move off the Python runner, on llama.cpp b11239
+(cuda12), gemma-4-26b-a4b-qat with its seeded 8 GB class tune (n_cpu_moe 21, ctx 32768, q8_0 KV),
+a scratch server over a copy of the user's data:
+- **The MTP draft loads and pays:** the launch carries `--model-draft …/mtp-gemma-4-26B-A4B-it-Q4_0.gguf`
+  with `draft-mtp`; draft acceptance 0.81 (775/962, then 2165/2658); decode **43 tok/s** on a
+  1,255-token answer and 42.6 on a 3,493-token one — up from 23.5-25.2 on the Python runner.
+- **Load:** 26 s from the catalog's Load model (the weights in the OS cache); unload 2 s.
+- **Load & measure** (Tune dialog): 29.7 tok/s on its 128-token probe — short, so the drafter
+  has not warmed; the number to compare between configs, not with a chat's.
+- **Thinking budget:** at Low (1,024 tokens from the reasoning map) a chat answered in 1,255 tokens
+  total, 31.8 s; at High (8,192) 3,493 tokens, 82 s.
+- **Ask the book, story bible only vs the index** (the bench's 2026-07-22/26 captures, gemma, read
+  2026-10-24): to "What is this book about, and who is the protagonist?" both answers are right
+  and cited. The indexed one is richer (Cael's age, the party, her arc — 215 tokens); the
+  bible-only one is shorter and adds the two-part structure (139 tokens). Retrieval costs +5 s to
+  the first token. A broad question can't tell them apart; only a bible-only run of the hard
+  questions (hq1/hq2) would show where the index earns its keep.
+
 ## CPU band + iGPU laptop (2026-07-22)
 
 - **Pure CPU is not viable for interactive book-chat on the 5700X** — cold first

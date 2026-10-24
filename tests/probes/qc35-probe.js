@@ -1,14 +1,14 @@
 // QC-35 (#232) acceptance probe — the per-action test-input affordances, LIVE.
-// Asserts the locked mechanism on the running app (dev:spa :1420 + server
-// :17495): per-action pickers, the "From this book" compose button running the
+// Asserts the locked mechanism on the app JW_APP + JW_API name (a scratch
+// renderer + server): per-action pickers, the "From this book" compose button running the
 // feature's own composer over the real project, relationshipArc as
 // sample+type only, the A-group header shape, and zero page errors.
-// Run: node scripts/qc35-probe.js   (JW_BASE / JW_CHROME override)
+// Run: node scripts/qc35-probe.js   (JW_APP + JW_API required; JW_CHROME override)
 import { execSync } from "node:child_process";
 import { chromium } from "playwright-core";
-import { findChrome } from "../lib/smoke-common.js";
+import { findChrome, probeTarget } from "../lib/smoke-common.js";
 
-const BASE = process.env.JW_BASE || "http://localhost:1420";
+const { app: BASE } = probeTarget();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let failures = 0;

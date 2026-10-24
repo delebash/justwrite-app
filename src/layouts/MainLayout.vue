@@ -303,6 +303,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, { capture: tr
   padding: .7cqw .9cqw; border-radius: .5cqw;
   background: rgba(244, 232, 205, 0.86); box-shadow: 0 .3cqw 1.1cqw rgba(70, 48, 18, 0.14); }
 .jw-bw-plate :deep(.lu-bootload__bar) { width: 100%; font-size: .9cqw; }
+/* The bar's caption ("Loading it into your graphics card · 5.0 GB / 15.7 GB") is one ellipsized
+   line in the kit; at 17% of a 1440 window that cut it to "Loading it into your graphi…" and hid
+   the sizes (2026-10-24). The panel has the parchment's height to spare, so it wraps here. */
+.jw-bw-plate :deep(.ui-progress-label) { white-space: normal; }
 .jw-bw-plate :deep(.lu-bootload__skip) { font-size: .88cqw; color: #7d6a4c;
   font-family: "Fraunces", Georgia, serif; }
 .jw-bw-plate :deep(.lu-bootload__skip:hover) { color: #7a2532; }

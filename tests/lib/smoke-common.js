@@ -10,8 +10,7 @@
 // WHY the law: findChrome() had been COPIED into 20 JW scripts before this file
 // existed (2026-07-19), then JW's and JV's "one homes" forked ACROSS repos —
 // same disease, bigger scale — until the kit became the single implementation.
-// Probe scripts under tests/probes/ that still carry an old private copy are
-// filed in docs/dev/TASKS.md, not silently assumed converted.
+// Every probe under tests/probes/ imports it from here (2026-10-24; the dead probes were deleted).
 
 import {
   chromeLaunchOptions as kitChromeLaunchOptions,
@@ -29,6 +28,19 @@ export const findChrome = () => kitFindChrome({ env: "JW_CHROME" });
 export const chromeLaunchOptions = () => kitChromeLaunchOptions({ env: "JW_CHROME" });
 
 export { isUp, sleep, waitReady };
+
+/** The app and the server a probe drives (tests/probes/), from JW_APP and JW_API — never a
+ *  default. Probes write to the server they drive (presets, projects, even a data reset), and
+ *  their old default was your running JustWrite (:1420 / :17495), your real library. */
+export function probeTarget() {
+  const app = process.env.JW_APP || "";
+  const api = process.env.JW_API || "";
+  if (!app || !api) {
+    console.error("Set JW_APP and JW_API to a scratch app and server — a probe writes to the server it drives, so it never defaults to your running JustWrite.");
+    process.exit(2);
+  }
+  return { app, api };
+}
 
 /** The kit's AI calls answered by the test (its ai-stub.js): `stubAi(page, (body) => reply)`. */
 export { stubAi } from "../../../just-core/scripts/lib/ai-stub.js";

@@ -26,10 +26,10 @@ import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-import { findChrome } from "../lib/smoke-common.js";
+import { findChrome, probeTarget } from "../lib/smoke-common.js";
 const { chromium } = require("playwright");
 
-const APP = process.env.JW_APP || "http://localhost:1420";
+const { app: APP } = probeTarget();
 
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

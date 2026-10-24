@@ -41,8 +41,10 @@
 // difference lives at the REQUEST layer — the task PRESET's think (U2-T3, 2026-07-14:
 // moved off feature_prompts.think onto p_chat; dispatch sends chat_template_kwargs.
 // enable_thinking both ways to the builtin runner) — not in separate launch identities.
-// The Gemma-class reasoning_budget 1024 is the reasoning RESOLVER's per-request CAP now
-// (U2-T4: read as DATA, no longer a launch flag). One GGUF on disk; the router keeps the
+// The Gemma-class reasoning_budget 1024 is per-request DATA (U2-T4: no longer a launch flag),
+// and not a cap: the reasoning resolver (the kit's llm/reasoning.js) sends it only when thinking
+// is on with no level; a preset's level sends that level's tokens from the reasoning map
+// unclamped (local High = 8192). One GGUF on disk; the router keeps the
 // chat model + the embed resident (models-max 2). QuickSetup re-picks for other boxes
 // and writes onto every task preset (D4-1 protection: Phase 2).
 export const DEFAULT_ENGINE_PRESETS = [

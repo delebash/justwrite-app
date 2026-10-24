@@ -1,15 +1,15 @@
 // Screenshot one hash route of the running renderer (Playwright + Chromium) so a
 // GUI change can be eyeballed, not just smoke-tested. Boot the two processes
-// first (same as the smoke): justwrite-server serve --port 17495, npm run dev:spa.
-// Usage: node scripts/shot.js '#/ai-prompts' out.png
+// first, on scratch ports, and named by JW_APP + JW_API (never your running JustWrite).
+// Usage: node tests/probes/shot.js '#/ai' out.png
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-import { findChrome } from "../lib/smoke-common.js";
+import { findChrome, probeTarget } from "../lib/smoke-common.js";
 const { chromium } = require("playwright");
 
-const APP = process.env.JW_APP || "http://localhost:1420";
+const { app: APP } = probeTarget();
 const hash = process.argv[2] || "#/";
 const out = process.argv[3] || "shot.png";
 

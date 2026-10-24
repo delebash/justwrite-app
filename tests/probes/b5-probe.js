@@ -27,9 +27,9 @@ import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-import { findChrome } from "../lib/smoke-common.js";
+import { findChrome, probeTarget } from "../lib/smoke-common.js";
 const { chromium } = require("playwright");
-const API = "http://127.0.0.1:17495";
+const { app: APP, api: API } = probeTarget();
 
 
 const results = [];
@@ -106,7 +106,7 @@ await page.route("**/v1/rag/*/status", (route) =>
     body: JSON.stringify({ exists: true, count: 42, model: "probe-embed", dims: 8 }) }));
 
 try {
-  await page.goto("http://localhost:1420", { waitUntil: "networkidle" });
+  await page.goto(APP, { waitUntil: "networkidle" });
   await sleep(1500);
   try { await page.click('button:has-text("Got it")', { timeout: 1500 }); } catch { /* none */ }
 

@@ -178,7 +178,7 @@ async function waitForBoot(timeoutMs = 20000) {
   while (Date.now() < deadline) {
     last = await page.evaluate(() => ({
       shell: !!document.querySelector(".q-drawer"),
-      onboarding: !!document.querySelector(".ob-stage"),   // OnboardingShell's root
+      onboarding: !!document.querySelector(".wv-page"),   // the Welcome page's root (no project)
       splash: !!document.querySelector(".jw-bootwarm"),
     }));
     if ((last.shell || last.onboarding) && !last.splash) return last;

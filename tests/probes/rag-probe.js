@@ -31,18 +31,17 @@
 // (and re-created pristine when it pre-existed). findChrome copied from
 // scripts/headless-smoke.js per JW CLAUDE.md — never hardcode the path.
 //
-// Run: JW server :17495 + vite :1420 up, then `node scripts/rag-probe.js`.
+// Run: JW_APP + JW_API naming a scratch renderer + server, then `node tests/probes/rag-probe.js`.
 
 import { createServer } from "node:http";
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-import { findChrome } from "../lib/smoke-common.js";
+import { findChrome, probeTarget } from "../lib/smoke-common.js";
 const { chromium } = require("playwright");
 
-const BASE = process.env.JW_BASE || "http://localhost:1420";
-const API = process.env.JW_API || "http://127.0.0.1:17495";
+const { app: BASE, api: API } = probeTarget();
 const STUB_PORT = 8977;
 // ⛔ CONTENT-COUPLED FIXTURE (re-authored 2026-07-18 to "The Ninth Facet" —
 // the documented follow-up of the 2026-07-12 sample swap): the stub extraction

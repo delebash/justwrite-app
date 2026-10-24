@@ -582,6 +582,42 @@ method), at every hue the appearance engine lets the user set (accent and danger
   Referer. Its old fixed 2 s wait failed on a cold vite (it compiles on first load); it waits for
   the dev store hook now. LOAD and SAVE both passed (vite on :1433, the server on :17510, a temp
   data dir). — *run 2026-10-18.*
+- **A provider's timeout bounds a non-streamed run's whole answer.** The kit's HTTP agent sets
+  undici's `headersTimeout` and `bodyTimeout` to the provider's `timeout_seconds` (kit
+  `llm/base.js`), and llama-server sends no headers on a non-streamed request until the answer is
+  done. So a `/v1/ai/run` longer than the timeout fails as 502 "Headers Timeout Error" while the
+  engine goes on and finishes (High thinking: the client gave up at 61 s, the engine finished at
+  82 s). A stream gets its headers at once and a frame per token, so the same run streamed went
+  144 s cleanly. The renderer streams everything and uses `/run` only as the stream's fallback.
+  The seed gives the built-in provider 900 s since 2026-10-07; a database made before keeps 60
+  (the seeder fills empty fields only), and the provider form has no field for it — sent to the
+  kit. — *measured 2026-10-24 on the 2070S, a scratch server over the user's data.*
+- **A probe reading a UiCheckbox's state must read `aria-checked`, not the hidden input.**
+  QCheckbox's `input.q-checkbox__native` is display:none and keeps its own `checked`, which lags
+  the model. A `<label>` around UiCheckbox does toggle it on a click on the text (the click reaches
+  the box, traced); `input:checked` said it didn't. — *traced 2026-10-24 in the batch Fill dialog.*
+- **The bench's crash recovery works against a real server.** After the bench's own first writes
+  (snapshot, the Bench preset, three features routed to it) and a hard kill (`taskkill /F`),
+  `node bench/harness/run.js --restore <run dir>` put all three back and verified by re-reading.
+  `JW_SERVER` points the bench at any server; only the renderer it drives needs :1420 (the
+  server's origin check and the dev-only bench hook). — *run 2026-10-24 against a scratch server.*
+- **The bench's `--autostart` left its server and vite running.** It started them through a shell
+  (`shell: true` on Windows) and closed them with a `taskkill /T` it didn't wait for. After the run
+  the two shells were gone and the processes beneath them, `scripts/node24.js` → electron (the
+  server, :17495) and npm → `quasar dev` (vite, :1420), still listened, traced by parent pid. Started
+  as node itself (npm's CLI from `npm_execpath`, as eval.js runs npx) and with the kill waited for
+  (`spawnSync`), the same run leaves both ports free. — *three runs 2026-10-24 on a scratch copy.*
+- **"Yjs was already imported" at every server start from a checkout is two copies, not a bug in
+  use.** The linked `../just-sqlite-sync` keeps its own `node_modules/yjs` (13.6.33, as ours), and
+  its `src/text.js` imports it as the default even though JustWrite hands it its own (`yjs: Y`,
+  server/src/sync.js — the library's documented option, used by `textOps`). The built app holds one
+  copy (`app.asar` lists a single `node_modules/yjs`), so it never warns. — *2026-10-24.*
+- **A built Electron app can't be driven by Playwright's Electron launcher here:** the build sets
+  the `enableNodeCliInspectArguments` fuse off (quasar.config.js), so `_electron.launch` times out.
+  `--remote-debugging-port` still opens the window to `chromium.connectOverCDP`, and the app's own
+  relaunch keeps the flag. Production builds keep no Vue component handles (`__vueParentComponent`,
+  `app._instance`), so the OS folder picker can't be answered from the page; the Storage panel's
+  "Move back to the default folder…" moves without one. — *2026-10-24, the data-folder check.*
 
 ## Records not yet distilled
 
