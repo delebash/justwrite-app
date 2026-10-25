@@ -1,4 +1,5 @@
 <script setup>
+import { cutToLength } from "@delebash/core/platform/text";
 import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
@@ -332,7 +333,7 @@ function synopsis(scene) {
   const summary = String(scene.summary || "").trim();
   if (summary) return summary;
   const text = (scene.body || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-  return text.length > 180 ? `${text.slice(0, 180)}…` : text;
+  return text.length > 180 ? `${cutToLength(text, 180)}…` : text;
 }
 function onCardDragStart(id) { dragSceneId.value = id; }
 function onCardDrop(targetId) {
@@ -735,7 +736,7 @@ function snippetFor(chapterId) {
   for (const p of ps) {
     if (p.classList.contains("scene-mark")) continue;
     const t = p.textContent.trim();
-    if (t) return t.length > 220 ? `${t.slice(0, 220).trim()}…` : t;
+    if (t) return t.length > 220 ? `${cutToLength(t, 220).trim()}…` : t;
   }
   return "";
 }

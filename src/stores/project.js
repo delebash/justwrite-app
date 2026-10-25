@@ -2306,7 +2306,7 @@ export const useProjectStore = defineStore("project", {
     _writeRegistry(reg) {
       this._projects = reg;
     },
-    /** The book list again — another device's books arrive through sync (the boot file's watchSync). */
+    /** The book list again — another device's or window's books arrive (the boot file's watchOtherWindows). */
     async refreshProjectsList() {
       const list = await projectApi.fetchRegistry();
       if (list) this._writeRegistry(list);

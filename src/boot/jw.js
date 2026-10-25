@@ -14,6 +14,7 @@ import { applyAppearance, migrateAppearance, DEFAULT_APPEARANCE } from "../servi
 applyAppearance(DEFAULT_APPEARANCE);
 
 import { defineBoot } from "#q-app";
+import { watch } from "vue";
 import { phone } from "#phone";
 import { bootSettings, readSetting } from "../services/settings.js";
 import { hydrateProjects, useProjectStore } from "../stores/project.js";
@@ -34,7 +35,7 @@ import { startWarmOnBoot } from "@delebash/ui";
 // separate configure* calls here, the exact per-step wiring the installer
 // exists to make un-forgettable), wires the external opener, and registers
 // <LlmUiHosts /> (Toast + AppDialog, mounted once in layouts/MainLayout.vue).
-import { installLlmUi, installErrorReporting, checkServer, CHECK_SERVER_MS, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, watchSync } from "@delebash/ui";
+import { installLlmUi, installErrorReporting, checkServer, CHECK_SERVER_MS, configureFileSave, configureHelp, configureTestData, closeHelp, openExternal, holdChangesWhile, otherWindows, watchOtherWindows } from "@delebash/ui";
 import { hasShell, openPath, openUrl, saveFile, shellServerUrl } from "../services/native.js";
 import { loadDoc, hasDoc, titleForSlug, webUrlFor } from "../services/helpDocs.js";
 import { LAB_TEST_ACTIONS, LAB_TEST_SOURCES } from "../services/labTestData.js";
@@ -77,6 +78,9 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
     // desktop window); no app repeats that reasoning. `openPath` is what the model
     // catalog's "Open folder" rides.
     external: { open: openUrl, openPath },
+    // every request carries this window's id: the server tells the changes of the other windows on it
+    // apart (the kit's watchOtherWindows, below)
+    sendClientId: true,
     // JustWrite rewords none of the kit's keys: the kit's words ARE JustWrite's words.
     // The phone runs online providers only, and has no search index (the kit's phone plan §1):
     // the kit's AI surfaces leave out the local engine's and the embeddings' parts.
@@ -232,19 +236,30 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
 
   // Quasar mounts the app when this returns. The rest only subscribes, so it runs here.
 
-  // Sync: when another device's changes land on the server, reload the open book
-  // (the kit's watchSync; server/src/sync.js). The reload replaces the open book and clears undo,
-  // so it waits while a dialog is open or the cursor is in a text box (ruled 2026-10-15), and
-  // sends this window's pending save first — the server merges it before the reload reads back.
-  watchSync(
+  // Sync and the other windows: when another device's changes land on the server, or another
+  // window on this server changed a book (the desktop app and a browser on the server started on its
+  // own), reload the open book (the kit's watchOtherWindows; server/src/sync.js). A restore or a reset
+  // elsewhere reloads the window. The reload replaces the open book and clears undo, so it waits while
+  // a dialog is open or the cursor is in a text box (ruled 2026-10-15) and while a reload is still
+  // running, and sends this window's pending save first — the server merges it before the reload
+  // reads back.
+  let reloading = false;
+  holdChangesWhile(() => reloading);
+  watch(
+    () => otherWindows.changes,
     async () => {
-      const store = useProjectStore(pinia);
-      await flushPendingProjects();
-      await store.refreshProjectsList(); // books another device made
-      await store.reloadFromServer(); // the open book's changes
+      reloading = true;
+      try {
+        const store = useProjectStore(pinia);
+        await flushPendingProjects();
+        await store.refreshProjectsList(); // books another device or window made
+        await store.reloadFromServer(); // the open book's changes
+      } finally {
+        reloading = false;
+      }
     },
-    { waitWhileEditing: true },
   );
+  watchOtherWindows();
 
   // Dev-only test seams: the project store (deterministic edits for book-smoke)
   // and the bench hook (the LLM bench harness drives real feature runs through

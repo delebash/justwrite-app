@@ -21,6 +21,7 @@
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 import { t } from "../../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 function firstParagraph(text, maxWords = 60) {
   if (!text) return "";
@@ -61,7 +62,7 @@ function buildChapterDigest(project) {
       tension: struct?.tension ?? null,
       pacing: struct?.pacing ?? null,
       endingClass: struct?.endingClass ?? null,
-      summary: summary.slice(0, 600),
+      summary: cutToLength(summary, 600),
     };
   });
 }
@@ -128,13 +129,13 @@ export async function generateReverseOutline({
   const structureName = ["3-act", "5-act", "loose"].includes(parsed.structureName)
     ? parsed.structureName
     : "loose";
-  const summary = typeof parsed.summary === "string" ? parsed.summary.trim().slice(0, 700) : "";
+  const summary = typeof parsed.summary === "string" ? cutToLength(parsed.summary.trim(), 700) : "";
 
   const actBreaks = Array.isArray(parsed.actBreaks)
     ? parsed.actBreaks
         .map((b) => ({
           afterChapterNum: Number.isFinite(b?.afterChapterNum) ? Math.round(b.afterChapterNum) : null,
-          name: typeof b?.name === "string" ? b.name.trim().slice(0, 60) : "",
+          name: typeof b?.name === "string" ? cutToLength(b.name.trim(), 60) : "",
         }))
         .filter((b) => b.afterChapterNum != null && b.name)
         .slice(0, 6)
@@ -144,9 +145,9 @@ export async function generateReverseOutline({
     ? parsed.plotPoints
         .map((p, i) => ({
           id: `pp_${i}`,
-          name: typeof p?.name === "string" ? p.name.trim().slice(0, 60) : "",
+          name: typeof p?.name === "string" ? cutToLength(p.name.trim(), 60) : "",
           chapterNum: Number.isFinite(p?.chapterNum) ? Math.round(p.chapterNum) : null,
-          description: typeof p?.description === "string" ? p.description.trim().slice(0, 400) : "",
+          description: typeof p?.description === "string" ? cutToLength(p.description.trim(), 400) : "",
         }))
         .filter((p) => p.name && p.chapterNum != null)
         .slice(0, 10)
@@ -156,7 +157,7 @@ export async function generateReverseOutline({
     ? parsed.chapterBeats
         .map((b) => ({
           chapterNum: Number.isFinite(b?.chapterNum) ? Math.round(b.chapterNum) : null,
-          beat: typeof b?.beat === "string" ? b.beat.trim().slice(0, 300) : "",
+          beat: typeof b?.beat === "string" ? cutToLength(b.beat.trim(), 300) : "",
         }))
         .filter((b) => b.chapterNum != null && b.beat)
     : [];

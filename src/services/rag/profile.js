@@ -15,6 +15,8 @@
 // addressed as "you"; byte-identical to the pre-Move-1 output) or "third" —
 // the story-bible index card reads as reference prose about the character.
 // ONE builder, two label tables; never fork this into a copy.
+import { cutToLength } from "@delebash/core/platform/text";
+
 /* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 const PROFILE_LABELS = {
   second: {
@@ -103,7 +105,7 @@ function v3Lines(extras, group, second) {
   for (const f of V3_FIELDS) {
     if (f.g !== group) continue;
     const val = extras?.[group]?.[f.k];
-    if (val) out.push(`${second ? f.s : f.t}: ${String(val).slice(0, 2000)}`);
+    if (val) out.push(`${second ? f.s : f.t}: ${cutToLength(String(val), 2000)}`);
   }
   return out;
 }
@@ -165,7 +167,7 @@ export function buildCharacterProfile(character, extras, { voice = "second" } = 
       // handles rich profiles now, so a written backstory reaches the index
       // instead of being silently truncated. The cap that remains is a
       // defensive bound, not a design limit.
-      lines.push(`${L.backstory}: ${String(extras.backstory).slice(0, 4000)}`);
+      lines.push(`${L.backstory}: ${cutToLength(String(extras.backstory), 4000)}`);
     }
     lines.push(...v3Lines(extras, "depth", second));
     if (Array.isArray(extras.quotes) && extras.quotes.length) {

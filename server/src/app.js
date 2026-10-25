@@ -50,7 +50,7 @@ import { _bundledSamplesDir, _dirHasSample } from "#database/demo_seed";
 import { initDb, state } from "./database/session.js";
 import { FEATURE_CATALOG } from "./feature_catalog.js";
 import { defaultDataDir, SOURCE_ROOT } from "./paths.js";
-import { flushSync, openBookSync, stopBookSync, router as syncRouter } from "./sync.js";
+import { flushSync, openBookSync, stopBookSync, router as syncRouter, windowChanges } from "./sync.js";
 import { DEFAULT_FEATURE_PROMPTS, FEATURE_PROMPT_HEALS } from "./seed_feature_prompts.js";
 import {
   DEFAULT_ENGINE_PRESETS,
@@ -183,6 +183,8 @@ export async function createApp(dataDir = null) {
   // Sync on the book tables (../just-sqlite-sync; docs/dev/TASKS.md "Sync — …"): the engine
   // notes every change to them from here on, and adopts the rows already there.
   openBookSync(h, dataDir);
+  // the data's epoch is kept in the database (a restore or a reset renews it — data_admin.js)
+  windowChanges.useDatabase(h);
   setState(new AppState(dataDir));
   materializeSamples(dataDir);
   // Server logs → in-memory ring (the AI/Logs viewer) + a per-day file that survives a
@@ -270,10 +272,13 @@ export async function createApp(dataDir = null) {
   app.use("*", gate.middleware());
 
   // Sync: stamp what the triggers noted after every request that may have written (the order
-  // edits were made in is the order their stamps run); stop the auto-sync timer on close.
+  // edits were made in is the order their stamps run); stop the auto-sync timer on close. A
+  // request that changed a synced book row is its window's change: the other windows on this
+  // server read their open book again (the kit's ChangeCounter, sync.js).
   app.use("*", async (c, next) => {
     await next();
-    if (c.req.method !== "GET" && c.req.method !== "HEAD" && c.req.method !== "OPTIONS") flushSync();
+    if (c.req.method === "GET" || c.req.method === "HEAD" || c.req.method === "OPTIONS") return;
+    if (flushSync() > 0) windowChanges.note(c.req.header("x-client-id") || null);
   });
   onClose(app, async () => stopBookSync());
 

@@ -52,6 +52,7 @@ export default defineConfig((ctx) => {
       '~@delebash/ui/styles.css',
       '~@delebash/ui/common/styles.css',
       '~@delebash/ui/quasar/theme.css',
+      '~@delebash/ui/common/app.css',
       'app.scss',
     ],
 

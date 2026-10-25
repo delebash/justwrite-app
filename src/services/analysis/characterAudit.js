@@ -14,6 +14,7 @@ import { buildCharacterProfile } from "../rag/profile.js";
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText, tailWords } from "../text.js";
 import { t } from "../../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 // The prompt lives server-side (features.py, action "characterAudit").
 
@@ -170,11 +171,11 @@ export async function auditCharacter({
       id: `cn_${characterId}_${i}`,
       severity: SEVERITY_LIST.includes(c?.severity) ? c.severity : "info",
       chapterNum: Number.isFinite(c?.chapterNum) ? Math.round(c.chapterNum) : null,
-      sceneSummary: String(c?.sceneSummary || "").trim().slice(0, 160),
+      sceneSummary: cutToLength(String(c?.sceneSummary || "").trim(), 160),
       issue: String(c?.issue || "").trim(),
-      quote: String(c?.quote || "").trim().slice(0, 200),
-      reason: String(c?.reason || "").trim().slice(0, 400),
-      fix: String(c?.fix || "").trim().slice(0, 400),
+      quote: cutToLength(String(c?.quote || "").trim(), 200),
+      reason: cutToLength(String(c?.reason || "").trim(), 400),
+      fix: cutToLength(String(c?.fix || "").trim(), 400),
     }))
     .filter((c) => c.issue || c.quote);
 
@@ -244,7 +245,7 @@ export async function auditAllCharacters({
       onProgress?.({
         phase: "error",
         character: { id: ch.id, name: ch.name },
-        completed, total: targets.length, reason: msg.slice(0, 200),
+        completed, total: targets.length, reason: cutToLength(msg, 200),
       });
     }
   }

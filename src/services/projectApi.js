@@ -21,11 +21,10 @@ let _booted = false;
 
 const PUT_DEBOUNCE_MS = 400;
 
-// This window's id on its book requests: the server remembers what each window last loaded
-// and saves only that window's own edits, so a field another device changed meanwhile (sync)
-// isn't written back (server/src/api/projects_api.js).
-const CLIENT_ID = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
-const BOOK = { headers: { "x-jw-client": CLIENT_ID } };
+// Every book request carries this window's id (the kit's X-Client-Id — installLlmUi
+// `sendClientId`, the boot file): the server remembers what each window last loaded and saves only
+// that window's own edits, so a field another device or window changed meanwhile isn't written
+// back (server/src/api/projects_api.js).
 const _putTimers = new Map();
 
 /**
@@ -50,7 +49,7 @@ export async function bootProjects(activeId) {
   }
   if (activeId) {
     try {
-      const snap = await get(`/v1/projects/${activeId}/book`, BOOK);
+      const snap = await get(`/v1/projects/${activeId}/book`);
       if (snap && typeof snap === "object") _snapshots.set(activeId, snap);
     } catch (err) {
       // 404 is normal for a freshly-minted, never-saved active id.
@@ -66,7 +65,7 @@ export async function bootProjects(activeId) {
  *  [{ id, title, author, savedAt }], most-recently-updated first. */
 /**
  * The book list from the server again — another device's books arrive through sync (the boot
- * file's watchSync). Resolves the new list, or null when the server didn't answer.
+ * file's watchOtherWindows). Resolves the new list, or null when the server didn't answer.
  */
 export async function fetchRegistry() {
   try {
@@ -103,7 +102,7 @@ function _flushPut(id) {
   _putTimers.delete(id);
   const snap = _snapshots.get(id);
   if (snap === undefined) return Promise.resolve();
-  return put(`/v1/projects/${id}/book`, snap, { keepalive: true, ...BOOK }).catch((err) =>
+  return put(`/v1/projects/${id}/book`, snap, { keepalive: true }).catch((err) =>
     console.error("projectApi PUT failed:", err),
   );
 }
@@ -136,7 +135,7 @@ export async function createDemoProject() {
 export async function fetchSnapshot(id) {
   if (_snapshots.has(id)) return _snapshots.get(id);
   try {
-    const snap = await get(`/v1/projects/${id}/book`, BOOK);
+    const snap = await get(`/v1/projects/${id}/book`);
     if (snap && typeof snap === "object") {
       _snapshots.set(id, snap);
       return snap;
@@ -151,7 +150,7 @@ export async function fetchSnapshot(id) {
 export async function refetchSnapshot(id) {
   await _flushPut(id);
   try {
-    const snap = await get(`/v1/projects/${id}/book`, BOOK);
+    const snap = await get(`/v1/projects/${id}/book`);
     if (snap && typeof snap === "object") {
       _snapshots.set(id, snap);
       return snap;

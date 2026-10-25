@@ -1,4 +1,5 @@
 <script setup>
+import { cutToLength } from "@delebash/core/platform/text";
 // Home — "Paper Shelf" variant (Direction C, promoted from mockups/c-paper-shelf.html).
 //
 // Additive route at /home-v2. Doesn't touch HomeView.vue. Read-only against
@@ -48,10 +49,10 @@ function firstParagraph(html, max = 200) {
   for (const p of div.querySelectorAll("p")) {
     if (p.classList.contains("scene-mark")) continue;
     const t = p.textContent.trim();
-    if (t) return t.length > max ? `${t.slice(0, max).trim()}…` : t;
+    if (t) return t.length > max ? `${cutToLength(t, max).trim()}…` : t;
   }
   const t = (div.textContent || "").trim();
-  return t.length > max ? `${t.slice(0, max).trim()}…` : t;
+  return t.length > max ? `${cutToLength(t, max).trim()}…` : t;
 }
 
 // Precompute openers once per render so the template doesn't re-walk each

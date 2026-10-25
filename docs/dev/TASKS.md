@@ -851,8 +851,9 @@ BUILT:  2026-10-08, under "just-sqlite-sync you have a go on it all your recs co
         (`@delebash/sqlite-sync`, a `file:` dependency; its README/design/TASKS). JustWrite's
         server side (no UI yet — it's built on Quasar, the kit's program step Q4):
         · the save writes only what changed against what that window last loaded
-          (`book_io.saveBookChanges`, `api/projects_api.js` bases keyed by the window's
-          `x-jw-client`); decompose (import, samples) still replaces whole;
+          (`book_io.saveBookChanges`, `api/projects_api.js` bases keyed by the window's id —
+          `x-jw-client` then, the kit's `X-Client-Id` since 2026-10-24); decompose (import,
+          samples) still replaces whole;
         · `server/src/sync.js` — the engine on projects + PROJECT_TABLES + image_blobs +
           chapter_versions; scene text merged through Yjs on the editor's own schema
           (since the Quasar move `server/src/editor/editorSchema.js`, in the server package; the
@@ -864,7 +865,9 @@ BUILT:  2026-10-08, under "just-sqlite-sync you have a go on it all your recs co
           `serve.js` listens on the network only when "let my other devices connect" is on AND a
           pairing token exists; reset starts a new library; restore's writes are stamped;
         · the renderer: ids with 64 random bits (`stores/project.js` uid), the window id on book
-          requests, `watchSync` → `reloadFromServer()` when another device's changes land;
+          requests, `watchSync` → `reloadFromServer()` when another device's changes land (since
+          2026-10-24 the kit's `watchOtherWindows`, which also counts the other windows on the
+          same server);
         · the kit's CSRF guard allows the phone webview's origins (`CAPACITOR_ORIGINS`).
         Checked: server 141/141 (7 new in tests/sync.test.js: only changed fields written · a
         window's old snapshot doesn't undo another device's change · scene text written on two

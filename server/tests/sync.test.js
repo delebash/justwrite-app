@@ -34,7 +34,7 @@ const SNAP = {
   scenes: { ch1: [{ id: "s1", title: "Opening", body: "<p>The lamp on the bench was lying.</p>" }], ch2: [] },
   characters: [{ id: "c1", name: "Cael" }],
 };
-const WINDOW = { "x-jw-client": "window-1" };
+const WINDOW = { "x-client-id": "window-1" };
 
 /** Another JustWrite device: its own database, JustWrite's tables, the same sync setup. */
 function otherDevice(name) {

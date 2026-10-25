@@ -12,6 +12,7 @@
 // orchestrates the walk.
 
 import { runStructuralAnalysis } from "./critique.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 export async function sweepStoryTension({
   project,
@@ -79,12 +80,12 @@ export async function sweepStoryTension({
     } catch (err) {
       const msg = String(err?.message || err || "");
       if (signal?.aborted || /abort/i.test(msg)) break;
-      skipped.push({ id: ch.id, num: ch.num, title: ch.title, reason: msg.slice(0, 200) });
+      skipped.push({ id: ch.id, num: ch.num, title: ch.title, reason: cutToLength(msg, 200) });
       completed += 1;
       onProgress?.({
         phase: "error",
         chapter: { id: ch.id, num: ch.num, title: ch.title },
-        completed, total: targets.length, reason: msg.slice(0, 200),
+        completed, total: targets.length, reason: cutToLength(msg, 200),
       });
     }
   }

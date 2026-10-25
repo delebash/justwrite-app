@@ -38,7 +38,7 @@ test("the phone's server keeps a book, its versions and settings, and answers er
   const c = await phone();
   expect((await c.get("/v1/health")).json()).toMatchObject({ status: "ok", product: "JustWrite Server", dbReady: true });
   expect((await c.get("/v1/projects")).json()).toEqual([]);
-  expect((await c.put("/v1/projects/prj1/book", { json: SNAP, headers: { "x-jw-client": "w1" } })).statusCode).toBe(204);
+  expect((await c.put("/v1/projects/prj1/book", { json: SNAP, headers: { "x-client-id": "w1" } })).statusCode).toBe(204);
   const book = (await c.get("/v1/projects/prj1/book")).json();
   expect(book.parts[0].chapters[0].title).toBe("Arrival");
   expect(book.scenes.ch1[0].body).toBe("<p>The lamp on the bench was lying.</p>");

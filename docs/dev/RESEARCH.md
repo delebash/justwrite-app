@@ -205,6 +205,20 @@ tests are the kit's RESEARCH §2 "Sync" / "Sync, round 2". JustWrite's:
 - **`npm audit` (2026-10-09):** `braces` (high) and `sprintf-js` (moderate) are flagged in every
   version, so no update clears them; they reach JustWrite only through `depcheck` (a development
   tool) and `mammoth`'s command-line argument parser (`argparse`), neither run on the app's input.
+- **Two windows on one server didn't see each other's saves** (2026-10-24): the window's watcher
+  polled the sync product's `GET /v1/sync/rev`, which moves only when another *device's* changes
+  land, so the desktop window and a browser tab on the same server each kept the book as loaded.
+  Now the kit's `ChangeCounter` rides that same answer (just-sqlite-sync 1017f66 `windows`): a write
+  request whose flush stamped a synced row (`appSync.flush()` returns the count since 9836ed4) is
+  its window's change, so exactly the rows the other window's reload re-reads count — not a path
+  list. Measured on a scratch server with two browser windows: a third window's chapter-title save
+  showed in both after ~5 s (one poll), one book GET each, and no save from either in the next
+  20 s (no reload loop). The window id is the kit's `X-Client-Id`; JustWrite's own `x-jw-client`
+  (the per-window save base) is gone.
+- **The phone's `node:crypto` stand-in had no `createHash`** (the kit's worker shims): the kit's
+  `upgradeSettings` fingerprints with SHA-256, so the phone's settings seed would have thrown the
+  first time any default changed. The kit's K10 adds a synchronous SHA-256 there
+  (`@noble/hashes`). — *found wiring F2, 2026-10-24.*
 
 ## What other writing apps ship
 
@@ -615,6 +629,14 @@ method), at every hue the appearance engine lets the user set (accent and danger
   server/src/sync.js — the library's documented option, used by `textOps`). The built app holds one
   copy (`app.asar` lists a single `node_modules/yjs`), so it never warns. Since just-sqlite-sync
   e32dde4 the package imports no Yjs at all: text columns need openSync's `yjs`. — *2026-10-24.*
+- **What a shared stylesheet changes, measured, not guessed:** build the UI with and without it,
+  serve each from a scratch server (`JUSTWRITE_UI_DIR` — an ABSOLUTE path: a relative one resolves
+  against the repo and silently falls back to `dist/spa`, and the first run compared one build with
+  itself), and diff every element's computed style and box on every route at 1280 and 390. Listing
+  the kit's `common/app.css` before JustWrite's app.scss changed only `.card`'s bottom margin (0 →
+  16px on 78 cards) visibly; after the five copies moved to tokens (`--card-pad`, `--card-gap`,
+  `--r-card`) and refinements, the Storage panel's hints (the kit's 30em measure) and one empty
+  state's radius were all that changed. — *the engines plan's F6, 2026-10-24.*
 - **A built Electron app can't be driven by Playwright's Electron launcher here:** the build sets
   the `enableNodeCliInspectArguments` fuse off (quasar.config.js), so `_electron.launch` times out.
   `--remote-debugging-port` still opens the window to `chromium.connectOverCDP`, and the app's own

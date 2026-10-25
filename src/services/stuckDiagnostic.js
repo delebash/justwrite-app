@@ -18,6 +18,7 @@
 import { runJsonAnalysis } from "./runJson.js";
 import { htmlToText, tailWords } from "./text.js";
 import { t } from "../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 export const MOVE_KINDS = [
   "goal-shift", "interrupt", "setting", "reveal", "timeframe",
@@ -114,8 +115,8 @@ export async function generateUnstuckMoves({
     if (!m || typeof m.instruction !== "string") continue;
     const kind = MOVE_KINDS.includes(m.kind) ? m.kind : null;
     if (!kind || seenKinds.has(kind)) continue;
-    const label = typeof m.label === "string" ? m.label.trim().slice(0, 110) : "";
-    const instruction = m.instruction.trim().slice(0, 500);
+    const label = typeof m.label === "string" ? cutToLength(m.label.trim(), 110) : "";
+    const instruction = cutToLength(m.instruction.trim(), 500);
     if (!instruction) continue;
     // No kindLabel: it was a pre-resolved English string baked onto the move. `kind` is the
     // wire value and the modal resolves the label from it at render time.

@@ -16,6 +16,7 @@
 
 import { runJsonAnalysis } from "./runJson.js";
 import { t } from "../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 // Categories rendered in order in the modal. The "blurb" is shown
 // under each section header — sets the writer's expectation for what
@@ -59,14 +60,14 @@ export async function generateSensoryPack({
   if (!trimmed) throw new Error("Highlight a subject first (a place, object, or moment).");
 
   const parts = [];
-  parts.push(`Subject: ${trimmed.slice(0, 600)}`);
+  parts.push(`Subject: ${cutToLength(trimmed, 600)}`);
   if (contextHint) {
     parts.push("");
     parts.push(`Broader setting / world context:`);
-    parts.push(String(contextHint).slice(0, 500));
+    parts.push(cutToLength(String(contextHint), 500));
   }
 
-  const sensoryMeta = { ...(meta || {}), subject: trimmed.slice(0, 120) };
+  const sensoryMeta = { ...(meta || {}), subject: cutToLength(trimmed, 120) };
   const { result, parsed } = await runJsonAnalysis({
     action: "sensory",
     feature: "sensory",

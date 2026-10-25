@@ -23,6 +23,7 @@ import { normalizeName as norm, textMentionsTerm } from "../text.js";
 import { extractThreads } from "./threadExtraction.js";
 import { scanProjectMarkers } from "justwrite-server/editor/markers.js";
 import { t } from "../../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 const DEFAULT_CONCURRENCY = 4;
 
@@ -166,13 +167,13 @@ export async function scanForDanglingThreads({
       // in it, so the sniff ALONE painted user-requested cancels as red ERROR rows.
       const msg = String(err?.message || err || "");
       if (runSignal.aborted || /abort/i.test(msg)) throw err;
-      skipped.push({ id: ch.id, num: ch.num, title: ch.title, reason: msg.slice(0, 200) });
+      skipped.push({ id: ch.id, num: ch.num, title: ch.title, reason: cutToLength(msg, 200) });
       completed += 1;
       handle.setProgress(completed, allChapters.length);
       onProgress?.({
         phase: "error",
         chapter: { id: ch.id, num: ch.num, title: ch.title },
-        completed, total: allChapters.length, reason: msg.slice(0, 200),
+        completed, total: allChapters.length, reason: cutToLength(msg, 200),
       });
     }
   }

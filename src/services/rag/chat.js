@@ -26,6 +26,7 @@ import { combinePinsAndHits, pickPinnedCards } from "./entityMatcher.js";
 import { formatExcerpts } from "./excerpts.js";
 import { search, status } from "./vectorStore.js";
 import { t } from "../../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 // ─── Prompt ──────────────────────────────────────────────────────────────
 // The system + outer user template live server-side ("chat" feature_prompts,
@@ -190,7 +191,7 @@ export async function askManuscript({
   // Server renders the "chat" prompt from {{question}} + {{excerpts}}, prepends
   // history, resolves the chat provider/model (task preset → default — no
   // client override), and records usage (host sink).
-  const ragMeta = { ...(meta || {}), question: question.slice(0, 120) };
+  const ragMeta = { ...(meta || {}), question: cutToLength(question, 120) };
   const { content: answer, usage } = await runAiFeatureStream({
     action: "chat", feature: "chat",
     variables: { question, excerpts: formatExcerpts(combined) },

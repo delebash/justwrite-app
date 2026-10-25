@@ -26,6 +26,7 @@
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 import { t } from "../../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 const ALLOWED_KINDS = new Set([
   "promise", "object", "question", "ability", "secret", "threat", "debt",
@@ -71,10 +72,10 @@ export async function extractThreads({
     if (!s || typeof s.snippet !== "string") continue;
     const snippet = s.snippet.trim();
     if (snippet.length < 4) continue;
-    const label = typeof s.label === "string" ? s.label.trim().slice(0, 120) : "";
+    const label = typeof s.label === "string" ? cutToLength(s.label.trim(), 120) : "";
     const kind = ALLOWED_KINDS.has(s.kind) ? s.kind : "promise";
     const keyTerm = typeof s.keyTerm === "string"
-      ? s.keyTerm.trim().slice(0, 80)
+      ? cutToLength(s.keyTerm.trim(), 80)
       : "";
     setups.push({ snippet, label, kind, keyTerm });
     if (setups.length >= 12) break;

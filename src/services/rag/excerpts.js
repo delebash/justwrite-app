@@ -10,6 +10,7 @@
 
 import { CARD_KIND_LABEL_KEYS } from "./cards.js";
 import { tEnglish } from "../../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 // Scene prose truncates at 1200 chars (unchanged); bible cards are dense
 // facts and get a little more room so a whole card usually fits.
@@ -46,7 +47,7 @@ export function formatExcerpts(hits) {
     .map(({ chunk }, i) => {
       const cap = chunk.kind ? CARD_EXCERPT_CHARS : SCENE_EXCERPT_CHARS;
       // Truncate very long chunks so we don't blow the context window.
-      const excerpt = chunk.text.length > cap ? `${chunk.text.slice(0, cap)}…` : chunk.text;
+      const excerpt = chunk.text.length > cap ? `${cutToLength(chunk.text, cap)}…` : chunk.text;
       // Move 3: a scene's entity-links line rides under its header so the
       // LLM sees who/where even when the prose never names them.
       const links = !chunk.kind && chunk.links ? `(${chunk.links})\n` : "";

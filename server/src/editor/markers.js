@@ -10,6 +10,7 @@
 // like comments, so split/merge/copy operations carry them automatically.
 
 import { Mark } from "@tiptap/core";
+import { cutToLength } from "@delebash/core/platform/text";
 
 // Built-in categories. Hard-coded for now — promoting to a user-editable
 // palette (like statuses) is a small refactor when the time comes. Each names
@@ -99,7 +100,7 @@ function scanSceneBody(html) {
               markerId: id,
               category: p.getAttribute("data-marker-category") || "fix",
               label: p.getAttribute("data-marker-label") || "",
-              snippet: (p.textContent || "").slice(0, 120),
+              snippet: cutToLength(p.textContent || "", 120),
               textOffset,
             });
           }

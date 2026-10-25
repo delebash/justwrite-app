@@ -12,6 +12,7 @@
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 import { t } from "../../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 function firstParagraph(text, maxWords = 60) {
   if (!text) return "";
@@ -40,7 +41,7 @@ function buildChapterDigest(project) {
       num: c.num,
       title: c.title || "",
       words: c.words || 0,
-      summary: summary.slice(0, 500),
+      summary: cutToLength(summary, 500),
     };
   });
 }
@@ -107,7 +108,7 @@ export async function generateMarketingPack({
     task: task || { label: t("marketingPack.taskLabel"), meta: packMeta },
   });
 
-  const logline = typeof parsed.logline === "string" ? parsed.logline.trim().slice(0, 400) : "";
+  const logline = typeof parsed.logline === "string" ? cutToLength(parsed.logline.trim(), 400) : "";
   const synopsis = typeof parsed.synopsis === "string" ? parsed.synopsis.trim() : "";
   const pitch = typeof parsed.pitch === "string" ? parsed.pitch.trim() : "";
 
@@ -129,7 +130,7 @@ export async function generateMarketingPack({
       if (!title && !author) return null;
       const yearRaw = c.year;
       const year = Number.isFinite(yearRaw) && yearRaw > 1800 && yearRaw < 2100 ? Math.round(yearRaw) : null;
-      const rationale = typeof c.rationale === "string" ? c.rationale.trim().slice(0, 400) : "";
+      const rationale = typeof c.rationale === "string" ? cutToLength(c.rationale.trim(), 400) : "";
       const confidence = ["high", "medium", "low"].includes(c.confidence) ? c.confidence : "low";
       return {
         id: `comp_${i}`,

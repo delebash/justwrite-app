@@ -14,6 +14,7 @@ import { SHEET_SECTIONS } from "../characterSheet.js";
 import { runJsonAnalysis } from "../runJson.js";
 import { composeCharacterAuditInput } from "./characterAudit.js";
 import { t } from "../../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 // The prompt lives server-side (seed_feature_prompts.py, action "characterProfile").
 
@@ -24,7 +25,7 @@ const ARC_KEYS = ["start", "midpoint", "end"];
 
 /** Clamp a model field to a clean bounded string ("" when absent/garbage). */
 function s(v, max) {
-  return typeof v === "string" ? v.trim().slice(0, max) : "";
+  return typeof v === "string" ? cutToLength(v.trim(), max) : "";
 }
 
 /** Age → an integer in [0, 500], or null. The model is told to return null

@@ -24,6 +24,7 @@ import { withAiTask } from "@delebash/ui";
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 import { t } from "../../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 // ─── helpers ─────────────────────────────────────────────────────────
 
@@ -49,7 +50,7 @@ export const STATUS_COLOURS = {
 // well under context limits even on a 30+ chapter book.
 function condenseFacts(facts, maxItems = 14, maxChars = 140) {
   if (!Array.isArray(facts)) return [];
-  return facts.slice(-maxItems).map((f) => String(f || "").slice(0, maxChars)).filter(Boolean);
+  return facts.slice(-maxItems).map((f) => cutToLength(String(f || ""), maxChars)).filter(Boolean);
 }
 
 // ─── per-chapter call ────────────────────────────────────────────────
@@ -168,10 +169,10 @@ export async function analyseChapterKnowledge({
     ? parsed.newPovFacts.map((s) => String(s || "").trim()).filter(Boolean).slice(0, 8)
     : [];
   const povCharacter = typeof parsed.povCharacter === "string"
-    ? parsed.povCharacter.trim().slice(0, 80)
+    ? cutToLength(parsed.povCharacter.trim(), 80)
     : "";
   const rationale = typeof parsed.rationale === "string"
-    ? parsed.rationale.trim().slice(0, 600)
+    ? cutToLength(parsed.rationale.trim(), 600)
     : "";
 
   return {
@@ -339,12 +340,12 @@ async function runSweep(handle, { project, allChapters, provider, model, onProgr
     } catch (err) {
       const msg = String(err?.message || err || "");
       if (runSignal.aborted || /abort/i.test(msg)) break;
-      skipped.push({ id: ch.id, num: ch.num, title: ch.title, reason: msg.slice(0, 200) });
+      skipped.push({ id: ch.id, num: ch.num, title: ch.title, reason: cutToLength(msg, 200) });
       completed += 1;
       onProgress?.({
         phase: "error",
         chapter: { id: ch.id, num: ch.num, title: ch.title },
-        completed, total: allChapters.length, reason: msg.slice(0, 200),
+        completed, total: allChapters.length, reason: cutToLength(msg, 200),
       });
     }
     handle.setProgress(completed, allChapters.length);

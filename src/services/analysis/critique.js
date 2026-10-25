@@ -11,6 +11,7 @@
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 import { t } from "../../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 // ─── Text critique ──────────────────────────────────────────────────
 // The prompt lives server-side now (seeded via server/src/seed_feature_prompts.js, action
@@ -42,7 +43,7 @@ export async function runCritique({ html, chapterTitle = "", chapterNum = null, 
     .map((n, i) => ({
       id: `note_${Date.now().toString(36)}_${i}`,
       severity: ["info", "suggest", "flag"].includes(n?.severity) ? n.severity : "info",
-      category: typeof n?.category === "string" ? n.category.slice(0, 40) : "general",
+      category: typeof n?.category === "string" ? cutToLength(n.category, 40) : "general",
       message: typeof n?.message === "string" ? n.message.trim() : "",
     }))
     .filter((n) => n.message);

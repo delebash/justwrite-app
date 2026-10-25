@@ -20,6 +20,7 @@
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText, tailWords } from "../text.js";
 import { t } from "../../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 function firstParagraph(text, maxWords = 60) {
   if (!text) return "";
@@ -51,7 +52,7 @@ The writer has explicitly stated the following rules this world enforces. When y
 
 World rules (verbatim from the writer):
 """
-${trimmed.slice(0, 4000)}
+${cutToLength(trimmed, 4000)}
 """
 
 End of world rules.`;
@@ -137,7 +138,7 @@ export async function scanPlotHoles({
     task: task || { label: t("plotHoles.taskShort"), meta: chaptersMeta },
   });
 
-  const summary = typeof parsed.summary === "string" ? parsed.summary.trim().slice(0, 600) : "";
+  const summary = typeof parsed.summary === "string" ? cutToLength(parsed.summary.trim(), 600) : "";
   const rawFindings = Array.isArray(parsed.findings) ? parsed.findings : [];
 
   const findings = rawFindings
@@ -145,12 +146,12 @@ export async function scanPlotHoles({
       id: `ph_${Date.now().toString(36)}_${i}`,
       severity: SEVERITY_LIST.includes(f?.severity) ? f.severity : "info",
       kind: KIND_LIST.includes(f?.kind) ? f.kind : "other",
-      summary: String(f?.summary || "").trim().slice(0, 240),
+      summary: cutToLength(String(f?.summary || "").trim(), 240),
       chapterNums: Array.isArray(f?.chapterNums)
         ? f.chapterNums.map((n) => Number.isFinite(n) ? Math.round(n) : null).filter((n) => n != null).slice(0, 6)
         : [],
-      evidence: String(f?.evidence || "").trim().slice(0, 240),
-      fix: String(f?.fix || "").trim().slice(0, 400),
+      evidence: cutToLength(String(f?.evidence || "").trim(), 240),
+      fix: cutToLength(String(f?.fix || "").trim(), 400),
       dismissed: false,
     }))
     .filter((f) => f.summary || f.evidence);

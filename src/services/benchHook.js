@@ -24,6 +24,7 @@ import { useProjectStore } from "../stores/project.js";
 import { proseStoryContext } from "./storyContext.js";
 import { htmlToText } from "./text.js";
 import { continueFrom, rewrite } from "./writerAI.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 const VERSION = 1;
 
@@ -90,7 +91,7 @@ const REFUSAL_MARKERS = [
  *  a model that complies and later writes "she could not" must not score as
  *  refused, and a genuine refusal always leads with it. */
 function looksRefused(text) {
-  const head = String(text || "").trim().slice(0, 240).toLowerCase();
+  const head = cutToLength(String(text || "").trim(), 240).toLowerCase();
   if (!head) return true; // an empty completion IS a refusal to write
   return REFUSAL_MARKERS.some((m) => head.includes(m));
 }
@@ -509,7 +510,7 @@ export function installBenchHook() {
           usage: null,
           flags: [timedOut ? "timeout" : "error"],
           extra: { timeoutMs },
-          error: String(e?.message || e).slice(0, 600),
+          error: cutToLength(String(e?.message || e), 600),
         };
       } finally {
         clearTimeout(timer);

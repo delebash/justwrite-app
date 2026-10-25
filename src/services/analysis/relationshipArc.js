@@ -17,6 +17,7 @@
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText, tailWords } from "../text.js";
 import { t } from "../../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 export const TRAJECTORY_LABEL_KEYS = {
   warming:    "relationshipArc.trajectory.warming",
@@ -134,7 +135,7 @@ export async function analyseRelationship({
     task: task || { label: t("relationshipArc.taskLabel"), meta: arcMeta },
   });
 
-  const summary = typeof parsed.summary === "string" ? parsed.summary.trim().slice(0, 600) : "";
+  const summary = typeof parsed.summary === "string" ? cutToLength(parsed.summary.trim(), 600) : "";
   const trajectory = VALID_TRAJECTORIES.has(parsed.trajectory) ? parsed.trajectory : "static";
 
   // WS5 (2026-07-18): the standing per-character dynamic. The model returns
@@ -155,7 +156,7 @@ export async function analyseRelationship({
       const warmth = clamp1to10(c?.warmth);
       const tension = clamp1to10(c?.tension);
       const power = VALID_POWERS.has(c?.power) ? c.power : "eq";
-      const moment = typeof c?.moment === "string" ? c.moment.trim().slice(0, 200) : "";
+      const moment = typeof c?.moment === "string" ? cutToLength(c.moment.trim(), 200) : "";
       return { chapterNum, warmth, tension, power, moment };
     })
     .filter(Boolean)
@@ -187,7 +188,7 @@ function clamp1to10(v) {
 // an ungrounded side never lands). Exported for the unit test.
 export function sanitizeSide(raw) {
   if (!raw || typeof raw !== "object") return null;
-  const s = (v) => (typeof v === "string" ? v.trim().slice(0, 300) : "");
+  const s = (v) => (typeof v === "string" ? cutToLength(v.trim(), 300) : "");
   const out = { wants: s(raw.wants), fears: s(raw.fears), speaksLike: s(raw.speaksLike) };
   return out.wants || out.fears || out.speaksLike ? out : null;
 }

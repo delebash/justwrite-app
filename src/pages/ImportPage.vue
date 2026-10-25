@@ -1,4 +1,5 @@
 <script setup>
+import { cutToLength } from "@delebash/core/platform/text";
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
@@ -130,7 +131,7 @@ function wordCount(html) {
 function preview(html) {
   if (!html) return "";
   const t = String(html).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-  return t.length > 220 ? `${t.slice(0, 220)}…` : t;
+  return t.length > 220 ? `${cutToLength(t, 220)}…` : t;
 }
 
 async function onPickFile(e) {

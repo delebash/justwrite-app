@@ -20,6 +20,7 @@ import { withAiTask } from "@delebash/ui";
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 import { t } from "../../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 // ─── Personas ────────────────────────────────────────────────────────
 // Four deliberately distinct reader lenses. The persona's system prompt + the
@@ -73,7 +74,7 @@ async function runPersona({ persona, html, chapterTitle, chapterNum, signal, pro
     task: task || { label: t("multiReader.taskLabel"), meta: { ...meta, personaKey: persona.key } },
   });
 
-  const reaction = typeof parsed.reaction === "string" ? parsed.reaction.trim().slice(0, 2000) : "";
+  const reaction = typeof parsed.reaction === "string" ? cutToLength(parsed.reaction.trim(), 2000) : "";
   const suggestions = Array.isArray(parsed.suggestions)
     ? parsed.suggestions.map((s) => String(s || "").trim()).filter(Boolean).slice(0, 4)
     : [];

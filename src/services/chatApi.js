@@ -8,6 +8,7 @@
 
 import { get, put, del } from "@delebash/ui";
 import { t } from "../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 // Session ids mint in the app's `<prefix>_<base36 time>_<rand>` style — the same
 // shape as project entities (stores/project.js `uid()`), so a chat id reads like
@@ -21,7 +22,7 @@ export function mintSessionId() {
 export function deriveSessionTitle(messages) {
   const firstUser = (messages || []).find((m) => m?.role === "user" && (m.content || "").trim());
   if (!firstUser) return t("chat.newChat");
-  return firstUser.content.replace(/\s+/g, " ").trim().slice(0, 60);
+  return cutToLength(firstUser.content.replace(/\s+/g, " ").trim(), 60);
 }
 
 // The project's session list — light rows, no messages:

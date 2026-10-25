@@ -1,4 +1,5 @@
 <script setup>
+import { cutToLength } from "@delebash/core/platform/text";
 // Calendar + time picker that emits the same `YYYY-MM-DDTHH:mm` string the
 // native datetime-local produced, so downstream sorting/formatting (which
 // runs the value through `new Date()`) is unaffected. Built for fiction
@@ -23,7 +24,7 @@ const emit = defineEmits(["update:modelValue"]);
 // The calendar's words in the interface language (Intl through vue-i18n's d()): the months in
 // full, the weekdays as two letters, Sunday first.
 const MONTHS = computed(() => Array.from({ length: 12 }, (_, i) => fmtDate(new Date(2000, i, 1), { month: "long" })));
-const DOW = computed(() => Array.from({ length: 7 }, (_, i) => fmtDate(new Date(2023, 0, 1 + i), { weekday: "short" }).slice(0, 2)));
+const DOW = computed(() => Array.from({ length: 7 }, (_, i) => cutToLength(fmtDate(new Date(2023, 0, 1 + i), { weekday: "short" }), 2)));
 
 const open = ref(false);
 const rootEl = ref(null);

@@ -18,6 +18,7 @@
 import { runJsonAnalysis } from "../runJson.js";
 import { htmlToText } from "../text.js";
 import { t, tEnglish } from "../../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 // ─── Templates ───────────────────────────────────────────────────────
 
@@ -107,7 +108,7 @@ function buildChapterDigest(project) {
       num: c.num,
       title: c.title || "",
       words: c.words || 0,
-      summary: summary.slice(0, 500),
+      summary: cutToLength(summary, 500),
     };
   });
 }
@@ -184,7 +185,7 @@ export async function mapToBeatSheet({
     task: task || { label: t("beatSheet.taskShort"), meta: beatMeta },
   });
 
-  const summary = typeof parsed.summary === "string" ? parsed.summary.trim().slice(0, 600) : "";
+  const summary = typeof parsed.summary === "string" ? cutToLength(parsed.summary.trim(), 600) : "";
 
   const rawMapping = Array.isArray(parsed.mapping) ? parsed.mapping : [];
   const seenKeys = new Set();
@@ -205,7 +206,7 @@ export async function mapToBeatSheet({
       continue;
     }
     const chapterNum = Number.isFinite(hit.chapterNum) ? Math.round(hit.chapterNum) : null;
-    const justification = typeof hit.justification === "string" ? hit.justification.trim().slice(0, 400) : "";
+    const justification = typeof hit.justification === "string" ? cutToLength(hit.justification.trim(), 400) : "";
     mapping.push({
       beatKey: beat.key,
       chapterNum,

@@ -22,13 +22,14 @@ import { getDb } from "../database/session.js";
 const DICT_BODY = input({ body: T.Record(T.String(), T.Any()) });
 
 // What each open window last loaded or saved of a book (bookIo.rowsByTable), keyed by the
-// window's `x-jw-client` id: a save writes only that window's own edits against it, so a field
-// another device changed meanwhile (sync) isn't written back with the window's older value. A
-// window with no base here (no id, or a server restarted under it) saves against the database.
+// window's id (the kit's X-Client-Id, which every request of the window carries — installLlmUi
+// `sendClientId`): a save writes only that window's own edits against it, so a field another
+// device or window changed meanwhile isn't written back with the window's older value. A window
+// with no base here (no id, or a server restarted under it) saves against the database.
 const bases = new Map();
 const MAX_BASES = 32;
 const baseKey = (c) => {
-  const client = c.req.header("x-jw-client");
+  const client = c.req.header("x-client-id");
   return client ? `${client}\u0000${c.req.param("project_id")}` : null;
 };
 function remember(key, rows) {

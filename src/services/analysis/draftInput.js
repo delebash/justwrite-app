@@ -4,6 +4,7 @@
 // share. Text the model reads stays English (ruled 2026-10-13).
 
 import { composeBookContext } from "../storyContext.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 /** A headed block — "" when the body is empty, so an absent part leaves no heading behind. */
 export const block = (heading, body) => (String(body || "").trim() ? `${heading}\n${String(body).trim()}` : "");
@@ -19,4 +20,4 @@ export function bookBlock(project, budgetTokens) {
 /* eslint-enable i18next/no-literal-string */
 
 /** A model's string → trimmed and capped; anything else → "". */
-export const clamp = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+export const clamp = (v, max) => (typeof v === "string" ? cutToLength(v.trim(), max) : "");

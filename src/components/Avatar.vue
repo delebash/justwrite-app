@@ -8,7 +8,9 @@ const props = defineProps({
   image: { type: Object, default: null }, // optional image record from imageStore
 });
 
-const initials = computed(() => props.name.split(/\s+/).map((s) => s[0]).slice(0, 2).join(""));
+// each word's first character whole (s[0] took half of an emoji or of any character past U+FFFF),
+// as the Sidebar's author initials
+const initials = computed(() => props.name.split(/\s+/).map((s) => [...s][0] || "").slice(0, 2).join(""));
 
 // Hash the name into a hue so the gradient fallback is stable per-character.
 const hue = computed(() => {

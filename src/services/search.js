@@ -1,6 +1,7 @@
 
 import { t } from "../i18n/index.js";
 import { archDocTitle } from "./architectureDocs.js";
+import { cutToLength } from "@delebash/core/platform/text";
 // ============================================================
 // search.js — full-text search across every entity in the project.
 //
@@ -286,7 +287,7 @@ function intersect(a, b) {
  */
 function buildSnippet(haystack, lower, tokens, firstIdx, snippetLen) {
   if (!Number.isFinite(firstIdx) || haystack.length === 0) {
-    return { text: (haystack || "").slice(0, snippetLen), matches: [] };
+    return { text: cutToLength(haystack || "", snippetLen), matches: [] };
   }
   const half = Math.floor(snippetLen / 2);
   let start = Math.max(0, firstIdx - half);

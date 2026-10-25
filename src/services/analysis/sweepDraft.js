@@ -28,6 +28,7 @@
 import { del, get, put } from "@delebash/ui";
 
 import { mergeProposals } from "./entitySweep.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 // ── server io ───────────────────────────────────────────────────────────
 
@@ -87,7 +88,7 @@ export function recordChapterError(draft, chapter, reason, hash) {
     chapter: { id: chapter.id, num: chapter.num, title: chapter.title },
     status: "error",
     textHash: hash,
-    reason: String(reason || "").slice(0, 200),
+    reason: cutToLength(String(reason || ""), 200),
   };
   return draft;
 }

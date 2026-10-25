@@ -18,6 +18,7 @@ import { runAiFeature } from "@delebash/ui";
 import { scanProjectMarkers } from "justwrite-server/editor/markers.js";
 import { htmlToText, tailWords } from "./text.js";
 import { t, tEnglish } from "../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 // ─── Context composition ───────────────────────────────────────────────
 
@@ -114,7 +115,7 @@ export function buildBriefingContext({ project, sessions, maxTailWords = 500 }) 
     .slice(0, 6)
     .map((s) => ({
       name: s.name,
-      blurb: (s.blurb || "").slice(0, 220),
+      blurb: cutToLength(s.blurb || "", 220),
     }));
 
   // Open Loose-thread and TODO markers, weighted toward recent chapters.
@@ -128,8 +129,8 @@ export function buildBriefingContext({ project, sessions, maxTailWords = 500 }) 
       .map((m) => ({
         kind: m.category,
         chapterNum: m.chapterNum,
-        label: (m.label || "").slice(0, 120),
-        snippet: (m.snippet || "").slice(0, 140),
+        label: cutToLength(m.label || "", 120),
+        snippet: cutToLength(m.snippet || "", 140),
       }));
   } catch {
     nearbyMarkers = [];
@@ -142,7 +143,7 @@ export function buildBriefingContext({ project, sessions, maxTailWords = 500 }) 
     title: P.title || "",
     genre: P.genre || "",
     subtitle: P.subtitle || "",
-    premise: (P.premise || "").slice(0, 400),
+    premise: cutToLength(P.premise || "", 400),
   };
 
   // Pull the most recent end-of-session recap (from a previous day) —

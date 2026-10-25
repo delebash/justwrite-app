@@ -26,6 +26,11 @@ By default that's `http://127.0.0.1:17495/` — which only accepts connections
 from the machine it's running on. To reach it from another device, see
 *Running the server yourself* below.
 
+**Several windows at once.** The desktop window and any browser tabs on the same server all show
+the same books. A change made in one shows up in the others within a few seconds, but not while
+you're typing there or a dialog is open: it waits until you click out of the text. Restoring a
+backup or resetting the workspace in one window reloads the others.
+
 ## Running the server yourself
 
 You don't have to open the desktop app at all. On Windows the installer puts a

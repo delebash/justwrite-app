@@ -15,6 +15,7 @@
 // LLM-augmented pass can be a follow-up.
 
 import { htmlToText } from "../text.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 // ─── Phrase library ─────────────────────────────────────────────────
 // Each entry: { pattern: RegExp (case-insensitive, global flag added
@@ -120,7 +121,7 @@ function sentenceAround(text, at) {
   while (end < text.length && !/[.!?]/.test(text[end])) end++;
   if (end < text.length) end += 1;
   let snippet = text.slice(start, end).trim();
-  if (snippet.length > 220) snippet = `${snippet.slice(0, 220)}…`;
+  if (snippet.length > 220) snippet = `${cutToLength(snippet, 220)}…`;
   return snippet;
 }
 

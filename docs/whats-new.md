@@ -14,6 +14,12 @@ install, and every provider's **Timeout (seconds)** can be changed in its **Edit
 **The start-up screen names the model it's loading**, "Gemma 4 26B-A4B (QAT)" rather than its id,
 and shows the whole progress line; Quick Setup names it the same way.
 
+**Two windows on one server see each other's changes.** With the desktop app and a browser tab
+(or two tabs) open on the same server, a change made in one now shows up in the other within a few
+seconds, as changes from another device already did. Before, the other window kept showing the book
+as it had loaded it and could save over the change. See
+[Several windows at once](headless-access.md#opening-justwrite-in-a-browser).
+
 ---
 
 ## 2026-10-20

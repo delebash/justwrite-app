@@ -27,13 +27,17 @@ export const PRESERVED_FOLDER_KEYS = ["autosaveDir", "chooserDirs"];
 // The rows that are this server's, not the data's: its access tokens (`auth` — the tokens and
 // "require a token on this computer too"). Every clear and reset keeps them, as the folder paths:
 // a reset on an exposed headless server must never open it to the network (the template's
-// data_admin.js; the family's security review, 2026-10-20).
-export const KEPT_KEYS = [...PRESERVED_FOLDER_KEYS, "auth"];
+// data_admin.js; the family's security review, 2026-10-20). And the data's epoch (`dataEpoch`,
+// sync.js): clearing the settings replaces no book, so no window reloads — a workspace reset
+// renews it after (data_admin.js).
+export const DATA_EPOCH_KEY = "dataEpoch";
+export const KEPT_KEYS = [...PRESERVED_FOLDER_KEYS, "auth", DATA_EPOCH_KEY];
 
-/** Every row decoded into one document (an unreadable value reads as null). */
+/** Every row decoded into one document (an unreadable value reads as null) — but the data's epoch,
+ *  the server's own row (no window owns or writes it). */
 export function readAll(h) {
   const out = {};
-  for (const row of h.all("SELECT * FROM settings", [], "settings")) {
+  for (const row of h.all(`SELECT * FROM settings WHERE settings."key" != ?`, [DATA_EPOCH_KEY], "settings")) {
     try {
       dset(out, row.key, pyLoads(row.value));
     } catch {
@@ -43,10 +47,11 @@ export function readAll(h) {
   return out;
 }
 
-/** Upsert each given section wholesale (one transaction). */
+/** Upsert each given section wholesale (one transaction) — never the data's epoch. */
 export function writeMany(h, patch) {
   h.tx(() => {
     for (const [key, value] of Object.entries(patch)) {
+      if (key === DATA_EPOCH_KEY) continue;
       const encoded = pyJson(value);
       if (h.get("settings", key) === null) h.insert("settings", { key, value: encoded });
       else h.update("settings", { value: encoded }, { key });

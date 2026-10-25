@@ -25,6 +25,7 @@ import { LOCAL_RUNNER_ID } from "@delebash/ui/services/modelApply.js";
 import { normalizeName as normName } from "../text.js";
 import { extractEntities } from "./entityExtraction.js";
 import { t } from "../../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 const DEFAULT_CONCURRENCY = 4;
 
@@ -307,7 +308,7 @@ export async function scanAllChapters({
       const msg = String(err?.message || err || "");
       const reason = timedOut && !runSignal.aborted
         ? t("entitySweep.timedOut", { s: Math.round(timeoutMs / 1000) })
-        : msg.slice(0, 200);
+        : cutToLength(msg, 200);
       if (runSignal.aborted || (!timedOut && /abort/i.test(msg))) {
         // Bubble so workers exit; caller already has partial proposals.
         throw err;

@@ -18,6 +18,7 @@
 import { runJsonAnalysis } from "./runJson.js";
 import { htmlToText, tailWords } from "./text.js";
 import { t } from "../i18n/index.js";
+import { cutToLength } from "@delebash/core/platform/text";
 
 // ─── helpers ─────────────────────────────────────────────────────────
 
@@ -85,14 +86,14 @@ export function buildRecapContext({ project, sessions, maxTailWords = 1200 }) {
     .slice(0, 6)
     .map((s) => ({
       name: s.name,
-      blurb: (s.blurb || "").slice(0, 220),
+      blurb: cutToLength(s.blurb || "", 220),
     }));
 
   const P = project.project || {};
   const projectMeta = {
     title: P.title || "",
     genre: P.genre || "",
-    premise: (P.premise || "").slice(0, 400),
+    premise: cutToLength(P.premise || "", 400),
   };
 
   if (!tail) {
@@ -195,7 +196,7 @@ export async function generateSessionRecap({
   for (const t of rawThreads) {
     if (!t || typeof t.snippet !== "string") continue;
     const snippet = t.snippet.trim();
-    const label = typeof t.label === "string" ? t.label.trim().slice(0, 120) : "";
+    const label = typeof t.label === "string" ? cutToLength(t.label.trim(), 120) : "";
     if (!snippet || snippet.length < 4) continue;
     const sceneId = findSceneForSnippet(project, meta.chapterId, snippet);
     threads.push({

@@ -189,8 +189,11 @@ html[data-theme="dark"] .titlebar {
   padding: 14px 14px 10px;
   display: flex; align-items: center; gap: 10px;
 }
-.brand-mark {
-  width: 22px; height: 22px; border-radius: 6px;
+/* JustWrite's own brand mark and name, in its sidebar (expanded and collapsed) and the onboarding
+   header: the family's .brand-mark / .brand-name (the kit's common/app.css) drawn in JustWrite's
+   look — the serif italic on the accent gradient. */
+:is(.brand, .brand-mini, .ob-brand) .brand-mark {
+  border-radius: 6px;
   background:
     linear-gradient(135deg, var(--accent) 0%, oklch(0.62 0.07 220) 100%);
   display: grid; place-items: center; color: white;
@@ -199,7 +202,7 @@ html[data-theme="dark"] .titlebar {
   font-size: 14px; line-height: 1;
   box-shadow: inset 0 -1px 0 rgba(0,0,0,.15);
 }
-.brand-name {
+:is(.brand, .ob-brand) .brand-name {
   font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
 }
 .brand-sub { font-size: 11px; color: var(--muted); margin-top: -1px; }
@@ -689,12 +692,8 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
    Cards
    ============================================================ */
 
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 18px;
-}
+/* .card is the family's (the kit's common/app.css), in JustWrite's sizes: tokens.css --card-pad,
+   --card-gap (0: the grids space the cards) and --r-card. */
 .card.tight { padding: 14px; }
 .card-title {
   font-size: 12.5px; font-weight: 600; color: var(--ink);
@@ -702,12 +701,9 @@ input.nav-part-title:focus { border-color: var(--accent); background: var(--surf
   margin: 0 0 10px;
 }
 /* The kit's panels (StoragePanel) frame a section the family's way — `section.card` with an h2, a
-   .hint, .card__actions / .card__note (the template's app.scss) — drawn here in JustWrite's card look:
-   the h2 as .card-title, the hint as the cards' own muted lead, at most 70 characters a line. */
+   .hint, .card__actions / .card__note, all the kit's common/app.css — with the h2 in JustWrite's
+   .card-title look. */
 .card > h2 { font-size: 12.5px; font-weight: 600; color: var(--ink); margin: 0 0 10px; }
-.card .hint { color: var(--muted); font-size: 12.5px; line-height: 1.5; margin: 4px 0 10px; max-width: 70ch; }
-.card__actions { margin-top: 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.card__note { margin: 10px 0 0; font-size: 12px; }
 .card-title .pill {
   font-size: 10.5px; font-weight: 500; color: var(--muted);
   background: var(--surface-3); border-radius: 4px; padding: 1px 6px;

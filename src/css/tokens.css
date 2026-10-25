@@ -80,6 +80,11 @@
   --r-md: 10px;
   --r-lg: 14px;
   --r-xl: 20px;
+  /* the family's .card (the kit's common/app.css) in JustWrite's sizes: its padding, no bottom
+     margin (the card grids space their cards with their gaps) and the large radius */
+  --card-pad: 18px;
+  --card-gap: 0;
+  --r-card: var(--r-lg);
 
   /* Shadow -------------------------------------------------- */
   --shadow-1: 0 1px 0 rgba(20, 22, 24, 0.04), 0 1px 3px rgba(20, 22, 24, 0.04);

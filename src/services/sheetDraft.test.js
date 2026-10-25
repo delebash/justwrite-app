@@ -86,6 +86,11 @@ describe("sanitizers and apply", () => {
     expect(out).toEqual({ properties: "brass", history: "", whereNow: "x".repeat(1200) });
   });
 
+  it("caps between characters: an emoji across the cap is left out whole, never halved", () => {
+    const out = sanitizeSheet({ whereNow: `${"x".repeat(1199)}🗝️ and more` }, ["whereNow"]);
+    expect(out.whereNow).toBe("x".repeat(1199));
+  });
+
   it("applies only the sheet's keys, in one store call", () => {
     const p = project();
     const n = applySheetDrafts(p, "object", "o1", [

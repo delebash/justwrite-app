@@ -19,11 +19,13 @@ import { ApiError, HttpError } from "@delebash/core/platform/errors";
 import { getLogger } from "@delebash/core/platform/log";
 import { pyJson } from "@delebash/core/platform/pyjson";
 import { readJson } from "@delebash/core/platform/server";
+import { ChangeCounter } from "@delebash/core/platform/window_changes";
 import { getSchema } from "@tiptap/core";
 import { generateHTML, generateJSON } from "#editor/html";
 import { Node as PMNode } from "@tiptap/pm/model";
 import { updateYFragment, yXmlFragmentToProseMirrorRootNode } from "@tiptap/y-tiptap";
 import * as Y from "yjs";
+import { DATA_EPOCH_KEY } from "./api/settings_api.js";
 import { bodyToHtml, editorExtensions, schemaMention } from "./editor/editorSchema.js";
 import { PROJECT_TABLES, pyLoads } from "./book_io.js";
 import { state as dbState } from "./database/session.js";
@@ -121,6 +123,27 @@ function blobsOf(h, ids) {
   return out;
 }
 
+// ── the windows on this one server: the desktop app, a browser on the server started on its own ──
+// Each window sends its id (installLlmUi `sendClientId`); a write that changed a synced book row is
+// that window's change (app.js, after the flush), and GET /v1/sync/rev moves for the OTHER windows,
+// as for another device's changes, so their open book reads again (the kit's ChangeCounter, the
+// engines plan F1). The data's epoch — renewed by a restore or a reset (data_admin.js) — is the
+// `dataEpoch` row (settings_api.js DATA_EPOCH_KEY): a new one reloads every window.
+// SQL on `main.settings`, not the handle's helpers: a restore renews the epoch on its own connection
+// (the live database as `main`, the backup attached), as data_admin.js keepAuth writes the tokens
+const epochRow = (h, key) => h.all(`SELECT value FROM main.settings WHERE "key" = ?`, [key])[0]?.value;
+export const windowChanges = new ChangeCounter({
+  epochKey: DATA_EPOCH_KEY,
+  getSetting: (h, key) => {
+    const v = epochRow(h, key);
+    return v ? pyLoads(v) : null;
+  },
+  setSetting: (h, key, value) => {
+    h.run(`DELETE FROM main.settings WHERE "key" = ?`, [key]);
+    h.run(`INSERT INTO main.settings ("key", value) VALUES (?, ?)`, [key, pyJson(value)]);
+  },
+});
+
 const appSync = createAppSync({
   app: "justwrite",
   appName: "JustWrite",
@@ -165,14 +188,17 @@ const appSync = createAppSync({
   readJson,
   // a computer's defaults, or the phone's (sync_platform.phone.js)
   platform: SYNC_PLATFORM,
+  // rev moves for the other windows' changes too, and carries the data's epoch
+  windows: windowChanges,
 });
 
 /** Open sync on the book tables (after initDb). Safe to call again (a reset, a new data dir). */
 export const openBookSync = (_h, dataDir) => appSync.open(dataDir);
 /** The engine, or null before boot. */
 export const getSync = () => appSync.get();
-/** Stamp what the triggers noted — after every write request (app.js) and before every sync. */
-export const flushSync = () => appSync.flush();
+/** Stamp what the triggers noted — after every write request (app.js) and before every sync.
+ *  Returns how many fields it stamped: more than none, the request changed a synced book row. */
+export const flushSync = () => appSync.flush() ?? 0;
 /**
  * A restore's steps, as the kit's data router names them (data_admin.js): before the copy, a
  * backup from another sync library is refused while this device syncs (a cloud folder or a paired

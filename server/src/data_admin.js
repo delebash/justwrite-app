@@ -19,7 +19,7 @@ import { KEPT_KEYS } from "./api/settings_api.js";
 import { TABLES } from "./database/models.js";
 import { seedWorkspace } from "./database/seed.js";
 import { state } from "./database/session.js";
-import { resetBookSync, restoreSyncHooks } from "./sync.js";
+import { resetBookSync, restoreSyncHooks, windowChanges } from "./sync.js";
 
 /**
  * Full runner teardown (unload every child + clear the VRAM ledger). A reset or restore is a
@@ -79,6 +79,9 @@ export async function reset() {
       else h.update("settings", { value }, { key });
     }
   });
+  // the data's new epoch (after the kept rows, which held the old one): every other window reloads
+  windowChanges.renewEpoch(h);
+  windowChanges.replaced();
 }
 
 /** The `auth` row's text, read before a restore's copy and written back after it — both inside the
@@ -114,6 +117,9 @@ export function getDataRouter({ gate } = {}) {
     afterCopy: (h) => {
       restoreSyncHooks.afterCopy(h);
       keepAuth.afterCopy(h);
+      // and the data's new epoch, in the same transaction as the restored rows (the backup's own
+      // row replaced): every other window reloads (sync.js windowChanges)
+      windowChanges.renewEpoch(h);
     },
     // then a backup from an older version gets what this one's seed adds (as at start)
     afterTables: async () => {
@@ -126,7 +132,11 @@ export function getDataRouter({ gate } = {}) {
     // engine stops before (nothing it runs writes into the data being replaced) and after (no
     // child keeps running under the pre-restore config).
     beforeReplace: stopRunnerBestEffort,
-    onReplaced: stopRunnerBestEffort,
+    // every window reloads — only once the data has been replaced (a refused restore replaced nothing)
+    onReplaced: async () => {
+      windowChanges.replaced();
+      await stopRunnerBestEffort();
+    },
     gate,
   });
 }
