@@ -591,8 +591,8 @@ STATE:  DECIDED 2026-10-08 — every family app moves to Quasar (the kit's TASKS
         as well you have a go on that". The order of work and its status: the kit's
         `docs/plans/2026-10-08-sync-and-quasar-program.md`, step Q4; the layout: the kit's
         `docs/app-structure.md` §Q.
-BUILT:  2026-10-08, on branch `quasar` (worktree `../justwrite-quasar` — the master checkout runs
-        your app, so the move stays off it until you merge): `quasar.config.js` (the one build
+BUILT:  2026-10-08, on branch `quasar` (in a worktree, since merged and removed 2026-10-26 — the
+        master checkout ran your app, so the move stayed off it until you merged): `quasar.config.js` (the one build
         config; the kit UI alias; port 1420; electron-builder with the old installer's settings —
         NSIS, the fuses, the launcher, a universal macOS .dmg); `src-electron/` (the kit's
         `runDesktopApp`, the same settings as `electron/main.js`; icons moved from `build/`);
