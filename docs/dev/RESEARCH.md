@@ -45,6 +45,15 @@ The family's move, step 4 (2026-10-08). The plan is JustVoice's
   `<db>.bak-2026-10-08-before-path-rewrite` beside each database. The 2026-08-15 headless root that
   sat at `<repo>/data` is kept as `data-old-2026-08-15/`. (*measured 2026-10-08*, a re-run of the
   survey found the old path only in the backups.)
+- **`data/ai-cache` is the family's model cache, not JustWrite's alone.** JustVoice, house-paint,
+  docgen and the template store it as their `runner_setting.cache_root`, and JustVoice's
+  `data/ai-runtime/models.ini` loads gemma-4-26b and -12b from it — so before removing a model folder
+  there, search every app's database and config, not JustWrite's. Removed on the user's word
+  2026-10-28, with no row or path in any of them: gemma-4-31B, Qwen3.6-35B MTP and HauhauCS (E: went
+  from 837 to 696 GB used). The eight folders left hold 63.6 GB twice: each snapshot is a full copy
+  of its blob (its own file, one link), from the Python runner's downloads (July to September); the
+  kit's `linkSnapshot` (`runner/models.js`) makes a symlink, else a hard link, and copies only when
+  both fail. — *measured 2026-10-28, Node `stat` inode and link count per file.*
 - **The server port matches Python** on JustWrite's real data: route diff 92 reads (78
   identical, 14 volatile), 37/37 writes, 4,809 database cells, 0 different; the seed comparison
   17,741 cells, 0 different. (*measured 2026-10-08*, the kit's
@@ -219,6 +228,14 @@ tests are the kit's RESEARCH §2 "Sync" / "Sync, round 2". JustWrite's:
   `upgradeSettings` fingerprints with SHA-256, so the phone's settings seed would have thrown the
   first time any default changed. The kit's K10 adds a synchronous SHA-256 there
   (`@noble/hashes`). — *found wiring F2, 2026-10-24.*
+- **The phone bundle stopped building** (2026-10-24 → 2026-10-27): kit 2a5cf14 imported `statfsSync`
+  by name from `node:fs` (`runner/download.js`, its disk-full message), which the bundle reaches; the
+  browser polyfill's `fs` has no such export, and esbuild refuses a named import it can't find (a
+  read through the module's namespace is only a warning). Nothing builds the bundle short of a phone
+  build, so it went unseen until the rebuild for K10. The kit reads a drive's room in one place since
+  03ddbf6 (`platform/disk_room.js`, null on the phone), and `scripts/phone-worker.test.js` builds the
+  bundle in memory (esbuild's `write: false`, ~0.5 s) in `npm run test:unit`; the 2a5cf14 import
+  fails it. — *found rebuilding for K10, 2026-10-27.*
 
 ## What other writing apps ship
 

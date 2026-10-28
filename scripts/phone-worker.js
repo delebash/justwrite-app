@@ -16,11 +16,9 @@ import { nodeModulesPolyfillPlugin } from "esbuild-plugins-node-modules-polyfill
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const PHONE_WORKER_DIR = path.join(root, "src", "phone", "worker-bundle");
 
-export async function buildPhoneWorker() {
-  mkdirSync(PHONE_WORKER_DIR, { recursive: true });
-  copyFileSync(path.join(root, "node_modules", "@sqlite.org", "sqlite-wasm", "dist", "sqlite3.wasm"), path.join(PHONE_WORKER_DIR, "sqlite3.wasm"));
-  const t0 = Date.now();
-  const result = await build({
+/** The bundle's esbuild options — this build's and the in-memory one of scripts/phone-worker.test.js. */
+export function phoneWorkerOptions() {
+  return {
     entryPoints: [path.join(root, "src", "phone", "server-worker.js")],
     outfile: path.join(PHONE_WORKER_DIR, "server-worker.js"),
     bundle: true,
@@ -31,7 +29,14 @@ export async function buildPhoneWorker() {
     plugins: [workerShims({ appRoot: root, dedupe: ["yjs"] }), nodeModulesPolyfillPlugin({ globals: { Buffer: true, process: true }, fallback: "empty" })],
     logLevel: "warning",
     metafile: true,
-  });
+  };
+}
+
+export async function buildPhoneWorker() {
+  mkdirSync(PHONE_WORKER_DIR, { recursive: true });
+  copyFileSync(path.join(root, "node_modules", "@sqlite.org", "sqlite-wasm", "dist", "sqlite3.wasm"), path.join(PHONE_WORKER_DIR, "sqlite3.wasm"));
+  const t0 = Date.now();
+  const result = await build(phoneWorkerOptions());
   const bytes = Object.values(result.metafile.outputs).reduce((n, o) => n + o.bytes, 0);
   console.log(`[phone] in-app server built: ${(bytes / 1024 / 1024).toFixed(1)} MB in ${Date.now() - t0} ms`);
 }
