@@ -2940,7 +2940,7 @@
       "noMatchFor": "No hay coincidencias de {label}"
     },
     "brand": {
-      "sub": "v0.1 · local",
+      "sub": "v{version}",
       "byAuthor": "por {author}"
     },
     "footer": {

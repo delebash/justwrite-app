@@ -4,6 +4,11 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## 2026-10-28
+
+**The sidebar shows the version you're running.** Under the JustWrite name it said "v0.1 · local"
+in every version; it now shows the real one, as **Settings → About** does.
+
 ## 2026-10-24
 
 **Long local answers no longer give up after a minute.** The built-in provider waited only 60

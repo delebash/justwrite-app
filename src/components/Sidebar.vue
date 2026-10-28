@@ -25,6 +25,8 @@ const ui = useUiStore();
 const project = useProjectStore();
 const router = useRouter();
 const route = useRoute();
+// the app's version under its name — package.json's, which quasar.config.js passes in
+const appVersion = import.meta.env.VITE_APP_VERSION;
 
 // ── Project switcher dropdown ────────────────────────────
 const projectMenuOpen = ref(false);
@@ -842,7 +844,7 @@ const authorInitials = computed(() => {
       <div class="brand-mark">{{ $t("welcome.brandMark") }}</div>
       <div style="flex:1;min-width:0">
         <div class="brand-name">{{ $t("welcome.wordmark") }}</div>
-        <div class="brand-sub">{{ $t("sidebar.brand.sub") }}</div>
+        <div class="brand-sub">{{ $t("sidebar.brand.sub", { version: appVersion }) }}</div>
       </div>
       <UiButton intent="ghost" v-tooltip.bottom="`${$t('sidebar.tooltips.toggleSidebar')} · ⌘\\`" :aria-label="$t('sidebar.tooltips.toggleSidebar')" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></UiButton>
     </div>
