@@ -49,11 +49,18 @@ The family's move, step 4 (2026-10-08). The plan is JustVoice's
   docgen and the template store it as their `runner_setting.cache_root`, and JustVoice's
   `data/ai-runtime/models.ini` loads gemma-4-26b and -12b from it — so before removing a model folder
   there, search every app's database and config, not JustWrite's. Removed on the user's word
-  2026-10-28, with no row or path in any of them: gemma-4-31B, Qwen3.6-35B MTP and HauhauCS (E: went
-  from 837 to 696 GB used). The eight folders left hold 63.6 GB twice: each snapshot is a full copy
-  of its blob (its own file, one link), from the Python runner's downloads (July to September); the
-  kit's `linkSnapshot` (`runner/models.js`) makes a symlink, else a hard link, and copies only when
-  both fail. — *measured 2026-10-28, Node `stat` inode and link count per file.*
+  2026-10-28: gemma-4-31B, Qwen3.6-35B MTP and HauhauCS (no row or path in any of them), then the
+  five no feature used — EZForever's uncensored 26B and StyleTune V2 (seeded catalog rows: they stay,
+  shown as not downloaded), Goetia 26B, Ternary Bonsai 27B and Radamanthys11's assistant drafter (in
+  no catalog) — E: from 837 to 609 GB used. The three left (gemma-4-26b, gemma-4-12b,
+  Qwen3-Embedding-4B) held 24 GB twice: each snapshot was a full copy of its blob (its own file, one
+  link), from the Python runner's downloads (July to September). Each is now a hard link to its blob,
+  made by the kit's `linkSnapshot` (`runner/models.js`: a symlink, else a hard link, else a copy)
+  after both files' SHA-256 matched the blob's name — E: 587 GB used. A router file still listing a
+  removed model is harmless: the kit writes `models.ini` at each engine start from the catalog rows
+  whose GGUF is on disk (`runner/lifecycle.js` `_resolveIniEntries`). The bench's CPU config keeps
+  its Bonsai and Qwen 35B legs, which need the model added (and downloaded) again to run. —
+  *measured 2026-10-28, Node `stat` inode and link count per file.*
 - **The server port matches Python** on JustWrite's real data: route diff 92 reads (78
   identical, 14 volatile), 37/37 writes, 4,809 database cells, 0 different; the seed comparison
   17,741 cells, 0 different. (*measured 2026-10-08*, the kit's
