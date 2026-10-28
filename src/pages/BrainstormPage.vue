@@ -57,6 +57,7 @@ async function copy(text) {
         <div class="brainstorm-field">
           <label class="brainstorm-label">{{ $t("brainstorm.categoryLabel") }}</label>
           <UiSelect
+            width="fit"
             v-model="category"
             :options="categoryOptions"
             :placeholder="$t('brainstorm.categoryPlaceholder')"
@@ -67,6 +68,7 @@ async function copy(text) {
         <div class="brainstorm-field">
           <label class="brainstorm-label">{{ $t("brainstorm.seedLabel") }}</label>
           <UiTextarea
+            width="prose"
             v-model="seed"
             :rows="4"
             :placeholder="$t(`brainstorm.categories.${category}.placeholder`)"

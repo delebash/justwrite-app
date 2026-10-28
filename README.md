@@ -1,6 +1,6 @@
 # JustWrite
 
-A desktop writing app for novels that connects to any **OpenAI-compatible** AI provider — Ollama, LM Studio, OpenAI, or anything else that speaks the standard.
+A desktop writing app for novels. AI is optional, and you choose where it runs: the **built-in engine** (llama.cpp, bundled) runs a model on your own computer, or add a provider — OpenAI, Anthropic, Gemini, Ollama, LM Studio, or anything that speaks the OpenAI API.
 
 Built with **Electron + Vite + Vue 3 + Pinia**, and a local **Node (Hono) server** that holds all the data — plain JavaScript end to end (since 2026-10-08; it was Tauri + Rust + Python before).
 
@@ -11,9 +11,11 @@ User docs live in `docs/`. The marketing site at <https://delebash.github.io/jus
 ## Quick start
 
 ```bash
-npm install            # JS deps (the kit checkout ../just-core sits beside this repo)
+npm install            # the renderer + the server/ workspace (the kit ../just-core and the sync
+                       # engine ../just-sqlite-sync sit beside this repo — see Setup)
+cd src-electron && npm install && cd ..   # once: the desktop app's own packages
 npm run dev            # Vite HMR + the desktop window (Electron), its server on the dev data folder data/
-npm run build          # The installer for the current OS, in release/
+npm run build          # The installer for the current OS, in dist/electron/Packaged/
 ```
 
 A fresh install opens on the welcome screen; **Try tutorial project** loads *The Ninth Facet*, a complete sample book, so you can click through every screen immediately.
@@ -68,10 +70,13 @@ Seven rooms, one house — organised by what part of the work you're in.
 
 ### ✶ AI — models, on your terms
 
-- **Any OpenAI-compatible endpoint.** Add OpenAI, Ollama, LM Studio, llama.cpp, vLLM, Claude (via Anthropic's OpenAI-compatible API), or your own server.
+- **A built-in local engine.** llama.cpp comes with the app: **Quick Setup** checks your computer, picks a model that fits it, downloads it and runs it — private, free, nothing else to install.
+- **Any provider.** OpenAI, Anthropic and Gemini through their own SDKs; DeepSeek, xAI, Mistral and OpenRouter; Ollama, LM Studio, vLLM, or any OpenAI-compatible server.
 - **Per-feature model picker.** Use one model for chat, another for critique, another for entity sweeps.
 - **Ask-the-book chat.** Hybrid BM25 + vector retrieval with citations back to the chapters the answer came from.
-- **Talk to a character.** Converse with anyone in your cast in their own voice, with story-world knowledge.
+- **Talk to a character.** Converse with anyone in your cast in their own voice, with story-world knowledge — and **Save to sheet** turns an answer into fields on their sheet.
+- **Draft with AI on the story-world pages.** Describe a character, location, object or group in a line; the AI drafts the sheet and you keep the fields you want.
+- **Draft from plan.** With AI scene drafting on for a book, a scene's Summary becomes a drafted scene — and the AI's words keep a violet ink until you make them yours.
 - **In-editor bubble actions.** Rewrite, expand, tighten, continue from cursor — or generate three alternatives side by side.
 - **Guided continue.** Continue the prose with a specific brief.
 - **Voice canon.** A "match my style" fingerprint sampled from chapters you choose, injected into every generation.
@@ -81,7 +86,7 @@ Seven rooms, one house — organised by what part of the work you're in.
 - **Multi-reader panel.** Four reader personas (genre reader / literary critic / agent intern / book-club reader) react to a chapter in parallel.
 - **AI-tells scanner.** Deterministic — flags stock verbs, body-language clichés, hedges. No LLM call, no token spend.
 - **Sensory research pack.** Smell, sound, touch, taste, period detail — fifteen specific phrases in twenty seconds.
-- **Writer Lab.** Every prompt and parsed result exposed for inspection.
+- **The Lab.** Under **Routing by feature**, each AI feature's prompt, model and preset — tried on samples, tuned, then put in production.
 - **Usage ledger.** Per-feature token + cost estimates.
 
 ### ✶ Reflection — two views of the work
@@ -116,12 +121,13 @@ Seven rooms, one house — organised by what part of the work you're in.
 
 ### ✶ Cross-cutting
 
-- **Local first.** Your manuscript is a file on your computer. No account, no upload, no server lock-in.
+- **Local first.** Your books live in a database in JustWrite's data folder, on your computer. No account, no upload, no server lock-in.
 - **Soft delete + Trash.** Every deletion is undoable; Trash holds items indefinitely until you empty it.
-- **Project-wide undo / redo.** 100 steps in-memory, last 10 persisted. ⌘Z / ⌘⇧Z.
+- **Undo / redo per page.** Up to 1,000 steps for each part of the book (the manuscript, characters, notes, …), so undoing on one page never undoes another's newer change. ⌘Z / ⌘⇧Z. It lasts while the app is open; a chapter's **Versions** keep what outlasts a restart.
 - **Autosave.** Every change persists through the app's local server within seconds — the renderer holds no data of its own.
-- **Backups.** Export the whole project as a single JSON snapshot at any time; restore from one with a click.
-- **i18n-ready.** All UI strings flow through vue-i18n; locale-aware number formatting.
+- **Backups.** A JSON copy on disk within seconds of every change, a full backup (database and files) whenever you ask, and any one book as a `.zip` to move or share.
+- **Your other devices.** **Settings → Sync** keeps your books on your other computers; **Settings → Server** lets a browser on another device open JustWrite.
+- **English and Spanish.** Every screen, with dates and numbers in the interface's language.
 
 ---
 
@@ -132,7 +138,8 @@ Seven rooms, one house — organised by what part of the work you're in.
 | Tool | Purpose | Install |
 |---|---|---|
 | **Node 24+** | The renderer build, the scripts, npm | <https://nodejs.org/> |
-| **The kit** | `../just-core` beside this repo — the shared server package (`file:../just-core/packages/core`) and Vue kit (the vite alias) | `git clone https://github.com/delebash/just-core ../just-core` then `cd ../just-core/packages/core && npm install` |
+| **The kit** | `../just-core` beside this repo — the shared server package (`file:../just-core/packages/core`) and Vue kit (the vite alias) | `git clone https://github.com/delebash/just-core ../just-core` then `cd ../just-core/packages/core && npm install` and `cd ../ui && npm install` |
+| **The sync engine** | `../just-sqlite-sync` beside this repo — the server's sync (`file:../just-sqlite-sync`) | `git clone https://github.com/delebash/just-sqlite-sync ../just-sqlite-sync` then `cd ../just-sqlite-sync && npm install` |
 | **gh CLI** | Triggering the release workflow only | <https://cli.github.com/> + `gh auth login` |
 
 Electron comes in through `npm install` (a devDependency); the server runs on Electron's own Node
@@ -141,7 +148,9 @@ Electron comes in through `npm install` (a devDependency); the server runs on El
 ### One-time
 
 ```bash
-npm install            # also: cd e2e && npm install (if you'll run screenshots/smoke tests)
+npm install            # the renderer + the server/ workspace
+cd src-electron && npm install   # the desktop app's own packages (Electron)
+cd e2e && npm install  # only if you'll run the screenshots or the e2e smoke
 ```
 
 ---
@@ -159,10 +168,10 @@ Run from the repo root unless noted.
 | `npm run build:spa` | Renderer build only (`dist/spa/` — what the headless server serves). |
 | `npm run build:unpacked` | The desktop app built but not packaged (`dist/electron/UnPackaged/`), without its server package installed — so it runs only against a server you start. The e2e harness needs `npm run build`. |
 | `npm run build:android` | The Android app (Quasar's Capacitor mode). |
-| `npm run bump <version>` | Updates the version in `package.json` (the one place it lives). **Does not commit or tag** — you do. See [Release process](#release-process). |
+| `npm run bump <version>` | Sets the version with `npm version` in `package.json`, `server/package.json` (the server answers with it) and `package-lock.json` together. **Does not commit or tag** — you do. See [Release process](#release-process). |
 | `npm run release [version]` | Triggers the GitHub Actions release build via `gh workflow run`. Requires the tag to already exist on origin. Interactive `[y/N]` confirm. |
 | `npm run release:windows` · `:macos` · `:linux` | Same as `release` but builds a single platform. |
-| `npm run screenshots` | Runs the e2e screenshot capture (same as `cd e2e && npm run capture`). Drives the desktop app on the built UI, writes PNGs to `../justwrite-website/public/screenshots/`. Requires `npm run build` first. |
+| `npm run screenshots` | Runs the e2e screenshot capture (same as `cd e2e && npm run capture`). Drives the desktop app on the built UI over a copy of your data, writes PNGs to `../justwrite-website/public/screenshots/`. Requires `npm run build` first. |
 | `npm test` | Runs the e2e smoke suite (delegates to `npm test --prefix e2e`). Drives the desktop app (the built UI, your real data) through the major routes and asserts each surface renders. Requires `npm run build` first. |
 | `npm run test:unit` · `test:server` · `test:fast` | vitest over the renderer · vitest over the server (`server/tests/`, on Electron's Node) · the quick gate chaining both plus `build:spa`. |
 | `npm run i18n:lint` · `i18n:report` · `i18n:pseudo` | i18n-only eslint rules · locale coverage report (MISSING must stay zero) · pseudo-locale build. |
@@ -199,7 +208,18 @@ npm run screenshots          # from repo root
 cd e2e && npm run capture
 ```
 
-Drives the desktop app through a fixed list of routes (`TARGETS` in `e2e/capture-direct.js`) and writes PNGs straight into the marketing site's `public/screenshots/` folder. Rebuild it first with `npm run build` if the renderer has drifted.
+Drives the desktop app through a fixed list of routes (`TARGETS` in `e2e/capture-direct.js`), then the newer features with real answers from your local model (`FEATURES`), and writes PNGs straight into the marketing site's `public/screenshots/` folder. Rebuild it first with `npm run build` if the renderer has drifted.
+
+It never touches your data: it copies your data folder, imports the bundled sample book **The Salt-Iron Road** into the copy, opens the app on the copy, and deletes the copy at the end. The copy borrows your installed engine and models, because the features run the real AI — which uses the graphics card, so check nothing else needs it first.
+
+| Variable | Default |
+|---|---|
+| `JW_SHOTS_DIR` | the website checkout's `public/screenshots/` beside this repo |
+| `JW_SHOTS_BOOK` | `server/samples/The Salt-Iron Road.zip` |
+| `JW_DATA_ROOT` | the data folder the app uses |
+| `JW_SHOTS_PORT` | 17499 — the copy's server while it imports the book |
+
+`node e2e/capture-direct.js --no-ai` takes the page pictures only, without the model.
 
 #### Re-capture with a different theme
 
@@ -213,12 +233,13 @@ JW_THEME="Calm Modern"  npm run screenshots
 JW_THEME="Editorial"    npm run screenshots
 ```
 
-The theme name has to match the preset's visible `<b>` label exactly. The change persists (it is your real settings), so subsequent app launches keep that look until you switch again.
+The theme name has to match the preset's visible `<b>` label exactly. It changes the copy's settings only.
 
 #### Capture gotchas
 
 - **The harness drives whatever `dist/electron/UnPackaged/` was last built.** Run `npm run build` before capturing if you've changed renderer code.
-- **Don't have JustWrite open** while capturing — both would run a server on :17495 over the same data folder.
+- **Close JustWrite first.** The app the capture opens starts its server on the same port (:17495); with JustWrite open it stops at the connection page.
+- **A step that fails** leaves `capture-failed.png` beside the pictures — what the app showed at that moment.
 
 ---
 
@@ -227,14 +248,14 @@ The theme name has to match the preset's visible `<b>` label exactly. The change
 Manual release, triggered by `gh workflow run`. Pushes and tags do **not** build by themselves.
 
 ```bash
-# 1. Bump the version (package.json)
+# 1. Bump the version (package.json, server/package.json, package-lock.json)
 npm run bump 1.2.0
 
 # 2. Commit, tag, push (the bump script does NOT do this)
-git add package.json
+git add package.json server/package.json package-lock.json
 git commit -m "release: v1.2.0"
 git tag v1.2.0
-git push && git push --tags
+git push && git push origin v1.2.0
 
 # 3. Dispatch the build
 npm run release              # all platforms
@@ -251,7 +272,7 @@ What the workflow does (see `.github/workflows/release.yml`):
 
 Watch with `gh run watch` or open the workflow runs page. A full all-platform build is roughly 9-15 min wall time.
 
-> **`WEBSITE_DISPATCH_TOKEN`** secret in repo settings drives step 4. Without it, the workflow logs a skip and the marketing site won't refresh automatically — push a no-op commit to the marketing repo to trigger it manually.
+> **`WEBSITE_DISPATCH_TOKEN`** secret in repo settings drives step 5. Without it, the workflow logs a skip and the marketing site won't refresh automatically — push a no-op commit to the marketing repo to trigger it manually.
 
 ---
 
@@ -271,7 +292,7 @@ justwrite-app/                 ← a Quasar app (the family layout: the kit's do
 ├── scripts/
 │   ├── node24.js              ← runs a script on Electron's own Node (the server's runtime)
 │   ├── smoke.js               ← `npm run smoke`: the renderer gate
-│   ├── bump.js                ← version bumper (package.json)
+│   ├── bump.js                ← version bumper (npm version: package.json, server/, the lock)
 │   └── release.js             ← wraps gh workflow run
 ├── src-electron/              ← the desktop app (Quasar's Electron mode; own package.json)
 │   ├── electron-main.js       ← the kit's runDesktopApp with this app's settings
@@ -287,7 +308,7 @@ justwrite-app/                 ← a Quasar app (the family layout: the kit's do
 │   │                            package (justwrite-server), which the desktop app installs
 │   ├── src/                   ← serve.js (the entry) · app.js · api/ · database/ · editor/ (the
 │   │                            editor schema, shared with the renderer)
-│   ├── samples/               ← the bundled tutorial book
+│   ├── samples/               ← the bundled books: the tutorial (The Ninth Facet) and The Salt-Iron Road
 │   └── tests/                 ← vitest suite
 ├── src/                       ← the Vue renderer
 │   ├── boot/                  ← start-up: i18n.js (vue-i18n) · jw.js (wires the kit's UI; boots
@@ -342,7 +363,7 @@ This repo is set up to be developed with [Claude Code](https://claude.com/claude
 
 ### Project context
 
-- **`CLAUDE.md`** at the repo root is the agent's project brief: the thin-client/server split, the IPC bridge contract, the Pinia store invariants (snapshot-based undo, soft delete, coalesced keystroke actions), the shared-kit rules, the export adapters, and the "Don't" list. Read it before changing renderer code; the live tracker is `docs/dev/TASKS.md`.
+- **`CLAUDE.md`** at the repo root is the agent's project brief: the server-owns-the-data split, the commands and gates, the invariants that bite (undo domains, coalesced keystroke actions, the kit's controls, i18n), and the family rules. Read it before changing code; the live tracker is `docs/dev/TASKS.md`.
 - **`docs/`** is user-facing reference, mirrored to the marketing site. When you ship a feature, update the relevant doc in the same commit (this is enforced by repo convention, not by hooks).
 
 ### Recommended workflow
@@ -360,7 +381,7 @@ A few patterns that work well here:
 | Task | How to ask |
 |---|---|
 | **Add a new view** | Sketch what it should show. Claude will scaffold the Vue file, wire the route, add a sidebar entry, and update `docs/` if it's a user-facing surface. |
-| **Add a new AI feature** | Mention which provider/feature key in `ai.featureRouting` it routes through. The AI-call pattern is `runAiStream` from `services/aiStream.js` — don't roll a new stream loop. |
+| **Add a new AI feature** | Say which row of **Routing by feature** it belongs under. AI calls go through the kit's AI-call convention (`withAiTask` from `@delebash/ui`; the kit's `docs/app-structure.md` §8) — don't roll a new stream loop. |
 | **Refresh screenshots after a UI change** | `Re-run npm run screenshots after rebuilding, then commit the diffs to ../justwrite-website.` Optionally pass `JW_THEME=<preset>` to capture in a different look. |
 | **Deep audit / refactor pass** | `Use a workflow for a deep audit refactor.` The keyword *workflow* opts in to multi-agent orchestration — runs Biome / depcheck / jscpd / madge in parallel, triages findings against the actual code, applies safe fixes, hands back a punch list. |
 | **Cut a release** | `Smoke test, bump to 1.2.0, full release.` Triggers `e2e/npm test`, the bump script, the commit/tag/push, and `npm run release` end-to-end. |
@@ -369,16 +390,14 @@ A few patterns that work well here:
 ### Code conventions Claude follows
 
 - **Plain JS, not TypeScript.** No `tsconfig.json`, no migration to TS unless explicitly asked.
-- **`window.justwrite`, not `invoke()`.** The browser-only dev path breaks if you bypass the bridge.
-- **`Jw*` components, not raw HTML.** Exceptions exist (title inputs, sidebar chrome, `.tb-btn` family, DateTimePicker internals) and are listed in `CLAUDE.md`.
+- **`src/services/native.js`, not `window.appShell`.** Every desktop-shell call goes through that one file, which answers the browser's way outside the desktop app.
+- **The kit's `Ui*` controls, not raw HTML** — one `intent` prop for role and style, and a `width` prop that sizes a field to what it holds.
 - **`confirmDialog` only for irreversible actions.** Undoable mutations show a toast naming what changed and lean on the undo history.
 - **Real screenshots, not invented mockups.** Use the e2e harness for visuals.
 
-### What Claude *won't* do without being asked
+### Checking a change
 
-- Run `git commit`. Commits stay manual.
-- Run tests or drive the app in a browser to verify. A clean compile check is fine; behaviour verification is the human's job.
-- Add new linters, formatters, test runners, or TS configs.
+A change is done when the gates in `CLAUDE.md` pass: `npm run test:fast`, the headless smoke (`npm run smoke`) for anything the app shows, the click-through flows (`npm run test:flows`), and the family guard. Claude doesn't add linters, formatters, test runners or TypeScript configs without being asked.
 
 ---
 
@@ -413,4 +432,4 @@ For a full pass — run all four tools, triage findings against the actual code 
 
 ## License
 
-Your code, your terms. Models and APIs are subject to their providers' terms.
+MIT — see [`LICENSE`](LICENSE); the code it bundles from others keeps its own licence ([`NOTICE.md`](NOTICE.md)). Models and APIs are subject to their providers' terms.

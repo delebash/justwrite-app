@@ -33,7 +33,6 @@ const KINDS = {
   },
 };
 const k = computed(() => KINDS[props.kind]);
-// eslint-disable-next-line i18next/no-literal-string -- builds a key, not a word
 const key = (name) => `${k.value.ns}.suggest.${name}`;
 
 const project = useProjectStore();

@@ -275,10 +275,13 @@ watch(() => [props.id, props.sceneId], ([_newId, newSceneId], [_oldId, oldSceneI
 
 // Record the scene the writer is viewing as their last-edited position, so
 // Home's Resume and the sidebar chapter-row landing return here (persisted via
-// ui → /v1/settings). Immediate so a direct scene URL is captured on arrival.
+// ui → /v1/settings), and open its chapter in the sidebar so the scene's row shows
+// — however the scene was reached (a link, a beat chip, a search result). Immediate
+// so a direct scene URL is captured on arrival.
 watch(() => [props.id, props.sceneId], ([id, sceneId]) => {
   if (id && sceneId && project.scenesFor(id).some((s) => s.id === sceneId)) {
     ui.noteScene(id, sceneId);
+    ui.expandChapter(id);
   }
 }, { immediate: true });
 
@@ -703,7 +706,7 @@ async function addSceneToChapter(chapterId) {
   // a scene CRASHED. Caught by the slice-11 lint gate's first run.
   const title = (values.title || "").trim();
   const id = project.addScene(chapterId, title ? { title } : {});
-  ui.expanded = { ...ui.expanded, [`chapter:${chapterId}`]: true };
+  ui.expandChapter(chapterId);
   // Stay in outline mode so the user sees the new scene appear in place.
 }
 

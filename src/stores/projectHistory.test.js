@@ -419,11 +419,13 @@ describe("per-domain page-related undo (#235)", () => {
     expect(store.canRedoFor(["manuscript"])).toBe(true);
   });
 
+  // 1005 actions, each snapshotting a list that grows with them: ~1.5 s alone, past vitest's 5 s
+  // default beside the rest of the suite (measured 2026-10-28) — so the server suite's 20 s here.
   it("caps each domain's history independently at the limit", () => {
     const store = useProjectStore();
     for (let i = 0; i < 1005; i++) store.addStatusDef({ label: `s${i}` });
     expect(store._past.statuses.length).toBe(1000);
-  });
+  }, 20_000);
 
   it("clears every domain's history on project switch", async () => {
     const store = useProjectStore();

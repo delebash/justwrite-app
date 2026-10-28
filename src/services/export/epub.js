@@ -138,6 +138,7 @@ export async function exportEpub({ manuscript, onProgress } = {}) {
 // ── HTML fragments ───────────────────────────────────────────────────
 
 // `lang`: the book's language (BCP-47), the page's xml:lang and lang.
+/* eslint-disable i18next/no-literal-string -- markup, styles and file names; the book's words come from tBook, in the book's language (2026-10-18) */
 function htmlShell(title, body, lang) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
@@ -152,6 +153,7 @@ ${body}
 </body>
 </html>`;
 }
+/* eslint-enable i18next/no-literal-string */
 
 function titlePageHtml(m) {
   const subtitle = m.subtitle ? `<p class="subtitle">${xmlEscape(m.subtitle)}</p>` : "";
@@ -182,7 +184,6 @@ function coverPageHtml(m, coverHref) {
 }
 /* eslint-enable i18next/no-literal-string */
 
-/* eslint-disable i18next/no-literal-string -- markup, styles and file names; the book's words come from tBook, in the book's language (2026-10-18) */
 function chapterHtml(ch, lang) {
   const body = [];
   body.push(`<section epub:type="chapter">`);
@@ -200,9 +201,7 @@ function chapterHtml(ch, lang) {
   body.push(`</section>`);
   return htmlShell(tBook(lang, "common.chapterRefDash", { num: ch.num, title: ch.title }), body.join("\n"), lang);
 }
-/* eslint-enable i18next/no-literal-string */
 
-/* eslint-disable i18next/no-literal-string -- markup, styles and file names; the book's words come from tBook, in the book's language (2026-10-18) */
 function navHtml(m) {
   const items = [];
   for (const part of m.parts) {
@@ -225,7 +224,6 @@ function navHtml(m) {
 </nav>`;
   return htmlShell(tBook(m.language, "export.book.contents"), body, m.language);
 }
-/* eslint-enable i18next/no-literal-string */
 
 /* eslint-disable i18next/no-literal-string -- markup, styles and file names; the book's words come from tBook, in the book's language (2026-10-18) */
 function stylesheet() {

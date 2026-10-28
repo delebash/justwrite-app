@@ -108,7 +108,6 @@ export function templateBeats(strand, tpl, tr = t) {
     .map((b, i) => ({ key: `beat${i + 1}`, beat: b, templateNote: byLabel.get(String(b.label || "").trim()) }));
 }
 
-/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 /** The input for a template's beats: the book, the structure, then each beat with what it asks
  *  for (its label and the template's note). */
 export function composeTemplateFillInput(project, strand, tpl, { budgetTokens = null, tr = t } = {}) {
@@ -121,7 +120,6 @@ export function composeTemplateFillInput(project, strand, tpl, { budgetTokens = 
   );
   return { variables: { user_content }, beats };
 }
-/* eslint-enable i18next/no-literal-string */
 
 // A beat's note is a few sentences.
 const BEAT_NOTE_MAX = 800;

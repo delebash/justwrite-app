@@ -37,14 +37,12 @@ export const DESCRIPTION_FIELD = "description";
 // Name ideas' Brainstorm category by page kind (spec §3.3); groups have none of their own.
 const NAME_CATEGORY = { location: "place_name", object: "item_name", group: "free" };
 
-/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 const ENTRY_HEADING = { location: "THE LOCATION", object: "THE OBJECT", group: "THE GROUP" };
 const TAKEN_HEADING = {
   location: "LOCATIONS ALREADY IN THE BOOK",
   object: "OBJECTS ALREADY IN THE BOOK",
   group: "GROUPS ALREADY IN THE BOOK",
 };
-/* eslint-enable i18next/no-literal-string */
 
 function listOf(project, kind) {
   return project[STORY_WORLD_SHEETS[kind].plural] || [];
@@ -186,7 +184,6 @@ export async function sheetNameIdeasRequest({ project, kind, entityId, liked = [
 
 // ── Suggest locations ─────────────────────────────────────────────────────
 
-/* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 /** The input for location suggestions: the book, the locations it has, what the writer wants. */
 export function composeSuggestLocationsInput(project, { lookingFor = "", budgetTokens = null } = {}) {
   const user_content = join(
@@ -196,7 +193,6 @@ export function composeSuggestLocationsInput(project, { lookingFor = "", budgetT
   );
   return { variables: { user_content } };
 }
-/* eslint-enable i18next/no-literal-string */
 
 const norm = (s) => String(s || "").trim().toLowerCase();
 

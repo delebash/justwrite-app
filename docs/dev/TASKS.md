@@ -999,12 +999,6 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   states · the seven `useStatusDisplay` copies · the ~20 probe scripts' private `findChrome()`.
 - **i18n remnants** (the sweep itself is DONE — 0 warnings, `no-raw-text` is `error`; record:
   the i18n plan docs + git):
-  - Flaky `projectHistory.test.js` cap test — failed once in four identical runs under GPU
-    load, mechanism unexplained, not i18n's — yours to call.
-  - The frozen `v0.1 · local` brand line MOVED, it didn't die (docs campaign
-    2026-08-04, verified): it now lives as the catalog value `sidebar.brand.sub`
-    (`en.json` + `es.json`); binding it to `APP_VERSION` (an interpolated message)
-    is still the fix — yours to call.
   - Key-naming style + the `|` plural pipes in `en.json` — your veto still open.
   - ~200 duplicate call sites could point at existing `common.*`/`count.*` keys — optional
     reuse polish.

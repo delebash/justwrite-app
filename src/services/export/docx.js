@@ -14,7 +14,6 @@ async function getDocx() {
   return docxPromise;
 }
 
-/* eslint-disable i18next/no-literal-string -- markup, styles and file names; the book's words come from tBook, in the book's language (2026-10-18) */
 export async function exportDocx({ manuscript, onProgress } = {}) {
   onProgress?.({ stage: "loading-docx" });
   const lib = await getDocx();
@@ -157,4 +156,3 @@ export async function exportDocx({ manuscript, onProgress } = {}) {
   onProgress?.({ stage: "done" });
   return blob;
 }
-/* eslint-enable i18next/no-literal-string */

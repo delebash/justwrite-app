@@ -752,13 +752,13 @@ function sceneBadge(beat) {
 /* ── Board grid ──────────────────────────────────────────────────── */
 /*
   Column layout:
-    [0] sticky strand label  200px
+    [0] sticky strand label  at least 200px, as wide as its longest strand name
     [1] Unassigned            140px
     [2..N+1] chapters         110px each
 */
 .board-grid {
   display: grid;
-  grid-template-columns: 200px 140px repeat(var(--col-count, 0), 110px);
+  grid-template-columns: minmax(200px, max-content) 140px repeat(var(--col-count, 0), 110px);
   /* rows: auto-sized for header + each strand */
   min-width: max-content;
 }
@@ -863,7 +863,9 @@ function sceneBadge(beat) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: 0; /* flex:1 drives actual width */
+  /* as wide as the name (the label column fits the longest), up to 24ch, then the ellipsis */
+  field-sizing: content;
+  max-width: 24ch;
 }
 .strand-name:hover { border-color: var(--border-soft); }
 .strand-name:focus {

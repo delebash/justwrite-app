@@ -191,8 +191,15 @@ export const useUiStore = defineStore("ui", {
       if (this.selections.chapters !== chapterId) {
         this.selections = { ...this.selections, chapters: chapterId };
       }
+      this.expandChapter(chapterId);
+    },
+
+    // Open a chapter in the sidebar so its scenes show: the scene being read or opened (a link,
+    // a beat chip, a search result — ChaptersPage's route), a new scene. Opening only; closing
+    // stays the writer's (toggleSection).
+    expandChapter(chapterId) {
       const key = `chapter:${chapterId}`;
-      if (!this.expanded[key]) {
+      if (chapterId && !this.expanded[key]) {
         this.expanded = { ...this.expanded, [key]: true };
       }
     },

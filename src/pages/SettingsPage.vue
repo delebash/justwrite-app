@@ -680,16 +680,16 @@ async function deleteCategory(c) {
             </p>
             <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
               <span class="t-muted">{{ $t('settings.project.fieldTitle') }}</span>
-              <UiInput :model-value="project.project.title"
+              <UiInput width="prose" :model-value="project.project.title"
                 @update:model-value="(v) => setMeta('title', v)" :placeholder="$t('settings.project.fieldTitlePlaceholder')" />
               <span class="t-muted">{{ $t('settings.project.fieldAuthor') }}</span>
-              <UiInput :model-value="project.project.author"
+              <UiInput width="name" :model-value="project.project.author"
                 @update:model-value="(v) => setMeta('author', v)" :placeholder="$t('settings.project.fieldAuthorPlaceholder')" />
               <span class="t-muted">{{ $t('settings.project.fieldSubtitle') }}</span>
-              <UiInput :model-value="project.project.subtitle"
+              <UiInput width="prose" :model-value="project.project.subtitle"
                 @update:model-value="(v) => setMeta('subtitle', v)" :placeholder="$t('settings.project.fieldSubtitlePlaceholder')" />
               <span class="t-muted">{{ $t('settings.project.fieldGenre') }}</span>
-              <UiInput :model-value="project.project.genre"
+              <UiInput width="name" :model-value="project.project.genre"
                 @update:model-value="(v) => setMeta('genre', v)" :placeholder="$t('settings.project.fieldGenrePlaceholder')" />
               <span class="t-muted" style="align-self:start;padding-top:8px">{{ $t('settings.project.fieldLanguage') }}</span>
               <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0">
@@ -706,7 +706,7 @@ async function deleteCategory(c) {
               <UiDate :model-value="project.project.deadline"
                 @update:model-value="(v) => setMeta('deadline', v)" :placeholder="$t('settings.project.fieldDeadlinePlaceholder')" />
               <span class="t-muted" style="align-self:start;padding-top:6px">{{ $t('settings.project.fieldPremise') }}</span>
-              <UiTextarea auto-resize rows="3" :model-value="project.project.premise"
+              <UiTextarea width="prose" auto-resize rows="3" :model-value="project.project.premise"
                 @update:model-value="(v) => setMeta('premise', v)"
                 :placeholder="$t('settings.project.fieldPremisePlaceholder')" />
               <!-- AI scene drafting (slice 4, the AI drafting spec §9.7): per book, off by default;

@@ -256,7 +256,7 @@ const tableRows = computed(() =>
   <q-page :style-fn="pageFill" class="main">
     <!-- ── List mode (no id in URL) ─────────────────────────────── -->
     <template v-if="!s && !id">
-      <PaneHeader :title="$t('nav.strands')" help-key="plot-and-time#strands-view-planning-one-thread-in-detail">
+      <PaneHeader :eyebrow="$t('panes.plotBoard.eyebrow')" :title="$t('nav.strands')" help-key="plot-and-time#strands-view-planning-one-thread-in-detail">
         <UiButton :label="$t('strands.newStrand')" intent="primary" size="small" @click="addStrand">
           <template #icon><Icon name="Plus" :size="14" /></template>
         </UiButton>

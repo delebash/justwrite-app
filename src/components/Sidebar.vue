@@ -336,7 +336,7 @@ function clickScene(chapterId, sceneId) {
 // so no naming popup is needed.
 function addSceneToChapter(chapterId) {
   const sceneId = project.addScene(chapterId, {});
-  ui.expanded = { ...ui.expanded, [`chapter:${chapterId}`]: true };
+  ui.expandChapter(chapterId);
   ui.select("chapters", chapterId);
   router.push(`/chapters/${chapterId}/${sceneId}`);
 }

@@ -9,6 +9,14 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 **The sidebar shows the version you're running.** Under the JustWrite name it said "v0.1 · local"
 in every version; it now shows the real one, as **Settings → About** does.
 
+**A scene opened from a link shows in the sidebar.** A beat on a strand, **Appears in scenes**, a
+mention or a search result opens the scene and now also opens its chapter in the sidebar, the
+scene's row highlighted. Before, the chapter stayed closed and the scene's row hidden.
+
+**Fields sized to what they hold.** In **Settings → Project**, **Brainstorm** and **Import**, a
+title or a premise is as wide as a line of prose and a name or a menu as wide as what it holds,
+instead of stretching across the page. The **Plot board** shows each strand's whole name.
+
 ## 2026-10-24
 
 **Long local answers no longer give up after a minute.** The built-in provider waited only 60

@@ -332,11 +332,11 @@ function finishAfterSweep() {
             <h2 class="wiz-h">{{ $t("import.newProjectHeading") }}</h2>
             <div class="opt-row">
               <span class="opt-label">{{ $t("import.titleLabel") }}</span>
-              <UiInput class="part-input" v-model="newBookTitle" :placeholder="$t('import.titlePlaceholder')" />
+              <UiInput class="opt-grow" width="prose" v-model="newBookTitle" :placeholder="$t('import.titlePlaceholder')" />
             </div>
             <div class="opt-row">
               <span class="opt-label">{{ $t("import.authorLabel") }}</span>
-              <UiInput class="part-input" v-model="newBookAuthor" :placeholder="$t('import.authorPlaceholder')" />
+              <UiInput class="opt-grow" width="name" v-model="newBookAuthor" :placeholder="$t('import.authorPlaceholder')" />
             </div>
             <div class="opt-row">
               <UiCheckbox v-model="normalize">{{ $t("import.normalizeLabel") }}</UiCheckbox>
@@ -347,12 +347,12 @@ function finishAfterSweep() {
             <h2 class="wiz-h">{{ $t("import.landingHeading") }}</h2>
             <div class="opt-row">
               <span class="opt-label">{{ $t("import.addToPart") }}</span>
-              <UiSelect class="part-input"
+              <UiSelect width="fit"
                 v-model="partChoice"
                 :options="partOptions"
                 :placeholder="$t('import.choosePart')" />
               <UiInput v-if="partChoice === NEW_PART"
-                class="part-input"
+                class="opt-grow" width="name"
                 v-model="partTitle"
                 :placeholder="$t('import.partTitlePlaceholder')" />
             </div>
@@ -365,14 +365,14 @@ function finishAfterSweep() {
             <h2 class="wiz-h">{{ $t("import.notesOptionsHeading") }}</h2>
             <div class="opt-row">
               <span class="opt-label">{{ $t("import.tagLabel") }}</span>
-              <UiInput class="part-input" v-model="notesTag" :placeholder="$t('import.tagPlaceholder')" list="jw-notes-tag-list" />
+              <UiInput class="opt-grow" width="id" v-model="notesTag" :placeholder="$t('import.tagPlaceholder')" list="jw-notes-tag-list" />
               <datalist id="jw-notes-tag-list">
                 <option v-for="t in notesTagSuggestions" :key="t" :value="t" />
               </datalist>
             </div>
             <div class="opt-row">
               <span class="opt-label">{{ $t("import.pinToLabel") }}</span>
-              <UiSelect class="part-input"
+              <UiSelect width="fit"
                 v-model="notesAnchor"
                 :options="notesAnchorOptions"
                 :placeholder="$t('import.storyWide')" />
@@ -539,15 +539,8 @@ function finishAfterSweep() {
   color: var(--muted);
   min-width: 56px;
 }
-.part-input {
-  flex: 1; min-width: 200px;
-  font-family: var(--font-serif); font-size: 14px;
-  padding: 6px 10px;
-  border: 1px solid var(--border); border-radius: 6px;
-  background: var(--surface);
-  color: var(--ink);
-}
-.part-input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+/* a field grows along its row up to its width cap (the kit control's `width` prop); the kit draws it */
+.opt-grow { flex: 1; min-width: 200px; }
 
 /* Dropzone */
 .dropzone {
