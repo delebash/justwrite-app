@@ -1,20 +1,18 @@
 #!/usr/bin/env node
-// Version bumper for JustWrite. Since the Electron move (2026-10-08) the
-// version lives in ONE file — package.json (electron-builder and the
-// renderer's "What's new" both read it) — and this updates it and stops.
-// Does NOT commit or tag; the user owns git operations.
+// Version bumper for JustWrite: `npm version` (docs.npmjs.com/cli/commands/npm-version) on the
+// root package and its server workspace — package.json, server/package.json (the server answers
+// with it: server/src/version.js; the family guard checks they're equal) and package-lock.json
+// together, as the template's scripts/bump.js does. electron-builder, the update feed and the
+// renderer's "What's new" read it. Does NOT commit or tag; the user owns git operations.
 //
 // Usage:
 //   npm run bump 0.2.0
 
-import { readFile, writeFile } from "node:fs/promises";
+import { execSync } from "node:child_process";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const FILES = {
-  packageJson: resolve(ROOT, "package.json"),
-};
 
 const version = process.argv[2];
 
@@ -27,29 +25,14 @@ if (!/^\d+\.\d+\.\d+(-[\w.]+)?$/.test(version)) {
   process.exit(1);
 }
 
-async function bumpJson(path, key) {
-  const raw = await readFile(path, "utf8");
-  const obj = JSON.parse(raw);
-  const old = obj[key];
-  obj[key] = version;
-  // Preserve indent (2 spaces) and trailing newline.
-  await writeFile(path, `${JSON.stringify(obj, null, 2)}\n`);
-  return old;
-}
-
-try {
-  const pkgOld = await bumpJson(FILES.packageJson, "version");
-
-  console.log(`Bumped:`);
-  console.log(`  package.json ${pkgOld} → ${version}`);
-  console.log("");
-  console.log("Next steps (your call):");
-  console.log(`  git add package.json`);
-  console.log(`  git commit -m "release: v${version}"`);
-  console.log(`  git tag v${version}`);
-  console.log(`  git push && git push --tags`);
-  console.log(`  npm run release   # triggers the GitHub Actions build`);
-} catch (err) {
-  console.error("Bump failed:", err.message);
-  process.exit(1);
-}
+execSync(`npm version ${version} --no-git-tag-version --workspaces --include-workspace-root --allow-same-version`, {
+  cwd: ROOT,
+  stdio: "inherit",
+});
+console.log("");
+console.log("Next steps (your call):");
+console.log(`  git add package.json server/package.json package-lock.json`);
+console.log(`  git commit -m "release: v${version}"`);
+console.log(`  git tag v${version}`);
+console.log(`  git push && git push origin v${version}`);
+console.log(`  npm run release   # triggers the GitHub Actions build`);
