@@ -1,6 +1,6 @@
 {
   "name": "justwrite",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "JustWrite — a writing app for novels, with AI assistance from any OpenAI-compatible provider.",
   "homepage": "https://delebash.github.io/justwrite-website/",
   "private": true,
