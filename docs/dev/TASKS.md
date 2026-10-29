@@ -40,12 +40,9 @@ STATE:  DECIDED — the user: "your rec all go", on these as shown (verbatim):
         JustWrite's own installer names (Windows JustWrite-Setup-<version>.exe, the macOS .dmg, Linux
         .AppImage or .deb): Windows: More info → Run anyway. macOS: System Settings → Privacy & Security
         → Open Anyway. Linux: make the AppImage runnable.
-OPEN:   A — at the family release, its last step (see "Before the family release" below). C — built 2026-10-29
-        (the sidebar dot and counts, the Plot board, the checkboxes, the scroll areas; then, on sight, every page's
-        unnamed controls and the Events page's empty path step), and the check is `e2e/tests/a11y.test.js`. The kit
-        built its seven (75d07f8) and JustWrite's four decisions are built (below): the check is down to 9 a theme,
-        all the kit's — its Breadcrumb's padded box "partially obscured" (22.3 px) and ConfigColumn's last unnamed
-        fields; sent to the kit's session 2026-10-29. Facts in RESEARCH, "Accessibility: JustWrite against WCAG 2.2 AA".
+OPEN:   A — at the family release, its last step (see "Before the family release" below). B, C, D done
+        (C: the check, e2e/tests/a11y.test.js, passes on every page and AI tab, light and dark, on the kit's e45086d,
+        2026-10-29).
 GO:     given 2026-10-29.
 
 ## Every open item settled — the close-out list [2026-10-29]
@@ -98,14 +95,6 @@ OPEN:   none — 22 decided (B in the A–D entry above). 20 DONE 2026-10-29: Up
 GO:     given 2026-10-29 for 1–20, as above; 22 not decided.
 
 ## Now / near-term (JustWrite)
-
-- **Accessibility — the four decisions, DECIDED 2026-10-29.** The user: *"i dont want to look, i want you to
-  decide you look you adversially think and take your recs"*; then, on the status words as described (each word
-  stays, its colour moves to the dot; Settings → Statuses' coloured preview goes): *"ok go"*. Taken: the success
-  fill to the template's `oklch(0.538 0.080 h)` and "Need" to L 0.53; a status's colour off its word in the pill,
-  its list, the scene pill and Home's resume line; Settings → Server and About on the kit's `ServerPanel` and
-  `AboutPanel` (About keeps "This workspace", drops its four-shortcut card). Found while doing it and fixed: every
-  shortcut hint wrote ⌘ on every computer (now `services/shortcutKeys.js`).
 
 - **Before the family release — its last step:** one docgen translation-and-review run on JustWrite
   (`es`), after the last English change: the strings added since the last run (96 on 2026-10-29) and

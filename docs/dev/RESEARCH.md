@@ -543,8 +543,8 @@ built UI and a copy of the user's data with the sample book (JUST_AI_HOME the co
   seven with the one below: a `<label>` round UiCheckbox/UiToggle, Breadcrumb's 15.8 px targets, SyncPanel's
   and ConfigColumn's unnamed fields, the console's log box, `--success` as text, the Usage tab's price
   boxes), JustWrite's success fill and status words in two pills, and JustWrite's own Server
-  section. — *measured, the scratchpad's
-  a11y-probe.js*.
+  section. **Then 0**: on the kit's e45086d with JustWrite's four decisions built, the e2e check passes on
+  every page and AI tab, light and dark (2026-10-29). — *measured, the scratchpad's a11y-probe.js and the e2e*.
 - **axe joins an SVG node's `<text>` elements with no space** (`visibleVirtual` concatenates text nodes
   with `""`; `aria-hidden` doesn't count, it measures what is on screen): "Sable Coyne" + "Character" read
   "sable coynecharacter", so the name "Sable Coyne — Character, …" failed label-in-name (2.5.3). A space
