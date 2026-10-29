@@ -1,6 +1,6 @@
 {
   "name": "justwrite-server",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "type": "module",
   "description": "JustWrite's Node server — Hono on the family kit, run by the desktop app in a utilityProcess, headless as `justwrite-server serve`, or `npm run server` in a checkout. Its own package because the packaged app installs only what src-electron/package.json names (app-structure §Q.3); it also holds the editor schema the renderer and the sync share.",
