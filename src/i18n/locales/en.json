@@ -3874,7 +3874,9 @@
       "windowLabel": "Time window",
       "total": "total",
       "avgPerDay": "avg/day",
-      "peakDay": "peak day"
+      "peakDay": "peak day",
+      "trendRange": "{from} → {to}",
+      "trend": "trend"
     },
     "year": {
       "title": "Writing year",

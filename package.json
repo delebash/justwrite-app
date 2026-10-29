@@ -47,7 +47,8 @@
     "front-matter": "^4.0.2",
     "image-size": "^2.0.4",
     "qrcode": "^1.5.4",
-    "quasar": "^2.35.0"
+    "quasar": "^2.35.0",
+    "simple-statistics": "^7.12.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

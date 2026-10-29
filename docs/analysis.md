@@ -27,7 +27,9 @@ These are the project's vital signs.
 
 A line graph of words written per day. A segmented control switches between **14 / 30 / 90 days**.
 
-Below the graph: total words in the window, average per day, peak single day.
+Below the graph: total words in the window, average per day, peak single day — and the **trend**.
+
+The dashed line is the trend: a straight line through the days in the window, today left out (it isn't finished, and would pull the line down). Under the graph it reads as words a day at its start and at yesterday — **320 → 540 trend** means you're speeding up, **540 → 320** that you're slowing, two near-equal numbers that you're holding steady. It doesn't show until a finished day in the window has words, and never reads below 0.
 
 Populated automatically as you write — no manual logging required.
 

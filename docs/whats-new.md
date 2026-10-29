@@ -6,6 +6,10 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-29
 
+**A trend line on the pace chart.** Analysis → Pace draws a dashed trend line through your finished
+days and reads it under the graph — **320 → 540 trend** — so you can see whether you're speeding up,
+holding or slowing. See [Analysis](analysis.md#pace-chart).
+
 **Atkinson Hyperlegible in the editor.** The editor's **Writing settings** → **Font** now offers
 Atkinson Hyperlegible, the Braille Institute's face for readers with low vision — until now only a
 choice for the interface. See [Appearance](appearance.md#individual-fonts).

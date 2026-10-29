@@ -6,12 +6,6 @@ Items are loosely grouped by area and by how concrete they are.
 
 ---
 
-## Analysis
-
-- **Trend lines on the pace chart.** A simple regression line showing whether you're accelerating, holding, or decelerating.
-
----
-
 ## App-wide
 
 - **Multi-window support.** Open a Character page in one window and write in another. Currently the app is single-window.

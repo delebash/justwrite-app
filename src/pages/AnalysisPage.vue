@@ -88,9 +88,13 @@ const paceShape = computed(() => {
   const w = 1000, h = 140;
   if (pts.length === 0) return { line: "", area: "" };
   const step = w / Math.max(1, pts.length - 1);
-  const max = Math.max(...pts.map((p) => p.words), 1);
-  const line = pts.map((p, i) => `${i * step},${h - (p.words / max) * (h - 8) - 4}`).join(" ");
-  return { line, area: `0,${h} ${line} ${w},${h}`, w, h };
+  const tr = pace.value.trend;
+  const max = Math.max(...pts.map((p) => p.words), tr?.from ?? 0, tr?.to ?? 0, 1);
+  const y = (words) => h - (words / max) * (h - 8) - 4;
+  const line = pts.map((p, i) => `${i * step},${y(p.words)}`).join(" ");
+  // the trend line runs over the finished days: from the first to yesterday, the second-last point
+  const trend = tr && { x1: 0, y1: y(tr.from), x2: (pts.length - 2) * step, y2: y(tr.to) };
+  return { line, area: `0,${h} ${line} ${w},${h}`, w, h, trend };
 });
 
 // Strand totals — for relative-width bars.
@@ -552,11 +556,14 @@ const milestoneState = computed(() => {
           style="width:100%;height:140px;display:block">
           <polygon :points="paceShape.area" fill="var(--accent-soft)" />
           <polyline :points="paceShape.line" fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke" />
+          <line v-if="paceShape.trend" :x1="paceShape.trend.x1" :y1="paceShape.trend.y1" :x2="paceShape.trend.x2" :y2="paceShape.trend.y2"
+            stroke="var(--ink-2)" stroke-width="1.2" stroke-dasharray="5 4" vector-effect="non-scaling-stroke" />
         </svg>
         <div style="display:flex;gap:18px;margin-top:8px;font-size:11.5px;color:var(--muted)">
           <span><b class="t-num" style="color:var(--ink)">{{ $n(pace.total) }}</b> {{ $t("analysis.pace.total") }}</span>
           <span><b class="t-num" style="color:var(--ink)">{{ $n(pace.avg) }}</b> {{ $t("analysis.pace.avgPerDay") }}</span>
           <span><b class="t-num" style="color:var(--ink)">{{ $n(pace.max) }}</b> {{ $t("analysis.pace.peakDay") }}</span>
+          <span v-if="pace.trend"><b class="t-num" style="color:var(--ink)">{{ $t("analysis.pace.trendRange", { from: $n(pace.trend.from), to: $n(pace.trend.to) }) }}</b> {{ $t("analysis.pace.trend") }}</span>
         </div>
       </div>
 

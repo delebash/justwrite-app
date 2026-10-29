@@ -6,6 +6,7 @@
 // file is unit-testable without Vue.
 // ============================================================
 
+import { linearRegression } from "simple-statistics";
 import { tokenize } from "./search.js";
 import { t } from "../i18n/index.js";
 
@@ -120,8 +121,8 @@ export function projectKpis(project, allChapters) {
 }
 
 /**
- * Build a smoothed series for the pace chart from a daily history.
- * Returns { points: [{i, words}], total, avg, max }.
+ * Build a smoothed series for the pace chart from a daily history (oldest first, today last).
+ * Returns { points: [{i, words}], total, avg, max, trend }.
  */
 export function paceSeries(history) {
   const total = history.reduce((a, b) => a + b, 0);
@@ -131,7 +132,22 @@ export function paceSeries(history) {
     total,
     avg: history.length ? Math.round(total / history.length) : 0,
     max,
+    trend: paceTrend(history),
   };
+}
+
+/**
+ * The pace chart's trend line (2026-10-29, the roadmap's): a least-squares line — Excel's and
+ * Sheets' default trendline, simple-statistics' linearRegression — through the finished days. Today,
+ * the last day, is left out: half-written, it would drag the line down. { from, to } are the line's
+ * words a day on the first day and on yesterday, never below 0; null while no finished day has words.
+ */
+function paceTrend(history) {
+  const done = history.slice(0, -1);
+  if (done.length < 2 || !done.some((w) => w > 0)) return null;
+  const { m, b } = linearRegression(done.map((w, i) => [i, w]));
+  const at = (i) => Math.max(0, Math.round(m * i + b));
+  return { from: at(0), to: at(done.length - 1) };
 }
 
 /**
