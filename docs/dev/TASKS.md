@@ -48,9 +48,34 @@ STATE:  DECIDED — the user, on my list of `docs/roadmap.md`, `IDEAS.md` and th
         phone app, the AI-words record, and all 29 `ai-features-roadmap.md` items.
         And on the website: "add it [Ask the book] to the site's screenshot gallery: it's a headline
         feature and now shows formatted answers."
-OPEN:   the six DO items — each researched first; the labels and values the list leaves open go to
-        the user in one list before any of them is built. The removals and closes: done 2026-10-29.
-GO:     given 2026-10-29, as above.
+        Then the open choices (plan `docs/plans/2026-10-29-do-list.md`), the user: "your rec go" — verbatim:
+        1. Pace trend line. A dashed line over the chart, and a fourth figure under it: "320 → 540
+        trend" (words a day, first day of the window → yesterday). It's hidden when no finished day has
+        words, and never goes below 0. It uses simple-statistics, a standard package.
+        2. Multi-window. A command-palette action, "Open this page in a new window", plus Ctrl+Shift+N
+        (VS Code's New Window). It isn't offered on the phone.
+        3. POV character: Links panel: a "POV character" dropdown of all characters, plus "None". Picking
+        one also links that character to the scene. Analysis: a "POV balance" card with words per POV
+        character, and a "No POV character" row for the rest. The AI: its story context names the POV
+        character.
+        4. Atkinson Hyperlegible. Added to Writing settings → Font only, not to Appearance's editor body
+        font, whose list is the serif display faces.
+        5. Repeated words. This one is not standard: no maintained package finds a word repeated within a
+        window, so the check would be our own code. Setting: a "Highlight repeated words" switch, with
+        "within 50 words" (about three sentences). What counts: repeats within the same paragraph only.
+        The standard stopword package's 108 common English words are skipped, and so are the story
+        bible's names. How it shows: a green underline, and the hover text "Used again within 50 words".
+        Books: English only, like the other three highlights.
+        6. Brainstorm. The request sends the category's id (place_name), and the two seeded prompts say
+        what each id means. The proposed prompt text is in the plan's §6. I'd check each category once
+        on the real model afterwards, and that needs the same free memory as the website picture.
+        7. Website entry: Label: "Ask the book" · Title: "Ask your own book." · Caption: "Ask a question
+        about your story and get an answer drawn from your chapters, with the scenes it came from
+        cited." · Retake: close some programs and tell me, and I'll take the picture again.
+OPEN:   the six DO items, built in the plan's order (2 waits on the kit's multi-window); the website
+        entry and the Brainstorm check on the real model wait on free memory. The removals and closes:
+        done 2026-10-29.
+GO:     given 2026-10-29, as above (both).
 
 ## Three feature ideas: PDF page size, Story Bible export, AI-written words by chapter [2026-10-28]
 STATE:  DECIDED — `docs/plans/2026-10-28-four-feature-ideas.md` (each idea argued against twice,

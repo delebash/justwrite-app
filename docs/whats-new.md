@@ -6,6 +6,10 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-29
 
+**Atkinson Hyperlegible in the editor.** The editor's **Writing settings** → **Font** now offers
+Atkinson Hyperlegible, the Braille Institute's face for readers with low vision — until now only a
+choice for the interface. See [Appearance](appearance.md#individual-fonts).
+
 **Exports keep your italics, bold and pictures.** PDF, DOCX and EPUB used to set every paragraph as
 plain text: a novel's italics and bold, a line break inside a paragraph and the pictures in its scenes
 were lost. They come through now. See [Import and export](import-and-export.md#what-the-reading-files-keep).

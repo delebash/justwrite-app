@@ -46,6 +46,8 @@ If you don't want a pairing:
 
 The Editor body font is the one you'll stare at for the most hours. Pick whatever you can read for a long session. Serif fonts (Lora, Source Serif, Merriweather) are easier on the eyes for long reading; sans-serif fonts (Inter, Source Sans) are crisper for short bursts.
 
+The editor's own **Writing settings** (its gear) can set a different font on this device. Among them is **Atkinson Hyperlegible**, which the Braille Institute designed for readers with low vision: its letters are drawn to be hard to mistake for one another.
+
 ### UI scale
 
 A percentage slider that scales every label, control, and prose together. Useful for:

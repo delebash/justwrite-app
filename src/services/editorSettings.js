@@ -2,6 +2,7 @@
 // check, and auto-capitalize. Applied as CSS custom properties on the
 // document root (like the theme service) so every RichEditor reflects
 // them; spell-check and capitalize are wired per-editor in RichEditor.
+import { uiStack } from "@delebash/ui";
 
 // `label` is the stored value (editor settings keep it) and, for a named font, what the menu
 // shows; a font described in words names its key (`labelKey`) for the menu.
@@ -13,6 +14,8 @@ export const EDITOR_FONTS = [
   { label: "Palatino",        stack: "'Palatino Linotype', Palatino, 'Book Antiqua', serif" },
   { label: "System serif",    labelKey: "editorSettings.fontSystemSerif", stack: "var(--font-serif)" },
   { label: "Sans-serif",      labelKey: "editorSettings.fontSans", stack: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" },
+  // the readability face the kit bundles for the interface (2026-10-29), its stack read from the kit
+  { label: "Atkinson Hyperlegible", stack: uiStack("Atkinson Hyperlegible") },
   { label: "Monospace",       labelKey: "editorSettings.fontMono", stack: "var(--font-mono)" },
 ];
 
