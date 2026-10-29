@@ -10,13 +10,11 @@ Items are loosely grouped by area and by how concrete they are.
 
 - **Token budgets per feature.** A per-feature monthly cap that pauses AI calls when exceeded, to prevent surprise bills on cloud providers.
 - **Embedding rebuild status.** The auto-rebuild RAG indicator could be more visible when it's actively running.
-- **Finer per-feature engine tuning.** Every tunable (temperature, samplers, think) now lives on the **engine preset** a feature routes to (AI Settings → Routing by feature) — one source, editable today. The remaining roadmap idea is finer grain: distinct preset defaults per feature *class* (JSON-strict extraction vs prose critique) shipped out of the box, so new users get sensible splits without hand-tuning.
 
 ---
 
 ## Export
 
-- **Direct Kindle KFX export.** Currently the path is EPUB → Kindle Previewer. A direct export would be a quality-of-life win for indie publishers.
 - **Print layout in the PDF.** The page size and margins are yours to set now; still missing for a print-ready interior are mirrored inside/outside margins, chapters starting on a right-hand page, and the page-number style.
 
 ---

@@ -603,11 +603,6 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   `ChatPanel.vue`'s assistant bubble is plain text; seen in the 2026-10-28 real-model screenshots).
   WAITS ON THE KIT: a safe renderer for AI text (marked + DOMPurify — marked doesn't sanitize),
   asked of the kit session 2026-10-28; then the bubble renders through it.
-- **The rest of the "extraction vs copies" audit** (your 2026-07-26 ruling; most of it done
-  2026-10-28/29). Left: the 15 pages' intro lines — the kit's `.page__lede` looks unlike its own
-  window lede, asked of the kit session first; the Markers' and events' empty states (a message slot
-  on the kit's `EmptyState`); the detail pages' bodies. `docs/dev/IDEAS.md`, "The extraction-vs-copies
-  audit".
 - **Help hints translated** (docgen's single-source item, 2026-10-29): each doc's `lede:` front-matter
   instead of `docs/toc.json`'s English `hint`, read as `$t('lede.<slug>')` by Help and the command
   palette, docgen's `extract --check` in the gate. The kit's help renderer already skips front-matter

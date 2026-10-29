@@ -733,6 +733,11 @@ The plan: [`../plans/2026-10-28-four-feature-ideas.md`](../plans/2026-10-28-four
 - **The kit's "one way per job" table** (app-structure §19) has no row for exporting a document or
   for a seeded table of facts; JustWrite's `src/services/export/` (pdfmake, `docx`) is the only
   document exporter in the family.
+- **Kindle takes EPUB as it is (2026-10-29):** KDP's ebook formats are EPUB, DOC/DOCX and KPF (Kindle
+  Create's own); MOBI has ended, and Kindle Previewer is for checking a file, not converting it
+  (https://kdp.amazon.com/en_US/help/topic/G200634390). KFX is the device format Amazon makes, not an
+  upload — so the roadmap's "direct KFX export" was dropped, and the export doc no longer sends EPUBs
+  through Kindle Previewer.
 
 ## Records not yet distilled
 

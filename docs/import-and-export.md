@@ -147,7 +147,7 @@ A reflowable EPUB 3 e-book with:
 **When to pick EPUB:**
 
 - Publishing to **Apple Books** or **Kobo** (both accept EPUB 3 directly).
-- Publishing to **Amazon Kindle** — start with EPUB and run it through Amazon's Kindle Previewer to produce the final format Amazon wants.
+- Publishing to **Amazon Kindle** — upload the EPUB to Kindle Direct Publishing as it is (KDP takes EPUB and Word files); Amazon's free Kindle Previewer shows how it will look on a Kindle before you do.
 - Loading onto an e-reader for your own reading.
 - Sharing with beta readers who use e-readers.
 
@@ -231,7 +231,7 @@ For a typical novel ready to go to an agent:
 For a novel ready to publish:
 
 1. **Set metadata and cover.**
-2. **Export EPUB** for Apple Books, Kobo, and Kindle (via Kindle Previewer).
+2. **Export EPUB** for Apple Books, Kobo, and Kindle.
 3. **Export DOCX** if your publishing path needs it (some print-on-demand services prefer it).
 4. **Optional**: export the **JustWrite book** `.zip` and open it in **JustVoice** to produce an audiobook.
 

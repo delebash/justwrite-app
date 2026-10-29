@@ -16,28 +16,6 @@ through).
 
 ## AI / authoring
 
-### Brainstorm → point-of-use generation (2026-07-26; moved here from TASKS in the 2026-08-04 sweep)
-
-> **Picked up 2026-10-11** → `docs/plans/2026-10-11-ai-drafting-spec.md` (TASKS: "AI drafting on
-> the story-world pages and in the editor").
-
-**The itch (user):** "take brainstorm and move some features to where they relate to, such
-as characters creating a new character from description or creating a name, we do this
-across app, a brainstorm/character/location creation by description, fill in character
-background."
-
-**Current-state evidence:** Brainstorm results are clipboard-only (`useItem`,
-`BrainstormView.vue:165`) — nothing flows into entities; `characterProfile` already drafts
-background/motivation/arc **from scenes** (`feature_catalog.py`) but there is no
-create-from-DESCRIPTION path on any entity page.
-
-**The shape (a design pass before any build):** which generation affordances live ON the
-Characters/Locations/Objects pages (generate name · create from description · fill
-background), what Brainstorm keeps as the freeform hub, and whether the existing
-brainstorm/characterProfile prompts are reused as-is (they should be — one source). Related:
-the thesaurus popover's "More alternatives in Brainstorm →" deep-link (executor plan STEP 2)
-is the first instance of the pattern pointing the other way.
-
 ### Quantized KV cache — a context lever we haven't needed yet (2026-07-30)
 
 **The itch:** an 8 GB-VRAM coding roundup (ai.plainenglish.io, "Best local LLM for 8GB
@@ -205,47 +183,12 @@ menu — their contents and order. A power-user affordance over the existing men
 
 ---
 
-## Infra / tooling
-
-### The extraction-vs-copies audit (owed since 2026-07-26; candidates noted 2026-10-11)
-
-The user, 2026-07-26, on the EntityIndex extraction: "this is the kind of refactoring audit we need
-to do at some point." 2026-10-11 the page headers (15 hand-built + a global copy), the windows'
-headers (16), intro lines (19) and error boxes (19) were extracted onto the kit — finding them took
-a near-copy search, not jscpd (which passes). 2026-10-28: the eight AI windows' identical
-"ready to run" block (plot holes, reverse outline, character audit, marketing pack, foreshadowing,
-AI tells, sensory research, the idea list) and the Timeline's and Relations' hand-styled empty
-states moved onto the kit's `EmptyState`; findChrome and `useStatusDisplay` were already single.
-2026-10-29: the eight "made … ago" lines (`.ck-stamp`, `.rk-stamp` and six `*-meta`) share app.scss's
-`.result-stamp`; the three hand-drawn spinners went (the beat sheet's is Quasar's `q-spinner`; the
-multi-reader's and the variations' sat under their own `AiTaskStrip`, which is the spinner); 20
-hand-written `box-shadow` colours are the `--shadow-*` tokens (the brand mark and the boot picture
-keep theirs — artwork); the seven pages' private `statusLabel`/`statusSeverity` are
-`useStatusDisplay`; and `composables/useEntityPage.js` (the deep audit's `useEntityCrudView`) holds
-what eight story-world pages each copied — open an entry, the status facet, Ask the book, the tag
-and kind lists. The July "byte-identical focus-watches" no longer exist.
-Still open: the 15 pages' intro lines (`.set-desc` and its fourteen twins: 14px, muted, bold terms
-in `--ink-2`) — the kit's `.page__lede` is a different look (ink-2, 32em) from its own window lede
-(`.ui-modal__lede`, muted), so the kit first (asked of its session); the Markers' and the events
-list's empty states, whose text carries markup (`<kbd>`, `<strong>`) that `EmptyState`'s `message`
-string can't — a message slot is a kit gap; the detail pages' bodies below the header; and two
-whose context lives only in the July queue — "gate ratchets" and a "hooks payload channel".
-
-### Multi-model co-residency VRAM budgeting (was ledger §J2)
-
-For big-VRAM boxes running 2–3 resident models, the fit calculation must count the
-already-resident models before sizing a new load, plus an eviction policy. Per-section
-switches already work — the gap is only the memory arithmetic. Motivated by the
-sleeping-child OOM incident on the user's box.
-
----
-
 ## Roadmaps & candidate pools (pointers — user-facing, not duplicated here)
 
 These stay where they are; this list just points at them so nothing's lost:
 
 - **`docs/roadmap.md`** — the published user-facing roadmap (small concrete planned
-  items: per-feature token budgets, KFX export, print layout, pace-chart trend lines, …).
+  items: per-feature token budgets, print layout, pace-chart trend lines, …).
   Feeds the in-app `?` drawer + the docs index.
 - **`ai-features-roadmap.md`** (this folder — moved from `docs/` 2026-07-31) — the
   AI-features direction; now mostly a **shipped/won't-ship record** (~24 of 29
