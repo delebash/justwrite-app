@@ -456,8 +456,9 @@ two sides; the Qwen3 embeddings want an instruction line on the query side; BGE-
 nothing). The catalog seeds each model's published wording with a `{text}` placeholder,
 and every index build wraps your scenes with the document side while every search/chat
 question gets the query side — automatically, per model. Both fields are editable; leave
-one empty and that side embeds raw. If you edit a template after building an index, hit
-**Rebuild** in Ask the book once so the stored vectors match the new wording.
+one empty and that side embeds raw. If you edit the document template after building an
+index, the index's next update (**Update** in Ask the book, or Auto-rebuild after your next
+edit) re-embeds the whole book with the new wording.
 
 > Installing the local engine itself (the llama.cpp runtime) is separate — that lives on
 > the same **Built-in** provider, above the catalog, as one compact row: **Install engine**

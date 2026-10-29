@@ -21,7 +21,7 @@ The **Characters** view is your central file for every person (or creature) in y
 - **Pronouns** — free text (e.g., "she/her", "they/them", neopronouns, species-specific). Surfaced to every AI feature that builds a character profile so generated prose uses the right pronouns instead of guessing.
 - **Age** — numeric.
 - **Life status** — Alive · Deceased · Missing · Unknown. Useful when a character dies mid-book and you don't want AI features writing them as still alive in chapter 30.
-- **Aliases (a.k.a.)** — chips for the other names this character goes by. "Mr. Underhill" for Bilbo, "Iron Man" for Tony Stark, "the Witch" for Esme. Speaker attribution and the global search use this to disambiguate; "ask the character" and audits factor it in too.
+- **Aliases (a.k.a.)** — chips for the other names this character goes by. "Mr. Underhill" for Bilbo, "Iron Man" for Tony Stark, "the Witch" for Esme. The global search and scene linking use this to disambiguate; "ask the character" and audits factor it in too.
 - **One-liner** — a single italic sentence that captures who they are.
 - **Avatar photo** — a 96 px circle. Drag any image file onto it to set or replace.
 - **Status pill** — a colour-coded label drawn from your project palette (Settings → Project → Statuses).

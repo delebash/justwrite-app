@@ -209,9 +209,10 @@ index** (in the chat panel) shows per-scene rows and offers an incremental updat
 (only changed scenes re-embed) or a full rebuild, plus **Clear index**.
 **Auto-rebuild** (AI Settings → Writing AI) quietly re-embeds about a minute
 after your last edit — it only starts working after your first manual build, and
-it fails silently by design (no toast spam mid-writing). One recorded limit: if
-you change an embedding template on the AI page, run a manual Refresh — the
-auto-rebuild can't detect template changes.
+it fails silently by design (no toast spam mid-writing). Changing the embedding
+model's document template on the AI page counts as a change to every scene: the
+next update — yours, or Auto-rebuild's after your next edit — re-embeds the whole
+index.
 
 ## The command palette (⌘P)
 

@@ -23,17 +23,15 @@ let _booted = false;
  */
 export async function bootProviders() {
   if (_booted) return;
-  // A cold app boot can race the server's own seeding/migration — one failed GET
-  // here used to leave the session without provider records (2026-07-11 routing
-  // twin). Retry briefly; the connection gate has already verified /health answers.
-  for (let attempt = 0; attempt < 3 && _providers === null; attempt += 1) {
-    if (attempt) await new Promise((resolve) => setTimeout(resolve, 700));
-    try {
-      const data = await get("/v1/llm-providers");
-      if (Array.isArray(data?.providers)) _providers = data.providers;
-    } catch (err) {
-      console.error("providerBackend.bootProviders failed:", err);
-    }
+  // One GET: the server seeds before it listens (server/src/serve.js `build`, then the kit's
+  // listen; the phone's worker seeds before "ready"), so the connection gate's /health answer
+  // means the providers are there. The 2026-07-11 retry loop raced the Python server's seeding,
+  // which no longer exists. A failed GET still self-heals through refreshProviders below.
+  try {
+    const data = await get("/v1/llm-providers");
+    if (Array.isArray(data?.providers)) _providers = data.providers;
+  } catch (err) {
+    console.error("providerBackend.bootProviders failed:", err);
   }
   _booted = true;
 }

@@ -318,6 +318,25 @@ describe("chunkProject with cards", () => {
     expect(card.links).toBeUndefined();
   });
 
+  // 2026-10-28: the model's document template is embedded with every chunk, so it is in the sha —
+  // editing it re-embeds on the next update; a model with none keeps the sha it always had.
+  it("folds the document template into every sha, and leaves template-less shas as they were", async () => {
+    const { chunkProjectAsync } = await import("@renderer/services/rag/chunker.js");
+    const shaOf = async (text) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-1", new TextEncoder().encode(text))))
+      .map((b) => b.toString(16).padStart(2, "0")).join("");
+    const plain = await chunkProjectAsync(fixtureProject());
+    const s1 = plain.find((c) => c.id === "ch1:s1");
+    expect(s1.sha).toBe(await shaOf(`${s1.text}\n${s1.links}`));
+    const card = plain.find((c) => c.kind === "character");
+    expect(card.sha).toBe(await shaOf(card.text));
+
+    const nomic = await chunkProjectAsync(fixtureProject(), { documentTemplate: "search_document: {text}" });
+    expect(nomic.find((c) => c.id === "ch1:s1").sha).toBe(await shaOf(`search_document: {text}\n${s1.text}\n${s1.links}`));
+    expect(nomic.every((c, i) => c.sha !== plain[i].sha)).toBe(true);
+    const again = await chunkProjectAsync(fixtureProject(), { documentTemplate: "search_document: {text}" });
+    expect(again.map((c) => c.sha)).toEqual(nomic.map((c) => c.sha));
+  });
+
   // RAG (c), 2026-07-18: long scenes split; short scenes keep their unsplit
   // id (and sha) so an existing index re-embeds only what actually split.
   it("splits a long scene into sentence-boundary parts under the excerpt cap; short scenes keep their id", async () => {

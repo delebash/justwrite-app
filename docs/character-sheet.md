@@ -68,8 +68,8 @@ fields from what the character just said, reviewed the same way. See
   who keeps ending up in fights he could have prevented."
 
 Below the hero row: **Tags** (freeform, project-wide typeahead) and **Also known
-as** (the other names this character goes by — aliases feed speaker attribution,
-search, and every AI feature that needs to recognise them).
+as** (the other names this character goes by — aliases feed search, scene linking,
+and every AI feature that needs to recognise them).
 
 ---
 

@@ -41,9 +41,12 @@ doc keeps the design decisions a `src/services/rag/` maintainer needs.
   every auto-reindex, and sends manuscript text off-machine. The default later
   moved to **Qwen3-4B** (won the 2026-07-12 on-box A/B, +6.6 English retrieval).
 - **Rebuild semantics**: changing document vectors = ONE automatic full re-embed
-  (the sha covers text+links, so the first diff re-embeds everything). **Recorded
-  limitation: editing an embed TEMPLATE later needs a manual Rebuild** — sha-diff
-  can't see template changes (tracked for an affordance).
+  (the sha covers text+links, so the first diff re-embeds everything). Since
+  2026-10-28 the sha also covers the model's DOCUMENT template when it applies one
+  (`chunkProjectAsync(project, { documentTemplate })`, fetched by the indexer from
+  `/v1/ai/embed-templates` with the kit's own `{text}`-slot rule), so editing it
+  re-embeds on the next update like a text edit; a template-less model keeps the sha
+  it always had. The QUERY template needs no re-embed and stays out of the sha.
 - **Convergence rules that must not re-break**: ONE `citationLabel(chunk)` shared
   by excerpt formatting and ChatPanel's citation row; ONE `normalizeName()` in
   `services/text.js` (it replaced three byte-identical copies; a fourth is
@@ -51,8 +54,8 @@ doc keeps the design decisions a `src/services/rag/` maintainer needs.
 - **Prompt-seed healing is host-data**: seeding is insert-if-missing, so new prompt
   text reaches existing DBs only via the old→new text MAP passed through
   `configure_app_seed`/`install_llm`; a user-edited prompt is never touched.
-- **Known corpus defect (tracked)**: imported chapters land as ONE scene
-  (`stores/project.js` import path) → one diluted embedding per chapter; fix is
-  scene-break splitting on import (E5).
+- **Imported chapters split at their scene breaks** (E5, `stores/project.js`
+  importChapters) — the old one-scene-per-chapter import gave one diluted embedding
+  per chapter.
 - The two temperature-pinning callers, and only these two: `chat.js` sends 0.3,
   `characterChat.js` 0.7.

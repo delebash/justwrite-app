@@ -270,7 +270,7 @@ function clickParent(item) {
 // "Resume" doors — and the sidebar was changed along with it without being
 // asked. The user's words: "all i authorized for change was home page… that
 // defeats the point of the scene list when you click chapter". Home keeps the
-// scene-first behaviour (HomeView / HomeShelfView call useWritingNav directly);
+// scene-first behaviour (HomePage calls useWritingNav directly);
 // only the sidebar goes back.
 function clickChild(parentId, childId) { ui.select(parentId, childId); router.push(`/${parentId}/${childId}`); }
 

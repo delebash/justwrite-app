@@ -99,7 +99,7 @@ If you'd rather not lose the current state in case the autosave is wrong, **expo
 
 At the bottom of the Backups section, in red, is **Reset workspace**.
 
-This wipes **all** JustWrite data from JustWrite's local database — every project, every chapter, every character, every AI provider configuration, every voice assignment, every session log. You start clean on the welcome screen — no demo is reloaded; use **Try tutorial project** if you want the sample book (*The Ninth Facet*) back.
+This wipes **all** JustWrite data from JustWrite's local database — every project, every chapter, every character, every AI provider configuration, every session log. You start clean on the welcome screen — no demo is reloaded; use **Try tutorial project** if you want the sample book (*The Ninth Facet*) back.
 
 It does not delete autosave files on disk; those remain unless you delete them manually.
 

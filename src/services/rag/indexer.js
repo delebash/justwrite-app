@@ -9,7 +9,7 @@
 
 import { useAiStore } from "../../stores/ai.js";
 import { useProjectStore } from "../../stores/project.js";
-import { friendlyAiError, embedTexts, ensureEmbeddingReady } from "@delebash/ui";
+import { friendlyAiError, embedTexts, ensureEmbeddingReady, get } from "@delebash/ui";
 import { chunkProjectAsync } from "./chunker.js";
 import { clear, diff, putVectors, removeIds, shas, status } from "./vectorStore.js";
 import { t } from "../../i18n/index.js";
@@ -106,6 +106,18 @@ async function putInBatches(projectId, model, items) {
   }
 }
 
+/**
+ * The model's document template as the server applies it to every chunk it embeds: the kit's
+ * /v1/ai/embeddings wraps the text only when the model's row has a `{text}` slot (core
+ * llm/api.js applyEmbedTemplate), so anything else is "". Its edits happen in the model catalog
+ * (/v1/ai/embed-templates); folding it into the shas makes the next update see them.
+ */
+async function documentTemplateFor(model) {
+  const { rows } = await get("/v1/ai/embed-templates");
+  const template = rows?.find((r) => r.modelId === model)?.documentTemplate || "";
+  return template.includes("{text}") ? template : "";
+}
+
 // ─── Public API ───────────────────────────────────────────────────────────
 
 /** Incremental build — embeds new/changed chunks, removes deleted ones. */
@@ -136,7 +148,7 @@ export async function buildOrUpdateIndex({ signal, onProgress, provider, model }
   const projectId = project.activeProjectId;
 
   if (onProgress) onProgress({ phase: "chunking" });
-  const freshChunks = await chunkProjectAsync(project);
+  const freshChunks = await chunkProjectAsync(project, { documentTemplate: await documentTemplateFor(resolvedModel) });
 
   // Refuse to silently mix models — the user must switch back or Rebuild.
   const st = await status(projectId);
@@ -182,7 +194,7 @@ export async function rebuildIndex({ signal, onProgress, provider, model } = {})
   const projectId = project.activeProjectId;
 
   if (onProgress) onProgress({ phase: "chunking" });
-  const freshChunks = await chunkProjectAsync(project);
+  const freshChunks = await chunkProjectAsync(project, { documentTemplate: await documentTemplateFor(resolvedModel) });
 
   // Stage the WHOLE replacement first; clear only once every chunk embedded
   // (2026-07-11). The old clear-then-embed order destroyed the index whenever

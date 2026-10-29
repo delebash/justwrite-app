@@ -550,10 +550,12 @@ function onRowClick(event) {
             :curated="project.tagVocabularies.characters"
             @update:model-value="(v) => updateField('tags', v)" />
 
-          <div class="t-eyebrow ch-aliases-label">{{ $t("characters.detail.alsoKnownAs") }}</div>
+          <!-- its own label: without one the editor reads "Tags", a second Tags row under the first -->
           <TagEditor
             :model-value="ch.aliases || []"
             :pool="aliasPool"
+            :label="$t('characters.detail.alsoKnownAs')"
+            :placeholder="$t('characters.detail.addAlias')"
             @update:model-value="(v) => updateField('aliases', v)" />
 
           <!-- v3 sectioned sheet. The existing colored Motivation grid, Arc card,
@@ -757,8 +759,6 @@ function onRowClick(event) {
 <style scoped>
 /* Composes with the global .entity-desc (base margin 0). */
 .ch-desc { margin: 0 0 18px; }
-
-.ch-aliases-label { margin: 14px 0 6px; }
 
 
 .avatar-drop {

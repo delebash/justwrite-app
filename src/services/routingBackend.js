@@ -20,18 +20,14 @@ let _booted = false;
  */
 export async function bootRouting() {
   if (_booted) return;
-  // A cold app boot can race the server's own seeding/migration — one failed GET
-  // here left the whole session on the legacy fallback ids and broke embeddings
-  // ("has no embedding model set", 2026-07-11). Retry briefly; the connection gate
-  // has already verified the server answers /health.
-  for (let attempt = 0; attempt < 3 && _routing === null; attempt += 1) {
-    if (attempt) await new Promise((resolve) => setTimeout(resolve, 700));
-    try {
-      const data = await get("/v1/ai/routing");
-      if (data && typeof data === "object") _routing = data;
-    } catch (err) {
-      console.error("routingBackend.bootRouting failed:", err);
-    }
+  // One GET, as bootProviders: the server is seeded before the connection gate's /health
+  // answers, so the 2026-07-11 retry loop (it raced the Python server's seeding) is gone.
+  // A failed GET still self-heals through refreshRouting, which the AI store's resync awaits.
+  try {
+    const data = await get("/v1/ai/routing");
+    if (data && typeof data === "object") _routing = data;
+  } catch (err) {
+    console.error("routingBackend.bootRouting failed:", err);
   }
   _booted = true;
 }

@@ -954,8 +954,13 @@ function sceneBadge(beat) {
 }
 
 /* ── Beat cards ──────────────────────────────────────────────────── */
+/* A 110px chapter column fits the label OR a scene badge beside it, not both: the label takes the
+   first line and the badge wraps under it, and the hover-only delete sits over the corner instead
+   of holding space (2026-10-28 — the label was squeezed to nothing on every pinned beat). */
 .beat-card {
+  position: relative;
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 4px;
   border-radius: 6px;
@@ -981,7 +986,7 @@ function sceneBadge(beat) {
 .beat-card:active { cursor: grabbing; }
 
 .beat-label {
-  flex: 1;
+  flex: 1 1 100%;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -999,7 +1004,9 @@ function sceneBadge(beat) {
 }
 
 .beat-del-btn {
-  flex-shrink: 0;
+  position: absolute;
+  top: 2px;
+  right: 2px;
   opacity: 0;
   transition: opacity .12s;
 }

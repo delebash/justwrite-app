@@ -6,16 +6,8 @@ Items are loosely grouped by area and by how concrete they are.
 
 ---
 
-## Story bible
-
-- **Tag filter chips on Characters / Locations / Objects.** Worldbuilding already has filter chips for tags. The other entity grids don't yet. Adding them is mechanical work — the pattern's been established.
-- ~~Curated project-wide tag vocabulary~~ — **shipped** (Settings → tag vocabularies; TagEditor canonicalises against it). Deliberately ships EMPTY: a starter default set was considered and rejected — your tags are your own.
-
----
-
 ## Editor and writing
 
-- **Sidebar arrow-key navigation.** Items in the sidebar are reachable by Tab but arrow keys don't move within a list. A roving-tabindex pattern would fix this. Accessibility win for keyboard-first users.
 - **Search snippet highlight offset fix.** Some snippets with multi-space runs show highlights off by a character or two. Small fidelity issue, fix planned.
 
 ---
@@ -46,9 +38,7 @@ Items are loosely grouped by area and by how concrete they are.
 ## App-wide
 
 - **Multi-window support.** Open a Character page in one window and write in another. Currently the app is single-window.
-- **Cross-machine sync.** Right now the path is "point cloud sync at the autosave folder". A first-class sync built into JustWrite (still local-first, just smarter about merging) is on the wishlist.
 - **Native dark-mode for charts and graphs.** Some chart and graph surfaces use light-mode colours that don't quite work in dark mode.
-- **Curated shadow tokens.** Several places use ad-hoc shadow rgbas; a `--shadow-soft` / `--shadow-medium` token pair would unlock proper dark-mode shadow behaviour.
 
 ---
 
@@ -56,7 +46,7 @@ Items are loosely grouped by area and by how concrete they are.
 
 A few things JustWrite **isn't** planning to add. Worth saying so:
 
-- **A cloud account.** The local-first model is the whole point. There may be cross-machine sync (see above) but there will not be a JustWrite account you log into.
+- **A cloud account.** The local-first model is the whole point. Your books sync between your own devices (see [Sync](sync.md)), but there will not be a JustWrite account you log into.
 - **A built-in publishing pipeline.** JustWrite produces files (EPUB, PDF, DOCX). What you do with them — Amazon, Apple Books, Kobo, IngramSpark — is your business.
 - **Real-time collaboration.** Same reasons as the no-cloud-account decision. A snapshot you hand to a collaborator works; merging concurrent edits across the wire does not.
 - **Lock-in to any single AI provider.** Every AI feature works with whichever provider you choose. That includes local engines that never call out to the internet.

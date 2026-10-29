@@ -148,16 +148,22 @@ export function chunkProject(project) {
  * of each chunk's plain text. The indexer always uses this form.
  *
  * @param {object} project — a live Pinia project store instance
+ * @param {{ documentTemplate?: string }} [opts] — the embedding model's document template, as the
+ *   server applies it ("" when it applies none)
  * @returns {Promise<Array<Chunk>>}
  */
-export async function chunkProjectAsync(project) {
+export async function chunkProjectAsync(project, { documentTemplate = "" } = {}) {
   const chunks = chunkProject(project);
   await Promise.all(
     chunks.map(async (chunk) => {
       // Scene shas cover text + links so a link edit re-uploads the chunk
       // (the server copy can never go stale; the redundant same-text re-embed
       // is one scene per edit — negligible). Cards sha their text alone.
-      chunk.sha = await sha1Hex(chunk.links != null ? `${chunk.text}\n${chunk.links}` : chunk.text);
+      const own = chunk.links != null ? `${chunk.text}\n${chunk.links}` : chunk.text;
+      // The document template is part of what gets embedded, so it is part of the sha: editing
+      // it re-embeds the book on the next update, as a text edit does (2026-10-28). A model
+      // with none keeps the sha it always had — no re-embed for it.
+      chunk.sha = await sha1Hex(documentTemplate ? `${documentTemplate}\n${own}` : own);
     }),
   );
   return chunks;

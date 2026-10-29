@@ -486,7 +486,7 @@ defineExpose({ open: () => { open.value = true; }, close });
            is index-only again. -->
       <div v-if="hasIndex" class="cp-status">
         <Icon name="Check" :size="11" />
-        <span>{{ $t("chat.scenesIndexed", { n: status.entryCount }) }}</span>
+        <span>{{ $t("chat.entriesIndexed", { n: status.entryCount }) }}</span>
         <span class="cp-status-sep">·</span>
         <span class="cp-status-model"><code>{{ status.model || "?" }}</code></span>
         <span v-if="isIndexing" class="cp-indexing" v-tooltip.bottom="$t('chat.indexingTooltip')">

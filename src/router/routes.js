@@ -56,7 +56,6 @@ function entityEventRoutes(prefix, kind, opts = {}) {
 // none — the kit's Routing-by-task tab owns its own page-local stack (#233).
 const pageRoutes = [
   { path: "",                     name: "Home",          component: () => import("../pages/HomePage.vue"), meta: { undoDomains: ["meta"] } },
-  { path: "home-v2",            name: "HomeShelf",     component: () => import("../pages/HomeShelfPage.vue"), meta: { undoDomains: ["meta"] } },
 
   // Architecture / Setting events — singleton entity id "setting".
   ...entityEventRoutes("architecture/setting", "setting", { fixedId: "setting", namePrefix: "setting" }),

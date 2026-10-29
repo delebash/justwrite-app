@@ -480,7 +480,7 @@ toasts and hover tooltips were not opened; 147 strings matching book content wer
 - **Dates follow the browser's language, not the app's:** 13 `toLocale…String(undefined)` /
   `()` calls in 8 files (ChatPanel, DateTimePicker, Sidebar, VersionHistoryModal, AnalysisPage,
   EventsTimelinePage, HomeShelfPage, TimelinePage), and `DateTimePicker.vue:20` lists the month
-  names in English.
+  names in English. (HomeShelfPage, the unreachable /home-v2, was deleted 2026-10-28.)
 - **Seeded database words stayed English by decision 4** (marker types, statuses, roles) until
   2026-10-18: the marker types are a code table with keys now; statuses and worldbuilding
   categories show by key until renamed (the kit's

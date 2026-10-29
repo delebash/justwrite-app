@@ -149,11 +149,9 @@ export default defineBoot(async ({ app, router, store: pinia }) => {
   // module-local cache and neither reads the other's, so the "after bootProviders"
   // in routingBackend's docstring means "before mount", not a data dependency.
   //
-  // Measured 2026-07-25, and worth being honest about: on the happy path this saves
-  // about 4 ms (each GET is 3-4 ms warm against localhost). The reason to do it is the
-  // FAILURE path. Both functions retry 3× with 700 ms backoff to survive a cold boot
-  // racing the server's own seeding — so a server that is up but not yet answering
-  // these two routes cost 2 × 2.8 s sequentially, and now costs 2.8 s once, overlapped.
+  // Measured 2026-07-25: each GET is 3-4 ms warm against localhost, so running them
+  // together saves about 4 ms. (They no longer retry: the server is seeded before it
+  // answers /health, so there is no seeding race to wait out.)
   await Promise.all([bootProviders(), bootRouting()]);
 
   // Now that settings are loaded, re-apply the persisted appearance (migrating

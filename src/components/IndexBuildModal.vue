@@ -13,6 +13,7 @@ import { useProjectStore } from "../stores/project.js";
 // the lifecycle rides withAiTask per the AI-call convention (2026-08-08).
 import { useSurfaceTask, withAiTask, AiTaskStrip, Icon, AppModal, UiButton, UiBanner } from "@delebash/ui";
 import { buildOrUpdateIndex, rebuildIndex, indexStatus, clearIndex } from "../services/rag/indexer.js";
+import { citationLabel } from "../services/rag/excerpts.js";
 import StatusRow from "./StatusRow.vue";
 import { useI18n } from "vue-i18n";
 
@@ -53,13 +54,11 @@ async function refreshBefore() { before.value = await indexStatus(); }
 const appModal = ref(null);
 function requestClose() { appModal.value?.close(); }
 
-// Each "embedding" progress tick names a chunk — mirror that into rows.
+// Each "embedding" progress tick names a chunk — mirror that into rows, labelled as the chat
+// panel's citations are (the ONE citationLabel): story-bible entries have no chapter or scene
+// number, which the old chapter/scene label printed as "Ch. undefined · Scene NaN".
 function rowForChunk(c) {
-  return {
-    id: c.id,
-    label: t("indexBuild.rowLabel", { num: c.chapterNum, chapter: c.chapterTitle || t("common.untitled"), scene: c.sceneTitle || t("common.sceneN", { n: c.sceneIdx + 1 }) }),
-    status: "pending",
-  };
+  return { id: c.id, label: citationLabel(c, t), status: "pending" };
 }
 
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
@@ -173,7 +172,7 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
     </template>
 
     <div v-if="before.exists && !running && !result" class="idx-stat">
-      {{ $t("indexBuild.currentIndex", { scenes: $t("count.scene", { n: before.entryCount }, before.entryCount), model: before.model || $t("indexBuild.unknownShort"), dims: $t("indexBuild.dims", { n: before.dims || $t("indexBuild.unknownShort") }) }) }}
+      {{ $t("indexBuild.indexSummary", { entries: $t("count.entry", { n: before.entryCount }, before.entryCount), model: before.model || $t("indexBuild.unknownShort"), dims: $t("indexBuild.dims", { n: before.dims || $t("indexBuild.unknownShort") }) }) }}
     </div>
 
     <UiBanner v-if="error">{{ error }}</UiBanner>
@@ -188,7 +187,7 @@ const totalDone = computed(() => rows.value.filter((r) => r.status === "done").l
 
     <div v-if="result" class="idx-summary">
       <Icon name="Check" :size="13" />
-      {{ $t("indexBuild.indexed", { scenes: $t("count.scene", { n: totalDone }, totalDone) }) }}
+      {{ $t("indexBuild.indexedEntries", { entries: $t("count.entry", { n: totalDone }, totalDone) }) }}
       <span v-if="result.removed" class="t-muted">{{ $t("indexBuild.staleCleared", { n: result.removed }, result.removed) }}</span>
     </div>
 
