@@ -62,7 +62,7 @@ jobs:
           # WebDriverAgent with that Xcode, which can't drive a newer major (the image also carries
           # iOS 26 runtimes beside Xcode 16's iOS 18 SDK).
           SDK=$(xcrun --sdk iphonesimulator --show-sdk-version)
-          read -r UDID VERSION < <(xcrun simctl list devices available -j | SDK="$SDK" node -e '
+          read -r UDID VERSION < <(xcrun simctl list devices available -j | SDK="$SDK" node --input-type=module -e '
             let s = ""; process.stdin.on("data", (d) => (s += d)).on("end", () => {
               const major = process.env.SDK.split(".")[0];
               const ver = (rt) => (rt.match(/iOS-([\d-]+)$/)?.[1] || "").split("-").map(Number);

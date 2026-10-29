@@ -282,42 +282,30 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ inputs.tag }}
         run: |
-          PRODUCT=$(node -p "require('./package.json').productName")
+          # ES modules, as all the family's code (the family rules): --input-type=module, never require
+          PRODUCT=$(node --input-type=module -e 'import { readFileSync } from "node:fs"; process.stdout.write(JSON.parse(readFileSync("package.json", "utf8")).productName)')
           # JustWrite's What's new is dated, not versioned: the notes point at the bundled docs
           printf '%s %s. See `docs.tar.gz` for the bundled user documentation that the marketing site mirrors for this release.\n' "$PRODUCT" "$TAG" > release-notes.md
+          # the user docs for the website: docs/*.md and the help's toc.json only — never docs/dev or docs/plans
+          # (the trackers and their history), which the website would publish
+          tar -czf docs.tar.gz docs/*.md docs/toc.json
           PRE=""
           case "$TAG" in *-*) PRE="--prerelease" ;; esac
           # a new release is a draft until every file is attached: published first, it was the "Latest" an
           # installed copy's update check read before its latest.yml was there (the template's)
           gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" $PRE --draft --title "$PRODUCT $TAG" --notes-file release-notes.md
+          # attached while the release is a draft: it is never "Latest" without them — the website's sync skips a
+          # release that has none and builds with no docs (the template's, kit e326cb8; until then a separate job
+          # attached them after the release was public)
+          gh release upload "$TAG" docs.tar.gz --clobber
           shopt -s nullglob
           cd dist/electron/Packaged
           # the installers, and electron-updater's feed: latest*.yml (one per platform) and the .blockmaps
           gh release upload "$TAG" *.exe *.dmg *.zip *.AppImage *.deb *.blockmap latest*.yml --clobber
           gh release edit "$TAG" --draft=false
 
-  attach-docs:
-    needs: publish
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout (at tag)
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.tag }}
-
-      - name: Pack docs
-        # User docs ONLY — `docs/` (recursive) would ship docs/dev/ and
-        # docs/plans/ (trackers, backlogs, per-task history) inside a public
-        # release asset that the marketing site then mirrors.
-        run: tar -czf docs.tar.gz docs/*.md docs/toc.json
-
-      - name: Attach to release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ inputs.tag }}" docs.tar.gz --clobber
-
   notify-website:
-    needs: attach-docs
+    needs: publish
     runs-on: ubuntu-latest
     steps:
       - name: Trigger justwrite-website rebuild

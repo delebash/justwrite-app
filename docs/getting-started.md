@@ -172,9 +172,8 @@ The workflow runs these jobs:
 
 1. **`build`** — matrix build with [electron-builder](https://www.electron.build/) on macOS (universal `.dmg`), Windows (`.exe` installer), and Linux (`.AppImage` + `.deb`). Each runner checks out the shared kit and the sync engine beside the app, at the commits the app was tested with (`npm run release` passes them). The matrix is computed dynamically from the `platforms` workflow input (`all` / `windows` / `macos` / `linux`). Each runner then starts the packaged app as a user would, starts the server on its own through `justwrite-server`, and checks that both use the same data folder.
 2. **`linux-user`** — opens the AppImage the way a Linux user does, on the current Ubuntu LTS.
-3. **`publish`** — only when every check passed: creates the GitHub Release and attaches the installers and the update feed.
-4. **`attach-docs`** — packs the `docs/` folder into `docs.tar.gz` and attaches it to the release. The marketing site treats this as the source of truth for the docs at this version.
-5. **`notify-website`** — fires a `repository_dispatch` to [`justwrite-website`](https://github.com/delebash/justwrite-website), which rebuilds and redeploys with the new docs.
+3. **`publish`** — only when every check passed: creates the GitHub Release as a draft, attaches the user docs (`docs/*.md` and `docs/toc.json`, packed as `docs.tar.gz` — the marketing site's source of truth for the docs at this version), the installers and the update feed, and only then makes it public, so the release is never the latest without all of them.
+4. **`notify-website`** — fires a `repository_dispatch` to [`justwrite-website`](https://github.com/delebash/justwrite-website), which rebuilds and redeploys with the new docs.
 
 A dry run builds and checks everything without publishing: `gh workflow run release.yml -f tag=master -f publish=false` (the files stay on the run for 7 days).
 
