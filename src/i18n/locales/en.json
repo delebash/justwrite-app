@@ -2888,8 +2888,11 @@
     },
     "empty": {
       "noChaptersMatch": "No chapters match",
+      "noChaptersYet": "No chapters yet",
       "noWorldbuildingMatch": "No worldbuilding match",
-      "noMatchFor": "No {label} match"
+      "noWorldbuildingYet": "No articles yet",
+      "noMatchFor": "No {label} match",
+      "noneYetFor": "No {label} yet"
     },
     "brand": {
       "sub": "v{version}",

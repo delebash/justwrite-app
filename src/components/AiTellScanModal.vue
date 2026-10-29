@@ -91,15 +91,13 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
       </i18n-t>
     </template>
 
-    <div v-if="!result" class="at-empty">
-      <Icon name="Sparkle" :size="20" />
-      <p class="at-empty-text">
-        {{ $t("aiTell.idleBlurb") }}
-      </p>
-      <UiButton intent="primary" @click="runScan">
-        <Icon name="Sparkle" :size="13" /> {{ $t("aiTell.action") }}
-      </UiButton>
-    </div>
+    <EmptyState v-if="!result" icon="Sparkle" :icon-size="20" :message="$t('aiTell.idleBlurb')">
+      <template #actions>
+        <UiButton intent="primary" @click="runScan">
+          <Icon name="Sparkle" :size="13" /> {{ $t("aiTell.action") }}
+        </UiButton>
+      </template>
+    </EmptyState>
 
     <template v-else>
       <div class="at-stats">
@@ -173,18 +171,6 @@ const KIND_KEYS = Object.keys(TELL_KINDS);
 </template>
 
 <style scoped>
-.at-empty {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 14px; padding: 32px 18px;
-  background: var(--surface-2);
-  border-radius: 10px;
-  text-align: center;
-}
-.at-empty > :first-child { color: var(--accent); }
-.at-empty-text {
-  margin: 0; max-width: 56ch;
-  font-size: 13px; line-height: 1.55; color: var(--ink-2);
-}
 
 .at-stats {
   display: flex; flex-wrap: wrap; align-items: center; gap: 6px;

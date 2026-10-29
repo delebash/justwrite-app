@@ -196,14 +196,18 @@ menu — their contents and order. A power-user affordance over the existing men
 The user, 2026-07-26, on the EntityIndex extraction: "this is the kind of refactoring audit we need
 to do at some point." 2026-10-11 the page headers (15 hand-built + a global copy), the windows'
 headers (16), intro lines (19) and error boxes (19) were extracted onto the kit — finding them took
-a near-copy search, not jscpd (which passes). Seen while doing it, not yet done: each AI window's
-own loading / empty / stamp blocks (`.bs-loading`, `.cpf-empty`, `.ck-stamp`, …); the detail
-pages' bodies below the header; per-page empty states; the probe scripts' private findChrome()
-copies. From the July polish list (I1, the archived big-batch queue): a `useEntityCrudView` for the
-detail pages' byte-identical focus-watches, `SettingsPage`'s `.set-desc strong` against the shared
-styles, the 24 hand-written `box-shadow` rgba values against the `--shadow-*` tokens (which have
-dark-mode values); and two whose context lives only in that queue — "gate ratchets" and a "hooks
-payload channel".
+a near-copy search, not jscpd (which passes). 2026-10-28: the eight AI windows' identical
+"ready to run" block (plot holes, reverse outline, character audit, marketing pack, foreshadowing,
+AI tells, sensory research, the idea list) and the Timeline's and Relations' hand-styled empty
+states moved onto the kit's `EmptyState`; findChrome and `useStatusDisplay` were already single.
+Still open: the loading lines (`.bs-loading`, `.va-loading`, `.mr-loading`) and the stamps
+(`.ck-stamp`, `.rk-stamp`); the Markers' and the events list's empty states, whose text carries
+markup (`<kbd>`, `<strong>`) that `EmptyState`'s `message` string can't — a message slot is a kit
+gap; the detail pages' bodies below the header. From the July polish list (I1, the archived
+big-batch queue): a `useEntityCrudView` for the detail pages' byte-identical focus-watches,
+`SettingsPage`'s `.set-desc strong` against the shared styles, the 24 hand-written `box-shadow`
+rgba values against the `--shadow-*` tokens (which have dark-mode values); and two whose context
+lives only in that queue — "gate ratchets" and a "hooks payload channel".
 
 ### Multi-model co-residency VRAM budgeting (was ledger §J2)
 

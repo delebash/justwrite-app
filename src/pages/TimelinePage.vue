@@ -11,7 +11,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import { PaneHeader, pageFill } from "@delebash/ui";
-import { Icon } from "@delebash/ui";
+import { EmptyState, Icon } from "@delebash/ui";
 import { formatWhen, parseWhen } from "../services/eventWhen.js";
 
 const project = useProjectStore();
@@ -67,10 +67,8 @@ function goOwner(ev) { router.push(EVENTS_KIND_META[ev.ownerKind].detailUrl(ev.o
             <template #events><strong>{{ $t("common.events") }}</strong></template>
           </i18n-t>
 
-          <section v-if="allEvents.length === 0" class="events-empty">
-            <div style="font-size:14px;color:var(--ink);margin-bottom:6px">{{ $t("timeline.emptyTitle") }}</div>
-            <div style="font-size:12.5px;max-width:400px">{{ $t("timeline.emptyBody") }}</div>
-          </section>
+          <EmptyState v-if="allEvents.length === 0" icon="Timeline"
+            :title="$t('timeline.emptyTitle')" :message="$t('timeline.emptyBody')" />
 
           <section v-else class="timeline">
             <article v-for="ev in allEvents" :key="`${ev.ownerId}:${ev.id}`" class="timeline-row">

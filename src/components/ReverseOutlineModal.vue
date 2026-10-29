@@ -15,7 +15,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useAiStore } from "../stores/ai.js";
-import { useSurfaceTask, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, Icon, AiTaskStrip, AppModal, UiButton, UiBanner, EmptyState } from "@delebash/ui";
 import {
   generateReverseOutline,
   STRUCTURE_LABEL_KEYS,
@@ -132,15 +132,13 @@ const stripRows = computed(() => {
 
     <AiTaskStrip v-if="running" :task="myTask" />
 
-    <div v-else-if="!outline" class="ro-empty">
-      <Icon name="Sparkle" :size="20" />
-      <p class="ro-empty-text">
-        {{ $t("reverseOutline.idleBlurb") }}
-      </p>
-      <UiButton intent="primary" @click="run">
-        <Icon name="Sparkle" :size="13" /> {{ $t("reverseOutline.action") }}
-      </UiButton>
-    </div>
+    <EmptyState v-else-if="!outline" icon="Sparkle" :icon-size="20" :message="$t('reverseOutline.idleBlurb')">
+      <template #actions>
+        <UiButton intent="primary" @click="run">
+          <Icon name="Sparkle" :size="13" /> {{ $t("reverseOutline.action") }}
+        </UiButton>
+      </template>
+    </EmptyState>
 
     <template v-else-if="outline">
       <div class="ro-head">
@@ -209,18 +207,6 @@ const stripRows = computed(() => {
 </template>
 
 <style scoped>
-.ro-empty {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 14px; padding: 32px 18px;
-  background: var(--surface-2);
-  border-radius: 10px;
-  text-align: center;
-}
-.ro-empty > :first-child { color: var(--accent); }
-.ro-empty-text {
-  margin: 0; max-width: 56ch;
-  font-size: 13px; line-height: 1.55; color: var(--ink-2);
-}
 
 .ro-head {
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;

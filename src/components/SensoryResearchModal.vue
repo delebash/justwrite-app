@@ -9,7 +9,7 @@
 
 import { ref, computed, onMounted } from "vue";
 import { useAiStore } from "../stores/ai.js";
-import { useSurfaceTask, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, Icon, AiTaskStrip, AppModal, UiButton, UiBanner, EmptyState } from "@delebash/ui";
 import { generateSensoryPack, SENSORY_CATEGORIES } from "../services/sensoryResearch.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
@@ -115,15 +115,13 @@ const totalCount = computed(() =>
 
     <AiTaskStrip v-if="running" :task="myTask" />
 
-    <div v-else-if="!pack" class="sr-empty">
-      <Icon name="Sparkle" :size="20" />
-      <p class="sr-empty-text">
-        {{ $t("sensory.idleBlurb") }}
-      </p>
-      <UiButton intent="primary" @click="run">
-        <Icon name="Sparkle" :size="13" /> {{ $t("sensory.action") }}
-      </UiButton>
-    </div>
+    <EmptyState v-else-if="!pack" icon="Sparkle" :icon-size="20" :message="$t('sensory.idleBlurb')">
+      <template #actions>
+        <UiButton intent="primary" @click="run">
+          <Icon name="Sparkle" :size="13" /> {{ $t("sensory.action") }}
+        </UiButton>
+      </template>
+    </EmptyState>
 
     <template v-else-if="categories.length">
       <div class="sr-grid">
@@ -161,18 +159,6 @@ const totalCount = computed(() =>
 </template>
 
 <style scoped>
-.sr-empty {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 14px; padding: 32px 18px;
-  background: var(--surface-2);
-  border-radius: 10px;
-  text-align: center;
-}
-.sr-empty > :first-child { color: var(--accent); }
-.sr-empty-text {
-  margin: 0; max-width: 56ch;
-  font-size: 13px; line-height: 1.55; color: var(--ink-2);
-}
 
 .sr-grid {
   display: grid;

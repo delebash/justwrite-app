@@ -180,15 +180,13 @@ const KIND_I18N = {
 
     <AiTaskStrip v-if="running" :task="myTask" />
 
-    <div v-else-if="!audit" class="ph-empty">
-      <Icon name="Sparkle" :size="20" />
-      <p class="ph-empty-text">
-        {{ $t("plotHoles.idleBlurb") }}
-      </p>
-      <UiButton intent="primary" @click="run">
-        <Icon name="Sparkle" :size="13" /> {{ $t("plotHoles.action") }}
-      </UiButton>
-    </div>
+    <EmptyState v-else-if="!audit" icon="Sparkle" :icon-size="20" :message="$t('plotHoles.idleBlurb')">
+      <template #actions>
+        <UiButton intent="primary" @click="run">
+          <Icon name="Sparkle" :size="13" /> {{ $t("plotHoles.action") }}
+        </UiButton>
+      </template>
+    </EmptyState>
 
     <template v-else-if="audit">
       <div class="ph-head">
@@ -277,18 +275,6 @@ const KIND_I18N = {
 </template>
 
 <style scoped>
-.ph-empty {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 14px; padding: 32px 18px;
-  background: var(--surface-2);
-  border-radius: 10px;
-  text-align: center;
-}
-.ph-empty > :first-child { color: var(--accent); }
-.ph-empty-text {
-  margin: 0; max-width: 56ch;
-  font-size: 13px; line-height: 1.55; color: var(--ink-2);
-}
 
 .ph-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
 .ph-pill {

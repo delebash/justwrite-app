@@ -4,7 +4,7 @@ import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { labelLines } from "../services/relationsLabels.js";
 import { PaneHeader, pageFill } from "@delebash/ui";
-import { Icon } from "@delebash/ui";
+import { EmptyState, Icon } from "@delebash/ui";
 import { UiButton } from "@delebash/ui";
 import { UiCheckbox } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
@@ -533,10 +533,7 @@ onBeforeUnmount(() => {
 
       <!-- Empty state -->
       <div v-if="nodes.length === 0" class="relations-empty">
-        <p>
-          <span style="display:block;font-size:14px;color:var(--ink);margin-bottom:6px">{{ $t("relations.emptyTitle") }}</span>
-          {{ $t("relations.emptyBody") }}
-        </p>
+        <EmptyState icon="Network" :title="$t('relations.emptyTitle')" :message="$t('relations.emptyBody')" />
       </div>
 
       <!-- Legend — colored dots double as toggles; each row shows the
@@ -668,17 +665,6 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   pointer-events: none;
-}
-.relations-empty p {
-  font-size: 13px;
-  color: var(--muted);
-  font-style: italic;
-  background: color-mix(in oklab, var(--surface), transparent 15%);
-  padding: 14px 20px;
-  border-radius: 10px;
-  border: 1px dashed var(--border-strong);
-  max-width: 360px;
-  text-align: center;
 }
 
 .relations-legend {

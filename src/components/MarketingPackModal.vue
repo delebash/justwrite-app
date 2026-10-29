@@ -13,7 +13,7 @@ import { ref, computed, onMounted } from "vue";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useAiStore } from "../stores/ai.js";
-import { useSurfaceTask, Icon, AiTaskStrip, AppModal, UiButton, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, Icon, AiTaskStrip, AppModal, UiButton, UiBanner, EmptyState } from "@delebash/ui";
 import { BLURB_ANGLES, generateMarketingPack } from "../services/analysis/marketingPack.js";
 import AiFeatureChip from "./AiFeatureChip.vue";
 import { useI18n } from "vue-i18n";
@@ -138,15 +138,13 @@ function formatComps(comps) {
 
     <AiTaskStrip v-if="running" :task="myTask" />
 
-    <div v-else-if="!pack" class="mp-empty">
-      <Icon name="Sparkle" :size="20" />
-      <p class="mp-empty-text">
-        {{ $t("marketingPack.idleBlurb") }}
-      </p>
-      <UiButton intent="primary" @click="run">
-        <Icon name="Sparkle" :size="13" /> {{ $t("marketingPack.action") }}
-      </UiButton>
-    </div>
+    <EmptyState v-else-if="!pack" icon="Sparkle" :icon-size="20" :message="$t('marketingPack.idleBlurb')">
+      <template #actions>
+        <UiButton intent="primary" @click="run">
+          <Icon name="Sparkle" :size="13" /> {{ $t("marketingPack.action") }}
+        </UiButton>
+      </template>
+    </EmptyState>
 
     <template v-else-if="pack">
       <div class="mp-head">
@@ -264,18 +262,6 @@ function formatComps(comps) {
 </template>
 
 <style scoped>
-.mp-empty {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 14px; padding: 32px 18px;
-  background: var(--surface-2);
-  border-radius: 10px;
-  text-align: center;
-}
-.mp-empty > :first-child { color: var(--accent); }
-.mp-empty-text {
-  margin: 0; max-width: 56ch;
-  font-size: 13px; line-height: 1.55; color: var(--ink-2);
-}
 
 .mp-head { margin-bottom: 16px; }
 .mp-meta { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }

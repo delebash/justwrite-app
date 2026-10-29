@@ -411,6 +411,10 @@ function sceneDropClass(chapterId, sceneId) {
   return draggedIdx < targetIdx ? "drop-after" : "drop-before";
 }
 
+// Whether a section's filter box holds text: its empty list then means "nothing matches", not
+// "nothing yet" (an empty book's sidebar said "No chapters match" with no filter typed).
+const filtering = (parentId) => Boolean((ui.filters[parentId] || "").trim());
+
 function filteredGroups(parentId) {
   const filter = (ui.filters[parentId] || "").trim().toLowerCase();
   const groups = expandableChildren.value[parentId] || [];
@@ -1019,7 +1023,7 @@ const authorInitials = computed(() => {
                   </template>
                 </template>
               </template>
-              <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">{{ $t('sidebar.empty.noChaptersMatch') }}</div>
+              <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">{{ filtering(n.id) ? $t('sidebar.empty.noChaptersMatch') : $t('sidebar.empty.noChaptersYet') }}</div>
             </template>
 
             <!-- Worldbuilding: categories as collapsible headers (like
@@ -1086,7 +1090,7 @@ const authorInitials = computed(() => {
                   </div>
                 </template>
               </template>
-              <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">{{ $t('sidebar.empty.noWorldbuildingMatch') }}</div>
+              <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">{{ filtering(n.id) ? $t('sidebar.empty.noWorldbuildingMatch') : $t('sidebar.empty.noWorldbuildingYet') }}</div>
             </template>
 
             <!-- Every other section keeps its original rendering, plus
@@ -1117,7 +1121,7 @@ const authorInitials = computed(() => {
               <!-- $t(n.label) first: n.label is a KEY ("nav.chapters"), so lowercasing it
                    raw rendered "No nav.chapters match" here. Lines 892 and 906 already
                    resolve it before lowercasing; this one had been missed. -->
-              <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">{{ $t("sidebar.empty.noMatchFor", { label: $t(n.label).toLowerCase() }) }}</div>
+              <div v-if="filteredGroups(n.id).length === 0" class="nav-empty">{{ $t(filtering(n.id) ? "sidebar.empty.noMatchFor" : "sidebar.empty.noneYetFor", { label: $t(n.label).toLowerCase() }) }}</div>
             </template>
           </div>
         </div>

@@ -7,7 +7,7 @@
 // Regenerate asks again. Its user: Unstuck (StuckDiagnosticModal.vue); the editor's plot ideas
 // moved to the Brainstorm window (BrainstormModal.vue) on 2026-10-28.
 import { onMounted, ref } from "vue";
-import { AiTaskStrip, AppModal, Icon, UiBanner, UiButton } from "@delebash/ui";
+import { AiTaskStrip, AppModal, Icon, UiBanner, UiButton, EmptyState } from "@delebash/ui";
 import AiFeatureChip from "./AiFeatureChip.vue";
 
 const props = defineProps({
@@ -80,13 +80,13 @@ function onClose() {
 
     <AiTaskStrip v-if="loading" :task="task" />
 
-    <div v-else-if="!items.length && !error" class="il-empty">
-      <Icon name="Sparkle" :size="20" />
-      <p v-if="idleText" class="il-empty-text">{{ idleText }}</p>
-      <UiButton intent="primary" @click="go">
-        <Icon name="Sparkle" :size="13" /> {{ startLabel }}
-      </UiButton>
-    </div>
+    <EmptyState v-else-if="!items.length && !error" icon="Sparkle" :icon-size="20" :message="idleText">
+      <template #actions>
+        <UiButton intent="primary" @click="go">
+          <Icon name="Sparkle" :size="13" /> {{ startLabel }}
+        </UiButton>
+      </template>
+    </EmptyState>
 
     <ul v-else-if="items.length" class="il-items">
       <li v-for="it in items" :key="it.id" class="il-item" :style="it.accent ? { borderLeftColor: it.accent } : null">
@@ -115,18 +115,6 @@ function onClose() {
 </template>
 
 <style scoped>
-.il-empty {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 14px; padding: 32px 18px;
-  background: var(--surface-2);
-  border-radius: 10px;
-  text-align: center;
-}
-.il-empty > :first-child { color: var(--accent); }
-.il-empty-text {
-  margin: 0; max-width: 56ch;
-  font-size: 13px; line-height: 1.55; color: var(--ink-2);
-}
 
 .il-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .il-item {

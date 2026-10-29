@@ -338,15 +338,13 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
 
     <UiBanner v-if="error">{{ error }}</UiBanner>
 
-    <div v-if="!running && !rows.length" class="fh-empty">
-      <Icon name="Sparkle" :size="20" />
-      <p class="fh-empty-text">
-        {{ $t("foreshadowing.idleBlurb") }}
-      </p>
-      <UiButton intent="primary" @click="runScan">
-        <Icon name="Sparkle" :size="13" /> {{ $t("foreshadowing.action") }}
-      </UiButton>
-    </div>
+    <EmptyState v-if="!running && !rows.length" icon="Sparkle" :icon-size="20" :message="$t('foreshadowing.idleBlurb')">
+      <template #actions>
+        <UiButton intent="primary" @click="runScan">
+          <Icon name="Sparkle" :size="13" /> {{ $t("foreshadowing.action") }}
+        </UiButton>
+      </template>
+    </EmptyState>
 
     <template v-else>
     <AiTaskStrip :task="myTask" />
@@ -363,18 +361,6 @@ const pinnedCount = computed(() => Object.values(pinStatus.value).filter((v) => 
 </template>
 
 <style scoped>
-.fh-empty {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 14px; padding: 32px 18px;
-  background: var(--surface-2);
-  border-radius: 10px;
-  text-align: center;
-}
-.fh-empty > :first-child { color: var(--accent); }
-.fh-empty-text {
-  margin: 0; max-width: 56ch;
-  font-size: 13px; line-height: 1.55; color: var(--ink-2);
-}
 
 .fs-rowlist {
   flex: 1; min-height: 0; overflow-y: auto;

@@ -231,15 +231,13 @@ onMounted(() => {
         :message="$t('characterAudit.noMainMessage')" />
     </div>
 
-    <div v-else-if="!reviewCharacters.length" class="ca-empty">
-      <Icon name="Sparkle" :size="20" />
-      <p class="ca-empty-text">
-        {{ $t("characterAudit.idleBlurb") }}
-      </p>
-      <UiButton intent="primary" @click="runSweep(false)">
-        <Icon name="Sparkle" :size="13" /> {{ $t("characterAudit.action") }}
-      </UiButton>
-    </div>
+    <EmptyState v-else-if="!reviewCharacters.length" icon="Sparkle" :icon-size="20" :message="$t('characterAudit.idleBlurb')">
+      <template #actions>
+        <UiButton intent="primary" @click="runSweep(false)">
+          <Icon name="Sparkle" :size="13" /> {{ $t("characterAudit.action") }}
+        </UiButton>
+      </template>
+    </EmptyState>
 
     <!-- ── Review phase ──────────────────────────────────────── -->
     <template v-else>
@@ -313,18 +311,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.ca-empty {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 14px; padding: 32px 18px;
-  background: var(--surface-2);
-  border-radius: 10px;
-  text-align: center;
-}
-.ca-empty > :first-child { color: var(--accent); }
-.ca-empty-text {
-  margin: 0; max-width: 56ch;
-  font-size: 13px; line-height: 1.55; color: var(--ink-2);
-}
 
 .ca-rows {
   display: flex; flex-direction: column;
