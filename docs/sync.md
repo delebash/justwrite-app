@@ -35,6 +35,10 @@ The line at the top tells you when this device last synced, and with which devic
 *"Synced 2 min ago · from Study laptop"*. **Devices** lists every device this one has synced with, and
 how: by hand, the cloud folder, or the network.
 
+A device you no longer use stays in the cloud folder until you press **Remove** on its row (the rows
+synced through the cloud folder have one). JustWrite syncs first, so nothing that device wrote is
+lost, then deletes its files from the folder. If that device syncs again, it comes back.
+
 ---
 
 ## A cloud folder
@@ -159,9 +163,9 @@ an empty library, it rebuilds your books from that copy.
   - After a restore, this device carries on in sync as a new device: your other devices'
     **Devices** list it as a new entry beside the old one (both with its name), and the old one's
     files stay in the cloud folder. In this device's own **Devices**, the old entry reads
-    *‹name› (before the restore on ‹date›)*. There is no Remove: that entry's cloud-folder copy is
-    how this device gets its newer work back, and a device that is still offline may not have read
-    it yet.
+    *‹name› (before the restore on ‹date›)*. Its **Remove** works as for any device (see *Your
+    devices*): this device syncs first, so what the old entry held reaches your other devices
+    through this device's own files.
   - This device keeps its own sync settings — the cloud folder, the paired devices and the
     passwords they reach it with, the library key and its name — not the ones in the backup.
   - While this device is syncing (a cloud folder or a paired device is set), a backup from another
