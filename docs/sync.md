@@ -32,8 +32,9 @@ to something like "Study laptop"), and how often JustWrite syncs on its own whil
 minutes unless you change it; 0 means only when you press **Sync now**).
 
 The line at the top tells you when this device last synced, and with which device — for example
-*"Synced 2 min ago · from Study laptop"*. **Devices** lists every device this one has synced with, and
-how: by hand, the cloud folder, or the network.
+*"Synced 2 min ago · from Study laptop"*. Under it, **Changes waiting** counts what you changed on
+this device that no other device or the cloud folder has yet. **Devices** lists every device this
+one has synced with, and how: by hand, the cloud folder, or the network.
 
 A device you no longer use stays in the cloud folder until you press **Remove** on its row (the rows
 synced through the cloud folder have one). JustWrite syncs first, so nothing that device wrote is
