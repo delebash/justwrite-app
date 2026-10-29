@@ -84,10 +84,11 @@ STATE:  DECIDED — the user, on my list of `docs/roadmap.md`, `IDEAS.md` and th
         window asking about unsaved work).
 OPEN:   all six BUILT 2026-10-29 (the plan's "Built" lines); multi-window checked on the built desktop
         app with the kit's 158aaaf (Ctrl+Shift+N on a character's page → a second window on it; a
-        second window closes alone; the main window closes them all). Still open: the website entry
-        (its picture; the approved wording is above) — WAITS ON the kit: the search model's prompt
-        cache (llama.cpp's default 8 GiB `--cache-ram`) fills memory while the imported book is
-        embedded, and the chat model is then refused (RESEARCH.md, the DO list section). Brainstorm's check per category
+        second window closes alone; the main window closes them all). The website entry: DONE
+        2026-10-29 (justwrite-website 0f77084), after the kit's fix to the search model's prompt cache
+        (just-core 6954fee) — the two questions it raised, the user ("your rec go" on my researched
+        recs): the chat model's memory check doesn't count the pinned search model, and the chat rows
+        keep llama.cpp's default prompt cache (RESEARCH.md, the DO list section). Brainstorm's check per category
         on the real model: done 2026-10-29, each returned its kind. The removals and closes: done
         2026-10-29.
 GO:     given 2026-10-29, as above (both).
