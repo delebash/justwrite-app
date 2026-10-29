@@ -765,6 +765,20 @@ The plan: [`../plans/2026-10-29-do-list.md`](../plans/2026-10-29-do-list.md).
   objects, titles and phrases; next_beat and twist gave 15–16 single-sentence moves, the twists
   reversals rather than next steps. 4–19 s each, the first with the model's load. (*measured
   2026-10-29*, the server alone — no desktop app.)
+- **The search model's prompt cache fills system memory, and the chat model is then refused:** in
+  the website capture (Ask the book on a freshly imported book), the `qwen3-embedding-4b` child
+  `llama-server` (2.4 GB file, `n-gpu-layers = 0`, `mmap+mlock`) grew 2.3 → 6.5 GB in two minutes
+  while embedding, free memory fell 17.1 → 8.2 GB, and the chat model's load was refused ("it took
+  about 9.6 GB … (+1024 MB safety margin) but …"). b11239's `llama-server --help`: `--cache-ram N`,
+  "the maximum cache size in MiB (default: 8192 … 0 - disable)"; the router's `models.ini` row for the
+  embedding model sets none. Not the start-up warm-up — the engine read idle before the question.
+  The kit's to fix (its launch rows); sent to the kit's session. (*measured 2026-10-29*, a process
+  log every 5 s through three captures.)
+- **An AI error in a stream is cut at 200 characters by the kit's server**
+  (`../just-core/packages/core/src/llm/prompts.js:951`, `cpSlice(errText(e), 0, 200)`), so the memory
+  refusal reached the chat ending "… safety margin) but", without the free-memory figure — the
+  kit's `friendlyAiError` itself keeps the sentence whole (checked with the full text). Sent to the
+  kit. (*code 2026-10-29*.)
 - **simple-statistics 8.0.0 was published 2026-10-28;** 7.12.1, the one used, 2026-09-27 (`npm view
   simple-statistics time`). Both are ES modules. (*2026-10-29*.)
 - **The renderer counts words by splitting on whitespace in ten places** (the store's rollup, the
