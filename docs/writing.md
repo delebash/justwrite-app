@@ -145,6 +145,8 @@ With **Spell check** on (Writing settings), misspelled words get the usual red u
 
 For suggestions, right-click in the text: the last item of the editor's menu, **Show browser menu (spell check)**, makes your next right-click the spelling menu — its suggestions, **Add to dictionary**, and cut, copy and paste. In the desktop app this menu is JustWrite's own; in a browser tab it's the browser's.
 
+The names are left alone in the editor only. In the plain boxes outside it — a character's fields, a scene's notes — the spellchecker doesn't know them, so an unusual name gets the red underline there. Right-click it and choose **Add to dictionary** to teach it the name. On Windows and macOS that word goes into your computer's own dictionary, which other programs share; JustWrite never adds words there by itself.
+
 ### `@`-mentions
 
 > *"I typed a character's name in chapter 12. Three chapters later I've forgotten whether I spelled it consistently — and I can't find all the places she appears."*

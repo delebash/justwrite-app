@@ -76,7 +76,11 @@ row 3, row 4, and row 1's spelling (the story bible's names, the desktop's spell
 dropped after a quality check (WordNet too thin; Rewrite gives alternatives in context). What's left:
 row 1's grammar (Harper — "not now", 2026-10-18) and row 5.** Names in the plain text boxes outside the editor (a character's fields,
 a scene's notes) are still underlined by the browser's checker — the story-name spans cover the
-editor only (2026-10-19).
+editor only (2026-10-19). Ruled out 2026-10-28: feeding the names to Electron's custom dictionary
+(`session.addWordToSpellCheckerDictionary`) — on Windows and macOS it writes them into the OS's own
+dictionary as well (Electron's session docs), every book's names into the dictionary Word and other
+apps share, behind the user's back. The right-click **Add to dictionary** is the user's own way, and
+`docs/writing.md` → Spelling says so.
 Rejected-with-reasons (autocorrect, track changes, footnotes, read-aloud→JV) are in the
 doc §5 so they don't come back as "missing".
 
