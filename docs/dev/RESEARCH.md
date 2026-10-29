@@ -668,6 +668,30 @@ method), at every hue the appearance engine lets the user set (accent and danger
   `app._instance`), so the OS folder picker can't be answered from the page; the Storage panel's
   "Move back to the default folder…" moves without one. — *2026-10-24, the data-folder check.*
 
+## Four feature ideas: what the plan rests on (2026-10-28)
+
+The plan: [`../plans/2026-10-28-four-feature-ideas.md`](../plans/2026-10-28-four-feature-ideas.md).
+
+- **The PDF's page is fixed in code:** `src/services/export/pdf.js` sets `pageSize: "A4"` and
+  `pageMargins: [80, 70, 80, 80]` (points); the footer already numbers pages. pdfmake takes a named
+  size or `{ width, height }` in points and one `pageMargins` for every page — no mirrored
+  inside/outside margins
+  (https://pdfmake.github.io/docs/0.1/document-definition-object/page/), so a print gutter can only be
+  a symmetric margin wide enough for it. KDP's paperback trim sizes and margin minimums:
+  https://kdp.amazon.com/en_US/help/topic/GVBQ3CMEQW3W2VL6.
+- **A per-book column reaches existing databases** through the added-columns list in
+  `server/src/database/models.js` (as `language` and `ai_scene_drafting` did), with
+  `SYNC_SCHEMA_VERSION` raised in `server/src/sync.js` and the reason recorded beside it.
+- **The AI-written count exists per book only:** `services/aiText.js` `bookAiWrittenWords`, shown in
+  Settings → Project. It counts words still marked (Mark as mine clears a mark). The kit's
+  `llm_usage` rows (`at, feature, provider_id, model, tokens, cost, meta`) don't name the book.
+- **Copying text:** the kit has no clipboard helper; its `LogsPanel` calls the browser's
+  `navigator.clipboard.writeText`, which the desktop shell permits (`shell/main.js`,
+  `clipboard-sanitized-write`).
+- **The kit's "one way per job" table** (app-structure §19) has no row for exporting a document or
+  for a seeded table of facts; JustWrite's `src/services/export/` (pdfmake, `docx`) is the only
+  document exporter in the family.
+
 ## Records not yet distilled
 
 Indexed by subject so they can be found; their facts move into a section above when work next

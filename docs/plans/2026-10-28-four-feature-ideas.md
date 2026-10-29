@@ -11,6 +11,23 @@ failure, a field's refusal** (`reportError`, `fieldErrors`). The table has no ro
 document or for a seeded table of facts. JustWrite's own `src/services/export/` (pdfmake, `docx`)
 and the server's seeded rows are how this app does both today, and only this app exports documents.
 So they stay app code. If you want them in the family table, the kit session adds the rows.
+The facts this plan rests on are in `docs/dev/RESEARCH.md`, "Four feature ideas".
+
+**The standards, piece by piece** (checked by the kit's `scripts/check-plan.js`):
+
+| Piece | Standard it follows | Kit code |
+|---|---|---|
+| 1. The PDF's page size and margins | pdfmake's `pageSize` / `pageMargins` | app — JustWrite's own manuscript export (`src/services/export/pdf.js`); only this app exports documents |
+| 1. Page size and margin fields on the PDF card | the kit's controls | `UiSelect`, `UiInput` |
+| 1. The choice kept per book, and synced | the added-columns list + the sync schema step, as `language` was added | app — the book's own storage (`server/src/database/models.js`, `book_io.js`, `sync.js`) |
+| 1. The sizes offered, editable | seeded rows (the seed ships facts) | app — JustWrite's seeded data (`server/src/database/seed.js`) |
+| 2. AI-written words per chapter | the existing per-book count | app — writing (`src/services/aiText.js`) |
+| 2. The breakdown | the family's one table control | `UiTable` |
+| 2. Copy as text | the browser's Clipboard API, as the kit's own copy does | app — `navigator.clipboard.writeText`, which the kit's desktop shell permits; the kit has no clipboard helper |
+| 3. The Story Bible outline | the pages' own field labels (the locale's `characters.fields.*`, …) | app — writing (a new `src/services/export/storyBible.js`) |
+| 3. The DOCX and PDF files | the `docx` library and pdfmake, already shipped | app — JustWrite's own document export (`src/services/export/`) |
+| 3. The Story bible card | the kit's controls | `UiCheckbox`, `UiButton` |
+| 1–3. A failure while exporting | the kit's error reporting | `reportError` |
 
 ## 1. PDF page size and margins
 
