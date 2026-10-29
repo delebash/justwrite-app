@@ -72,6 +72,16 @@ STATE:  DECIDED — the user, on my list of `docs/roadmap.md`, `IDEAS.md` and th
         7. Website entry: Label: "Ask the book" · Title: "Ask your own book." · Caption: "Ask a question
         about your story and get an answer drawn from your chapters, with the scenes it came from
         cited." · Retake: close some programs and tell me, and I'll take the picture again.
+        Then, on what was still open and the new choice, the user: "still open and new choice think
+        adverserially on them your rec go" — my recs after the argument against each: the
+        repeated-words highlight skips a word on either standard English list, NLTK's (grammar words,
+        contraction pieces) or stdlib's (the commonest verbs and adverbs — said, saw, knew, went), a
+        contraction checked by its first part, a real echo (face, eyes, door, looked) still marked;
+        Brainstorm's check per category runs on the server alone, which fits today's free memory; the
+        website picture needs the desktop app as well — it waits on more free memory; the Spanish
+        note needs nothing (docgen re-translates a key whose English changed); multi-window's two
+        questions were decided in the kit's session (closing the main window closes the app, each
+        window asking about unsaved work).
 OPEN:   all six BUILT 2026-10-29 (the plan's "Built" lines). Still open: multi-window's desktop window —
         the kit's shell half (just-core-09; its own open questions are on the kit's list for the user),
         then one check on the built app; the website entry (its picture) and Brainstorm's check per

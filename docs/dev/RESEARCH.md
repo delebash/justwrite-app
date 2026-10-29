@@ -751,9 +751,14 @@ The plan: [`../plans/2026-10-29-do-list.md`](../plans/2026-10-29-do-list.md).
   *he*, *his*, *him* but not *she*, *its*, *not*, *no*, *so*, *when*, *why*, *will*, *just* — so the
   repeated-words highlight marks "she" again and again. `stopwords-iso` 1.1.0's `en` is 1,298 words
   and skips *face*, *back*, *thought*, *away*, *said* — real echoes. NLTK's English list (153 words in
-  `nltk-stopwords` 1.0.3, MIT, last published 2022) has all the missing ones; its README says it
-  comes from Snowball's lists via PostgreSQL, and the package's code is CommonJS reading the files
-  with `fs` (Node only). (*measured 2026-10-29*, the packages installed in a scratch folder.)
+  `nltk-stopwords` 1.0.3, MIT, published 2016-10-07) has all the missing ones, and the contraction
+  pieces (*didn*, *don*, *won*) but not *said*, *saw*, *knew*, *went*, *like*; its README says it comes
+  from Snowball's lists via PostgreSQL, and the package's code is CommonJS reading the files with `fs`
+  (Node only) — the app imports its data file with Vite's `?raw`. `@stdlib/datasets-stopwords-en`
+  0.2.3 (Apache-2.0, updated 2026-02-08) is 301 words: those common verbs and adverbs too (said, saw,
+  knew, went, like, never…), but no contraction pieces and no *am*, *hers*, *themselves*, *whom*. The
+  repeated-words highlight skips a word on either list (the user's go, 2026-10-29). (*measured
+  2026-10-29*, the packages installed in a scratch folder.)
 - **simple-statistics 8.0.0 was published 2026-10-28;** 7.12.1, the one used, 2026-09-27 (`npm view
   simple-statistics time`). Both are ES modules. (*2026-10-29*.)
 - **The renderer counts words by splitting on whitespace in ten places** (the store's rollup, the

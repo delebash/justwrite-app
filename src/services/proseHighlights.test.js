@@ -54,6 +54,10 @@ test("repeated words (2026-10-29): a word used again within the window, both tim
   expect(words("Storm and storm.")).toEqual([["repeat", "Storm", 0], ["repeat", "storm", 10]]);
   expect(words("We walk, we walked.")).toEqual([]);
   expect(words("Cael and Cael's sister, the the")).toEqual([]);
+  // the two standard lists together (2026-10-29): pronouns, the commonest verbs, and a contraction
+  // by its first part — while a real echo still shows
+  expect(words("She said no. She said she didn't, and didn't again.")).toEqual([]);
+  expect(words("Her face fell; his face did not.")).toEqual([["repeat", "face", 4], ["repeat", "face", 19]]);
   expect(words("Rain at noon and rain at dusk")).toEqual([["repeat", "Rain", 0], ["repeat", "rain", 17]]);
   // off
   expect(highlightRanges("Rain and rain", { repeats: null })).toEqual([]);

@@ -39,6 +39,7 @@
   "dependencies": {
     "@delebash/core": "file:../just-core/packages/core",
     "@quasar/extras": "^2.1.0",
+    "@stdlib/datasets-stopwords-en": "^0.2.3",
     "@tiptap/core": "^3.31.4",
     "@tiptap/extension-mention": "^3.31.4",
     "@tiptap/pm": "^3.31.4",
@@ -46,10 +47,10 @@
     "dompurify": "^3.4.17",
     "front-matter": "^4.0.2",
     "image-size": "^2.0.4",
+    "nltk-stopwords": "^1.0.3",
     "qrcode": "^1.5.4",
     "quasar": "^2.35.0",
-    "simple-statistics": "^7.12.1",
-    "stopword": "^3.1.5"
+    "simple-statistics": "^7.12.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

@@ -6,7 +6,8 @@
 // approximate where being precise would mean parsing English; the goal
 // is "this chapter is heavier on dialogue than the rest of the book,"
 // not literary forensics.
-import { eng } from "stopword";
+import stdlibStopWords from "@stdlib/datasets-stopwords-en/data/words.json";
+import nltkStopWords from "nltk-stopwords/data/stopwords/english?raw";
 
 // Filter words distance the POV character from direct perception.
 // Hand-picked from the writing-craft canon (Sol Stein, Browne & King).
@@ -137,11 +138,15 @@ export function filterWordRanges(text) {
 }
 // Repeated words (2026-10-29, the DO list's): a word used again within `within` words of its last use,
 // in the same text (the editor passes one paragraph). Our own scan — no maintained package finds
-// echoes within a window (retext-repeated-words and write-good catch only a doubled "the the") — over
-// the standard English stop-word list (the `stopword` package's `eng`), which it skips with the
-// story bible's names (`skip`, capitals kept, as storyNames.js gives them). The same form only.
-const STOP_WORDS = new Set(eng);
+// echoes within a window (retext-repeated-words and write-good catch only a doubled "the the"). It
+// skips the words on two standard English stop-word lists (2026-10-29, the user's go): NLTK's (the
+// grammar words and the contraction pieces — didn, don, won; read as its data file, the package's
+// code being Node-only) and stdlib's (the commonest verbs and adverbs too — said, saw, knew, went),
+// a contraction checked by its first part (didn't → didn); and the story bible's names (`skip`,
+// capitals kept, as storyNames.js gives them). The same form only. RESEARCH.md has the lists compared.
+const STOP_WORDS = new Set([...nltkStopWords.split("\n").map((w) => w.trim()).filter(Boolean), ...stdlibStopWords]);
 const REPEAT_WORD = /[\p{L}\p{M}](?:[\p{L}\p{M}'’-]*[\p{L}\p{M}])?/gu;
+const isStopWord = (key) => STOP_WORDS.has(key) || STOP_WORDS.has(key.split(/['’]/)[0]);
 /** Words repeated within `within` words in `text`, every use in the cluster, as [{ from, to }]. */
 export function repeatedWordRanges(text, { within, skip = [] }) {
   const names = new Set(skip);
@@ -152,7 +157,7 @@ export function repeatedWordRanges(text, { within, skip = [] }) {
     const word = m[0];
     const at = i++;
     const key = word.toLowerCase();
-    if (STOP_WORDS.has(key) || names.has(word) || names.has(word.replace(/['’]s$/u, ""))) continue;
+    if (isStopWord(key) || names.has(word) || names.has(word.replace(/['’]s$/u, ""))) continue;
     const range = { from: m.index, to: m.index + word.length };
     const prev = last.get(key);
     if (prev && at - prev.at <= within) {
