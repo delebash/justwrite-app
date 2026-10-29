@@ -17,6 +17,16 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
+## Four feature ideas: PDF page size, AI-written words by chapter, Story Bible export, series [2026-10-28]
+STATE:  PLANNED — `docs/plans/2026-10-28-four-feature-ideas.md` (each idea argued against twice,
+        the standards, your decisions numbered with my recommendation, the blast radius).
+        The user, on the four ideas: "i like the feature ideas lets do that after you finish the
+        fixes and other stuff you are doing", then "but also think on your feature ideas
+        adverserilay again before you do your rec".
+OPEN:   your word on the plan's decisions (1: five, 2: four, 3: five); 4 (series) is a set of design
+        questions for its own document.
+GO:     not given for the build.
+
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
 STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the
         plan `docs/plans/2026-10-11-ai-drafting-plan.md` (each task ticked there with its commit). First round, asked as shown (after Fable's review of the first design, whose changes were
