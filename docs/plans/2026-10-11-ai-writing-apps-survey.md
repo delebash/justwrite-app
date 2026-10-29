@@ -12,8 +12,8 @@ claims the design rests on (scene columns, the card synopsis, the Timeline, the 
 categories, "No manual edges", the writer actions' variables). Everything else here is
 *web, agent*: checked against the cited page by an agent, not re-checked by the session.
 
-**Builds on, not repeated:** [`../dev/ai-features-roadmap.md`](../dev/ai-features-roadmap.md)
-(2026-06-05) · [`../dev/potential-roadmap.md`](../dev/potential-roadmap.md) (2026-06-05) ·
+**Builds on, not repeated:** [`archive/2026-06-05-ai-features-roadmap.md`](archive/2026-06-05-ai-features-roadmap.md)
+(2026-06-05) · [`archive/2026-06-05-potential-roadmap.md`](archive/2026-06-05-potential-roadmap.md) (2026-06-05) ·
 [`2026-07-26-writers-editor-gap-research.md`](2026-07-26-writers-editor-gap-research.md).
 
 **Limits.** worldanvil.com and korben.info answered 403; NovelCrafter's feedback boards are shut;

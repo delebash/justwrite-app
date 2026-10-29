@@ -147,6 +147,10 @@ For suggestions, right-click in the text: the last item of the editor's menu, **
 
 The names are left alone in the editor only. In the plain boxes outside it — a character's fields, a scene's notes — the spellchecker doesn't know them, so an unusual name gets the red underline there. Right-click it and choose **Add to dictionary** to teach it the name. On Windows and macOS that word goes into your computer's own dictionary, which other programs share; JustWrite never adds words there by itself.
 
+### Dictation
+
+To talk instead of type, use your computer's own dictation: it types into the editor as a keyboard would. On Windows press **Win+H**; on a Mac press the Dictation key or the shortcut set in System Settings → Keyboard → Dictation; on a phone, tap the microphone on the keyboard. JustWrite has no dictation of its own.
+
 ### `@`-mentions
 
 > *"I typed a character's name in chapter 12. Three chapters later I've forgotten whether I spelled it consistently — and I can't find all the places she appears."*

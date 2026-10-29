@@ -9,7 +9,7 @@
 > runner all exist now). All six named offenders are corrected inline with dated
 > notes (2026-08-04 second pass — chat sessions, image carry-through, SQLite RAG,
 > pooled sweep, removed Writer-Lab routes, display-only UpdatesPanel); where this
-> file and `ai-features-roadmap.md` disagree, code sides with the roadmap.
+> file and `../plans/archive/2026-06-05-ai-features-roadmap.md` disagree, code sides with the roadmap.
 
 The *why* behind major substrates and design decisions. Pairs with
 [`CLAUDE.md`](../../CLAUDE.md) (the *what's where* primer) and

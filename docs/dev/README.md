@@ -23,8 +23,8 @@ lives in `../plans/archive/`).
 6. **Design records**: `measured-performance.md` (every tuning/boot/band number
    that justifies today's defaults) · `rag-design.md` (cards, pinning, embed
    templates — the why behind `src/services/rag/`) · `bench.md` (the LLM bench
-   harness) · `ai-features-roadmap.md` + `potential-roadmap.md` (shipped/won't-ship
-   history).
+   harness). The two June pools (shipped/won't-ship history) are in `../plans/archive/`
+   since 2026-10-29.
 7. **The family docs convention** — `../../../just-core/docs/app-structure.md`
    §13: trackers, placement rule, plans/ holds only live work.
 

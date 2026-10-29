@@ -17,6 +17,41 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
+## Every roadmap, IDEAS and pool item settled: six to build, the rest removed or closed [2026-10-29]
+STATE:  DECIDED — the user, on my list of `docs/roadmap.md`, `IDEAS.md` and the two June pools:
+        "your rec go". The list as approved, verbatim:
+        **Recommend DO (small, real value):**
+        | Pace-chart trend line | roadmap | A line over finished days only, shown as "from → to words a day". Small, and today's half-written day can't skew it. |
+        | Multi-window | roadmap | Like Scrivener's "Quick Reference": a character page beside the manuscript. The kit change is small (it's on hold there). Risk: the same field edited in two windows keeps the last save, exactly as two browser tabs on a running server already do today. |
+        | POV character on a scene | pool #2 | Today "POV" stores only the narration mode (first, limited third). A "POV character" picker plus a balance bar in Analysis is small, and dual-POV books are common. |
+        | Atkinson Hyperlegible as an editor font | pool #10 | The dyslexia-friendly font is already bundled but only offered for the interface, not the editor. Nearly free. |
+        | "Repeated words" highlight | pool AI #4 | Deterministic, no AI. The same word too close together, added to the existing prose highlights. The closeness window goes in settings, not code. |
+        | Brainstorm category names out of code | IDEAS | They break your "nothing hard-coded" rule. They'd move into the already-editable seeded prompts. |
+        **Recommend REMOVE:** Roadmap: Token budgets (providers already offer spend limits or budget
+        alerts in their own consoles, and local engines cost nothing) · Index-rebuild indicator (Ask the
+        book, the one place a stale index matters, already shows "indexing") · Print layout (pdfmake
+        allows only one set of margins for the whole document; the PDF already meets KDP's minimums
+        with a wide side margin, and print interiors are usually made in Word (our DOCX) or a
+        typesetting tool). IDEAS: Grammar checker (you said "not now"; fiction trips grammar checkers)
+        · Dictation (Windows' Win+H and macOS dictation already type into the editor; one line saying
+        so in `writing.md`) · Quantized-KV note and the Bonsai model watch (model watches belong to the
+        kit) · Defaults-drift notice (no sign the current one isn't enough) · Customizable menus
+        (nobody asked) · Series (parked; it touches storage, undo and sync, and nobody asked). Pool
+        (all large, niche, or now JustVoice's): Genre presets, also bet 2 · Beta-reader round-trip ·
+        Track-changes DOCX · Sprint timer · Setup/payoff pairs (the foreshadowing scan covers it) ·
+        Magic-system entity · Soundscapes · Folders · Suspect grid · Release schedule · Sources and
+        footnotes · Fountain export · Canvas · Custom calendars · EPUB validation (the missing
+        pictures part is fixed now) · LitRPG stats · Continuous fact ledger (on-demand audits exist)
+        · Copy-edit pass · AI margin notes · Sensitivity pass · Show the model's thinking · Read-aloud
+        and voice gender (JustVoice's).
+        **Already built, so close them:** named snapshots with word diff, scheduled backup/sync, the
+        phone app, the AI-words record, and all 29 `ai-features-roadmap.md` items.
+        And on the website: "add it [Ask the book] to the site's screenshot gallery: it's a headline
+        feature and now shows formatted answers."
+OPEN:   the six DO items — each researched first; the labels and values the list leaves open go to
+        the user in one list before any of them is built. The removals and closes: done 2026-10-29.
+GO:     given 2026-10-29, as above.
+
 ## Three feature ideas: PDF page size, Story Bible export, AI-written words by chapter [2026-10-28]
 STATE:  DECIDED — `docs/plans/2026-10-28-four-feature-ideas.md` (each idea argued against twice,
         the standards, the decisions numbered with my recommendation, the blast radius).

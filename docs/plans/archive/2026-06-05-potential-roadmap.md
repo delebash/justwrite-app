@@ -1,5 +1,15 @@
 # Potential roadmap — research-driven candidates
 
+> **Closed 2026-10-29** — every row settled by the user's "your rec go" (`docs/dev/TASKS.md`'s
+> 2026-10-29 entry, with the reasons); archived as history, moved here from `docs/dev/`.
+> **Built:** #7 named snapshots with word diff · #18 scheduled backup / sync · #19 the phone app ·
+> AI #1 the AI-words record (AI-written words by chapter), which also covers Bet 1.
+> **On the 2026-10-29 build list:** #2 a POV character on a scene with a balance bar in Analysis ·
+> #10 Atkinson Hyperlegible as an editor font · AI #4 as the "Repeated words" highlight.
+> **Removed:** #1 and Bet 2 genre presets · #3 · #4 · #5 · #6 · #9 · #11 · #12 · #13 · #14 · #15 ·
+> #16 · #17 · #20 · #21 · #22 · AI #2 and Bet 3 · AI #3 · AI #6 · AI #7 · AI #8 · AI #5, #9, #10
+> (JustVoice's) · Bet 4, Series (removed from IDEAS the same day).
+
 > **Note:** JustWrite is writing-only (since 2026-06-18). Voice production is the separate **JustVoice** app; the TTS research this page once held (2026-06-06/07) was removed on 2026-10-08 as outdated — it is in this file's git history.
 
 A pool of feature candidates, not commitments. Distinct from [`roadmap.md`](../roadmap.md) (small concrete planned items) and [`ai-features-roadmap.md`](ai-features-roadmap.md) (AI-specific items already on deck). This page is the bigger, longer-horizon "what could JustWrite become next?" backlog, generated from a multi-source research pass.

@@ -1,5 +1,9 @@
 # AI Features Roadmap
 
+> **Closed 2026-10-29** — all 29 items shipped or won't-ship; archived as history (the user's
+> "your rec go" on every open item, `docs/dev/TASKS.md`'s 2026-10-29 entry). Moved here from
+> `docs/dev/ai-features-roadmap.md`.
+
 Research-driven catalog of AI features worth considering for JustWrite. Cross-referenced against current AI features in the app (so nothing here is a duplicate) and against the broader landscape (Sudowrite, NovelCrafter, Plottr, AutoCrit, ProWritingAid, Marlowe, Ideorix, Squibler, Campfire, Deep Realms, Inkfluence AI).
 
 **None of these are promises.** Roadmap, not commitment.

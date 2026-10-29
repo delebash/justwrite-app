@@ -271,7 +271,7 @@ Out-of-date docs reach real users.
 - Pure internal refactors, bug fixes that don't change user-visible behavior,
   dev-tool changes, and `CLAUDE.md` / `AGENTS.md` edits don't need doc
   updates.
-- Roadmap docs (`docs/roadmap.md`, `docs/ai-features-roadmap.md`) are
+- The roadmap (`docs/roadmap.md`) is
   direction-not-promise and don't need to be kept in sync with shipped code —
   leave those alone unless explicitly asked.
 - The doc update goes in the same commit as the code change, not a follow-up.
@@ -293,7 +293,7 @@ three beats, in this order:
 3. **How it works / how to use it.** The concrete mechanism — buttons,
    inputs, outputs, what to expect.
 
-**Why:** the descriptions in `docs/ai-features-roadmap.md` (Tier 1 entries —
+**Why:** the descriptions in `docs/plans/archive/2026-06-05-ai-features-roadmap.md` (Tier 1 entries —
 Resume briefing, Foreshadowing tracker, Reader-knowledge tracker) explain
 *why a writer would care*, not just what the button does. That's the quality
 bar.

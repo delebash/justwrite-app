@@ -756,9 +756,6 @@ touches the subject. History in [`../plans/archive/`](../plans/archive/) is not 
 
 **Story-bible retrieval** — [`rag-design.md`](rag-design.md) (distilled decisions).
 
-**Roadmaps** — [`ai-features-roadmap.md`](ai-features-roadmap.md) ·
-[`potential-roadmap.md`](potential-roadmap.md) (research-driven candidates).
-
 **Family parity** — [`2026-08-05-family-parity-batch.md`](../plans/2026-08-05-family-parity-batch.md).
 
 **Docs** — [`2026-08-04-docs-coverage-worklist.md`](../plans/2026-08-04-docs-coverage-worklist.md).
