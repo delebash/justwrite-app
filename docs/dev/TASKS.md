@@ -669,9 +669,8 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
 
 ## Parked (wakes on a trigger or a fresh ask — not active work)
 
-- **happy-dom 21** — wakes when `@tiptap/html` allows it (its peer range is `^20.8.9`). `npm audit`
-  lists two highs for happy-dom ≤ 21.0.3; neither reaches JustWrite, whose only use is Tiptap's
-  server-side HTML with JavaScript, CSS and iframe loading all off (RESEARCH.md, Sync).
+- **The happy-dom override** (root `package.json`, 2026-10-29) — drop it when `@tiptap/html`'s peer
+  range takes happy-dom 21 (it says `^20.8.9` up to 3.32.1). RESEARCH.md, Sync.
 
 - **I5 — the deferred parking lot** (per-scene snapshots · per-entity write REST · RAG
   sqlite-vec ANN · llama-swap layer). Ledger §I5.

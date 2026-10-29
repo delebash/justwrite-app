@@ -228,8 +228,13 @@ tests are the kit's RESEARCH §2 "Sync" / "Sync, round 2". JustWrite's:
   and host code execution through an ES-module import alias (GHSA-834v-8h66-3h79, needs JavaScript
   evaluation on). JustWrite's only happy-dom is `@tiptap/html/server`, whose `Window` sets
   `disableJavaScriptEvaluation`, `disableJavaScriptFileLoading`, `disableCSSFileLoading` and
-  `disableIframePageLoading` — neither path is open. The fix is happy-dom 21, outside `@tiptap/html`'s
-  peer range (`^20.8.9`), so it waits on Tiptap.
+  `disableIframePageLoading` — neither path is open. The same day it moved to **happy-dom 21.0.4**
+  anyway (the family's audits at zero): 21's one breaking change turns CSS and iframe loading off by
+  default (`disableCSSFileLoading` deprecated for opt-in `enable…` settings), which Tiptap's settings
+  already did. `@tiptap/html` (3.32.1 the latest) still declares `happy-dom ^20.8.9`, and npm then
+  keeps 20.14.6 at the root for it, so the root `package.json` has `"overrides": { "happy-dom":
+  "^21.0.4" }` — one copy for the server, Tiptap and vitest. The sync suite and `scene_html.test.js`
+  (the server's HTML against the phone's linkedom) pass on it, with no deprecation warnings.
 - **Two windows on one server didn't see each other's saves** (2026-10-24): the window's watcher
   polled the sync product's `GET /v1/sync/rev`, which moves only when another *device's* changes
   land, so the desktop window and a browser tab on the same server each kept the book as loaded.
