@@ -689,18 +689,21 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
      on the staged `*.{js,vue}` (the family's decision, the user 2026-10-17 "your rec on all go" on
      "Only the standard fast one: Husky + lint-staged running Biome on the staged files (seconds).
      Never the guard or tests."; the kit's finish list 2026-10-29 names JustWrite). `biome check`
-     passes on all 382 files today; it never writes. **BLOCKED:** installing a git hook was refused
-     by this session's tool permission ("Unauthorized Persistence") — it needs the user's own run
-     or permission.
+     passes on all 382 files today; it never writes. **DROPPED** — the user, asked what it is: "what is
+     husky and the ci i dont want tests just running or things just running on commit in gituhb
+     unless we need it often you take up so much time running tests after each little change i dont
+     like that", then, on my rec to remove it family-wide: "remove hook your rec on rest". Never
+     switched on here; its files and packages removed the same day; the kit told.
   2. **`AGENTS.md`** — DONE 2026-10-29: the family's design (the user, 2026-10-17: it "holds the repo's
      instructions"; CLAUDE.md = `@AGENTS.md` + Claude-only lines, no separate family-rules import).
      CLAUDE.md's text moved word for word; AGENTS.md's stale lines corrected against the code
      (§2 `runAiStream` → the kit's `runAiFeature`; §4 `HISTORY_SLICES` / undo toast → `ACTION_DOMAINS`,
      no delete toast; the `*View.vue` → `*Page.vue` names; the docs that don't exist; "No formatter
      or linter"; §8's `/debug/` pages, gone); the Python "known-bad" tests dropped (no `.py` in the
-     repo). Left: `.claude/settings.local.json` is committed here, while the template says it never
-     is — untracking it would delete it from other checkouts on their next pull, so it waits for
-     the user.
+     repo). Then, on the user's "your rec on rest": `.claude/settings.local.json` untracked and
+     ignored, as the template (committed, it granted `Bash(*)` / `PowerShell(*)` to anyone who cloned
+     the repo); another computer's next pull deletes its copy — restore it there with
+     `git show deea0d72:.claude/settings.local.json > .claude/settings.local.json`.
   3. **The engine pin** — no change from me: the database pins b10750, only b11239 is on disk (the
      runner runs what's on disk). The kit seeds the pin only when missing; the AI page's **Update**
      (`useEngine.js` `updateToLatest`) writes the latest build as the pin and installs it — the
@@ -751,10 +754,11 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
 - **Server reuse is VETOED** ("i am affraid of a server running when it shouldnt"): the desktop
   shell stops a server already on the app's port that answers as this app's own, and starts its
   own (the kit's `shell/main.js`, `serverProduct` + `shutdownPath`).
-- **Commit hooks: only the family's fast lint hook** (2026-08-04 "Commit-gate hooks are REJECTED —
-  the remedy for unauthorized change is asking before UI-behaviour changes, not machinery", narrowed
-  by the user's family decision 2026-10-17): Husky + lint-staged running Biome on the staged files —
-  "Never the guard or tests." No hook gates on approval; asking first stays the remedy.
+- **No commit hooks, family-wide** (2026-08-04 "Commit-gate hooks are REJECTED — the remedy for
+  unauthorized change is asking before UI-behaviour changes, not machinery"; and 2026-10-29, the
+  family's lint hook dropped too — the user: "i dont want tests just running or things just running on
+  commit in gituhb unless we need it often", then "remove hook"). Lint and tests run in the gates at
+  the end of a piece of work, not on each commit.
 - **Availability ≠ recommendation** (the 70B/GLM precedent): a catalog row may exist untested;
   a band recommendation may not.
 - **The index FINDS, Outline RESTRUCTURES** — the index never nests scenes, Outline never grows
