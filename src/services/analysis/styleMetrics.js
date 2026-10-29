@@ -6,6 +6,7 @@
 // approximate where being precise would mean parsing English; the goal
 // is "this chapter is heavier on dialogue than the rest of the book,"
 // not literary forensics.
+import { eng } from "stopword";
 
 // Filter words distance the POV character from direct perception.
 // Hand-picked from the writing-craft canon (Sol Stein, Browne & King).
@@ -134,6 +135,35 @@ export function filterWordRanges(text) {
   for (const m of String(text || "").matchAll(new RegExp(FILTER_RE.source, "gi"))) out.push({ from: m.index, to: m.index + m[0].length });
   return out;
 }
+// Repeated words (2026-10-29, the DO list's): a word used again within `within` words of its last use,
+// in the same text (the editor passes one paragraph). Our own scan — no maintained package finds
+// echoes within a window (retext-repeated-words and write-good catch only a doubled "the the") — over
+// the standard English stop-word list (the `stopword` package's `eng`), which it skips with the
+// story bible's names (`skip`, capitals kept, as storyNames.js gives them). The same form only.
+const STOP_WORDS = new Set(eng);
+const REPEAT_WORD = /[\p{L}\p{M}](?:[\p{L}\p{M}'’-]*[\p{L}\p{M}])?/gu;
+/** Words repeated within `within` words in `text`, every use in the cluster, as [{ from, to }]. */
+export function repeatedWordRanges(text, { within, skip = [] }) {
+  const names = new Set(skip);
+  const last = new Map();
+  const marked = new Map();
+  let i = 0;
+  for (const m of String(text || "").matchAll(REPEAT_WORD)) {
+    const word = m[0];
+    const at = i++;
+    const key = word.toLowerCase();
+    if (STOP_WORDS.has(key) || names.has(word) || names.has(word.replace(/['’]s$/u, ""))) continue;
+    const range = { from: m.index, to: m.index + word.length };
+    const prev = last.get(key);
+    if (prev && at - prev.at <= within) {
+      marked.set(prev.range.from, prev.range);
+      marked.set(range.from, range);
+    }
+    last.set(key, { at, range });
+  }
+  return [...marked.values()].sort((a, b) => a.from - b.from);
+}
+
 /** -ly adverbs in `text`, as [{ from, to }] — the common non-adverbs above ("only", "family"…) left out. */
 export function adverbRanges(text) {
   const out = [];

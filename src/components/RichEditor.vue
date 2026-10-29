@@ -138,7 +138,12 @@ const proseHighlightsOn = computed(() => {
   if (!isManuscript.value || !/^en(-|$)/i.test(bookLanguage.value)) return null;
   const s = { ...DEFAULT_EDITOR_SETTINGS, ...ui.editorSettings };
   const on = { filter: !!s.highlightFilterWords, adverbs: !!s.highlightAdverbs, tells: !!s.highlightAiTells };
-  return on.filter || on.adverbs || on.tells ? on : null;
+  // Repeated words (2026-10-29): the window, and the story bible's names, which recur by design
+  if (s.highlightRepeatedWords) {
+    const within = Math.max(1, Math.round(Number(s.repeatedWordsWithin)) || DEFAULT_EDITOR_SETTINGS.repeatedWordsWithin);
+    on.repeats = { within, skip: storyNameKey.value ? storyNameKey.value.split("\n") : [] };
+  }
+  return on.filter || on.adverbs || on.tells || on.repeats ? on : null;
 });
 
 // --- live counters ----------------------------------------------------
@@ -2026,15 +2031,16 @@ defineExpose({
 .search-match { background: color-mix(in oklch, var(--accent) 22%, transparent); border-radius: 2px; }
 .search-match--current { background: var(--accent); color: var(--on-accent); }
 /* Writing settings' prose highlights (services/proseHighlights.js): a solid underline per list, in
-   three token hues — never a background (search and comments use those) and never wavy (the
+   four token hues — never a background (search and comments use those) and never wavy (the
    browser's spelling line is). The note is the span's title. */
-.ph-filter, .ph-adverb, .ph-tell {
+.ph-filter, .ph-adverb, .ph-tell, .ph-repeat {
   text-decoration-line: underline; text-decoration-thickness: 2px; text-underline-offset: 3px;
   text-decoration-skip-ink: none;
 }
 .ph-filter { text-decoration-color: color-mix(in oklch, var(--gold) 85%, transparent); }
 .ph-adverb { text-decoration-color: color-mix(in oklch, var(--info) 80%, transparent); }
 .ph-tell { text-decoration-color: color-mix(in oklch, var(--status-revise) 85%, transparent); }
+.ph-repeat { text-decoration-color: color-mix(in oklch, var(--success) 85%, transparent); }
 
 /* @-mention chips */
 .mention {

@@ -690,7 +690,9 @@
     "highlightFilterWords": "Highlight filter words",
     "highlightAdverbs": "Highlight adverbs",
     "highlightAiTells": "Highlight AI-tell phrases",
-    "highlightsEnglishOnly": "These three lists are English, so they mark nothing in this book: it's in {language} (Settings → Project).",
+    "highlightRepeatedWords": "Highlight repeated words",
+    "repeatedWordsWithin": "within {n} words",
+    "highlightsEnglishOnly": "These four lists are English, so they mark nothing in this book: it's in {language} (Settings → Project).",
     "save": "save",
     "back": "back",
     "fontThemeDefault": "Theme default",
@@ -1691,7 +1693,8 @@
   "richEditor": {
     "highlight": {
       "filterNote": "Filter word: it can put the narrator between the reader and what the character sees, hears or feels.",
-      "adverbNote": "Adverb: a stronger verb may do its work."
+      "adverbNote": "Adverb: a stronger verb may do its work.",
+      "repeatNote": "Used again within {n} words"
     },
     "superscriptGlyph": "x²",
     "subscriptGlyph": "x₂",

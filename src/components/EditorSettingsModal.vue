@@ -13,6 +13,7 @@ import { AppModal } from "@delebash/ui";
 import { UiButton } from "@delebash/ui";
 import { UiSelect } from "@delebash/ui";
 import { UiSegmented } from "@delebash/ui";
+import { UiNumber } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
@@ -45,6 +46,7 @@ const PROSE_HIGHLIGHTS = [
   { field: "highlightFilterWords", labelKey: "editorSettings.highlightFilterWords" },
   { field: "highlightAdverbs", labelKey: "editorSettings.highlightAdverbs" },
   { field: "highlightAiTells", labelKey: "editorSettings.highlightAiTells" },
+  { field: "highlightRepeatedWords", labelKey: "editorSettings.highlightRepeatedWords" },
 ];
 const project = useProjectStore();
 const bookLanguage = computed(() => project.project?.language || "en");
@@ -114,6 +116,15 @@ function back() { emit("close"); }
         <span class="es-label">{{ $t(h.labelKey) }}</span>
         <UiSegmented v-model="draft[h.field]" :options="BOOL_OPTS" :aria-label="$t(h.labelKey)" />
       </div>
+      <!-- Repeated words' window (2026-10-29), in its sentence: "within 50 words". -->
+      <div v-if="draft.highlightRepeatedWords" class="es-row">
+        <span aria-hidden="true" />
+        <i18n-t keypath="editorSettings.repeatedWordsWithin" tag="label" scope="global" class="es-inline">
+          <template #n>
+            <UiNumber v-model="draft.repeatedWordsWithin" width="num" :min="1" :use-grouping="false" />
+          </template>
+        </i18n-t>
+      </div>
       <p v-if="!englishBook" class="es-note">
         {{ $t("editorSettings.highlightsEnglishOnly", { language: languageName(bookLanguage) }) }}
       </p>
@@ -134,6 +145,7 @@ function back() { emit("close"); }
 }
 .es-label { font-size: 12.5px; font-weight: 600; color: var(--ink-2); text-align: right; line-height: 1.3; }
 .es-select { max-width: 260px; }
+.es-inline { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-2); }
 .es-note { margin: -4px 0 0 226px; max-width: 60ch; font-size: 11.5px; line-height: 1.45; color: var(--muted); }
 /* A phone (Quasar's xs, under 600px): each label over its control — the two columns cut the
    controls off at 390px (seen 2026-10-18). */

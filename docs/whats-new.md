@@ -6,6 +6,10 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-29
 
+**Repeated words, marked as you write.** Writing settings has a fourth highlight, **Highlight repeated
+words**: a word you use again within 50 words — your number — gets a green underline, the small common
+words and your story bible's names left out. See [Writing](writing.md#prose-highlights).
+
 **Brainstorm's categories are worded in its prompts.** What each category asks the model for — character
 names, place names, plot twists and the rest — now lives in Brainstorm's two system prompts, so you can
 read or reword it in the AI page's Lab. See [Brainstorm](brainstorm.md#the-categories).

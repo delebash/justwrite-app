@@ -139,6 +139,8 @@ Select any text and a small floating menu appears next to your selection with th
 
 **Writing settings** can mark three of Analysis' lists as you write: **filter words** (*saw*, *felt*, *noticed* — words that can put the narrator between the reader and the scene), **adverbs** (*-ly* words, with common non-adverbs like *only* left out) and **AI-tell phrases** (the AI-tell scan's list). Each gets its own underline — gold, blue, orange — and hovering a marked word says why it's marked. They're off until you turn them on and never change your text. The lists are English, so they mark English books only: the book's language is **Book language** in Settings → Project.
 
+**Highlight repeated words** marks a word you use again too soon — *"The lantern swung; the lantern died"* — with a green underline on each use. "Too soon" is the setting under it, **within 50 words** to start (about three sentences); change the number to look closer or further. It looks within a paragraph, counts the same form only (*walk* and *walked* are different words), and leaves out the small words every sentence needs (*the*, *and*, *was*, *he*…) and your story bible's names, which you'll repeat on purpose. Like the other three, it marks English books only.
+
 ### Spelling
 
 With **Spell check** on (Writing settings), misspelled words get the usual red underline — but never the names in your story bible: every character's name and alias, every location, object and group is left alone, so *Cael* and *Threnn* aren't flagged as typos. In the desktop app the spellchecker checks in your book's language (**Book language** in Settings → Project) and in the language of JustWrite's screens, when your computer has them; in a browser tab it uses the browser's own languages.

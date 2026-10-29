@@ -44,6 +44,9 @@ export const DEFAULT_EDITOR_SETTINGS = {
   highlightFilterWords: false,
   highlightAdverbs: false,
   highlightAiTells: false,
+  // Repeated words (2026-10-29): a word used again within this many words, in its paragraph.
+  highlightRepeatedWords: false,
+  repeatedWordsWithin: 50,
 };
 
 export const LINE_SPACING_OPTIONS = [1, 1.3, 1.4, 1.5, 2];

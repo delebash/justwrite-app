@@ -44,6 +44,35 @@ test("the marks land on the words, across formatting and a line break", () => {
   ]);
 });
 
+test("repeated words (2026-10-29): a word used again within the window, both times", () => {
+  const repeats = { within: 5, skip: ["Cael"] };
+  const words = (text) => highlightRanges(text, { repeats }).map((r) => [r.kind, text.slice(r.from, r.to), r.from]);
+  // lantern, then lantern 3 words on: both; the third is 9 words after the second — outside
+  expect(words("The lantern swung. The lantern died. Far away, after many quiet hours, the lantern woke."))
+    .toEqual([["repeat", "lantern", 4], ["repeat", "lantern", 23]]);
+  // any case; the same form only; the common words and the story bible's names never
+  expect(words("Storm and storm.")).toEqual([["repeat", "Storm", 0], ["repeat", "storm", 10]]);
+  expect(words("We walk, we walked.")).toEqual([]);
+  expect(words("Cael and Cael's sister, the the")).toEqual([]);
+  expect(words("Rain at noon and rain at dusk")).toEqual([["repeat", "Rain", 0], ["repeat", "rain", 17]]);
+  // off
+  expect(highlightRanges("Rain and rain", { repeats: null })).toEqual([]);
+});
+
+test("a repeated word's mark says the window, and stops at its paragraph", () => {
+  const on = { repeats: { within: 50, skip: [] } };
+  const note = (key, params) => `${key}:${params?.n}`;
+  const marks = (html) => {
+    const doc = docOf(html);
+    return proseDecorations(doc, on, note).find().map((d) => [doc.textBetween(d.from, d.to), d.type.attrs.class, d.type.attrs.title]);
+  };
+  expect(marks("<p>The lantern swung; the lantern died.</p>")).toEqual([
+    ["lantern", "ph-repeat", "richEditor.highlight.repeatNote:50"],
+    ["lantern", "ph-repeat", "richEditor.highlight.repeatNote:50"],
+  ]);
+  expect(marks("<p>The lantern swung.</p><p>The lantern died.</p>")).toEqual([]);
+});
+
 test("nothing is marked while every list is off", () => {
   expect(marked(docOf("<p>She felt it, slowly.</p>"), null)).toEqual([]);
 });
