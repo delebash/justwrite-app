@@ -83,10 +83,10 @@ STATE:  DECIDED — the user, on my list of `docs/roadmap.md`, `IDEAS.md` and th
         questions were decided in the kit's session (closing the main window closes the app, each
         window asking about unsaved work).
 OPEN:   all six BUILT 2026-10-29 (the plan's "Built" lines). Still open: multi-window's desktop window —
-        the kit's shell half (just-core-09; its own open questions are on the kit's list for the user),
-        then one check on the built app; the website entry (its picture) and Brainstorm's check per
-        category on the real model, both waiting on ~10 GB of free memory after the app starts. The
-        removals and closes: done 2026-10-29.
+        the kit's half landed (158aaaf) — one check on the built app; the website entry (its picture),
+        waiting on ~10 GB of free memory after the desktop app starts. Brainstorm's check per category
+        on the real model: done 2026-10-29, each returned its kind. The removals and closes: done
+        2026-10-29.
 GO:     given 2026-10-29, as above (both).
 
 ## Three feature ideas: PDF page size, Story Bible export, AI-written words by chapter [2026-10-28]

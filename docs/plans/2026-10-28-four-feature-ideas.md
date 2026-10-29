@@ -23,7 +23,7 @@ The facts this plan rests on are in `docs/dev/RESEARCH.md`, "Four feature ideas"
 | 1. The sizes offered, editable | seeded rows (the seed ships facts) | app — JustWrite's seeded data (`server/src/database/seed.js`) |
 | 2. AI-written words per chapter | the existing per-book count | app — writing (`src/services/aiText.js`) |
 | 2. The breakdown | the family's one table control | `UiTable` |
-| 2. Copy as text | the browser's Clipboard API, as the kit's own copy does | app — `navigator.clipboard.writeText`, which the kit's desktop shell permits; the kit has no clipboard helper |
+| 2. Copy as text | the browser's Clipboard API, as the kit's own copy does | app — Quasar's `copyToClipboard`, as the app's other copies (2026-10-29: `navigator.clipboard` is missing on a plain http:// address); the kit has no clipboard helper |
 | 3. The Story Bible outline | the pages' own field labels (the locale's `characters.fields.*`, …) | app — writing (a new `src/services/export/storyBible.js`) |
 | 3. The DOCX and PDF files | the `docx` library and pdfmake, already shipped | app — JustWrite's own document export (`src/services/export/`) |
 | 3. The Story bible card | the kit's controls | `UiCheckbox`, `UiButton` |

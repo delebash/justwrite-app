@@ -30,3 +30,19 @@ test("By chapter lists the chapters with AI-written words, and copies them as te
   expect(copied).toMatch(/^AI-written words in this book: \d+/);
   expect(copied).toContain(`Chapter ${chapter.num}`);
 });
+
+// A plain http:// address (a browser on another computer) has no navigator.clipboard at all; the copy
+// goes through Quasar's copyToClipboard, which falls back to the browser's copy command (2026-10-29).
+test("Copy as text works where the browser has no navigator.clipboard", async ({ page }) => {
+  await page.addInitScript(() => Object.defineProperty(navigator, "clipboard", { value: undefined, configurable: true }));
+  await page.goto("/#/settings/project");
+  await inStore(page, (s) => {
+    const c = s.allChapters.find((ch) => (s.scenesFor(ch.id) || []).length);
+    const scene = s.scenesFor(c.id)[0];
+    s.setSceneBody(c.id, scene.id, `${scene.body}<p><span data-ai-text="">four words the AI</span></p>`);
+  });
+  await navigate(page, "/settings/project");
+  await page.getByRole("button", { name: "By chapter", exact: true }).click();
+  await page.getByRole("button", { name: "Copy as text" }).click();
+  await expect(page.getByRole("button", { name: "Copied" })).toBeVisible();
+});

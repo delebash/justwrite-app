@@ -759,6 +759,12 @@ The plan: [`../plans/2026-10-29-do-list.md`](../plans/2026-10-29-do-list.md).
   knew, went, like, never…), but no contraction pieces and no *am*, *hers*, *themselves*, *whom*. The
   repeated-words highlight skips a word on either list (the user's go, 2026-10-29). (*measured
   2026-10-29*, the packages installed in a scratch folder.)
+- **Brainstorm's categories by id work on the real model:** with the healed systems, one request per
+  category (`Category: <id>` + a seed) on a copy of the user's data and installed models, the
+  feature's own route: character_name, place_name, item_name, title and free gave 17–20 names, places,
+  objects, titles and phrases; next_beat and twist gave 15–16 single-sentence moves, the twists
+  reversals rather than next steps. 4–19 s each, the first with the model's load. (*measured
+  2026-10-29*, the server alone — no desktop app.)
 - **simple-statistics 8.0.0 was published 2026-10-28;** 7.12.1, the one used, 2026-09-27 (`npm view
   simple-statistics time`). Both are ES modules. (*2026-10-29*.)
 - **The renderer counts words by splitting on whitespace in ten places** (the store's rollup, the

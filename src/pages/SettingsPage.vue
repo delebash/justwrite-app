@@ -270,7 +270,8 @@ async function copyAiByChapter() {
   }));
   const text = [t("settings.project.aiWrittenWords", { n: fmtNumber(aiWrittenWords.value) }), ...lines].join("\n");
   try {
-    await navigator.clipboard.writeText(text);
+    // Quasar's copy: a plain http:// address (another computer) has no navigator.clipboard (2026-10-29)
+    await copyToClipboard(text);
     aiCopied.value = true;
     setTimeout(() => { aiCopied.value = false; }, 2000);
   } catch {

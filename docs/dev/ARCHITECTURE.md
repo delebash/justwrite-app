@@ -271,7 +271,7 @@ is 4096 regardless of model capability — silently truncates inputs
 server-side (caught when Mistral-Small:24b only saw 10/12 dialogue tags).
 Callers can override via `extra.options.num_ctx`.
 
-### Model class defaults
+### Model family thinking defaults
 
 - **Reasoning-first** (Qwen3.5, DeepSeek-R1, QwQ, GPT-OSS, magistral,
   glm-z\*) → `think: false` for JSON output. Otherwise `<think>` blocks
