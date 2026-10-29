@@ -12,6 +12,7 @@
 //   JW_SHOTS_DIR   where the PNGs go (default: the website checkout beside this repo)
 //   JW_SHOTS_BOOK  the book .zip to import into the copy
 //   JW_DATA_ROOT   the data folder to copy (default: the one the app uses — findDataRoot)
+//   JW_SHOTS_ONLY  only these pictures, by name (e.g. "sheet-draft,ask-the-book") — a retake
 //   --no-ai        the page pictures only, without the FEATURES (no model, no graphics card)
 
 import fs from "node:fs";
@@ -24,9 +25,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = process.env.JW_SHOTS_DIR || path.resolve(__dirname, "../../justwrite-website/public/screenshots");
 const BOOK_ZIP = process.env.JW_SHOTS_BOOK || path.resolve(__dirname, "../server/samples/The Salt-Iron Road.zip");
 const WITH_AI = !process.argv.includes("--no-ai");
+const ONLY = (process.env.JW_SHOTS_ONLY || "").split(",").map((s) => s.trim()).filter(Boolean);
 // the copy's own server, only to import the book before the app opens (the smoke's is 17496, the
-// eval's 17497, the flows' 17498)
-const PREP_PORT = Number(process.env.JW_SHOTS_PORT || 17499);
+// eval's 17497, the flows' 17498; 17499 is just-house-paint's registered server port — the kit's
+// app-structure.md port registry — so this one moved off it on 2026-10-28)
+const PREP_PORT = Number(process.env.JW_SHOTS_PORT || 17504);
 // a local model on a modest graphics card can take minutes over one answer
 const AI_TIMEOUT = 10 * 60_000;
 
@@ -104,8 +107,10 @@ const FEATURES = [
       await d.sleep(2000);
       const drafting = page.getByRole("switch", { name: "AI scene drafting" });
       if ((await drafting.getAttribute("aria-checked")) !== "true") await drafting.click();
+      // New scene is the scene editor's, so a scene is opened first (as tests/flows' openSceneWithProse)
       await d.navigate("#/chapters/ch2");
       await d.sleep(2500);
+      await page.getByRole("button", { name: /^scene 1/i }).first().click();
       await page.getByRole("button", { name: /New scene/ }).first().click();
       await page.getByRole("button", { name: /Links/ }).first().click();
       await page.getByRole("textbox", { name: "Summary" }).fill(
@@ -129,16 +134,16 @@ const FEATURES = [
       await page.keyboard.press("Control+j");
       const panel = page.locator(".chat-panel");
       await panel.waitFor();
-      const build = panel.getByRole("button", { name: /Build/ });
+      // a book imported into the copy has no index yet: its window (IndexBuildModal) builds as it
+      // opens and ends on Done
+      const build = panel.getByRole("button", { name: "Build index" });
       if (await build.count()) {
-        await build.first().click();
-        const dialog = page.getByRole("dialog").filter({ hasNot: panel });
-        await dialog.getByRole("button", { name: /Build|Start/ }).last().click();
-        await panel.locator("textarea").waitFor({ timeout: AI_TIMEOUT });
+        await build.click();
+        await page.getByRole("button", { name: "Done", exact: true }).click({ timeout: AI_TIMEOUT });
       }
       await panel.locator("textarea").fill("What is in the unlisted crate, and who wants it?");
       await panel.locator("textarea").press("Enter");
-      await page.waitForFunction(() => !document.querySelector(".chat-panel [aria-busy='true'], .chat-panel .is-pending"), null, { timeout: AI_TIMEOUT });
+      await answered(page);
       await d.sleep(1500);
     },
   },
@@ -185,9 +190,28 @@ const FEATURES = [
         .getByRole("button", { name: "Edit" })
         .click();
       await d.sleep(3000);
+      // the catalog sits below the provider's form and the engine row
+      await page.getByText("Model Catalog", { exact: true }).first().evaluate((el) => el.scrollIntoView({ block: "start" }));
+      await d.sleep(1500);
     },
   },
 ];
+
+/** Until the chat panel's newest answer is complete — a pending one shows "…" (ChatPanel.vue), and
+ * a streaming one keeps its task's Cancel in the panel until the last token. */
+async function answered(page) {
+  await page.waitForFunction(() => {
+    const bubbles = document.querySelectorAll(".chat-panel .cp-bubble-assistant");
+    const last = bubbles[bubbles.length - 1]?.textContent.trim();
+    return Boolean(last) && last !== "…";
+  }, null, { timeout: AI_TIMEOUT });
+  await page.locator(".chat-panel").getByRole("button", { name: "Cancel" }).waitFor({ state: "detached", timeout: AI_TIMEOUT });
+}
+
+/** JW_SHOTS_ONLY="name,name" retakes just those pictures (page or feature names). */
+function wanted({ name }) {
+  return !ONLY.length || ONLY.includes(name);
+}
 
 /** A copy of the user's data with the sample book imported and made the open book. */
 async function prepareData() {
@@ -254,7 +278,7 @@ async function main() {
     await d.navigate("#/");
     await d.sleep(800);
 
-    for (const t of TARGETS) {
+    for (const t of TARGETS.filter(wanted)) {
       console.log(`→ ${t.name} (${t.hash})`);
       await d.navigate(t.hash);
       await d.sleep(t.wait);
@@ -278,9 +302,12 @@ async function main() {
       console.log(`   saved ${path.basename(file)}`);
     }
 
-    for (const f of WITH_AI ? FEATURES : []) {
+    for (const f of WITH_AI ? FEATURES.filter(wanted) : []) {
       console.log(`→ ${f.name} (the real model)`);
       await f.run(d, d.page);
+      // the pointer off the page, so no hover tooltip lands in the picture
+      await d.page.mouse.move(1, 1);
+      await d.sleep(400);
       const file = path.join(OUT_DIR, `${f.name}.png`);
       await d.screenshot(file);
       console.log(`   saved ${path.basename(file)}`);

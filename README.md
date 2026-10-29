@@ -217,9 +217,12 @@ It never touches your data: it copies your data folder, imports the bundled samp
 | `JW_SHOTS_DIR` | the website checkout's `public/screenshots/` beside this repo |
 | `JW_SHOTS_BOOK` | `server/samples/The Salt-Iron Road.zip` |
 | `JW_DATA_ROOT` | the data folder the app uses |
-| `JW_SHOTS_PORT` | 17499 — the copy's server while it imports the book |
+| `JW_SHOTS_PORT` | 17504 — the copy's server while it imports the book |
+| `JW_SHOTS_ONLY` | every picture — or a comma list of names (`sheet-draft,ask-the-book`) to retake just those |
 
 `node e2e/capture-direct.js --no-ai` takes the page pictures only, without the model.
+
+Close JustWrite — `npm run dev` included — and don't start it while the capture runs. The app it drives takes JustWrite's own port (17495); a JustWrite started meanwhile stops the capture's server as its own, and the capture's window would then be working on your real books.
 
 #### Re-capture with a different theme
 

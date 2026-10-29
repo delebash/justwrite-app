@@ -260,270 +260,15 @@ BUILT:  the POV/"when" fix — `d55f8f5` (+ the kit's `1ab9a69`): a scene's POV 
         preset and Lab sample), a new flow test (`tests/flows/scene-draft.spec.js`, 1280 and 390
         px: off by default, the switch, an empty scene drafted from its Summary and accepted, a
         typed word unmarked, the count, Mark as mine).
-OPEN:   the Lab check is now `npm run eval` (TASKS "Automated testing", 2026-10-16): every sample
-        ran on gemma; its findings are listed there.
-        Slice 4's bench leg (the plan's D4) done 2026-10-18 on the user's "run it now go": Draft
-        from plan passes on gemma-4-26b and gemma-4-12b; 26b lands the scene's turn, 12b softens
-        it — 26b is fit for Scene drafting, so the feature carries no warning (RESEARCH "Testing").
+OPEN:   your look at the seventh round's build (Brainstorm where it's used, `c391373`) and its
+        follow-ups (`459c5ad`). The Lab check (`npm run eval`) and Slice 4's bench leg are done
+        (RESEARCH "Testing").
 GO:     given 2026-10-11 — "your rec all go" (twice) for the design, the decisions, RESEARCH.md,
         the POV/"when" fix and the doc fixes; "you have go for implementation" for slices 1–2;
         "your rec go" for the third round (Task 0, Tasks 9b and 11b, Task 12 in the chat panel);
         "think on the questions again your rec go" (2026-10-16) for the fifth round's recs, the
         sheets and slice 3, and the phone's sentence; the same words again (2026-10-16) for the
         sixth round's.
-
-## Automated testing: real models and click-through flows [2026-10-16]
-STATE:  DECIDED 2026-10-16 — the user: "what am i checking can you do it do you have or can find
-        tools to do testing like jv so there is minimul human interaction and can test with other
-        ai models what can you do? this type of testing is something we need to be able to to for
-        any app more good automated testing that is quick, think on your rec again always
-        adversially go"; then, asked what was being changed and told (nothing existing replaced:
-        the real-model eval for the Lab check, and the one-off click-through scripts made
-        permanent tests), "carry on, your rec go".
-WHY:    the Lab check was the user's to do by hand; every test faked the model's reply; my
-        click-through checks were one-off scripts nobody re-ran.
-BUILT:  `npm run eval` (promptfoo 0.123.1 through npx; the kit's `scripts/evals/`: the app server as
-        a provider, the Lab samples as test cases; JustWrite's `evals/`: the config and the reply
-        contract) and `npm run test:flows` (Playwright Test, `tests/flows/`, 14 tests at 1280 and
-        390 px, AI stubbed by the kit's `scripts/lib/ai-stub.js`); the smoke's setup shared as
-        `scripts/lib/scratch-server.js`. Docs: architecture-notes.md "Test harness detail".
-        First runs: the flow tests pass (30 s); the eval on gemma-4-26b and gemma-4-12b — findings
-        below and in RESEARCH "Testing".
-        The findings, asked as shown (2026-10-16): "1. Autosave fails for any book over 64 KB —
-        this is serious. … Fix: the kit's request helper drops that setting when the body is over
-        64 KB, which fixes every app at once. … A new flow test would check a big book saves.
-        2. Three writer samples always fail … Fix: add the variables to `seed_presets.js:264,
-        270, 320`. Also have the kit's sample seeder add a missing variable to a sample already
-        saved, keeping your values, so your database gets them. 3. Brainstorm's plot sample tests
-        the wrong thing. … Fix: one sample per way the app asks for plot ideas. These are new
-        labels in the Lab, so I need your word on them: "Plot beats from a seed", "Next beats at
-        the cursor", "Next beats on a strand". 4. Draft from the premise contradicted the premise.
-        … Fix: the prompt gains "keep every fact the book gives — names, pronouns, who is who",
-        and the sample gets the main cast, as a real book would send. 5. Fill from book can lose
-        a character's vocabulary. … Fix: the app joins the list with semicolons …, and the prompt
-        asks for semicolons." Then: "Your go to translate the new English lines, which also uses
-        the GPU." The user: "your rec on all go" (2026-10-16).
-        Built 2026-10-16: 1 — kit `6b7d96b` (the transport keeps keepalive only within 64 KiB in
-        flight) + `a56e0a3` (its tests: a book over 64 KB saves); 2 — `575ba75` + kit `3b485a8`
-        (the samples carry the variables; the seeder adds a variable a stored sample lacks; a test
-        renders every sample through its prompts); 3 — `14fb8b8` (the three samples, held to their
-        composers); 4 — `a820ccd` (the rule, healed into an unedited stored prompt; the sample's
-        cast); 5 — `e2da0ee` (a list of phrases joined with semicolons; the prompts name the shape).
-        Run 2026-10-16 on the GPU, after JustVoice freed it:
-        - `npm run eval` on the changed actions passed 12 of 12 on gemma-4-26b (RESEARCH
-          "Testing").
-        - The new English lines went to docgen as a job (proposals only; `es.json` byte-identical
-          before and after). That is 74 keys: the 72 added since the 2026-10-15 staging, and the 2
-          whose English changed since (`writingAi.storyContextDesc`, `mentionRefs.empty`), whose
-          old proposals it replaced. All 74 staged, none failed, 76 s.
-FOUND:  2026-10-16, while freeing the card: the kit's `POST /v1/llm-runner/stop` with no body at all
-        returned 500, "Cannot read private member #state from an object whose class did not
-        declare it". The 2026-10-17 recs, as shown: "My rec: go back to the adapter's default —
-        delete `overrideGlobalObjects: false`" (the other option, NOT STANDARD: keep the setting
-        and hand the body limit a real request in `readBody`); and for the Spanish: "Keep "beat"
-        … and "hilo" for strand, put the number before the noun ("{n} notas"), all three in
-        docgen's conventions line for Spanish, then re-run the affected keys as a job (proposals
-        only)." The user: "go your rec"; asked which, "think on it adverserially your rec go";
-        and "i dont mind non standard i want what is best what works the reason for sticking
-        with standard is you often write and fix problems when a standard fix already exists".
-        What the attack changed: docgen's conventions line is docgen's packaged rule for Spanish
-        in every project, so the three went into JustWrite's own context sentence instead. The
-        glossary was no fit either: it protects whole words, case-sensitive, so "beat" would miss
-        "beats".
-        Built 2026-10-17:
-        - Kit `479dbad`: the server keeps @hono/node-server's default globals. Any JSON body that
-          came without a Content-Length (chunked, or a POST with none) had answered 500 on every
-          family server. Two tests go through the real server (kit RESEARCH, hono/body-limit).
-          Checked: kit 1,199 passed, JustWrite's server 166, the smoke, the flows 16 of 16; on
-          docgen's server, a POST to the stop route with no body and a chunked one both answer
-          200. JustVoice on 479dbad (its session, 2026-10-17): the smoke rendered every view
-          with zero JS errors, and the stop route with no body answers 200.
-        - JustWrite's docgen context sentence gains: "In Spanish, a plot beat stays "beat"
-          (plural "beats"), a strand of the plot board is "hilo", and in a plural form the
-          number comes before the noun ("3 notas")."
-        - A job re-staged the 158 keys those rules govern: every key whose English says
-          beat/beats/strand/strands, and every plural form with a number. All 158 staged, none
-          failed; `es.json` byte-identical.
-          Read: every beat key keeps "beat", every strand key says "hilo"; 155 of the 158 put
-          the number first.
-        The Spanish review, DECIDED 2026-10-17 — the user: "your rec what else is next i dont want
-        to review spanish can you do it"; then "realisitically you are a very smart ai, either you
-        can do most of the work find tools like you did in jv or if need be we make tools but i
-        want an agentic worflow with little human interaction". The tools are in docgen's RESEARCH
-        ("Automatic translation review: tools"). Asked as shown: "My rec: one saved workflow in
-        docgen's repo, reusable for any app's catalog. You'd see only a summary and a short list
-        of anything left over. 1. Translate: docgen's job, as now. 2. Machine checks: docgen's
-        checks, plus the Spanish spellchecker. 3. Review: 4 reviewer agents split the strings. Each
-        one marks errors in the MQM style and writes a fix, only for real errors and never for
-        style. They work from one term sheet built from the catalog plus your three rules. 4.
-        Verify: 4 verifier agents keep a fix only if they agree it improves the string (the MQM-APE
-        filter). A fix that breaks docgen's checks is dropped automatically. 5. Apply: through
-        docgen's own Apply and Save, so it's undoable and every `es.json` change shows in git. Then
-        docgen's `check` must pass. 6. On screen: JustWrite's flow tests run in Spanish at 1280 and
-        390 px, checking for overflow. 7. First run: all three catalogs waiting today (JustWrite,
-        the kit, docgen; about 4,800 strings), with 9 agents in total." NOT STANDARD: "the
-        workflow script and the small export and apply scripts around docgen". The user: "auto
-        compatcte re read docs rules notes so you know where you are at your rec on all think on
-        them again adversarially first go". What the attack changed, as shown: no GPU (the
-        reviewers write the kit's new strings through docgen's Save, no translate job);
-        acceptances recorded by the reviewer "Claude (AI review)", set on a scratch copy of
-        docgen's data ("the engine never signs off"); a pick in the strings where the file's
-        Spanish and the proposal differ; every final string compiled with vue-i18n's message
-        compiler; run from the scratchpad, saving it into docgen as a reusable tool asked by name
-        once it has worked; 1 term sheet + 6 reviewers + 2 verifiers.
-        Run 2026-10-17 (numbers in docgen's RESEARCH): the term sheet, 201 terms; 1,282 decisions;
-        the verifiers upheld 1,234 and rewrote 48; a last agent (the tenth) ruled on the 430 strings
-        still flagged — 2 fixed, 428 accepted with a reason; my own on the way: "P. ej." after a full
-        stop in 11 hints, the kit's speed band "bien" → "aceptable" (its settings call it that), and
-        17 counts given both forms ("{n} encontrado | {n} encontrados" — vue-i18n picks the form
-        from `n`, the kit's RESEARCH §8; docgen's placeholder check counts `{n}` across both forms,
-        so they are accepted). Applied through docgen's routes on a scratch-data server: every
-        `es.json` equals the decisions key by key — JustWrite 3,052 of 3,052 (was 2,092), the kit
-        1,480 (was 62), docgen 278 (new). Nothing left staged or unreviewed; `es.accepted.json`
-        written in each project. All six problems listed here before are fixed (the number first,
-        "reveses", "Redacción: {name}", "desactualizado", "biblia de la historia", "{n} beat").
-        Checked: docgen's `check` passes on JustWrite's and docgen's catalogs, and on the kit's but
-        for `kit.quickSetup.doneBody` (empty in English on purpose — docgen's TASKS, FOUND
-        2026-10-15); test:fast (unit 713, build, server 166); the kit's UI tests (12); i18n:report
-        MISSING 0; the smoke; the flows 16 of 16; every route in Spanish at 1280 and 390 px — no
-        sideways page, the same boxes scrolling in themselves as before (the tables at 390);
-        docgen's screens in Spanish from its real window. Fixed on the way: the kit's Icon shrank
-        beside a label that wraps (docgen's nav, "Configuración de la aplicación") — it keeps its
-        size now. User docs: whats-new.md.
-        2026-10-18 — the run's follow-ups, decided as shown: "2. Four code bugs put English into
-        Spanish screens. The backups dialog shows the raw name "prev2". The fix is the label
-        function the backups list already uses. The Import page inserts the English words
-        "chapter" and "note" into sentences. The sidebar makes "New …" by cutting the "s" off a
-        translated word, which gives "ubicacione". The marketing pack shows the raw
-        "high/medium/low". My rec for the last three: whole messages per case, or one key per
-        item, with the same English as today. Pasting a noun into a sentence breaks Spanish gender
-        ("este nota"); that point changed my rec. The Spanish for the new keys goes through the
-        same review. 3. Two theme names stay English. "Fine Press" and "Ivory Press" are
-        untranslated while their sibling themes are translated. My rec: "Imprenta fina" and
-        "Imprenta marfil". 4. Three docgen fixes, each with a test: Check placeholders form by
-        form, so a Spanish string with more forms isn't flagged. Count a string that is blank in
-        English as done. Name languages in the interface's language; Spanish screens show "Spanish
-        (es)" today." The user: "compacted re read docs rules session your rec on all go".
-        Done: the restore title through `generationLabel()`; Import's wording as whole messages per
-        case (8 new `import.*` keys, `count.chapterNoun` / `count.noteNoun` after `count.flagNoun`,
-        the "Untitled note/chapter" placeholders reuse `sceneNotes.untitledNote` and
-        `chapters.outline.untitledChapter`); each sidebar + button names its entity's existing
-        "New …" key (`newLabel` on the nav row — the reuse-before-mint rule, so no new key); the
-        confidence chip one key per level. The Spanish: one agent wrote the 13 new strings, a
-        refuting verifier upheld 9 and rewrote 4, and ruled the Import button's "Eliminar" a
-        terminology error (it only leaves a section out; the term sheet's "quitar" — the thing
-        survives) → "Quitar", with its tooltips and line; the theme names as approved. Saved
-        through docgen's Save (16 strings; docgen pruned the 7 replaced keys itself). docgen's
-        three fixes: its TASKS, Task 6. Checked: docgen's `check` passes with exit 0 on all three
-        catalogs (JustWrite 3,058 of 3,058; the kit 1,481 of 1,481; docgen 278); test:fast (unit
-        713, build, server 166); i18n:report MISSING 0; the smoke; the flows 16 of 16; each touched
-        screen driven in Spanish and English on the scratch server (the six + buttons, Import as
-        notes and as chapters with both tooltips, the restore title from a real autosave, the
-        confidence chips) — every string as in the catalogs, no page errors; docgen's server
-        tests 165, unit 5, lint. User docs: whats-new.md (both apps), docgen review.md.
-        2026-10-18, second round — three findings shown with recs: "1. Restore title … My rec is
-        one message per copy, for example `Restore "{title}" from the previous autosave?` … 2.
-        Import's notes tag … My rec: start the field with the word its placeholder already shows
-        ("nota" in Spanish) … 3. Seeded names … My rec is a plan before any code: each seeded row
-        keeps its catalog key and shows the translation until you rename it." With them, the
-        three cleanups named before (the smoke's `/v1/kv` probe, the passive-voice sample, the
-        voice prompt's scale). The user: "keep going until everything is done your rec but think on
-        your decisions twice before doing, finish everything dont stop". Done, with what the
-        second look changed:
-        - The restore title: three whole messages, the list's own words ("from the current /
-          previous / earlier autosave?"); the read error beside it ("Couldn't read the autosave
-          file.") was English in code — a key now.
-        - The notes tag: a new note took "note" from code too (`project.js` `addNote`), so
-          changing Import alone would have given a Spanish book two tags; one catalog word
-          `defaults.noteTag` (with the other create-time words) for New note, Import's field and
-          the store's import default. A tag is free text, so it can't be translated when shown —
-          it is written in the writer's language (the 2026-10-13 ruling: new-thing names in the
-          app's language when created). The server's save still fills an empty tag with "note"
-          (the seeded-words plan, OPEN 2).
-        - Found by the seeded-words sweep and fixed, as the existing rulings say: the marker
-          categories (a code table — it names its keys; the chips showed the English constant);
-          the Architecture documents in the sidebar and search (a fixed set shown by key, as the
-          page — one table, `services/architectureDocs.js`); a new tag-vocabulary entry ("New
-          tag", `defaults.tag`). And, from JustVoice's sibling session: Clear models cache says
-          when the cache is shared (the template's line, kit `d716a8b`) — though the kit's
-          `cacheShared` can't see apps that share JustWrite's own cache (told to that session).
-          And the Writing settings window's choices ("theme", "small", "enabled", "disabled" —
-          English literals in `EditorSettingsModal.vue`, found by the Spanish verifier) take keys.
-        - The Spanish of this round's 25 new strings (slice 4's, the restore question, the
-          create-time words, the shared-cache line, the Writing settings choices): one agent
-          wrote them, a refuting verifier upheld them; saved through docgen's Save (docgen pruned
-          the replaced key). Two advisory terminology flags accepted as false alarms ("de lo
-          anterior" is `continueDesc`'s own closing phrase; "escríbelo" is "escribe" with its
-          pronoun), by the reviewer "Claude (AI review, 2026-10-18)".
-        - The smoke reads `/v1/settings` (what replaced `/v1/kv`) and its header says so.
-        - The passive-voice rule has its own Lab sample, "Passive paragraph" (a new label, so the
-          seeder adds it to existing databases); the voice passes' register line lost its scale,
-          both older stored texts heal. The eval on the three actions: 4 of 4 on gemma-4-26b and
-          on gemma-4-12b, both reading as intended (RESEARCH "Testing").
-        2026-10-18, third round — the user: "your rec on all go dont stop dont ask me again do it all
-        untill all your tasks are done you keep saying things like needs your word, dont stop
-        instead think adversiarally on these things and take your on rec go on all". Done:
-        - OPEN 1, the review saved as docgen's tool (NOT STANDARD, taken on that go): docgen
-          `34af5fb`, `docs/dev/agentic-review.md`. The second look changed: a run folder instead of
-          fixed paths; the message compiler a dev dependency at the apps' vue-i18n version; the
-          guide split into the method, the language's rules and each project's context.
-        - OPEN 2, seeded words, in the kit, here and in docgen (the plan's §5 says what was built
-          and what the second look changed): statuses and worldbuilding categories show the
-          catalog's word until renamed, everywhere they render — the store's getters, and Trash and
-          the sidebar's delete message, found by the re-grep; the AI page's features, actions and
-          presets and the kit's five descriptive provider names by key; a status or category the
-          writer adds starts with the catalog's word; a note's blank tag stays blank on save. Knob
-          help and measurement labels stay English (technical text, as the model catalog's).
-          The Spanish of the 134 new strings (here 122, the kit 5, docgen 7), through docgen's
-          tool (`--new`): one reviewer translated them, a refuting verifier upheld all 134, and
-          the 12 strings docgen or the spellchecker still flagged were accepted as correct (names,
-          words Spanish shares, valid words the dictionary lacks), by "Claude (AI review,
-          2026-10-18)". Six consistency fixes the reviewer noted, saved through docgen's Save:
-          "Done" and "To do" as the statuses say on Analysis and Home ("Completado", "Pendiente"),
-          the plot-hole audit's world-rules pill "activado/desactivado" (was "encendido/apagado";
-          the kit's switches say "Activado"), "esta ventana" for "this modal", and the session
-          recap's blurb naming the resume briefing as its feature does.
-        - OPEN 3, `book-smoke.js`: it seeds through `/v1/settings`, forwards the page's `/v1`
-          off :1420 and waits for the store hook; LOAD and SAVE pass on scratch ports (RESEARCH
-          "Testing").
-        - Checked: docgen's `check` exit 0 on all three catalogs (here 3,204 of 3,204, the kit
-          1,486, docgen 285); test:fast (unit 728, build, server 170 with the blank-tag test);
-          i18n:report MISSING 0; the smoke; the flows 20 of 20; the seeded words on screen in Spanish
-          and English on a snapshot of your data (Settings → Project, the sidebar, Analysis, the
-          AI page and its providers) — your renamed "Magic & lore" stays as written; the kit's
-          tests (core 1,226, ui 18 with `seeded_words.test.js`) and lint; docgen's tests (server
-          165, unit 5) and lint; the family guard. User docs: appearance.md, whats-new.md (here);
-          settings.md, whats-new.md (docgen).
-        2026-10-18, fourth round — the user: "keep going until all issues are fixed dont stop
-        adversiarl think on your decisions go". Done, with what the second look changed:
-        - One action, one name: Continue with direction… everywhere (the AI page said "Guided
-          continue", the AI tasks list "Continue (guided)", its no-direction error "Guided
-          Continue …"). It reuses its sibling's keys — `continueDirected` as Rewrite with direction
-          uses `rewriteDirected`, and Rewrite's `err.noDirection` — so three keys retired and none
-          minted (docgen dropped their Spanish on Save); writing.md's "Guided Continue" too.
-        - The tutorial's copy in the data folder refreshes: a boot replaces each sample the app
-          ships whose bytes differ, and leaves anything else in the folder alone (D4 of
-          2026-07-13 kept — the copy stays, it just stops going stale). The attack: nothing in the
-          user docs puts files there. Your tutorial project already in the database keeps its
-          stored dates, as notes do (the 2026-10-13 ruling).
-        - Found on the way: the "Your graphics hardware changed" notice lost its title (it passed
-          `title` and `message`; `pushToast` takes `description`), and a toast's long button
-          squeezed its message into a 110px column in Spanish. The kit's toast row wraps now and
-          keeps the message at least 180px (a shorter minimum would keep the squeeze, a longer one
-          would push "Undo" under one-line messages); measured in Spanish and English at 1280
-          and 390.
-OPEN:   nothing of this item's rounds. Slice 4's bench leg (D4) is in "AI drafting".
-GO:     given 2026-10-16 for the eval and the flow tests ("think on your rec again always adversially
-        go"; "carry on, your rec go"); for the five fixes, the three labels and the translation
-        ("your rec on all go"); 2026-10-17 for the stop route and the Spanish ("go your rec";
-        "think on it adverserially your rec go"); 2026-10-17 for the Spanish review ("auto
-        compatcte re read docs rules notes so you know where you are at your rec on all think on
-        them again adversarially first go"); 2026-10-18 for the follow-ups 2–4 ("compacted re read
-        docs rules session your rec on all go"); 2026-10-18 for the second round ("keep going until
-        everything is done your rec but think on your decisions twice before doing, finish
-        everything dont stop"); 2026-10-18 for the third round ("your rec on all go dont stop dont
-        ask me again … take your on rec go on all"); 2026-10-18 for the fourth round ("keep going
-        until all issues are fixed dont stop adversiarl think on your decisions go").
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
 STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's
@@ -594,159 +339,6 @@ OPEN:   1. how a test build reaches the user's iPhone — shown: a Mac with Xcod
         plugin of our own on Apple's security-scoped bookmarks; 3. OneDrive through the Files app,
         re-tested after its file-provider rollout (early November 2026).
 GO:     not given.
-
-## The server moves to Hono [2026-10-09]
-STATE:  DECIDED 2026-10-09, family-wide — the decision with the user's words is the kit's TASKS,
-        "The family's servers move to Hono — one server that runs in Node and in a worker".
-WHY:    the phone's in-app server ran Fastify through `inject` on ~400 lines of Node stand-ins;
-        Hono runs in the worker as it is (`app.fetch`). The kit's item has the full reasons.
-NOT:    the kit's item.
-BUILT:  2026-10-09 — 14 routers, app.js, phone.js, sync.js, the error envelope, the test client
-        on `app.request` (148/148); the phone versions by `server/package.json` `"imports"` (`#app_state`,
-        `#api/autosave_api`, `#database/demo_seed`, `#editor/html`, `#sync_platform`); the phone bundle
-        8.0 MB, checked in Chrome on `dist/spa-in-app` (the book, an image, an AI stream). The plan:
-        `../just-core/docs/plans/2026-10-09-hono-standard.md` §9.
-OPEN:   nothing. (2026-10-09: the phone on Hono ran on the Android 16 emulator — the tutorial book,
-        kept across a force-stop, an AI answer through native HTTP.)
-GO:     given 2026-10-09 (the kit's item).
-
-## JustWrite on Quasar — the desktop app and Settings → Sync BUILT and merged; the phone next [2026-10-08]
-STATE:  DECIDED 2026-10-08 — every family app moves to Quasar (the kit's TASKS, "Every family app
-        moves to Quasar…", rec 1: "Quasar's own tooling for everything. Its Electron mode is the
-        desktop app, calling the kit's shared function for the data folder, the server and the
-        tray. Its Capacitor mode is the phone app."); the go: "we need to do the quasar conversion
-        as well you have a go on that". The order of work and its status: the kit's
-        `docs/plans/2026-10-08-sync-and-quasar-program.md`, step Q4; the layout: the kit's
-        `docs/app-structure.md` §Q.
-BUILT:  2026-10-08, on branch `quasar` (in a worktree, since merged and removed 2026-10-26 — the
-        master checkout ran your app, so the move stayed off it until you merged): `quasar.config.js` (the one build
-        config; the kit UI alias; port 1420; electron-builder with the old installer's settings —
-        NSIS, the fuses, the launcher, a universal macOS .dmg); `src-electron/` (the kit's
-        `runDesktopApp`, the same settings as `electron/main.js`; icons moved from `build/`);
-        `src-capacitor/` (com.justwrite.app); the start-up `src/main.js` → the boot file
-        `src/boot/jw.js` (the same sequence), the root `src/App.vue` (the shell, renamed
-        `AppShell.vue`, or the connection-error screen); `router/routes.js`; `stores/index.js`;
-        `src/css/quasar.variables.scss` (the kit's theme); `server/` its own package
-        (`justwrite-server`, an npm workspace) holding the editor schema (`server/src/editor/`, the
-        renderer imports `justwrite-server/editor/…`) and the samples (`server/samples/`); the
-        headless UI from `dist/spa` (the app folder when packaged); the smoke serves the built UI
-        from its scratch server (no Vite on 1420 — it can run beside the app now) and snapshots
-        through the kit's `openDatabase` (better-sqlite3 was never a root dependency, so every
-        smoke ran on an empty folder); the e2e drives `dist/electron/UnPackaged`; the release
-        workflow on Quasar's CLI (and it now checks out `just-sqlite-sync`); the docs.
-CHECKED: dev mode (the window on :1420, the server from source on `data/`, routes, zero errors once
-        Vite's dependency cache is warm — the first run hits Vite's "Outdated Optimize Dep"
-        reloads) · the installer builds; the packaged app on a copy of your data (`app://`, the
-        bridge, the server, five routes, zero errors) · the headless launcher serves the UI from
-        the archive · e2e 7/7 · the smoke on a snapshot of your data · unit 590/590 · server
-        141/141 · lint · the kit's guard (kind quasar, no violations) · ten screens against the
-        Electron + Vite build at 1440×900: within 0.02 % of their pixels, except disabled buttons
-        (Quasar's global disabled rule — the kit's TASKS, the Quasar item, OPEN 5).
-OPEN:   1. DONE — merged into master by the user's go ("your rec all go", on "1. Merge both quasar
-           branches?"); after pulling: `npm install` and once `cd src-electron && npm install`.
-        2. DONE — the Settings → Sync screen and its user docs (the Sync item below).
-        3. The phone: the server in a web worker on SQLite WASM, the storage guard, OneDrive/
-           Dropbox sign-in, the QR pairing (the Sync item below). Scope decided 2026-10-08 (the
-           Sync item, decision 8): the book, its images and versions, sync, online AI providers.
-           Slices 1–6 built (5 and 6 on 2026-10-09 — the item "The phone's screens (slice 5) and
-           the iOS build (slice 6)"); the record: the kit's `docs/plans/2026-10-08-the-phone.md`.
-        4. The release workflow is rewritten for Quasar but not run (it needs a tag).
-GO:     given 2026-10-08 ("we need to do the quasar conversion as well you have a go on that").
-
-## The family moves to Electron and a Node server — JustWrite's step is BUILT, waiting on your use [2026-10-08]
-STATE:  DECIDED 2026-10-05, 2026-10-07 and 2026-10-08 — every ruling, as shown and approved, is in
-        JustVoice's TASKS, "The family moves to Electron and a Node server; Tauri and Python go"
-        (the decision lives with the plan, §6 is this repo's step). This item is a pointer only.
-BUILT:  2026-10-08, under the user's go "do it all … finsih the conversion your rec on all go!":
-        the server in JavaScript (`server/src/`, mounting the kit's `@delebash/core`), the
-        shell (`electron/main.js` on the kit's `runDesktopApp`, the 400 ms close hold), `native.js`
-        on the `window.appShell` bridge (About now names Electron's version), the e2e on
-        Playwright's Electron driver, `npm run smoke` and the bench on the Node server, the
-        electron-builder installer (`npm run build` → `release/`) and the release workflow, the
-        docs. The dev data root moved from `src-tauri/target/debug/data` to `<repo>/data` with
-        every saved path into it rewritten (9 database cells across the three apps, 18 files, the
-        cache registry); the 2026-08-15 headless root is kept aside as `data-old-2026-08-15/`.
-        Python (`server/justwrite_server/`) and Tauri (`src-tauri/`) are deleted.
-CHECKED: server tests 146/146 · the route diff against the Python server (92 reads: 78
-        identical, 14 volatile; 37/37 writes; 4,809 database cells, 0 different) and the seed
-        comparison (17,741 cells, 0 different) · the headless smoke (every route, zero JS errors)
-        · e2e 7/7 on your real data · the installer installs, starts (window, server, CSP), serves
-        headless with the bundled tutorial book; an update and an uninstall keep `data\`.
-OPEN:   your use of the moved app — `npm run dev`, or the installer from `npm run build`. The
-        release workflow is rewritten for electron-builder but not run (it needs a tag).
-GO:     none needed to use it; anything you find gets its own item.
-
-## The phone app's UI library — the theming test [2026-10-08]
-STATE:  DECIDED 2026-10-08 (after the test) — the user: "i stopped the electron vite that wasnts
-        supposed to happen 1 quasar 2 your rec 3 sync but we need to discuss the design, there are
-        several ways to sync sqlite turso https://github.com/sqliteai/sqlite-sync and many others",
-        answering the questions as shown: "1. Which library? My lean: Quasar. The override sheet
-        is a one-time cost covering every screen, and the two libraries' costs are close. The
-        phone shell is the point of the move, and Quasar is the only one that ships it." ·
-        "2. Should I commit the test, given the other session is mid-restructure? My lean: on a
-        JustWrite branch, so its restructure doesn't sweep the test in or lose it." · "3. Still
-        open from before: sync in the first phone release or zip first, your own cloud folder or
-        a hosted service, and keep both copies or merge when a chapter is changed on two devices."
-        Then: "save everthing we need to restart session save all research in detail and any
-        session info so we can pickup without redoing anything".
-        So: the phone app's library is **Quasar**; the test is committed on a JustWrite branch
-        (approved, not yet run — that message had no go); sync goes to a design discussion
-        first — the record is `docs/plans/2026-10-08-sync-design.md`.
-        DECIDED 2026-10-08 (the test itself) — the user, "your rec go", on the recs as shown:
-        "1. Which libraries go in the test? My lean: Quasar, Element Plus and Reka UI. One
-        look-based library that's mobile-aware, one built on CSS variables, and one with no look
-        of its own. 2. Which JustWrite screen? My lean: one with fields, buttons, a table and a
-        dialog, plus the editor toolbar. You name it."
-        The test as shown: "Setup: the same JustWrite screen built with each candidate and driven
-        by our appearance engine. Pass: Every Appearance knob changes the screen live. It matches
-        today's screen side by side, at desktop and phone width. Pick: the one that passes with
-        the fewest override lines."
-        Mid-work, the same day: "i dont care how much we have to rewrite dont take that into
-        consideration" — rewrite size is not a criterion; override lines count only as how much
-        a library fights our look.
-        Before it, the same day: "i agree with your recs" (ruling 8 stands; Quasar through its CLI
-        if a framework is taken; one JustWrite screen first), then "the questions is can we do our
-        own custom theme manager nad not rely on material, i think we need to test that if not we
-        can use other vue ui frameworks, use electron vite and capacitor and do our own".
-        Named under the go (the rec left the screen to me): Locations (`src/views/LocationsView.vue`)
-        — its list is a table (EntityIndex → UiTable) with a search field and facet chips; its
-        detail has fields, a checkbox, buttons, tags, the status select, the editor and its
-        toolbar, and its dialogs (Images, Groups, Sweep). Every part the rec named is on it.
-        Found while setting up: the kit already sits on Reka UI (AppModal, HelpDrawer, UiSelect,
-        UiMultiSelect, LuFeatureChip, LuModelCatalog), so today's Locations screen is the Reka
-        entry; the test builds the Quasar and Element Plus versions against it.
-WHY:    one framework for desktop and phones without Material; the question is whether a
-        library's components follow the kit's appearance engine
-        (`../just-core/packages/ui/src/common/services/appearance.js`, live CSS variables).
-NOT:    Vue Lynx (native views, not DOM — TipTap can't run; pre-alpha) · PrimeVue 5 (a commercial
-        PrimeUI licence with a key since 5.x; 4.5.5 was the last MIT) · Vuetify (Material) · back
-        to Tauri (rejected 2026-10-05; a Node sidecar ships node.exe, 103 MB).
-BUILT:  2026-10-08, uncommitted — the record is `docs/plans/2026-10-08-phone-ui-library-test.md`.
-        The Locations screen on Quasar 2.35.0 and on Element Plus 2.14.7, dev-only pages
-        `#/ui-test/quasar/locations` and `#/ui-test/element/locations` (`src/ui-test/`; the router
-        imports them only under `import.meta.env.DEV`); `@quasar/vite-plugin` in `vite.config.js`;
-        quasar, @quasar/extras, @quasar/vite-plugin, sass-embedded, element-plus as devDependencies
-        (the install also moved @floating-ui/core 1.7.5→1.8.0 and utils 0.2.11→0.2.12).
-CHECKED: both libraries follow every Appearance knob live on every control (121 checks) and
-        match today's screen light and dark, dialogs and menus included; zero JS errors; the
-        shipped `vite build` is unchanged (614/615 chunks equal, the one a kit commit made
-        meanwhile). Overrides beyond the variable mapping: Quasar 150 lines, Element Plus 94. At
-        390 px all three pages are unusable alike (the 280 px sidebar) — only Quasar ships a
-        breakpoint drawer. By the approved pick rule (fewest override lines): Element Plus.
-        Found: today's status menu draws with no background (StatusSelect.vue's scoped styles
-        never reach Reka's portalled menu) — not fixed.
-OPEN:   1. DONE 2026-10-08 under "you have a go on it all your recs": the test's code
-           (package.json, package-lock.json, vite.config.js, src/router/index.js, src/ui-test/) is
-           committed on branch `ui-library-test`; its records (this file, RESEARCH, the plan doc
-           and its folder) on master. NOT committed anywhere: biome.json (the stopped
-           electron-vite session's edit). The Quasar move (item 3) supersedes the test's pages.
-        2. The sync design — moved to its own item below, "Sync — offline first, by file, folder
-           and server".
-        3. DECIDED 2026-10-08 — every app moves to Quasar, and Quasar's own tooling is the desktop
-           shell (its Electron mode, calling the kit's shared function) and the phone (its
-           Capacitor mode): the kit's TASKS, "Every family app moves to Quasar", rec 1.
-GO:     given 2026-10-08 ("your rec go") for the test; for 2, "… go" (the research and the
-        design); 3 is decided. None yet for 1.
 
 ## Sync — offline first, by file, folder and server [2026-10-08]
 STATE:  DECIDED 2026-10-08, step by step (the record, with every option shown, is
@@ -918,7 +510,7 @@ BUILT:  2026-10-08, on branch `quasar` (the Quasar item above): Settings → Syn
         remembered), unit 592/592, lint, the smoke on a snapshot of your data, and the screen on a
         copy of your data (status, the book listed, the QR code, the full code, an export saved as
         "The Ninth Facet 2026-10-09.jwsync").
-OPEN:   the phone (the Quasar item, OPEN 3) · "Use the server directly" (the thin client) comes
+OPEN:   the phone ("The phone's screens" and "The phone's cloud folder" above) · "Use the server directly" (the thin client) comes
         with the phone · "changes waiting" on the status line (the design §2) has no source yet —
         no route counts what another device hasn't received · leaving the cloud folder's devices
         (the folder transport's removeDevice) has no button yet · a real OneDrive/Dropbox sign-in
@@ -990,148 +582,27 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
         the build ("just-sqlite-sync you have a go on it all your recs complete the whole
         project without stopping unless you need to").
 
-## THE FAMILY PARITY BATCH — approved 2026-08-05, THE next build
-- **The master plan (read WHOLE before coding any slice):**
-  `../justwrite-app/docs/plans/2026-08-05-family-parity-batch.md` — all
-  decisions verbatim (①-⑤, the no-escape-valve commitments, the governing
-  mechanism-vs-data principle), the 12-slice checklist, the Speaker-Lab
-  12-point acceptance inventory, the approved human copy for the 13 rows,
-  the after-batch order (UiTable → e2e harness → THE deep exhaustive audit →
-  product calls). This repo's slices are marked per-app inside it.
-
-## Found by the 2026-08-05 family audit
-
-- *(Non-issue, recorded: `family.lab.changeData` is fed but JW passes no
-  dataLinks — JW has no promptless features, so the line never renders; the key
-  is future-proofing.)*
-
 ## Now / near-term (JustWrite)
 
-- **"Serve `/health` before `seed_workspace`" — recommend DROPPING; your ruling owed.**
-  Measured 2026-07-25: it buys 36 ms of a ~975 ms pre-listen window dominated by framework
-  imports that cannot be deferred. (Correction, docs campaign: there is no "re-measure
-  snippet" — the record holds one measured breakdown, now in
-  `docs/dev/measured-performance.md` §Boot.)
-- **Fit-estimate label wording — your veto still open.** Shipped with the PC-class work;
-  `docs/plans/archive/2026-07-22-igpu-research-and-cpu-band-recovery.md` §25 addendum 9.
-- **The 2026-07-19..26 unauthorized-changes review — 77 user-visible commits await YOUR
-  verdict; only you can say which you approved.** Next candidate: `ea543ae` (panels dismiss on
-  Esc/outside-click + nav toggle). Method (both proven the hard way): enumerate with the FULL
-  log + a date filter, never `git log --since` (it hid 40 commits including the guilty one);
-  "the commit message mentions the user" is NOT evidence of authorization. Regenerate the
-  per-commit list with the script — don't trust a stale `visible-changes.txt`.
-- **Whole-repo "extraction vs copies" audit — OWED, on your call** (your 2026-07-26 ruling).
-  Detector that works: normalise the domain noun between sibling files and diff — jscpd can't
-  see this class. Candidates: the seven entity views' detail-mode blocks · per-view empty
-  states · the seven `useStatusDisplay` copies · the ~20 probe scripts' private `findChrome()`.
-- **i18n remnants** (the sweep itself is DONE — 0 warnings, `no-raw-text` is `error`; record:
-  the i18n plan docs + git):
-  - Key-naming style + the `|` plural pipes in `en.json` — your veto still open.
-  - ~200 duplicate call sites could point at existing `common.*`/`count.*` keys — optional
-    reuse polish.
-  - Trap to remember: `@` is vue-i18n's linked-message syntax — write `{'@'}` in messages;
-    nothing in the toolchain catches it, so render-check any message containing `@ | {`.
-- **Single-source text system + translation — THE NEXT BIG TASK** (now planned as "Every app and
-  the kit on vue-i18n", above; the docs half stays here) (your roadmap ruling
-  2026-07-26; detail: IDEAS.md's single-source entry + 
-  `docs/plans/2026-07-26-i18n-single-source-research.md`). All seven decisions blessed; shape
-  ruled GENERIC (any Vue app). **The translation tool is now `just_ai_i18n_docgen`** — the
-  Python successor of the proven v2 prototype; the Node original was retired 2026-08-04
-  (archived: https://github.com/delebash/just-ai-help). Open asks on you: ship the measured
-  `es.json` into JW · the upstream `--think` PR · whether to rotate the Gemini key that
-  appeared in chat.
-
-## Open — awaiting a go
-
-- **QC queue posture (standing)** — the live findings you drop while QC-ing on your
-  box; discussion-first, each needs its own go. (B5-4 CLOSED by the docs campaign —
-  the big-batch build record shows the accent nav row SHIPPED, probe-measured; the
-  old "design call remains" line was stale. Batches 4-6 have nothing left open.)
-- **Big-batch residuals — your words owed** [extracted from the archived
-  `just-core/docs/plans/archive/2026-07-08-big-batch-queue.md`]: the §7.1
-  sub-questions (a) blast-radius confirm named-vs-generic (shipped as NAMED per the
-  rec — one line changes it) · (b) the Apply verb/label · (c) the help-popover copy
-  (built as a lede; the popover awaits the copy) · (d) provenance-badge wording ·
-  plus the QC-38 AI-queue main-menu doorway's label ("AI tasks" flagged default).
-- **I1 + queued follow-ups (each needs a word)** [same source]: shared
-  `runJsonAnalysis` · `useEntityCrudView` (the 7 byte-identical focus-watches ride
-  it) · gate ratchets · per-model GGUF delete · ensure-resident timeout test ·
-  "loading the model" progress label · hooks payload channel · DOM-env `htmlToText`
-  suite · SceneNotesPanel i18n · CommandPalette direct-creates lack `?new=1` ·
-  the `.wb-search*`/`.set-desc strong` CSS fold · promote the scratchpad
-  popup-probe to `scripts/` if the flows need a standing guard.
-- **Class-library copy/UX calls — yours** [extracted from the archived igpu doc
-  §25]: the Add-model picker filters to class members (you hit this and hated it) ·
-  MoE-vs-dense visibility wherever hardware numbers show · `LuMeasureHistory`'s
-  bare "measured" word · the class-library lede says "a memory RANGE" (factually
-  wrong; rewrite drafted, you own copy) · whether the library is a single-machine
-  view · whether "Recommended" becomes user-settable · rename ARCHITECTURE's
-  "Model class defaults" heading ("Model family thinking defaults") to end the
-  vocabulary collision.
-- **RAG corpus follow-ups**: imported chapters land as ONE scene → one diluted
-  embedding per chapter (fix E5: scene-break splitting on import) · editing an
-  embed template needs a manual Rebuild with no surfaced affordance. Design:
-  `docs/dev/rag-design.md`.
-- **Catalog-row download: Retry without Cancel** on the failed/"Getting ready"
-  state (your screenshot) — distinct from the shipped Cancel/Dismiss surface.
-- **Boot hardening pair**: providerBackend/routingBackend retry 3×700 ms = a
-  silent 2.8 s on any shape-check failure (worth a guard) · verify the stale
-  "loads on first use" chip after a confirmed load next app boot · the 2026-07-11
-  0.6B-weights deletion was never root-caused (suspects: row Delete / re-download
-  cache-clear / verify purge on an AV race).
-- **Rust D2 — delete legacy `images_read`/`images_delete` — YOUR CALL, never made**
-  (explained 2026-07-13, rec: delete; two dead fns reading pre-server disk-file
-  image records). Extracted from `docs/plans/archive/2026-07-13-rust-minimization-and-choosers.md`
-  by the docs campaign — the decision had fallen out of the tracker.
-- **Per-band survey residue — CORRECTED (docs campaign): the "two open decisions"
-  cite was CIRCULAR** (the banner pointed at this tracker, the doc body says "no
-  open decisions remain"). Best reconstruction of the two user-word items actually
-  in the doc: (a) one word flips the vram16|ram32 band to the 27B if a prose trial
-  favors it; (b) the 70B/GLM availability rows — keep or remove. Both yours.
-  Verdicts distilled: `docs/dev/measured-performance.md` §Per-band.
-- **Think-A/B + b9993 loop re-test — RESULTS never filled: dead or owed?** The
-  user-ordered on-box batch in `docs/plans/archive/2026-07-16-think-ab-and-loop-retest.md`
-  has an empty results template. Rule it: run the two tests, or kill the doc.
-- **2026-06-20 deep-audit backlog — merge call before it archives:** its untriaged
-  findings overlap the open "extraction vs copies" audit above; decide fold-or-drop
-  (`docs/plans/archive/2026-06-20-deep-audit.md`).
-
-*(Moved 2026-08-04 by the placement rule: I2 cloud prompt caching → the runner's
-`docs/dev/TASKS.md`; the whole JustVoice section (F1/F5/F6/F2, still parked behind
-JW by your roadmap ruling) → `../JustVioce/docs/dev/TASKS.md` — with F1's stale
-"JV can't even import llm_runner" claim corrected there: check-consumers passes for
-JV as of 2026-08-04; the convergence scope itself stands.)*
+- **Ask the book and Talk to a character show the model's Markdown raw** (`**bold**`, `*` bullets —
+  `ChatPanel.vue`'s assistant bubble is plain text; seen in the 2026-10-28 real-model screenshots).
+  WAITS ON THE KIT: a safe renderer for AI text (marked + DOMPurify — marked doesn't sanitize),
+  asked of the kit session 2026-10-28; then the bubble renders through it.
+- **Whole-repo "extraction vs copies" audit — OWED** (your 2026-07-26 ruling). The candidates and
+  the detector that works are in `docs/dev/IDEAS.md`, "The extraction-vs-copies audit".
+- **i18n key-naming style + the `|` plural pipes in `en.json` — your veto still open.** Trap to
+  remember: `@` is vue-i18n's linked-message syntax — write `{'@'}` in messages; nothing in the
+  toolchain catches it, so render-check any message containing `@ | {`.
+- **Rotate the Gemini key that appeared in chat** — yours (the key itself is never printed).
 
 ## Your-box checks (only the Windows / 2070S machine can finish these)
-
-*(Worked through 2026-10-24 on a scratch server over a copy of your data, real models on the 2070S:
-the boot splash, the plate, the self-hosted fonts, the catalog's layout / needs line / Fit hover /
-badges, Quick Setup, the download bars, the PC classes panel (This PC line, Use for this PC → Set
-manually → Use auto-detect, Copy in the list and the editor), the hardware-changed toast, the engine
-builds table, the pricing editor, Unload / Load / Set as default, Load & measure → the history,
-2-minute optimize → Skip → "Optimize cancelled.", batch Fill from book in review and auto-apply mode
-(only empty fields filled, read back from the database), Ask the book end to end (index, cited
-answer, chat + embedding resident together), the MTP draft load (43 tok/s, acceptance 0.81) and the
-thinking budget, `--restore` after a hard kill, the bench's `--autostart` on the Node server (it left
-the server and vite on :17495 / :1420 after the run — fixed: no shell in between, the tree kill
-waited for), and the data folder moved through the built app (a custom folder → Move back to the
-default folder → restart → the book there → the old copy listed → Remove the old copy; only the OS
-folder picker of Change folder was not driven). Closed as stale: the 31B row, the 2070S spawn
-failure, the Python boot timing, the probes' findChrome (8 dead probes deleted, the rest need
-JW_APP + JW_API). The kit findings are all fixed: the model's name on the splash and in Quick Setup
-and the Fit hover's sentence (kit 43b19a9); one tune word in the Tune dialog and the catalog, the
-pricing table's Save, the provider timeout (a field in the provider form, and a database still on the
-old seeded 60 s gets 900 at the next start — checked on a copy of yours), and whole sizes (a no-break
-space between number and unit) (kit 0b8e7ad); just-sqlite-sync's second Yjs (sync e32dde4).)*
 
 - **AMD / Intel graphics detection** (Ledger §G6): needs a Windows machine with an AMD or Intel GPU
   (the Core Ultra 7 laptop) — the AI page's hardware strip names the adapter, its VRAM and class.
 - **A thinking run on Anthropic** (Unit 2's cloud half): needs an Anthropic key, and none is set;
-  the request shape is unit-tested only (`adapter_extra.test.js`).
+  the request shape is unit-tested only (the kit's `adapter_extra.test.js`).
 - **The engine update replacing its build** (providers round 10, the 2026-09-19 safe-update flow):
-  reachable only when a newer pinned build exists.
-- **Marketing screenshots** (Ledger §G4): `npm run screenshots` after `npm run build`, with
-  warm-start off — part of preparing a release.
+  reachable now — the AI page offered "Update to b11960" over the installed b11239 on 2026-10-28.
 
 ## Standing rulings (constraints, not tasks — they gate future work)
 
@@ -1140,17 +611,16 @@ space between number and unit) (kit 0b8e7ad); just-sqlite-sync's second Yjs (syn
   the user has set the storage directory, which by default will be the install directory for
   the app"* + *"appdata is not banned, what is banned is anything that the user has not
   decided"* + *"all that can be the same should be, this includes how data is stored"*.
-  ONE implementation for every app — `llm_runner.platform.data_paths.resolve_data_dir`;
-  `paths.py` is a three-line caller and may never re-implement the ladder (env var → `data/`
-  in the install dir → OS app-data ONLY when that is unwritable). JW's own
-  `platformdirs.user_data_dir` default was creating `AppData/Local/JustWrite/JustWrite` on
-  every headless boot; it is gone. The shell resolves the identical ladder in Rust and must
-  NEVER write the computed default into `dataroot.txt` on first run — that lock pinned
-  JustVoice to an obsolete default and vetoed the new one silently (JV `6b8b091` context;
-  full record in `../JustVioce/docs/dev/TASKS.md`). Contract text: kit
-  `docs/app-structure.md` §Q.8 (the data folder).
-- **Server reuse is VETOED** ("i am affraid of a server running when it shouldnt"); the
-  kill+respawn cost (`lib.rs:377-391`) was measured and no cheaper boot lever exists.
+  ONE implementation for every app — the kit's `platform/data_paths.js` (`resolveDataDir`, the
+  server) and `shell/dataRoot.js` (`resolveDataRoot`, the desktop shell); an app never
+  re-implements the ladder (env var → the Change-folder pointer → `data/` in the install dir → OS
+  app-data ONLY when that is unwritable). The shell must NEVER write the computed default into
+  `dataroot.txt` on first run — that lock pinned JustVoice to an obsolete default and vetoed the
+  new one silently (JV `6b8b091`; full record in `../JustVioce/docs/dev/TASKS.md`). Contract
+  text: kit `docs/app-structure.md` §Q.8 (the data folder).
+- **Server reuse is VETOED** ("i am affraid of a server running when it shouldnt"): the desktop
+  shell stops a server already on the app's port that answers as this app's own, and starts its
+  own (the kit's `shell/main.js`, `serverProduct` + `shutdownPath`).
 - **Commit-gate hooks are REJECTED** — the remedy for unauthorized change is asking before
   UI-behaviour changes, not machinery.
 - **Availability ≠ recommendation** (the 70B/GLM precedent): a catalog row may exist untested;
@@ -1167,69 +637,7 @@ space between number and unit) (kit 0b8e7ad); just-sqlite-sync's second Yjs (syn
 ## Parked (wakes on a trigger or a fresh ask — not active work)
 
 - **I5 — the deferred parking lot** (per-scene snapshots · per-entity write REST · RAG
-  sqlite-vec ANN · extract kit `common/` → `@delebash/ui` · llama-swap layer · the
-  Tauri/package rename PR). Ledger §I5.
+  sqlite-vec ANN · llama-swap layer). Ledger §I5.
 - **claude-config standalone provisioning** — only the fresh-container proof is outstanding
   (prove `~/.claude` provisions from `github.com/delebash/claude-config`, then JW's vendored
   copy can go).
-- **`uma` → `mem_arch`** — a design call parked until a unified-memory NVIDIA box actually
-  exists; the "Use for this PC" override covers such a user today.
-
-*(Moved 2026-08-04 by the placement rule — runner-owned parked items (D5 · D6 · I3 ·
-the `--fit`/MTP upstream WATCH · the Harrier/KaLM model watchlist · the LICENCE flag ·
-the SDK-pivot re-open trigger) → `../just-core/docs/dev/TASKS.md`; JV-owned
-(F3 · I6) → `../JustVioce/docs/dev/TASKS.md`.)*
-
-## Fit redesign (family, runner-owned) — JW impact
-
-Tracked in `../just-core/docs/dev/TASKS.md` (THE resume surface — its fit
-item now opens with a STATUS-NOW block; read that first); full plan
-`../just-core/docs/plans/2026-08-09-fit-redesign.md` (consensus 2026-08-13,
-amendments §13, ALL rulings §8.17–23a). JW-SIDE STATE — the redesign's BUILD
-PHASES ARE COMPLETE (0–7, all BUILT + GATED + PUSHED 2026-08-13; the standing
-fit-architecture story is the kit's `docs/dev/serving-design.md` fit section).
-Phases 4–7 touched JW only through the shared kit + three models.md passes —
-the arch-aware budget line's "Memory" wording, the remembered-footprints /
-Clear-history story, and the evidence-ranking line:
-- DONE — seed regeneration (§8.19 facts-not-floors: `seed_presets.py` carries the
-  nine header facts incl. the three KV scalars, curated CHAT floors deleted, the
-  three EMBED floors kept; refreshed LIVE from HF via the kit's
-  `scripts/refresh-seed-facts.py`).
-- DONE — `classMembership.test.js` re-validated WITH the user (7/8 byte-identical
-  to the 2026-07-26 table; GLM's ram64 loss RULED §8.23a; FLEET literals are the
-  computed floors now).
-- DONE — badge + speed-band + veto-removal + knob-location user docs
-  (`docs/models.md`, same-change as the features; bottom band displays
-  "very slow" — user ruling 2026-08-13, display-only via SPEED_BAND_LABEL).
-- DONE — the §7.3 selectable-pin (`src/components/slotOptions.test.js`, vitest
-  over the kit's pure `buildSlotOptions`).
-- `docs/dev/measured-performance.md` carries the derived bandwidth constants +
-  the 0.41-vs-0.446 physics cross-check; the kit now SEEDS those constants as
-  data (runner_setting `bw_eff_device` 0.6 / `bw_eff_host` 0.15 + the
-  `hardware_classes` bw columns) — the doc is the evidence, the seed is the law.
-- DONE (kit Phase 6, 2026-08-13) — the §13.9 pinned test landed in the kit
-  (`test_expert_layer_marginal_matches_measured`: physics 0.446 vs this doc's
-  measured 0.41 GB/layer, 9% off inside the ~15% band, sourced to
-  measured-performance.md), alongside the joint MoE solve — JW rides: the
-  Tune dialog's "Computed for this PC" rows now show the measured-tune-shaped
-  split (ngl=all + just-enough ncmoe) instead of the old inverse's ngl 8-9.
-- DONE (kit Phase 7, 2026-08-13 — the last build phase) and JW rides all
-  three halves: the §7.4 evidence ranking (the wire's new `ranHere` bit — a
-  model measured/tuned/loaded on THIS machine stays recommendable even when
-  the estimate would reject it; models.md carries the user-facing line, the
-  kit truth-table pins the rule) · the §7.3 uncurated-path gate + the
-  no-badge-still-launchable pin (kit tests — they protect the hand-add-by-
-  link flow JW users drive) · the §7.6 docs pass (the one-authority story
-  STANDS in the kit's serving-design.md; JW's architecture-notes was
-  verified to carry NO fit section to rewrite — the 2026-08-04 docs
-  campaign's distillation predates the plan's target, recorded rather than
-  invented; measured-performance.md's constants + calibration notes stand
-  from Phase 3).
-- USER-SIDE STATE (2026-08-13): the desktop checkpoint is CLOSED (the user
-  confirmed the flagship reads ~fine and the Tune & measure flip works).
-  REMAINING, at the user's pace: the two-laptop glance — on each, (a) the
-  E4B row reads Fits with a band (16 GB Iris Xe box), (b) the engine
-  panel's budget line reads "Memory" (one-pool boxes — the Phase 4 wire,
-  never yet seen live on real one-pool hardware), (c) the box's
-  `__machine_ram_bw__` probe row holds a plausible GB/s (LPDDR5 → higher
-  than the desktop's 19.01). Then the JV VRAM wiring on its own go.

@@ -199,7 +199,11 @@ headers (16), intro lines (19) and error boxes (19) were extracted onto the kit 
 a near-copy search, not jscpd (which passes). Seen while doing it, not yet done: each AI window's
 own loading / empty / stamp blocks (`.bs-loading`, `.cpf-empty`, `.ck-stamp`, …); the detail
 pages' bodies below the header; per-page empty states; the probe scripts' private findChrome()
-copies.
+copies. From the July polish list (I1, the archived big-batch queue): a `useEntityCrudView` for the
+detail pages' byte-identical focus-watches, `SettingsPage`'s `.set-desc strong` against the shared
+styles, the 24 hand-written `box-shadow` rgba values against the `--shadow-*` tokens (which have
+dark-mode values); and two whose context lives only in that queue — "gate ratchets" and a "hooks
+payload channel".
 
 ### Multi-model co-residency VRAM budgeting (was ledger §J2)
 
@@ -215,9 +219,8 @@ sleeping-child OOM incident on the user's box.
 These stay where they are; this list just points at them so nothing's lost:
 
 - **`docs/roadmap.md`** — the published user-facing roadmap (small concrete planned
-  items: tag-filter chips on Characters/Locations/Objects, curated tag vocabulary,
-  sidebar arrow-key nav, per-feature token budgets, KFX export, …). Feeds the in-app
-  `?` drawer + the docs index.
+  items: per-feature token budgets, KFX export, print layout, style-metric thresholds, …).
+  Feeds the in-app `?` drawer + the docs index.
 - **`ai-features-roadmap.md`** (this folder — moved from `docs/` 2026-07-31) — the
   AI-features direction; now mostly a **shipped/won't-ship record** (~24 of 29
   resolved), kept for that history.
@@ -226,12 +229,3 @@ These stay where they are; this list just points at them so nothing's lost:
   its historical banner); the live parts worth revisiting are the four **strategic bets**
   (disclosure-compliant/NDA-safe positioning · genre presets · continuity enforcement as
   the headline AI feature · a series container across books).
-
-- **Multi-chat list per book/character** (2026-08-04, extracted from the archived
-  big-batch ledger B5-3): delete-current shipped; a saved LIST of chats per
-  book/character is a new feature you never drew — say so and it becomes an item.
-
-- **`/home-v2` "Paper Shelf"** (2026-08-04, code-first audit): a live route
-  (`HomeShelfView.vue`, "Direction C, promoted from mockups") with NO UI entry
-  point anywhere — an unshipped Home experiment. Ship it behind an entry, or
-  delete the route; until then it stays out of user docs on purpose.
