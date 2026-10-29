@@ -774,6 +774,22 @@ The plan: [`../plans/2026-10-29-do-list.md`](../plans/2026-10-29-do-list.md).
   embedding model sets none. Not the start-up warm-up — the engine read idle before the question.
   The kit's to fix (its launch rows); sent to the kit's session. (*measured 2026-10-29*, a process
   log every 5 s through three captures.)
+- **After the kit's fix (6954fee, `cache-ram = 0` on embedding rows) the capture works:** the search
+  model held 2.1 GB through the embedding, free memory stayed 13.6 GB, and the chat model loaded and
+  answered. The chat process then went 14.1 → 16.8 GB within the answer (what the rise is, not
+  measured), and the search model's process was gone 5 s after the chat model's first one appeared
+  (not explained). (*measured 2026-10-29*, the same 5 s process log.)
+- **llama.cpp's host prompt cache (`--cache-ram`, PR #16391)** keeps earlier requests' prompt state in
+  system memory, "extra slots" the server swaps back in "if it would reduce the processing" — written
+  for "a single large context with various auxilary calls … interleaved", one slot without "trashing
+  the prompt cache". Two limits: the MiB cap (8192 by default in b11239) and "Max number of cached
+  tokens (by default, equal to `--context-size`)"; "incompatible with mtmd". On the 2070S the chat
+  model reads prompts at ~516–561 tok/s (`measured-performance.md`), so every prompt it must read again
+  costs seconds per thousand tokens. (*web 2026-10-29*, the PR page; *b11239 `--help`*.)
+- **The chat model's memory check credits only what the card's room-making can evict:**
+  `arbiter.evictableRamMb` skips pinned reservations, and the routed search model is pinned
+  (`syncPins(embedIds)` — "the chat model never pays for an embed switch",
+  `runner/lifecycle.js` above `_admitRam`). (*code 2026-10-29*.)
 - **An AI error in a stream is cut at 200 characters by the kit's server**
   (`../just-core/packages/core/src/llm/prompts.js:951`, `cpSlice(errText(e), 0, 200)`), so the memory
   refusal reached the chat ending "… safety margin) but", without the free-memory figure — the
