@@ -1,17 +1,17 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
 import { useSessionsStore } from "../stores/sessions.js";
 import { PaneHeader, pageFill, UiBanner } from "@delebash/ui";
-import { Icon, AiTaskStrip, useAiTasksStore, useSurfaceTask, UiTable, UiSegmented, UiButton } from "@delebash/ui";
+import { Icon, AiTaskStrip, useAiTasksStore, useSurfaceTask, UiTable, UiSegmented, UiButton, UiField, UiNumber } from "@delebash/ui";
 import StatPill from "../components/StatPill.vue";
 import {
   statusCounts, strandDistribution, characterPresence,
   scenesPerChapter, projectKpis, paceSeries,
 } from "../services/analysis.js";
 import { bookMetrics, POV_LABEL_KEYS } from "../services/analysis/styleMetrics.js";
-import { computeVoiceDrift, deriveVoiceDriftContext, explainVoiceDrift } from "../services/analysis/voiceDrift.js";
+import { computeVoiceDrift, deriveVoiceDriftContext, driftSensitivity, explainVoiceDrift, TRACKED_METRICS } from "../services/analysis/voiceDrift.js";
 import { sweepStoryTension } from "../services/analysis/tensionSweep.js";
 import { PACING_LABEL_KEYS, ENDING_LABEL_KEYS } from "../services/analysis/critique.js";
 import ReverseOutlineModal from "../components/ReverseOutlineModal.vue";
@@ -129,12 +129,34 @@ const styleMaxes = computed(() => {
 
 // ─── Voice drift ───────────────────────────────────────────────────
 // Pure deterministic analytics derived from styleMetrics' per-chapter
-// rows. Detects per-metric outliers (|z| > 1) and chapters that go
-// outlier on 2+ metrics ("hot chapters" — likely voice drift).
+// rows. Detects per-metric outliers (|z| past the book's flag value) and
+// chapters that go outlier on its hot count of metrics ("hot chapters" —
+// likely voice drift). The book's sensitivity (2026-10-28) is its own
+// settings, under "Sensitivity" on the card.
 
 const ai = useAiStore();
 const aiTasks = useAiTasksStore();
-const drift = computed(() => computeVoiceDrift(style.value.rows));
+const sensitivity = computed(() => driftSensitivity(project.project));
+const drift = computed(() => computeVoiceDrift(style.value.rows, sensitivity.value));
+
+const SENSITIVITY_FIELDS = [
+  { key: "styleFlagZ", label: "analysisView.sensitivity.flagZ", min: 0.1, step: 0.1 },
+  { key: "styleHotMeasures", label: "analysisView.sensitivity.hotMeasures", min: 1, max: TRACKED_METRICS.length, step: 1 },
+  { key: "styleTrendZ", label: "analysisView.sensitivity.trendZ", min: 0.1, step: 0.1 },
+];
+const sensitivityOpen = ref(false);
+// typed values are committed when their box is left or on Enter — one undo step per change
+const sensitivityDrafts = reactive({});
+function sensitivityShown(f) {
+  return Object.hasOwn(sensitivityDrafts, f.key) ? sensitivityDrafts[f.key] : project.project[f.key];
+}
+function commitSensitivity(f) {
+  if (!Object.hasOwn(sensitivityDrafts, f.key)) return;
+  const v = sensitivityDrafts[f.key];
+  delete sensitivityDrafts[f.key];
+  if (v == null || v === project.project[f.key]) return; // an emptied box keeps the book's value
+  project.updateProjectMeta({ [f.key]: v });
+}
 
 function isAbort(e) { return e?.name === "AbortError" || /abort/i.test(e?.message || ""); }
 
@@ -150,9 +172,9 @@ function sparklineGeom(metric, w = 240, h = 28) {
   const span = yMax - yMin || 1;
   const step = vals.length > 1 ? w / (vals.length - 1) : 0;
   const y = (v) => h - ((v - yMin) / span) * (h - 4) - 2;
-  // Mean line + ±1 stdev band coordinates.
+  // Mean line + the band of ± the book's flag value in stdevs (outside it, a dot is red).
   const meanDisp = metric.display ? metric.mean * 100 : metric.mean;
-  const sdDisp   = metric.display ? metric.stdev * 100 : metric.stdev;
+  const sdDisp   = (metric.display ? metric.stdev * 100 : metric.stdev) * sensitivity.value.flagZ;
   const meanY = y(meanDisp);
   const bandTop = y(meanDisp + sdDisp);
   const bandBot = y(meanDisp - sdDisp);
@@ -886,10 +908,28 @@ const milestoneState = computed(() => {
           </span>
         </div>
 
-        <i18n-t keypath="analysisView.driftBlurb" tag="p" class="vd-blurb" scope="global">
-          <template #twoOrMore><strong>{{ $t("analysisView.twoOrMoreTerm") }}</strong></template>
+        <i18n-t keypath="analysisView.driftBlurbSet" tag="p" class="vd-blurb" scope="global">
+          <template #band>{{ $n(sensitivity.flagZ, 'oneDecimal') }}</template>
+          <template #atLeast><strong>{{ $t("analysisView.atLeastTerm", { n: sensitivity.hotMeasures }) }}</strong></template>
           <template #hot><strong>{{ $t("analysisView.hotTerm") }}</strong></template>
         </i18n-t>
+
+        <!-- the book's sensitivity: when a measure is flagged, a chapter hot, a trend a trend -->
+        <div class="vd-sensitivity">
+          <UiButton intent="secondary" size="small" :aria-expanded="sensitivityOpen" @click="sensitivityOpen = !sensitivityOpen">
+            {{ $t("analysisView.sensitivity.button") }}
+          </UiButton>
+          <div v-if="sensitivityOpen" class="form">
+            <div class="form__row vd-sensitivity-row">
+              <UiField v-for="f in SENSITIVITY_FIELDS" :key="f.key" layout="block" :label="$t(f.label)" :for="f.key">
+                <UiNumber :id="f.key" width="num" :min="f.min" :max="f.max ?? null" :step="f.step" :use-grouping="false"
+                  :model-value="sensitivityShown(f)" @update:model-value="(v) => (sensitivityDrafts[f.key] = v)"
+                  @blur="commitSensitivity(f)" @keydown.enter="commitSensitivity(f)" />
+              </UiField>
+            </div>
+            <span class="vd-sensitivity-hint">{{ $t("analysisView.sensitivity.hint") }}</span>
+          </div>
+        </div>
 
         <div class="vd-grid">
           <div v-for="m in drift.metrics" :key="m.key" class="vd-row">
@@ -905,7 +945,7 @@ const milestoneState = computed(() => {
             <svg v-if="sparklineGeom(m)" class="vd-spark"
                  :viewBox="`0 0 ${sparklineGeom(m).w} ${sparklineGeom(m).h}`"
                  preserveAspectRatio="none">
-              <!-- ±1 stdev band -->
+              <!-- ± the book's flag value in stdevs -->
               <rect :x="0" :y="sparklineGeom(m).bandTop"
                     :width="sparklineGeom(m).w"
                     :height="Math.max(0.5, sparklineGeom(m).bandBot - sparklineGeom(m).bandTop)"
@@ -921,8 +961,8 @@ const milestoneState = computed(() => {
                         vector-effect="non-scaling-stroke" />
               <!-- per-chapter dots -->
               <circle v-for="(p, i) in sparklineGeom(m).points" :key="i"
-                      :cx="p.x" :cy="p.y" :r="Math.abs(m.zScores[i]) > 1 ? 2 : 1.2"
-                      :fill="Math.abs(m.zScores[i]) > 1 ? 'var(--danger)' : 'var(--accent)'" />
+                      :cx="p.x" :cy="p.y" :r="Math.abs(m.zScores[i]) > sensitivity.flagZ ? 2 : 1.2"
+                      :fill="Math.abs(m.zScores[i]) > sensitivity.flagZ ? 'var(--danger)' : 'var(--accent)'" />
             </svg>
           </div>
         </div>
@@ -1259,6 +1299,11 @@ const milestoneState = computed(() => {
   font-size: 12.5px; line-height: 1.55; color: var(--muted);
 }
 .vd-card .vd-blurb strong { color: var(--ink-2); font-weight: 600; }
+/* the book's sensitivity: a button, and its three fields under it (the kit's form row) */
+.vd-sensitivity { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin: 0 0 14px; }
+.vd-sensitivity .form { gap: 6px; }
+.vd-sensitivity-row { align-items: flex-start; }
+.vd-sensitivity-hint { font-size: 11.5px; color: var(--muted); max-width: 78ch; }
 .vd-pill {
   font-family: var(--font-mono); font-size: 10.5px;
   padding: 3px 10px; border-radius: 999px;

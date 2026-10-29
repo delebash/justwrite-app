@@ -4,7 +4,7 @@
 // styleMetrics already produces. No LLM needed for the headline view:
 // for each tracked metric, we compute the book-wide mean and standard
 // deviation, then per-chapter z-scores, then flag chapters that sit
-// more than ±1 stdev from the mean as outliers.
+// more than ±flagZ stdev (the book's sensitivity; 1 unless changed) from the mean as outliers.
 //
 // The "drift" framing comes from the trend signal — a per-metric linear
 // fit (using simple early-thirds-vs-late-thirds means since it's cheap
@@ -50,20 +50,32 @@ function stdev(arr) {
   return Math.sqrt(variance);
 }
 
+/**
+ * The book's drift sensitivity — its own settings (Analysis → Voice drift → Sensitivity, 2026-10-28;
+ * stored per book: projects.style_flag_z, style_hot_measures, style_trend_z, seeded at 1, 2 and 0.5,
+ * the values the analysis always used):
+ *   flagZ        a chapter's measure this many standard deviations from the book's mean is flagged
+ *   hotMeasures  a chapter with this many flagged measures is hot
+ *   trendZ       a measure rises or falls when the late third moved this many standard deviations
+ */
+export function driftSensitivity(book) {
+  return { flagZ: book?.styleFlagZ, hotMeasures: book?.styleHotMeasures, trendZ: book?.styleTrendZ };
+}
+
 // Trend across the book using the difference between the early third
 // and the late third's means, scaled by the project stdev. More robust
 // against a single outlier than a full linear regression.
 // Returns: { direction: 'rising'|'falling'|'flat', earlyMean, lateMean, delta }.
-function trend(values, sd) {
+function trend(values, sd, trendZ) {
   const n = values.length;
   if (n < 6) return { direction: "flat", earlyMean: mean(values), lateMean: mean(values), delta: 0 };
   const k = Math.max(2, Math.floor(n / 3));
   const earlyMean = mean(values.slice(0, k));
   const lateMean = mean(values.slice(-k));
   const delta = lateMean - earlyMean;
-  // Threshold: the late vs. early shift must be at least 0.5 stdev to
+  // Threshold: the late vs. early shift must be at least trendZ stdev (the book's setting) to
   // count as a real trend. Below that we call it flat.
-  const direction = sd > 0 && Math.abs(delta) >= 0.5 * sd
+  const direction = sd > 0 && Math.abs(delta) >= trendZ * sd
     ? (delta > 0 ? "rising" : "falling")
     : "flat";
   return { direction, earlyMean, lateMean, delta };
@@ -75,6 +87,8 @@ function trend(values, sd) {
  * @param {Array} rows  — the `rows` array from bookMetrics()
  *                        Each row carries chapterId, num, title, words,
  *                        and every tracked metric.
+ * @param {{ flagZ: number, hotMeasures: number, trendZ: number }} sensitivity — the book's
+ *                        (driftSensitivity(project.project))
  * @returns {{
  *   metrics: [{
  *     key, label, unit,
@@ -90,11 +104,11 @@ function trend(values, sd) {
  *   }],
  *   chapters: Array<{ chapterId, num, title, words, driftScore }>,
  *                                // driftScore = sum of |z| across metrics
- *   hotChapters: Array,           // chapters with ≥2 outlier metrics, sorted by driftScore
+ *   hotChapters: Array,           // chapters with ≥ hotMeasures outlier metrics, sorted by driftScore
  *   driftIndex: number,           // 0..1 — share of the book's chapters that are hot
  * }}
  */
-export function computeVoiceDrift(rows = []) {
+export function computeVoiceDrift(rows, { flagZ, hotMeasures, trendZ }) {
   // Drop empty chapters — their zeros would distort the means.
   const real = rows.filter((r) => r.words > 0);
   const total = real.length;
@@ -122,7 +136,7 @@ export function computeVoiceDrift(rows = []) {
     const outliers = [];
     for (let i = 0; i < real.length; i++) {
       const z = zScores[i];
-      if (Math.abs(z) > 1) {
+      if (Math.abs(z) > flagZ) {
         outliers.push({
           chapterId: real[i].chapterId,
           num: real[i].num,
@@ -148,7 +162,7 @@ export function computeVoiceDrift(rows = []) {
       max: hi,
       zScores,
       outliers,
-      trend: trend(values, sd),
+      trend: trend(values, sd, trendZ),
     });
   }
 
@@ -162,7 +176,7 @@ export function computeVoiceDrift(rows = []) {
   }));
 
   const hotChapters = chapters
-    .filter((c) => c.outlierCount >= 2)
+    .filter((c) => c.outlierCount >= hotMeasures)
     .sort((a, b) => b.driftScore - a.driftScore);
 
   const driftIndex = total ? hotChapters.length / total : 0;
@@ -274,7 +288,7 @@ export function composeVoiceDriftBody({
 export function composeVoiceDriftInput(project, outlierChapterId) {
   if (!project) throw new Error("composeVoiceDriftInput: project store is required.");
   const rows = bookMetrics(project.allChapters, project.chapterBody).rows;
-  const drift = computeVoiceDrift(rows);
+  const drift = computeVoiceDrift(rows, driftSensitivity(project.project));
   if (!drift.eligible) throw new Error("Need at least three chapters with prose to compare voice.");
   const { baselineChapterIds, divergentMetrics } = deriveVoiceDriftContext(drift, outlierChapterId);
   return composeVoiceDriftBody({ project, outlierChapterId, baselineChapterIds, divergentMetrics });

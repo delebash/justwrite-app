@@ -30,6 +30,9 @@ function canonicalBook() {
       pdfMarginTop: 54,
       pdfMarginBottom: 63.5,
       pdfMarginSide: 54,
+      styleFlagZ: 1.5,
+      styleHotMeasures: 3,
+      styleTrendZ: 0.4,
       coverImage: null,
     },
     parts: [
@@ -250,6 +253,19 @@ test("a_book_without_a_pdf_page_is_a4_with_the_sizes_margins", async () => {
   await c.put("/v1/projects/prj1/book", { json: book });
   const back = (await c.get("/v1/projects/prj1/book")).json().project;
   expect([back.pdfPageSize, back.pdfMarginTop, back.pdfMarginBottom, back.pdfMarginSide]).toEqual(["a4", null, null, null]);
+});
+
+// A book saved without a voice drift sensitivity (one from before 2026-10-28), or with values that
+// can't be one, reads the values the analysis always used: 1, 2 and 0.5.
+test("a_book_without_a_drift_sensitivity_reads_the_old_values", async () => {
+  const c = await client(tmpPath());
+  const book = canonicalBook();
+  delete book.project.styleFlagZ;
+  book.project.styleHotMeasures = 1.5; // not a count
+  book.project.styleTrendZ = 0; // not positive
+  await c.put("/v1/projects/prj1/book", { json: book });
+  const back = (await c.get("/v1/projects/prj1/book")).json().project;
+  expect([back.styleFlagZ, back.styleHotMeasures, back.styleTrendZ]).toEqual([1, 2, 0.5]);
 });
 
 test("book_404_when_absent", async () => {

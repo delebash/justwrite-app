@@ -92,4 +92,9 @@ export const ADDED_COLUMNS = [
   ["projects", "pdf_margin_top", "FLOAT"],
   ["projects", "pdf_margin_bottom", "FLOAT"],
   ["projects", "pdf_margin_side", "FLOAT"],
+  // 2026-10-28: the voice drift's sensitivity, per book (Analysis → Voice drift) — the values the
+  // analysis always used, so every book made before them reads the same.
+  ["projects", "style_flag_z", "FLOAT NOT NULL DEFAULT 1.0"],
+  ["projects", "style_hot_measures", "INTEGER NOT NULL DEFAULT 2"],
+  ["projects", "style_trend_z", "FLOAT NOT NULL DEFAULT 0.5"],
 ];

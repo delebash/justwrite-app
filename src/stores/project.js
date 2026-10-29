@@ -540,6 +540,11 @@ const BLANK_PROJECT_META = {
   pdfMarginTop: null,
   pdfMarginBottom: null,
   pdfMarginSide: null,
+  // The voice drift's sensitivity (Analysis, 2026-10-28; services/analysis/voiceDrift.js
+  // driftSensitivity): the server's column defaults, the values the analysis always used.
+  styleFlagZ: 1,
+  styleHotMeasures: 2,
+  styleTrendZ: 0.5,
   coverImage: null,
 };
 

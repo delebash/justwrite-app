@@ -221,11 +221,13 @@ The **Voice drift** section visualises the per-chapter shape of every metric Sty
 
 - A **sparkline** of values across chapters, one point per chapter.
 - A **mean line** (dashed) showing the book-wide average for that metric.
-- A **±1 standard deviation band** (faint accent fill) around the mean — the "typical for this writer in this book" range.
-- **Outlier dots in red** — chapters that sit more than 1 standard deviation from the mean on this metric.
-- A **trend chip** showing whether the metric is rising, falling, or flat across the manuscript (computed by comparing the early third's mean to the late third's). A consistent rise in dialogue plus a consistent fall in filter words is a real voice shift; pay attention.
+- A **band** (faint accent fill) around the mean, ±1 standard deviation unless you change it — the "typical for this writer in this book" range.
+- **Outlier dots in red** — chapters that sit outside the band on this metric.
+- A **trend chip** showing whether the metric is rising, falling, or flat across the manuscript (computed by comparing the early third's mean to the late third's: a move of half a standard deviation or more counts, unless you change it). A consistent rise in dialogue plus a consistent fall in filter words is a real voice shift; pay attention.
 
-Underneath the metric strips, the **Hot chapters** list calls out chapters that are outliers on **two or more metrics** at once. One outlier metric is often noise — a single dialogue-heavy interrogation scene, say. Two or more is a pattern.
+Underneath the metric strips, the **Hot chapters** list calls out chapters that are outliers on **two or more metrics** at once (unless you change it). One outlier metric is often noise — a single dialogue-heavy interrogation scene, say. Two or more is a pattern.
+
+**Sensitivity** sets those three for this book: **Flag at** (how many standard deviations from the mean a chapter's metric is flagged — the band's width), **Hot at** (how many flagged metrics make a chapter hot), and **Trend at** (how far, in standard deviations, the late chapters must move from the early ones to count as rising or falling). A book with deliberately varied chapters — alternating narrators, say — may want a wider band; a tightly voiced one, a narrower. The book keeps its settings; every book starts at 1, 2 and 0.5.
 
 For any hot chapter, click **Explain** to send the outlier's prose plus a sample of your baseline chapters to the model. It comes back with 2–4 sentences naming the specific shift in concrete terms ("Your voice in Chapter 18 has moved toward action over interiority — paragraphs end on physical beats rather than the protagonist's reflection, and there's almost no use of filter words like 'noticed' or 'realized' that anchor your earlier chapters"). Quotes phrases from both sets to ground the diagnosis.
 

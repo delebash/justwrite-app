@@ -27,8 +27,9 @@ STATE:  DECIDED — `docs/plans/2026-10-28-four-feature-ideas.md` (each idea arg
         of them; the series idea, argued once more, is parked in `docs/dev/IDEAS.md` (the biggest
         change by far, and nobody has asked for it yet).
 OPEN:   1 (PDF page size), 3 (Story Bible export) and 2 (AI-written words by chapter) BUILT
-        2026-10-28 (the plan's "Built" notes) — your use of them on `npm run dev` before they ship
-        (v2.1.0).
+        2026-10-28 (the plan's "Built" notes) — your use of them on `npm run dev`. No release until
+        every open task is finished (the user, 2026-10-28: "i asked you to not do that until all task
+        all things are complete, finish things first"); v2.0.1 was cancelled before it published.
 GO:     given 2026-10-28, as above.
 
 ## AI drafting on the story-world pages and in the editor [2026-10-11]

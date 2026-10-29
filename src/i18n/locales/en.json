@@ -2083,9 +2083,16 @@
     "voiceDriftSub": "Per-metric trend across chapters · outliers in red",
     "hotChapterPill": "{n} hot chapter | {n} hot chapters",
     "percentOfBook": "{n}% of the book",
-    "driftBlurb": "For each metric, the line shows per-chapter values; the dashed line is the book-wide mean; the band is ±1 standard deviation. Chapters that sit outside the band on this metric are dots rendered in red. A chapter that's an outlier on {twoOrMore} metrics — what we call {hot} — is a likely voice-drift candidate.",
-    "twoOrMoreTerm": "two or more",
+    "driftBlurbSet": "For each metric, the line shows per-chapter values; the dashed line is the book-wide mean; the band is ±{band} standard deviations. Chapters that sit outside the band on this metric are dots rendered in red. A chapter that's an outlier on {atLeast} metrics — what we call {hot} — is a likely voice-drift candidate.",
+    "atLeastTerm": "{n} or more",
     "hotTerm": "hot",
+    "sensitivity": {
+      "button": "Sensitivity",
+      "flagZ": "Flag at (standard deviations)",
+      "hotMeasures": "Hot at (outlier metrics)",
+      "trendZ": "Trend at (standard deviations)",
+      "hint": "Kept with this book. A chapter's metric is flagged this far from the book's mean; a chapter with this many flagged metrics is hot; a metric is rising or falling when its late chapters moved this far from its early ones."
+    },
     "mean": "mean {value}",
     "hotChapters": "Hot chapters",
     "openChapterEditor": "Open chapter in editor",

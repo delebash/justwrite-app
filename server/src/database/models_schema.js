@@ -23,7 +23,7 @@ export const TABLES = [
   },
   {
     "name": "projects",
-    "ddl": "CREATE TABLE projects (\n\tid VARCHAR NOT NULL, \n\ttitle VARCHAR NOT NULL, \n\tauthor VARCHAR NOT NULL, \n\tsubtitle VARCHAR NOT NULL, \n\tgenre VARCHAR NOT NULL, \n\twords_goal INTEGER NOT NULL, \n\tdaily_target INTEGER NOT NULL, \n\twords_written INTEGER NOT NULL, \n\tstarted_on VARCHAR NOT NULL, \n\tdeadline VARCHAR NOT NULL, \n\tpremise TEXT NOT NULL, \n\tworld_rules TEXT NOT NULL, \n\tcover_image TEXT, \n\tupdated_at VARCHAR NOT NULL, \n\tdata TEXT NOT NULL, \n\tai_scene_drafting BOOLEAN NOT NULL DEFAULT 0, \n\tlanguage VARCHAR NOT NULL DEFAULT 'en', \n\tpdf_page_size VARCHAR NOT NULL DEFAULT 'a4', \n\tpdf_margin_top FLOAT, \n\tpdf_margin_bottom FLOAT, \n\tpdf_margin_side FLOAT, \n\tPRIMARY KEY (id)\n)",
+    "ddl": "CREATE TABLE projects (\n\tid VARCHAR NOT NULL, \n\ttitle VARCHAR NOT NULL, \n\tauthor VARCHAR NOT NULL, \n\tsubtitle VARCHAR NOT NULL, \n\tgenre VARCHAR NOT NULL, \n\twords_goal INTEGER NOT NULL, \n\tdaily_target INTEGER NOT NULL, \n\twords_written INTEGER NOT NULL, \n\tstarted_on VARCHAR NOT NULL, \n\tdeadline VARCHAR NOT NULL, \n\tpremise TEXT NOT NULL, \n\tworld_rules TEXT NOT NULL, \n\tcover_image TEXT, \n\tupdated_at VARCHAR NOT NULL, \n\tdata TEXT NOT NULL, \n\tai_scene_drafting BOOLEAN NOT NULL DEFAULT 0, \n\tlanguage VARCHAR NOT NULL DEFAULT 'en', \n\tpdf_page_size VARCHAR NOT NULL DEFAULT 'a4', \n\tpdf_margin_top FLOAT, \n\tpdf_margin_bottom FLOAT, \n\tpdf_margin_side FLOAT, \n\tstyle_flag_z FLOAT NOT NULL DEFAULT 1.0, \n\tstyle_hot_measures INTEGER NOT NULL DEFAULT 2, \n\tstyle_trend_z FLOAT NOT NULL DEFAULT 0.5, \n\tPRIMARY KEY (id)\n)",
     "indexes": [],
     "columns": {
       "id": {
@@ -122,6 +122,21 @@ export const TABLES = [
       },
       "pdf_margin_side": {
         "kind": "float"
+      },
+      "style_flag_z": {
+        "kind": "float",
+        "notNull": true,
+        "default": 1.0
+      },
+      "style_hot_measures": {
+        "kind": "int",
+        "notNull": true,
+        "default": 2
+      },
+      "style_trend_z": {
+        "kind": "float",
+        "notNull": true,
+        "default": 0.5
       }
     }
   },

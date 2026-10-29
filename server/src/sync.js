@@ -53,7 +53,9 @@ const log = getLogger("justwrite_server.sync");
 // 8 (2026-10-28): projects gained the PDF's page size and margins (`pdf_page_size`,
 // `pdf_margin_top`, `pdf_margin_bottom`, `pdf_margin_side`). Same reason as 2. The seeded
 // `page_sizes` table is the app's, not a book's, and isn't synced.
-export const SYNC_SCHEMA_VERSION = 8;
+// 9 (2026-10-28): projects gained the voice drift's sensitivity (`style_flag_z`,
+// `style_hot_measures`, `style_trend_z`). Same reason as 2.
+export const SYNC_SCHEMA_VERSION = 9;
 
 // ── scene text: merged edit by edit through Yjs, on the editor's own schema ──────────────
 

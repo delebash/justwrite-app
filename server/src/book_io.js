@@ -172,6 +172,14 @@ const optI = (v) => (v === null || v === undefined ? null : i_(v));
 /** A non-negative finite number, or null (a PDF margin the book never set: its size's own). */
 const optMargin = (v) => (typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : null);
 
+/** A positive finite number, else the column's own default (a book from before the setting, or a
+ *  value that can't be one — the voice drift's sensitivity). */
+const positive = (v, column) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : PROJECT_DEFAULTS[column]);
+const count = (v, column) => (Number.isInteger(v) && v >= 1 ? v : PROJECT_DEFAULTS[column]);
+const PROJECT_DEFAULTS = Object.fromEntries(
+  Object.entries(TABLES.find((t) => t.name === "projects").columns).map(([k, c]) => [k, c.default]),
+);
+
 /** A non-empty id, or null (for nullable cross-entity refs). */
 function ref(v) {
   const s = s_(v);
@@ -224,6 +232,9 @@ export function bookRows(projectId, snapIn) {
     pdf_margin_top: optMargin(pyGet(proj, "pdfMarginTop")),
     pdf_margin_bottom: optMargin(pyGet(proj, "pdfMarginBottom")),
     pdf_margin_side: optMargin(pyGet(proj, "pdfMarginSide")),
+    style_flag_z: positive(pyGet(proj, "styleFlagZ"), "style_flag_z"),
+    style_hot_measures: count(pyGet(proj, "styleHotMeasures"), "style_hot_measures"),
+    style_trend_z: positive(pyGet(proj, "styleTrendZ"), "style_trend_z"),
     world_rules: s_(pyGet(snap, "worldRules")),
     cover_image: jsonOrNone(pyGet(proj, "coverImage")),
     updated_at: s_(pyGet(snap, "savedAt")),
@@ -806,6 +817,9 @@ export function assemble(h, projectId) {
     pdfMarginTop: optMargin(proj.pdf_margin_top),
     pdfMarginBottom: optMargin(proj.pdf_margin_bottom),
     pdfMarginSide: optMargin(proj.pdf_margin_side),
+    styleFlagZ: positive(proj.style_flag_z, "style_flag_z"),
+    styleHotMeasures: count(proj.style_hot_measures, "style_hot_measures"),
+    styleTrendZ: positive(proj.style_trend_z, "style_trend_z"),
     coverImage: proj.cover_image ? pyLoads(proj.cover_image) : null,
   };
 

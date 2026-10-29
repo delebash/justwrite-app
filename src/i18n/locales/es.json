@@ -2040,8 +2040,6 @@
     "voiceDriftSub": "Tendencia por métrica a través de los capítulos · valores atípicos en rojo",
     "hotChapterPill": "{n} capítulo caliente | {n} capítulos calientes",
     "percentOfBook": "{n}% del libro",
-    "driftBlurb": "Para cada métrica, la línea muestra los valores por capítulo; la línea discontinua es el promedio de todo el libro; la banda es ±1 desviación estándar. Los capítulos que se encuentran fuera de la banda en esta métrica se representan con puntos rojos. Un capítulo que sea un valor atípico en {twoOrMore} métricas —lo que llamamos {hot}— es un probable candidato a desviación de voz.",
-    "twoOrMoreTerm": "dos o más",
     "hotTerm": "caliente",
     "mean": "media de {value}",
     "hotChapters": "Capítulos calientes",
