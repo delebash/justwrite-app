@@ -1,4 +1,4 @@
-// AI-written words by chapter in Settings → Project (2026-10-28, docs/plans/2026-10-28-four-feature-
+// AI-written words by chapter in Settings → Project (2026-10-28, docs/plans/archive/2026-10-28-four-feature-
 // ideas.md §2): under the book's count, "By chapter" opens the chapters with marked words and their
 // share; "Copy as text" puts the list on the clipboard.
 import { expect, expectNoSidewaysScroll, inStore, navigate, test } from "./fixtures.js";

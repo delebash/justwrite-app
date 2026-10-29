@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // The PDF's page sizes — seeded facts, one row each in `page_sizes` (2026-10-28,
-// docs/plans/2026-10-28-four-feature-ideas.md §1): the paper sizes and the common novel trim sizes,
+// docs/plans/archive/2026-10-28-four-feature-ideas.md §1): the paper sizes and the common novel trim sizes,
 // each with the margins a book on it starts with. Seeded insert-if-missing by id, so a row someone
 // changed is never overwritten. Points throughout (72 to the inch); `unit` is how the screen shows
 // a size's numbers.

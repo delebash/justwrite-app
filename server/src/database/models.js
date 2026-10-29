@@ -85,7 +85,7 @@ export const ADDED_COLUMNS = [
   // 2026-10-18: the book's language (the editor-expansion plan's piece 2) — `en` for every book
   // made before it, which is what each one's EPUB declared.
   ["projects", "language", "VARCHAR NOT NULL DEFAULT 'en'"],
-  // 2026-10-28: the PDF's page size and margins, per book (docs/plans/2026-10-28-four-feature-
+  // 2026-10-28: the PDF's page size and margins, per book (docs/plans/archive/2026-10-28-four-feature-
   // ideas.md §1) — `a4` and no margins of its own (the size's) for every book made before them,
   // which is the page every PDF had.
   ["projects", "pdf_page_size", "VARCHAR NOT NULL DEFAULT 'a4'"],

@@ -98,7 +98,7 @@ Everything needed is in [`2026-10-08-phone-ui-library-test/`](2026-10-08-phone-u
    not export (`ERR_PACKAGE_PATH_NOT_EXPORTED`; JustVoice fixed its copy in 00c5e46). Loading the UI warms the default chat model (gemma) on the graphics card;
    the scripts click "Continue without waiting".
 2. From the repo root, each takes an output folder (and the location id, `l1` in The Ninth Facet):
-   - `node docs/plans/2026-10-08-phone-ui-library-test/tools/probe.js <out>` — errors + list and
+   - `node docs/plans/archive/2026-10-08-phone-ui-library-test/tools/probe.js <out>` — errors + list and
      detail screenshots of the three pages at 1280 and 390 px;
    - `… tools/knobs.js <out> l1` — every knob × every control, `summary.txt` + `knobs.json`;
    - `… tools/states.js <out> l1` — dialogs, status menu, tag field, dark mode, phone width;

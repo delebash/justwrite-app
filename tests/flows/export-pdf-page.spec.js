@@ -1,4 +1,4 @@
-// The PDF's page on the Export page (2026-10-28, docs/plans/2026-10-28-four-feature-ideas.md §1): a
+// The PDF's page on the Export page (2026-10-28, docs/plans/archive/2026-10-28-four-feature-ideas.md §1): a
 // seeded size, its margins in its own unit, kept with the book — a new size brings its own margins,
 // and a margin typed in inches is kept in points.
 import { expect, expectNoSidewaysScroll, inStore, test } from "./fixtures.js";

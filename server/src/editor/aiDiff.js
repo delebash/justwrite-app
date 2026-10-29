@@ -11,7 +11,7 @@
 //
 // An insertion that is text the AI wrote (not an edit of the writer's own words) carries
 // `aiWritten` (`data-ai-written`); accepting it leaves the AI-text mark (aiText.js) in place of
-// the insertion mark — the design: docs/plans/2026-10-18-ai-text-mark-and-slice-4.md §2.
+// the insertion mark — the design: docs/plans/archive/2026-10-18-ai-text-mark-and-slice-4.md §2.
 
 import { Mark, Extension } from "@tiptap/core";
 

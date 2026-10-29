@@ -1,4 +1,4 @@
-// The Story Bible export (2026-10-28, docs/plans/2026-10-28-four-feature-ideas.md §3): the book's
+// The Story Bible export (2026-10-28, docs/plans/archive/2026-10-28-four-feature-ideas.md §3): the book's
 // characters, locations, objects, groups and worldbuilding as a document to hand an editor, a
 // co-author or an illustrator. One outline, built from the sheets' own field lists
 // (services/characterSheet.js, services/storyWorldSheet.js) and labelled with the pages' own catalog

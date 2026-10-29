@@ -349,7 +349,7 @@ function onVariationChosen(result) {
 }
 
 // Which AI results carry the AI-text mark once accepted (the design,
-// docs/plans/2026-10-18-ai-text-mark-and-slice-4.md §2.1): text the AI writes — Continue,
+// docs/plans/archive/2026-10-18-ai-text-mark-and-slice-4.md §2.1): text the AI writes — Continue,
 // Expand, Describe, the direction actions at the cursor, Draft from plan, a whole-document
 // draft; an AI edit of the writer's own words (Rewrite, Tighten, the line edits, Rewrite with
 // direction…) only when it replaces text that is already marked.
@@ -1302,7 +1302,7 @@ async function runDirectedAtCursor(kind, instruction, opts = {}) {
     if (!isAiAbort(err)) aiError.value = err?.message || String(err);
   }
 }
-// Draft from plan (slice 4; the design docs/plans/2026-10-18-ai-text-mark-and-slice-4.md §3 D2):
+// Draft from plan (slice 4; the design docs/plans/archive/2026-10-18-ai-text-mark-and-slice-4.md §3 D2):
 // the scene its Summary sets out, from the cursor to the scene's end, on its own feature row. It
 // lands as Continue does — an insertion at the cursor, or 3 variations — and, in an empty
 // document, as the document's only change (proposeDocument's shape). The passage is the prose
@@ -2196,7 +2196,7 @@ defineExpose({
 .ai-spinner { animation: ai-spin 1.2s linear infinite; }
 @keyframes ai-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-/* The AI-text mark (2026-10-18; docs/plans/2026-10-18-ai-text-mark-and-slice-4.md §2.2): the
+/* The AI-text mark (2026-10-18; docs/plans/archive/2026-10-18-ai-text-mark-and-slice-4.md §2.2): the
    AI's words in their own ink — the one channel no other mark uses. Writing settings → Highlight
    AI-written text turns the colour off; the marks stay. A struck original stays muted. */
 .tiptap-content .ai-text { color: var(--ai-text-ink); }

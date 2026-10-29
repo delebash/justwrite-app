@@ -144,9 +144,9 @@ The family's move, step 4 (2026-10-08). The plan is JustVoice's
 
 ## The phone app: UI library and the server
 
-**Records:** [`2026-10-08-phone-ui-library-test.md`](../plans/2026-10-08-phone-ui-library-test.md)
+**Records:** [`2026-10-08-phone-ui-library-test.md`](../plans/archive/2026-10-08-phone-ui-library-test.md)
 (the theming test; its tools, measurements and screenshots in the folder of the same name) ·
-[`2026-10-08-sync-design.md`](../plans/2026-10-08-sync-design.md) (phone ↔ desktop sync — research
+[`2026-10-08-sync-design.md`](../plans/archive/2026-10-08-sync-design.md) (phone ↔ desktop sync — research
 started, nothing decided). Upstream library facts (versions, licences, Node on phones, sync
 tools) are in the kit's register §2, "Phones".
 
@@ -260,12 +260,12 @@ tests are the kit's RESEARCH §2 "Sync" / "Sync, round 2". JustWrite's:
 
 ## What other writing apps ship
 
-Asked 2026-10-11 for the AI drafting design ([`../plans/2026-10-11-ai-drafting-spec.md`](../plans/2026-10-11-ai-drafting-spec.md);
-its implementation plan [`../plans/2026-10-11-ai-drafting-plan.md`](../plans/2026-10-11-ai-drafting-plan.md);
+Asked 2026-10-11 for the AI drafting design ([`../plans/archive/2026-10-11-ai-drafting-spec.md`](../plans/archive/2026-10-11-ai-drafting-spec.md);
+its implementation plan [`../plans/archive/2026-10-11-ai-drafting-plan.md`](../plans/archive/2026-10-11-ai-drafting-plan.md);
 the plan for the story-world sheets and slices 3–4
-[`../plans/2026-10-15-ai-drafting-plan-slices-3-4.md`](../plans/2026-10-15-ai-drafting-plan-slices-3-4.md)).
+[`../plans/archive/2026-10-15-ai-drafting-plan-slices-3-4.md`](../plans/archive/2026-10-15-ai-drafting-plan-slices-3-4.md)).
 The full survey — two web passes, the matrices, about 90 sources — is
-[`../plans/2026-10-11-ai-writing-apps-survey.md`](../plans/2026-10-11-ai-writing-apps-survey.md);
+[`../plans/archive/2026-10-11-ai-writing-apps-survey.md`](../plans/archive/2026-10-11-ai-writing-apps-survey.md);
 the 2026-06-05 passes it builds on are the roadmaps under *Records* below. *web, agent* = checked
 against the page by an agent, not re-checked by the session.
 
@@ -369,7 +369,7 @@ against the page by an agent, not re-checked by the session.
 
 ### Marking AI-written text (2026-10-18)
 
-The design and slice 4's plan: [`../plans/2026-10-18-ai-text-mark-and-slice-4.md`](../plans/2026-10-18-ai-text-mark-and-slice-4.md).
+The design and slice 4's plan: [`../plans/archive/2026-10-18-ai-text-mark-and-slice-4.md`](../plans/archive/2026-10-18-ai-text-mark-and-slice-4.md).
 
 - **Sudowrite** shows AI-generated text purple "when first inserted"; "The purple formatting
   disappears once you edit the text". Its users ask for the colour to stay through edits.
@@ -394,7 +394,7 @@ The design and slice 4's plan: [`../plans/2026-10-18-ai-text-mark-and-slice-4.md
 
 ### The writer's editor: highlights, spelling, a book language (2026-10-18)
 
-The plan: [`../plans/2026-10-18-editor-expansion.md`](../plans/2026-10-18-editor-expansion.md).
+The plan: [`../plans/archive/2026-10-18-editor-expansion.md`](../plans/archive/2026-10-18-editor-expansion.md).
 
 - **No thesaurus from WordNet.** `natural` 8.1.1 (14 MB, plus `wordnet-db` 34 MB) depends on
   mongoose, pg, redis and memjs. `wordnet` 2.0.0 (27 MB) and `synonyms` 1.0.1 (2.1 MB) give
@@ -498,7 +498,7 @@ toasts and hover tooltips were not opened; 147 strings matching book content wer
 - **Seeded database words stayed English by decision 4** (marker types, statuses, roles) until
   2026-10-18: the marker types are a code table with keys now; statuses and worldbuilding
   categories show by key until renamed (the kit's
-  `docs/plans/2026-10-18-seeded-words-in-the-users-language.md` §5); a character's role is the
+  `../just-core/docs/plans/2026-10-18-seeded-words-in-the-users-language.md` §5); a character's role is the
   writer's own text.
 - **How the i18n lint's settings came about** (JustWrite's `eslint.i18n.config.js`, now the family's
   one file): `code` joined `ignoreNodes` 2026-07-26, when the HTML-in-message hints moved to
@@ -716,7 +716,7 @@ Measured with the same WCAG 2 method, on the dark paper `oklch(0.225 0.006 80)` 
 
 ## Four feature ideas: what the plan rests on (2026-10-28)
 
-The plan: [`../plans/2026-10-28-four-feature-ideas.md`](../plans/2026-10-28-four-feature-ideas.md).
+The plan: [`../plans/archive/2026-10-28-four-feature-ideas.md`](../plans/archive/2026-10-28-four-feature-ideas.md).
 
 - **The PDF's page is fixed in code:** `src/services/export/pdf.js` sets `pageSize: "A4"` and
   `pageMargins: [80, 70, 80, 80]` (points); the footer already numbers pages. pdfmake takes a named
@@ -745,7 +745,7 @@ The plan: [`../plans/2026-10-28-four-feature-ideas.md`](../plans/2026-10-28-four
 
 ## The 2026-10-29 DO list: what it rests on
 
-The plan: [`../plans/2026-10-29-do-list.md`](../plans/2026-10-29-do-list.md).
+The plan: [`../plans/archive/2026-10-29-do-list.md`](../plans/archive/2026-10-29-do-list.md).
 
 - **The `stopword` package's English list is thin for fiction:** 3.1.5's `eng` is 108 words with
   *he*, *his*, *him* but not *she*, *its*, *not*, *no*, *so*, *when*, *why*, *will*, *just* — so the
@@ -807,10 +807,6 @@ The plan: [`../plans/2026-10-29-do-list.md`](../plans/2026-10-29-do-list.md).
 Indexed by subject so they can be found; their facts move into a section above when work next
 touches the subject. History in [`../plans/archive/`](../plans/archive/) is not listed.
 
-**The writer's editor** —
-[`2026-07-26-writers-editor-gap-research.md`](../plans/2026-07-26-writers-editor-gap-research.md) ·
-[`2026-10-18-editor-expansion.md`](../plans/2026-10-18-editor-expansion.md).
-
 **Single-source text and translation** —
 [`2026-07-26-i18n-single-source-research.md`](../plans/2026-07-26-i18n-single-source-research.md).
 
@@ -818,7 +814,3 @@ touches the subject. History in [`../plans/archive/`](../plans/archive/) is not 
 [`bench.md`](bench.md) (the LLM bench harness).
 
 **Story-bible retrieval** — [`rag-design.md`](rag-design.md) (distilled decisions).
-
-**Family parity** — [`2026-08-05-family-parity-batch.md`](../plans/2026-08-05-family-parity-batch.md).
-
-**Docs** — [`2026-08-04-docs-coverage-worklist.md`](../plans/2026-08-04-docs-coverage-worklist.md).

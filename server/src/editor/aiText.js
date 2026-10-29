@@ -1,5 +1,5 @@
 // The AI-text mark — which words in a document the AI wrote (the design:
-// docs/plans/2026-10-18-ai-text-mark-and-slice-4.md §2).
+// docs/plans/archive/2026-10-18-ai-text-mark-and-slice-4.md §2).
 //
 // Stored inline in the document's HTML like the markers (`<span data-ai-text class="ai-text">`),
 // so it travels with the text through split, merge, copy and sync. An accepted AI insertion

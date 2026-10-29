@@ -189,7 +189,7 @@ export function guidedRewrite(opts = {}) {
 export const SCENE_DRAFTING_FEATURE = "sceneDrafting";
 
 /**
- * Draft from plan (slice 4; the design docs/plans/2026-10-18-ai-text-mark-and-slice-4.md §3 D2):
+ * Draft from plan (slice 4; the design docs/plans/archive/2026-10-18-ai-text-mark-and-slice-4.md §3 D2):
  * the scene its Summary sets out — the Summary arrives in `storyContext` — from where `html` (the
  * prose before the cursor; "" in a scene not yet started) ends, to the scene's end.
  */

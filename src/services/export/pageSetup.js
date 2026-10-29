@@ -1,5 +1,5 @@
 // The PDF's page — its size and margins — from the book's choice and the seeded sizes (2026-10-28,
-// docs/plans/2026-10-28-four-feature-ideas.md §1). Points throughout (pdfmake's unit: 72 to the
+// docs/plans/archive/2026-10-28-four-feature-ideas.md §1). Points throughout (pdfmake's unit: 72 to the
 // inch); a size's `unit` is only how its numbers are shown and typed.
 
 /** Points per unit a page size is shown in. */

@@ -24,7 +24,7 @@ const { t, te } = useI18n({ useScope: "global" });
 const fmt = ref("pdf");
 const stripSceneStructure = ref(false);
 
-// ── The PDF's page (2026-10-28, docs/plans/2026-10-28-four-feature-ideas.md §1) ──────────────
+// ── The PDF's page (2026-10-28, docs/plans/archive/2026-10-28-four-feature-ideas.md §1) ──────────────
 // The seeded sizes (GET /v1/page-sizes); the book keeps its choice and its margins in points — a
 // margin it never set (null) is the size's own. Without the sizes there's no page to make a PDF on.
 const pageSizes = ref([]);
@@ -173,7 +173,7 @@ async function exportManuscript(fmtId) {
   }
 }
 
-// ── Story bible (2026-10-28, docs/plans/2026-10-28-four-feature-ideas.md §3) ──────────────────
+// ── Story bible (2026-10-28, docs/plans/archive/2026-10-28-four-feature-ideas.md §3) ──────────────────
 // The characters, places and lore as one document (services/export/storyBible.js), its words in
 // the book's language as the reading files' are; a PDF on the book's page (the PDF card's).
 const BIBLE_FORMATS = [{ value: "docx", label: "DOCX" }, { value: "pdf", label: "PDF" }];

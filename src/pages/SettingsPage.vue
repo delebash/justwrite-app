@@ -249,7 +249,7 @@ function setMeta(key, value) {
 // The per-book record of AI-written text (the AI-text mark, 2026-10-18): words in the book's
 // scenes the AI wrote and the writer hasn't retyped or marked as their own.
 const aiWrittenWords = computed(() => bookAiWrittenWords(project));
-// …and chapter by chapter (2026-10-28, docs/plans/2026-10-28-four-feature-ideas.md §2): the chapters
+// …and chapter by chapter (2026-10-28, docs/plans/archive/2026-10-28-four-feature-ideas.md §2): the chapters
 // with marked words, each with its share of the chapter, and the list as plain text to paste into a
 // publisher's form. It's what is still marked, not a history — Mark as mine clears a mark.
 const aiByChapterOpen = ref(false);

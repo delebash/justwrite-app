@@ -58,7 +58,7 @@ export const FEATURE_CATALOG = [
 ];
 
 // The catalog keys for each row's words (the seeded-words plan, the kit's
-// docs/plans/2026-10-18-seeded-words-in-the-users-language.md): the kit's AI page shows a feature,
+// ../just-core/docs/plans/2026-10-18-seeded-words-in-the-users-language.md): the kit's AI page shows a feature,
 // its hint and its group in the interface's language. The words above stay as they are — the
 // English the kit falls back to.
 const FEATURE_KEYS = {

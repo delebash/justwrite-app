@@ -1,4 +1,4 @@
-// The Story bible card on the Export page (2026-10-28, docs/plans/2026-10-28-four-feature-ideas.md
+// The Story bible card on the Export page (2026-10-28, docs/plans/archive/2026-10-28-four-feature-ideas.md
 // §3): DOCX or PDF, the "Exclude from AI" switch, and a file named after the book.
 import { expect, expectNoSidewaysScroll, test } from "./fixtures.js";
 

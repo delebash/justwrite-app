@@ -1,4 +1,4 @@
-// Slice 4 — scene drafting and the AI-text mark (docs/plans/2026-10-18-ai-text-mark-and-slice-4.md):
+// Slice 4 — scene drafting and the AI-text mark (docs/plans/archive/2026-10-18-ai-text-mark-and-slice-4.md):
 // AI scene drafting is per book and off until switched on in Settings → Project; Draft from plan
 // drafts an empty scene from its Summary on its own feature row; accepted, the AI's words carry the
 // AI-text mark, the words the writer types don't, and Mark as mine clears it; Settings counts them.

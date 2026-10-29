@@ -1321,7 +1321,7 @@ export const DEFAULT_FEATURE_PROMPTS = {
             "\n\n--- BEGIN PASSAGE ---\n{{passage}}\n--- END PASSAGE ---"
         ),
     },
-    // Draft from plan (slice 4, 2026-10-18; the design docs/plans/2026-10-18-ai-text-mark-and-slice-4.md
+    // Draft from plan (slice 4, 2026-10-18; the design docs/plans/archive/2026-10-18-ai-text-mark-and-slice-4.md
     // §3 D2): the scene its Summary sets out — the Summary arrives in {{storyContext}} — from where
     // the passage ends to the scene's end; an empty passage is a scene not yet started. Routed on its
     // own feature row, so it can run on a larger model than the other writer actions.

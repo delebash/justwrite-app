@@ -566,7 +566,7 @@ const DEFAULT_WB_CATEGORIES = [
 ];
 
 // Seeded words shown in the interface's language (the kit's
-// docs/plans/2026-10-18-seeded-words-in-the-users-language.md): a seeded status or worldbuilding
+// ../just-core/docs/plans/2026-10-18-seeded-words-in-the-users-language.md): a seeded status or worldbuilding
 // category whose label is still the seed's English shows the catalog's word; one the writer
 // renamed shows theirs. The stored label stays the seed's English — synced data never changes
 // language, and text the AI reads keeps it.

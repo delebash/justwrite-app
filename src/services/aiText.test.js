@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// The AI-text mark (docs/plans/2026-10-18-ai-text-mark-and-slice-4.md §2): an accepted AI-written
+// The AI-text mark (docs/plans/archive/2026-10-18-ai-text-mark-and-slice-4.md §2): an accepted AI-written
 // insertion keeps it; an AI edit of the writer's own words doesn't; the AI's words stay marked
 // through edits around them while the words the writer types are theirs; a paste, Enter and Undo
 // keep it; Mark as mine clears it. On the app's own schema (server/src/editor/editorSchema.js).

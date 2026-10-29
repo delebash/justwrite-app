@@ -1,5 +1,5 @@
 // Seeded words in the interface's language (the kit's
-// docs/plans/2026-10-18-seeded-words-in-the-users-language.md): a seeded status or worldbuilding
+// ../just-core/docs/plans/2026-10-18-seeded-words-in-the-users-language.md): a seeded status or worldbuilding
 // category whose label is still the seed's English shows the catalog's word in the current
 // language; a renamed one shows the writer's words; the stored label never changes.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

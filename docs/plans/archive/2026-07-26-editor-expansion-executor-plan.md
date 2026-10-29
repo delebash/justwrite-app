@@ -3,7 +3,7 @@
 Executor: an Opus coding agent. Every decision is CLOSED here — the executor codes,
 verifies, commits, reports. Any case this plan does not decide: STOP, collect it in the
 report's OPEN QUESTIONS, do not improvise. Source research (read it first):
-`docs/plans/2026-07-26-writers-editor-gap-research.md` — this plan implements its
+`docs/plans/archive/2026-07-26-writers-editor-gap-research.md` — this plan implements its
 recommended order 3 → 2 → 1 → 4 (name generation was struck: it already exists in
 Brainstorm). **Written 2026-07-26 on the user's order ("write an execution plan for opus
 but dont execute yet"); it launches only on the user's later go.**
