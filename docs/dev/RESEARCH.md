@@ -801,6 +801,11 @@ The plan: [`../plans/archive/2026-10-29-do-list.md`](../plans/archive/2026-10-29
   `extract --check` exits 1 when a doc's lede and its key drift, 0 in step (tried both, 2026-10-29).
   Its YAML is deliberately tiny: a lede holding ":" goes in quotes (`docs-authoring.md`). JustWrite is
   the first family app to use it. (*code + run 2026-10-29*.)
+- **The AI page's Update on the user's data (2026-10-29):** update-check offered b11960 (stable v0.8.0)
+  over b11239; the click moved the pin b10750 → b11960 and installed it. b11239 stayed on disk: "old
+  builds kept — JustWrite Server, JustVoice, Just AI i18n & DocGen, Family Template, Just House Paint
+  share this cache and never said which build they use" (the kit's `buildsInUse` rule) — it goes at a
+  later update once those apps have recorded theirs. (*run 2026-10-29*, the app's log.)
 - **simple-statistics 8.0.0 was published 2026-10-28;** 7.12.1, the one used, 2026-09-27 (`npm view
   simple-statistics time`). Both are ES modules. (*2026-10-29*.)
 - **The renderer counts words by splitting on whitespace in ten places** (the store's rollup, the

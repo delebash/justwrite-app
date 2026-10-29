@@ -57,7 +57,8 @@ STATE:  DECIDED — the user, on my list of every open item (TASKS, the live pla
         SyncPanel `removeFolderDevice`, the sync engine's `DELETE /v1/sync/folder/devices/:id`, built
         2026-10-29 with tests; sync.md "Your devices" already says so), so its line closes as done; and
         item 11 is 13 plans, not 12.
-OPEN:   20 (mine); 22 (the user's). 19 DONE 2026-10-29: the 26 docs' ledes, `lede.*` in en.json,
+OPEN:   22 (the user's). 20 DONE 2026-10-29: Update clicked on the AI page against the user's data — pin and
+        engine b11960 (was the stale b10750 pin over b11239). 19 DONE 2026-10-29: the 26 docs' ledes, `lede.*` in en.json,
         Help and the palette read them, `npm run i18n:docs` in test:fast.
 GO:     given 2026-10-29 for 1–20, as above; 22 not decided.
 
@@ -134,12 +135,6 @@ GO:     not given. WAITS ON the user's decision on the phone (the close-out list
 
 - Nothing open of my own besides the close-out list above.
 
-## Your-box checks (only the Windows / 2070S machine can finish these)
-
-- **The engine update replacing its build** (providers round 10, the 2026-09-19 safe-update flow):
-  reachable now — the AI page offered "Update to b11960" over the installed b11239 on 2026-10-28.
-  The same click fixes the stale pin (the database still pins b10750): Update writes the new build
-  as the pin. Until then, don't use the engine's install button (it would fetch b10750).
 
 ## Standing rulings (constraints, not tasks — they gate future work)
 
