@@ -57,6 +57,10 @@ STATE:  DECIDED — the user, on my list of every open item (TASKS, the live pla
         SyncPanel `removeFolderDevice`, the sync engine's `DELETE /v1/sync/folder/devices/:id`, built
         2026-10-29 with tests; sync.md "Your devices" already says so), so its line closes as done; and
         item 11 is 13 plans, not 12.
+        Then 14 and 15, in the kit's session (2026-10-29), the user: "Keep both" — the kit built both into
+        the shared Sync screen (just-sqlite-sync ccf3fb6 / 7e0fc0d, kit e98968a / c57386c): a cloud-folder
+        device's Remove and the Changes waiting line; JustWrite shows them, and sync.md describes them
+        (103d4750, 863bfa82). Neither is a drop.
 OPEN:   22 (the user's). 20 DONE 2026-10-29: Update clicked on the AI page against the user's data — pin and
         engine b11960 (was the stale b10750 pin over b11239). 19 DONE 2026-10-29: the 26 docs' ledes, `lede.*` in en.json,
         Help and the palette read them, `npm run i18n:docs` in test:fast.

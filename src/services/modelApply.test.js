@@ -15,6 +15,8 @@ vi.mock("@delebash/ui/composables/useRouting.js", () => ({
   useRouting: () => ({
     loadRouting: vi.fn(),
     setDefaultEmbedding: vi.fn(),
+    // Set as default records the routing default a feature's Reset reads (kit 8ece347)
+    setDefaultLlm: vi.fn(),
   }),
 }));
 
