@@ -134,6 +134,13 @@ describe("Name ideas and Suggest locations inputs", () => {
     expect(composeSheetNameIdeasInput(project(), "group", "g1").variables.label).toBe("Anything (free prompt)");
   });
 
+  it("leads with the writer's seed (2026-10-28)", async () => {
+    const own = composeSheetNameIdeasInput(project(), "location", "l2", { seed: "drowned-town names", budgetTokens: null });
+    expect(own.variables.user_content).toContain("Seed: drowned-town names — names for the location in THE LOCATION, fitting the book in BOOK CONTEXT");
+    const req = await sheetNameIdeasRequest({ project: project(), kind: "object", entityId: "o1", seed: "brass tools", budgetTokens: null });
+    expect(req.variables.user_content).toContain("Seed: brass tools — names for the object in THE OBJECT");
+  });
+
   it("excludes the kind's names from the ideas", async () => {
     const r = await sheetNameIdeasRequest({ project: project(), kind: "location", entityId: "l1", budgetTokens: null });
     expect(r.exclude).toEqual(["North quay cannery", "The archive"]);

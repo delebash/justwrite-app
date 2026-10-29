@@ -16,6 +16,7 @@
 // same pattern as ProviderForm.keyReveal.test.js. Distinct provider ids per case because
 // the useProviderModels cache is module-scoped (persists across a file's tests).
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DOMWrapper } from "@vue/test-utils";
 import { h, nextTick } from "vue";
 
 import ProviderForm from "@delebash/ui/views/ProviderForm.vue";
@@ -131,7 +132,7 @@ describe("ProviderForm — the model dropdown auto-populates on open (stale-whil
     await mount(base({ id: "prov-ovr", hasApiKey: true }));
     expect(await chatOptionsAfterFocus()).toContain("cached-a"); // cache first
     document.querySelectorAll(".lu-cb-in")[0].dispatchEvent(new Event("blur"));
-    fetchBtn().click(); // draft probe
+    await new DOMWrapper(fetchBtn()).trigger("click"); // draft probe
     await flush();
     const opts = await chatOptionsAfterFocus();
     expect(probePosts).toBe(1);

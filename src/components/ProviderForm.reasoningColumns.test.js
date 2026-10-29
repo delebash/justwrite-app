@@ -14,6 +14,7 @@
 // branch paints. Mounted with plain createApp; fetch stubbed. (Kit components are tested in
 // JW's harness — the LuFeatureChip.save.test.js / ProviderForm.keyReveal.test.js precedent.)
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DOMWrapper } from "@vue/test-utils";
 import { h, nextTick } from "vue";
 
 import ProviderForm from "@delebash/ui/views/ProviderForm.vue";
@@ -73,7 +74,7 @@ async function openReasoning(providerType) {
   await flush();
   const btn = [...document.querySelectorAll("button")].find((b) => b.textContent.includes("Reasoning levels"));
   expect(btn, "the saved provider shows the Reasoning levels… button").toBeTruthy();
-  btn.click();
+  await new DOMWrapper(btn).trigger("click");
   await flush();
 }
 

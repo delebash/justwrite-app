@@ -158,6 +158,21 @@ const FEATURES = [
     },
   },
   {
+    // Brainstorm where it's used (2026-10-28): Name ideas at a character's name, from a seed
+    name: "name-ideas",
+    async run(d, page) {
+      await page.keyboard.press("Escape");
+      await d.navigate("#/characters/c2");
+      await d.sleep(2500);
+      await page.getByRole("button", { name: "Name ideas" }).click();
+      const panel = page.locator(".bs-popup");
+      await panel.getByRole("textbox", { name: "Seed prompt" }).fill("short and desert-worn, two syllables");
+      await panel.getByRole("button", { name: "Generate" }).click();
+      await panel.locator(".bsr-item").first().waitFor({ timeout: AI_TIMEOUT });
+      await d.sleep(1000);
+    },
+  },
+  {
     // The built-in local AI: its model catalog, each model sized against this computer
     name: "ai-models",
     async run(d, page) {

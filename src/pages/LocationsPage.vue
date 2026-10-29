@@ -11,10 +11,10 @@ import { UiCheckbox } from "@delebash/ui";
 import { UiMenuItem } from "@delebash/ui";
 import DescribeBox from "../components/DescribeBox.vue";
 import DraftMenu from "../components/DraftMenu.vue";
-import NameIdeas from "../components/NameIdeas.vue";
+import BrainstormPopup from "../components/BrainstormPopup.vue";
 import SheetDraftModal from "../components/SheetDraftModal.vue";
 import { isThinSheet } from "../services/storyWorldSheet.js";
-import { sheetNameIdeasRequest } from "../services/analysis/sheetDraft.js";
+import { NAME_CATEGORY, sheetNameIdeasRequest } from "../services/analysis/sheetDraft.js";
 import EntityIndex from "../components/EntityIndex.vue";
 import ImagesModal from "../components/ImagesModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
@@ -202,7 +202,8 @@ function onRowClick(event) {
         editable :title="loc.name" :placeholder="$t('locations.namePlaceholder')"
         @update:title="(v) => update('name', v)">
         <template #after-title>
-          <NameIdeas :key="loc.id" :meta="{ kind: 'name-ideas', entityId: loc.id }"
+          <BrainstormPopup :key="loc.id" :category="NAME_CATEGORY.location" :label="$t('brainstorm.nameIdeas')"
+            :meta="{ kind: 'name-ideas', entityId: loc.id }"
             :request="(round) => sheetNameIdeasRequest({ project, kind: 'location', entityId: loc.id, ...round })"
             @pick="(name) => update('name', name)" />
         </template>

@@ -90,6 +90,15 @@ describe("the composed input", () => {
     expect(u).toContain("already-seen suggestions:\n- Odo\n- Ren");
   });
 
+  it("leads with the writer's seed, the profile and the book after it (2026-10-28)", async () => {
+    const own = composeNameIdeasInput(project(), "c2", { seed: "Norse, two syllables", budgetTokens: null }).variables.user_content;
+    expect(own).toContain("Seed: Norse, two syllables — names for the character in CHARACTER PROFILE, fitting the book in BOOK CONTEXT");
+    const none = composeNameIdeasInput(project(), "c2", { seed: "  ", budgetTokens: null }).variables.user_content;
+    expect(none).toContain("Seed: names for the character in CHARACTER PROFILE, fitting the book in BOOK CONTEXT");
+    const req = await nameIdeasRequest({ project: project(), characterId: "c2", seed: "Norse", budgetTokens: null });
+    expect(req.variables.user_content).toContain("Seed: Norse — names for the character");
+  });
+
   it("never offers a name the cast already uses, an alias included", async () => {
     const r = await nameIdeasRequest({ project: project(), characterId: "c2", budgetTokens: null });
     expect(r.exclude).toEqual(["Mira", "Mir", "Untitled character"]);

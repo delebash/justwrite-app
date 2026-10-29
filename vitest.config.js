@@ -6,8 +6,8 @@
 // COMPONENT tests (2026-07-16): the vue plugin lets a single SFC be MOUNTED for a
 // write path the smoke can't reach deterministically — a chip popover's Save. Those
 // files opt in per-file with a `@vitest-environment jsdom` docblock, so the default
-// stays node and the pure-JS suites are untouched. `createApp` does the mounting; no
-// @vue/test-utils dependency is added. Why this exists: a thinking-budget save shipped
+// stays node and the pure-JS suites are untouched. `createApp` does the mounting;
+// @vue/test-utils only clicks (its trigger — the family rule, app-structure §18). Why this exists: a thinking-budget save shipped
 // a ReferenceError past a fully green build+lint because NOTHING executed the SFC —
 // build:vite compiles SFCs without resolving script identifiers and biome doesn't check
 // .vue identifiers, so a mount is the only gate that runs that code.

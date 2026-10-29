@@ -412,7 +412,6 @@
       "fillLede": "Una nota para cada uno de los beats de la plantilla para tu libro, basada en su premisa, mundo y elenco. Las notas que aún ofrecen los consejos generales de la plantilla aparecen marcadas; las que tú has escrito, no. Edita las que quieras y luego aplícalas.",
       "ideasLede": "Ideas sobre qué sucede después en este hilo, basadas en tu libro y en los beats del hilo hasta ahora. Marca las que quieras —cada una se convertirá en una tarjeta de beat, que aún no estará en un capítulo— y luego añádelas.",
       "applyNotes": "Aplicar {n} nota | Aplicar {n} notas",
-      "addBeats": "Añadir {n} beat | Añadir {n} beats",
       "empty": "El modelo no sugirió nada nuevo. Inténtalo de nuevo."
     }
   },

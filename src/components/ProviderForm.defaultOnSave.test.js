@@ -17,6 +17,7 @@
 // proves it fires. The routing move shows up as a PUT /v1/ai/engine-presets/{id} (chat)
 // or PUT /v1/ai/routing (embedding); the provider PATCH always fires.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DOMWrapper } from "@vue/test-utils";
 import { h, nextTick } from "vue";
 
 import ProviderForm from "@delebash/ui/views/ProviderForm.vue";
@@ -123,7 +124,7 @@ describe("ProviderForm — changing the default model on save repoints routing (
     await mountForm();
     typeModel(0, "gemini-new");
     await flush();
-    saveBtn().click();
+    await new DOMWrapper(saveBtn()).trigger("click");
     await flush(40);
     expect(patches.length, "the provider field is saved").toBe(1);
     expect(patches[0].defaultModel).toBe("gemini-new");
@@ -137,7 +138,7 @@ describe("ProviderForm — changing the default model on save repoints routing (
     await mountForm();
     typeModel(0, "gemini-new");
     await flush();
-    saveBtn().click();
+    await new DOMWrapper(saveBtn()).trigger("click");
     await flush(40);
     expect(patches.length).toBe(1);
     expect(patches[0].defaultModel).toBe("gemini-new"); // the field still saves
@@ -149,7 +150,7 @@ describe("ProviderForm — changing the default model on save repoints routing (
     dominantProviderId = "gemini";
     await mountForm();
     // do NOT touch the combobox — draft.defaultModel stays "gemini-old"
-    saveBtn().click();
+    await new DOMWrapper(saveBtn()).trigger("click");
     await flush(40);
     expect(patches.length).toBe(1);
     expect(presetPuts.length, "an unchanged model must not repoint routing").toBe(0);
@@ -161,7 +162,7 @@ describe("ProviderForm — changing the default model on save repoints routing (
     await mountForm();
     typeModel(1, "gemini-embedding-new"); // the embedding combobox
     await flush();
-    saveBtn().click();
+    await new DOMWrapper(saveBtn()).trigger("click");
     await flush(40);
     expect(patches.length).toBe(1);
     expect(patches[0].embeddingModel).toBe("gemini-embedding-new");

@@ -95,7 +95,7 @@ When you apply one, all the beats start in the **Unassigned** column. You drag t
 The ✨ beside a strand's name opens its AI menu:
 
 - **Fill this template for my story** — on a strand applied from a template. The AI writes each beat's note for your book — the event, who drives it, what it changes — from your premise, genre, world rules, Setting and main cast. They open in a review window beside what's there now: a note that still gives the template's general advice comes ticked, one you've written doesn't; edit any, then **Apply**. One Ctrl/⌘ + Z takes the whole fill back.
-- **Suggest next beats** and **Plot twists** — Brainstorm's plot ideas for this strand, from your book and the strand's beats so far, never one the strand already has. Tick the ones you want and **Add** them: each becomes a beat card in the **Unassigned** column, as one undo step.
+- **Suggest next beats** and **Plot twists** — Brainstorm's plot ideas for this strand, from your book and the strand's beats so far, never one the strand already has. They open on Brainstorm's panel: type a seed prompt to steer them, or leave it empty, and press **Generate**; **Add as beat** puts an idea on the strand as a beat card in the **Unassigned** column.
 
 Routable as **Planning → Fill this template for my story** and **Brainstorm** in Settings → AI.
 

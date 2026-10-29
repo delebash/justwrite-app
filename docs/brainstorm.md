@@ -34,7 +34,7 @@ Pick the one that fits the kind of output you want back. The selected category's
 
 The **Next plot beats** and **Plot twists** categories work differently from the naming ones — they return full-sentence ideas (12–25 words each) rather than short phrases. They mix close-to-obvious moves with wilder ones, so even when you reject most options, seeing the menu often unlocks the move you actually wanted.
 
-Both also work where you write and plan, without a seed to type: in the editor's AI menu they start from where your prose ends, and **Write this** on an idea drafts the next paragraphs in that direction ([Writing](writing.md#whole-passage-actions)); in a strand's ✨ menu on the Plot board, the ideas you tick become beat cards ([Plot and time](plot-and-time.md#the-ai-on-a-strand)).
+Both also work where you write and plan, on this same panel — its seed prompt optional there: leave it empty and the ideas start from where your prose ends or from the strand. In the editor's AI menu, **Write this** on an idea drafts the next paragraphs in that direction ([Writing](writing.md#whole-passage-actions)); in a strand's ✨ menu on the Plot board, **Add as beat** puts an idea on the strand as a beat card ([Plot and time](plot-and-time.md#the-ai-on-a-strand)).
 
 The categories aren't enforced — picking "Place names" doesn't stop you from typing a character-name seed. They're just a steering hint to the model. If the suggestions you get feel off-shape, switch the category and re-run.
 
@@ -56,13 +56,15 @@ You can also start a completely new run at any time — typing a new seed and hi
 
 ---
 
-## Name ideas — at the name itself
+## Name and title ideas — where you use them
 
-On a character's page, the ✨ button beside the name opens **Name ideas**: Brainstorm's list for that character, right there. You don't write a seed — it asks for character names that fit the character as the sheet describes them (role, one-liner, whatever you've filled in) and your book (premise, genre, world rules, Setting, main cast). It never offers a name someone in your cast already uses, aliases included.
+On a character's page, **Name ideas** beside the name opens Brainstorm right there, for character names. Type a **Seed prompt** — or leave it empty — and press **Generate**: the names fit your seed, the character as the sheet describes them (role, one-liner, whatever you've filled in) and your book (premise, genre, world rules, Setting, main cast). It never offers a name someone in your cast already uses, aliases included.
 
 Locations, objects and groups have it too: a location asks for **Place names**, an object for **Item / object names**, a group for names in a free prompt — each from the entry as its page describes it, and never one its own list already uses.
 
-It opens with a list. Thumbs-up and **More like these** work as they do on this page; **Generate** starts a fresh list. **Click a name to make it the name** — Undo takes it back. On a phone it opens as a window instead of a dropdown.
+**Title ideas** works the same way at a title: beside the book's title in **Settings → Project**, and beside the title in the editor's header — the open scene's title, or the chapter's when no scene is open. It reads your book, and for a chapter its scenes, for a scene its Summary and how it opens; it never offers a title already in use.
+
+Nothing runs until you press **Generate**. Thumbs-up and **More like these** work as they do on this page. **Use** on an idea puts it in place — Undo takes it back. On a phone it opens as a window instead of a dropdown.
 
 It uses the same model as Brainstorm (below), and like the panel it keeps nothing: close it and reopen it on the same character and the list is still there; leave the page and it's gone.
 
@@ -73,7 +75,7 @@ It uses the same model as Brainstorm (below), and like the panel it keeps nothin
 > *"I thumbed up six names I liked, navigated away to check a character's notes, and came back to an empty panel."*
 
 - **It's not a notes feature.** Nothing persists between sessions; close the panel and the suggestions are gone. If you want to keep a brainstorm session for later, copy the suggestions you care about into a Note (or directly into a character/location/etc.).
-- **It's not a name *committer*.** Brainstorm doesn't write to your project. The copy button copies to the clipboard — you decide where the result lands. (Name ideas beside a name is the one place a click sets a name.)
+- **It's not a name *committer*.** Brainstorm doesn't write to your project. The copy button copies to the clipboard — you decide where the result lands. (Where it's used — Name ideas and Title ideas, the editor's and the Plot board's plot ideas — what you pick goes in place.)
 - **It's not deterministic.** Temperature is high (0.9) — generating the same seed twice will give different results, and that's the point. You're after divergent options, not the "right" answer.
 
 ---

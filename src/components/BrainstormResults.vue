@@ -1,16 +1,17 @@
 <script setup>
 // A brainstorm list (2026-10-11, the AI drafting plan Task 10) — the Brainstorm page's results and
-// Name ideas' list are this one component, fed by useBrainstorm. Each idea has its thumbs-up (a
-// steer for the next round, not a save) and, under the list, **More like these**. `pickable`
-// makes each idea a button that emits `pick` (Name ideas: a click sets the name); the `actions`
-// slot adds a row's own controls (the page's Copy).
+// the Brainstorm panel's where it's used (BrainstormPanel.vue) are this one component, fed by
+// useBrainstorm. Each idea has its thumbs-up (a steer for the next round, not a save) and, under
+// the list, **More like these**. `pickLabel` gives each idea a button with those words that emits
+// `pick` — Use, Add as beat, Write this (2026-10-28) — and the `actions` slot adds a row's own
+// controls (the page's Copy).
 import { computed } from "vue";
 import { Icon, UiButton } from "@delebash/ui";
 
 const props = defineProps({
   items: { type: Array, required: true }, // [{ text, liked }]
   running: { type: Boolean, default: false },
-  pickable: { type: Boolean, default: false },
+  pickLabel: { type: String, default: "" },
 });
 const emit = defineEmits(["like", "pick", "more"]);
 
@@ -22,8 +23,7 @@ const canMore = computed(() => likedCount.value > 0 && !props.running);
   <div class="bsr">
     <ul class="bsr-list">
       <li v-for="(item, i) in items" :key="i" class="bsr-item" :class="{ 'is-liked': item.liked }">
-        <UiButton v-if="pickable" intent="ghost" align="left" class="bsr-text bsr-pick" @click="emit('pick', item.text)">{{ item.text }}</UiButton>
-        <span v-else class="bsr-text">{{ item.text }}</span>
+        <span class="bsr-text">{{ item.text }}</span>
         <div class="bsr-actions">
           <UiButton intent="ghost" size="icon" :class="{ 'is-active': item.liked }" :aria-pressed="item.liked ? 'true' : 'false'"
             :aria-label="item.liked ? $t('brainstorm.unlike') : $t('brainstorm.like')"
@@ -31,6 +31,7 @@ const canMore = computed(() => likedCount.value > 0 && !props.running);
             <Icon name="ThumbUp" :size="14" :fill="item.liked" />
           </UiButton>
           <slot name="actions" :item="item" />
+          <UiButton v-if="pickLabel" intent="secondary" size="small" :label="pickLabel" @click="emit('pick', item.text)" />
         </div>
       </li>
     </ul>
@@ -60,8 +61,6 @@ const canMore = computed(() => likedCount.value > 0 && !props.running);
   background: color-mix(in srgb, var(--accent) 6%, var(--surface-raised, var(--surface)));
 }
 .bsr-text { flex: 1; font-size: 13.5px; color: var(--ink); line-height: 1.4; }
-/* A pickable idea is a button (left-aligned: QBtn's align) that reads as the row's text. */
-.bsr-pick.ui-btn { font-weight: 400; padding: 4px 6px; margin-left: -6px; }
 .bsr-actions { display: flex; gap: 2px; flex-shrink: 0; }
 .bsr-actions .is-active { color: var(--accent); }
 .bsr-more { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }

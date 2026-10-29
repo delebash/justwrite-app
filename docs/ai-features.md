@@ -23,7 +23,8 @@ while quick ones stay local. How routing, presets and providers work is
   setting, reveal, time cut.
 - **Brainstorm** — the Brainstorm view: name / title / freeform idea
   generation with thumbs-up steering. Also runs **Name ideas** beside a
-  character's, location's, object's or group's name, and **Suggest
+  character's, location's, object's or group's name, **Title ideas** beside
+  the book's, a chapter's or a scene's title, and **Suggest
   characters…** and **Suggest locations…** on those lists.
 
 ## Analysis

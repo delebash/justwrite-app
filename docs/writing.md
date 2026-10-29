@@ -287,7 +287,7 @@ The dropdown groups actions by what they operate on, so you can tell at a glance
 - **Continue with direction…** — same as Continue, but you give it a one-line instruction first. See below.
 - **Write dialogue…** — an exchange at the cursor between the scene's characters, in their voices. See below.
 - **Unstuck — five ways out** — opens a diagnostic modal with five distinct moves the scene could take from here. See below.
-- **Next plot beats** and **Plot twists** — Brainstorm's plot ideas from where your prose ends, read with your book and this scene (its Summary, who and what it links, how the previous scene ends). **Write this** on one drafts the next 2–4 paragraphs in that direction, as Unstuck's does; **Regenerate** asks for ideas you haven't seen yet. They run on **Brainstorm** in Settings → AI.
+- **Next plot beats** and **Plot twists** — Brainstorm's plot ideas from where your prose ends, read with your book and this scene (its Summary, who and what it links, how the previous scene ends). They open on Brainstorm's panel: type a seed prompt to steer them, or leave it empty, and press **Generate**. **Write this** on one drafts the next 2–4 paragraphs in that direction, as Unstuck's does; **More like these** asks for more like the ones you thumbed up. They run on **Brainstorm** in Settings → AI.
 
 ### Research feel — sensory research pack
 

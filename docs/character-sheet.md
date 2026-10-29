@@ -43,9 +43,9 @@ it's your working memory for the character.
 > optional auto-apply that fills only *empty* fields (it never overwrites
 > anything you've written).
 
-**Name ideas** — the ✨ beside the character's name lists names that fit the
-character and your book; click one to use it. See
-[Brainstorm](brainstorm.md#name-ideas-at-the-name-itself).
+**Name ideas** — beside the character's name: Brainstorm for character names,
+with a seed prompt you can fill or leave empty; **Use** on one makes it the name.
+See [Brainstorm](brainstorm.md#name-and-title-ideas-where-you-use-them).
 
 **Save to sheet** — under an answer in a **Talk to {Name}** chat, drafts sheet
 fields from what the character just said, reviewed the same way. See

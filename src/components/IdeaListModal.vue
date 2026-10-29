@@ -4,8 +4,8 @@
 // beats and Plot twists — the AI drafting plan 2026-10-15, Task P2): it runs `run`, shows each
 // idea as a card and hands the picked one back (`pick`) — the page drafts the next paragraphs
 // from it. Progress and Cancel ride the shared AiTaskStrip; the window can't close mid-run;
-// Regenerate asks again. Its users: Unstuck (StuckDiagnosticModal.vue) and the editor's plot
-// ideas (ChaptersPage.vue).
+// Regenerate asks again. Its user: Unstuck (StuckDiagnosticModal.vue); the editor's plot ideas
+// moved to the Brainstorm window (BrainstormModal.vue) on 2026-10-28.
 import { onMounted, ref } from "vue";
 import { AiTaskStrip, AppModal, Icon, UiBanner, UiButton } from "@delebash/ui";
 import AiFeatureChip from "./AiFeatureChip.vue";

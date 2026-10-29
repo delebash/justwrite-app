@@ -410,9 +410,9 @@
       "taskFill": "Fill: {name}",
       "taskIdeas": "Ideas: {name}",
       "fillLede": "A note for each of the template's beats, for your book — from its premise, world and cast. Notes that still give the template's general advice come ticked; ones you've written don't. Edit any, then apply.",
-      "ideasLede": "Ideas for what happens next on this strand, from your book and the strand's beats so far. Tick the ones you want — each becomes a beat card, not yet on a chapter — then add them.",
+      "ideasLede": "Ideas for what happens next on this strand, from your book and the strand's beats so far. Add as beat puts one on the strand as a beat card, not yet on a chapter.",
       "applyNotes": "Apply {n} note | Apply {n} notes",
-      "addBeats": "Add {n} beat | Add {n} beats",
+      "addAsBeat": "Add as beat",
       "empty": "The model didn't suggest anything new. Try again."
     }
   },
@@ -438,6 +438,9 @@
     "copied": "Copied \"{text}\" to clipboard.",
     "copyFailed": "Could not access clipboard.",
     "nameIdeas": "Name ideas",
+    "titleIdeas": "Title ideas",
+    "use": "Use",
+    "seedHintHere": "Leave it empty for ideas that fit this page and your book.",
     "categories": {
       "character_name": {
         "label": "Character names",

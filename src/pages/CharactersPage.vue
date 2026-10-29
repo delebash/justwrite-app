@@ -25,7 +25,7 @@ import GroupsModal from "../components/GroupsModal.vue";
 import CharacterDraftModal from "../components/CharacterDraftModal.vue";
 import CharacterBatchFillModal from "../components/CharacterBatchFillModal.vue";
 import SheetSection from "../components/SheetSection.vue";
-import NameIdeas from "../components/NameIdeas.vue";
+import BrainstormPopup from "../components/BrainstormPopup.vue";
 import DescribeBox from "../components/DescribeBox.vue";
 import DraftMenu from "../components/DraftMenu.vue";
 import { nameIdeasRequest } from "../services/analysis/characterDraft.js";
@@ -430,7 +430,8 @@ function onRowClick(event) {
         @update:title="(v) => updateField('name', v)"
         help-key="character-sheet" :help-label="$t('characters.detail.helpLabel')">
         <template #after-title>
-          <NameIdeas :key="ch.id" :meta="{ kind: 'name-ideas', characterId: ch.id }"
+          <BrainstormPopup :key="ch.id" category="character_name" :label="$t('brainstorm.nameIdeas')"
+            :meta="{ kind: 'name-ideas', characterId: ch.id }"
             :request="(round) => nameIdeasRequest({ project, characterId: ch.id, ...round })"
             @pick="(name) => updateField('name', name)" />
         </template>

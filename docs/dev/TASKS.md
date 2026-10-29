@@ -193,6 +193,28 @@ STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the
            one-liner the same way.
         3. Keep it — the plan's "Draft with AI ▾ → From a description", the same control on all
            four sheet pages; Fill from book joins it if it's built.
+        Seventh round, 2026-10-28 — Brainstorm where it's used. The user: "you did it wrong
+        everything was supposed to have a seed prompt … when you added it to other you dropped seed
+        prompt!!!!!"; "i just wanted the functionality ofr brainstorm to be in the place where it is
+        used instad of having to goto a special menu to generate character name or charter or plot
+        and then have to copy and paste it". The design, as shown: one panel, the same everywhere —
+        Brainstorm's own controls, opened from a labelled button beside the thing it fills: the
+        Seed prompt (as on Brainstorm), Generate, the ideas with 👍 and More like these; nothing runs
+        until Generate; the ideas use the seed, what's on the page and the book; clicking an idea's
+        button puts it in place and closes the panel. Where: character names at a character's name
+        (sets the name); place names at a location's; item / object names at an object's or a
+        group's; titles at the book title (Settings → Project), a chapter's title, a scene's title
+        (sets that title); next plot beats and plot twists on a Plot board strand (adds it as a beat
+        on that strand) and in the editor's AI menu at the cursor (writes the next paragraphs in that
+        direction — Write this). Anything (free prompt) stays on the Brainstorm page. Unchanged: the
+        Brainstorm page, Suggest characters / Suggest locations, Draft with AI. Changes: Name ideas
+        stops generating on open, gets its words instead of a lone ✨, and gets the seed back; titles
+        get the panel; the Plot board's and the editor's plot-beat and plot-twist windows become this
+        same panel. Words: the buttons "Name ideas", "Title ideas"; the action on an idea "Use" (names
+        and titles), "Add as beat" (Plot board), "Write this" (editor); under the seed box at a page
+        "Leave it empty for ideas that fit this page and your book." The user: "seed should be
+        optional"; the Brainstorm page left as it is (my rec: its seed stays required — away from a
+        page it sends neither the page nor the book); "your rec go" (2026-10-28).
 WHY:    the user, 2026-10-11 — AI creation on each story-world page, not only on Brainstorm, and AI
         that writes the story or parts of it. Picks up IDEAS.md "Brainstorm → point-of-use
         generation" (2026-07-26).

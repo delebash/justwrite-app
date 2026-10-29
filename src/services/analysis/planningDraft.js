@@ -16,7 +16,7 @@
 // brainstormPlot.
 
 import { runAiFeature } from "@delebash/ui";
-import { brainstormAction, brainstormPrompt, freshIdeas, parseBrainstormLines } from "../brainstorm.js";
+import { brainstormAction, brainstormPrompt, seedFor } from "../brainstorm.js";
 import { povLabel } from "../povOptions.js";
 import { runJsonAnalysis } from "../runJson.js";
 import { composeSceneContext, storyBudgetFor } from "../storyContext.js";
@@ -154,38 +154,36 @@ export async function fillTemplate({ project, strandId, templates, signal, budge
 /* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 /** Brainstorm's round for a strand: the book, the strand and its beats in order, then Brainstorm's
  *  own request in the category (next_beat / twist). */
-export function composeStrandIdeasInput(project, strand, category, { budgetTokens = null } = {}) {
+export function composeStrandIdeasInput(project, strand, category, { seed: own = "", liked = [], seen = [], budgetTokens = null } = {}) {
   const { action, variables } = brainstormAction(category);
   const beats = (strand.beats || []).map((b) => `- ${b.label}${b.note ? ` — ${b.note}` : ""}`);
   const about = [`Name: ${strand.name || ""}`];
   if (strand.blurb) about.push(`About: ${htmlToText(strand.blurb)}`);
   const book = bookBlock(project, budgetTokens);
   const what = category === "twist" ? "twists" : "next beats";
-  const seed = `${what} for the strand in THE STRAND, after its last beat${book ? ", fitting the book in BOOK CONTEXT" : ""}`;
+  const seed = seedFor(own, `${what} for the strand in THE STRAND, after its last beat${book ? ", fitting the book in BOOK CONTEXT" : ""}`);
   const user_content = join(
     book,
     block("THE STRAND", about.join("\n")),
     block("ITS BEATS SO FAR", beats.join("\n")),
-    brainstormPrompt({ category, seed }),
+    brainstormPrompt({ category, seed, liked, seen }),
   );
   return { action, variables: { ...variables, user_content } };
 }
 /* eslint-enable i18next/no-literal-string */
 
-/** A strand's ideas → review rows (none ticked: the writer picks), never a beat it already has. */
-export async function strandIdeas({ project, strandId, category, signal, budgetTokens } = {}) {
+/** A strand's round for the Brainstorm panel (useBrainstorm): the writer's seed, the strand and the
+ *  book — never a beat the strand already has. */
+export async function strandIdeasRequest({ project, strandId, category, seed = "", liked = [], seen = [], budgetTokens } = {}) {
   const strand = (project.strands || []).find((s) => s.id === strandId);
   if (!strand) throw new Error(`No strand ${strandId}.`);
   const budget = await storyBudgetFor("brainstorm", brainstormAction(category).action, budgetTokens);
-  const { action, variables } = composeStrandIdeasInput(project, strand, category, { budgetTokens: budget });
-  const meta = { kind: `strand-${category}`, strandId };
-  const result = await runAiFeature({
-    action, feature: "brainstorm", variables, signal, meta,
-    task: { label: t("plotBoard.ai.taskIdeas", { name: strand.name }), meta },
-  });
-  const ideas = freshIdeas(parseBrainstormLines(result.content), { exclude: (strand.beats || []).map((b) => b.label) });
-  return ideas.map((idea, i) => ({ key: `idea${i + 1}`, label: "", current: "", proposed: clamp(idea, BEAT_NOTE_MAX), accept: false }));
+  const request = composeStrandIdeasInput(project, strand, category, { seed, liked, seen, budgetTokens: budget });
+  return { ...request, exclude: (strand.beats || []).map((b) => b.label) };
 }
+
+/** A picked idea as the beat it becomes on the strand. */
+export const beatFromIdea = (text) => ({ label: clamp(text, BEAT_NOTE_MAX) });
 
 // ── Next plot beats and Plot twists in the editor's AI menu (P2; answered 2026-10-16) ──────────
 
@@ -193,30 +191,25 @@ export async function strandIdeas({ project, strandId, category, signal, budgetT
 /** The input for ideas at the cursor: the scene's story context (the book, the scene's links and
  *  Summary, how the previous scene ends), the prose up to the cursor, then Brainstorm's request —
  *  never an idea already shown (`seen`). */
-export function composeSceneIdeasInput(project, { chapterId, sceneId, category, proseTail = "", seen = [], budgetTokens = null } = {}) {
+export function composeSceneIdeasInput(project, { chapterId, sceneId, category, proseTail = "", seed: own = "", liked = [], seen = [], budgetTokens = null } = {}) {
   const { action, variables } = brainstormAction(category);
   const story = composeSceneContext(project, { chapterId, sceneId, budgetTokens }).text;
   const what = category === "twist" ? "twists" : "next beats";
-  const seed = `${what} from where THE STORY SO FAR ends${story ? ", fitting STORY CONTEXT" : ""}`;
+  const seed = seedFor(own, `${what} from where THE STORY SO FAR ends${story ? ", fitting STORY CONTEXT" : ""}`);
   const user_content = join(
     block("STORY CONTEXT", story),
     block("THE STORY SO FAR", proseTail),
-    brainstormPrompt({ category, seed, seen }),
+    brainstormPrompt({ category, seed, liked, seen }),
   );
   return { action, variables: { ...variables, user_content } };
 }
 /* eslint-enable i18next/no-literal-string */
 
-/** Ideas for what happens next from the cursor, none already shown. @returns {Promise<string[]>} */
-export async function sceneIdeas({ project, chapterId, sceneId, category, proseTail = "", seen = [], taskName = "", signal, budgetTokens } = {}) {
+/** Ideas at the cursor, a round for the Brainstorm panel (useBrainstorm): the writer's seed, the
+ *  scene's story context and the prose before the cursor. */
+export async function sceneIdeasRequest({ project, chapterId, sceneId, category, proseTail = "", seed = "", liked = [], seen = [], budgetTokens } = {}) {
   const budget = await storyBudgetFor("brainstorm", brainstormAction(category).action, budgetTokens);
-  const { action, variables } = composeSceneIdeasInput(project, { chapterId, sceneId, category, proseTail, seen, budgetTokens: budget });
-  const meta = { kind: `scene-${category}`, sceneId };
-  const result = await runAiFeature({
-    action, feature: "brainstorm", variables, signal, meta,
-    task: { label: t("plotBoard.ai.taskIdeas", { name: taskName }), meta },
-  });
-  return freshIdeas(parseBrainstormLines(result.content), { seen }).map((idea) => clamp(idea, BEAT_NOTE_MAX));
+  return composeSceneIdeasInput(project, { chapterId, sceneId, category, proseTail, seed, liked, seen, budgetTokens: budget });
 }
 
 // ── Draft from the premise (P3): the Fabula or Setting document ───────────────────────────────

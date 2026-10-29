@@ -8,7 +8,8 @@ import { PaneHeader } from "@delebash/ui";
 import { Icon } from "@delebash/ui";
 import { UiButton } from "@delebash/ui";
 import { UiMenu, UiMenuItem, useSurfaceTask } from "@delebash/ui";
-import { PLANNING_FEATURE, fillTemplate, strandIdeas, templateOfStrand } from "../services/analysis/planningDraft.js";
+import { PLANNING_FEATURE, beatFromIdea, fillTemplate, strandIdeasRequest, templateOfStrand } from "../services/analysis/planningDraft.js";
+import BrainstormModal from "../components/BrainstormModal.vue";
 import DraftReviewModal from "../components/DraftReviewModal.vue";
 import { useI18n } from "vue-i18n";
 
@@ -22,32 +23,33 @@ const strands = computed(() => project.strands);
 const chapters = computed(() => project.allChapters);
 
 // ── AI on a strand (slice 3, 2026-10-16) ────────────────────────────────
-// Fill this template for my story (a strand applied from a template), Suggest next beats and Plot
-// twists (Brainstorm's plot categories) — each into the shared review window; Apply is one undo
-// step (applyBeatNotes / addStrandBeats).
+// Fill this template for my story (a strand applied from a template) into the shared review window
+// (Apply is one undo step, applyBeatNotes); Suggest next beats and Plot twists — Brainstorm's plot
+// categories — in the Brainstorm window (2026-10-28: its seed prompt, Generate, and Add as beat puts
+// the picked idea on the strand, addStrandBeats).
 const aiReview = ref(null); // { kind: "fill" | "next_beat" | "twist", strand }
 const fillTask = useSurfaceTask(PLANNING_FEATURE, () => ({ strandId: aiReview.value?.strand.id }));
-const ideasTask = useSurfaceTask("brainstorm", () => ({ strandId: aiReview.value?.strand.id }));
 const reviewProps = computed(() => {
   const r = aiReview.value;
-  if (!r) return null;
+  if (r?.kind !== "fill") return null;
   const strandId = r.strand.id;
-  if (r.kind === "fill") {
-    return {
-      eyebrow: t("plotBoard.ai.fill"), lede: t("plotBoard.ai.fillLede"), feature: PLANNING_FEATURE,
-      chipLabel: t("planning.chipLabel"), applyKey: "plotBoard.ai.applyNotes",
-      run: (signal) => fillTemplate({ project, strandId, templates: PLOT_TEMPLATES, signal }),
-      apply: (picked) => project.applyBeatNotes(strandId, Object.fromEntries(picked.map((p) => [p.key, String(p.proposed || "").trim()]))),
-    };
-  }
   return {
-    eyebrow: r.kind === "twist" ? t("brainstorm.categories.twist.label") : t("plotBoard.ai.nextBeats"),
-    lede: t("plotBoard.ai.ideasLede"), feature: "brainstorm", chipLabel: t("brainstorm.title"),
-    applyKey: "plotBoard.ai.addBeats", emptyText: t("plotBoard.ai.empty"),
-    run: (signal) => strandIdeas({ project, strandId, category: r.kind, signal }),
-    apply: (picked) => project.addStrandBeats(strandId, picked.map((p) => ({ label: String(p.proposed || "").trim() }))),
+    eyebrow: t("plotBoard.ai.fill"), lede: t("plotBoard.ai.fillLede"), feature: PLANNING_FEATURE,
+    chipLabel: t("planning.chipLabel"), applyKey: "plotBoard.ai.applyNotes",
+    run: (signal) => fillTemplate({ project, strandId, templates: PLOT_TEMPLATES, signal }),
+    apply: (picked) => project.applyBeatNotes(strandId, Object.fromEntries(picked.map((p) => [p.key, String(p.proposed || "").trim()]))),
   };
 });
+const ideasOn = computed(() => (aiReview.value && aiReview.value.kind !== "fill" ? aiReview.value : null));
+function ideasRound(round) {
+  const r = ideasOn.value;
+  return strandIdeasRequest({ project, strandId: r.strand.id, category: r.kind, ...round });
+}
+function addIdeaAsBeat(text) {
+  const r = ideasOn.value;
+  aiReview.value = null;
+  project.addStrandBeats(r.strand.id, [beatFromIdea(text)]);
+}
 function isTemplateStrand(strand) { return !!templateOfStrand(strand, PLOT_TEMPLATES); }
 
 // ── Template dropdown ────────────────────────────────────────────────
@@ -642,8 +644,16 @@ function sceneBadge(beat) {
 
     </div>
     <DraftReviewModal v-if="reviewProps" v-bind="reviewProps" :title="aiReview.strand.name"
-      :task="aiReview.kind === 'fill' ? fillTask : ideasTask" :loading-text="$t('sheetDraft.drafting', { name: aiReview.strand.name })"
+      :task="fillTask" :loading-text="$t('sheetDraft.drafting', { name: aiReview.strand.name })"
       @close="aiReview = null" />
+    <BrainstormModal v-if="ideasOn"
+      :eyebrow="ideasOn.kind === 'twist' ? $t('brainstorm.categories.twist.label') : $t('plotBoard.ai.nextBeats')"
+      :title="ideasOn.strand.name" :lede="$t('plotBoard.ai.ideasLede')"
+      :category="ideasOn.kind" :request="ideasRound"
+      :meta="{ kind: `strand-${ideasOn.kind}`, strandId: ideasOn.strand.id }"
+      :task-label="$t('plotBoard.ai.taskIdeas', { name: ideasOn.strand.name })"
+      :pick-label="$t('plotBoard.ai.addAsBeat')"
+      @pick="addIdeaAsBeat" @close="aiReview = null" />
   </q-page>
 </template>
 

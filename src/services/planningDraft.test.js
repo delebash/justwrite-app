@@ -11,9 +11,9 @@ const runAiFeature = vi.fn();
 vi.mock("@delebash/ui", () => ({ runAiFeature: (...a) => runAiFeature(...a) }));
 
 const {
-  cleanSummary, composePremiseDraftInput, composeSceneIdeasInput, composeSceneSummaryInput, composeStrandIdeasInput,
-  composeTemplateFillInput, draftFromPremise, fillTemplate, sceneIdeas, strandIdeas, summarizeScene, templateBeats,
-  templateOfStrand,
+  beatFromIdea, cleanSummary, composePremiseDraftInput, composeSceneIdeasInput, composeSceneSummaryInput,
+  composeStrandIdeasInput, composeTemplateFillInput, draftFromPremise, fillTemplate, sceneIdeasRequest, strandIdeasRequest,
+  summarizeScene, templateBeats, templateOfStrand,
 } = await import("./analysis/planningDraft.js");
 
 // The templates as the plot board has them, words by key (tr is the identity on the key's last part).
@@ -115,10 +115,13 @@ describe("a strand's next beats and twists", () => {
     expect(r.variables.user_content).toContain("Seed: twists for the strand in THE STRAND, after its last beat");
   });
 
-  it("rows: one per fresh idea, unticked, never a beat the strand has", async () => {
-    runAiFeature.mockResolvedValueOnce({ content: "1. The archive floods\n2. A beat of my own\n3. Tomas lies about the key", model: "m" });
-    const rows = await strandIdeas({ project: project(), strandId: "st1", category: "next_beat", budgetTokens: null });
-    expect(rows.map((r) => [r.proposed, r.accept, r.label])).toEqual([["The archive floods", false, ""], ["Tomas lies about the key", false, ""]]);
+  it("a round for the Brainstorm panel (2026-10-28): the writer's seed leads; never a beat the strand has", async () => {
+    const r = await strandIdeasRequest({ project: project(), strandId: "st1", category: "next_beat", seed: "the rival strikes first", budgetTokens: null });
+    expect(r.action).toBe("brainstormPlot");
+    expect(r.variables.user_content).toContain("Seed: the rival strikes first — next beats for the strand in THE STRAND, after its last beat");
+    expect(r.exclude).toEqual(project().strands[0].beats.map((b) => b.label));
+    expect(runAiFeature).not.toHaveBeenCalled();
+    expect(beatFromIdea("  The archive floods ")).toEqual({ label: "The archive floods" });
   });
 });
 
@@ -163,12 +166,16 @@ describe("next beats and twists at the cursor", () => {
     expect(c).toContain("Avoid repeating any of these already-seen suggestions:\n- Old idea");
   });
 
-  it("returns the fresh ideas, under Brainstorm, never one already shown", async () => {
-    runAiFeature.mockResolvedValueOnce({ content: "1. The archive floods\n2. Old idea\n- Tomas lies about the key", model: "m" });
-    const ideas = await sceneIdeas({ project: project(), chapterId: "ch1", sceneId: "s1", category: "twist", proseTail: "x", seen: ["Old idea"], budgetTokens: null });
-    expect(ideas).toEqual(["The archive floods", "Tomas lies about the key"]);
-    const opts = runAiFeature.mock.calls.at(-1)[0];
-    expect([opts.action, opts.feature, opts.meta.kind]).toEqual(["brainstormPlot", "brainstorm", "scene-twist"]);
+  it("a round for the Brainstorm panel (2026-10-28): the writer's seed leads, then the liked and the shown", async () => {
+    const r = await sceneIdeasRequest({
+      project: project(), chapterId: "ch1", sceneId: "s1", category: "twist", proseTail: "x",
+      seed: "she lies", liked: ["The archive floods"], seen: ["Old idea"], budgetTokens: null,
+    });
+    const c = r.variables.user_content;
+    expect(r.action).toBe("brainstormPlot");
+    expect(c).toContain("Seed: she lies — twists from where THE STORY SO FAR ends");
+    expect(c).toContain("The user liked these suggestions from a previous round");
+    expect(c).toContain("Avoid repeating any of these already-seen suggestions:\n- Old idea");
   });
 });
 

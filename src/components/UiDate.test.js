@@ -6,6 +6,7 @@
 // Mounted as the kit-component tests next door are (providerScope.test.js): Quasar installed as
 // in the real app, JustWrite's real vue-i18n instance.
 import { afterEach, describe, expect, it } from "vitest";
+import { DOMWrapper } from "@vue/test-utils";
 import { h, nextTick, ref } from "vue";
 
 import UiDate from "@delebash/ui/common/components/UiDate.vue";
@@ -69,19 +70,19 @@ describe("UiDate", () => {
   it("picks a day as an ISO date, and Clear empties it", async () => {
     const value = mount("2027-03-01");
     await settle();
-    host.querySelector(".ui-date").click();
+    await new DOMWrapper(host.querySelector(".ui-date")).trigger("click");
     await settle();
     const day15 = [...document.querySelectorAll(".q-date__calendar-item button")].find((b) => b.textContent.trim() === "15");
     expect(day15).toBeTruthy();
-    day15.click();
+    await new DOMWrapper(day15).trigger("click");
     await settle();
     expect(value.value).toBe("2027-03-15");
 
-    host.querySelector(".ui-date").click();
+    await new DOMWrapper(host.querySelector(".ui-date")).trigger("click");
     await settle();
     const clear = [...document.querySelectorAll(".ui-date__actions button")][0];
     expect(clear?.textContent.trim()).toBe("Clear");
-    clear.click();
+    await new DOMWrapper(clear).trigger("click");
     await settle();
     expect(value.value).toBe("");
   });

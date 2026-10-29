@@ -57,6 +57,7 @@
     "@sqlite.org/sqlite-wasm": "^3.53.4-build2",
     "@tiptap/vue-3": "^3.31.4",
     "@vitejs/plugin-vue": "^6.0.9",
+    "@vue/test-utils": "^2.5.1",
     "@vueuse/core": "^15.0.0",
     "autoprefixer": "^10.6.1",
     "depcheck": "^1.4.7",

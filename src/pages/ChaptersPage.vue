@@ -17,13 +17,15 @@ import CritiqueModal from "../components/CritiqueModal.vue";
 import MultiReaderPanelModal from "../components/MultiReaderPanelModal.vue";
 import SceneNotesPanel from "../components/SceneNotesPanel.vue";
 import StuckDiagnosticModal from "../components/StuckDiagnosticModal.vue";
-import IdeaListModal from "../components/IdeaListModal.vue";
-import { sceneIdeas } from "../services/analysis/planningDraft.js";
+import BrainstormModal from "../components/BrainstormModal.vue";
+import BrainstormPopup from "../components/BrainstormPopup.vue";
+import { sceneIdeasRequest } from "../services/analysis/planningDraft.js";
+import { titleIdeasRequest } from "../services/analysis/titleIdeas.js";
 import SensoryResearchModal from "../components/SensoryResearchModal.vue";
 import EntitySweepModal from "../components/EntitySweepModal.vue";
 import { EmptyState } from "@delebash/ui";
 import StatusSelect from "../components/StatusSelect.vue";
-import { promptDialog, confirmDialog, useAiTasksStore, useSurfaceTask } from "@delebash/ui";
+import { promptDialog, confirmDialog, useAiTasksStore } from "@delebash/ui";
 import { stitchChapter, splitChapter } from "../services/chapterStitch.js";
 import { vSceneImages, withSceneImages } from "../services/imageStore.js";
 import { EDITOR_TOOLBAR_FULL } from "../services/editorToolbars.js";
@@ -551,10 +553,10 @@ function onStuckUseMove(move) {
 }
 
 // ── Next plot beats / Plot twists (the AI drafting plan Task P2; answered 2026-10-16) ──
-// Brainstorm's plot ideas from the cursor, in the shared ideas window; "Write this" does what
-// Unstuck's does — the next 2-4 paragraphs in that direction, as the accept/reject diff.
-const ideas = ref(null); // { category, sceneId, proseTail, seen } while the window is open
-const ideasTask = useSurfaceTask("brainstorm", () => ({ kind: `scene-${ideas.value?.category}` }));
+// Brainstorm's plot ideas from the cursor, in the Brainstorm window (2026-10-28: its seed prompt,
+// Generate — nothing runs on open); "Write this" does what Unstuck's does — the next 2-4
+// paragraphs in that direction, as the accept/reject diff.
+const ideas = ref(null); // { category, sceneId, proseTail } while the window is open
 function openIdeas(category) {
   if (!editorRef.value) {
     ui.showToast({ message: t("chapters.ai.openChapterFirst") });
@@ -566,20 +568,15 @@ function openIdeas(category) {
     return;
   }
   const sceneId = editorRef.value.sceneIdAtCursor?.() || activeScene.value?.id || null;
-  ideas.value = { category, sceneId, proseTail, seen: [] };
+  ideas.value = { category, sceneId, proseTail };
 }
-async function runIdeas(signal) {
+function ideasRound(round) {
   const s = ideas.value;
-  const found = await sceneIdeas({
-    project, chapterId: ch.value?.id, sceneId: s.sceneId, category: s.category, proseTail: s.proseTail,
-    seen: s.seen, taskName: ch.value?.title || t("sidebar.projectSwitcher.untitled"), signal,
-  });
-  s.seen.push(...found);
-  return found.map((text) => ({ id: text, text }));
+  return sceneIdeasRequest({ project, chapterId: ch.value?.id, sceneId: s.sceneId, category: s.category, proseTail: s.proseTail, ...round });
 }
-function onIdeaPick(item) {
+function onIdeaPick(text) {
   ideas.value = null;
-  editorRef.value?.runGuidedContinue?.(item.text);
+  editorRef.value?.runGuidedContinue?.(text);
 }
 
 // ── Sensory research ────────────────────────────────────────────
@@ -898,6 +895,14 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
       :eyebrow="mode === 'outline' ? $t('sidebar.sections.manuscript') : ch.partTitle"
       :editable="mode === 'edit'" :title="headerTitle" :placeholder="headerPlaceholder"
       @update:title="onHeaderTitle">
+      <!-- Title ideas (2026-10-28): Brainstorm's Titles at the title the header edits — the open
+           scene's, else the chapter's -->
+      <template v-if="mode === 'edit'" #after-title>
+        <BrainstormPopup :key="activeScene?.id || ch.id" category="title" :label="$t('brainstorm.titleIdeas')"
+          :meta="{ kind: 'title-ideas', chapterId: ch.id, sceneId: activeScene?.id || '' }"
+          :request="(round) => titleIdeasRequest({ project, target: activeScene ? 'scene' : 'chapter', chapterId: ch.id, sceneId: activeScene?.id, ...round })"
+          @pick="onHeaderTitle" />
+      </template>
       <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"
         v-tooltip.bottom="$t('chapters.header.askTheBookTooltip', { num: ch.num })">
         <Icon name="Chat" :size="14" /> {{ $t('sidebar.nav.askTheBook') }}
@@ -1530,12 +1535,14 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
       @close="closeStuck"
       @use-move="onStuckUseMove" />
 
-    <IdeaListModal v-if="ideas"
+    <BrainstormModal v-if="ideas"
       :eyebrow="$t(`brainstorm.categories.${ideas.category}.label`)"
       :title="ch?.title || $t('sidebar.projectSwitcher.untitled')"
       :lede="$t(ideas.category === 'twist' ? 'chapters.ai.twistsDesc' : 'chapters.ai.nextBeatsDesc')"
-      feature="brainstorm" :chip-label="$t('brainstorm.title')" :task="ideasTask"
-      auto-run :pick-label="$t('stuck.writeThis')" :empty-text="$t('plotBoard.ai.empty')" :run="runIdeas"
+      :category="ideas.category" :request="ideasRound"
+      :meta="{ kind: `scene-${ideas.category}`, sceneId: ideas.sceneId }"
+      :task-label="$t('plotBoard.ai.taskIdeas', { name: ch?.title || $t('sidebar.projectSwitcher.untitled') })"
+      :pick-label="$t('stuck.writeThis')"
       @pick="onIdeaPick" @close="ideas = null" />
 
     <SensoryResearchModal v-if="sensoryOpen"
@@ -1566,6 +1573,9 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 }
 .pane-header.chapter-pane-header :deep(.pane-actions) { grid-column: 2; }
+/* The title's column is a third of the row (the centred switch); with Title ideas beside it, the
+   button moves under the title when both don't fit, rather than cutting the title short. */
+.pane-header.chapter-pane-header :deep(.pane-title-row) { flex-wrap: wrap; }
 /* At phone width (Quasar's xs) one column, like every other page header: the breadcrumb and
    title on their row, the Edit/Outline/Read switch on the row below. */
 @media (max-width: 599.98px) {

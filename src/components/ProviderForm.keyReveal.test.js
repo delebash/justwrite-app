@@ -17,6 +17,7 @@
 // (the LuFeatureChip.save.test.js precedent next door). Mounted with plain createApp;
 // fetch is stubbed and every PATCH body captured.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DOMWrapper } from "@vue/test-utils";
 import { h, nextTick } from "vue";
 
 import ProviderForm from "@delebash/ui/views/ProviderForm.vue";
@@ -121,7 +122,7 @@ describe("ProviderForm — the saved key reveals into a masked, editable field (
     inp.value = "";
     inp.dispatchEvent(new Event("input")); // user erases the revealed key
     await flush();
-    saveBtn().click();
+    await new DOMWrapper(saveBtn()).trigger("click");
     await flush(24);
     expect(patches.length).toBe(1);
     expect(patches[0].apiKey).toBeNull(); // empty AFTER a successful reveal = deliberate clear
@@ -132,7 +133,7 @@ describe("ProviderForm — the saved key reveals into a masked, editable field (
     await mountForm();
     expect(keyInput().value).toBe(""); // nothing revealed
     expect(keptHint(), "the write-only fallback hint returns when reveal failed").toBeTruthy();
-    saveBtn().click();
+    await new DOMWrapper(saveBtn()).trigger("click");
     await flush(24);
     expect(patches.length).toBe(1);
     expect(patches[0].apiKey).toBe(""); // never wipe a key the user never saw

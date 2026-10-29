@@ -14,9 +14,10 @@
 // error. Nothing but rendering the thing catches it. The same goes for the facet
 // filtering — it is plain logic, but it is logic seven views now depend on.
 //
-// Mounted with plain `createApp`, matching modalDragAndScrim.test.js next door
-// (no @vue/test-utils dependency).
+// Mounted with plain `createApp`, matching modalDragAndScrim.test.js next door; clicks go
+// through @vue/test-utils' trigger (the family rule, app-structure §18).
 import { afterEach, describe, expect, it } from "vitest";
+import { DOMWrapper } from "@vue/test-utils";
 import { h, nextTick } from "vue";
 
 import EntityIndex from "./EntityIndex.vue";
@@ -95,11 +96,11 @@ describe("EntityIndex", () => {
     await nextTick();
     expect(bodyRows(el)).toHaveLength(3);
 
-    chipNamed(el, "building").click();
+    await new DOMWrapper(chipNamed(el, "building")).trigger("click");
     await nextTick();
     expect(bodyRows(el)).toHaveLength(2);
 
-    chipNamed(el, "building").click(); // clicking the active chip clears it
+    await new DOMWrapper(chipNamed(el, "building")).trigger("click"); // clicking the active chip clears it
     await nextTick();
     expect(bodyRows(el)).toHaveLength(3);
   });
@@ -108,15 +109,15 @@ describe("EntityIndex", () => {
     const el = mount({ rows: ROWS, columns: COLUMNS, facets: FACETS, emptyText: "none" });
     await nextTick();
 
-    chipNamed(el, "warm").click();
+    await new DOMWrapper(chipNamed(el, "warm")).trigger("click");
     await nextTick();
     expect(bodyRows(el)).toHaveLength(1); // only The Tavern is warm
 
-    chipNamed(el, "wet").click();
+    await new DOMWrapper(chipNamed(el, "wet")).trigger("click");
     await nextTick();
     expect(bodyRows(el)).toHaveLength(2); // warm OR wet
 
-    chipNamed(el, "building").click();
+    await new DOMWrapper(chipNamed(el, "building")).trigger("click");
     await nextTick();
     expect(bodyRows(el)).toHaveLength(1); // AND kind=building → The Tavern
   });
@@ -133,7 +134,7 @@ describe("EntityIndex", () => {
     }];
     const el = mount({ rows, columns: COLUMNS, facets, emptyText: "none" });
     await nextTick();
-    chipNamed(el, "No").click();
+    await new DOMWrapper(chipNamed(el, "No")).trigger("click");
     await nextTick();
     expect(bodyRows(el)).toHaveLength(1);
   });
@@ -145,11 +146,11 @@ describe("EntityIndex", () => {
     const findClear = () => [...el.querySelectorAll("button")].find((b) => b.textContent.trim() === clearLabel);
     expect(findClear()).toBeUndefined();
 
-    chipNamed(el, "city").click();
+    await new DOMWrapper(chipNamed(el, "city")).trigger("click");
     await nextTick();
     expect(findClear()).toBeTruthy();
 
-    findClear().click();
+    await new DOMWrapper(findClear()).trigger("click");
     await nextTick();
     expect(bodyRows(el)).toHaveLength(3);
     expect(findClear()).toBeUndefined();
@@ -159,7 +160,7 @@ describe("EntityIndex", () => {
     const el = mount({ rows: ROWS, columns: COLUMNS, facets: FACETS, emptyText: "none" });
     await nextTick();
     expect(el.querySelector(".entity-count").textContent.trim()).toBe("3 of 3");
-    chipNamed(el, "city").click();
+    await new DOMWrapper(chipNamed(el, "city")).trigger("click");
     await nextTick();
     expect(el.querySelector(".entity-count").textContent.trim()).toBe("1 of 3");
   });

@@ -6,6 +6,15 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-28
 
+**Brainstorm where you use it.** **Name ideas** (beside a character's, location's, object's or
+group's name), the new **Title ideas** (beside the book's title in **Settings → Project**, and the
+title in the editor's header — a scene's or a chapter's), and the plot ideas in the editor's AI menu
+and a Plot board strand's ✨ menu now open on Brainstorm's own panel: a **Seed prompt** you can fill
+or leave empty, **Generate**, thumbs-up and **More like these**. Nothing runs until you press
+Generate, and **Use** — **Add as beat** on a strand, **Write this** in the editor — puts an idea in
+place, with no copying from the Brainstorm page. See
+[Brainstorm](brainstorm.md#name-and-title-ideas-where-you-use-them).
+
 **The sidebar shows the version you're running.** Under the JustWrite name it said "v0.1 · local"
 in every version; it now shows the real one, as **Settings → About** does.
 
@@ -296,7 +305,7 @@ character's sheet from what they just said. You review every field before anythi
 **Name ideas.** The ✨ beside a character's name lists names that fit the character and your
 book, and never one your cast already uses. Thumbs-up the ones you like and click **More like
 these**, as on Brainstorm; click a name to use it. See
-[Brainstorm](brainstorm.md#name-ideas-at-the-name-itself). Brainstorm's categories are now
+[Brainstorm](brainstorm.md#name-and-title-ideas-where-you-use-them). Brainstorm's categories are now
 translated too.
 
 **Draft a character with AI.** On a character's page, describe them in the

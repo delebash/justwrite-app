@@ -13,8 +13,9 @@
 // follow-state regression (think on + empty level must load as "Model default", never
 // collapse to Off — the collapse wrote think=false back on the next save).
 //
-// Mounted with plain `createApp` (no @vue/test-utils dep); fetch is stubbed.
+// Mounted with plain `createApp` (clicks through @vue/test-utils' trigger); fetch is stubbed.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DOMWrapper } from "@vue/test-utils";
 import { h, nextTick } from "vue";
 
 import LuFeatureChip from "@delebash/ui/components/LuFeatureChip.vue";
@@ -108,7 +109,7 @@ async function openPopover(route = LOCAL_ROUTE) {
   app.use(i18n);
   app.mount(host);
   await flush();
-  document.querySelector(".afc-chip").click();
+  await new DOMWrapper(document.querySelector(".afc-chip")).trigger("click");
   await flush();
 }
 
@@ -120,7 +121,7 @@ async function pickAndSave(value) {
   await flush();
   const save = [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Save");
   expect(save, "the popover should render a Save button").toBeTruthy();
-  save.click();
+  await new DOMWrapper(save).trigger("click");
   await flush(30);
 }
 

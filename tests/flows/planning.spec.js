@@ -1,7 +1,7 @@
 // Slice 3's planning with AI (the AI drafting plan 2026-10-15, Tasks P1–P3): a scene's Summary from
 // its prose (the Links panel; the chapter's Cards show it), a strand's ✨ menu on the Plot board
-// (Fill this template for my story; Suggest next beats → beat cards), Architecture's Draft from the
-// premise (a diff in the Fabula; not offered on the Premise itself).
+// (Fill this template for my story; Suggest next beats in the Brainstorm window → Add as beat),
+// Architecture's Draft from the premise (a diff in the Fabula; not offered on the Premise itself).
 import { stubAi } from "../lib/smoke-common.js";
 import { expect, expectNoSidewaysScroll, navigate, openSceneWithProse, test } from "./fixtures.js";
 
@@ -30,8 +30,8 @@ test("Summarize this scene fills the Summary, and the Cards show it", async ({ p
   await page.getByRole("button", { name: /List view/ }).first().click();
 });
 
-test("A strand's ✨ menu: Fill this template, then Suggest next beats → beat cards", async ({ page }) => {
-  await stubAi(page, (b) => REPLIES[b.action] ?? "{}");
+test("A strand's ✨ menu: Fill this template, then Suggest next beats → Add as beat", async ({ page }) => {
+  const asked = await stubAi(page, (b) => REPLIES[b.action] ?? "{}");
   await page.goto("/#/plot");
   await page.getByRole("button", { name: /Apply template/ }).first().click();
   await page.locator(".tmpl-item").first().click();
@@ -47,14 +47,15 @@ test("A strand's ✨ menu: Fill this template, then Suggest next beats → beat 
   const before = await page.locator(".beat-card").count();
   await strand.locator(".strand-ai-btn").click();
   await page.getByText("Suggest next beats", { exact: true }).click();
-  const ideas = page.locator(".cpf-row");
+  // the Brainstorm window (2026-10-28): nothing runs on open; Generate with the seed left empty
+  expect(asked.filter((b) => b.action === "brainstormPlot")).toHaveLength(0);
+  await page.locator(".q-dialog").getByRole("button", { name: "Generate" }).click();
+  const ideas = page.locator(".bsr-item");
   await expect(ideas).toHaveCount(3);
-  await expect(page.locator(".cpf-row:not(.dropped)")).toHaveCount(0);
-  await ideas.nth(0).locator(".cpf-check").click();
-  await ideas.nth(2).locator(".cpf-check").click();
-  await page.getByRole("button", { name: /Add 2 beats/ }).click();
-  await expect(page.locator(".beat-card")).toHaveCount(before + 2);
-  await expect(page.getByText("The guild calls in Cael's debt").first()).toBeVisible();
+  expect(asked.find((b) => b.action === "brainstormPlot").variables.user_content).toContain("Seed: next beats for the strand in THE STRAND");
+  await ideas.nth(2).getByRole("button", { name: "Add as beat" }).click();
+  await expect(page.locator(".q-dialog")).toHaveCount(0);
+  await expect(page.locator(".beat-card")).toHaveCount(before + 1);
   await expect(page.getByText("A rival party bids for the commission").first()).toBeVisible();
   await expectNoSidewaysScroll(page);
 });

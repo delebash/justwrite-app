@@ -1,5 +1,5 @@
 // Brainstorm's categories and its one way of asking (2026-10-11, the AI drafting plan Task 10) —
-// read by the Brainstorm page and by Name ideas at a name box (components/NameIdeas.vue), so both
+// read by the Brainstorm page and by the Brainstorm panel where each is used (components/BrainstormPanel.vue), so both
 // ask the model alike. Moved out of BrainstormPage.vue, where the categories were hardcoded in
 // English outside i18n.
 //
@@ -47,6 +47,14 @@ export function brainstormPrompt({ category, seed, liked = [], seen = [] }) {
   }
   msg += "\n\nOutput 15–20 fresh suggestions, one per line.";
   return msg;
+}
+
+/** The Seed line of a round at a page (Brainstorm where it's used, 2026-10-28): the writer's own
+ *  words first, then what the ideas are for — the page's blocks above the request name it. The
+ *  seed is optional there: without words, the page and the book alone steer. */
+export function seedFor(own, what) {
+  const words = String(own || "").trim();
+  return words ? `${words} — ${what}` : what;
 }
 
 /** The reply → one idea per line, list markers ("1.", "2)", "-", "*", "•") stripped. */

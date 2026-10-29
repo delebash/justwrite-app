@@ -3,13 +3,15 @@ import { copyToClipboard } from "quasar";
 // The Brainstorm page — names, titles, plot moves, anything: a list at a time, steered by
 // thumbs-up and More like these. The categories and the prompt (services/brainstorm.js), the
 // rounds (composables/useBrainstorm.js) and the list (components/BrainstormResults.vue) are
-// shared with Name ideas at a name box (2026-10-11, the AI drafting plan Task 10).
+// shared with the Brainstorm panel where each is used (2026-10-11, the AI drafting plan Task 10;
+// 2026-10-28, its seed field too — components/BrainstormSeed.vue, the seed required here).
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { AiTaskStrip, Icon, PaneHeader, pageFill, UiBanner, UiButton, UiSelect, UiTextarea } from "@delebash/ui";
+import { AiTaskStrip, Icon, PaneHeader, pageFill, UiBanner, UiButton, UiSelect } from "@delebash/ui";
 import { useUiStore } from "../stores/ui.js";
 import AiFeatureChip from "../components/AiFeatureChip.vue";
 import BrainstormResults from "../components/BrainstormResults.vue";
+import BrainstormSeed from "../components/BrainstormSeed.vue";
 import { useBrainstorm } from "../composables/useBrainstorm.js";
 import { BRAINSTORM_CATEGORIES, brainstormAction, brainstormPrompt } from "../services/brainstorm.js";
 
@@ -65,19 +67,7 @@ async function copy(text) {
           <p class="brainstorm-cat-purpose">{{ $t(`brainstorm.categories.${category}.purpose`) }}</p>
         </div>
 
-        <div class="brainstorm-field">
-          <label class="brainstorm-label">{{ $t("brainstorm.seedLabel") }}</label>
-          <UiTextarea
-            width="prose"
-            v-model="seed"
-            :rows="4"
-            :placeholder="$t(`brainstorm.categories.${category}.placeholder`)"
-            :disabled="running"
-          />
-          <p class="brainstorm-seed-hint">
-            {{ $t("brainstorm.seedHint") }}
-          </p>
-        </div>
+        <BrainstormSeed v-model="seed" :category="category" :rows="4" :disabled="running" :hint="$t('brainstorm.seedHint')" />
 
         <AiTaskStrip :task="myTask" />
 
@@ -168,12 +158,6 @@ async function copy(text) {
   line-height: 1.5;
 }
 
-.brainstorm-seed-hint {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.5;
-}
 
 .brainstorm-actions {
   display: flex;

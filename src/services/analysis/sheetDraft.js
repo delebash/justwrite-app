@@ -16,7 +16,7 @@
 // runs Brainstorm's own actions, as a character's does.
 
 import { runAiFeature } from "@delebash/ui";
-import { brainstormAction, brainstormPrompt } from "../brainstorm.js";
+import { brainstormAction, brainstormPrompt, seedFor } from "../brainstorm.js";
 import { runJsonAnalysis } from "../runJson.js";
 import { storyBudgetFor } from "../storyContext.js";
 import {
@@ -35,7 +35,7 @@ const SHEET_ACTIONS = { location: "locationDraft", object: "objectDraft", group:
 // is proposed either way). Answered 2026-10-16 (TASKS, the sixth round).
 export const DESCRIPTION_FIELD = "description";
 // Name ideas' Brainstorm category by page kind (spec §3.3); groups have none of their own.
-const NAME_CATEGORY = { location: "place_name", object: "item_name", group: "free" };
+export const NAME_CATEGORY = { location: "place_name", object: "item_name", group: "free" };
 
 const ENTRY_HEADING = { location: "THE LOCATION", object: "THE OBJECT", group: "THE GROUP" };
 const TAKEN_HEADING = {
@@ -157,12 +157,12 @@ export function applySheetDrafts(project, kind, entityId, picks) {
 /* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 /** Name ideas' round for a location, object or group: the book, the entry and the names its kind
  *  already uses, then Brainstorm's own request in the page kind's category. */
-export function composeSheetNameIdeasInput(project, kind, entityId, { liked = [], seen = [], budgetTokens = null } = {}) {
+export function composeSheetNameIdeasInput(project, kind, entityId, { seed: own = "", liked = [], seen = [], budgetTokens = null } = {}) {
   const category = NAME_CATEGORY[kind];
   const { action, variables } = brainstormAction(category);
   const book = bookBlock(project, budgetTokens);
   const what = `names for the ${kind} in ${ENTRY_HEADING[kind]}`;
-  const seed = book ? `${what}, fitting the book in BOOK CONTEXT` : what;
+  const seed = seedFor(own, book ? `${what}, fitting the book in BOOK CONTEXT` : what);
   const user_content = join(
     book,
     entryBlock(kind, entryOf(project, kind, entityId)),
@@ -175,10 +175,10 @@ export function composeSheetNameIdeasInput(project, kind, entityId, { liked = []
 
 /** Name ideas' request for useBrainstorm: the composed round, with the names the kind already
  *  uses never shown as ideas. */
-export async function sheetNameIdeasRequest({ project, kind, entityId, liked = [], seen = [], budgetTokens } = {}) {
+export async function sheetNameIdeasRequest({ project, kind, entityId, seed = "", liked = [], seen = [], budgetTokens } = {}) {
   const { action } = brainstormAction(NAME_CATEGORY[kind]);
   const budget = await storyBudgetFor("brainstorm", action, budgetTokens);
-  const request = composeSheetNameIdeasInput(project, kind, entityId, { liked, seen, budgetTokens: budget });
+  const request = composeSheetNameIdeasInput(project, kind, entityId, { seed, liked, seen, budgetTokens: budget });
   return { ...request, exclude: listOf(project, kind).map((x) => x.name).filter(Boolean) };
 }
 

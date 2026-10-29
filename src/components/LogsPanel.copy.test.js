@@ -16,6 +16,7 @@
 // get tested (the ProviderForm.keyReveal.test.js precedent). Mounted with plain
 // createApp; fetch and the clipboard are stubbed.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DOMWrapper } from "@vue/test-utils";
 import { nextTick } from "vue";
 
 import LogsPanel from "@delebash/ui/components/LogsPanel.vue";
@@ -77,16 +78,16 @@ async function mountPanel() {
   return host;
 }
 
-function clickCopy() {
+async function clickCopy() {
   const btn = [...host.querySelectorAll("button")].find((b) => b.textContent.trim() === "Copy");
   if (!btn) throw new Error("Copy button not found");
-  btn.click();
+  await new DOMWrapper(btn).trigger("click");
 }
 
 describe("LogsPanel Copy", () => {
   it("copies the RAW server lines — ISO stamps, milliseconds intact", async () => {
     await mountPanel();
-    clickCopy();
+    await clickCopy();
     await nextTick();
     expect(copied).toBe(SERVER_BLOB);
     expect(copied).toContain("2026-07-19T00:06:22.169");

@@ -15,7 +15,7 @@
 // (services/brainstorm.js).
 
 import { fieldKey, fieldLabelKeys, SHEET_SECTIONS } from "../characterSheet.js";
-import { brainstormAction, brainstormPrompt } from "../brainstorm.js";
+import { brainstormAction, brainstormPrompt, seedFor } from "../brainstorm.js";
 import { runJsonAnalysis } from "../runJson.js";
 import { storyBudgetFor } from "../storyContext.js";
 import { buildProfileText } from "./characterAudit.js";
@@ -80,12 +80,12 @@ export function composeSuggestInput(project, { lookingFor = "", budgetTokens = n
  *  request (category Character names), its seed pointing at the blocks above it. `liked` / `seen`
  *  as on the Brainstorm page. */
 /* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
-export function composeNameIdeasInput(project, characterId, { liked = [], seen = [], budgetTokens = null } = {}) {
+export function composeNameIdeasInput(project, characterId, { seed: own = "", liked = [], seen = [], budgetTokens = null } = {}) {
   const { action, variables } = brainstormAction("character_name");
   const book = bookBlock(project, budgetTokens);
-  const seed = book
+  const seed = seedFor(own, book
     ? "names for the character in CHARACTER PROFILE, fitting the book in BOOK CONTEXT"
-    : "names for the character in CHARACTER PROFILE";
+    : "names for the character in CHARACTER PROFILE");
   const user_content = join(
     book,
     profileBlock(project, characterId),
@@ -195,8 +195,8 @@ export async function suggestCharacters({ project, lookingFor = "", signal, budg
 
 /** Name ideas' request for useBrainstorm: the composed round, with the cast's names (and aliases)
  *  never shown as ideas. */
-export async function nameIdeasRequest({ project, characterId, liked = [], seen = [], budgetTokens } = {}) {
+export async function nameIdeasRequest({ project, characterId, seed = "", liked = [], seen = [], budgetTokens } = {}) {
   const budget = await storyBudgetFor("brainstorm", "brainstorm", budgetTokens);
-  const request = composeNameIdeasInput(project, characterId, { liked, seen, budgetTokens: budget });
+  const request = composeNameIdeasInput(project, characterId, { seed, liked, seen, budgetTokens: budget });
   return { ...request, exclude: castNames(project.characters) };
 }

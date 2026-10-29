@@ -9,6 +9,7 @@
 // Mounted with plain createApp and a stubbed fetch, matching the kit-component-tested-
 // from-JW precedent next door (ProviderForm.keyReveal.test.js).
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DOMWrapper } from "@vue/test-utils";
 import { h, nextTick } from "vue";
 
 import AiModelsArea from "@delebash/ui/views/AiModelsArea.vue";
@@ -117,7 +118,7 @@ describe("provider scope tabs (2026-07-19)", () => {
     expect(qsBandVisible(), "Quick-Setup band is visible on the local tab").toBe(true);
     // click through to the online tab — the same mount, so this proves the switch,
     // not just the initial prop.
-    scopeButtons().find((b) => b.textContent.includes("Online")).click();
+    await new DOMWrapper(scopeButtons().find((b) => b.textContent.includes("Online"))).trigger("click");
     await flush();
     expect(qsBandVisible(), "Quick-Setup band is hidden on the online tab").toBe(false);
     expect(rowNames()).toEqual(["Claude"]);
@@ -177,8 +178,8 @@ describe("built-in provider is a normal row in the Local list", () => {
   // therefore expand the SAME card-chromed, cancellable form every other row gets.
   it("Edit expands a normal ProviderForm — card chrome, with a Cancel", async () => {
     await mountArea();
-    [...rowFor("Built-in provider — llama.cpp").querySelectorAll("button")]
-      .find((b) => b.textContent.trim() === "Edit").click();
+    await new DOMWrapper([...rowFor("Built-in provider — llama.cpp").querySelectorAll("button")]
+      .find((b) => b.textContent.trim() === "Edit")).trigger("click");
     await flush();
     const form = document.querySelector(".lu-pform");
     expect(form, "the form expanded in place").toBeTruthy();

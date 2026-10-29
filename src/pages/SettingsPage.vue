@@ -29,6 +29,8 @@ import { LANGUAGE_CODES } from "@delebash/core/platform/languages";
 import { UiButton } from "@delebash/ui";
 import { UiToggle } from "@delebash/ui";
 import { bookAiWrittenWords } from "../services/aiText.js";
+import { titleIdeasRequest } from "../services/analysis/titleIdeas.js";
+import BrainstormPopup from "../components/BrainstormPopup.vue";
 import { UiColorPicker } from "@delebash/ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 import {
@@ -680,8 +682,14 @@ async function deleteCategory(c) {
             </p>
             <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
               <span class="t-muted">{{ $t('settings.project.fieldTitle') }}</span>
-              <UiInput width="prose" :model-value="project.project.title"
-                @update:model-value="(v) => setMeta('title', v)" :placeholder="$t('settings.project.fieldTitlePlaceholder')" />
+              <!-- Title ideas (2026-10-28): Brainstorm's Titles at the book's title -->
+              <div style="display:flex;align-items:center;gap:8px;min-width:0">
+                <UiInput width="prose" style="flex:1" :model-value="project.project.title"
+                  @update:model-value="(v) => setMeta('title', v)" :placeholder="$t('settings.project.fieldTitlePlaceholder')" />
+                <BrainstormPopup category="title" :label="$t('brainstorm.titleIdeas')" :meta="{ kind: 'title-ideas', target: 'book' }"
+                  :request="(round) => titleIdeasRequest({ project, target: 'book', ...round })"
+                  @pick="(v) => setMeta('title', v)" />
+              </div>
               <span class="t-muted">{{ $t('settings.project.fieldAuthor') }}</span>
               <UiInput width="name" :model-value="project.project.author"
                 @update:model-value="(v) => setMeta('author', v)" :placeholder="$t('settings.project.fieldAuthorPlaceholder')" />
