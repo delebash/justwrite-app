@@ -82,9 +82,10 @@ STATE:  DECIDED — the user, on my list of `docs/roadmap.md`, `IDEAS.md` and th
         note needs nothing (docgen re-translates a key whose English changed); multi-window's two
         questions were decided in the kit's session (closing the main window closes the app, each
         window asking about unsaved work).
-OPEN:   all six BUILT 2026-10-29 (the plan's "Built" lines). Still open: multi-window's desktop window —
-        the kit's half landed (158aaaf) — one check on the built app; the website entry (its picture),
-        waiting on ~10 GB of free memory after the desktop app starts. Brainstorm's check per category
+OPEN:   all six BUILT 2026-10-29 (the plan's "Built" lines); multi-window checked on the built desktop
+        app with the kit's 158aaaf (Ctrl+Shift+N on a character's page → a second window on it; a
+        second window closes alone; the main window closes them all). Still open: the website entry
+        (its picture), waiting on ~10 GB of free memory after the desktop app starts. Brainstorm's check per category
         on the real model: done 2026-10-29, each returned its kind. The removals and closes: done
         2026-10-29.
 GO:     given 2026-10-29, as above (both).
