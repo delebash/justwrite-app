@@ -49,7 +49,9 @@ GO:     given 2026-10-29.
 
 - **Before the family release — its last step:** one docgen translation-and-review run on JustWrite
   (`es`), after the last English change: the strings added since the last run (96 on 2026-10-29) and
-  any whose English changed. The user's A, above.
+  any whose English changed. The user's A, above. **When:** only once every other app's fixes are done
+  too, the kit's included (the user, 2026-10-29, verbatim: "do the spanish run after all fixes in other
+  apps like core ect") — the kit, JustVoice, house-paint and docgen all finished, then this run.
 
 
 ## Standing rulings (constraints, not tasks — they gate future work)
