@@ -50,7 +50,9 @@ Two of those can be cleared right from the card:
 
 - **Models cache — Clear…** removes the model files JustWrite downloaded — the
   models in its catalog — and nothing else: other files in the folder, and a folder
-  you linked elsewhere, are left alone. This is always safe: your models stay in the
+  you linked elsewhere, are left alone. When the cache is shared with the family's other apps,
+  only JustWrite's models are cleared — theirs stay, and the size shown is JustWrite's own.
+  This is always safe: your models stay in the
   catalog and simply re-download the next time they're used. If a model is currently loaded, JustWrite asks you to unload it
   first (on the AI page) before clearing. This is usually where most of the
   space goes — model files run to several gigabytes each.

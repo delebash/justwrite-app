@@ -28,8 +28,9 @@ the desktop runtime, the data folder and the source; its short shortcuts list is
 every field on a character's sheet and every checkbox and switch say what they hold, and the Relations
 graph reads each name on it with its kind, as you see them.
 
-**The Events page shows where you are again.** Its path at the top had lost its first step — it reads
-**Character › Sable Coyne** again, and the first step takes you back to the list.
+**Events work again.** Adding an event to a character, place, object or group, and editing one, had
+stopped opening since 2026-10-09 ("Something went wrong"); both open again. And the Events pages' path at
+the top reads **Character › Sable Coyne** again — its first step had gone blank.
 
 **A second window.** Keep a character's sheet — or any page — open beside the manuscript: **Ctrl/⌘ +
 Shift + N**, or **Open this page in a new window** in the Command Palette. See

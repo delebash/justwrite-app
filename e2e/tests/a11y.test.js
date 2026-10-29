@@ -32,6 +32,15 @@ before(async () => {
   await page.waitForSelector(".q-page", { timeout: 30_000 });
   uiWas = (await (await fetch(`${API}/settings`)).json()).ui;
   pages = pagesOf(await page.evaluate(firstOfEachKind));
+  // A data folder whose warm start is on loads the default model behind the kit's boot overlay (BootModelLoad) —
+  // minutes for a big model — and its "loaded" toast then lands mid-run: a scan under the overlay tests the
+  // overlay, and a toast caught fading in reads as a contrast failure (2026-10-29). So the run starts once the
+  // model is resident — the overlay closes itself then (BootModelLoad: "auto-dismisses on resident"); its own
+  // Continue only if it stays up past that (a failed or cancelled load) — and no toast shows.
+  await page.waitForFunction(() => !document.querySelector(".lu-bootload"), null, { timeout: 15 * 60_000 }).catch(() => {});
+  const skip = page.locator(".lu-bootload__skip");
+  if (await skip.count()) await skip.first().click();
+  await page.waitForFunction(() => !document.querySelector(".lu-bootload, .q-notification"), null, { timeout: 30_000 }).catch(() => {});
   // the theme follows the system for the run, so each scheme below is the one emulated
   await d.navigate("#/settings/appearance");
   await page.locator('[data-testid="theme-mode-system"]').click();
