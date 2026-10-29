@@ -260,18 +260,42 @@ export function searchIndex(index, query, { kinds, limit = 100, snippetLen = 160
     // header already shows. Prepending them re-printed the header in the excerpt
     // whenever the first match sat near the top (the "chapter stated twice" bug).
     const body = doc.body || "";
-    const bodyLower = body.toLowerCase();
+    const { lower: bodyLower, at: bodyAt } = lowerWithIndex(body);
     let bodyFirst = Infinity;
     for (const tok of tokens) {
       const j = bodyLower.indexOf(tok);
-      if (j !== -1 && j < bodyFirst) bodyFirst = j;
+      if (j !== -1 && bodyAt[j] < bodyFirst) bodyFirst = bodyAt[j];
     }
-    const { text, matches } = buildSnippet(body, bodyLower, tokens, bodyFirst, snippetLen);
+    const { text, matches } = buildSnippet(body, bodyLower, bodyAt, tokens, bodyFirst, snippetLen);
     hits.push({ doc, score, snippet: text, snippetMatches: matches });
   }
 
   hits.sort((a, b) => b.score - a.score || (a.doc.sort ?? 0) - (b.doc.sort ?? 0));
   return hits.slice(0, limit);
+}
+
+/**
+ * `s` lowercased, with `at[i]` the index in `s` of the character lowercased position `i` came from
+ * (and `at[lower.length]` = `s.length`). A character whose lowercase is longer than itself ("İ" →
+ * "i̇", two code units) made every match position after it point a character or two off — the
+ * search highlight's offset bug (2026-10-28). Lowercased whole when that keeps the length (nearly
+ * always — and context rules such as Greek's final sigma stay as they were), else one character at
+ * a time.
+ */
+function lowerWithIndex(s) {
+  const whole = s.toLowerCase();
+  if (whole.length === s.length) return { lower: whole, at: Array.from({ length: s.length + 1 }, (_, i) => i) };
+  let lower = "";
+  const at = [];
+  for (let i = 0; i < s.length; ) {
+    const ch = String.fromCodePoint(s.codePointAt(i));
+    const lc = ch.toLowerCase();
+    for (let k = 0; k < lc.length; k++) at.push(i);
+    lower += lc;
+    i += ch.length;
+  }
+  at.push(s.length);
+  return { lower, at };
 }
 
 function intersect(a, b) {
@@ -285,7 +309,7 @@ function intersect(a, b) {
  * Pull a context window centred on the first match, then mark
  * every match in that window so the UI can render <mark> spans.
  */
-function buildSnippet(haystack, lower, tokens, firstIdx, snippetLen) {
+function buildSnippet(haystack, lower, at, tokens, firstIdx, snippetLen) {
   if (!Number.isFinite(firstIdx) || haystack.length === 0) {
     return { text: cutToLength(haystack || "", snippetLen), matches: [] };
   }
@@ -328,22 +352,27 @@ function buildSnippet(haystack, lower, tokens, firstIdx, snippetLen) {
   // final = ellipsisPrefix.length + (collapsedIdx - trimmedLeading)
   const prefixLen = ellipsisPrefix.length;
 
-  // Find all token offsets inside the original window, translate to the new string.
+  // Find all token offsets inside the original window, translate to the new string. The walk is in
+  // `lower`'s positions; `at` turns each back into the original's (lowerWithIndex).
   const matches = [];
   for (const tok of tokens) {
-    let i = start;
-    // biome-ignore lint/suspicious/noAssignInExpressions: indexOf-walk within a window — advances `i` past each occurrence.
-    while ((i = lower.indexOf(tok, i)) !== -1 && i < end) {
+    let li = 0;
+    // biome-ignore lint/suspicious/noAssignInExpressions: indexOf-walk — advances `li` past each occurrence.
+    while ((li = lower.indexOf(tok, li)) !== -1 && at[li] < end) {
+      if (at[li] < start) {
+        li += tok.length;
+        continue;
+      }
       // Translate start and end through the mapping.
-      const winStart = i - start;
-      const winEnd = winStart + tok.length;
+      const winStart = at[li] - start;
+      const winEnd = at[li + tok.length] - start;
       const cs = origToCollapsed[winStart] - trimmedLeading + prefixLen;
       // For the end position use the collapsed index of the character just
       // past the token; if the token ends exactly at the window boundary use
       // the sentinel.
       const ce = origToCollapsed[Math.min(winEnd, windowStr.length)] - trimmedLeading + prefixLen;
       if (cs >= prefixLen && ce <= text.length) matches.push([cs, ce]);
-      i += tok.length;
+      li += tok.length;
     }
   }
   // Merge overlapping ranges.

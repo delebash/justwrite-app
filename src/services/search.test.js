@@ -106,6 +106,27 @@ describe("searchIndex — the snippet is body-only (no header duplication)", () 
   });
 });
 
+// The highlight sits on the word itself (the roadmap's "off by a character or two", 2026-10-28):
+// through runs of spaces the snippet collapses, and through a character whose lowercase is longer
+// than itself ("İ" lowercases to "i̇", two code units), which shifted every match after it.
+describe("searchIndex — the highlight marks the matched word", () => {
+  const indexOf = (body, term) => ({
+    docs: new Map([["d1", { id: "d1", kind: "scene", title: "", body }]]),
+    postings: new Map([[term, new Set(["d1"])]]),
+  });
+  const marked = (hit) => hit.snippetMatches.map(([s, e]) => hit.snippet.slice(s, e));
+
+  it("through runs of spaces and blank lines", () => {
+    const [hit] = searchIndex(indexOf("The   salt    road\n\n\nran   far to the road's end", "road"), "road");
+    expect(marked(hit)).toEqual(["road", "road"]);
+  });
+
+  it("after a character whose lowercase is longer than itself", () => {
+    const [hit] = searchIndex(indexOf("From İstanbul İzmir the salt road ran east", "road"), "road");
+    expect(marked(hit)).toEqual(["road"]);
+  });
+});
+
 // The editor owns Ctrl/⌘-F (its find-in-editor bar); the layout's capture-phase global
 // ⌘F must bail when focus is in the rich editor, mirroring the ⌘Z bail one block down.
 // A source-pin: layouts/MainLayout.vue's keyboard handling is a window capture listener not cheaply

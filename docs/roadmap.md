@@ -6,12 +6,6 @@ Items are loosely grouped by area and by how concrete they are.
 
 ---
 
-## Editor and writing
-
-- **Search snippet highlight offset fix.** Some snippets with multi-space runs show highlights off by a character or two. Small fidelity issue, fix planned.
-
----
-
 ## AI
 
 - **Token budgets per feature.** A per-feature monthly cap that pauses AI calls when exceeded, to prevent surprise bills on cloud providers.
@@ -29,7 +23,6 @@ Items are loosely grouped by area and by how concrete they are.
 
 ## Analysis
 
-- **Configurable style-metric thresholds.** Currently the per-chapter style table flags outliers against a fixed baseline. Letting the user define their own "this is acceptable" range would make it more useful.
 - **Trend lines on the pace chart.** A simple regression line showing whether you're accelerating, holding, or decelerating.
 
 ---
@@ -37,7 +30,6 @@ Items are loosely grouped by area and by how concrete they are.
 ## App-wide
 
 - **Multi-window support.** Open a Character page in one window and write in another. Currently the app is single-window.
-- **Native dark-mode for charts and graphs.** Some chart and graph surfaces use light-mode colours that don't quite work in dark mode.
 
 ---
 

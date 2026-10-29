@@ -118,12 +118,12 @@ From left to right (approximate; some buttons collapse into menus on narrower wi
 - **New scene boundary** (only visible in continuous-chapter mode) — inserts a divider between scenes
 - **Alignment** — left / centre / right / justify
 - **Highlight** — multi-colour text highlighting
-- **Text colour**
+- **Text colour** — each highlight and text colour has a light and a dark version, so it reads in either mode
 - **Link**
 - **Image insert** — embed an image inline
 - **Table**
 - **Clear formatting**
-- **Copy / Cut / Paste** — in a browser at a plain `http://` address (another computer on your network), the browser won't let the **Paste** button read the clipboard; it says so, and **Ctrl+V** (**⌘V** on a Mac) pastes as always
+- **Copy / Cut / Paste** — in a browser at a plain `http://` address (another computer on your network), the browser won't let the **Paste** button read the clipboard; it says so, and **Ctrl+V** (**⌘V** on a Mac) pastes as always. A paste keeps its formatting, except black text (a Google Doc's or Word's), which takes the page's ink, so it shows in dark mode too
 - **Print**
 - **Inline comment** — attach a private note to selected text; the marked text is visually distinguished and clicking it shows the note in a popover
 - **Find / Replace bar** — search within this chapter

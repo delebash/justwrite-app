@@ -25,6 +25,8 @@ import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
 import { ProseHighlights, proseHighlightRanges, proseHighlightsKey } from "../services/proseHighlights.js";
 import { StoryNames, storyNameRanges, storyNameWords, storyNamesKey } from "../services/storyNames.js";
 import { refreshDecorations } from "../services/editorDecorations.js";
+import { HIGHLIGHT_COLORS, TEXT_COLORS, currentMode, editorColorVars, highlightVar, textColorVar } from "../services/appearance.js";
+import { dropBlackTextColor } from "../services/pastedHtml.js";
 import EditorSettingsModal from "./EditorSettingsModal.vue";
 
 const props = defineProps({
@@ -159,6 +161,7 @@ const editor = useEditor({
   extensions,
   editorProps: {
     attributes: { class: "tiptap-content", spellcheck: String(ui.editorSettings.spellCheck), lang: bookLanguage.value },
+    transformPastedHTML: dropBlackTextColor,
     // Auto-capitalize the first letter of a sentence as the user types,
     // when the setting is on. Returns true to take over the insertion.
     handleTextInput(view, from, to, text) {
@@ -779,14 +782,7 @@ function insertTable() {
 }
 
 // --- highlight color dropdown -----------------------------------------
-const HIGHLIGHT_COLORS = [
-  { labelKey: "richEditor.color.yellow", color: "#ffe8a3" },
-  { labelKey: "richEditor.color.green",  color: "#bdf0c4" },
-  { labelKey: "richEditor.color.blue",   color: "#bfe1ff" },
-  { labelKey: "richEditor.color.pink",   color: "#ffc9de" },
-  { labelKey: "richEditor.color.purple", color: "#e2ccff" },
-  { labelKey: "richEditor.color.orange", color: "#ffd2a6" },
-];
+// The colours are services/appearance.js's, each stored as its theme variable so it reads in both modes.
 const highlightOpen = ref(false);
 const highlightWrap = ref(null);
 function toggleHighlightMenu() { highlightOpen.value = !highlightOpen.value; }
@@ -799,10 +795,6 @@ function clearHighlight() {
   highlightOpen.value = false;
 }
 // --- text color dropdown ----------------------------------------------
-const TEXT_COLORS = [
-  "#111827", "#6b7280", "#b91c1c", "#c2410c", "#15803d",
-  "#0f766e", "#1d4ed8", "#6d28d9", "#be185d",
-];
 const textColorOpen = ref(false);
 const textColorBubbleOpen = ref(false);
 const textColorWrap = ref(null);
@@ -1107,7 +1099,10 @@ function doPrint() {
   const doc = frame.contentWindow?.document;
   if (!doc) { frame.remove(); return; }
   doc.open();
+  // the highlights and text colours are theme variables; on paper they're the light ones
+  const colors = editorColorVars("light").map(([name, value]) => `${name}:${value}`).join(";");
   doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>${t("richEditor.printTitle")}</title><style>
+    :root{${colors}}
     body{font-family:Georgia,'Times New Roman',serif;font-size:12.5pt;line-height:1.7;color:#111;max-width:680px;margin:0 auto;padding:48px}
     h1,h2,h3{font-weight:600;line-height:1.3}h1{text-align:center}
     blockquote{border-left:3px solid #bbb;padding-left:16px;color:#444;margin:14px 0}
@@ -1495,7 +1490,7 @@ defineExpose({
             <Icon name="Highlight" :size="14" /><Icon name="ChevDown" :size="9" class="tb-caret" />
           </button>
           <div v-if="highlightOpen" class="tb-highlight-menu">
-            <button v-for="c in HIGHLIGHT_COLORS" :key="c.color" type="button" class="tb-swatch" :style="{ background: c.color }" :title="t(c.labelKey)" @click="setHighlightColor(c.color)" />
+            <button v-for="(c, key) in HIGHLIGHT_COLORS" :key="key" type="button" class="tb-swatch" :style="{ background: highlightVar(key) }" :title="t(c.labelKey)" @click="setHighlightColor(highlightVar(key))" />
             <button type="button" class="tb-swatch tb-swatch-none" :title="$t('richEditor.removeHighlight')" @click="clearHighlight"><Icon name="Close" :size="11" /></button>
           </div>
         </div>
@@ -1504,7 +1499,7 @@ defineExpose({
             <span class="tb-A" :style="textColorValue() ? { color: textColorValue() } : null">{{ $t("richEditor.textColorGlyph") }}</span><Icon name="ChevDown" :size="9" class="tb-caret" />
           </button>
           <div v-if="textColorOpen" class="tb-highlight-menu">
-            <button v-for="c in TEXT_COLORS" :key="c" type="button" class="tb-swatch" :style="{ background: c }" :title="c" @click="setTextColor(c)" />
+            <button v-for="(c, key) in TEXT_COLORS" :key="key" type="button" class="tb-swatch" :style="{ background: textColorVar(key) }" :title="c[currentMode()]" @click="setTextColor(textColorVar(key))" />
             <button type="button" class="tb-swatch tb-swatch-none" :title="$t('richEditor.defaultColor')" @click="clearTextColor"><Icon name="Close" :size="11" /></button>
           </div>
         </div>
@@ -1595,7 +1590,7 @@ defineExpose({
           <span class="tb-A" :style="textColorValue() ? { color: textColorValue() } : null">{{ $t("richEditor.textColorGlyph") }}</span><Icon name="ChevDown" :size="9" class="tb-caret" />
         </button>
         <div v-if="textColorBubbleOpen" class="tb-highlight-menu">
-          <button v-for="c in TEXT_COLORS" :key="c" type="button" class="tb-swatch" :style="{ background: c }" :title="c" @click="setTextColor(c)" />
+          <button v-for="(c, key) in TEXT_COLORS" :key="key" type="button" class="tb-swatch" :style="{ background: textColorVar(key) }" :title="c[currentMode()]" @click="setTextColor(textColorVar(key))" />
           <button type="button" class="tb-swatch tb-swatch-none" :title="$t('richEditor.defaultColor')" @click="clearTextColor"><Icon name="Close" :size="11" /></button>
         </div>
       </div>

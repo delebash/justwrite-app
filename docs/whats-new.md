@@ -6,6 +6,21 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-28
 
+**Highlights and coloured text read in dark mode.** A highlight or a text colour from the editor's
+toolbar now has a dark-mode version of itself: in dark mode a highlight is a deeper tint behind light
+words, and a coloured word a lighter shade of its colour. Before, a highlight stayed pale under light
+words and the darkest text colour vanished. Text pasted from a Google Doc or Word no longer keeps its
+black, which was invisible on a dark page; it takes the page's ink. Highlights made before this keep
+their colour, with dark words on them in dark mode. See [Writing](writing.md#toolbar-buttons).
+
+**Search highlights land on the word.** In search results, a highlight after a letter such as
+Turkish *İ* — whose lowercase is two characters — sat a character or two off the word it marked.
+
+**Voice drift's sensitivity, per book.** On **Analysis → Voice drift**, **Sensitivity** sets how far
+from the book's mean a chapter's metric is flagged, how many flagged metrics make a chapter hot, and
+how much movement counts as a trend. Every book starts at the values the analysis always used. See
+[Analysis](analysis.md#voice-drift).
+
 **AI-written words, chapter by chapter.** Under the count of AI-written words in **Settings →
 Project**, **By chapter** lists the chapters that have some, with each one's share of its chapter,
 and **Copy as text** puts the list on the clipboard — for a publisher's question about AI-generated

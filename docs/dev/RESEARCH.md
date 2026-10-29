@@ -516,6 +516,34 @@ method), at every hue the appearance engine lets the user set (accent and danger
   theme's `--on-accent` (near-black) on accent and danger is 6.41:1 and 7.28:1 at worst;
   `--danger-ink` on its banner and `--info-ink` on `--info-bg` clear 4.5:1 in both themes.
 
+## The editor's colours in dark mode (2026-10-28)
+
+Measured with the same WCAG 2 method, on the dark paper `oklch(0.225 0.006 80)` with the dark ink
+`oklch(0.94 0.005 85)`; seen with a real Ctrl+V and toolbar clicks in the built UI (Playwright,
+`colorScheme: "dark"`).
+
+- **Every chart and graph page already followed the theme** — Home, Analysis (pace, heatmap,
+  milestones, status, strands, words per chapter, style table), Relations, Plot board, Timeline,
+  Strands. What used light-mode colours was the editor's highlight and text-colour palettes.
+- **Tiptap's Highlight writes `style="background-color: <c>; color: inherit"` on the mark**, so the
+  dark ink sat on the light pastel: 1.02–1.23:1. The palette's text colours (Tailwind 700s, the ink
+  gray-900) were 1.04–3.54:1 on the dark paper.
+- **Tiptap's documented way to theme a colour mark is to store a CSS variable**
+  (`var(--tt-color-highlight-yellow)`, tiptap.dev/docs/ui-components/components/color-highlight-button
+  and …/color-text-button). Its `getStyleProperty` reads the raw `style` attribute, so a `var(…)` survives
+  the browser, the server's happy-dom and the phone's linkedom (`server/tests/sync.test.js`; happy-dom
+  only adds a trailing `;`). JustWrite's variables (`services/appearance.js`): dark highlight = the
+  colour at 35% over the paper, 5.00–5.57:1 under the dark ink; dark text = Tailwind 400 of the same
+  hue, 6.18–9.82:1 (the ink gray-100, 15.54:1). Light values unchanged.
+- **A Google Doc writes `color:#000000` on every run** (Word: `windowtext`), and Tiptap's Color keeps
+  it: black on the dark paper is 1.23:1. Chromium normalizes the pasted style (`#000000` →
+  `rgb(0, 0, 0)`, `#ffe8a3` → `rgb(255, 232, 163)`), so a paste's colours never match a stored hex
+  string. The paste hook drops black (`services/pastedHtml.js`).
+- **A highlight that isn't a theme variable** (an older scene's hex, a pasted `<mark>`) keeps its
+  colour; in dark mode its words take the light ink, 12.09–14.63:1. An older scene's *text colour*
+  in the old near-black is still near-invisible in dark mode — the user's books have none (12 scenes,
+  no `<mark>` or `color:`), so nothing rewrites them.
+
 ## Page layout: measured on the story-world pages (2026-10-16)
 
 - **A flex column that is itself the scroller squashes its fields instead of scrolling.** With

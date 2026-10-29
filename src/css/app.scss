@@ -848,6 +848,10 @@ html[data-theme="dark"] .manuscript {
 .manuscript-inner p:first-of-type { text-indent: 0; }
 .manuscript-inner p + p { margin-top: var(--editor-para-spacing, var(--editor-body-para-spacing, 0)); }
 .manuscript-inner em { font-style: italic; }
+/* A highlight whose colour isn't one of the editor's theme colours (an older scene's, a pasted one's)
+   stays light in dark mode; its words take the light page's ink so they read on it — over the
+   `color: inherit` Tiptap writes on the mark itself, so !important (services/appearance.js). */
+html[data-theme="dark"] mark[data-color]:not([data-color^="var("]) { color: var(--color-text-on-highlight) !important; }
 .manuscript-inner ::selection { background: var(--accent-soft); }
 /* Forced page break — visible separator in edit + read views. PDF/DOCX
    exports honor it as a real page break. */

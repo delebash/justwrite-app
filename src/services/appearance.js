@@ -34,6 +34,46 @@ export const PAPER_TINTS = {
   grey:  { labelKey: "settings.appearance.paper.grey",  light: "#eceae6", dark: "#1d1e1f" },
 };
 
+// ── JustWrite-specific: the editor's highlight and text colours ──────
+// A scene stores `var(--color-highlight-<key>)` / `var(--color-text-<key>)`, never the colour itself —
+// Tiptap's way to theme a colour mark (tiptap.dev/docs/ui-components/components/color-highlight-button)
+// — so a highlight or a coloured word reads in both modes. Light: the colours the editor always had.
+// Dark: a highlight is its colour at the plain highlight's 35% over the paper (RichEditor's `mark`);
+// a text colour is the same Tailwind hue a step Tailwind uses on dark grounds (700 → 400, the greys
+// 900 → 100 and 500 → 400).
+const darkHighlight = (light) => `color-mix(in oklch, ${light} 35%, transparent)`;
+export const HIGHLIGHT_COLORS = {
+  yellow: { labelKey: "richEditor.color.yellow", light: "#ffe8a3", dark: darkHighlight("#ffe8a3") },
+  green:  { labelKey: "richEditor.color.green",  light: "#bdf0c4", dark: darkHighlight("#bdf0c4") },
+  blue:   { labelKey: "richEditor.color.blue",   light: "#bfe1ff", dark: darkHighlight("#bfe1ff") },
+  pink:   { labelKey: "richEditor.color.pink",   light: "#ffc9de", dark: darkHighlight("#ffc9de") },
+  purple: { labelKey: "richEditor.color.purple", light: "#e2ccff", dark: darkHighlight("#e2ccff") },
+  orange: { labelKey: "richEditor.color.orange", light: "#ffd2a6", dark: darkHighlight("#ffd2a6") },
+};
+export const TEXT_COLORS = {
+  ink:    { light: "#111827", dark: "#f3f4f6" },
+  grey:   { light: "#6b7280", dark: "#9ca3af" },
+  red:    { light: "#b91c1c", dark: "#f87171" },
+  orange: { light: "#c2410c", dark: "#fb923c" },
+  green:  { light: "#15803d", dark: "#4ade80" },
+  teal:   { light: "#0f766e", dark: "#2dd4bf" },
+  blue:   { light: "#1d4ed8", dark: "#60a5fa" },
+  purple: { light: "#6d28d9", dark: "#a78bfa" },
+  pink:   { light: "#be185d", dark: "#f472b6" },
+};
+export const highlightVar = (key) => `var(--color-highlight-${key})`;
+export const textColorVar = (key) => `var(--color-text-${key})`;
+
+/** The editor colours' custom properties in a mode ("light" | "dark"), as [name, value] pairs. */
+export function editorColorVars(mode) {
+  return [
+    ...Object.entries(HIGHLIGHT_COLORS).map(([key, c]) => [`--color-highlight-${key}`, c[mode]]),
+    ...Object.entries(TEXT_COLORS).map(([key, c]) => [`--color-text-${key}`, c[mode]]),
+    // the words on a highlight that isn't one of these (an older scene's, a pasted one's), in dark
+    ["--color-text-on-highlight", TEXT_COLORS.ink.light],
+  ];
+}
+
 const EDITOR_FONT_SIZE_PX = { small: 15, medium: 18, big: 21 };
 
 // JustWrite default = the generic defaults + JW brand + editor fields. Matches
@@ -147,6 +187,7 @@ function editorExtraApply({ a, root, s, mode }) {
   s.setProperty("--editor-body-para-spacing", `${Number.isFinite(+a.editorParaSpacing) ? a.editorParaSpacing : 0}em`);
   s.setProperty("--editor-body-para-indent", a.editorParaIndent ? "1.6em" : "0");
   s.setProperty("--editor-paper", resolveTint(a.editorPaper, PAPER_TINTS, mode));
+  for (const [name, value] of editorColorVars(mode)) s.setProperty(name, value);
 }
 
 export function applyAppearance(appearance) {

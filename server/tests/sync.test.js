@@ -100,6 +100,16 @@ test("scene text written on two devices merges, through the editor's schema", as
   expect(phone.h.one("SELECT body FROM scenes WHERE id = ?", ["s1"]).body).toBe(want);
 });
 
+test("a highlight and a text colour keep their theme variables through the merge", () => {
+  // the editor stores `var(--color-…)` so each reads in light and dark (src/services/appearance.js)
+  const html = `<p><mark data-color="var(--color-highlight-yellow)" style="background-color: var(--color-highlight-yellow); color: inherit">Salt</mark> and <span style="color: var(--color-text-red)">iron</span>.</p>`;
+  const doc = new Y.Doc();
+  sceneTextAdapter.apply(doc, html);
+  const merged = sceneTextAdapter.render(doc);
+  expect(merged).toContain(`data-color="var(--color-highlight-yellow)" style="background-color: var(--color-highlight-yellow); color: inherit`);
+  expect(merged).toContain(`<span style="color: var(--color-text-red)`);
+});
+
 test("a book exported by hand imports on another device, and back", async () => {
   const c = await client(tmpPath());
   await c.put("/v1/projects/prj1/book", { json: SNAP, headers: WINDOW });
