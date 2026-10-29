@@ -95,7 +95,7 @@ When you apply one, all the beats start in the **Unassigned** column. You drag t
 The ✨ beside a strand's name opens its AI menu:
 
 - **Fill this template for my story** — on a strand applied from a template. The AI writes each beat's note for your book — the event, who drives it, what it changes — from your premise, genre, world rules, Setting and main cast. They open in a review window beside what's there now: a note that still gives the template's general advice comes ticked, one you've written doesn't; edit any, then **Apply**. One Ctrl/⌘ + Z takes the whole fill back.
-- **Suggest next beats** and **Plot twists** — Brainstorm's plot ideas for this strand, from your book and the strand's beats so far, never one the strand already has. They open on Brainstorm's panel: type a seed prompt to steer them, or leave it empty, and press **Generate**; **Add as beat** puts an idea on the strand as a beat card in the **Unassigned** column.
+- **Suggest next beats** and **Plot twists** — Brainstorm's plot ideas for this strand, from your book and the strand's beats so far, never one the strand already has. They open on Brainstorm's panel: type a seed prompt to steer them, or leave it empty, and press **Generate**; **Add as beat** puts an idea on the strand as a beat card in the **Unassigned** column. The window stays open, so you can add several; each added idea reads **Added**.
 
 Routable as **Planning → Fill this template for my story** and **Brainstorm** in Settings → AI.
 
@@ -165,7 +165,7 @@ If your novel takes place in a single afternoon, you probably don't need events.
 
 The **Timeline** view (Planning section in the sidebar) is a read-only **merged** view of every event from every entity, sorted chronologically.
 
-Each row shows the weekday, date, time, title, optional note, and an icon badge identifying who or what the event belongs to. Click the title to edit the event; click the badge to jump to the entity's page.
+Each row shows the weekday, date, time, title, optional note, and an icon badge identifying who or what the event belongs to. An event with only a date (its time left at midnight) shows the date alone; an entity's **Events** list shows them the same way. Click the title to edit the event; click the badge to jump to the entity's page.
 
 ### When to use it
 

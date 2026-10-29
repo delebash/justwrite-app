@@ -26,7 +26,7 @@ const chapters = computed(() => project.allChapters);
 // Fill this template for my story (a strand applied from a template) into the shared review window
 // (Apply is one undo step, applyBeatNotes); Suggest next beats and Plot twists — Brainstorm's plot
 // categories — in the Brainstorm window (2026-10-28: its seed prompt, Generate, and Add as beat puts
-// the picked idea on the strand, addStrandBeats).
+// the picked idea on the strand, addStrandBeats; the window stays open for more).
 const aiReview = ref(null); // { kind: "fill" | "next_beat" | "twist", strand }
 const fillTask = useSurfaceTask(PLANNING_FEATURE, () => ({ strandId: aiReview.value?.strand.id }));
 const reviewProps = computed(() => {
@@ -45,10 +45,9 @@ function ideasRound(round) {
   const r = ideasOn.value;
   return strandIdeasRequest({ project, strandId: r.strand.id, category: r.kind, ...round });
 }
+// the window stays open: add as many as you like; each is one undo step
 function addIdeaAsBeat(text) {
-  const r = ideasOn.value;
-  aiReview.value = null;
-  project.addStrandBeats(r.strand.id, [beatFromIdea(text)]);
+  project.addStrandBeats(ideasOn.value.strand.id, [beatFromIdea(text)]);
 }
 function isTemplateStrand(strand) { return !!templateOfStrand(strand, PLOT_TEMPLATES); }
 
@@ -652,7 +651,7 @@ function sceneBadge(beat) {
       :category="ideasOn.kind" :request="ideasRound"
       :meta="{ kind: `strand-${ideasOn.kind}`, strandId: ideasOn.strand.id }"
       :task-label="$t('plotBoard.ai.taskIdeas', { name: ideasOn.strand.name })"
-      :pick-label="$t('plotBoard.ai.addAsBeat')"
+      :pick-label="$t('plotBoard.ai.addAsBeat')" :picked-label="$t('plotBoard.ai.addedAsBeat')"
       @pick="addIdeaAsBeat" @close="aiReview = null" />
   </q-page>
 </template>

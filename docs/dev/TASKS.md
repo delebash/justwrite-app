@@ -214,7 +214,12 @@ STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the
         and titles), "Add as beat" (Plot board), "Write this" (editor); under the seed box at a page
         "Leave it empty for ideas that fit this page and your book." The user: "seed should be
         optional"; the Brainstorm page left as it is (my rec: its seed stays required — away from a
-        page it sends neither the page nor the book); "your rec go" (2026-10-28).
+        page it sends neither the page nor the book); "your rec go" (2026-10-28). Then, asked for my rec on
+        the Plot board's window and on two things seen but left alone ("think on it again and then go
+        with you rec", 2026-10-28): the Plot board's idea window stays open — Add as beat adds the
+        beat and its button reads "Added", disabled; names, titles and Write this still close; the
+        Timeline (and an entity's Events) shows an event at midnight — a date picked alone — without
+        a time; Relations breaks a long name onto two lines at its own size instead of squeezing it.
 WHY:    the user, 2026-10-11 — AI creation on each story-world page, not only on Brainstorm, and AI
         that writes the story or parts of it. Picks up IDEAS.md "Brainstorm → point-of-use
         generation" (2026-07-26).

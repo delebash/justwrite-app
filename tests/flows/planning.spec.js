@@ -53,10 +53,15 @@ test("A strand's ✨ menu: Fill this template, then Suggest next beats → Add a
   const ideas = page.locator(".bsr-item");
   await expect(ideas).toHaveCount(3);
   expect(asked.find((b) => b.action === "brainstormPlot").variables.user_content).toContain("Seed: next beats for the strand in THE STRAND");
+  // the window stays open for more; an added idea reads Added
   await ideas.nth(2).getByRole("button", { name: "Add as beat" }).click();
+  await expect(ideas.nth(2).getByRole("button", { name: "Added" })).toBeDisabled();
+  await ideas.nth(0).getByRole("button", { name: "Add as beat" }).click();
+  await expect(page.locator(".beat-card")).toHaveCount(before + 2);
+  await page.locator(".q-dialog").getByRole("button", { name: "Close", exact: true }).click();
   await expect(page.locator(".q-dialog")).toHaveCount(0);
-  await expect(page.locator(".beat-card")).toHaveCount(before + 1);
   await expect(page.getByText("A rival party bids for the commission").first()).toBeVisible();
+  await expect(page.getByText("The guild calls in Cael's debt").first()).toBeVisible();
   await expectNoSidewaysScroll(page);
 });
 

@@ -24,6 +24,8 @@ const props = defineProps({
   meta: { type: [Object, Function], required: true },
   taskLabel: { type: String, required: true },
   pickLabel: { type: String, required: true },
+  // a picked idea's button reads this, disabled, where the panel stays open (the Plot board's "Added")
+  pickedLabel: { type: String, default: "" },
 });
 const emit = defineEmits(["pick"]);
 
@@ -50,7 +52,7 @@ defineExpose({ running });
     <UiBanner v-if="error">{{ error }}</UiBanner>
     <p v-else-if="asked && !running && !results.length" class="bp-empty">{{ $t("plotBoard.ai.empty") }}</p>
     <BrainstormResults v-if="results.length" :items="results" :running="running" :pick-label="pickLabel"
-      @like="toggleLike" @pick="(text) => emit('pick', text)" @more="moreLikeThese" />
+      :picked-label="pickedLabel" @like="toggleLike" @pick="(text) => emit('pick', text)" @more="moreLikeThese" />
   </div>
 </template>
 

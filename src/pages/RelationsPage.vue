@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
+import { labelLines } from "../services/relationsLabels.js";
 import { PaneHeader, pageFill } from "@delebash/ui";
 import { Icon } from "@delebash/ui";
 import { UiButton } from "@delebash/ui";
@@ -39,12 +40,15 @@ const NODE_R_MAIN   = 50;
 const NODE_R_SECOND = 38;
 const NODE_R_OUTER  = 36;
 
-// Shrink-to-fit helper: if the label is wider than the circle can hold,
-// return a textLength that compresses it. Returns null otherwise so the
-// text renders at its natural width (no stretching of short labels).
-function fitLength(label, fontSize, maxWidth) {
-  const estimated = (label?.length || 0) * fontSize * 0.55;
-  return estimated > maxWidth ? maxWidth : null;
+// A node's name and kind in its circle: the name on one line, or two when it doesn't fit
+// (labelLines — 2026-10-28; it was squeezed to fit), the kind under it, both a half line lower
+// for each extra line.
+function nodeLabel(n) {
+  const size = n.r >= 50 ? 13 : 11;
+  const lineHeight = size + 1;
+  const lines = labelLines(n.label, size, n.r * 1.7);
+  const lift = (lines.length - 1) * (lineHeight / 2);
+  return { size, lineHeight, lines, y: -2 - lift, kindY: (n.r >= 50 ? 14 : 12) + lift };
 }
 
 function ringPlace(items, ringRadius, mapFn) {
@@ -511,14 +515,13 @@ onBeforeUnmount(() => {
             <circle :r="n.r"
               :style="`fill: ${nodeFill(n)}; stroke: ${nodeStroke(n)}`"
               :stroke-width="pinnedId === n.id ? 3 : (n.main ? 2 : 1.5)" />
-            <text :y="-2" :font-size="n.r >= 50 ? 13 : 11"
+            <text :y="nodeLabel(n).y" :font-size="nodeLabel(n).size"
               text-anchor="middle"
-              lengthAdjust="spacingAndGlyphs"
-              :textLength="fitLength(n.label, n.r >= 50 ? 13 : 11, n.r * 1.7) || undefined"
               style="fill: var(--ink); pointer-events: none; font-weight: 500;">
-              {{ n.label }}
+              <tspan v-for="(line, i) in nodeLabel(n).lines" :key="i" x="0" :dy="i ? nodeLabel(n).lineHeight : 0"
+                :textLength="line.fit || undefined" :lengthAdjust="line.fit ? 'spacingAndGlyphs' : undefined">{{ line.text }}</tspan>
             </text>
-            <text :y="n.r >= 50 ? 14 : 12" :font-size="n.r >= 50 ? 8.5 : 7.5"
+            <text :y="nodeLabel(n).kindY" :font-size="n.r >= 50 ? 8.5 : 7.5"
               text-anchor="middle"
               class="relations-node-type"
               style="pointer-events: none;">

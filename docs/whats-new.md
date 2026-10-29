@@ -11,9 +11,15 @@ group's name), the new **Title ideas** (beside the book's title in **Settings �
 title in the editor's header — a scene's or a chapter's), and the plot ideas in the editor's AI menu
 and a Plot board strand's ✨ menu now open on Brainstorm's own panel: a **Seed prompt** you can fill
 or leave empty, **Generate**, thumbs-up and **More like these**. Nothing runs until you press
-Generate, and **Use** — **Add as beat** on a strand, **Write this** in the editor — puts an idea in
-place, with no copying from the Brainstorm page. See
+Generate, and **Use** — **Add as beat** on a strand (its window stays open for more), **Write this**
+in the editor — puts an idea in place, with no copying from the Brainstorm page. See
 [Brainstorm](brainstorm.md#name-and-title-ideas-where-you-use-them).
+
+**Dates without a time read as dates.** On the **Timeline** and an entity's **Events**, an event whose
+time was left at midnight — a date picked alone — no longer shows "12:00 AM".
+
+**Relations keeps names readable.** A long name in its circle on **Relations** now takes two lines
+instead of squeezing its letters together.
 
 **The sidebar shows the version you're running.** Under the JustWrite name it said "v0.1 · local"
 in every version; it now shows the real one, as **Settings → About** does.

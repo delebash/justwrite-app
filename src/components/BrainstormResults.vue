@@ -3,8 +3,9 @@
 // the Brainstorm panel's where it's used (BrainstormPanel.vue) are this one component, fed by
 // useBrainstorm. Each idea has its thumbs-up (a steer for the next round, not a save) and, under
 // the list, **More like these**. `pickLabel` gives each idea a button with those words that emits
-// `pick` — Use, Add as beat, Write this (2026-10-28) — and the `actions` slot adds a row's own
-// controls (the page's Copy).
+// `pick` — Use, Add as beat, Write this (2026-10-28); with `pickedLabel` a picked idea's button reads
+// that word, disabled (the Plot board's window stays open: Added), and the `actions` slot adds a
+// row's own controls (the page's Copy).
 import { computed } from "vue";
 import { Icon, UiButton } from "@delebash/ui";
 
@@ -12,8 +13,14 @@ const props = defineProps({
   items: { type: Array, required: true }, // [{ text, liked }]
   running: { type: Boolean, default: false },
   pickLabel: { type: String, default: "" },
+  pickedLabel: { type: String, default: "" },
 });
 const emit = defineEmits(["like", "pick", "more"]);
+
+function pick(item) {
+  if (props.pickedLabel) item.picked = true;
+  emit("pick", item.text);
+}
 
 const likedCount = computed(() => props.items.filter((i) => i.liked).length);
 const canMore = computed(() => likedCount.value > 0 && !props.running);
@@ -31,7 +38,8 @@ const canMore = computed(() => likedCount.value > 0 && !props.running);
             <Icon name="ThumbUp" :size="14" :fill="item.liked" />
           </UiButton>
           <slot name="actions" :item="item" />
-          <UiButton v-if="pickLabel" intent="secondary" size="small" :label="pickLabel" @click="emit('pick', item.text)" />
+          <UiButton v-if="pickLabel" intent="secondary" size="small" :label="item.picked ? pickedLabel : pickLabel"
+            :disabled="item.picked" @click="pick(item)" />
         </div>
       </li>
     </ul>

@@ -7,7 +7,7 @@ import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import { Icon, pageFill } from "@delebash/ui";
 import { UiButton } from "@delebash/ui";
 import { PaneHeader } from "@delebash/ui";
-import { d as fmtDate } from "../i18n/index.js";
+import { formatWhen, parseWhen } from "../services/eventWhen.js";
 
 const props = defineProps({
   kind:     { type: String, required: true },
@@ -31,8 +31,8 @@ const events = computed(() => project.eventsFor(props.entityId));
 const sortedEvents = computed(() => {
   const list = [...events.value];
   return list.sort((a, b) => {
-    const ta = parseTs(a.when);
-    const tb = parseTs(b.when);
+    const ta = parseWhen(a.when);
+    const tb = parseWhen(b.when);
     if (ta === null && tb === null) return 0;
     if (ta === null) return 1;
     if (tb === null) return -1;
@@ -40,21 +40,6 @@ const sortedEvents = computed(() => {
   });
 });
 
-function parseTs(when) {
-  if (!when) return null;
-  const t = new Date(when).getTime();
-  return Number.isFinite(t) ? t : null;
-}
-function formatWhen(when) {
-  if (!when) return { weekday: "", date: "—", time: "" };
-  const d = new Date(when);
-  if (Number.isNaN(d.getTime())) return { weekday: "", date: when, time: "" };
-  return {
-    weekday: fmtDate(d, { weekday: "long" }),
-    date:    fmtDate(d, { month: "2-digit", day: "2-digit", year: "numeric" }),
-    time:    fmtDate(d, "time"),
-  };
-}
 
 function remove(ev) {
   // Store handles the trash entry + undo toast.

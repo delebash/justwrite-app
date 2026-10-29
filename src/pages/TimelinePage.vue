@@ -12,7 +12,7 @@ import { useProjectStore } from "../stores/project.js";
 import { EVENTS_KIND_META } from "../services/eventsKind.js";
 import { PaneHeader, pageFill } from "@delebash/ui";
 import { Icon } from "@delebash/ui";
-import { d as fmtDate } from "../i18n/index.js";
+import { formatWhen, parseWhen } from "../services/eventWhen.js";
 
 const project = useProjectStore();
 const router = useRouter();
@@ -41,8 +41,8 @@ const allEvents = computed(() => {
     }
   }
   return out.sort((a, b) => {
-    const ta = parseTs(a.when);
-    const tb = parseTs(b.when);
+    const ta = parseWhen(a.when);
+    const tb = parseWhen(b.when);
     if (ta === null && tb === null) return 0;
     if (ta === null) return 1;
     if (tb === null) return -1;
@@ -50,21 +50,6 @@ const allEvents = computed(() => {
   });
 });
 
-function parseTs(when) {
-  if (!when) return null;
-  const t = new Date(when).getTime();
-  return Number.isFinite(t) ? t : null;
-}
-function formatWhen(when) {
-  if (!when) return { weekday: "", date: "—", time: "" };
-  const d = new Date(when);
-  if (Number.isNaN(d.getTime())) return { weekday: "", date: when, time: "" };
-  return {
-    weekday: fmtDate(d, { weekday: "long" }),
-    date:    fmtDate(d, { month: "2-digit", day: "2-digit", year: "numeric" }),
-    time:    fmtDate(d, "time"),
-  };
-}
 
 function ownerLabel(kind) { const m = EVENTS_KIND_META[kind]; return m?.i18n ? t(m.i18n) : kind; }
 function goEvent(ev) { router.push(EVENTS_KIND_META[ev.ownerKind].editUrl(ev.ownerId, ev.id)); }

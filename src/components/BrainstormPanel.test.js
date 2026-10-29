@@ -75,6 +75,24 @@ describe("the Brainstorm panel at a page", () => {
     expect(picked).toEqual(["Sigrun Vale"]);
   });
 
+  it("where it stays open (the Plot board), a picked idea's button reads Added, disabled", async () => {
+    runAiFeature.mockResolvedValue({ content: "1. The guild calls in a debt\n2. The lamp goes dark" });
+    const picked = [];
+    mount({
+      category: "next_beat", request: async () => ({ action: "brainstormPlot", variables: {} }), meta: { kind: "test" },
+      taskLabel: "Ideas", pickLabel: "Add as beat", pickedLabel: "Added", onPick: (t) => picked.push(t),
+    });
+    await settle();
+    await new DOMWrapper(button(host, "Generate")[0]).trigger("click");
+    await settle();
+    await new DOMWrapper(button(host, "Add as beat")[0]).trigger("click");
+    await settle();
+    expect(picked).toEqual(["The guild calls in a debt"]);
+    expect(button(host, "Added")).toHaveLength(1);
+    expect(button(host, "Added")[0].disabled).toBe(true);
+    expect(button(host, "Add as beat")).toHaveLength(1);
+  });
+
   it("says so when a round brings back nothing new", async () => {
     runAiFeature.mockResolvedValue({ content: "" });
     mount({ category: "twist", request: async () => ({ action: "brainstormPlot", variables: {} }), meta: { kind: "test" }, taskLabel: "Ideas", pickLabel: "Add as beat" });

@@ -413,6 +413,7 @@
       "ideasLede": "Ideas for what happens next on this strand, from your book and the strand's beats so far. Add as beat puts one on the strand as a beat card, not yet on a chapter.",
       "applyNotes": "Apply {n} note | Apply {n} notes",
       "addAsBeat": "Add as beat",
+      "addedAsBeat": "Added",
       "empty": "The model didn't suggest anything new. Try again."
     }
   },
