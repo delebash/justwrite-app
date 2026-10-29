@@ -455,6 +455,12 @@ the kit's [`docs/app-structure.md`](https://github.com/delebash/just-core/blob/m
   graphics-card use booked with the kit's VRAM arbiter, its screens the kit's. An engine the kit
   doesn't have yet is a kit gap: it goes into the kit first and the app is built on it — never
   inside the app.
+- **A fork is brought up to date before we work on it.** Before any work on a fork we keep (today
+  our audio.cpp, github.com/delebash/audio.cpp; any fork a later app takes on), merge its upstream
+  into our branch, build it, and test the merged build in the app that runs it — the real app on its
+  real data (JustVoice: `npm run dev`) — then start the work. (The user, 2026-10-29: "before we do
+  any work on audio cpp nextime we should update the fork and test it in our app … this should be
+  true for any forks for futre apps that we may use".)
 - **Modern ES modules everywhere.** `.js` files with standard `import` — app and kit code,
   scripts, tests and tools alike — never `require`, `createRequire`, `.mjs` or `.cjs`. The only
   CommonJS is what a platform forces, named with its doc: Electron's sandboxed preload

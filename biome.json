@@ -48,6 +48,16 @@
 			}
 		},
 		{
+			"includes": ["src/**"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUndeclaredVariables": "error"
+					}
+				}
+			}
+		},
+		{
 			"includes": ["**/*.vue"],
 			"linter": {
 				"rules": {

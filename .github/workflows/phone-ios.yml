@@ -18,18 +18,18 @@ jobs:
       # The app needs the family kit and the sync engine beside it (server/package.json:
       # file:../../just-core/packages/core and file:../../just-sqlite-sync; quasar.config.js:
       # ../just-core/packages/ui), so all three are checked out side by side.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: justwrite-app
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: delebash/just-core
           path: just-core
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: delebash/just-sqlite-sync
           path: just-sqlite-sync
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -91,7 +91,7 @@ jobs:
         run: node phone-ios.js "$RUNNER_TEMP/ios"
       - name: Keep the screenshots and the logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-simulator
           path: |
