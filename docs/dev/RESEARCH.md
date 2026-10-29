@@ -515,6 +515,20 @@ toasts and hover tooltips were not opened; 147 strings matching book content wer
   compiles every English message through the app's vue-i18n and failed on exactly that one.
   The smoke didn't catch it: its routes are the list pages, which never show the message.
   — *found driving the sheet pages in a browser, 2026-10-16 (`b1c584b`)*.
+- **docgen's own translate on JustWrite (2026-10-29):** `npm run cli -- translate <config>` in docgen,
+  its local model on the card, did 99 strings (96 new, the 2 whose English changed, which it finds
+  itself through its cache of each translation's English) in 105 s and wrote es.json directly; its
+  confirmation pass flagged the 14 strings left identical to the English, with two suggestions, one
+  right ("US Letter" → "Carta EE. UU.") and one wrong ("Shift" → "Cambiar", the verb). A pass over the
+  run's short strings found what the model gets wrong: `export.unit.in` "in" → "en" (the preposition,
+  not inches), the sensitivity thresholds "Flag at …" → "Marcado en …" (a participle, not a
+  threshold), "Indexed {entries}." → "Indexado" (agreement), "Saved at {when}" → "Guardado en" (a
+  date takes "el"), and "guardado automático" where the catalog says "autoguardado" 21 times. Fixed
+  through docgen's `POST /v1/save`; the identical-on-purpose ones (units, sizes, names, key names)
+  through `accept`; then `check` exit 0, and every message of every catalog compiles
+  (messagesCompile.test.js, all catalogs since this run). docgen's `/v1/save` flags a target whose
+  end punctuation differs from the source's ("Carta EE. UU." ends in "."): "Carta" is the size's
+  Latin American name. — *the run's log and es.json, 2026-10-29.*
 
 ## Colours against the kit's token contract (2026-10-20)
 

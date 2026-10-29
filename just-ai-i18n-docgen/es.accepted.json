@@ -271,6 +271,14 @@
     "by": "Claude (AI review, 2026-10-17)",
     "at": "2026-10-18"
   },
+  "2b08bebd9267f489": {
+    "key": "keys.alt",
+    "code": "untranslated",
+    "src": "Alt",
+    "dst": "Alt",
+    "by": "Claude (2026-10-29, identical on purpose: units, sizes, names, keys)",
+    "at": "2026-10-29"
+  },
   "2b31788d8eb10402": {
     "key": "sidebar.footer.untitledAuthor",
     "code": "terminology",
@@ -294,6 +302,22 @@
     "dst": "Chat",
     "by": "Claude (AI review, 2026-10-17)",
     "at": "2026-10-18"
+  },
+  "2e6e842ea9ee0bd1": {
+    "key": "keys.ctrl",
+    "code": "untranslated",
+    "src": "Ctrl",
+    "dst": "Ctrl",
+    "by": "Claude (2026-10-29, identical on purpose: units, sizes, names, keys)",
+    "at": "2026-10-29"
+  },
+  "2f3fcccb343267a3": {
+    "key": "lede.ai-providers",
+    "code": "untranslated",
+    "src": "OpenAI, Claude, Ollama, LM Studio",
+    "dst": "OpenAI, Claude, Ollama, LM Studio",
+    "by": "Claude (2026-10-29, identical on purpose: units, sizes, names, keys)",
+    "at": "2026-10-29"
   },
   "3233a8f3895ddcb0": {
     "key": "settings.wbCategories.hint",
@@ -567,6 +591,14 @@
     "by": "Claude (AI review, 2026-10-17)",
     "at": "2026-10-18"
   },
+  "686e45c00b1a03a7": {
+    "key": "sidebar.brand.sub",
+    "code": "untranslated",
+    "src": "v{version}",
+    "dst": "v{version}",
+    "by": "Claude (2026-10-29, identical on purpose: units, sizes, names, keys)",
+    "at": "2026-10-29"
+  },
   "6f6214e45d675514": {
     "key": "foreshadowing.danglingCount",
     "code": "placeholder-changed",
@@ -807,6 +839,14 @@
     "by": "Claude (AI review, 2026-10-17)",
     "at": "2026-10-18"
   },
+  "a1f51bf04bf496dd": {
+    "key": "keys.shift",
+    "code": "untranslated",
+    "src": "Shift",
+    "dst": "Shift",
+    "by": "Claude (2026-10-29, identical on purpose: units, sizes, names, keys)",
+    "at": "2026-10-29"
+  },
   "a298fd08d6cf9eea": {
     "key": "marketingPack.pitchHeading",
     "code": "untranslated",
@@ -823,6 +863,14 @@
     "by": "Claude (AI review, 2026-10-17)",
     "at": "2026-10-18"
   },
+  "a332310e821a94a9": {
+    "key": "export.pageSizes.trim-5-25x8",
+    "code": "untranslated",
+    "src": "5.25 × 8 in",
+    "dst": "5.25 × 8 in",
+    "by": "Claude (2026-10-29, identical on purpose: units, sizes, names, keys)",
+    "at": "2026-10-29"
+  },
   "a9379bd37879a1f5": {
     "key": "readerKnowledge.status.neutral",
     "code": "untranslated",
@@ -830,6 +878,14 @@
     "dst": "Neutral",
     "by": "Claude (AI review, 2026-10-17)",
     "at": "2026-10-18"
+  },
+  "a9a069a4c03322ff": {
+    "key": "export.pageSizes.a5",
+    "code": "untranslated",
+    "src": "A5",
+    "dst": "A5",
+    "by": "Claude (2026-10-29, identical on purpose: units, sizes, names, keys)",
+    "at": "2026-10-29"
   },
   "aaa129f69b286763": {
     "key": "entitySweep.reviewFound",
@@ -927,6 +983,14 @@
     "by": "Claude (AI review, 2026-10-17)",
     "at": "2026-10-18"
   },
+  "bc2579c5defbb1a7": {
+    "key": "export.pageSizes.trim-6x9",
+    "code": "untranslated",
+    "src": "6 × 9 in",
+    "dst": "6 × 9 in",
+    "by": "Claude (2026-10-29, identical on purpose: units, sizes, names, keys)",
+    "at": "2026-10-29"
+  },
   "be0bfef25d0a499a": {
     "key": "richEditor.h3Glyph",
     "code": "untranslated",
@@ -982,6 +1046,14 @@
     "dst": "Redactado a partir de la prosa de la escena. Edítalo directamente si lo deseas y luego aplica los cambios. Un Resumen que ya hayas escrito aparece desmarcado, por lo que nada lo reemplazará a menos que lo marques.",
     "by": "Claude (AI review, 2026-10-17)",
     "at": "2026-10-18"
+  },
+  "c75dda163abdcc59": {
+    "key": "export.pageSizes.a4",
+    "code": "untranslated",
+    "src": "A4",
+    "dst": "A4",
+    "by": "Claude (2026-10-29, identical on purpose: units, sizes, names, keys)",
+    "at": "2026-10-29"
   },
   "c79b9ef20fa82154": {
     "key": "commandPalette.sub.import",
@@ -1103,6 +1175,14 @@
     "by": "Claude (AI review, 2026-10-17)",
     "at": "2026-10-18"
   },
+  "dbb6534581bbfb2c": {
+    "key": "lede.import-and-export",
+    "code": "untranslated",
+    "src": "PDF, DOCX, EPUB",
+    "dst": "PDF, DOCX, EPUB",
+    "by": "Claude (2026-10-29, identical on purpose: units, sizes, names, keys)",
+    "at": "2026-10-29"
+  },
   "dd9d93a50b76011b": {
     "key": "count.beat",
     "code": "untranslated",
@@ -1150,6 +1230,14 @@
     "dst": "Igual que Continuar, pero primero das una instrucción de una línea (\"Elena confronta a Marcus, pero él la esquiva con encanto\"). Los siguientes 2–4 párrafos siguen tu instrucción y mantienen la voz, el tiempo verbal y el punto de vista de lo anterior.",
     "by": "Claude (AI review, 2026-10-17)",
     "at": "2026-10-18"
+  },
+  "e6b822bb70a24627": {
+    "key": "export.pageSizes.trim-5x8",
+    "code": "untranslated",
+    "src": "5 × 8 in",
+    "dst": "5 × 8 in",
+    "by": "Claude (2026-10-29, identical on purpose: units, sizes, names, keys)",
+    "at": "2026-10-29"
   },
   "e7198e1218f8c584": {
     "key": "richEditor.superscriptGlyph",
@@ -1207,6 +1295,22 @@
     "by": "Claude (AI review, 2026-10-17)",
     "at": "2026-10-18"
   },
+  "f27cdf76699178f5": {
+    "key": "export.unit.in",
+    "code": "untranslated",
+    "src": "in",
+    "dst": "in",
+    "by": "Claude (2026-10-29, identical on purpose: units, sizes, names, keys)",
+    "at": "2026-10-29"
+  },
+  "f4c01c1bb7f2d4c7": {
+    "key": "export.unit.mm",
+    "code": "untranslated",
+    "src": "mm",
+    "dst": "mm",
+    "by": "Claude (2026-10-29, identical on purpose: units, sizes, names, keys)",
+    "at": "2026-10-29"
+  },
   "f4c07f8b5e820643": {
     "key": "readerKnowledge.povLabel",
     "code": "untranslated",
@@ -1238,6 +1342,14 @@
     "dst": "neutral",
     "by": "Claude (AI review, 2026-10-17)",
     "at": "2026-10-18"
+  },
+  "f905eb9be92a520f": {
+    "key": "export.pageSizes.trim-5-5x8-5",
+    "code": "untranslated",
+    "src": "5.5 × 8.5 in",
+    "dst": "5.5 × 8.5 in",
+    "by": "Claude (2026-10-29, identical on purpose: units, sizes, names, keys)",
+    "at": "2026-10-29"
   },
   "f9d2840e3c068cab": {
     "key": "versionHistory.sideB",

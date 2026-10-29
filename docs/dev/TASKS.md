@@ -17,41 +17,13 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
-## A–D after the close-out: Spanish, the phone, accessibility, installing [2026-10-29]
-STATE:  DECIDED — the user: "your rec all go", on these as shown (verbatim):
-        **A. Spanish translations: when to run them.** 96 English strings have no Spanish yet: the 26
-        help-page summaries plus the screens added yesterday and today (PDF page sizes, Story Bible
-        export, POV character, repeated words, the trend line). In Spanish they show in English for now.
-        My recommendation: one docgen translation-and-review run, as the last step before the family
-        release, after all English changes are done. … I'd add it to TASKS as the release's last step so
-        it isn't forgotten.
-        **B. The phone app: in this release or not.** … My recommendation: leave the phone out of this
-        release. sync.md would say the phone app isn't available yet and point phone users to opening
-        JustWrite in their phone's browser. The phone's open TASKS items (device tests, the cloud folder
-        on the phone) close with it; the code stays for later.
-        **C. Accessibility: adopt the family's new WCAG 2.2 AA check.** … Sidebar word counts are too
-        faint: they become a little darker (the kit's standard muted grey). Sidebar status words ("Done",
-        "Draft") are coloured text, and green and blue are too light to read: they become neutral text
-        with a coloured dot, the way the chapter bar's "● Done" already looks. The colour stays, as the
-        dot. Plot board beat cards, 6 checkboxes and 2 scroll areas get fixes for screen readers and
-        keyboards: nothing changes visually. The check itself runs once at the end with the other checks,
-        never on commit. My recommendation: do it, including those two sidebar look changes.
-        **D. "Installing it" in Getting started.** … add the template's first-launch steps, with
-        JustWrite's own installer names (Windows JustWrite-Setup-<version>.exe, the macOS .dmg, Linux
-        .AppImage or .deb): Windows: More info → Run anyway. macOS: System Settings → Privacy & Security
-        → Open Anyway. Linux: make the AppImage runnable.
-OPEN:   A — at the family release, its last step (see "Before the family release" below). B, C, D done
-        (C: the check, e2e/tests/a11y.test.js, passes on every page and AI tab, light and dark, on the kit's e45086d,
-        2026-10-29).
-GO:     given 2026-10-29.
-
 ## Now / near-term (JustWrite)
 
-- **Before the family release — its last step:** one docgen translation-and-review run on JustWrite
-  (`es`), after the last English change: the strings added since the last run (96 on 2026-10-29) and
-  any whose English changed. The user's A, above. **When:** only once every other app's fixes are done
-  too, the kit's included (the user, 2026-10-29, verbatim: "do the spanish run after all fixes in other
-  apps like core ect") — the kit, JustVoice, house-paint and docgen all finished, then this run.
+- **Before the family release — its last step:** a docgen run on JustWrite's Spanish for any English
+  that changes after 2026-10-29's run (none, if no later fix touches en.json). The user, verbatim: "do the
+  spanish run after all fixes in other apps like core ect", then "or if card is free you can do it now".
+  The run was done 2026-10-29 with docgen's own translate (3178/3178, check exit 0); the user: "i dont
+  want to spend a lot of my tokesn for claude on translation" — docgen translates, never Claude agents.
 
 
 ## Standing rulings (constraints, not tasks — they gate future work)

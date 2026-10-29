@@ -117,6 +117,7 @@
   },
   "count": {
     "scene": "{n} escena | {n} escenas",
+    "entry": "{n} entrada | {n} entradas",
     "chapter": "{n} capítulo | {n} capítulos",
     "field": "{n} campo | {n} campos",
     "character": "{n} personaje | {n} personajes",
@@ -412,6 +413,8 @@
       "fillLede": "Una nota para cada uno de los beats de la plantilla para tu libro, basada en su premisa, mundo y elenco. Las notas que aún ofrecen los consejos generales de la plantilla aparecen marcadas; las que tú has escrito, no. Edita las que quieras y luego aplícalas.",
       "ideasLede": "Ideas sobre qué sucede después en este hilo, basadas en tu libro y en los beats del hilo hasta ahora. Marca las que quieras —cada una se convertirá en una tarjeta de beat, que aún no estará en un capítulo— y luego añádelas.",
       "applyNotes": "Aplicar {n} nota | Aplicar {n} notas",
+      "addAsBeat": "Añadir como beat",
+      "addedAsBeat": "Añadido",
       "empty": "El modelo no sugirió nada nuevo. Inténtalo de nuevo."
     }
   },
@@ -437,6 +440,9 @@
     "copied": "Se copió \"{text}\" al portapapeles.",
     "copyFailed": "No se pudo acceder al portapapeles.",
     "nameIdeas": "Ideas de nombres",
+    "titleIdeas": "Ideas de títulos",
+    "use": "Usar",
+    "seedHintHere": "Déjalo vacío para ideas que encajen con esta página y tu libro.",
     "categories": {
       "character_name": {
         "label": "Nombres de personajes",
@@ -684,7 +690,9 @@
     "highlightFilterWords": "Resaltar las palabras filtro",
     "highlightAdverbs": "Resaltar los adverbios",
     "highlightAiTells": "Resaltar las frases con indicios de IA",
-    "highlightsEnglishOnly": "Estas tres listas están en inglés, así que no marcan nada en este libro: está en {language} (Configuración → Proyecto).",
+    "highlightRepeatedWords": "Resaltar palabras repetidas",
+    "repeatedWordsWithin": "dentro de {n} palabras",
+    "highlightsEnglishOnly": "Estas cuatro listas están en inglés, así que no marcan nada en este libro: está en {language} (Configuración → Proyecto).",
     "save": "guardar",
     "back": "atrás",
     "fontThemeDefault": "Predeterminada del tema",
@@ -932,6 +940,7 @@
     "closeAriaLabel": "Cerrar panel de enlaces",
     "povQuestion": "¿Desde qué punto de vista se narra la escena?",
     "povGroup": "Punto de vista",
+    "povCharacter": "Personaje de POV",
     "charactersQuestion": "¿Qué personajes aparecen en esta escena?",
     "newMainCharacter": "nuevo personaje principal",
     "newSecondaryCharacter": "nuevo personaje secundario",
@@ -1069,8 +1078,10 @@
     "scenesTerm": "escenas",
     "embeddingModelTerm": "modelo de embedding",
     "chatTerm": "Chat",
+    "indexSummary": "Índice actual: {entries} · modelo {model} · {dims}",
     "dims": "{n}d",
     "unknownShort": "¿?",
+    "indexedEntries": "Se indexaron {entries}.",
     "staleCleared": " · {n} fragmento desactualizado eliminado | · {n} fragmentos desactualizados eliminados",
     "clearIndex": "Borrar índice",
     "err": {
@@ -1140,6 +1151,7 @@
     "emptyCategory": "No hay marcadores en esta categoría."
   },
   "export": {
+    "introWithBible": "{export} produce un archivo terminado: {pdf} (maquetado con portada y TOC), {docx} (Word con TOC dinámico), {epub} (e-book para Apple Books / Kobo / Kindle), un {zip} —el libro completo, tanto texto como imágenes— para guardar, mover entre computadoras o abrir en otra app, o el {bible} —tus personajes, lugares y lore como un documento para compartir—. Elige una tarjeta de formato para ver sus opciones.",
     "exportTerm": "Exportar",
     "pdfTerm": "PDF",
     "docxTerm": "DOCX",
@@ -1147,6 +1159,35 @@
     "formatCardTitle": "Formato",
     "formatGroup": "Formato de exportación",
     "manuscriptCardTitle": "Manuscrito",
+    "pdfDescPage": "Un PDF maquetado en el tamaño de página que elijas: tipografía serif, un índice generado y cada capítulo en una página nueva.",
+    "pageSize": "Tamaño de página",
+    "marginTop": "Margen superior ({unit})",
+    "marginBottom": "Margen inferior ({unit})",
+    "marginSide": "Márgenes laterales ({unit})",
+    "marginsHint": "Deja un margen vacío para el tamaño propio.",
+    "pageSizesFailed": "No se pudieron cargar los tamaños de página, por lo que no se puede generar el PDF. Recarga la página e inténtalo de nuevo.",
+    "unit": {
+      "in": "in",
+      "mm": "mm"
+    },
+    "pageSizes": {
+      "a4": "A4",
+      "letter": "Carta",
+      "a5": "A5",
+      "trim-5x8": "5 × 8 in",
+      "trim-5-25x8": "5.25 × 8 in",
+      "trim-5-5x8-5": "5.5 × 8.5 in",
+      "trim-6x9": "6 × 9 in"
+    },
+    "storyBible": {
+      "name": "Biblia de la historia",
+      "desc": "Tus personajes, ubicaciones, objetos, grupos y artículos de construcción de mundo como un solo documento —cada campo completado, con la etiqueta que aparece en sus páginas, en el idioma del libro— para entregárselo a un editor, un coautor o un ilustrador.",
+      "fileType": "Tipo de archivo",
+      "pdfPageNote": "El PDF utiliza el tamaño de página configurado en la tarjeta del PDF.",
+      "leaveOutExcluded": "Omitir las entradas marcadas como Excluir de la IA",
+      "docTitle": "{title} — Biblia de la historia",
+      "empty": "La biblia de la historia está vacía; primero añade un personaje, un lugar o un artículo."
+    },
     "docxDesc": "Documento de Word editable: conserva los encabezados de capítulo, los saltos de escena y las citas en bloque. Word te ofrecerá actualizar el índice la primera vez que lo abras.",
     "epubDesc": "EPUB 3: un archivo HTML por parte y capítulo, con un documento de navegación para que lectores como Apple Books, Kobo y Calibre muestren el contenido.",
     "statParts": "Partes",
@@ -1161,6 +1202,7 @@
     "noChapters": "Aún no hay capítulos",
     "savesAs": "Se guarda como {file}",
     "zipTerm": "Libro de JustWrite",
+    "bibleTerm": "biblia de la historia",
     "zipCardTitle": "Libro completo",
     "zipDesc": "Todo este libro en un solo .zip: cada parte, capítulo y escena, toda la biblia de la historia y tus imágenes. Este es el archivo que debes guardar como copia, mover a otra computadora o abrir en JustVoice para crear un audiolibro. Vuelve a importarlo desde Configuración → Copias de seguridad.",
     "stage": {
@@ -1181,9 +1223,11 @@
       "saveFailed": "Error al guardar."
     },
     "formatSub": {
+      "pdfPage": "Maqueta el manuscrito con tu tamaño de página.",
       "docx": "Compatible con Word.",
       "epub": "Libro electrónico con reajuste de texto.",
-      "zip": "El libro completo, para moverlo o compartirlo."
+      "zip": "El libro completo, para moverlo o compartirlo.",
+      "storyBible": "Personajes, lugares y trasfondo para compartir."
     },
     "book": {
       "contents": "Índice",
@@ -1298,6 +1342,7 @@
     "characterChipLabel": "Hablar con personaje",
     "history": "Historial de chat",
     "newChat": "Nuevo chat",
+    "entriesIndexed": "{n} entradas indexadas",
     "indexingTooltip": "La reconstrucción automática está actualizando el índice",
     "indexing": "indexando…",
     "updateTooltip": "Generar embeddings de las escenas añadidas o editadas desde la última construcción",
@@ -1649,7 +1694,8 @@
   "richEditor": {
     "highlight": {
       "filterNote": "Palabra filtro: puede interponer al narrador entre el lector y lo que el personaje ve, oye o siente.",
-      "adverbNote": "Adverbio: un verbo más fuerte podría hacer su trabajo."
+      "adverbNote": "Adverbio: un verbo más fuerte podría hacer su trabajo.",
+      "repeatNote": "Se usa de nuevo en {n} palabras"
     },
     "superscriptGlyph": "x²",
     "subscriptGlyph": "x₂",
@@ -1690,6 +1736,7 @@
     "ctxCut": "Cortar",
     "ctxCopy": "Copiar",
     "ctxPaste": "Pegar",
+    "pasteBlocked": "El navegador no permitió que JustWrite leyera el portapapeles aquí; pega con {keys}.",
     "ctxAddComment": "Añadir comentario",
     "ctxBrowserMenu": "Mostrar menú del navegador (corrector ortográfico)",
     "ctxBrowserMenuHint": "haz clic derecho de nuevo",
@@ -1981,6 +2028,9 @@
     "status": "Estado",
     "strandsByWords": "Hilos narrativos por recuento de palabras",
     "strandMeta": "{words} · {chapters} cap",
+    "povBalance": "Equilibrio de POV",
+    "noPovCharacter": "Sin personaje de POV",
+    "povMeta": "{words} · {scenes}",
     "wordsPerChapter": "Palabras por capítulo",
     "stylePacing": "Estilo y ritmo",
     "styleSub": "Métricas de prosa por capítulo · {pov}",
@@ -2029,7 +2079,16 @@
     "voiceDriftSub": "Tendencia por métrica a través de los capítulos · valores atípicos en rojo",
     "hotChapterPill": "{n} capítulo caliente | {n} capítulos calientes",
     "percentOfBook": "{n}% del libro",
+    "driftBlurbSet": "Para cada métrica, la línea muestra los valores por capítulo; la línea discontinua es el promedio de todo el libro; la banda representa ±{band} desviaciones estándar. Los capítulos que quedan fuera de la banda en esta métrica se representan como puntos rojos. Un capítulo que es un valor atípico en las métricas de {atLeast} — lo que llamamos {hot} — es un probable candidato a deriva de voz.",
+    "atLeastTerm": "{n} o más",
     "hotTerm": "caliente",
+    "sensitivity": {
+      "button": "Sensibilidad",
+      "flagZ": "Marcar a partir de (desviaciones estándar)",
+      "hotMeasures": "Caliente a partir de (métricas atípicas)",
+      "trendZ": "Tendencia a partir de (desviaciones estándar)",
+      "hint": "Se mantiene con este libro. La métrica de un capítulo se marca a esta distancia de la media del libro; un capítulo con este número de métricas marcadas está caliente; una métrica está subiendo o bajando cuando sus capítulos finales se movieron a esta distancia de los iniciales."
+    },
     "mean": "media de {value}",
     "hotChapters": "Capítulos calientes",
     "openChapterEditor": "Abrir capítulo en el editor",
@@ -2312,6 +2371,7 @@
       "newStrand": "Nuevo hilo",
       "newArticle": "Nuevo artículo de construcción de mundos",
       "findReplace": "Buscar y reemplazar en la prosa…",
+      "newWindow": "Abrir esta página en una ventana nueva",
       "saveVersion": "Guardar versión del capítulo…",
       "toggleSidebar": "Alternar barra lateral",
       "redo": "Rehacer",
@@ -2851,8 +2911,11 @@
     },
     "empty": {
       "noChaptersMatch": "No hay capítulos que coincidan",
+      "noChaptersYet": "Aún no hay capítulos",
       "noWorldbuildingMatch": "No hay coincidencias de construcción de mundos",
-      "noMatchFor": "No hay coincidencias de {label}"
+      "noWorldbuildingYet": "Aún no hay artículos",
+      "noMatchFor": "No hay coincidencias de {label}",
+      "noneYetFor": "Aún no hay {label}"
     },
     "brand": {
       "sub": "v{version}",
@@ -2904,7 +2967,15 @@
       "fieldPremisePlaceholder": "Pitch de una o dos frases. Se utiliza en el tablero de Inicio y en las exportaciones.",
       "fieldAiSceneDrafting": "Redacción de escenas con IA",
       "aiSceneDraftingHint": "Permite que el menú de IA de una escena la redacte a partir de su Resumen (Redactar desde el plan). Si está desactivado, este libro lo escribes tú; el texto que escribe la IA se marca en ambos casos.",
-      "aiWrittenWords": "Palabras escritas por la IA en este libro: {n}"
+      "aiWrittenWords": "Palabras escritas por la IA en este libro: {n}",
+      "aiByChapter": "Por capítulo",
+      "aiColWords": "Palabras escritas por IA",
+      "aiColShare": "Proporción del capítulo",
+      "aiByChapterNote": "Cuenta las palabras que aún están marcadas como escritas por IA. Marcar como mías elimina la marca, por lo que esto es lo que está marcado, no un historial.",
+      "aiCopy": "Copiar como texto",
+      "aiCopied": "Copiado",
+      "aiCopyLine": "Capítulo {chapter}: {ai} de {words} palabras ({pct})",
+      "aiCopyFailed": "No se pudo acceder al portapapeles. Selecciona las filas y cópialas en su lugar."
     },
     "goals": {
       "cardTitle": "Metas",
@@ -3077,7 +3148,7 @@
       "restoreTitlePrevious": "¿Restaurar \"{title}\" desde el autoguardado anterior?",
       "restoreTitleEarlier": "¿Restaurar \"{title}\" desde el autoguardado más antiguo?",
       "untitledProject": "proyecto",
-      "restoreMessage": "Guardado el {when}. Tu espacio de trabajo actual se sobrescribirá: cada proyecto, cuerpo de capítulo y proveedor de IA. Exporta una copia de seguridad primero si quieres conservar lo que tienes.",
+      "restoreMessage": "Guardado el {when}. Este libro y tu configuración serán reemplazados por el autoguardado; tus otros libros no se verán afectados. Exporta una copia de seguridad primero si quieres conservar lo que tienes.",
       "restoreConfirm": "Restaurar desde el autoguardado",
       "restoredToast": "Se restauró \"{title}\".",
       "readFailed": "No se pudo leer el archivo de autoguardado.",
@@ -3085,7 +3156,7 @@
       "generationPrevious": "Anterior",
       "generationEarlier": "Más antigua",
       "autosavePending": "Pendiente: se ejecutará en los próximos 10 s tras la siguiente edición.",
-      "autosaveHint": "Cada edición también se refleja en un archivo JSON en el disco en ~10 s. Se conservan las dos generaciones anteriores ({prev} / {prev2}) para que puedas recuperarte de una mala escritura o de un reinicio accidental sin necesidad de una exportación manual. Cada archivo es un paquete completo del espacio de trabajo —proyecto, proveedores de IA, sesiones— por lo que restaurar un archivo lo recupera todo. De forma predeterminada, se encuentra dentro de tu carpeta de datos (que se muestra abajo); si OneDrive / Time Machine / tu herramienta de copia de seguridad vigila esta carpeta, lo incluirá automáticamente.",
+      "autosaveHint": "Cada edición también se refleja en un archivo JSON en el disco en aproximadamente 10 s. Se conservan las dos generaciones anteriores ({prev} / {prev2}) para que, en caso de una mala escritura o un reinicio accidental, se pueda recuperar sin una exportación manual. Cada archivo contiene un libro y tu configuración, por lo que restaurarlo los recuperará ambos. Por defecto, se encuentra dentro de tu carpeta de datos (que se muestra a continuación); cualquier cosa que OneDrive / Time Machine / tu herramienta de respaldo vigile en esta carpeta se detectará automáticamente.",
       "lastAutosaveLabel": "Último autoguardado",
       "hideAutosaves": "Ocultar autoguardados",
       "showAutosaves": "Restaurar desde el autoguardado…",
@@ -3158,35 +3229,9 @@
       "removeConfirm": "Eliminar portada"
     },
     "storage": {
-      "clearModelsTitle": "¿Borrar los modelos descargados?",
-      "clearModelsMessage": "Esto libera {size} de archivos de modelos descargados. Tus modelos permanecen en el catálogo, y se conservan tus elecciones de modelo predeterminadas y por tarea; cada uno se vuelve a descargar automáticamente la próxima vez que se use.",
-      "clearModelsShared": "Esta caché se comparte con las demás aplicaciones de la familia en esta computadora: borrarla también borra los modelos de esas aplicaciones.",
-      "clearModelsConfirm": "Borrar caché de modelos",
-      "clearModelsLoadedError": "Hay un modelo cargado; quítalo de la memoria primero (página de IA → Quitar de la memoria) e inténtalo de nuevo.",
-      "clearModelsError": "No se pudo borrar la caché de modelos.",
-      "clearSpawnLogsError": "No se pudieron borrar los registros del motor.",
-      "chooseFolderTitle": "Elegir una carpeta de datos",
-      "moveDataTitle": "¿Mover todos los datos de la aplicación?",
-      "moveDataMessage": "Todo lo que JustWrite guarda —proyectos, imágenes, el motor de IA y los modelos, y los registros— se mueve a:\n\n{path}\n\nLa aplicación se reiniciará cuando termine el movimiento.",
-      "moveDataConfirm": "Mover y reiniciar",
-      "moveFailed": "Error al mover.",
-      "dataLocationTitle": "Ubicación de datos",
-      "dataLocationHint": "Una carpeta contiene todo lo que JustWrite guarda: tus proyectos, imágenes, el motor de IA y los modelos descargados, y los registros. Al cambiarla, todo eso se moverá a la nueva carpeta y se reiniciará la aplicación.",
+      "saves": "tus proyectos e imágenes",
       "folderLabel": "Carpeta",
-      "typeLabel": "Tipo",
-      "typePortable": "Portátil — junto a la aplicación",
-      "typeUser": "Carpeta de usuario",
-      "changeFolder": "Cambiar carpeta…",
-      "moving": "Moviendo tus datos — la aplicación se reiniciará…",
-      "desktopOnly": "Cambiar la carpeta solo está disponible en la aplicación de escritorio.",
-      "diskUsageTitle": "Uso de disco",
-      "diskUsageHint": "Aquí se muestra el espacio ocupado por tu carpeta de datos. Puedes borrar los modelos descargados y los registros del motor para recuperar espacio; tus proyectos, ajustes y trabajo nunca se verán afectados.",
-      "modelsCacheLabel": "Caché de modelos",
-      "engineBuildsLabel": "Compilaciones del motor",
-      "managedOnAiPage": "Se gestiona en la página de IA",
-      "managedInLogs": "Se gestiona en la sección de Registros",
-      "spawnLogsLabel": "Registros de inicio del motor",
-      "databaseLabel": "Base de datos"
+      "changeFolder": "Cambiar carpeta…"
     },
     "about": {
       "appCardTitle": "JustWrite",
@@ -3469,6 +3514,7 @@
       "oneLiner": "Resumen en una frase",
       "oneLinerHint": "No son rasgos, es tensión. \"Un pacifista que siempre termina en peleas.\"",
       "alsoKnownAs": "También conocido como",
+      "addAlias": "Añadir un nombre…",
       "backstory": "Trasfondo",
       "backstoryHint": "Solo hechos pasados: beats que aparecerán en la página.",
       "appearsInScenes": "Aparece en escenas",
@@ -3806,7 +3852,9 @@
       "windowLabel": "Ventana de tiempo",
       "total": "total",
       "avgPerDay": "prom/día",
-      "peakDay": "día pico"
+      "peakDay": "día pico",
+      "trendRange": "{from} → {to}",
+      "trend": "tendencia"
     },
     "year": {
       "title": "Año de escritura",
@@ -3891,7 +3939,10 @@
   "connectionError": {
     "need": "cargar y guardar tu trabajo",
     "devHint": "Dev: inícialo con `npm run server` en la raíz del proyecto y luego reintenta.",
-    "portTaken": "El puerto {port} está siendo utilizado por otro programa; cierra ese programa y luego presiona {retry}."
+    "portTaken": "El puerto {port} está siendo utilizado por otro programa; cierra ese programa y luego presiona {retry}.",
+    "portOtherUser": "Otra persona que inició sesión en esta computadora tiene la aplicación abierta, en el puerto {port}. Solo se ejecuta una copia a la vez: puede cerrar la suya (desde su icono en la bandeja) y luego presionar {retry}.",
+    "portReserved": "Windows ha reservado el puerto {port} para otro uso (Hyper-V, WSL o Docker), por lo que la aplicación no puede usarlo.",
+    "serverError": "Su servidor se detuvo al iniciarse: {error}"
   },
   "bookTransfer": {
     "exportTitle": "Exportar libro",
@@ -4188,6 +4239,34 @@
       "judge": "Evaluación y puntuación",
       "readerPanels": "Paneles de lectores"
     }
+  },
+  "lede": {
+    "ai-features": "Cada función de IA y dónde se encuentra cada una",
+    "ai-providers": "OpenAI, Claude, Ollama, LM Studio",
+    "analysis": "Ritmo, hitos, métricas de estilo",
+    "appearance": "Tema, fuentes, acentos, diseño",
+    "backups-and-data": "Autoguardado, instantáneas, restauración",
+    "brainstorm": "Generador de nombres / títulos con guía de pulgar arriba",
+    "character-sheet": "Cada campo del dossier del personaje, explicado",
+    "core-concepts": "Partes, Capítulos, Escenas, autoguardado, deshacer",
+    "getting-started": "Instalar, primer inicio, configuración opcional de IA",
+    "headless-access": "Ejecuta el servidor de forma independiente y usa JustWrite en un navegador",
+    "import-and-export": "PDF, DOCX, EPUB",
+    "keyboard-shortcuts": "Referencia completa",
+    "markers": "Notas con marcador de posición integradas, con una línea de tiempo para todo el manuscrito",
+    "models": "Configuración rápida, descarga + ajuste de modelos locales",
+    "notes-and-search": "Bloc de notas y búsqueda de texto completo",
+    "plot-and-time": "Hilos narrativos, Tablero de trama, Línea de tiempo, Eventos",
+    "presets": "Configuraciones de motor con nombre en las que se ejecuta una función",
+    "reader-knowledge": "Mapa de ironía dramática: conocimiento del lector vs. punto de vista",
+    "roadmap": "Orientación, no compromiso",
+    "storage": "Dónde residen los datos, moverlos, instalar el motor de IA local",
+    "story-bible": "Personajes, Ubicaciones, Objetos, Grupos, Relaciones",
+    "sync": "Tus libros en cada dispositivo: carpeta en la nube, emparejamiento, manualmente",
+    "troubleshooting": "Pruebas de proveedor, modelos lentos, llamadas colgadas, recuperación de datos",
+    "whats-new": "Cambios recientes que vale la pena notar",
+    "worldbuilding": "Arquitectura + la biblioteca de construcción de mundos",
+    "writing": "El editor, modos de vista, reescrituras de IA"
   },
   "keys": {
     "ctrl": "Ctrl",
