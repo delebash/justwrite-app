@@ -357,7 +357,7 @@ Text the AI writes — Draft from plan, Continue, Continue with direction…, Wr
 - **It stays true as you revise.** Words you type — inside an AI passage too — are yours and lose the colour; the AI's words around them keep it. Deleting AI words removes them; copying and pasting AI text keeps its mark; Undo brings it back.
 - **Mark as mine** (AI dropdown → **Clean up**) clears the mark from the selection, or from the whole scene when nothing is selected — for passages you've made your own without retyping them.
 - **Highlight AI-written text** in the editor's **Writing settings** turns the colour off on this device; the marks stay.
-- **Settings → Project** shows how many of the book's words the AI wrote and are still there — the record you'll want if a publisher asks. Read mode and every export show plain text.
+- **Settings → Project** shows how many of the book's words the AI wrote and are still there — the record you'll want if a publisher asks. **By chapter** under it lists each chapter that has some, with its share of the chapter, and **Copy as text** puts that list on the clipboard to paste into a form. It counts what is still marked, not a history: Mark as mine clears a mark. Read mode and every export show plain text.
 
 ### Unstuck — five ways out
 

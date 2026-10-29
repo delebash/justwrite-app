@@ -6,6 +6,15 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-28
 
+**AI-written words, chapter by chapter.** Under the count of AI-written words in **Settings →
+Project**, **By chapter** lists the chapters that have some, with each one's share of its chapter,
+and **Copy as text** puts the list on the clipboard — for a publisher's question about AI-generated
+text. It counts the words still marked; Mark as mine clears a mark. See
+[Writing](writing.md#ai-written-text-the-ais-words-marked).
+
+**Settings → Project on a phone.** Each label now sits above its field, which gets the whole width;
+before, the labels took a column of their own and the fields a third of the screen.
+
 **Export your story bible.** A fifth card on the Export page, **Story bible**, makes your characters,
 locations, objects, groups and worldbuilding articles into one Word document or PDF — every filled
 field under its page's label — to hand an editor, a co-author or an illustrator. Tick **Leave out

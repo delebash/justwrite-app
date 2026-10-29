@@ -66,6 +66,9 @@ const numberFormats = {
   oneDecimal: { minimumFractionDigits: 1, maximumFractionDigits: 1 },
   // a ratio as a whole percent (0.31 → "31%")
   percent: { style: "percent" },
+  // a small ratio, one decimal shown (0.0022 → "0.2%") — a whole percent would read a few AI-written
+  // words in a long chapter as "0%"
+  percentOneDecimal: { style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1 },
 };
 const everyLanguage = (formats) => Object.fromEntries(AVAILABLE_LOCALES.map(({ code }) => [code, formats]));
 

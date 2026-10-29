@@ -112,6 +112,13 @@ helper beside `bookAiWrittenWords`) · `docs/writing.md`'s AI scene drafting par
 the switch and Mark as mine are; the count itself isn't in the user docs yet) · a unit test of the
 helper · a flow on the breakdown.
 
+**Built 2026-10-28.** `chapterAiWrittenWords` beside the book's count; the share shows one decimal
+(a new shared number format, `percentOneDecimal`, in `src/i18n/index.js`), because a whole percent
+read a few words in a long chapter as "0%". Building it on a phone showed that Settings → Project
+squeezed every field into a third of the screen: its 160px label column now stacks over the fields
+under Quasar's sm breakpoint (`.proj-fields`). The table's column names wrap so its three columns fit
+on a phone.
+
 ## 3. Story Bible export
 
 **Today.** The book `.zip` holds the whole story bible, but only JustWrite reads it. There's no way to

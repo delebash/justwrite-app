@@ -2990,7 +2990,15 @@
       "fieldPremisePlaceholder": "One- or two-sentence pitch. Used on the Home dashboard and exports.",
       "fieldAiSceneDrafting": "AI scene drafting",
       "aiSceneDraftingHint": "Lets a scene's AI menu draft it from its Summary (Draft from plan). Off keeps this book written by you; text the AI writes is marked either way.",
-      "aiWrittenWords": "AI-written words in this book: {n}"
+      "aiWrittenWords": "AI-written words in this book: {n}",
+      "aiByChapter": "By chapter",
+      "aiColWords": "AI-written words",
+      "aiColShare": "Share of the chapter",
+      "aiByChapterNote": "Counts the words still marked as AI-written. Mark as mine clears a mark, so this is what's marked, not a history.",
+      "aiCopy": "Copy as text",
+      "aiCopied": "Copied",
+      "aiCopyLine": "Chapter {chapter}: {ai} of {words} words ({pct})",
+      "aiCopyFailed": "Couldn't reach the clipboard. Select the rows and copy them instead."
     },
     "goals": {
       "cardTitle": "Goals",

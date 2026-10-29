@@ -28,7 +28,7 @@ import { LanguagePicker, languageOptionsFrom } from "@delebash/ui";
 import { LANGUAGE_CODES } from "@delebash/core/platform/languages";
 import { UiButton } from "@delebash/ui";
 import { UiToggle } from "@delebash/ui";
-import { bookAiWrittenWords } from "../services/aiText.js";
+import { bookAiWrittenWords, chapterAiWrittenWords } from "../services/aiText.js";
 import { titleIdeasRequest } from "../services/analysis/titleIdeas.js";
 import BrainstormPopup from "../components/BrainstormPopup.vue";
 import { UiColorPicker } from "@delebash/ui";
@@ -51,6 +51,7 @@ import { useI18n } from "vue-i18n";
 import { UiTag } from "@delebash/ui";
 import { UiTable } from "@delebash/ui";
 import { UiSegmented } from "@delebash/ui";
+import { reportError } from "@delebash/ui";
 
 const props = defineProps({ section: { type: String, default: "" } });
 
@@ -58,7 +59,7 @@ const ai = useAiStore();
 const project = useProjectStore();
 const ui = useUiStore();
 
-const { t, d: fmtDate, locale } = useI18n({ useScope: "global" });
+const { t, d: fmtDate, n: fmtNumber, locale } = useI18n({ useScope: "global" });
 // The language picker's list: the app's catalogs (the kit's LanguagePicker names each language
 // and switches vue-i18n; the ui store keeps the choice).
 const LOCALE_CODES = AVAILABLE_LOCALES.map((l) => l.code);
@@ -248,6 +249,34 @@ function setMeta(key, value) {
 // The per-book record of AI-written text (the AI-text mark, 2026-10-18): words in the book's
 // scenes the AI wrote and the writer hasn't retyped or marked as their own.
 const aiWrittenWords = computed(() => bookAiWrittenWords(project));
+// …and chapter by chapter (2026-10-28, docs/plans/2026-10-28-four-feature-ideas.md §2): the chapters
+// with marked words, each with its share of the chapter, and the list as plain text to paste into a
+// publisher's form. It's what is still marked, not a history — Mark as mine clears a mark.
+const aiByChapterOpen = ref(false);
+const aiChapterRows = computed(() => (aiByChapterOpen.value ? chapterAiWrittenWords(project) : []));
+const aiChapterColumns = computed(() => [
+  { accessorKey: "title", header: t("common.chapter") },
+  { accessorKey: "ai", header: t("settings.project.aiColWords"), headerStyle: "text-align:right", cellStyle: "text-align:right" },
+  { accessorKey: "share", header: t("settings.project.aiColShare"), headerStyle: "text-align:right", cellStyle: "text-align:right" },
+]);
+const aiShare = (row) => (row.words ? row.ai / row.words : 0);
+const aiCopied = ref(false);
+async function copyAiByChapter() {
+  const lines = aiChapterRows.value.map((r) => t("settings.project.aiCopyLine", {
+    chapter: r.title ? `${r.num}. ${r.title}` : String(r.num),
+    ai: fmtNumber(r.ai),
+    words: fmtNumber(r.words),
+    pct: fmtNumber(aiShare(r), "percentOneDecimal"),
+  }));
+  const text = [t("settings.project.aiWrittenWords", { n: fmtNumber(aiWrittenWords.value) }), ...lines].join("\n");
+  try {
+    await navigator.clipboard.writeText(text);
+    aiCopied.value = true;
+    setTimeout(() => { aiCopied.value = false; }, 2000);
+  } catch {
+    reportError(new Error(t("settings.project.aiCopyFailed")));
+  }
+}
 // The book's language (the editor-expansion plan's piece 2): the family's languages, named in the
 // interface's language; a book's own language stays listed even when the list lacks it (an import).
 const bookLanguageOptions = computed(() => {
@@ -680,7 +709,7 @@ async function deleteCategory(c) {
             <p class="t-muted" style="font-size:12px;margin:0 0 14px;line-height:1.55">
               {{ $t('settings.project.editsUndoHint') }}
             </p>
-            <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
+            <div class="proj-fields">
               <span class="t-muted">{{ $t('settings.project.fieldTitle') }}</span>
               <!-- Title ideas (2026-10-28): Brainstorm's Titles at the book's title -->
               <div style="display:flex;align-items:center;gap:8px;min-width:0">
@@ -726,12 +755,29 @@ async function deleteCategory(c) {
                   @update:model-value="(v) => setMeta('aiSceneDrafting', !!v)" />
                 <span class="t-muted" style="font-size:11.5px;max-width:60ch">{{ $t('settings.project.aiSceneDraftingHint') }}</span>
                 <span class="t-muted" style="font-size:11.5px">{{ $t('settings.project.aiWrittenWords', { n: $n(aiWrittenWords) }) }}</span>
+                <!-- …chapter by chapter, with the words to paste into a publisher's form (2026-10-28) -->
+                <template v-if="aiWrittenWords > 0">
+                  <UiButton intent="secondary" size="small" :aria-expanded="aiByChapterOpen" @click="aiByChapterOpen = !aiByChapterOpen">
+                    {{ $t('settings.project.aiByChapter') }}
+                  </UiButton>
+                  <div v-if="aiByChapterOpen" class="ai-by-chapter">
+                    <UiTable :data="aiChapterRows" data-key="chapterId" :columns="aiChapterColumns">
+                      <template #title="{ row }"><b>{{ row.num }}</b>{{ row.title ? `. ${row.title}` : "" }}</template>
+                      <template #ai="{ value }">{{ $n(value) }}</template>
+                      <template #share="{ row }">{{ $n(aiShare(row), 'percentOneDecimal') }}</template>
+                    </UiTable>
+                    <span class="t-muted" style="font-size:11.5px;max-width:60ch">{{ $t('settings.project.aiByChapterNote') }}</span>
+                    <UiButton intent="secondary" size="small" @click="copyAiByChapter">
+                      {{ aiCopied ? $t('settings.project.aiCopied') : $t('settings.project.aiCopy') }}
+                    </UiButton>
+                  </div>
+                </template>
               </div>
             </div>
           </div>
           <div class="card">
             <div class="card-title">{{ $t('settings.goals.cardTitle') }}</div>
-            <div style="display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px 14px;font-size:13px;align-items:center">
+            <div class="proj-fields">
               <span class="t-muted" style="align-self:start;padding-top:8px">{{ $t('settings.goals.wordGoal') }}</span>
               <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0">
                 <UiNumber :min="0" :step="500" style="max-width:160px"
@@ -1759,6 +1805,20 @@ async function deleteCategory(c) {
 /* Font field selects */
 .field { display: flex; flex-direction: column; gap: 5px; min-width: 180px; }
 .field-l { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+/* Settings → Project's labelled rows: the label beside its field — and on a phone (under Quasar's
+   sm breakpoint, $breakpoint-xs-max) each label over its field, where the 160px label column left
+   the fields a third of the screen (2026-10-28) */
+.proj-fields { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 10px 14px; font-size: 13px; align-items: center; }
+@media (max-width: 599.98px) {
+  .proj-fields { grid-template-columns: minmax(0, 1fr); gap: 4px 14px; }
+}
+/* the AI-written words by chapter: the table as wide as what it holds, its note and Copy under it;
+   a table wider than the screen scrolls sideways in its own box */
+.ai-by-chapter { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: 100%; min-width: 0; }
+.ai-by-chapter > :first-child { max-width: 100%; overflow-x: auto; }
+.ai-by-chapter :deep(.ui-table) { width: auto; }
+/* its column names are long for a phone: they wrap, so the three columns fit */
+.ai-by-chapter :deep(.ui-table th) { white-space: normal; }
 .field-hint { font-size: 10.5px; color: var(--muted); line-height: 1.4; margin: 1px 0 0; }
 
 /* Size-row hint — wraps to its own line beneath the segmented control. */

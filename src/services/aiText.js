@@ -22,3 +22,18 @@ export function bookAiWrittenWords(project) {
   }
   return n;
 }
+
+/** The chapters with words still marked, in book order — `{ chapterId, num, title, ai, words }`
+ *  (`words` the chapter's own count) — for the breakdown under the book's count in Settings →
+ *  Project (2026-10-28, docs/plans/2026-10-28-four-feature-ideas.md §2). */
+export function chapterAiWrittenWords(project) {
+  return (project?.allChapters || [])
+    .map((c) => ({
+      chapterId: c.id,
+      num: c.num,
+      title: c.title || "",
+      ai: (project.scenes?.[c.id] || []).reduce((n, s) => n + aiWrittenWords(s.body), 0),
+      words: c.words || 0,
+    }))
+    .filter((r) => r.ai > 0);
+}
