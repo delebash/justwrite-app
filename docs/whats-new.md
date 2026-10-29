@@ -32,6 +32,26 @@ scene's row highlighted. Before, the chapter stayed closed and the scene's row h
 title or a premise is as wide as a line of prose and a name or a menu as wide as what it holds,
 instead of stretching across the page. The **Plot board** shows each strand's whole name.
 
+**Plot board beats show their labels.** A beat pinned to a scene showed only its *Scene 1* badge in
+its chapter's column; the label now takes the first line and the badge sits under it.
+
+**Also known as, labelled.** A character's aliases row read "Tags", like the row above it. It says
+**Also known as** now, with *Add a name…* in its box.
+
+**The book index counts entries.** Ask the book's index line says how many **entries** it holds —
+scene excerpts and story-bible entries together — instead of calling them all scenes, and the index
+window lists each story-bible entry by name.
+
+**A new document template re-embeds by itself.** Change an embedding model's **Document template** on
+the AI page and the index's next update re-embeds the whole book with it; no manual Rebuild.
+
+**Brainstorm's instructions, in the Lab.** What Brainstorm tells the model to do with the ideas you
+liked and those already shown is part of its prompts now, on the AI page's **Routing by feature**
+tab, where you can read and edit them.
+
+**Empty lists say so.** An empty section of the sidebar says *No chapters yet* (or *No articles yet*)
+instead of *No chapters match* when nothing is filtered.
+
 ## 2026-10-24
 
 **Long local answers no longer give up after a minute.** The built-in provider waited only 60

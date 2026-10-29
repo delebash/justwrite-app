@@ -184,6 +184,18 @@ healed on unedited databases). Still in code, in English: each category's model-
 category list that wires the Brainstorm panels. Making those editable means a seeded category table
 with a place to edit it — a design of its own, not started.
 
+### Series — books that share their story bible (parked 2026-10-28)
+
+The biggest unlock in the 2026-06-05 candidate pool (`potential-roadmap.md`, Bet 4), argued against
+twice on 2026-10-28 (`docs/plans/2026-10-28-four-feature-ideas.md` §4) and parked: it touches how a
+book is stored, undo (per page, per book), sync (by book), search and the AI's story context, and no
+reader has asked for it yet. "Copy characters from another book" was ruled out as a first step —
+copies drift apart, the opposite of one source per character. If it wakes, its design starts from
+four questions: what's shared (characters, locations, objects, groups, worldbuilding, events — all or
+some); how a book changes a shared entry (a per-book override, or edits for every book); where a
+series lives (a level above books in the book switcher, or a link between books); what the AI sees
+(the whole series' bible, or this book's view of it).
+
 ## UI / UX
 
 ### Customizable editor / context menus (was ledger §J1; big-batch #52a)

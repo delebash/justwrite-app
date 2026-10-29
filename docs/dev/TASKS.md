@@ -17,15 +17,18 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
-## Four feature ideas: PDF page size, AI-written words by chapter, Story Bible export, series [2026-10-28]
-STATE:  PLANNED — `docs/plans/2026-10-28-four-feature-ideas.md` (each idea argued against twice,
-        the standards, your decisions numbered with my recommendation, the blast radius).
+## Three feature ideas: PDF page size, Story Bible export, AI-written words by chapter [2026-10-28]
+STATE:  DECIDED — `docs/plans/2026-10-28-four-feature-ideas.md` (each idea argued against twice,
+        the standards, the decisions numbered with my recommendation, the blast radius).
         The user, on the four ideas: "i like the feature ideas lets do that after you finish the
         fixes and other stuff you are doing", then "but also think on your feature ideas
-        adverserilay again before you do your rec".
-OPEN:   your word on the plan's decisions (1: five, 2: four, 3: five); 4 (series) is a set of design
-        questions for its own document.
-GO:     not given for the build.
+        adverserilay again before you do your rec", then, on what still waited on them: "think on
+        still waiting on you adverserily and choose your rec go" — the plan's recommendations, all
+        of them; the series idea, argued once more, is parked in `docs/dev/IDEAS.md` (the biggest
+        change by far, and nobody has asked for it yet).
+OPEN:   the build, in the plan's order — 1 (PDF page size), 3 (Story Bible export), 2 (AI-written
+        words by chapter); then your use of them on `npm run dev` before they ship (v2.1.0).
+GO:     given 2026-10-28, as above.
 
 ## AI drafting on the story-world pages and in the editor [2026-10-11]
 STATE:  DECIDED; slices 1 (characters) and 2 BUILT 2026-10-11, per the
