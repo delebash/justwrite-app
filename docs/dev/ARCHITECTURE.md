@@ -397,15 +397,16 @@ fires after a release completes.
 `setup` → `build` (per-platform installers, each started as a user would) → `linux-user` (the
 AppImage on the current Ubuntu LTS) → `publish` (the release as a draft; `docs.tar.gz` of
 `docs/*.md` + `docs/toc.json`, the installers and the update feed attached; then public — the
-template's order since kit e326cb8) → `notify-website` (POSTs `docs-updated` repository\_dispatch
-to `delebash/justwrite-website` so its CI rebuilds).
+template's order since kit e326cb8). The release doesn't rebuild the website: `justwrite-website`
+deploys only when run by hand, `npm run deploy` there (`gh workflow run deploy.yml`), which takes the
+latest release's `docs.tar.gz` — the user, 2026-10-28: "other github workflows shouldnt be running
+other workflows". The `notify-website` job and its `docs-updated` repository\_dispatch are gone.
 
 ### One-time setup (DONE 2026-06-04)
 
 - `gh` CLI installed via `winget install GitHub.cli --scope=user`.
 - Fine-grained PAT `WEBSITE_DISPATCH_TOKEN` set as a repo secret on
-  `justwrite-app`. Scoped to `justwrite-website` with
-  `Contents: read and write`.
+  `justwrite-app` for the old `notify-website` job; nothing reads it since 2026-10-28.
 - `justwrite-app` made public via `gh repo edit ... --visibility public` —
   the anonymous `/releases/latest` GitHub API returns 404 for private repos,
   which made `sync-docs.js` silently no-op even when releases existed.
@@ -425,11 +426,10 @@ to `delebash/justwrite-website` so its CI rebuilds).
 ### Docs-only refresh without a full release
 
 If you need to push doc updates to the live site without rebuilding
-installers: `tar -czf docs.tar.gz docs/` → `gh release upload <latest-tag>
-docs.tar.gz --clobber` → `gh api -X POST
-repos/delebash/justwrite-website/dispatches -f event_type=docs-updated -f
-'client_payload[tag]=<latest-tag>'`. The marketing site rebuilds in ~2-3
-min. v0.1.1 was the first end-to-end smoke that validated this flow.
+installers: `tar -czf docs.tar.gz docs/*.md docs/toc.json` (the user docs only, as the release
+packs them) → `gh release upload <latest-tag>
+docs.tar.gz --clobber` → `npm run deploy` in `justwrite-website`. The marketing site rebuilds in
+~2-3 min.
 
 ---
 

@@ -173,14 +173,14 @@ The workflow runs these jobs:
 1. **`build`** — matrix build with [electron-builder](https://www.electron.build/) on macOS (universal `.dmg`), Windows (`.exe` installer), and Linux (`.AppImage` + `.deb`). Each runner checks out the shared kit and the sync engine beside the app, at the commits the app was tested with (`npm run release` passes them). The matrix is computed dynamically from the `platforms` workflow input (`all` / `windows` / `macos` / `linux`). Each runner then starts the packaged app as a user would, starts the server on its own through `justwrite-server`, and checks that both use the same data folder.
 2. **`linux-user`** — opens the AppImage the way a Linux user does, on the current Ubuntu LTS.
 3. **`publish`** — only when every check passed: creates the GitHub Release as a draft, attaches the user docs (`docs/*.md` and `docs/toc.json`, packed as `docs.tar.gz` — the marketing site's source of truth for the docs at this version), the installers and the update feed, and only then makes it public, so the release is never the latest without all of them.
-4. **`notify-website`** — fires a `repository_dispatch` to [`justwrite-website`](https://github.com/delebash/justwrite-website), which rebuilds and redeploys with the new docs.
+
+The release doesn't rebuild the website. [`justwrite-website`](https://github.com/delebash/justwrite-website) deploys only when you run it: `npm run deploy` there (or **Run workflow** on its Actions page) builds it with the latest release's docs.
 
 A dry run builds and checks everything without publishing: `gh workflow run release.yml -f tag=master -f publish=false` (the files stay on the run for 7 days).
 
 **One-time setup for releases:**
 
 - Install [`gh`](https://cli.github.com/) and run `gh auth login`.
-- Create a [Personal Access Token](https://github.com/settings/tokens) with `repo` scope on `justwrite-website`, then add it as a repository secret named `WEBSITE_DISPATCH_TOKEN` on `justwrite-app`. Without it, the build still succeeds — the marketing site just won't auto-rebuild.
 
 **Code signing.** Skipped intentionally. macOS users see a "unidentified developer" Gatekeeper prompt on first launch (right-click → Open to bypass); Windows users may see SmartScreen warnings. Add an Apple Developer Certificate + Windows code-signing cert later if the friction becomes a problem.
 
