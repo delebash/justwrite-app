@@ -101,12 +101,13 @@ The result count badge shows "**N of total**" so you always know how many articl
 
 ### The article editor
 
-When you click into an article:
+**+ New article** opens a new article straight away, in your first category, its title selected and ready to type over. When you click into an article:
 
 - **Breadcrumb** showing the category, linking back to the list.
 - **Title** — inline-editable.
 - **Status selector** — same statuses as chapters and characters.
 - **Summary** — a short italic one-liner that appears in the list view's title column.
+- **Category** — beside the summary; choosing another moves the article there, in the list and in the sidebar.
 - **Tag editor** — multi-tag with typeahead from all tags in use across worldbuilding.
 - **Rich-text body** — the full editor toolbar (headings, bold, italic, lists, images, tables, links).
 - **Ask the book** button in the header — opens the chat panel with the question prefilled ("Tell me about {title}") so you can interrogate the manuscript about this article without re-typing it.

@@ -608,12 +608,6 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   window lede, asked of the kit session first; the Markers' and events' empty states (a message slot
   on the kit's `EmptyState`); the detail pages' bodies. `docs/dev/IDEAS.md`, "The extraction-vs-copies
   audit".
-- **Naming popups still left — your call on each** (the rule: no naming popups; the clear ones went
-  2026-10-29, f180ddf): the Worldbuilding page's "+ New" (its popup picks the category — kept as
-  F6-WB because the article form has no category field); a new group from a character's Groups window;
-  the Scene Links picker's four "new character / location / object / group"; a new custom status
-  (StatusSelect); saving and renaming an appearance preset (Settings); renaming a chat (Ask the book's
-  history); the new-project dialog; a saved version's label (command palette).
 - **Help hints translated** (docgen's single-source item, 2026-10-29): each doc's `lede:` front-matter
   instead of `docs/toc.json`'s English `hint`, read as `$t('lede.<slug>')` by Help and the command
   palette, docgen's `extract --check` in the gate. The kit's help renderer already skips front-matter
@@ -635,6 +629,15 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   reachable now — the AI page offered "Update to b11960" over the installed b11239 on 2026-10-28.
 
 ## Standing rulings (constraints, not tasks — they gate future work)
+
+- **Naming popups — only where a data screen follows** (the user, 2026-10-29, verbatim): *"the new
+  thing is for like data screens shuch as character before for a new character you would clikc new it
+  would ask for name then open the new character screen, instead we no longer have a popup just asking
+  for a new character name it now just opens the new character screen, these are the type of new
+  popups i dont want, if all you are doing is a name with no other data then new popup is ok"*. So "+ New"
+  for anything with its own page opens that page directly (the Worldbuilding article's went
+  2026-10-29); a popup that only takes a name — Scene Links' and the Groups window's quick "new …", a
+  status, a chat or preset name, a version's label — stays.
 
 - **The data location is the USER's, and the shape is the FAMILY's** (ruling 2026-08-14,
   verbatim): *"absolutely no data for any of these apps should be stored anywhere but where

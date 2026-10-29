@@ -12,6 +12,10 @@ chapter **Split here** makes now appear at once, their name ready to type over w
 or a category in its row, a scene in the Outline, an article or the new chapter on its page. Before,
 each opened a box asking for the name. See [Writing](writing.md#the-outline-tree).
 
+**A new worldbuilding article opens at once.** **+ New article** no longer asks for a title and a
+category first: the article opens in your first category with its title selected, and its page has a
+**Category** field beside the summary to move it. See [Worldbuilding](worldbuilding.md#the-article-editor).
+
 ## 2026-10-28
 
 **Highlights and coloured text read in dark mode.** A highlight or a text colour from the editor's

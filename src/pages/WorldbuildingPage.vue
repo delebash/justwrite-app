@@ -3,13 +3,11 @@ import { computed, ref, watch } from "vue";
 import { categoryLabelShown, useProjectStore } from "../stores/project.js";
 import { useStatusDisplay } from "../composables/useStatusDisplay.js";
 import { useRouter } from "vue-router";
-import { PaneHeader, pageFill } from "@delebash/ui";
+import { PaneHeader, UiSelect, pageFill } from "@delebash/ui";
 import { Icon } from "@delebash/ui";
 import RichEditor from "../components/RichEditor.vue";
 import StatusSelect from "../components/StatusSelect.vue";
 import TagEditor from "../components/TagEditor.vue";
-import { promptDialog } from "@delebash/ui";
-import { NEW_ENTITY_META } from "../services/entityMeta.js";
 
 import EntityIndex from "../components/EntityIndex.vue";
 import { UiInput } from "@delebash/ui";
@@ -31,7 +29,7 @@ const props = defineProps({ id: { type: String, default: "" } });
 const FALLBACK_CATEGORY_ICON = "Sparkle";
 const project = useProjectStore();
 const { statusLabel, statusSeverity } = useStatusDisplay();
-const { onRowClick, statusOptions, askBook } = useEntityPage("worldbuilding");
+const { open, onRowClick, statusOptions, askBook } = useEntityPage("worldbuilding");
 const router = useRouter();
 const article = computed(() => props.id ? project.worldbuildingById(props.id) : null);
 
@@ -69,25 +67,10 @@ async function draftBody() {
 // just hand it the flat list.
 const tagPool = computed(() => tagPoolOf(project.worldbuilding));
 
-async function addArticle() {
-  const M = NEW_ENTITY_META.worldbuilding;
-  const values = await promptDialog({
-    title: t(M.titleKey),
-    confirmLabel: t(M.confirmLabelKey),
-    fields: [
-      { key: "title", label: t(M.labelKey), placeholder: t(M.placeholderKey) },
-      {
-        key: "category",
-        label: t("common.category"),
-        type: "select",
-        defaultValue: "geography",
-        options: project.categoriesShown.map((c) => ({ value: c.id, label: c.label })),
-      },
-    ],
-  });
-  if (!values?.title) return;
-  const id = project.addWorldbuilding({ title: values.title, category: values.category || "geography" });
-  router.push(`/worldbuilding/${id}`);
+// A new article opens at once, its title selected (?new=1) and its category the book's first —
+// changed on the page's Category field. No popup asks for its title first (2026-10-29).
+function addArticle() {
+  open(project.addWorldbuilding(), { isNew: true });
 }
 
 function askTheBook() {
@@ -238,6 +221,11 @@ const columns = computed(() => [
             style="flex:1;font-style:italic;color:var(--muted);font-size:13.5px;border:0;background:transparent;padding:0;font-family:var(--font-serif)"
             :placeholder="$t('worldbuilding.summaryLabel')"
             :value="article.summary" @input="update('summary', $event.target.value)" />
+          <label class="wb-field">
+            <span class="wb-field-label">{{ $t("common.category") }}</span>
+            <UiSelect width="fit" :model-value="article.category" :options="categoryOptions"
+              :aria-label="$t('common.category')" @update:model-value="(v) => update('category', v)" />
+          </label>
         </div>
 
         <TagEditor
@@ -271,6 +259,8 @@ const columns = computed(() => [
 /* Shared shapes = global .entity-*; wb-desc composes its padding on top. */
 .wb-desc { padding: 14px 22px 0; }
 .wb-draft { padding: 8px 22px; }
+.wb-field { display: inline-flex; align-items: center; gap: 8px; flex: none; }
+.wb-field-label { font-size: 12px; color: var(--muted); }
 
 /* List view: shared shapes = global .entity-*; only these per-view cells stay local. */
 .wb-cell-title-sum {

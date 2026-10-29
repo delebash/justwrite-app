@@ -493,12 +493,6 @@
     "bodyPlaceholder": "Write the article…",
     "searchPlaceholder": "Search articles…",
     "searchEmpty": "No articles match your search.",
-    "dialog": {
-      "title": "New article",
-      "label": "Article title",
-      "placeholder": "e.g. The North Coast",
-      "confirm": "Create article"
-    },
     "draft": {
       "button": "Draft with AI",
       "tooltip": "Draft this article's body from its title, its summary and the book — it arrives as a change you accept or reject.",

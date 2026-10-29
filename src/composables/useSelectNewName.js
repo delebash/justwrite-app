@@ -19,8 +19,7 @@ export function useSelectNewName(target) {
 }
 
 /** A new row named in place — a part, a scene in the outline, a worldbuilding category: once it has
- *  rendered, focus and select its name field (`selector`), so creating one never asks for a name
- *  first (the product rule: no naming popups). */
+ *  rendered, focus and select its name field (`selector`), ready to type over (2026-10-29). */
 export function selectNewRowName(selector) {
   nextTick(() => {
     const field = document.querySelector(selector);

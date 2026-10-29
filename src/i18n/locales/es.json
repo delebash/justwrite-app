@@ -487,12 +487,6 @@
     "bodyPlaceholder": "Escribe el artículo…",
     "searchPlaceholder": "Buscar artículos…",
     "searchEmpty": "No hay artículos que coincidan con tu búsqueda.",
-    "dialog": {
-      "title": "Nuevo artículo",
-      "label": "Título del artículo",
-      "placeholder": "p. ej. La costa norte",
-      "confirm": "Crear artículo"
-    },
     "draft": {
       "button": "Redactar con IA",
       "tooltip": "Redacta el cuerpo de este artículo a partir de su título, su resumen y el libro — llega como un cambio que aceptas o rechazas.",
