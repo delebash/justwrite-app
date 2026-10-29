@@ -86,29 +86,29 @@ jobs:
       # file:../../just-core/packages/core and file:../../just-sqlite-sync; quasar.config.js:
       # ../just-core/packages/ui), so all three are checked out side by side.
       - name: Checkout the app (at the tag)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.tag }}
           path: app
 
       - name: Checkout the kit (at the commit the app was tested with)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: delebash/just-core
           ref: ${{ inputs.core_ref }}
           path: just-core
 
       - name: Checkout the sync engine (at the commit the app was tested with)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: delebash/just-sqlite-sync
           ref: ${{ inputs.sync_ref }}
           path: just-sqlite-sync
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 24 # the Node the app runs on (Electron 44 carries 24.22.1) — it moves with the Electron major
           cache: npm
           cache-dependency-path: |
             app/package-lock.json
@@ -185,7 +185,7 @@ jobs:
       # every platform's files go to the jobs below: the Linux user's check, then the release —
       # nothing is attached before every check has passed (a dry run keeps them here 7 days)
       - name: Keep the files for the next jobs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: installers-${{ matrix.target }}
           path: |
@@ -208,18 +208,18 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout the app (at the tag) — the check's script and the app's port
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.tag }}
           path: app
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 24 # the Node the app runs on (Electron 44 carries 24.22.1) — it moves with the Electron major
 
       - name: The Linux build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: installers-linux
           path: app/dist/electron/Packaged
@@ -258,18 +258,18 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout the app (at the tag) — its name
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.tag }}
           path: app
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 24 # the Node the app runs on (Electron 44 carries 24.22.1) — it moves with the Electron major
 
       - name: Every platform's files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: installers-*
           merge-multiple: true
