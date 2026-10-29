@@ -6,6 +6,10 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-29
 
+**A second window.** Keep a character's sheet — or any page — open beside the manuscript: **Ctrl/⌘ +
+Shift + N**, or **Open this page in a new window** in the Command Palette. See
+[Writing](writing.md#a-second-window).
+
 **A POV character for each scene, and the POV balance.** A scene's **Links** panel has a **POV
 character** next to its point of view: whose eyes the scene is seen through. The AI writing actions are
 told who it is, and Analysis has a new **POV balance** card — each POV character's words and scenes —

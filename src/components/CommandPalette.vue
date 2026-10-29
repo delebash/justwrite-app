@@ -21,6 +21,7 @@ import { promptDialog, openHelp } from "@delebash/ui";
 import { HELP_TOC } from "../services/helpDocs.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { selectNewRowName } from "../composables/useSelectNewName.js";
+import { canOpenNewWindow, openInNewWindow } from "../services/newWindow.js";
 import { Icon } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
@@ -128,6 +129,11 @@ const ACTION_ITEMS = computed(() => {
       run: () => { const id = project.addWorldbuilding(); router.push(`/worldbuilding/${id}`); } },
     { id: "act:findReplace", label: t("commandPalette.act.findReplace"), sublabel: t("commandPalette.actionKeys", { keys: "⌘⇧F" }), icon: "Replace", keywords: t("commandPalette.keywords.replace"),
       run: () => ui.openProjectReplace() },
+    // 2026-10-29: this page in a second window of the app (a tab in a browser); not on the phone
+    ...(canOpenNewWindow()
+      ? [{ id: "act:newWindow", label: t("commandPalette.act.newWindow"), sublabel: t("commandPalette.actionKeys", { keys: "⌘⇧N" }), icon: "ExternalLink",
+          run: () => openInNewWindow(router) }]
+      : []),
     { id: "act:saveVersion", label: t("commandPalette.act.saveVersion"), sublabel: t("commandPalette.action"), icon: "History",
       run: async () => {
         const chId = ui.selections.chapters;

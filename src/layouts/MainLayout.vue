@@ -26,6 +26,7 @@ import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { HelpDrawer } from "@delebash/ui";
 import KeyboardCheatsheet from "../components/KeyboardCheatsheet.vue";
 import WhatsNewModal from "../components/WhatsNewModal.vue";
+import { canOpenNewWindow, openInNewWindow } from "../services/newWindow.js";
 // THE boot-splash plate (a bundled asset, imported below). One
 // illustration carries the entire title page: frame, the four corners, the JW crest, the
 // wordmark, the tagline, the calligraphy and the privacy line. Sourced from the user's own
@@ -101,6 +102,13 @@ function onKey(e) {
     if (focusedInRichEditor()) return;
     e.preventDefault();
     if (route.path !== "/search") router.push("/search");
+    return;
+  }
+  // ⌘⇧N / Ctrl+Shift+N → this page in a new window (2026-10-29; a browser keeps the key for itself,
+  // so it reaches here in the desktop app — the palette has it everywhere but the phone).
+  if (key === "n" && e.shiftKey && canOpenNewWindow()) {
+    e.preventDefault();
+    openInNewWindow(router);
     return;
   }
   // ⌘P / Ctrl+P → open the command palette.

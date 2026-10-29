@@ -2,13 +2,7 @@
 
 This page lists items on the table for future versions. **None of these are promises.** Some may ship; some may not; some may change shape entirely. Treat the roadmap as direction, not commitment.
 
-Items are loosely grouped by area and by how concrete they are.
-
----
-
-## App-wide
-
-- **Multi-window support.** Open a Character page in one window and write in another. Currently the app is single-window.
+Nothing is on it right now: everything that was has shipped (see [What's new](whats-new.md)) or been set aside.
 
 ---
 

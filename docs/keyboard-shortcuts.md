@@ -14,6 +14,7 @@ These work from anywhere in the app.
 | **Ctrl/⌘ + Shift + F** | Open project-wide Find & Replace |
 | **Ctrl/⌘ + P** | Open the Command Palette |
 | **Ctrl/⌘ + J** | Toggle the "Ask the book" chat panel |
+| **Ctrl/⌘ + Shift + N** | Open this page in a new window (the desktop app — a browser keeps this key for its own private window; there, use the Command Palette's **Open this page in a new window**, which opens a new tab) |
 | **Ctrl/⌘ + \\** | Toggle the sidebar open / closed |
 | **Ctrl/⌘ + /** | Open this keyboard shortcut cheatsheet |
 | **Ctrl/⌘ + Z** | Undo |

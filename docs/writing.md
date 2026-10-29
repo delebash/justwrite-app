@@ -469,6 +469,14 @@ The header has a breadcrumb (**Part → Chapter → Scene**) with clickable segm
 - **Esc** (in Whole-book Read mode) — exit back to Edit
 - **Tab / Shift + Tab** (in lists and paragraphs) — indent / outdent
 
+### A second window
+
+> *"I keep flipping to her character page to check what I wrote about her accent, and losing my place in the chapter every time."*
+
+Open any page in a window of its own and keep it beside the manuscript: a character's sheet, the Outline, a worldbuilding article. From the page you want, press **Ctrl/⌘ + Shift + N**, or choose **Open this page in a new window** in the Command Palette (**Ctrl/⌘ + P**). In a browser tab it opens a new tab instead (the browser keeps that key for itself, so use the palette there); the phone has no second window.
+
+Both windows show the same book. A change you make in one reaches the other once you've finished typing there — JustWrite waits until your cursor leaves the text, so it never pulls a page out from under you. If you edit the same field in both windows, the last save wins.
+
 ---
 
 ## A typical writing session
