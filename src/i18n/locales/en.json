@@ -1154,7 +1154,7 @@
     "emptyCategory": "No markers in this category."
   },
   "export": {
-    "intro": "{export} produces a finished file — {pdf} (typeset with cover and TOC), {docx} (Word with a live TOC), {epub} (e-book for Apple Books / Kobo / Kindle), or a {zip} — the whole book, text and images alike — to keep, move between computers, or open in another app. Pick a format card to see its options.",
+    "introWithBible": "{export} produces a finished file — {pdf} (typeset with cover and TOC), {docx} (Word with a live TOC), {epub} (e-book for Apple Books / Kobo / Kindle), a {zip} — the whole book, text and images alike — to keep, move between computers, or open in another app, or the {bible} — your characters, places and lore as a document to share. Pick a format card to see its options.",
     "exportTerm": "Export",
     "pdfTerm": "PDF",
     "docxTerm": "DOCX",
@@ -1182,6 +1182,15 @@
       "trim-5-5x8-5": "5.5 × 8.5 in",
       "trim-6x9": "6 × 9 in"
     },
+    "storyBible": {
+      "name": "Story bible",
+      "desc": "Your characters, locations, objects, groups and worldbuilding articles as one document — every filled field, labelled as on their pages, in the book's language — to hand an editor, a co-author or an illustrator.",
+      "fileType": "File type",
+      "pdfPageNote": "The PDF uses the page size set on the PDF card.",
+      "leaveOutExcluded": "Leave out entries marked Exclude from AI",
+      "docTitle": "{title} — Story bible",
+      "empty": "The story bible is empty — add a character, a place or an article first."
+    },
     "docxDesc": "Editable Word document — keeps chapter headings, scene breaks, and block quotes. Word will offer to refresh the TOC on first open.",
     "epubDesc": "EPUB 3 — one HTML file per part and chapter, with a navigation document so readers like Apple Books, Kobo, and Calibre show the contents.",
     "statParts": "Parts",
@@ -1196,6 +1205,7 @@
     "noChapters": "No chapters yet",
     "savesAs": "Saves as {file}",
     "zipTerm": "JustWrite book",
+    "bibleTerm": "story bible",
     "zipCardTitle": "Whole book",
     "zipDesc": "Everything in this book as one .zip — every part, chapter and scene, the whole story bible, and your images. This is the file to keep as a copy, move to another computer, or open in JustVoice to make an audiobook. Import it back from Settings → Backups.",
     "stage": {
@@ -1219,7 +1229,8 @@
       "pdfPage": "Typeset manuscript at your page size.",
       "docx": "Word-compatible.",
       "epub": "Reflowable e-book.",
-      "zip": "The whole book, to move or share."
+      "zip": "The whole book, to move or share.",
+      "storyBible": "Characters, places and lore, to share."
     },
     "book": {
       "contents": "Contents",

@@ -13,7 +13,8 @@ import { exportProject } from "../services/bookTransfer.js";
 import { saveBlob } from "../services/download.js";
 import { UiButton } from "@delebash/ui";
 import { UiCheckbox } from "@delebash/ui";
-import { get, UiField, UiNumber, UiSelect } from "@delebash/ui";
+import { get, UiField, UiNumber, UiSegmented, UiSelect } from "@delebash/ui";
+import { tBook } from "../i18n/index.js";
 import { chosenSize, fromUnit, pdfPage, toUnit } from "../services/export/pageSetup.js";
 
 const project = useProjectStore();
@@ -81,6 +82,8 @@ const FORMATS = [
   { id: "docx", name: "DOCX",           subKey: "export.formatSub.docx",                       icon: "Book",       ext: "docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
   { id: "epub", name: "EPUB",           subKey: "export.formatSub.epub",                     icon: "Book",       ext: "epub", mime: "application/epub+zip" },
   { id: "zip",  nameKey: "bookTransfer.bookFilter", subKey: "export.formatSub.zip",      icon: "Cube",       ext: "zip",  mime: "application/zip" },
+  // the story bible as a document to share (2026-10-28) — DOCX or PDF, chosen on its card
+  { id: "bible", nameKey: "export.storyBible.name", subKey: "export.formatSub.storyBible", icon: "Users" },
 ];
 
 // A format's name: its file type ("PDF"), or the words for the book .zip.
@@ -170,6 +173,47 @@ async function exportManuscript(fmtId) {
   }
 }
 
+// ── Story bible (2026-10-28, docs/plans/2026-10-28-four-feature-ideas.md §3) ──────────────────
+// The characters, places and lore as one document (services/export/storyBible.js), its words in
+// the book's language as the reading files' are; a PDF on the book's page (the PDF card's).
+const BIBLE_FORMATS = [{ value: "docx", label: "DOCX" }, { value: "pdf", label: "PDF" }];
+const bibleFormat = ref("docx");
+const bibleSkipExcluded = ref(false);
+const bibleFileName = computed(() => `${slug(project.project.title)}-${slug(t("export.storyBible.name"))}.${bibleFormat.value}`);
+async function exportStoryBible() {
+  exportError.value = null;
+  exporting.value = true;
+  exportStage.value = "composing";
+  try {
+    const { storyBibleDocx, storyBibleOutline, storyBiblePdf } = await import("../services/export/storyBible.js");
+    const language = project.project.language || "en";
+    const outline = storyBibleOutline(project, (key, params) => tBook(language, key, params), { skipExcluded: bibleSkipExcluded.value });
+    if (!outline.sections.length) throw new Error(t("export.storyBible.empty"));
+    const onProgress = ({ stage }) => { exportStage.value = stage; };
+    let blob;
+    if (bibleFormat.value === "pdf") {
+      if (!pageSize.value) throw new Error(t("export.pageSizesFailed"));
+      blob = await storyBiblePdf(outline, { language, page: pdfPage(project.project, pageSizes.value), onProgress });
+    } else {
+      blob = await storyBibleDocx(outline, { language, onProgress });
+    }
+    const name = t("export.storyBible.name");
+    const res = await saveBlob(blob, bibleFileName.value, {
+      chooser: "manuscript",
+      title: t("export.saveDialogTitle", { format: name }),
+      filterName: bibleFormat.value.toUpperCase(),
+      filterExt: bibleFormat.value,
+    });
+    if (res?.cancelled) return;
+    if (res && res.ok === false) throw new Error(res.error || t("export.failed"));
+    ui.showToast({ message: t("export.doneToast", { format: name }) });
+  } catch (err) {
+    exportError.value = err.message || String(err);
+  } finally {
+    resetProgress();
+  }
+}
+
 // ── Whole book (.zip) ────────────────────────────────────────────────
 // Server-composed, so there is no engine to lazy-load and no manuscript
 // options — one request, then the desktop save dialog or a browser download.
@@ -200,12 +244,13 @@ async function exportBookZip() {
     <div class="scrollarea" style="padding:22px">
       <div style="max-width:920px;display:flex;flex-direction:column;gap:18px">
 
-        <i18n-t keypath="export.intro" tag="p" class="ex-desc" scope="global">
+        <i18n-t keypath="export.introWithBible" tag="p" class="ex-desc" scope="global">
           <template #export><strong>{{ $t("export.exportTerm") }}</strong></template>
           <template #pdf><strong>{{ $t("export.pdfTerm") }}</strong></template>
           <template #docx><strong>{{ $t("export.docxTerm") }}</strong></template>
           <template #epub><strong>{{ $t("export.epubTerm") }}</strong></template>
           <template #zip><strong>{{ $t("export.zipTerm") }}</strong></template>
+          <template #bible><strong>{{ $t("export.bibleTerm") }}</strong></template>
         </i18n-t>
 
         <!-- Format picker -->
@@ -272,6 +317,35 @@ async function exportBookZip() {
               <span class="t-muted" style="font-size:11.5px">
                 <i18n-t keypath="export.savesAs" tag="span" scope="global">
                   <template #file><code>{{ safeTitle(project.project.title) }}.zip</code></template>
+                </i18n-t>
+              </span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Story bible ──────────────────────────────────────────────────── -->
+        <template v-else-if="fmt === 'bible'">
+          <div class="card">
+            <div class="card-title">{{ $t("export.storyBible.name") }}</div>
+            <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">{{ $t("export.storyBible.desc") }}</p>
+            <div class="form bible-options">
+              <UiField layout="block" :label="$t('export.storyBible.fileType')">
+                <UiSegmented v-model="bibleFormat" :options="BIBLE_FORMATS" :aria-label="$t('export.storyBible.fileType')" />
+              </UiField>
+              <span v-if="bibleFormat === 'pdf'" class="pdf-page-hint">{{ $t("export.storyBible.pdfPageNote") }}</span>
+              <UiCheckbox v-model="bibleSkipExcluded">{{ $t("export.storyBible.leaveOutExcluded") }}</UiCheckbox>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">{{ $t("export.exportCardTitle") }}</div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <UiButton class="ex-go" intent="primary" :disabled="exporting" @click="exportStoryBible()">
+                <Icon name="Download" :size="13" /> {{ $t("export.exportAction", { format: $t("export.storyBible.name") }) }}
+              </UiButton>
+              <span class="t-muted" style="font-size:11.5px">
+                <i18n-t keypath="export.savesAs" tag="span" scope="global">
+                  <template #file><code>{{ bibleFileName }}</code></template>
                 </i18n-t>
               </span>
             </div>
@@ -367,7 +441,7 @@ async function exportBookZip() {
 }
 .ex-desc strong { color: var(--ink-2); font-weight: 600; }
 
-.format-picker { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.format-picker { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .manuscript-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 @media (max-width: 900px) {
@@ -394,6 +468,7 @@ code {
 }
 /* the PDF's page: the kit's form row (app.css .form/.form__row), under the stats */
 .pdf-page { margin-top: 14px; gap: 6px; }
+.bible-options { gap: 10px; }
 /* no button on this row: the labels line up at the top (the kit's row aligns bottoms, for a button
    beside inputs — and its select is a little shorter than its inputs) */
 .pdf-page .form__row { align-items: flex-start; }

@@ -15,7 +15,7 @@ import { tBook } from "../../i18n/index.js";
 const REQUIRED_FONT = "Roboto-Medium.ttf";
 
 let pdfmakePromise = null;
-async function getPdfMake() {
+export async function getPdfMake() {
   if (!pdfmakePromise) {
     pdfmakePromise = (async () => {
       const [{ default: pdfMake }, vfsMod] = await Promise.all([
@@ -175,13 +175,7 @@ export async function exportPdf({ manuscript, page, onProgress } = {}) {
     defaultStyle: {
       font: "Roboto",
     },
-    footer: (currentPage, pageCount) => ({
-      text: `${currentPage} / ${pageCount}`,
-      alignment: "center",
-      fontSize: 9,
-      color: "#999",
-      margin: [0, 0, 0, 24],
-    }),
+    footer: pageNumberFooter,
   };
 
   onProgress?.({ stage: "rendering" });
@@ -195,5 +189,11 @@ export async function exportPdf({ manuscript, page, onProgress } = {}) {
   const blob = await pdfMake.createPdf(docDefinition).getBlob();
   onProgress?.({ stage: "done" });
   return blob;
+}
+
+/** Every JustWrite PDF's footer — "page / pages", small and centred: the manuscript's and the
+ *  Story Bible's. */
+export function pageNumberFooter(currentPage, pageCount) {
+  return { text: `${currentPage} / ${pageCount}`, alignment: "center", fontSize: 9, color: "#999", margin: [0, 0, 0, 24] };
 }
 /* eslint-enable i18next/no-literal-string */

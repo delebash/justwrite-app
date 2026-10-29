@@ -36,15 +36,15 @@ export default defineConfig({
   plugins: [quasarBuildPerEnvironment, vue({ template: { transformAssetUrls: false } })],
   resolve: {
     alias: {
-      "@renderer": resolve(__dirname, "src"),
+      "@renderer": resolve(import.meta.dirname, "src"),
       // Same source-alias as quasar.config.js (build.alias) — tests mock it with vi.mock where
       // network transport is involved.
-      "@delebash/ui": resolve(__dirname, "../just-core/packages/ui/src"),
+      "@delebash/ui": resolve(import.meta.dirname, "../just-core/packages/ui/src"),
       // Quasar's wrappers (defineBoot / defineRouter / defineStore) — the alias Quasar's own
       // build defines (@quasar/app-vite's lib/config-tools.js).
       "#q-app": "@quasar/app-vite",
       // as quasar.config.js on a computer: the server is a separate process, nothing to start
-      "#phone": resolve(__dirname, "src/phone/none.js"),
+      "#phone": resolve(import.meta.dirname, "src/phone/none.js"),
     },
     // Same dedupe list as quasar.config.js (extendViteConf), and for the same reason: the aliased kit
     // imports its peer deps by bare specifier from its OWN dir, which has no

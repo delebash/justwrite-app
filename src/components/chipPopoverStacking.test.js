@@ -33,7 +33,7 @@ import { fileURLToPath } from "node:url";
 const HERE = dirname(fileURLToPath(import.meta.url));
 // …/justwrite-app/src/components → …/Web, then into the kit.
 // Same repo-to-kit relationship vitest.config.js's alias encodes as
-// `resolve(__dirname, "../just-core/packages/ui/src")`; if one moves, so does the other.
+// `resolve(import.meta.dirname, "../just-core/packages/ui/src")`; if one moves, so does the other.
 const KIT = resolve(HERE, "../../../just-core/packages/ui/src");
 
 function readKit(rel) {

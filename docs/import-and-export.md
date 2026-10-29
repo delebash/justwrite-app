@@ -3,7 +3,7 @@
 JustWrite reads and writes the formats writers actually use:
 
 - **Reads**: Word (`.docx`), EPUB, LibreOffice (`.odt`), Markdown (`.md`), plain text (`.txt`)
-- **Writes**: PDF, Word (DOCX), EPUB, and the whole book as a JustWrite `.zip`
+- **Writes**: PDF, Word (DOCX), EPUB, the whole book as a JustWrite `.zip`, and the story bible as a Word document or a PDF
 
 ---
 
@@ -81,9 +81,9 @@ The **Export** view (Project section in the sidebar) produces a finished file in
 
 ### The format picker
 
-Four cards: **PDF**, **DOCX**, **EPUB**, and **JustWrite book**. Pick one to see its options.
+Five cards: **PDF**, **DOCX**, **EPUB**, **JustWrite book** and **Story bible**. Pick one to see its options.
 
-The first three are **finished reading files** — one manuscript, typeset for a reader. The fourth is **your whole book**, everything JustWrite holds, in a file you can put back.
+The first three are **finished reading files** — one manuscript, typeset for a reader. The fourth is **your whole book**, everything JustWrite holds, in a file you can put back. The fifth is your **story bible** as a document to share.
 
 ### The book's language
 
@@ -173,6 +173,18 @@ Not a reading file: **everything in the book, in one `.zip`.** Every part, chapt
 **Going back in:** import a `.zip` from **Settings → Backups → This book → Import a book…**, which brings it in as a **new** book rather than overwriting the one you have open. Importing needs the desktop app.
 
 > This is the same export as **Settings → Backups → Export this book…** — two doors to one thing, so use whichever you're already standing next to.
+
+### Story bible
+
+> *"My illustrator needs to know what everyone looks like, and my editor keeps asking who's who."*
+
+Your characters, locations, objects, groups and worldbuilding articles as one document — a **Word document** (DOCX) or a **PDF** — to hand an editor, a co-author or an illustrator. Every filled field is there, under the same label it has on its page; empty fields are left out. A character's sheet keeps its sections (Arc, Voice & presence, …); a group lists its members; an article its category and summary.
+
+- **Leave out entries marked Exclude from AI** — the flag writers use for spoilers, so a document you hand someone doesn't give the twist away.
+- The labels are in the **book's language**, as the reading files' words are.
+- The PDF uses the page size set on the **PDF** card.
+
+**Filename:** your book's title and *story-bible* — `the-ninth-facet-story-bible.docx`.
 
 ### Continuous prose toggle (PDF / DOCX / EPUB)
 

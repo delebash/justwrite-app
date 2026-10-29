@@ -23,8 +23,7 @@ Items are loosely grouped by area and by how concrete they are.
 ## Export
 
 - **Direct Kindle KFX export.** Currently the path is EPUB → Kindle Previewer. A direct export would be a quality-of-life win for indie publishers.
-- **Print-ready PDF layout knobs.** Trim size, margins, page numbering style — currently the PDF export uses sensible defaults. Customisation is on the table.
-- **Story Bible export.** Some writers want to export their character and worldbuilding sheets alongside the manuscript. Format and inclusion logic TBD.
+- **Print layout in the PDF.** The page size and margins are yours to set now; still missing for a print-ready interior are mirrored inside/outside margins, chapters starting on a right-hand page, and the page-number style.
 
 ---
 

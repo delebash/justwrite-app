@@ -138,6 +138,13 @@ the two exporters the app already ships, `docx` and pdfmake, and the same field 
 outline from the project and hands it to the two exporters · `docs/import-and-export.md` (the cards
 list says "Four cards") · unit tests of the outline, a flow on the card.
 
+**Built 2026-10-28.** The outline's labels come through `tBook`, in the book's language, as the
+manuscript files' few words do. The PDF uses the book's PDF page (§1). The two exporters' engine
+loaders (`getDocx`, `getPdfMake`) and the page-number footer (`pageNumberFooter`) are now exported and
+shared, not copied. Checked on the sample book: the DOCX reads "The Salt-Iron Road — Story bible",
+"by Neve Aubermont", Characters → Sable Coyne → Role, Age, One-liner, then the Arc section; the PDF
+has 15 A4 pages.
+
 ## 4. Series — books that share their story bible
 
 **Today.** A book is one project; nothing is shared between books.

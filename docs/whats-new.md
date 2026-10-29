@@ -6,6 +6,12 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-28
 
+**Export your story bible.** A fifth card on the Export page, **Story bible**, makes your characters,
+locations, objects, groups and worldbuilding articles into one Word document or PDF — every filled
+field under its page's label — to hand an editor, a co-author or an illustrator. Tick **Leave out
+entries marked Exclude from AI** to keep your spoilers out of it. See
+[Import and export](import-and-export.md#story-bible).
+
 **The PDF's page size.** **Export → PDF** lets you choose the page: A4, US Letter, A5, or a novel's
 trim size (5 × 8 up to 6 × 9 inches), each with its own margins, which you can change — top, bottom
 and sides, in the size's unit. The book remembers its choice; every book starts on A4, the page every

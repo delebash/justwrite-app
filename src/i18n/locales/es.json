@@ -1146,7 +1146,6 @@
     "emptyCategory": "No hay marcadores en esta categoría."
   },
   "export": {
-    "intro": "{export} produce un archivo terminado: {pdf} (maquetado con portada e índice), {docx} (Word con índice dinámico), {epub} (e-book para Apple Books / Kobo / Kindle) o un {zip} —el libro completo, tanto texto como imágenes— para guardar, mover entre computadoras o abrir en otra aplicación. Elige una tarjeta de formato para ver sus opciones.",
     "exportTerm": "Exportar",
     "pdfTerm": "PDF",
     "docxTerm": "DOCX",

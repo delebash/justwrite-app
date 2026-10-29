@@ -9,7 +9,7 @@
 import { tBook } from "../../i18n/index.js";
 
 let docxPromise = null;
-async function getDocx() {
+export async function getDocx() {
   if (!docxPromise) docxPromise = import("docx");
   return docxPromise;
 }
