@@ -394,9 +394,11 @@ fires after a release completes.
 
 ### Workflow pipeline
 
-`build` (per-platform installers) → `attach-docs` (`tar -czf docs.tar.gz
-docs/` + `gh release upload`) → `notify-website` (POSTs `docs-updated`
-repository\_dispatch to `delebash/justwrite-website` so its CI rebuilds).
+`setup` → `build` (per-platform installers, each started as a user would) → `linux-user` (the
+AppImage on the current Ubuntu LTS) → `publish` (the release as a draft; `docs.tar.gz` of
+`docs/*.md` + `docs/toc.json`, the installers and the update feed attached; then public — the
+template's order since kit e326cb8) → `notify-website` (POSTs `docs-updated` repository\_dispatch
+to `delebash/justwrite-website` so its CI rebuilds).
 
 ### One-time setup (DONE 2026-06-04)
 
