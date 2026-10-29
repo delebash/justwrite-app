@@ -17,6 +17,32 @@
 > full-verification banner, and all the shipped detail are in `git log -- docs/dev/TASKS.md`.
 
 
+## A–D after the close-out: Spanish, the phone, accessibility, installing [2026-10-29]
+STATE:  DECIDED — the user: "your rec all go", on these as shown (verbatim):
+        **A. Spanish translations: when to run them.** 96 English strings have no Spanish yet: the 26
+        help-page summaries plus the screens added yesterday and today (PDF page sizes, Story Bible
+        export, POV character, repeated words, the trend line). In Spanish they show in English for now.
+        My recommendation: one docgen translation-and-review run, as the last step before the family
+        release, after all English changes are done. … I'd add it to TASKS as the release's last step so
+        it isn't forgotten.
+        **B. The phone app: in this release or not.** … My recommendation: leave the phone out of this
+        release. sync.md would say the phone app isn't available yet and point phone users to opening
+        JustWrite in their phone's browser. The phone's open TASKS items (device tests, the cloud folder
+        on the phone) close with it; the code stays for later.
+        **C. Accessibility: adopt the family's new WCAG 2.2 AA check.** … Sidebar word counts are too
+        faint: they become a little darker (the kit's standard muted grey). Sidebar status words ("Done",
+        "Draft") are coloured text, and green and blue are too light to read: they become neutral text
+        with a coloured dot, the way the chapter bar's "● Done" already looks. The colour stays, as the
+        dot. Plot board beat cards, 6 checkboxes and 2 scroll areas get fixes for screen readers and
+        keyboards: nothing changes visually. The check itself runs once at the end with the other checks,
+        never on commit. My recommendation: do it, including those two sidebar look changes.
+        **D. "Installing it" in Getting started.** … add the template's first-launch steps, with
+        JustWrite's own installer names (Windows JustWrite-Setup-<version>.exe, the macOS .dmg, Linux
+        .AppImage or .deb): Windows: More info → Run anyway. macOS: System Settings → Privacy & Security
+        → Open Anyway. Linux: make the AppImage runnable.
+OPEN:   A — at the family release, its last step (see "Before the family release" below); C — building.
+GO:     given 2026-10-29.
+
 ## Every open item settled — the close-out list [2026-10-29]
 STATE:  DECIDED — the user, on my list of every open item (TASKS, the live plans, IDEAS, the roadmap,
         the code), each checked against the code and argued: "you can do 20 yourself, 21 done, 1-19
@@ -61,83 +87,16 @@ STATE:  DECIDED — the user, on my list of every open item (TASKS, the live pla
         the shared Sync screen (just-sqlite-sync ccf3fb6 / 7e0fc0d, kit e98968a / c57386c): a cloud-folder
         device's Remove and the Changes waiting line; JustWrite shows them, and sync.md describes them
         (103d4750, 863bfa82). Neither is a drop.
-OPEN:   22 (the user's). 20 DONE 2026-10-29: Update clicked on the AI page against the user's data — pin and
+OPEN:   none — 22 decided (B in the A–D entry above). 20 DONE 2026-10-29: Update clicked on the AI page against the user's data — pin and
         engine b11960 (was the stale b10750 pin over b11239). 19 DONE 2026-10-29: the 26 docs' ledes, `lede.*` in en.json,
         Help and the palette read them, `npm run i18n:docs` in test:fast.
 GO:     given 2026-10-29 for 1–20, as above; 22 not decided.
 
-## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
-STATE:  DECIDED 2026-10-09 — asked after the 390 px pass and the emulator screenshots (the kit's
-        `docs/plans/2026-10-08-the-phone.md`, slice 5), as shown:
-        "1. Can I push JustWrite (37 commits ahead), the kit (55) and just-sqlite-sync (3) to GitHub?
-        The iOS build runs on GitHub's macOS runner, and JustWrite's server pulls in both sibling
-        repos, so all three have to be there. — My recommendation: yes, those three. docgen (11
-        ahead) isn't needed for this.
-        2. The pager can't fit on one line at phone width without losing something: it needs 378 px
-        and has 346. For now it takes two clean rows: the count, then the controls. What should it
-        drop on phones? — My recommendation: drop First/Last and "Page n / m". The count and the ‹ ›
-        arrows already show where you are.
-        3. Should I fix the three desktop problems above as part of this work? — My recommendation:
-        yes. They're each a small change." (The three: the command palette's "AI usage" entry goes
-        to a Settings section that doesn't exist; at 1280 px the chapter bar's right end is cut off;
-        the Beat sheet dialog shows its "no model" error and its spinner at the same time.)
-        The user: "you can do whatever your need your rec go".
-WHY:    the phone plan's slices 5 and 6; the screens reviewed as emulator screenshots
-        (claude.ai/artifact/GVRYsL1qV9jU5JR9RkPUAr).
-NOT:    docgen's push; the phone's no-model error wording (it names Quick Setup, which the phone
-        doesn't have — asked separately).
-BUILT:  slice 5 — the kit fdbc100, 33ab9fe; JustWrite 321a6a5 (the 390 px pass, the walk, the
-        screenshots). The answers: 2 — the kit 6f5d294 (the pager at phone width: the count, ‹ › and
-        the page size); 3 — the palette's "AI usage" opens `/ai?tab=usage` (the AI page passes
-        `?tab=` to the shared area, as it does `?providers=`), the chapter bar wraps instead of
-        running past the card, the Beat sheet hides its spinner beside an error; user docs:
-        ai-providers.md (the Usage tab's place), sync.md (the phone pager). Checked: the 390 px walk,
-        1280 px screenshots, `/ai?tab=usage` opens Usage. 1 — pushed (JustWrite, the kit,
-        just-sqlite-sync). Slice 6 — `src-capacitor/ios` (Capacitor's, Swift Package Manager; Info.plist:
-        local-network HTTP and the camera line), `.github/workflows/phone-ios.yml` (manual) +
-        `e2e/phone-ios.js` (Appium's XCUITest driver): green on run 38000436545 — welcome, the tutorial
-        book, five screens, the book kept after quit and reopen, no errors (iOS 18.6 simulator). Found
-        and fixed: the title bar under the status bar and island, the editor's word count under the
-        home indicator (the kit's theme, a4e4639, b35e0e4). Screenshots, Android and iPhone:
-        claude.ai/artifact/GVRYsL1qV9jU5JR9RkPUAr.
-OPEN:   not run: sync with a paired computer from iOS, the unsigned device build for the sideload
-        route (the cloud-folder item, OPEN 1) — WAITS ON the user's decision on the phone (the
-        close-out list's item 22, at the top). The screenshots' review and the camera sentence were
-        closed 2026-10-29 (the sentence kept as written).
-GO:     given 2026-10-09 ("you can do whatever your need your rec go").
-
-## The phone's cloud folder through the Files app — Dropbox first, OneDrive after November [2026-10-09]
-STATE:  DECIDED 2026-10-09 — asked whether the app could hand files to the OneDrive app instead of
-        an API key; shown (the kit's RESEARCH §2, "OneDrive from the phone"): handing one file works
-        today (Export → share sheet); a folder the app keeps and syncs into isn't reliable yet —
-        Android: "no source shows OneDrive/Google Drive/Dropbox supporting Android's folder
-        picking"; iOS: "OneDrive is moving to Apple's newer file-provider API (rollout to early
-        November 2026)", Dropbox already allows folder access; the one free Capacitor plugin that
-        keeps a folder grant is `@daniele-rolli/capacitor-scoped-storage` (MIT, 0.1.0). The user:
-        "yes i have iphone to test, hold off until after november for file provider role out, lets
-        test on dropbox, i will install app, what do i need to do in dropbox".
-WHY:    syncing the phone through a cloud folder without registering the app with Microsoft or
-        Dropbox (the user: "this does not see to be user friendly has to be a better way").
-NOT:    the OneDrive API registration for now (later, before JustWrite goes to other people);
-        Android (no folder picking from cloud apps).
-BUILT:  nothing yet. Desktop side already works: Settings → Sync → the shared folder, pointed at a
-        folder the Dropbox desktop app syncs.
-OPEN:   1. how a test build reaches the user's iPhone — shown: a Mac with Xcode and a free Apple ID
-        (the app runs 7 days, then re-install), or GitHub's macOS runner + TestFlight (the paid Apple
-        Developer Program, $99/year). The user: "i dont have a mac and am not spending money", then
-        "we will test the app later" — HELD. The free route found for later: the unsigned build from
-        GitHub's macOS runner (free for a public repo), installed from Windows with a free Apple ID
-        through AltStore's AltServer or Sideloadly (7-day expiry, at most 3 sideloaded apps; a
-        third-party tool signs in with the Apple ID — a throwaway ID is possible); 2. the folder
-        grant on iOS — NOT STANDARD either way, needs
-        the user's word by name: `@daniele-rolli/capacitor-scoped-storage` 0.1.0, or a small Swift
-        plugin of our own on Apple's security-scoped bookmarks; 3. OneDrive through the Files app,
-        re-tested after its file-provider rollout (early November 2026).
-GO:     not given. WAITS ON the user's decision on the phone (the close-out list's item 22).
-
 ## Now / near-term (JustWrite)
 
-- Nothing open of my own besides the close-out list above.
+- **Before the family release — its last step:** one docgen translation-and-review run on JustWrite
+  (`es`), after the last English change: the strings added since the last run (96 on 2026-10-29) and
+  any whose English changed. The user's A, above.
 
 
 ## Standing rulings (constraints, not tasks — they gate future work)

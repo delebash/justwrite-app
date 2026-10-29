@@ -3,7 +3,7 @@ lede: "Your books on every device: cloud folder, pairing, by hand"
 ---
 # Sync — your books on every device
 
-JustWrite keeps your books on each of your computers and on your phone, and sync carries
+JustWrite keeps your books on each of your computers, and sync carries
 your changes between them. Every device works with no network at all — sync catches it up the next
 time it can reach another device. Nothing ever asks you to choose between two versions: if you add a
 paragraph on one device and fix a typo in the same scene on another, both survive.
@@ -96,7 +96,7 @@ encrypted by Tailscale or ZeroTier.
 
 **[Syncthing](https://syncthing.net)** keeps a folder the same on several devices with no cloud
 account at all. Point it at a folder, then choose that folder as JustWrite's cloud folder on each
-computer. (Android only among phones, for now.)
+computer.
 
 ---
 
@@ -116,45 +116,13 @@ join that device's library. Say yes, and your books on both devices become one l
 
 ## On your phone
 
-JustWrite on a phone keeps your books in the app itself and works with no network, like a
-computer. What it does there: the books — the manuscript, the story bible, images and saved versions
-— sync, and the AI features that use an online provider. What stays on a computer: the local AI
-engine and the book search by meaning. To use the AI there, open the **AI** page, add an online
-provider with its **Default model**, then press **Set as default** on it; until you have, an AI
-feature says *"No AI model is set up on this phone…"* with those steps.
+The JustWrite phone app isn't available to download yet. Until it is, a phone's browser can open
+JustWrite from a computer that runs it: let other devices reach that computer's server (see
+[Running the server yourself](headless-access.md#running-the-server-yourself)), then open its address
+on the phone. The phone works on that computer's books directly, so the computer has to be running
+and reachable.
 
-**The screens.** The phone shows the same pages as a computer, laid out in one column. The sidebar
-opens from ☰ at the top left and closes when you pick a page; the title bar keeps Back, the book's
-title, Undo, Redo, the AI status and Search (Forward and the theme pickers stay on the computer —
-**Settings → Appearance** has the theme and light/dark). A page's buttons sit on the row under its
-title. A table wider than the screen scrolls sideways with its first column kept in view, and its
-pager keeps the count, the ‹ › arrows and the page size; the plot
-board, the cast-presence heatmap and the writing calendar on **Analysis** scroll sideways inside
-their own box. In the editor the formatting toolbar wraps onto several rows above the text. A
-dialog's AI chip sits on its own row under the dialog's title. Settings leaves out **Backups**,
-**Storage**, **Server** and **Logs**, which belong to a computer.
-
-**Getting your books onto the phone.** On a new phone the welcome screen says *Your books are on
-another device? Sync them here*. On your computer open **Settings → Sync → Other devices**, turn on
-**Let my other devices connect** (restart JustWrite once), and press **Show pairing code**. On the
-phone press **Scan code…** and point the camera at the QR code — or paste the code's text and press
-**Pair**. The books arrive and the newest opens. (The first scan asks to let JustWrite use the
-camera; pasting the code needs no camera.)
-
-**After that** the phone syncs with the computer shortly after it starts, every few minutes while
-it's open, and when you press **Sync now** — whenever the two can reach each other (the same Wi-Fi,
-or Tailscale / ZeroTier when you're away). Other devices can't reach a phone; it reaches out to your
-computer.
-
-**By hand** works on the phone too: **Export…** hands the file to the phone's share sheet (save it
-to Files or Drive, send it by mail), and **Import…** opens a file you received.
-
-**A cloud folder** (OneDrive, Dropbox) isn't available on the phone yet — it needs signing in to
-them.
-
-**If the phone's storage is cleared.** A phone may clear an app's web storage when it runs short of
-space. JustWrite also keeps a copy of your changes in its own app files, and if it ever starts with
-an empty library, it rebuilds your books from that copy.
+---
 
 ## Good to know
 

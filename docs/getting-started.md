@@ -11,6 +11,21 @@ This page covers installing JustWrite, opening it for the first time, finding yo
 
 JustWrite is a desktop app. Download the installer for your operating system from the [JustWrite website](https://delebash.github.io/justwrite-website/), run it, and open the app. There is no account to create, no subscription, nothing to register.
 
+The installers aren't signed with a publisher's certificate, so the first time:
+
+- **Windows** (`JustWrite-Setup-<version>.exe`) says "Windows protected your PC": press **More info**, then
+  **Run anyway**.
+- **macOS** (the `.dmg`, for Intel and Apple silicon Macs) says the app can't be opened. On macOS 15 and later:
+  open **System Settings → Privacy & Security**, go to **Security** and press **Open Anyway** (it's there for about
+  an hour after you try to open the app), then enter your password. On macOS 14 and earlier: Control-click the app
+  in Finder and choose **Open**. If it says the app "is damaged", run
+  `xattr -cr "/Applications/JustWrite.app"` in Terminal once, then open it.
+- **Linux**: make the `.AppImage` executable (`chmod +x`) and run it — nothing else to install. Or install the
+  `.deb` with your package manager.
+- **Windows with Smart App Control on** (some new Windows 11 computers) blocks the app with no **Run anyway**: the
+  app's files aren't signed. It runs once Smart App Control is off (Windows Security → App & browser control →
+  Smart App Control).
+
 The first launch may take a few seconds longer than usual while the app sets up its workspace on your computer.
 
 ---
@@ -185,7 +200,7 @@ A dry run builds and checks everything without publishing: `gh workflow run rele
 
 - Install [`gh`](https://cli.github.com/) and run `gh auth login`.
 
-**Code signing.** Skipped intentionally. macOS users see a "unidentified developer" Gatekeeper prompt on first launch (right-click → Open to bypass); Windows users may see SmartScreen warnings. Add an Apple Developer Certificate + Windows code-signing cert later if the friction becomes a problem.
+**Code signing.** Skipped intentionally, family-wide — what a user does the first time is under **Install** at the top of this page. Add an Apple Developer Certificate and a Windows code-signing certificate later if the friction becomes a problem.
 
 **Auto-update.** On. The desktop app checks the GitHub Releases page for a newer version when it starts, every six hours while it runs, and when the computer wakes from sleep; **Settings → Updates** says when one is out, **Download** fetches it, and it installs when the app quits (or at once with **Restart now**). On a Mac, which can't install an unsigned update, it opens the release page instead. The updater finds the installer by its file name, which therefore has no spaces.
 
