@@ -72,9 +72,11 @@ STATE:  DECIDED — the user, on my list of `docs/roadmap.md`, `IDEAS.md` and th
         7. Website entry: Label: "Ask the book" · Title: "Ask your own book." · Caption: "Ask a question
         about your story and get an answer drawn from your chapters, with the scenes it came from
         cited." · Retake: close some programs and tell me, and I'll take the picture again.
-OPEN:   the six DO items, built in the plan's order (2 waits on the kit's multi-window); the website
-        entry and the Brainstorm check on the real model wait on free memory. The removals and closes:
-        done 2026-10-29.
+OPEN:   all six BUILT 2026-10-29 (the plan's "Built" lines). Still open: multi-window's desktop window —
+        the kit's shell half (just-core-09; its own open questions are on the kit's list for the user),
+        then one check on the built app; the website entry (its picture) and Brainstorm's check per
+        category on the real model, both waiting on ~10 GB of free memory after the app starts. The
+        removals and closes: done 2026-10-29.
 GO:     given 2026-10-29, as above (both).
 
 ## Three feature ideas: PDF page size, Story Bible export, AI-written words by chapter [2026-10-28]

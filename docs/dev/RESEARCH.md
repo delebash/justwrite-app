@@ -743,6 +743,24 @@ The plan: [`../plans/2026-10-28-four-feature-ideas.md`](../plans/2026-10-28-four
   upload — so the roadmap's "direct KFX export" was dropped, and the export doc no longer sends EPUBs
   through Kindle Previewer.
 
+## The 2026-10-29 DO list: what it rests on
+
+The plan: [`../plans/2026-10-29-do-list.md`](../plans/2026-10-29-do-list.md).
+
+- **The `stopword` package's English list is thin for fiction:** 3.1.5's `eng` is 108 words with
+  *he*, *his*, *him* but not *she*, *its*, *not*, *no*, *so*, *when*, *why*, *will*, *just* — so the
+  repeated-words highlight marks "she" again and again. `stopwords-iso` 1.1.0's `en` is 1,298 words
+  and skips *face*, *back*, *thought*, *away*, *said* — real echoes. NLTK's English list (153 words in
+  `nltk-stopwords` 1.0.3, MIT, last published 2022) has all the missing ones; its README says it
+  comes from Snowball's lists via PostgreSQL, and the package's code is CommonJS reading the files
+  with `fs` (Node only). (*measured 2026-10-29*, the packages installed in a scratch folder.)
+- **simple-statistics 8.0.0 was published 2026-10-28;** 7.12.1, the one used, 2026-09-27 (`npm view
+  simple-statistics time`). Both are ES modules. (*2026-10-29*.)
+- **The renderer counts words by splitting on whitespace in ten places** (the store's rollup, the
+  sidebar, the chapter footer, versions, Import, the marketing pack, styleMetrics, voiceFingerprint,
+  analysis) — the store's moved to `src/services/words.js` for the POV balance; the rest left, the
+  copies audit being dropped. (*code 2026-10-29*, a grep for `split(/\s+/)…length`.)
+
 ## Records not yet distilled
 
 Indexed by subject so they can be found; their facts move into a section above when work next

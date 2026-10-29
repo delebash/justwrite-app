@@ -104,7 +104,7 @@ function onKey(e) {
     if (route.path !== "/search") router.push("/search");
     return;
   }
-  // ⌘⇧N / Ctrl+Shift+N → this page in a new window (2026-10-29; a browser keeps the key for itself,
+  // ⌘⇧N / Ctrl+Shift+N → this page in a new window (2026-10-29; Chrome and Edge keep the key for themselves,
   // so it reaches here in the desktop app — the palette has it everywhere but the phone).
   if (key === "n" && e.shiftKey && canOpenNewWindow()) {
     e.preventDefault();

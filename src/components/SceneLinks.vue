@@ -179,8 +179,10 @@ function onBackdrop(e) {
         <!-- POV character -->
         <section class="links-section">
           <div class="links-section-label">{{ $t("sceneLinks.povCharacter") }}</div>
-          <UiSelect width="fit" :model-value="povCharacterId" :options="povCharacterOptions"
-            :aria-label="$t('sceneLinks.povCharacter')" @update:model-value="setPovCharacter" />
+          <div class="links-row">
+            <UiSelect width="fit" :model-value="povCharacterId" :options="povCharacterOptions"
+              :aria-label="$t('sceneLinks.povCharacter')" @update:model-value="setPovCharacter" />
+          </div>
         </section>
 
         <!-- Characters -->
