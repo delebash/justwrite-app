@@ -21,7 +21,7 @@
 import { ref, computed, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { useSurfaceTask, AiTaskStrip, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect, confirmDialog, promptDialog, usePanelDismiss, UiBanner } from "@delebash/ui";
+import { useSurfaceTask, AiTaskStrip, HelpTrigger, Icon, UiButton, UiTextarea, UiSelect, confirmDialog, promptDialog, usePanelDismiss, UiBanner, renderAiMarkdown } from "@delebash/ui";
 import { useUiStore } from "../stores/ui.js";
 import { askManuscript } from "../services/rag/chat.js";
 import { askAsCharacter } from "../services/rag/characterChat.js";
@@ -559,7 +559,9 @@ defineExpose({ open: () => { open.value = true; }, close });
             <div v-else class="cp-msg cp-msg-assistant">
               <UiBanner v-if="m.error">{{ m.error }}</UiBanner>
               <template v-else>
-                <div class="cp-bubble cp-bubble-assistant">{{ m.content || (m.pending ? "…" : "") }}</div>
+                <!-- the model's answer is Markdown, rendered and sanitized by the kit's renderAiMarkdown -->
+                <div v-if="m.content" class="cp-bubble cp-bubble-assistant cp-md" v-html="renderAiMarkdown(m.content)" />
+                <div v-else class="cp-bubble cp-bubble-assistant">{{ m.pending ? "…" : "" }}</div>
                 <div v-if="m.citations && m.citations.length" class="cp-cites">
                   <ol class="cp-cite-list">
                     <li v-for="c in m.citations" :key="c.index" class="cp-cite" @click="openCitation(c)">
@@ -778,6 +780,24 @@ defineExpose({ open: () => { open.value = true; }, close });
   line-height: 1.6;
   width: 100%; max-width: 100%; box-sizing: border-box;
 }
+/* A rendered answer: its blocks carry the spacing, so no pre-wrap; sized for a chat bubble. */
+.cp-md { white-space: normal; }
+.cp-md > :deep(:first-child) { margin-top: 0; }
+.cp-md > :deep(:last-child) { margin-bottom: 0; }
+.cp-md :deep(p) { margin: 0 0 0.6em; }
+.cp-md :deep(ul),
+.cp-md :deep(ol) { margin: 0 0 0.6em 1.3em; padding: 0; }
+.cp-md :deep(li) { margin: 0.15em 0; }
+.cp-md :deep(h1),
+.cp-md :deep(h2),
+.cp-md :deep(h3),
+.cp-md :deep(h4) { font-size: 1em; font-weight: 600; color: var(--ink); margin: 0.8em 0 0.3em; }
+.cp-md :deep(strong) { color: var(--ink); }
+.cp-md :deep(blockquote) { margin: 0 0 0.6em; padding-left: 10px; border-left: 2px solid var(--border-strong); color: var(--muted); }
+.cp-md :deep(code) { font-family: var(--font-mono); font-size: 0.86em; background: var(--surface-3); padding: 0 4px; border-radius: 4px; }
+.cp-md :deep(pre) { margin: 0 0 0.6em; padding: 8px 10px; overflow-x: auto; background: var(--surface-3); border-radius: 6px; }
+.cp-md :deep(pre code) { padding: 0; background: none; }
+.cp-md :deep(a) { color: var(--accent-ink); }
 
 .cp-orphan-hint {
   display: flex; gap: 8px; align-items: center;

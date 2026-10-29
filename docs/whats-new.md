@@ -6,6 +6,10 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-29
 
+**Formatted answers in the chat.** In **Ask the book** and **Talk to a character**, an answer's bold,
+italics, lists and quotes now show as formatting instead of the model's asterisks. A model that writes
+HTML or a script into an answer gets it shown as plain text, never run. See [AI features](ai-features.md#chat).
+
 **No more asking for a name first.** A new part, a scene added in the Outline, a worldbuilding
 category from the sidebar, an article from a sidebar category, a part from the command palette and the
 chapter **Split here** makes now appear at once, their name ready to type over where it stands — a part
@@ -540,7 +544,7 @@ in the Notes view ("Manage all notes ↗").
 
 ## Earlier
 
-For the full history of shipped features, dip into the [Roadmap](roadmap.md) and [AI features roadmap](ai-features-roadmap.md) — items annotated with a ship date.
+Older changes aren't kept on this page; the [Roadmap](roadmap.md) shows what's being considered next.
 
 ---
 

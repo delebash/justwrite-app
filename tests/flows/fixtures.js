@@ -53,7 +53,9 @@ export async function inUiStore(page, fn, arg) {
  *  a bare change of the URL's #part can lose the race with the app's first navigation. */
 export async function navigate(page, path) {
   await inStore(page, () => true);
-  await page.evaluate((p) => document.querySelector("#q-app").__vue_app__.config.globalProperties.$router.push(p), path);
+  // the router's promise isn't handed back: Playwright can lose it to the page's garbage collector
+  // ("Resulting promise was garbage collected", scene-link 2026-10-29); the URL check below waits instead
+  await page.evaluate((p) => { document.querySelector("#q-app").__vue_app__.config.globalProperties.$router.push(p); }, path);
   await expect(page).toHaveURL(new RegExp(`#${path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`));
 }
 

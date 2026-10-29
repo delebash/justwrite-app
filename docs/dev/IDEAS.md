@@ -191,7 +191,7 @@ These stay where they are; this list just points at them so nothing's lost:
   items: per-feature token budgets, print layout, pace-chart trend lines, …).
   Feeds the in-app `?` drawer + the docs index.
 - **`ai-features-roadmap.md`** (this folder — moved from `docs/` 2026-07-31) — the
-  AI-features direction; now mostly a **shipped/won't-ship record** (~24 of 29
+  AI-features direction; now a **shipped/won't-ship record** (all 29 items
   resolved), kept for that history.
 - **`potential-roadmap.md`** (this folder — same move) — the bigger research-driven candidate pool (2026-06-05
   multi-source pass). Half is obsolete (its TTS/audio material moved to JustVoice — see

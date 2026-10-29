@@ -93,6 +93,9 @@ while quick ones stay local. How routing, presets and providers work is
 - **Character chat** — the chat panel's "Talk to a character" mode:
   first-person, in-voice answers from your cast.
 
+In both, an answer keeps its formatting — bold, italics, lists, quotes. A model that writes HTML
+or a script into its answer gets it shown as plain text, never run.
+
 ## Home
 
 - **Resume briefing** — generates the Home "Previously on your novel" recap

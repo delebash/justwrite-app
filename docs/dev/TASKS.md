@@ -599,10 +599,6 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
 
 ## Now / near-term (JustWrite)
 
-- **Ask the book and Talk to a character show the model's Markdown raw** (`**bold**`, `*` bullets —
-  `ChatPanel.vue`'s assistant bubble is plain text; seen in the 2026-10-28 real-model screenshots).
-  WAITS ON THE KIT: a safe renderer for AI text (marked + DOMPurify — marked doesn't sanitize),
-  asked of the kit session 2026-10-28; then the bubble renders through it.
 - **Help hints translated** (docgen's single-source item, 2026-10-29): each doc's `lede:` front-matter
   instead of `docs/toc.json`'s English `hint`, read as `$t('lede.<slug>')` by Help and the command
   palette, docgen's `extract --check` in the gate. The kit's help renderer already skips front-matter

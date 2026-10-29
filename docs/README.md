@@ -61,7 +61,6 @@ If you want to plan first:
 
 - **[What's new](whats-new.md)** — recent changes worth noticing; the same content the in-app "What's new" modal shows on first launch after an upgrade
 - **[Roadmap](roadmap.md)** — items on the table; not promises, just direction
-- **[AI features roadmap](ai-features-roadmap.md)** — AI-specific direction; shipped, deferred, and won't-ship entries with rationales
 
 ---
 
