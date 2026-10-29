@@ -398,7 +398,7 @@ fires after a release completes.
 AppImage on the current Ubuntu LTS) → `publish` (the release as a draft; `docs.tar.gz` of
 `docs/*.md` + `docs/toc.json`, the installers and the update feed attached; then public — the
 template's order since kit e326cb8). The release doesn't rebuild the website: `justwrite-website`
-deploys only when run by hand, `npm run deploy` there (`gh workflow run deploy.yml`), which takes the
+deploys only when run by hand, `npm run deploy` there (the kit's `scripts/deploy.js`: names the release, asks, runs the site's workflow), which takes the
 latest release's `docs.tar.gz` — the user, 2026-10-28: "other github workflows shouldnt be running
 other workflows". The `notify-website` job and its `docs-updated` repository\_dispatch are gone.
 

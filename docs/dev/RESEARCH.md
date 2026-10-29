@@ -221,6 +221,15 @@ tests are the kit's RESEARCH §2 "Sync" / "Sync, round 2". JustWrite's:
 - **`npm audit` (2026-10-09):** `braces` (high) and `sprintf-js` (moderate) are flagged in every
   version, so no update clears them; they reach JustWrite only through `depcheck` (a development
   tool) and `mammoth`'s command-line argument parser (`argparse`), neither run on the app's input.
+- **`npm audit` (2026-10-29):** Electron 44.10.0 (GHSA-jr5w-w6x2-84p9) and patch bumps of vue-i18n
+  (11.4.16), undici (8.12.3, and 7.30.1 / 6.29.1 under Electron's and node-gyp's installers),
+  fast-uri (3.1.9) and serialize-javascript (7.1.4) clear all but **happy-dom ≤ 21.0.3**: SSRF from an
+  `<iframe>` or stylesheet `<link>` in parsed HTML (GHSA-c8p4-j97h-3vg8, needs iframe or CSS loading on)
+  and host code execution through an ES-module import alias (GHSA-834v-8h66-3h79, needs JavaScript
+  evaluation on). JustWrite's only happy-dom is `@tiptap/html/server`, whose `Window` sets
+  `disableJavaScriptEvaluation`, `disableJavaScriptFileLoading`, `disableCSSFileLoading` and
+  `disableIframePageLoading` — neither path is open. The fix is happy-dom 21, outside `@tiptap/html`'s
+  peer range (`^20.8.9`), so it waits on Tiptap.
 - **Two windows on one server didn't see each other's saves** (2026-10-24): the window's watcher
   polled the sync product's `GET /v1/sync/rev`, which moves only when another *device's* changes
   land, so the desktop window and a browser tab on the same server each kept the book as loaded.

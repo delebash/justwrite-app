@@ -603,8 +603,23 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   `ChatPanel.vue`'s assistant bubble is plain text; seen in the 2026-10-28 real-model screenshots).
   WAITS ON THE KIT: a safe renderer for AI text (marked + DOMPurify — marked doesn't sanitize),
   asked of the kit session 2026-10-28; then the bubble renders through it.
-- **Whole-repo "extraction vs copies" audit — OWED** (your 2026-07-26 ruling). The candidates and
-  the detector that works are in `docs/dev/IDEAS.md`, "The extraction-vs-copies audit".
+- **The rest of the "extraction vs copies" audit** (your 2026-07-26 ruling; most of it done
+  2026-10-28/29). Left: the 15 pages' intro lines — the kit's `.page__lede` looks unlike its own
+  window lede, asked of the kit session first; the Markers' and events' empty states (a message slot
+  on the kit's `EmptyState`); the detail pages' bodies. `docs/dev/IDEAS.md`, "The extraction-vs-copies
+  audit".
+- **Naming popups still left — your call on each** (the rule: no naming popups; the clear ones went
+  2026-10-29, f180ddf): the Worldbuilding page's "+ New" (its popup picks the category — kept as
+  F6-WB because the article form has no category field); a new group from a character's Groups window;
+  the Scene Links picker's four "new character / location / object / group"; a new custom status
+  (StatusSelect); saving and renaming an appearance preset (Settings); renaming a chat (Ask the book's
+  history); the new-project dialog; a saved version's label (command palette).
+- **Help hints translated** (docgen's single-source item, 2026-10-29): each doc's `lede:` front-matter
+  instead of `docs/toc.json`'s English `hint`, read as `$t('lede.<slug>')` by Help and the command
+  palette, docgen's `extract --check` in the gate. The kit's help renderer already skips front-matter
+  (kit b8551d2; `front-matter` installed here); WAITS ON the kit's website `sync-docs.js` stripping a
+  doc's front-matter and taking Starlight's description from `lede:`. Plan:
+  `docs/plans/2026-07-26-i18n-single-source-research.md`.
 - **i18n key-naming style + the `|` plural pipes in `en.json` — your veto still open.** Trap to
   remember: `@` is vue-i18n's linked-message syntax — write `{'@'}` in messages; nothing in the
   toolchain catches it, so render-check any message containing `@ | {`.
@@ -650,6 +665,10 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   lives in the DO-NOT-ADD comment above `looksRefused` (`services/benchHook.js`).
 
 ## Parked (wakes on a trigger or a fresh ask — not active work)
+
+- **happy-dom 21** — wakes when `@tiptap/html` allows it (its peer range is `^20.8.9`). `npm audit`
+  lists two highs for happy-dom ≤ 21.0.3; neither reaches JustWrite, whose only use is Tiptap's
+  server-side HTML with JavaScript, CSS and iframe loading all off (RESEARCH.md, Sync).
 
 - **I5 — the deferred parking lot** (per-scene snapshots · per-entity write REST · RAG
   sqlite-vec ANN · llama-swap layer). Ledger §I5.
