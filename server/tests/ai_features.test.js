@@ -109,8 +109,8 @@ test("migrated_actions_render_and_dispatch", async () => {
     ["unstuck", { user_content: "BEGIN PROSE\nShe stared at the door." }, "stared at the door"],
     ["recap", { user_content: "Today: 1200 words on Chapter 4." }, "Chapter 4"],
     ["briefing", { user_content: "Gap: 3 days. Last chapter: The Map." }, "The Map"],
-    ["brainstorm", { label: "Character names", user_content: "Seed: exiled queens" }, "exiled queens"],
-    ["brainstormPlot", { kind: "plot twists", user_content: "Seed: detective story" }, "detective story"],
+    ["brainstorm", { user_content: "Category: character_name\nSeed: exiled queens" }, "exiled queens"],
+    ["brainstormPlot", { user_content: "Category: twist\nSeed: detective story" }, "detective story"],
   ];
   for (const [action, variables, needle] of cases) {
     const r = await c.post("/v1/ai/run", { json: { action, variables } });

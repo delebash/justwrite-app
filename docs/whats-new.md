@@ -6,6 +6,10 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-29
 
+**Brainstorm's categories are worded in its prompts.** What each category asks the model for — character
+names, place names, plot twists and the rest — now lives in Brainstorm's two system prompts, so you can
+read or reword it in the AI page's Lab. See [Brainstorm](brainstorm.md#the-categories).
+
 **A trend line on the pace chart.** Analysis → Pace draws a dashed trend line through your finished
 days and reads it under the graph — **320 → 540 trend** — so you can see whether you're speeding up,
 holding or slowing. See [Analysis](analysis.md#pace-chart).

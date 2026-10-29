@@ -579,6 +579,10 @@ Measured with the same WCAG 2 method, on the dark paper `oklch(0.225 0.006 80)` 
 
 ## Testing: real models and click-through flows (2026-10-16)
 
+- **The Lab's samples are seeded once and never healed:** the kit's `TestSampleStore.seedFill`
+  inserts a sample only where its (action, label) is absent (`../just-core/packages/core/src/llm/stores.js:1387`),
+  and nothing like `featurePromptHeals` exists for samples — a changed sample in `seed_presets.js`
+  reaches new databases only. (*code 2026-10-29*, Brainstorm's samples moving to the category ids.)
 - **promptfoo is the standard for running prompts on several models with checks** — MIT, Node
   (≥22.22), 0.124.1 the latest (2026-10-08), a release every one to three weeks; OpenAI announced
   buying it on 2026-03-09 and says it stays open source and maintained. Custom providers and

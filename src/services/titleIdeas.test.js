@@ -34,9 +34,9 @@ describe("Title ideas", () => {
     const r = composeTitleIdeasInput(project(), { target: "book", seed: "one word, nautical", budgetTokens: null });
     const c = r.variables.user_content;
     expect(r.action).toBe("brainstorm");
-    expect(r.variables.label).toBe("Titles (book / chapter / scene)");
+    expect(r.variables).not.toHaveProperty("label");
     expect(c.indexOf("BOOK CONTEXT")).toBe(0);
-    expect(c).toContain("Category: Titles (book / chapter / scene)\nSeed: one word, nautical — titles for the book in BOOK CONTEXT");
+    expect(c).toContain("Category: title\nSeed: one word, nautical — titles for the book in BOOK CONTEXT");
   });
 
   it("a chapter's: the chapter, its title now and its scenes — the seed optional", () => {

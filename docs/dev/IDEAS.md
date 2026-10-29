@@ -19,20 +19,6 @@ removed; the single-source text item is the TASKS line "Help hints translated". 
 
 ---
 
-## AI / authoring
-
-### Brainstorm's category names live in code (noted 2026-10-11; its request wording moved 2026-10-28)
-
-**Being built** — on the 2026-10-29 DO list in `docs/dev/TASKS.md`.
-
-The round's scaffolding moved into the seeded system prompts on 2026-10-28 (the request is data
-only — Category, Seed, "Liked", "Already shown" — and the systems say what to do with each list;
-healed on unedited databases). Still in code, in English: each category's model-facing name
-(`promptLabel`, filling the system's `{{label}}`) and the plot categories' `kind`, beside the
-category list that wires the Brainstorm panels.
-
----
-
 ## Roadmaps & candidate pools (pointers — user-facing, not duplicated here)
 
 - **`docs/roadmap.md`** — the published user-facing roadmap (pace-chart trend lines and

@@ -58,7 +58,7 @@ test("Plot twists ask Brainstorm's twists — an empty seed too", async ({ page 
   await expect(page.locator(".bsr-item")).toHaveCount(6);
   expect(asked.find((b) => b.action === "brainstormPlot").variables.user_content).toContain("Seed: twists from where THE STORY SO FAR ends");
   await expect(page.locator(".q-dialog")).toContainText(/plot twists/i);
-  expect(asked.find((b) => b.action === "brainstormPlot").variables.kind).toMatch(/twists/);
+  expect(asked.find((b) => b.action === "brainstormPlot").variables.user_content).toContain("Category: twist\n");
   await page.locator(".q-dialog").getByRole("button", { name: "Close", exact: true }).click();
   await expect(page.locator(".q-dialog")).toHaveCount(0);
 });

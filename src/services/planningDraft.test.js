@@ -109,7 +109,7 @@ describe("a strand's next beats and twists", () => {
   it("asks Brainstorm's plot category with the strand and its beats", () => {
     const r = composeStrandIdeasInput(project(), project().strands[0], "twist", { budgetTokens: null });
     expect(r.action).toBe("brainstormPlot");
-    expect(r.variables.kind).toMatch(/twists/);
+    expect(r.variables.user_content).toContain("Category: twist\n");
     expect(r.variables.user_content).toContain("THE STRAND\nName: Main plot");
     expect(r.variables.user_content).toContain("ITS BEATS SO FAR\n- hook.label — hook.note");
     expect(r.variables.user_content).toContain("Seed: twists for the strand in THE STRAND, after its last beat");
@@ -127,29 +127,29 @@ describe("a strand's next beats and twists", () => {
 
 describe("brainstormPlot's Lab samples keep the composers' shape (the QC-35 sample law)", async () => {
   const { DEFAULT_TEST_SAMPLES } = await import("../../server/src/seed_presets.js");
-  const { brainstormAction, brainstormPrompt } = await import("./brainstorm.js");
+  const { brainstormPrompt } = await import("./brainstorm.js");
   const sample = (label) => DEFAULT_TEST_SAMPLES.find((s) => s.label === label && s.actions.includes("brainstormPlot")).variables;
   // The headings, then the request's own lines — what the composer writes whatever the book holds.
   const skeleton = (text) => text.split("\n").filter((l) => /^[A-Z][A-Z' ]+$/.test(l) || /^(Category|Seed|Output)\b/.test(l));
-  const kind = brainstormAction("next_beat").variables.kind;
+  const names = (vars) => Object.keys(vars).sort();
 
   it("from a seed, as the Brainstorm page asks", () => {
     const s = sample("Plot beats from a seed");
     const seed = /^Seed: (.*)$/m.exec(s.user_content)[1];
     expect(s.user_content).toBe(brainstormPrompt({ category: "next_beat", seed }));
-    expect(s.kind).toBe(kind);
+    expect(names(s)).toEqual(["user_content"]);
   });
 
   it("at the cursor, as the editor's AI menu asks", () => {
     const r = composeSceneIdeasInput(project(), { chapterId: "ch1", sceneId: "s1", category: "next_beat", proseTail: "Mira turns the key.", budgetTokens: null });
     expect(skeleton(sample("Next beats at the cursor").user_content)).toEqual(skeleton(r.variables.user_content));
-    expect(sample("Next beats at the cursor").kind).toBe(r.variables.kind);
+    expect(names(sample("Next beats at the cursor"))).toEqual(names(r.variables));
   });
 
   it("on a strand, as its ✨ menu asks", () => {
     const r = composeStrandIdeasInput(project(), project().strands[0], "next_beat", { budgetTokens: null });
     expect(skeleton(sample("Next beats on a strand").user_content)).toEqual(skeleton(r.variables.user_content));
-    expect(sample("Next beats on a strand").kind).toBe(r.variables.kind);
+    expect(names(sample("Next beats on a strand"))).toEqual(names(r.variables));
   });
 });
 
@@ -158,7 +158,7 @@ describe("next beats and twists at the cursor", () => {
     const r = composeSceneIdeasInput(project(), { chapterId: "ch1", sceneId: "s1", category: "next_beat", proseTail: "Mira turns the key.", seen: ["Old idea"], budgetTokens: null });
     const c = r.variables.user_content;
     expect(r.action).toBe("brainstormPlot");
-    expect(r.variables.kind).toMatch(/next plot beats/);
+    expect(c).toContain("Category: next_beat\n");
     expect(c.indexOf("STORY CONTEXT\n")).toBe(0);
     expect(c).toContain("## Premise");
     expect(c).toContain("THE STORY SO FAR\nMira turns the key.");

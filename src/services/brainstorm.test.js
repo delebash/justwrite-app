@@ -21,19 +21,25 @@ const { useBrainstorm } = await import("../composables/useBrainstorm.js");
 
 describe("the prompt", () => {
   // Data only (2026-10-28): what the model does with each list is the seeded system prompt's.
-  it("is the category and the seed on a first round", () => {
+  // The category goes as its id (2026-10-29): what each id asks for is the seeded system prompt's,
+  // edited in the Lab — no category's name is in the code.
+  it("is the category's id and the seed on a first round", () => {
     expect(brainstormPrompt({ category: "place_name", seed: "  harbor taverns  " })).toBe(
-      "Category: Place names\nSeed: harbor taverns");
+      "Category: place_name\nSeed: harbor taverns");
   });
 
   it("adds the liked ideas, then everything already shown, on a More like these round", () => {
     const p = brainstormPrompt({ category: "character_name", seed: "x", liked: ["Ada"], seen: ["Ada", "Bo"] });
-    expect(p).toBe("Category: Character names\nSeed: x\n\nLiked:\n- Ada\n\nAlready shown:\n- Ada\n- Bo");
+    expect(p).toBe("Category: character_name\nSeed: x\n\nLiked:\n- Ada\n\nAlready shown:\n- Ada\n- Bo");
   });
 
-  it("runs a plot category as brainstormPlot with its kind, the rest as brainstorm with its label", () => {
-    expect(brainstormAction("twist")).toEqual({ action: "brainstormPlot", variables: { kind: "plot twists, reveals, or reversals" } });
-    expect(brainstormAction("item_name")).toEqual({ action: "brainstorm", variables: { label: "Item / object names" } });
+  it("runs a plot category as brainstormPlot, the rest as brainstorm", () => {
+    expect(brainstormAction("twist")).toBe("brainstormPlot");
+    expect(brainstormAction("item_name")).toBe("brainstorm");
+  });
+
+  it("keeps no words for the model: a category is its id and which system reads it", () => {
+    for (const c of BRAINSTORM_CATEGORIES) expect(Object.keys(c).filter((k) => k !== "value" && k !== "plot"), c.value).toEqual([]);
   });
 });
 
@@ -65,7 +71,7 @@ describe("the rounds (model stubbed)", () => {
   beforeEach(() => {
     runAiFeature.mockReset();
   });
-  const request = vi.fn(({ liked, seen }) => ({ action: "brainstorm", variables: { label: "L", user_content: `${liked}|${seen}` }, exclude: ["Mira"] }));
+  const request = vi.fn(({ liked, seen }) => ({ action: "brainstorm", variables: { user_content: `${liked}|${seen}` }, exclude: ["Mira"] }));
   const list = () => useBrainstorm({ request, meta: { kind: "test" }, label: "Test" });
 
   it("shows a round's fresh ideas, and a More like these round adds to them, steered by the likes", async () => {

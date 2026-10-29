@@ -155,7 +155,7 @@ export async function fillTemplate({ project, strandId, templates, signal, budge
 /** Brainstorm's round for a strand: the book, the strand and its beats in order, then Brainstorm's
  *  own request in the category (next_beat / twist). */
 export function composeStrandIdeasInput(project, strand, category, { seed: own = "", liked = [], seen = [], budgetTokens = null } = {}) {
-  const { action, variables } = brainstormAction(category);
+  const action = brainstormAction(category);
   const beats = (strand.beats || []).map((b) => `- ${b.label}${b.note ? ` — ${b.note}` : ""}`);
   const about = [`Name: ${strand.name || ""}`];
   if (strand.blurb) about.push(`About: ${htmlToText(strand.blurb)}`);
@@ -168,7 +168,7 @@ export function composeStrandIdeasInput(project, strand, category, { seed: own =
     block("ITS BEATS SO FAR", beats.join("\n")),
     brainstormPrompt({ category, seed, liked, seen }),
   );
-  return { action, variables: { ...variables, user_content } };
+  return { action, variables: { user_content } };
 }
 /* eslint-enable i18next/no-literal-string */
 
@@ -177,7 +177,7 @@ export function composeStrandIdeasInput(project, strand, category, { seed: own =
 export async function strandIdeasRequest({ project, strandId, category, seed = "", liked = [], seen = [], budgetTokens } = {}) {
   const strand = (project.strands || []).find((s) => s.id === strandId);
   if (!strand) throw new Error(`No strand ${strandId}.`);
-  const budget = await storyBudgetFor("brainstorm", brainstormAction(category).action, budgetTokens);
+  const budget = await storyBudgetFor("brainstorm", brainstormAction(category), budgetTokens);
   const request = composeStrandIdeasInput(project, strand, category, { seed, liked, seen, budgetTokens: budget });
   return { ...request, exclude: (strand.beats || []).map((b) => b.label) };
 }
@@ -192,7 +192,7 @@ export const beatFromIdea = (text) => ({ label: clamp(text, BEAT_NOTE_MAX) });
  *  Summary, how the previous scene ends), the prose up to the cursor, then Brainstorm's request —
  *  never an idea already shown (`seen`). */
 export function composeSceneIdeasInput(project, { chapterId, sceneId, category, proseTail = "", seed: own = "", liked = [], seen = [], budgetTokens = null } = {}) {
-  const { action, variables } = brainstormAction(category);
+  const action = brainstormAction(category);
   const story = composeSceneContext(project, { chapterId, sceneId, budgetTokens }).text;
   const what = category === "twist" ? "twists" : "next beats";
   const seed = seedFor(own, `${what} from where THE STORY SO FAR ends${story ? ", fitting STORY CONTEXT" : ""}`);
@@ -201,14 +201,14 @@ export function composeSceneIdeasInput(project, { chapterId, sceneId, category, 
     block("THE STORY SO FAR", proseTail),
     brainstormPrompt({ category, seed, liked, seen }),
   );
-  return { action, variables: { ...variables, user_content } };
+  return { action, variables: { user_content } };
 }
 /* eslint-enable i18next/no-literal-string */
 
 /** Ideas at the cursor, a round for the Brainstorm panel (useBrainstorm): the writer's seed, the
  *  scene's story context and the prose before the cursor. */
 export async function sceneIdeasRequest({ project, chapterId, sceneId, category, proseTail = "", seed = "", liked = [], seen = [], budgetTokens } = {}) {
-  const budget = await storyBudgetFor("brainstorm", brainstormAction(category).action, budgetTokens);
+  const budget = await storyBudgetFor("brainstorm", brainstormAction(category), budgetTokens);
   return composeSceneIdeasInput(project, { chapterId, sceneId, category, proseTail, seed, liked, seen, budgetTokens: budget });
 }
 

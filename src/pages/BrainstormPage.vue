@@ -26,8 +26,8 @@ const categoryOptions = computed(() => BRAINSTORM_CATEGORIES.map((c) => ({
 
 const { results, error, myTask, running, generate, moreLikeThese, toggleLike, clear } = useBrainstorm({
   request: ({ liked, seen }) => {
-    const { action, variables } = brainstormAction(category.value);
-    return { action, variables: { ...variables, user_content: brainstormPrompt({ category: category.value, seed: seed.value, liked, seen }) } };
+    const action = brainstormAction(category.value);
+    return { action, variables: { user_content: brainstormPrompt({ category: category.value, seed: seed.value, liked, seen }) } };
   },
   meta: () => ({ category: category.value }),
   label: t("brainstorm.title"),

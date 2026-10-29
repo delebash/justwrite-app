@@ -159,7 +159,7 @@ export function applySheetDrafts(project, kind, entityId, picks) {
  *  already uses, then Brainstorm's own request in the page kind's category. */
 export function composeSheetNameIdeasInput(project, kind, entityId, { seed: own = "", liked = [], seen = [], budgetTokens = null } = {}) {
   const category = NAME_CATEGORY[kind];
-  const { action, variables } = brainstormAction(category);
+  const action = brainstormAction(category);
   const book = bookBlock(project, budgetTokens);
   const what = `names for the ${kind} in ${ENTRY_HEADING[kind]}`;
   const seed = seedFor(own, book ? `${what}, fitting the book in BOOK CONTEXT` : what);
@@ -169,14 +169,14 @@ export function composeSheetNameIdeasInput(project, kind, entityId, { seed: own 
     takenBlock(project, kind),
     brainstormPrompt({ category, seed, liked, seen }),
   );
-  return { action, variables: { ...variables, user_content } };
+  return { action, variables: { user_content } };
 }
 /* eslint-enable i18next/no-literal-string */
 
 /** Name ideas' request for useBrainstorm: the composed round, with the names the kind already
  *  uses never shown as ideas. */
 export async function sheetNameIdeasRequest({ project, kind, entityId, seed = "", liked = [], seen = [], budgetTokens } = {}) {
-  const { action } = brainstormAction(NAME_CATEGORY[kind]);
+  const action = brainstormAction(NAME_CATEGORY[kind]);
   const budget = await storyBudgetFor("brainstorm", action, budgetTokens);
   const request = composeSheetNameIdeasInput(project, kind, entityId, { seed, liked, seen, budgetTokens: budget });
   return { ...request, exclude: listOf(project, kind).map((x) => x.name).filter(Boolean) };

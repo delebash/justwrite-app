@@ -18,7 +18,7 @@ const sceneLine = (scn) => scn.title || htmlToText(scn.summary || "") || htmlToT
 /** The round's input for one title: `target` "book" | "chapter" | "scene" (the scene's chapter in
  *  `chapterId`). */
 export function composeTitleIdeasInput(project, { target, chapterId, sceneId, seed: own = "", liked = [], seen = [], budgetTokens = null } = {}) {
-  const { action, variables } = brainstormAction(CATEGORY);
+  const action = brainstormAction(CATEGORY);
   const book = bookBlock(project, budgetTokens);
   const fits = book ? ", fitting the book in BOOK CONTEXT" : "";
   let about = "";
@@ -45,7 +45,7 @@ export function composeTitleIdeasInput(project, { target, chapterId, sceneId, se
     }
   }
   const user_content = join(book, about, brainstormPrompt({ category: CATEGORY, seed: seedFor(own, what), liked, seen }));
-  return { action, variables: { ...variables, user_content } };
+  return { action, variables: { user_content } };
 }
 /* eslint-enable i18next/no-literal-string */
 
@@ -58,7 +58,7 @@ function takenTitles(project, target, chapterId) {
 
 /** Title ideas' request for useBrainstorm. */
 export async function titleIdeasRequest({ project, target, chapterId, sceneId, seed = "", liked = [], seen = [], budgetTokens } = {}) {
-  const budget = await storyBudgetFor("brainstorm", brainstormAction(CATEGORY).action, budgetTokens);
+  const budget = await storyBudgetFor("brainstorm", brainstormAction(CATEGORY), budgetTokens);
   const request = composeTitleIdeasInput(project, { target, chapterId, sceneId, seed, liked, seen, budgetTokens: budget });
   return { ...request, exclude: takenTitles(project, target, chapterId).filter(Boolean) };
 }

@@ -68,13 +68,13 @@ describe("the composed input", () => {
   it("asks Brainstorm for character names after the book, the profile and the cast (Name ideas)", () => {
     const r = composeNameIdeasInput(project(), "c2", { budgetTokens: null });
     expect(r.action).toBe("brainstorm");
-    expect(r.variables.label).toBe("Character names");
+    expect(r.variables).not.toHaveProperty("label");
     const u = r.variables.user_content;
     const at = (s) => u.indexOf(s);
     expect(at("BOOK CONTEXT")).toBe(0);
     expect(at("CHARACTER PROFILE")).toBeGreaterThan(at("BOOK CONTEXT"));
     expect(at("ALREADY IN THE CAST\n- Mira")).toBeGreaterThan(at("CHARACTER PROFILE"));
-    expect(at("Category: Character names\nSeed: ")).toBeGreaterThan(at("ALREADY IN THE CAST"));
+    expect(at("Category: character_name\nSeed: ")).toBeGreaterThan(at("ALREADY IN THE CAST"));
   });
 
   it("sends no book context for an empty book, and a More like these round carries the likes", () => {

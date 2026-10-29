@@ -286,3 +286,23 @@ test("Brainstorm's request is data only; a database seeded before 2026-10-28 hea
   // a prompt the writer edited is never touched
   expect(h.get("feature_prompts", "brainstormPlot").system).toBe(`${OLD.brainstormPlot} Mine.`);
 });
+
+test("Brainstorm's categories are named in its systems; a database seeded 2026-10-28 heals to them", async () => {
+  // The request names a category by its id (2026-10-29), so each system says what its ids ask for.
+  for (const id of ["character_name", "place_name", "item_name", "title", "free"]) {
+    expect(DEFAULT_FEATURE_PROMPTS.brainstorm.system, id).toContain(`${id} — `);
+  }
+  for (const id of ["next_beat", "twist"]) expect(DEFAULT_FEATURE_PROMPTS.brainstormPlot.system, id).toContain(`${id} — `);
+  expect(DEFAULT_FEATURE_PROMPTS.brainstorm.system).not.toContain("{{label}}");
+  expect(DEFAULT_FEATURE_PROMPTS.brainstormPlot.system).not.toContain("{{kind}}");
+  // The two systems as every database seeded 2026-10-28 holds them, byte for byte.
+  const OLD = {
+    brainstorm: 'You are a creative brainstorming partner for a novelist. The user is generating {{label}} ideas. Reply with 15–20 short suggestions, one per line, no numbering, no commentary, no explanations. Each suggestion stands alone — a name, a phrase, a title — never more than ~6 words. When the request lists ideas under "Liked", give new ones in the same direction — same vibe, sound, era, register. Never repeat an idea listed under "Liked" or "Already shown".',
+    brainstormPlot: 'You are a story-craft brainstorming partner for a novelist. The user has described their current situation; you respond with 15-20 distinct {{kind}}, each on its own line. Each item is a single sentence (12-25 words) naming a specific, concrete move — not abstract advice. Mix close-to-obvious moves with wilder ones. No numbering, no commentary, no preface, no explanations. When the request lists items under "Liked", give new ones in the same direction. Never repeat an item listed under "Liked" or "Already shown".',
+  };
+  await client();
+  const h = state.handle;
+  for (const [key, old] of Object.entries(OLD)) h.tx(() => h.update("feature_prompts", { system: old }, { key }));
+  h.tx(() => seed.seedDefaultFeaturePrompts(h));
+  for (const key of Object.keys(OLD)) expect(h.get("feature_prompts", key).system, key).toBe(DEFAULT_FEATURE_PROMPTS[key].system);
+});

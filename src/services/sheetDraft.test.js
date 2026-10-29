@@ -127,11 +127,11 @@ describe("Name ideas and Suggest locations inputs", () => {
   it("asks Brainstorm in the page kind's category, with the names already taken", () => {
     const loc = composeSheetNameIdeasInput(project(), "location", "l2", { budgetTokens: null });
     expect(loc.action).toBe("brainstorm");
-    expect(loc.variables.label).toBe("Place names");
+    expect(loc.variables.user_content).toContain("Category: place_name\n");
     expect(loc.variables.user_content).toContain("LOCATIONS ALREADY IN THE BOOK\n- North quay cannery\n- The archive");
     expect(loc.variables.user_content).toContain("Seed: names for the location in THE LOCATION, fitting the book in BOOK CONTEXT");
-    expect(composeSheetNameIdeasInput(project(), "object", "o1").variables.label).toBe("Item / object names");
-    expect(composeSheetNameIdeasInput(project(), "group", "g1").variables.label).toBe("Anything (free prompt)");
+    expect(composeSheetNameIdeasInput(project(), "object", "o1").variables.user_content).toContain("Category: item_name\n");
+    expect(composeSheetNameIdeasInput(project(), "group", "g1").variables.user_content).toContain("Category: free\n");
   });
 
   it("leads with the writer's seed (2026-10-28)", async () => {

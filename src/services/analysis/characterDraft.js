@@ -81,7 +81,7 @@ export function composeSuggestInput(project, { lookingFor = "", budgetTokens = n
  *  as on the Brainstorm page. */
 /* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 export function composeNameIdeasInput(project, characterId, { seed: own = "", liked = [], seen = [], budgetTokens = null } = {}) {
-  const { action, variables } = brainstormAction("character_name");
+  const action = brainstormAction("character_name");
   const book = bookBlock(project, budgetTokens);
   const seed = seedFor(own, book
     ? "names for the character in CHARACTER PROFILE, fitting the book in BOOK CONTEXT"
@@ -92,7 +92,7 @@ export function composeNameIdeasInput(project, characterId, { seed: own = "", li
     castBlock(project),
     brainstormPrompt({ category: "character_name", seed, liked, seen }),
   );
-  return { action, variables: { ...variables, user_content } };
+  return { action, variables: { user_content } };
 }
 /* eslint-enable i18next/no-literal-string */
 

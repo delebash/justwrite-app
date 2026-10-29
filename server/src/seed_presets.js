@@ -357,22 +357,20 @@ export const DEFAULT_TEST_SAMPLES = [
                               "been abandoned for years. Every window was boarded up.",
                    "voiceCanon": ""}},
     // ── ideation (brainstorm/brainstormPlot: {{user_content}} is brainstorm.js brainstormPrompt's
-    // shape — Category/Seed, data only since 2026-10-28; {{label}}/{{kind}} are the client-filled
-    // SYSTEM variables) ──
+    // shape — Category/Seed, data only since 2026-10-28; the Category is the category's id since
+    // 2026-10-29, what it asks for said in the system) ──
     {"actions": ["brainstorm"], "label": "Brainstorm seed",
-     "variables": {"user_content": "Category: Character names\n" +
+     "variables": {"user_content": "Category: character_name\n" +
                                    "Seed: coastal-archivist family names — weathered, bookish, " +
-                                   "northern harbor town",
-                   "label": "character name"}},
+                                   "northern harbor town"}},
     // brainstormPlot, one sample per way the app asks (2026-10-16; until then it shared the
     // character-names seed above): the Brainstorm page's Next plot beats (brainstorm.js
     // brainstormPrompt), the editor's AI menu at the cursor (planningDraft.js composeSceneIdeasInput)
-    // and a strand's ✨ menu (composeStrandIdeasInput). {{kind}} is the category's (brainstormAction).
+    // and a strand's ✨ menu (composeStrandIdeasInput).
     {"actions": ["brainstormPlot"], "label": "Plot beats from a seed",
-     "variables": {"user_content": "Category: Next plot beats\n" +
+     "variables": {"user_content": "Category: next_beat\n" +
                                    "Seed: Mira has just found that someone who reads the old harbor script " +
-                                   "altered her father's ledger. Renn knows more than he says.",
-                   "kind": "next plot beats — possible moves, escalations, or scene-level developments"}},
+                                   "altered her father's ledger. Renn knows more than he says."}},
     {"actions": ["brainstormPlot"], "label": "Next beats at the cursor",
      "variables": {"user_content": "STORY CONTEXT\n" +
                                    "## Premise\n" +
@@ -384,9 +382,8 @@ export const DEFAULT_TEST_SAMPLES = [
                                    "- Mira (Harbor archivist) — Guarded and dry-witted; keeps grief private.\n\n" +
                                    "THE STORY SO FAR\n" +
                                    `${SAMPLE_CHAPTER_PROSE}\n\n` +
-                                   "Category: Next plot beats\n" +
-                                   "Seed: next beats from where THE STORY SO FAR ends, fitting STORY CONTEXT",
-                   "kind": "next plot beats — possible moves, escalations, or scene-level developments"}},
+                                   "Category: next_beat\n" +
+                                   "Seed: next beats from where THE STORY SO FAR ends, fitting STORY CONTEXT"}},
     {"actions": ["brainstormPlot"], "label": "Next beats on a strand",
      "variables": {"user_content": "BOOK CONTEXT\n" +
                                    "## Premise\n" +
@@ -398,9 +395,8 @@ export const DEFAULT_TEST_SAMPLES = [
                                    "ITS BEATS SO FAR\n" +
                                    "- Mira finds the torn page — the ink changes mid-entry\n" +
                                    "- Renn names Old Harbek — the one who still reads the old script\n\n" +
-                                   "Category: Next plot beats\n" +
-                                   "Seed: next beats for the strand in THE STRAND, after its last beat, fitting the book in BOOK CONTEXT",
-                   "kind": "next plot beats — possible moves, escalations, or scene-level developments"}},
+                                   "Category: next_beat\n" +
+                                   "Seed: next beats for the strand in THE STRAND, after its last beat, fitting the book in BOOK CONTEXT"}},
     // ── judge.scored ──
     // critique / critiqueStructure / multiReader×4: {{chapter_label}} renders
     // directly before "--- BEGIN CHAPTER ---", so the label carries the run

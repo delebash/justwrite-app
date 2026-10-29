@@ -20,6 +20,8 @@ The panel is its own surface — you can leave and come back, but anything in it
 
 The category shapes the system prompt that goes to the model — it's what tells the LLM whether you want short personal names, evocative book titles, or open-ended phrases. The seed prompt is what tells it the *flavour*; the category tells it the *shape*.
 
+What each category asks the model for is written in Brainstorm's two system prompts — one for the naming categories and the free prompt, one for plot beats and twists — and you can read or reword them in the AI page's Lab, like every feature's prompt (see [Presets](presets.md)). The request names the category by a short id (`character_name`, `place_name`, `item_name`, `title`, `free`, `next_beat`, `twist`), and the prompt says what each id means.
+
 Pick the one that fits the kind of output you want back. The selected category's purpose and an example seed prompt appear inline in the panel itself, so you don't have to remember them.
 
 | Category | What it's for | Example seed |

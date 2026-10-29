@@ -46,7 +46,7 @@ function mount(props) {
 
 describe("the Brainstorm panel at a page", () => {
   it("runs nothing on open; Generate sends the seed — empty or the writer's — and Use hands an idea back", async () => {
-    const request = vi.fn(async ({ seed }) => ({ action: "brainstorm", variables: { label: "Character names", user_content: `Seed: ${seed}` } }));
+    const request = vi.fn(async ({ seed }) => ({ action: "brainstorm", variables: { user_content: `Seed: ${seed}` } }));
     runAiFeature.mockResolvedValue({ content: "1. Brenna Holt\n2. Sigrun Vale" });
     const picked = [];
     mount({ category: "character_name", request, meta: { kind: "test" }, taskLabel: "Name ideas", pickLabel: "Use", onPick: (t) => picked.push(t) });
