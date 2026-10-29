@@ -625,6 +625,13 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
 
 ## Standing rulings (constraints, not tasks — they gate future work)
 
+- **One family release, only when every app is complete** (the user, 2026-10-29, verbatim): *"you
+  dont understand we have several apps i want all kit work done for all apps before we release any
+  app, i want to relase all apps that we are working on now but not until all kit work is done by
+  each app that means each app is complete bugs fixed featrues done all tasks ideas done or removed
+  from list"*. Never recommend or start a release before then (2026-10-28); passed to the kit's and
+  docgen's sessions.
+
 - **Naming popups — only where a data screen follows** (the user, 2026-10-29, verbatim): *"the new
   thing is for like data screens shuch as character before for a new character you would clikc new it
   would ask for name then open the new character screen, instead we no longer have a popup just asking
