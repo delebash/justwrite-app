@@ -91,7 +91,7 @@ export const useUiStore = defineStore("ui", {
       // remembered even when they switch to outline / read and back.
       chapterEditStyle: "list",
       // Scroll-driven scene highlight for Read mode's whole-book scope.
-      // Not persisted — flooding IDB on every scroll tick is wasteful, and
+      // Not persisted — saving to the server on every scroll tick is wasteful, and
       // on reload there's nothing meaningful to restore to anyway.
       scrolledSceneId: null,
       // Project find & replace modal — `open` summons the shared modal
@@ -182,7 +182,7 @@ export const useUiStore = defineStore("ui", {
     },
 
     // Scroll-driven update from Read mode's whole-book view. Skips
-    // _persist so a fast scroll doesn't write to IDB on every tick.
+    // _persist so a fast scroll doesn't save to the server on every tick.
     // Auto-expands the current chapter so the highlighted scene is
     // visible in the sidebar (collapse remains user-driven).
     setScrolledScene(sceneId, chapterId) {

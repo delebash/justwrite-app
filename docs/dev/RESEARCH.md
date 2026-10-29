@@ -459,7 +459,7 @@ The plan: [`../plans/archive/2026-10-18-editor-expansion.md`](../plans/archive/2
 
 ## Translation: what still shows in English (2026-10-12)
 
-The July research and its seven decisions: [`../plans/2026-07-26-i18n-single-source-research.md`](../plans/2026-07-26-i18n-single-source-research.md)
+The July research and its seven decisions: [`../plans/archive/2026-07-26-i18n-single-source-research.md`](../plans/archive/2026-07-26-i18n-single-source-research.md)
 (decisions as blessed: in `../plans/archive/2026-07-26-i18n-phase1-coverage-plan.md`'s header).
 The plan that follows from it, every app and the kit on vue-i18n, is the kit's
 `docs/plans/2026-10-12-i18n-standard.md`; the counts for the other repos are in the kit's register §8.
@@ -791,6 +791,50 @@ Measured with the same WCAG 2 method, on the dark paper `oklch(0.225 0.006 80)` 
   relaunch keeps the flag. Production builds keep no Vue component handles (`__vueParentComponent`,
   `app._instance`), so the OS folder picker can't be answered from the page; the Storage panel's
   "Move back to the default folder…" moves without one. — *2026-10-24, the data-folder check.*
+- **Undeclared names in the renderer's scripts: Biome checks them since 2026-10-29** (the family's
+  biome.json, kit 0a40b01c: `noUndeclaredVariables` on `src/**` too; it was on `server/**` and
+  `src-electron/**` only). Before it, a script in `src/` could call a name it never imports and pass
+  lint, the build and the smoke (which opens no page that calls it); two crashes got through, the
+  event pages' `useI18n` (2026-10-09 to 366c4bd0) and SettingsPage's `flushPending` (2026-06-18 to
+  2026-10-29). The rule reports 0 on today's 322 files and exactly those two on their old versions;
+  a one-off ESLint `no-undef` (vue-eslint-parser) found the same. — *measured 2026-10-29.*
+- **What a template uses but nothing defines, Biome doesn't see** (it reads a `.vue` file's script,
+  not its template), and production builds drop Vue's warning. Vue's own compiler shows it:
+  `compileScript` with `inlineTemplate` refers to a setup binding directly and to anything else as
+  `_ctx.<name>`. Over all 94 components (every one is `<script setup>`) it found one, SceneLinks'
+  `summaryTask` (c7261e91 passed it, never defined it). Attributes passed to a component that no
+  longer declares them fall through silently: a scan of every component use against its target's
+  `defineProps`/`defineEmits` found `fluid` on 9 fields (a PrimeVue prop, dead since the move to the
+  kit's controls; removed) and three false alarms (kebab listeners of camelCase emits, a prop the scan
+  misread, `list` reaching the native input through QInput). A key built at runtime that en.json
+  lacks shows as its path: the 47 pages of the accessibility check and every AI tab showed none.
+  One-off scripts in the session's scratchpad. — *measured 2026-10-29.*
+- **A copy of the user's data must not point outside its own folder:** the settings rows
+  `autosaveDir` (a server rotates the book's autosaves there, under the book's own id) and `sync`
+  (its cloud folder, paired devices and the auto-sync that starts 15 s after boot — just-sqlite-sync
+  `app.js` `schedule`) would let a scratch server write into the user's real autosave folder and
+  sync library. `scripts/snapshot-db.js` drops both from the copy (server/tests/snapshot_db.test.js).
+  The user's database has neither row today (read-only check), so no run has written outside.
+  — *code and the database, 2026-10-29.*
+
+## Backups: what an autosave holds and restores (2026-10-29)
+
+- **An autosave is one book plus the settings document** (`_workspace: { settings }` —
+  `stores/project.js` `workspaceKeysToBundle`): appearance and the other `ui` choices, the `ai`
+  preferences, the open book's id, remembered folders. No AI providers, sessions or other books —
+  those live in the database. The app's autosaves all carry `_workspace`.
+- **Restore loaded the autosave into whichever book was open** — `loadSnapshot` never set
+  `_activeId`, and the list shows every book's autosaves — so restoring book B's while A was open
+  replaced A with B, and A's later autosaves rotated A's own away. `loadSnapshot(snap, { id })`
+  now saves the open book and opens the autosave's own first. Its reload (the other stores read
+  their settings once, at boot) called `flushPending`, gone since 2026-06-18: every restore showed
+  "flushPending is not defined" and never reloaded; it now waits for `flushSettings` and
+  `flushPendingProjects`. Both: tests/flows/autosave-restore.spec.js, red on the old build.
+- **The book's unload save can be lost on a reload for a book over 64 KiB:** the disk autosave's
+  unload flush sends `keepalive`, which the kit drops for a body over 64 KiB (the Testing section's
+  keepalive fact), so the restore doesn't promise that the restored state becomes the new current
+  autosave at once (the database has it: the restore waits for the book's save); the next edit's
+  autosave writes it. — *code 2026-10-29.*
 
 ## Four feature ideas: what the plan rests on (2026-10-28)
 
@@ -895,9 +939,6 @@ The plan: [`../plans/archive/2026-10-29-do-list.md`](../plans/archive/2026-10-29
 
 Indexed by subject so they can be found; their facts move into a section above when work next
 touches the subject. History in [`../plans/archive/`](../plans/archive/) is not listed.
-
-**Single-source text and translation** —
-[`2026-07-26-i18n-single-source-research.md`](../plans/2026-07-26-i18n-single-source-research.md).
 
 **Performance** — [`measured-performance.md`](measured-performance.md) (distilled evidence) ·
 [`bench.md`](bench.md) (the LLM bench harness).

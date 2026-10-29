@@ -92,12 +92,12 @@ function save() {
 
         <label class="field">
           <span class="field-label">{{ $t("events.fieldTitle") }}</span>
-          <UiInput fluid ref="titleRef" v-model="titleStr" :placeholder="$t('events.titlePlaceholder')" />
+          <UiInput ref="titleRef" v-model="titleStr" :placeholder="$t('events.titlePlaceholder')" />
         </label>
 
         <label class="field">
           <span class="field-label">{{ $t("events.fieldNotes") }}</span>
-          <UiTextarea fluid v-model="noteStr" rows="6"
+          <UiTextarea v-model="noteStr" rows="6"
             :placeholder="$t('events.notesPlaceholder')" />
         </label>
       </form>

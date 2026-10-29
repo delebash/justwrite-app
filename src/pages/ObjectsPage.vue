@@ -201,7 +201,7 @@ const columns = computed(() => [
             :label="$t('objects.draft.describeLabel')" :hint="$t('objects.draft.describeHint')"
             :placeholder="$t('objects.draft.describePlaceholder')" :collapsed-label="$t('objects.draft.describeCollapsed')"
             @draft="(text) => draftFrom = text" />
-          <UiInput fluid :placeholder="$t('objects.kindPlaceholder')"
+          <UiInput :placeholder="$t('objects.kindPlaceholder')"
             :model-value="obj.kind" @update:model-value="update('kind', $event)" />
           <TagEditor
             :model-value="obj.tags || []"

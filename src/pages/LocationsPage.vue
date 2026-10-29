@@ -206,7 +206,7 @@ const columns = computed(() => [
             :label="$t('locations.draft.describeLabel')" :hint="$t('locations.draft.describeHint')"
             :placeholder="$t('locations.draft.describePlaceholder')" :collapsed-label="$t('locations.draft.describeCollapsed')"
             @draft="(text) => draftFrom = text" />
-          <UiInput fluid :placeholder="$t('locations.kindPlaceholder')"
+          <UiInput :placeholder="$t('locations.kindPlaceholder')"
             :model-value="loc.kind" @update:model-value="update('kind', $event)" />
           <TagEditor
             :model-value="loc.tags || []"

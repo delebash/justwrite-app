@@ -2229,7 +2229,13 @@ export const useProjectStore = defineStore("project", {
     },
 
     // ── Snapshot ────────────────────────────────────────────
-    loadSnapshot(snap) {
+    // `id`: the book the snapshot is (an autosave is one book's). The open book is saved and that
+    // one opened first, so the snapshot replaces its own book — never whichever book was open.
+    loadSnapshot(snap, { id } = {}) {
+      if (id && id !== this._activeId) {
+        if (this._activeId) this._persist();
+        this._activeId = id;
+      }
       const hadWorkspace = !!(snap?._workspace);
       if (hadWorkspace) restoreWorkspaceBundle(snap._workspace);
       // _workspace lives alongside the project fields in the file but isn't
@@ -2239,7 +2245,7 @@ export const useProjectStore = defineStore("project", {
       this.clearHistory();
       this._persist();
       // Caller decides whether to reload; sister stores (AI/sessions)
-      // only re-hydrate from IDB at boot, so a workspace restore needs one.
+      // read their settings once at boot, so a workspace restore needs one.
       return { workspaceRestored: hadWorkspace };
     },
     exportSnapshot() {

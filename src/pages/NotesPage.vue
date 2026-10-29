@@ -283,7 +283,7 @@ const columns = computed(() => [
             :aria-label="$t('notes.anchorAriaLabel')" />
         </div>
         <div class="note-tag-wrap">
-          <UiInput fluid :placeholder="$t('notes.tagPlaceholder')"
+          <UiInput :placeholder="$t('notes.tagPlaceholder')"
             :model-value="n.tag"
             @update:model-value="update('tag', $event)"
             @focus="onTagFocus"

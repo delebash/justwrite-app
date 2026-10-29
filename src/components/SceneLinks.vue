@@ -42,6 +42,8 @@ function update(patch) {
 // ── Summary (slice 3, 2026-10-16): the writer's plan for the scene; Summarize this scene drafts
 // it from the prose into the shared review window ───────────────────────
 const summarizing = ref(false);
+// the run's task, as summarizeScene starts it (its meta), for the review window's strip
+const summaryTask = useSurfaceTask(PLANNING_FEATURE, () => ({ kind: "scene-summary", sceneId: props.sceneId }));
 async function draftSummary(signal) {
   const { summary } = await summarizeScene({ project, chapterId: props.chapterId, sceneId: props.sceneId, signal });
   if (!summary) return [];

@@ -55,7 +55,7 @@ test("sidebar mounts and shows the Manuscript section header", async () => {
   assert.equal(hasManuscript, true, "expected to find a Manuscript section header in the sidebar");
 });
 
-test("project hydrates from IDB — Chapters route renders without error", async () => {
+test("the book loads from the server — Chapters route renders without error", async () => {
   await d.navigate("#/chapters");
   // The Chapters view shows the project title + a part/chapter spine.
   // Loose assertion: page text mentions either "Chapter" or "Part" once

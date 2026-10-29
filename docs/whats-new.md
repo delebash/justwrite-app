@@ -9,6 +9,16 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-29
 
+**Restoring an autosave works again, and restores the right book.** Since June, **Restore** under
+Settings → Backups → **Restore from autosave…** showed "flushPending is not defined" and never brought
+your settings back; and restoring one book's autosave while another book was open replaced the open
+book with it. Now it opens the autosave's own book, brings back the settings saved with it, and
+reloads; your other books are untouched. See [Backups and data](backups-and-data.md#restoring-from-autosave).
+
+**Summarize this scene shows its progress.** The scene's **Links** panel drafts a summary in a review
+window that, since 2026-10-19, showed no progress strip and no **Cancel** while the model wrote; it
+shows both again, as the other drafting windows do.
+
 **Statuses you can read.** A status is now its name in plain text after a dot in the status's colour —
 the way the chapter bar shows **● Done** — in the sidebar, the status pill and its list, the editor's
 scene pill and Home's resume line, because a light green or blue word was too faint to read. The

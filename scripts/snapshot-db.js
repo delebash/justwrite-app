@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
 // Snapshot a live SQLite database with SQLite's backup API (safe against a source that is
-// open and mid-write — a plain file copy is not), then switch warm-on-boot OFF in the copy.
-// Used by scripts/smoke.js and scripts/eval.js (scripts/lib/scratch-server.js); runs on
+// open and mid-write — a plain file copy is not), then switch warm-on-boot OFF in the copy and
+// drop the settings that point a server outside its own folder: the autosave folder
+// (`autosaveDir` — a server on the copy would rotate the book's autosaves in the user's real
+// folder, under the book's own id) and sync (`sync` — its cloud folder, paired devices and
+// auto-sync timer would push the test's edits to the user's devices).
+// Used by the smoke, the flows, the eval and the screenshot capture (scripts/lib/scratch-server.js); runs on
 // Electron's Node (scripts/node24.js), the runtime better-sqlite3 is built for. better-sqlite3
 // is the kit's (its `openDatabase`; `.raw` is the better-sqlite3 handle) — this repo doesn't
 // install it itself.
@@ -24,6 +28,11 @@ const source = openDatabase(src, { foreignKeys: false, readonly: true });
 await source.raw.backup(dest);
 source.close();
 const copy = openDatabase(dest, { foreignKeys: false });
+try {
+  copy.run("delete from settings where key in ('autosaveDir', 'sync')");
+} catch {
+  /* no settings table yet — nothing points outside */
+}
 try {
   copy.run("update runner_setting set value = '0' where key = 'warm_default_on_startup'");
   if (cacheRoot) {

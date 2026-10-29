@@ -29,7 +29,7 @@ The Backups section shows you the **path** where this is stored on your machine.
 
 - **Point a cloud sync tool at this folder** — OneDrive, Dropbox, iCloud, Google Drive, Time Machine. Now your manuscript is also in the cloud as a side effect of normal use, without JustWrite itself needing any cloud account.
 - **Open the folder in Finder / Explorer** to confirm files are appearing.
-- **Click Show autosaves** to reveal the list — each of the three generations has its own **Restore** button (plus Delete selected / Delete all).
+- **Click Restore from autosave…** to reveal the list — every book's autosaves, each of the three generations with its own **Restore** button (plus Delete selected / Delete all).
 
 **Why three generations.** If autosave runs while you're in the middle of a regrettable edit, the current and the .prev may both be the bad state — but .prev2 is from before. Three generations is usually enough for "I made a mess, give me what it looked like a minute ago."
 
@@ -87,12 +87,15 @@ All of JustWrite's data — your books, images, the AI engine and its models, an
 
 If something goes wrong:
 
-1. Open **Settings → Backups** and click **Show autosaves**, then **Restore** on the generation you want
-2. JustWrite lists the available autosave generations with their timestamps.
-3. Pick one. JustWrite shows you what's in it (project title, chapter count) before committing.
-4. Confirm.
+1. Open **Settings → Backups** and click **Restore from autosave…**. The list shows every book's
+   autosaves, three generations each, with the time each was saved.
+2. Click **Restore** on the one you want. JustWrite names the book, the generation and when it was
+   saved before anything changes.
+3. Confirm.
 
-Your current state is replaced. The autosave you chose becomes the new current.
+That book opens with the autosave's contents, replacing its current state; your other books are
+untouched. Each autosave also holds your settings as they were then, so those come back too, and
+JustWrite reloads to apply them.
 
 If you'd rather not lose the current state in case the autosave is wrong, **export a backup first** — then restoring autosave is reversible by importing your fresh snapshot.
 
@@ -123,7 +126,7 @@ Almost no normal use case needs this button. If you're considering it for any re
 For the technically curious:
 
 - **The app database** is a local SQLite file inside your data folder, written by JustWrite's built-in server. It's instant, always-on, and survives app restarts. (There is no browser IndexedDB store — the app keeps no durable data in the browser engine.)
-- **Autosave on disk** lives in your operating system's app data folder under a JustWrite directory. The Backups section shows the exact path.
+- **Autosave on disk** lives in the `projects` folder inside your data folder, unless you chose another with **Change folder…** in the Backups section (desktop app). The Backups section shows the exact path.
 - **Snapshots** are wherever you saved them.
 - **Images** for character avatars, location photos, the cover image, etc., are stored by the built-in server under your data folder and referenced by id — with an inline data-URL fallback saved in the project snapshot when the server is briefly unreachable.
 

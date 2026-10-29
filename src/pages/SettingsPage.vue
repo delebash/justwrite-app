@@ -7,7 +7,8 @@ import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor } from "../services/imageStore.js";
 import { AboutPanel, promptDialog, confirmDialog, DataManagement, LogsPanel, ServerPanel, SettingsShell, StoragePanel, UpdatesPanel, renderHelpMarkdown, pageFill } from "@delebash/ui";
 import { loadDoc } from "../services/helpDocs.js";
-import { readSetting, writeSetting } from "../services/settings.js";
+import { flushSettings, readSetting, writeSetting } from "../services/settings.js";
+import { flushPendingProjects } from "../services/projectApi.js";
 import { exportProject, importProject, saveBackupBlob, canSaveFiles, canPickBooks } from "../services/bookTransfer.js";
 import { serverDataDir, chooserDir, rememberDir } from "../services/chooserDirs.js";
 import {
@@ -403,12 +404,12 @@ watchEffect(() => {
   }
 });
 
-// AI / studio / sessions stores only hydrate from IndexedDB at boot, so
-// after restoring workspace keys we need a reload for them to take effect.
-// Flush any pending IDB writes first so the reload sees the new values.
-function scheduleWorkspaceReload() {
+// The other stores read their settings once, at boot, so restored workspace settings need a
+// reload to take effect. The pending writes go first — the settings and the book — so the reload
+// reads the restored values.
+async function scheduleWorkspaceReload() {
   ui.showToast({ message: t("settings.backups.reloadingWorkspace") });
-  flushPending();
+  await Promise.all([flushSettings(), flushPendingProjects()]);
   setTimeout(() => location.reload(), 700);
 }
 
@@ -496,9 +497,9 @@ async function restoreFromAutosave(entry) {
     if (!snap || typeof snap !== "object" || !snap.project) {
       throw new Error(t("settings.backups.readFailed"));
     }
-    const { workspaceRestored } = project.loadSnapshot(snap) || {};
+    const { workspaceRestored } = project.loadSnapshot(snap, { id: entry.projectId }) || {};
     ui.showToast({ message: t("settings.backups.restoredToast", { title: snap.project.title || t("settings.backups.untitledProject") }) });
-    if (workspaceRestored) scheduleWorkspaceReload();
+    if (workspaceRestored) await scheduleWorkspaceReload();
   } catch (err) {
     backupError.value = err.message || String(err);
   }

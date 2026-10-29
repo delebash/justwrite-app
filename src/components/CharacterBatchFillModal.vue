@@ -293,7 +293,7 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
                 <span v-if="r.current" class="cpf-overwrite">{{ $t("characterProfile.overwriteWarning") }}</span>
               </div>
               <div v-if="r.current" class="cpf-current">{{ r.current }}</div>
-              <UiTextarea fluid auto-resize :rows="2" v-model="r.proposed" :disabled="!r.accept" />
+              <UiTextarea auto-resize :rows="2" v-model="r.proposed" :disabled="!r.accept" />
             </div>
           </div>
         </div>
