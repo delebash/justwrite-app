@@ -1,3 +1,6 @@
+---
+lede: OpenAI, Claude, Ollama, LM Studio
+---
 # AI providers
 
 JustWrite uses AI for several features: writing assistance (the scene-strip AI dropdown — Rewrite, Expand, Tighten, Continue, Describe, plus Line edits), critique, entity sweeps, and "Ask the book" chat. **None of them are required** — you can write an entire novel in JustWrite with zero AI calls.

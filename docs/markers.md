@@ -1,3 +1,6 @@
+---
+lede: Drop-a-pin notes inline, with a manuscript-wide timeline
+---
 # Markers
 
 > *"I noticed the pacing was off in this scene but I knew if I stopped to fix it I'd lose the next paragraph entirely — so I just kept writing and now I've forgotten what was wrong."*

@@ -4269,5 +4269,33 @@
       "judge": "Judgment & scoring",
       "readerPanels": "Reader panels"
     }
+  },
+  "lede": {
+    "ai-features": "Every AI feature, and where each one lives",
+    "ai-providers": "OpenAI, Claude, Ollama, LM Studio",
+    "analysis": "Pace, milestones, style metrics",
+    "appearance": "Theme, fonts, accents, layout",
+    "backups-and-data": "Autosave, snapshots, restoring",
+    "brainstorm": "Name / title generator with thumbs-up steering",
+    "character-sheet": "Every field of the character dossier, explained",
+    "core-concepts": "Parts, Chapters, Scenes, autosave, undo",
+    "getting-started": "Install, first launch, optional AI setup",
+    "headless-access": "Run the server on its own and use JustWrite in a browser",
+    "import-and-export": "PDF, DOCX, EPUB",
+    "keyboard-shortcuts": "Full reference",
+    "markers": "Drop-a-pin notes inline, with a manuscript-wide timeline",
+    "models": "Quick Setup, downloading + tuning local models",
+    "notes-and-search": "Notes scratch-pad and full-text search",
+    "plot-and-time": "Narrative strands, Plot Board, Timeline, Events",
+    "presets": "Named engine configurations a feature runs on",
+    "reader-knowledge": "Dramatic-irony map: reader vs. POV knowledge",
+    "roadmap": "Direction, not commitment",
+    "storage": "Where data lives, moving it, installing the local AI engine",
+    "story-bible": "Characters, Locations, Objects, Groups, Relations",
+    "sync": "Your books on every device: cloud folder, pairing, by hand",
+    "troubleshooting": "Provider tests, slow models, hung calls, data recovery",
+    "whats-new": "Recent changes worth noticing",
+    "worldbuilding": "Architecture + the Worldbuilding library",
+    "writing": "The editor, view modes, AI rewrites"
   }
 }

@@ -1,3 +1,6 @@
+---
+lede: Recent changes worth noticing
+---
 # What's new
 
 Recent changes worth noticing. Older entries fall off the bottom — see the [Roadmap](roadmap.md) for direction.

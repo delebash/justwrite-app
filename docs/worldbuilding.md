@@ -1,3 +1,6 @@
+---
+lede: Architecture + the Worldbuilding library
+---
 # Worldbuilding and Architecture
 
 JustWrite has two homes for long-form planning prose that doesn't belong to any single character, location, or object:

@@ -1,3 +1,6 @@
+---
+lede: Pace, milestones, style metrics
+---
 # Analysis
 
 The **Analysis** view (Project section in the sidebar) is a dashboard of objective data about your manuscript — how much you've written, how fast, how the chapters are structured, and what your prose patterns look like.

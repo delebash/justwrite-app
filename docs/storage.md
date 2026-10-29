@@ -1,3 +1,6 @@
+---
+lede: Where data lives, moving it, installing the local AI engine
+---
 # Storage & the local engine
 
 ## Where JustWrite keeps your data

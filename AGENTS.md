@@ -28,7 +28,8 @@ npm run build:spa      # Renderer build only (dist/spa) — a COMPILE check, not
 npm run build:unpacked # the desktop app unpackaged (dist/electron/UnPackaged), without the server package
 npm run build          # the installer for the current OS (dist/electron/Packaged) and the UnPackaged app with its server, what the e2e drives
 
-npm run test:fast      # quick gate: renderer vitest + build:spa + server vitest
+npm run test:fast      # quick gate: renderer vitest + build:spa + server vitest + i18n:docs
+npm run i18n:docs      # each doc's lede: front-matter matches its lede.<slug> key (docgen's extract --check)
 npm run test:unit      # renderer vitest only
 npm run test:server    # server vitest only (server/tests/, on Electron's Node)
 npm run test:flows     # click-through tests of the built UI, AI stubbed, 1280 + 390 px (tests/flows/)
@@ -91,8 +92,10 @@ and the website. Editing `docs/writing.md` changes what users read in both place
 
 So a user-visible change updates its doc in the same commit, however small: a new field, setting,
 button or error message the user meets. A brand-new doc also needs a `docs/toc.json` entry or it
-will not appear. The glob is **non-recursive** — `docs/plans/*` and `docs/dev/*` are internal and
-never ship.
+will not appear, and a `lede:` front-matter line — its one-line summary in Help and the command
+palette, which docgen's `extract` turns into `lede.<slug>` in `en.json` so it translates (run it
+after writing or changing a lede; `npm run i18n:docs` fails while they're out of step). The glob is
+**non-recursive** — `docs/plans/*` and `docs/dev/*` are internal and never ship.
 
 **`docs/` root is USER docs only — a dev doc there ships to users.** Anything written for us, not
 for a writer using the app, belongs in `docs/dev/` (notes, trackers, backlogs, architecture) or

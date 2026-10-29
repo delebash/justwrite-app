@@ -1,3 +1,6 @@
+---
+lede: Install, first launch, optional AI setup
+---
 # Getting started
 
 This page covers installing JustWrite, opening it for the first time, finding your way around, and (optionally) wiring up AI features. Plan on about ten minutes.

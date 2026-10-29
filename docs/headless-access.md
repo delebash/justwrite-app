@@ -1,3 +1,6 @@
+---
+lede: Run the server on its own and use JustWrite in a browser
+---
 # Headless access
 
 JustWrite's server can run on its own, without the desktop window. Point a

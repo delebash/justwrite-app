@@ -1,3 +1,6 @@
+---
+lede: Characters, Locations, Objects, Groups, Relations
+---
 # Story bible
 
 Your "Story Bible" is everything that isn't manuscript prose — characters, places, things, factions, and the way they all connect to each other. JustWrite gives you a structured place for each of these, plus a graph that visualises how they're woven together.

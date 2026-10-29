@@ -1,3 +1,6 @@
+---
+lede: "Your books on every device: cloud folder, pairing, by hand"
+---
 # Sync — your books on every device
 
 JustWrite keeps your books on each of your computers and on your phone, and sync carries

@@ -1,3 +1,6 @@
+---
+lede: Autosave, snapshots, restoring
+---
 # Backups and data
 
 JustWrite keeps your work in three places so you don't lose it:

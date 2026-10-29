@@ -1,3 +1,6 @@
+---
+lede: Quick Setup, downloading + tuning local models
+---
 # Models
 
 Local models live under the **Providers & models** tab (in **Settings → AI**). Two things

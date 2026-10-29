@@ -16,7 +16,7 @@
     "server": "node scripts/node24.js server/src/serve.js serve",
     "test:server": "node scripts/node24.js node_modules/vitest/vitest.mjs run --config server/vitest.config.js",
     "test:unit": "vitest run",
-    "test:fast": "npm run test:unit && npm run build:spa && npm run test:server",
+    "test:fast": "npm run test:unit && npm run build:spa && npm run test:server && npm run i18n:docs",
     "test": "npm test --prefix e2e",
     "screenshots": "node e2e/capture-direct.js",
     "smoke": "node scripts/smoke.js",
@@ -34,7 +34,8 @@
     "bench": "node bench/harness/run.js",
     "bench:gpu": "npm run bench -- --config bench/harness/configs/gpu.json --autostart",
     "bench:cpu": "npm run bench -- --config bench/harness/configs/cpu.json --autostart",
-    "dup": "jscpd"
+    "dup": "jscpd",
+    "i18n:docs": "node ../just_ai_i18n_docgen/scripts/node24.js ../just_ai_i18n_docgen/server/src/cli.js extract just-ai-i18n-docgen/config.json --check"
   },
   "dependencies": {
     "@delebash/core": "file:../just-core/packages/core",

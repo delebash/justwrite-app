@@ -1,3 +1,6 @@
+---
+lede: Full reference
+---
 # Keyboard shortcuts
 
 A complete reference. On Mac the modifier is `⌘`; on Windows and Linux it's `Ctrl`.

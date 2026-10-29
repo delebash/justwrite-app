@@ -1,3 +1,6 @@
+---
+lede: Every field of the character dossier, explained
+---
 # Character sheet
 
 The character page is a **dossier**, not a form to complete. Fill the top

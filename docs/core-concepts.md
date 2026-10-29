@@ -1,3 +1,6 @@
+---
+lede: Parts, Chapters, Scenes, autosave, undo
+---
 # Core concepts
 
 Before you start clicking around, it helps to understand how JustWrite organises a book and how it keeps your work safe. None of this is hard; it is mostly common sense with a few names attached.

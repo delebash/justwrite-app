@@ -1,3 +1,6 @@
+---
+lede: Every AI feature, and where each one lives
+---
 # The AI features
 
 Everything the AI does in JustWrite, in one place. Every feature below is a row

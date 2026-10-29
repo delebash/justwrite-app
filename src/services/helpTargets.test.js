@@ -114,3 +114,16 @@ describe("docs/toc.json", () => {
     expect(unlisted).toEqual([]);
   });
 });
+
+// Help's one-line summaries come from each doc's `lede:` front-matter, which docgen's extract turns
+// into `lede.<slug>` in en.json (2026-10-29) — so they translate; toc.json carries no English hint.
+describe("each help page's summary is its translated lede", async () => {
+  const en = (await import("../i18n/locales/en.json", { with: { type: "json" } })).default;
+  const items = HELP_TOC.flatMap((s) => s.items);
+  it("every page in the contents has a lede key, and toc.json no hint of its own", () => {
+    for (const item of items) {
+      expect(String(en.lede?.[item.slug] || "").trim(), item.slug).not.toBe("");
+      expect(item, item.slug).not.toHaveProperty("hint");
+    }
+  });
+});

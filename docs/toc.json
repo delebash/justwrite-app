@@ -2,52 +2,52 @@
   {
     "section": "The basics",
     "items": [
-      { "slug": "getting-started",   "title": "Getting started",   "hint": "Install, first launch, optional AI setup" },
-      { "slug": "core-concepts",     "title": "Core concepts",     "hint": "Parts, Chapters, Scenes, autosave, undo" },
-      { "slug": "writing",           "title": "Writing",           "hint": "The editor, view modes, AI rewrites" },
-      { "slug": "markers",           "title": "Markers",           "hint": "Drop-a-pin notes inline, with a manuscript-wide timeline" }
+      { "slug": "getting-started",   "title": "Getting started" },
+      { "slug": "core-concepts",     "title": "Core concepts" },
+      { "slug": "writing",           "title": "Writing" },
+      { "slug": "markers",           "title": "Markers" }
     ]
   },
   {
     "section": "Planning your story",
     "items": [
-      { "slug": "story-bible",       "title": "Story bible",       "hint": "Characters, Locations, Objects, Groups, Relations" },
-      { "slug": "character-sheet",   "title": "Character sheet",    "hint": "Every field of the character dossier, explained" },
-      { "slug": "plot-and-time",     "title": "Plot and time",     "hint": "Narrative strands, Plot Board, Timeline, Events" },
-      { "slug": "worldbuilding",     "title": "Worldbuilding",     "hint": "Architecture + the Worldbuilding library" },
-      { "slug": "notes-and-search",  "title": "Notes and search",  "hint": "Notes scratch-pad and full-text search" },
-      { "slug": "brainstorm",        "title": "Brainstorm",        "hint": "Name / title generator with thumbs-up steering" }
+      { "slug": "story-bible",       "title": "Story bible" },
+      { "slug": "character-sheet",   "title": "Character sheet" },
+      { "slug": "plot-and-time",     "title": "Plot and time" },
+      { "slug": "worldbuilding",     "title": "Worldbuilding" },
+      { "slug": "notes-and-search",  "title": "Notes and search" },
+      { "slug": "brainstorm",        "title": "Brainstorm" }
     ]
   },
   {
     "section": "Producing the book",
     "items": [
-      { "slug": "import-and-export", "title": "Import and export", "hint": "PDF, DOCX, EPUB" },
-      { "slug": "analysis",          "title": "Analysis",          "hint": "Pace, milestones, style metrics" },
-      { "slug": "reader-knowledge",  "title": "Reader knowledge",  "hint": "Dramatic-irony map: reader vs. POV knowledge" }
+      { "slug": "import-and-export", "title": "Import and export" },
+      { "slug": "analysis",          "title": "Analysis" },
+      { "slug": "reader-knowledge",  "title": "Reader knowledge" }
     ]
   },
   {
     "section": "Setup and configuration",
     "items": [
-      { "slug": "ai-providers",      "title": "AI providers",      "hint": "OpenAI, Claude, Ollama, LM Studio" },
-      { "slug": "ai-features",       "title": "The AI features",   "hint": "Every AI feature, and where each one lives" },
-      { "slug": "models",            "title": "Models",            "hint": "Quick Setup, downloading + tuning local models" },
-      { "slug": "presets",           "title": "Presets",           "hint": "Named engine configurations a feature runs on" },
-      { "slug": "appearance",        "title": "Appearance",        "hint": "Theme, fonts, accents, layout" },
-      { "slug": "backups-and-data",  "title": "Backups and data",  "hint": "Autosave, snapshots, restoring" },
-      { "slug": "sync",              "title": "Sync",              "hint": "Your books on every device: cloud folder, pairing, by hand" },
-      { "slug": "storage",           "title": "Storage & engine",  "hint": "Where data lives, moving it, installing the local AI engine" },
-      { "slug": "headless-access",   "title": "Headless access",   "hint": "Run the server on its own and use JustWrite in a browser" },
-      { "slug": "keyboard-shortcuts", "title": "Keyboard shortcuts", "hint": "Full reference" },
-      { "slug": "troubleshooting",   "title": "Troubleshooting",   "hint": "Provider tests, slow models, hung calls, data recovery" }
+      { "slug": "ai-providers",      "title": "AI providers" },
+      { "slug": "ai-features",       "title": "The AI features" },
+      { "slug": "models",            "title": "Models" },
+      { "slug": "presets",           "title": "Presets" },
+      { "slug": "appearance",        "title": "Appearance" },
+      { "slug": "backups-and-data",  "title": "Backups and data" },
+      { "slug": "sync",              "title": "Sync" },
+      { "slug": "storage",           "title": "Storage & engine" },
+      { "slug": "headless-access",   "title": "Headless access" },
+      { "slug": "keyboard-shortcuts", "title": "Keyboard shortcuts" },
+      { "slug": "troubleshooting",   "title": "Troubleshooting" }
     ]
   },
   {
     "section": "What's coming",
     "items": [
-      { "slug": "roadmap", "title": "Roadmap", "hint": "Direction, not commitment" },
-      { "slug": "whats-new", "title": "What's new", "hint": "Recent changes worth noticing" }
+      { "slug": "roadmap", "title": "Roadmap" },
+      { "slug": "whats-new", "title": "What's new" }
     ]
   }
 ]

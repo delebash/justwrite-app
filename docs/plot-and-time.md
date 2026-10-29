@@ -1,3 +1,6 @@
+---
+lede: Narrative strands, Plot Board, Timeline, Events
+---
 # Plot and time
 
 JustWrite has four planning surfaces that all touch on plot and chronology, and the differences between them are worth understanding before you start using them. Two of them — Narrative strands and the Plot Board — are about **story shape**. The other two — per-entity Events and the project Timeline — are about **world chronology**.

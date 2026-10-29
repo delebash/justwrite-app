@@ -1,3 +1,6 @@
+---
+lede: "Dramatic-irony map: reader vs. POV knowledge"
+---
 # Reader knowledge
 
 The hardest part of writing suspense, mystery, thrillers, or unreliable-narrator fiction is holding two knowledge models at once. There's what your **reader** knows — the facts they've accumulated by the end of each chapter. And there's what your **POV character** knows. The gap between them is dramatic irony. Closing the gap is resolution. Inverting the gap (the POV knows things the reader doesn't) often produces confusion.

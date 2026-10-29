@@ -1,3 +1,6 @@
+---
+lede: The editor, view modes, AI rewrites
+---
 # Writing
 
 This is the heart of JustWrite — the dashboard that tells you where you are, the chapter list, the editor itself, and the AI tools that sit inside it. If you only ever read one page of this guide, make it this one.

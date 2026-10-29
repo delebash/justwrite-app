@@ -1,3 +1,6 @@
+---
+lede: Notes scratch-pad and full-text search
+---
 # Notes and search
 
 Two small but heavily-used surfaces.

@@ -163,18 +163,20 @@ const ACTION_ITEMS = computed(() => {
   return list;
 });
 
-// Help-doc items — one per docs/*.md, indexed by slug + title + hint.
+// Help-doc items — one per docs/*.md, indexed by slug + title + its summary: the doc's `lede:`
+// front-matter, which docgen's extract makes lede.<slug> (2026-10-29), so it's in the UI's language.
 // Selecting one opens the help drawer rather than navigating.
 const HELP_ITEMS = computed(() => {
   const out = [];
   for (const group of HELP_TOC) {
     for (const item of group.items) {
+      const lede = t(`lede.${item.slug}`);
       out.push({
         id: `help:${item.slug}`,
         label: item.title,
-        sublabel: t("commandPalette.helpSub", { hint: item.hint }),
+        sublabel: t("commandPalette.helpSub", { hint: lede }),
         icon: "Help",
-        keywords: `${group.section} ${t("commandPalette.keywords.helpDoc")} ${item.hint}`,
+        keywords: `${group.section} ${t("commandPalette.keywords.helpDoc")} ${lede}`,
         run: () => openHelp(item.slug),
       });
     }

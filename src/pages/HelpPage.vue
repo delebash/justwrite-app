@@ -100,7 +100,7 @@ onMounted(() => {
               @click="go(item.slug)"
             >
               <span class="toc-title">{{ item.title }}</span>
-              <span class="toc-hint">{{ item.hint }}</span>
+              <span class="toc-hint">{{ $t(`lede.${item.slug}`) }}</span>
             </button>
           </div>
         </aside>

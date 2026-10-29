@@ -1,3 +1,6 @@
+---
+lede: Provider tests, slow models, hung calls, data recovery
+---
 # Troubleshooting
 
 The problems users actually hit, and what fixes them. AI-side first (it's where

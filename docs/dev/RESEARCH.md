@@ -795,6 +795,12 @@ The plan: [`../plans/archive/2026-10-29-do-list.md`](../plans/archive/2026-10-29
   refusal reached the chat ending "… safety margin) but", without the free-memory figure — the
   kit's `friendlyAiError` itself keeps the sentence whole (checked with the full text). Sent to the
   kit. (*code 2026-10-29*.)
+- **docgen's `extract` reads the docs folder relative to its config's folder** (`docsDir`, default
+  `docs` — `server/src/extract.js:94`), so JustWrite's config names `../docs`; each `lede:` becomes
+  `lede.<file name>` in `en.json` (26 pages; `docs/README.md` has none and isn't in `toc.json`), and
+  `extract --check` exits 1 when a doc's lede and its key drift, 0 in step (tried both, 2026-10-29).
+  Its YAML is deliberately tiny: a lede holding ":" goes in quotes (`docs-authoring.md`). JustWrite is
+  the first family app to use it. (*code + run 2026-10-29*.)
 - **simple-statistics 8.0.0 was published 2026-10-28;** 7.12.1, the one used, 2026-09-27 (`npm view
   simple-statistics time`). Both are ES modules. (*2026-10-29*.)
 - **The renderer counts words by splitting on whitespace in ten places** (the store's rollup, the

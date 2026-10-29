@@ -1,3 +1,6 @@
+---
+lede: Name / title generator with thumbs-up steering
+---
 # Brainstorm
 
 > *"I need twenty names for this frontier tavern and I don't want any of them cluttering my project — I just need something to pick from so I can get back to the scene."*

@@ -1,5 +1,6 @@
 {
   "source": "../src/i18n/locales/en.json",
+  "docsDir": "../docs",
   "targets": [
     "es"
   ],

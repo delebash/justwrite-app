@@ -1,3 +1,6 @@
+---
+lede: Theme, fonts, accents, layout
+---
 # Appearance
 
 The **Settings → Appearance** section lets you change how JustWrite looks. Everything here is reversible, none of it touches your manuscript, and there are presets if you don't want to fiddle.

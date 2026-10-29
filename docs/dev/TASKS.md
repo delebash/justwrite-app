@@ -57,7 +57,8 @@ STATE:  DECIDED — the user, on my list of every open item (TASKS, the live pla
         SyncPanel `removeFolderDevice`, the sync engine's `DELETE /v1/sync/folder/devices/:id`, built
         2026-10-29 with tests; sync.md "Your devices" already says so), so its line closes as done; and
         item 11 is 13 plans, not 12.
-OPEN:   19 and 20 (mine); 22 (the user's).
+OPEN:   20 (mine); 22 (the user's). 19 DONE 2026-10-29: the 26 docs' ledes, `lede.*` in en.json,
+        Help and the palette read them, `npm run i18n:docs` in test:fast.
 GO:     given 2026-10-29 for 1–20, as above; 22 not decided.
 
 ## The phone's screens (slice 5) and the iOS build (slice 6) [2026-10-09]
@@ -131,12 +132,7 @@ GO:     not given. WAITS ON the user's decision on the phone (the close-out list
 
 ## Now / near-term (JustWrite)
 
-- **Help hints translated** (docgen's single-source item, 2026-10-29): each doc's `lede:` front-matter
-  instead of `docs/toc.json`'s English `hint`, read as `$t('lede.<slug>')` by Help and the command
-  palette, docgen's `extract --check` in the gate. The kit's help renderer already skips front-matter
-  (kit b8551d2; `front-matter` installed here); WAITS ON the kit's website `sync-docs.js` stripping a
-  doc's front-matter and taking Starlight's description from `lede:`. Plan:
-  `docs/plans/2026-07-26-i18n-single-source-research.md`.
+- Nothing open of my own besides the close-out list above.
 
 ## Your-box checks (only the Windows / 2070S machine can finish these)
 

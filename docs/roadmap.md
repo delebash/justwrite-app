@@ -1,3 +1,6 @@
+---
+lede: Direction, not commitment
+---
 # Roadmap
 
 This page lists items on the table for future versions. **None of these are promises.** Some may ship; some may not; some may change shape entirely. Treat the roadmap as direction, not commitment.
