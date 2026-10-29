@@ -4,7 +4,7 @@ New to the codebase? Read in this order; each doc is small and current on purpos
 (the docs campaign 2026-08-04 distilled everything else into these — closed history
 lives in `../plans/archive/`).
 
-1. **`../../CLAUDE.md`** — the working rules, the thin-client/server split, the
+1. **`../../AGENTS.md`** — the working rules, the thin-client/server split, the
    "Don't" list, and the Where-to-look table. Read it before touching renderer code.
 2. **`TASKS.md`** — the live open-work tracker (close = delete; a line is a claim,
    not evidence). **`IDEAS.md`** — the unscheduled backlog. **`RESEARCH.md`** — what

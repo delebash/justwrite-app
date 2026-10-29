@@ -283,7 +283,8 @@ Watch with `gh run watch` or open the workflow runs page. A full all-platform bu
 
 ```
 justwrite-app/                 ← a Quasar app (the family layout: the kit's docs/app-structure.md §Q)
-├── CLAUDE.md                  ← instructions for Claude Code (project context, conventions)
+├── AGENTS.md                  ← instructions for any AI working here (commands, invariants, conventions, family rules)
+├── CLAUDE.md                  ← Claude Code's own lines; imports AGENTS.md
 ├── README.md
 ├── docs/                      ← user-facing docs (the in-app Help corpus; docs.tar.gz on release)
 │   ├── dev/                   ← TASKS.md (live tracker) · IDEAS.md · architecture notes
@@ -366,7 +367,7 @@ This repo is set up to be developed with [Claude Code](https://claude.com/claude
 
 ### Project context
 
-- **`CLAUDE.md`** at the repo root is the agent's project brief: the server-owns-the-data split, the commands and gates, the invariants that bite (undo domains, coalesced keystroke actions, the kit's controls, i18n), and the family rules. Read it before changing code; the live tracker is `docs/dev/TASKS.md`.
+- **`AGENTS.md`** at the repo root is the agent's project brief (Claude Code reads it through `CLAUDE.md`): the server-owns-the-data split, the commands and gates, the invariants that bite (undo domains, coalesced keystroke actions, the kit's controls, i18n), and the family rules. Read it before changing code; the live tracker is `docs/dev/TASKS.md`.
 - **`docs/`** is user-facing reference, mirrored to the marketing site. When you ship a feature, update the relevant doc in the same commit (this is enforced by repo convention, not by hooks).
 
 ### Recommended workflow

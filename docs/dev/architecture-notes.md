@@ -1,6 +1,6 @@
 # Architecture notes
 
-Detail behind the invariants in `CLAUDE.md`. Open the section you need; none of this has to be
+Detail behind the invariants in `AGENTS.md`. Open the section you need; none of this has to be
 loaded to start work. The "why it's built this way" narrative lives in `docs/dev/ARCHITECTURE.md`;
 per-task history lives in `docs/plans/*`.
 
@@ -221,7 +221,7 @@ the desktop app (`npm test`). Tests were never the bottleneck; don't skip them.
 Harnesses in the repo:
 
 - **vitest** (`vitest.config.js`, node environment) — pure-JS service and composable tests such as the embedApi ensure-cache suite. Complements, never replaces, the headless smoke.
-- **Playwright headless renderer smoke** (`tests/smoke/headless-smoke.js`, plus `tests/smoke/book-smoke.js`) — THE renderer gate; `npm run smoke` boots it on a snapshot of your data. See `CLAUDE.md` for the `findChrome()` rule.
+- **Playwright headless renderer smoke** (`tests/smoke/headless-smoke.js`, plus `tests/smoke/book-smoke.js`) — THE renderer gate; `npm run smoke` boots it on a snapshot of your data. See `AGENTS.md` for the `findChrome()` rule.
 - **`e2e/` desktop harness** (Playwright's Electron driver launching the app on the built UI and your real data) — `npm test` runs the smoke suite, `npm run screenshots` the marketing shots.
 - **The server** — `server/tests/*.test.js` (vitest; the port of the Python suite, plus the seed-data comparison) and Biome.
 - **Flow tests** (`npm run test:flows`, 2026-10-16) — Playwright Test (`playwright.config.js`, `tests/flows/*.spec.js`) clicks through features in the BUILT UI on a scratch copy of your data (the smoke's setup, `scripts/lib/scratch-server.js`), at 1280 and 390 px, with every AI call answered by the test (`stubAi`, the kit's `scripts/lib/ai-stub.js`): about 30 s, no model, no GPU. Any JS error fails a test. A feature's click-through check goes here, never into a one-off script. Failures leave a screenshot and a trace in `tests/flows/artifacts/` (`npx playwright show-trace <trace.zip>`).

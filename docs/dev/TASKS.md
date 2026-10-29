@@ -682,6 +682,30 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   remember: `@` is vue-i18n's linked-message syntax — write `{'@'}` in messages; nothing in the
   toolchain catches it, so render-check any message containing `@ | {`.
 - **Rotate the Gemini key that appeared in chat** — yours (the key itself is never printed).
+- **The kit's asks for JustWrite (2026-10-29)** — the user, on my recs: "think on 1 -3 again your rec
+  go", then (after "never give me a rec without really thinking on it and facts") "finish the facts
+  then your rec go". The recs, after the facts:
+  1. **The pre-commit hook** — the template's lines exactly: Husky + lint-staged running `biome check`
+     on the staged `*.{js,vue}` (the family's decision, the user 2026-10-17 "your rec on all go" on
+     "Only the standard fast one: Husky + lint-staged running Biome on the staged files (seconds).
+     Never the guard or tests."; the kit's finish list 2026-10-29 names JustWrite). `biome check`
+     passes on all 382 files today; it never writes. **BLOCKED:** installing a git hook was refused
+     by this session's tool permission ("Unauthorized Persistence") — it needs the user's own run
+     or permission.
+  2. **`AGENTS.md`** — DONE 2026-10-29: the family's design (the user, 2026-10-17: it "holds the repo's
+     instructions"; CLAUDE.md = `@AGENTS.md` + Claude-only lines, no separate family-rules import).
+     CLAUDE.md's text moved word for word; AGENTS.md's stale lines corrected against the code
+     (§2 `runAiStream` → the kit's `runAiFeature`; §4 `HISTORY_SLICES` / undo toast → `ACTION_DOMAINS`,
+     no delete toast; the `*View.vue` → `*Page.vue` names; the docs that don't exist; "No formatter
+     or linter"; §8's `/debug/` pages, gone); the Python "known-bad" tests dropped (no `.py` in the
+     repo). Left: `.claude/settings.local.json` is committed here, while the template says it never
+     is — untracking it would delete it from other checkouts on their next pull, so it waits for
+     the user.
+  3. **The engine pin** — no change from me: the database pins b10750, only b11239 is on disk (the
+     runner runs what's on disk). The kit seeds the pin only when missing; the AI page's **Update**
+     (`useEngine.js` `updateToLatest`) writes the latest build as the pin and installs it — the
+     your-box check below, and the family's move to the latest engine before the final tests.
+     Until then an engine **install** (not Update) would fetch b10750 and sweep b11239.
 
 ## Your-box checks (only the Windows / 2070S machine can finish these)
 
@@ -691,6 +715,8 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
   the request shape is unit-tested only (the kit's `adapter_extra.test.js`).
 - **The engine update replacing its build** (providers round 10, the 2026-09-19 safe-update flow):
   reachable now — the AI page offered "Update to b11960" over the installed b11239 on 2026-10-28.
+  The same click fixes the stale pin (the database still pins b10750): Update writes the new build
+  as the pin. Until then, don't use the engine's install button (it would fetch b10750).
 
 ## Standing rulings (constraints, not tasks — they gate future work)
 
@@ -725,8 +751,10 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
 - **Server reuse is VETOED** ("i am affraid of a server running when it shouldnt"): the desktop
   shell stops a server already on the app's port that answers as this app's own, and starts its
   own (the kit's `shell/main.js`, `serverProduct` + `shutdownPath`).
-- **Commit-gate hooks are REJECTED** — the remedy for unauthorized change is asking before
-  UI-behaviour changes, not machinery.
+- **Commit hooks: only the family's fast lint hook** (2026-08-04 "Commit-gate hooks are REJECTED —
+  the remedy for unauthorized change is asking before UI-behaviour changes, not machinery", narrowed
+  by the user's family decision 2026-10-17): Husky + lint-staged running Biome on the staged files —
+  "Never the guard or tests." No hook gates on approval; asking first stays the remedy.
 - **Availability ≠ recommendation** (the 70B/GLM precedent): a catalog row may exist untested;
   a band recommendation may not.
 - **The index FINDS, Outline RESTRUCTURES** — the index never nests scenes, Outline never grows

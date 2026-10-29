@@ -12,8 +12,8 @@
 > file and `../plans/archive/2026-06-05-ai-features-roadmap.md` disagree, code sides with the roadmap.
 
 The *why* behind major substrates and design decisions. Pairs with
-[`CLAUDE.md`](../../CLAUDE.md) (the *what's where* primer) and
-[`AGENTS.md`](../../AGENTS.md) (the *how we do things* conventions). This file
+[`AGENTS.md`](../../AGENTS.md) (the instructions: what's where, the commands, the invariants and the
+*how we do things* conventions). This file
 captures the architectural notes that aren't visible from reading code alone
 — in-flight design explorations, deliberate trade-offs, lessons baked into
 the substrate.
@@ -65,7 +65,7 @@ The pieces that implement it, so a reader can verify rather than trust this page
 
 ### Storage policy — drop and reseed, no migrations (the live ruling)
 
-Decided with the user 2026-06-18, still the standing pre-release policy `CLAUDE.md`
+Decided with the user 2026-06-18, still the standing pre-release policy `AGENTS.md`
 enforces: every datum is a real SQL resource behind a typed `/v1/*` API — no
 IndexedDB, no localStorage shim, no generic blob store. Schema changes ship by
 DROP-AND-RESEED, never migrations; additive-only changes need no reset because

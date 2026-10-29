@@ -1,6 +1,6 @@
 # The shared UI kit — `@delebash/ui`
 
-Reference for the shared component kit. Open when building or changing UI; `CLAUDE.md` keeps only
+Reference for the shared component kit. Open when building or changing UI; `AGENTS.md` keeps only
 the rules that bite.
 
 All UI primitives and shells come from `@delebash/ui` (Vite alias → `../just-core/packages/ui/src`).
