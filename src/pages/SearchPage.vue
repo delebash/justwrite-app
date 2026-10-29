@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useRouter } from "vue-router";
+import { shortcutKeys } from "../services/shortcutKeys.js";
 import { useProjectStore } from "../stores/project.js";
 import { PaneHeader, pageFill } from "@delebash/ui";
 import { Icon } from "@delebash/ui";
@@ -118,7 +119,7 @@ const KIND_ENTRIES = Object.entries(KIND_META).sort((a, b) => a[1].order - b[1].
         <input ref="inputEl" v-model="q" :placeholder="$t('search.placeholder')"
           style="flex:1;border:0;outline:0;background:transparent;font:inherit;font-size:13.5px" />
         <UiButton v-if="q" intent="ghost" size="small" @click="q = ''" style="padding:2px 6px" v-tooltip.bottom="$t('common.clear')" :aria-label="$t('search.clearAriaLabel')">×</UiButton>
-        <kbd class="kbd-pill">⌘F</kbd>
+        <kbd class="kbd-pill">{{ shortcutKeys("mod+F") }}</kbd>
       </div>
 
       <!-- Kind filter chips -->

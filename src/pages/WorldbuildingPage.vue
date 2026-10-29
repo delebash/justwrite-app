@@ -236,7 +236,7 @@ const columns = computed(() => [
 
         <label class="chip" style="cursor:pointer;gap:6px;padding:8px 14px"
           v-tooltip.bottom="$t('common.excludeFromAiTooltip')">
-          <UiCheckbox :model-value="!!article.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
+          <UiCheckbox :aria-label="$t('common.excludeFromAi')" :model-value="!!article.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
           {{ $t("common.excludeFromAi") }}
         </label>
 

@@ -241,14 +241,14 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
       </div>
       <div class="cbf-list">
         <label v-for="r in pickRows" :key="r.id" class="cbf-pick-row" :class="{ off: r.disabled }">
-          <UiCheckbox v-model="r.checked" :disabled="r.disabled" />
+          <UiCheckbox v-model="r.checked" :disabled="r.disabled" :aria-label="r.name" />
           <span class="cbf-pick-name">{{ r.name }}</span>
           <span v-if="r.role" class="cbf-pick-role">{{ r.role }}</span>
           <span class="cbf-pick-scenes">{{ r.disabled ? $t("batchFill.noLinkedScenes") : $t("count.scene", { n: r.scenes }, r.scenes) }}</span>
         </label>
       </div>
       <label class="cbf-toggle">
-        <UiCheckbox v-model="autoApply" />
+        <UiCheckbox v-model="autoApply" :aria-label="$t('batchFill.autoApply')" />
         <span>
           {{ $t("batchFill.autoApply") }}
           <span class="cbf-toggle-hint">{{ $t("batchFill.autoApplyHint") }}</span>
@@ -286,7 +286,7 @@ function onClose() { batchAbort.value?.abort(); emit("close"); }
             <button type="button" class="tb-btn wide" @click="setGroup(g, false)">{{ $t("common.none") }}</button>
           </div>
           <div v-for="r in g.rows" :key="r.key" class="cpf-row" :class="{ dropped: !r.accept }">
-            <UiCheckbox v-model="r.accept" class="cpf-check" />
+            <UiCheckbox v-model="r.accept" class="cpf-check" :aria-label="r.label" />
             <div class="cpf-fields">
               <div class="cpf-label">
                 {{ r.label }}

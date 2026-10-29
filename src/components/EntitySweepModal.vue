@@ -344,7 +344,7 @@ function onReviewCommitted(payload) {
       </div>
       <div class="sweep-list sweep-pick-list">
         <label v-for="p in picks" :key="p.id" class="sweep-pick-row" :class="{ off: !p.checked }">
-          <UiCheckbox v-model="p.checked" />
+          <UiCheckbox v-model="p.checked" :aria-label="p.title || $t('entitySweep.untitled')" />
           <span class="sweep-pick-num">{{ p.num }}</span>
           <span class="sweep-pick-title">{{ p.title || $t("entitySweep.untitled") }}</span>
           <span v-if="p.draftStatus === 'done'" class="sweep-pick-note">

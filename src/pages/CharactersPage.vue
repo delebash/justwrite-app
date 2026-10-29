@@ -490,12 +490,12 @@ const columns = computed(() => [
                     :aria-label="$t('characters.detail.lifeStatus')" />
                 </div>
                 <label class="chip ch-hero-chip" style="cursor:pointer;gap:6px">
-                  <UiCheckbox :model-value="ch.main" @update:model-value="updateField('main', $event)" />
+                  <UiCheckbox :model-value="ch.main" :aria-label="$t('characters.detail.mainCharacter')" @update:model-value="updateField('main', $event)" />
                   {{ $t("characters.detail.mainCharacter") }}
                 </label>
                 <label class="chip ch-hero-chip" style="cursor:pointer;gap:6px"
                   v-tooltip.bottom="$t('characters.detail.excludeFromAiTooltip')">
-                  <UiCheckbox :model-value="!!ch.excludeFromAi" @update:model-value="(v) => updateField('excludeFromAi', v)" />
+                  <UiCheckbox :model-value="!!ch.excludeFromAi" :aria-label="$t('characters.detail.excludeFromAi')" @update:model-value="(v) => updateField('excludeFromAi', v)" />
                   {{ $t("characters.detail.excludeFromAi") }}
                 </label>
               </div>

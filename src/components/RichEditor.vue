@@ -21,6 +21,7 @@ import { useI18n } from "vue-i18n";
 import { useUiStore } from "../stores/ui.js";
 import { useProjectStore } from "../stores/project.js";
 import { CONTEXT_PART_KEYS } from "../services/storyContext.js";
+import { shortcutKeys } from "../services/shortcutKeys.js";
 import { DEFAULT_EDITOR_SETTINGS } from "../services/editorSettings.js";
 import { ProseHighlights, proseHighlightRanges, proseHighlightsKey } from "../services/proseHighlights.js";
 import { StoryNames, storyNameRanges, storyNameWords, storyNamesKey } from "../services/storyNames.js";
@@ -729,17 +730,8 @@ function prevChange() { stepChange(-1); }
 function nextChange() { stepChange(1); }
 function toggleProseMenu() { proseMenuOpen.value = !proseMenuOpen.value; }
 
-// Tooltip shortcut hints. Most of these are TipTap/StarterKit built-ins;
-// "mod" renders ⌘ on macOS, Ctrl elsewhere.
-const isMac = typeof navigator !== "undefined" && /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent || "");
-function sc(combo) {
-  return combo.split("+").map((k) =>
-    k === "mod" ? (isMac ? "⌘" : t("richEditor.keys.ctrl"))
-      : k === "shift" ? (isMac ? "⇧" : t("richEditor.keys.shift"))
-        : k === "alt" ? (isMac ? "⌥" : t("richEditor.keys.alt"))
-          : k
-  ).join(isMac ? "" : "+");
-}
+// Tooltip shortcut hints (most are TipTap/StarterKit built-ins), as this computer writes them.
+const sc = shortcutKeys;
 // The toolbar's tooltips — the action's name and its shortcut — in the interface language.
 const TIP_KEYS = {
   bold: ["richEditor.tip.bold", "mod+B"],

@@ -1874,7 +1874,6 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   box-shadow: inset 0 0 0 1px var(--shadow-soft);
   flex-shrink: 0;
 }
-.scene-pill-status { color: var(--pill-c); }
 .critique-pill {
   display: inline-flex; align-items: center;
   margin-left: 4px;

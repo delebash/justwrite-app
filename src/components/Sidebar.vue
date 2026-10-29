@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, onBeforeUnmount, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { shortcutKeys } from "../services/shortcutKeys.js";
 import { useI18n } from "vue-i18n";
 import { useUiStore } from "../stores/ui.js";
 import { categoryLabelShown, useProjectStore } from "../stores/project.js";
@@ -119,12 +120,12 @@ onBeforeUnmount(() => document.removeEventListener("mousedown", onDocClick));
 
 const NAV = [
   { section: "sidebar.sections.manuscript" },
-  { id: "search",        label: "nav.search",        icon: "Search",   kbd: "⌘F" },
+  { id: "search",        label: "nav.search",        icon: "Search",   kbd: "mod+F" },
   { id: "home",          label: "nav.home",          icon: "Home" },
   { id: "architecture",  label: "nav.architecture",  icon: "Building", expandable: "architecture", fixed: true },
   { id: "strands",       label: "nav.strands",       icon: "Strands",  expandable: "strands", newLabel: "plotBoard.newStrand" },
   { id: "chapters",      label: "nav.chapters",      icon: "Book",     expandable: "chapters" },
-  { id: "ask",           label: "sidebar.nav.askTheBook", icon: "Sparkle", kbd: "⌘J", action: "toggleChatPanel" },
+  { id: "ask",           label: "sidebar.nav.askTheBook", icon: "Sparkle", kbd: "mod+J", action: "toggleChatPanel" },
 
   { section: "sidebar.sections.storyWorld" },
   { id: "characters",    label: "nav.characters",    icon: "Users",     expandable: "characters", newLabel: "characters.header.newCharacter" },
@@ -834,7 +835,7 @@ const authorInitials = computed(() => {
         <div class="brand-name">{{ $t("welcome.wordmark") }}</div>
         <div class="brand-sub">{{ $t("sidebar.brand.sub", { version: appVersion }) }}</div>
       </div>
-      <UiButton intent="ghost" v-tooltip.bottom="`${$t('sidebar.tooltips.toggleSidebar')} · ⌘\\`" :aria-label="$t('sidebar.tooltips.toggleSidebar')" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></UiButton>
+      <UiButton intent="ghost" v-tooltip.bottom="`${$t('sidebar.tooltips.toggleSidebar')} · ${shortcutKeys('mod+\\')}`" :aria-label="$t('sidebar.tooltips.toggleSidebar')" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></UiButton>
     </div>
     <div class="project-switcher-wrap" ref="projectSwitcherEl">
       <button class="project-switcher" :class="{ open: projectMenuOpen }"
@@ -895,7 +896,7 @@ const authorInitials = computed(() => {
             <span class="nav-label">{{ $t(n.label) }}</span>
             <span v-if="n.id === 'ai-tasks' && aiTasksBadge" class="nav-count"
               :class="{ 'nav-count-error': aiTasksHasErrors }">{{ aiTasksBadge }}</span>
-            <span v-if="n.kbd" class="kbd-pill">{{ n.kbd }}</span>
+            <span v-if="n.kbd" class="kbd-pill">{{ shortcutKeys(n.kbd) }}</span>
             <span v-if="n.expandable" class="nav-chev" :class="{ open: ui.expanded[n.id] }">
               <Icon name="ChevRight" :size="12" />
             </span>

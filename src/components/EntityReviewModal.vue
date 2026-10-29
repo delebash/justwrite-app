@@ -140,7 +140,7 @@ function originTitle(originChapters) {
         </header>
         <div class="er-list">
           <div v-for="r in rows[sec.key]" :key="r._id" class="er-row" :class="{ dropped: !r.accept }">
-            <UiCheckbox v-model="r.accept" class="er-check" />
+            <UiCheckbox v-model="r.accept" class="er-check" :aria-label="r.name || $t('entityReview.namePlaceholder')" />
             <div class="er-fields">
               <div class="er-fields-row">
                 <input class="er-name" v-model="r.name" :placeholder="$t('entityReview.namePlaceholder')" :disabled="!r.accept" />

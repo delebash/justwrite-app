@@ -1,5 +1,5 @@
-// Settings → Server: turning on "Require a token even on localhost" keeps this window signed in — it
-// keeps one of the tokens (the kit's ServerPanel does the same). Before 2026-10-20 it kept none: every
+// Settings → Server (the kit's ServerPanel since 2026-10-29): turning on "Require a token on this computer
+// too" keeps this window signed in — it keeps one of the tokens. Before 2026-10-20 it kept none: every
 // /v1 call answered 401 and a reload opened on Welcome as if there were no books.
 import { expect, test } from "./fixtures.js";
 
@@ -8,7 +8,7 @@ test.afterEach(async ({ request }) => {
   await request.put("/v1/server-auth", { data: { tokens: [], requireForLoopback: false } });
 });
 
-test("Require a token even on localhost keeps this window signed in", async ({ page }) => {
+test("Require a token on this computer too keeps this window signed in", async ({ page }) => {
   const refused = [];
   page.on("response", (r) => {
     const path = new URL(r.url()).pathname;
@@ -17,7 +17,7 @@ test("Require a token even on localhost keeps this window signed in", async ({ p
   await page.goto("/#/settings/server");
   await page.getByRole("button", { name: /^Generate/ }).click();
   await page.getByRole("button", { name: /^Add token/ }).click();
-  const tokensCard = page.locator(".card", { hasText: "API access" });
+  const tokensCard = page.locator(".card", { hasText: "Access tokens" });
   await tokensCard.locator('[role="switch"], .q-toggle').first().click();
   await expect.poll(() => page.evaluate(() => localStorage.getItem("just.serverToken"))).toBeTruthy();
 

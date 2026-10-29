@@ -124,7 +124,9 @@
   --success-bg:  oklch(0.95 0.04 var(--success-hue));
   --success-ink: oklch(0.4 0.13 var(--success-hue));
   --success-line: oklch(0.82 0.07 var(--success-hue));
-  --success:     oklch(0.6 0.13 var(--success-hue));
+  /* the template's measured fill: white on it 4.89:1 or more at every --success-hue, in sRGB at every hue
+     (oklch(0.6 0.13) read 3.57:1 at worst and left sRGB at 112 hues — measured 2026-10-29, RESEARCH) */
+  --success:     oklch(0.538 0.080 var(--success-hue));
 
   /* the toasts (the kit's --ui-toast-{kind}-ink / -bg / -edge, tokens.contract.css) on JustWrite's own
      inks, as the template's — each pair 4.5:1 or more in both themes (2026-10-20: plain 17.31 / 14.85,
@@ -161,7 +163,7 @@
   --trait-want-bg:   oklch(0.97 0.03 30);
   --trait-want-ink:  oklch(0.55 0.13 30);
   --trait-need-bg:   oklch(0.97 0.03 200);
-  --trait-need-ink:  oklch(0.55 0.1 200);
+  --trait-need-ink:  oklch(0.53 0.1 200); /* 4.60:1 on its ground (0.55 read 4.25:1, 2026-10-29) */
   --trait-lie-bg:    oklch(0.97 0.03 320);
   --trait-lie-ink:   oklch(0.55 0.1 320);
   --trait-truth-bg:  oklch(0.97 0.03 150);

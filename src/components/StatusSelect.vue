@@ -112,7 +112,8 @@ function itemAttrs(p) {
   >
     <template #selected>
       <span class="status-pill-dot" :class="{ 'status-pill-dot--empty': !real }" :style="real ? { background: current.color } : null" />
-      <span class="status-pill-label" :style="{ color: current.color }">{{ current.label }}</span>
+      <!-- the colour is the dot's; the word stays readable ink (WCAG 1.4.3: a status colour is the writer's pick) -->
+      <span class="status-pill-label">{{ current.label }}</span>
     </template>
     <template #append>
       <Icon name="ChevDown" :size="13" class="status-pill-chev" />
@@ -124,7 +125,6 @@ function itemAttrs(p) {
         v-bind="itemAttrs(itemProps)"
         class="status-opt"
         :class="{ 'status-opt-muted': opt.unset || opt.add }"
-        :style="opt.color ? { color: opt.color } : null"
         :data-highlighted="focused ? '' : undefined"
         :data-state="selected && !opt.add ? 'checked' : 'unchecked'"
       >

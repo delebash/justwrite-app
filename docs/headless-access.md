@@ -13,9 +13,9 @@ on a home server and just open a tab.
 
 ## Opening JustWrite in a browser
 
-Under **Settings → Server**, the **Headless access** card shows the address the
-server is hosting the app at, with a **Copy** button. Paste it into any browser
-on the same machine and JustWrite loads.
+Under **Settings → Server**, the **Headless access** card shows the command that starts the server
+on its own and the address it hosts the app at, with a **Copy** button. Paste the address into any
+browser on the same machine and JustWrite loads.
 
 The same section carries **Keep server running after the app closes**: with it
 on, closing the window hides JustWrite to the system tray and the server keeps
@@ -78,9 +78,14 @@ public name, set the environment variable **`JUSTWRITE_ALLOWED_HOSTS`** to that 
 starting the server, for example `JUSTWRITE_ALLOWED_HOSTS=write.example.com` (several names are
 separated by commas). Without it, requests for that name are refused.
 
-## API access (bearer tokens)
+A proxy that doesn't tell the server where a request came from (the `X-Forwarded-For` header) makes
+every request look as if it came from this computer, which skips the token check below. So behind a
+proxy (nginx, Caddy, `tailscale serve`), switch on **Require a token on this computer too**, or have
+the proxy send that header.
 
-The **API access** card, also under **Settings → Server**, controls who may
+## Access tokens
+
+The **Access tokens** card, also under **Settings → Server**, controls who may
 call JustWrite's API.
 
 It is **off by default**, which is the right setting when the server only
@@ -89,13 +94,15 @@ listens on your own machine — nothing else can reach it anyway.
 The moment you serve beyond that machine with `--host`, turn it on. Click
 **Generate** for a random token (or paste your own), then **Add token**.
 After that every API request must carry that token, and anything without it is
-refused. Add as many tokens as you like and remove any of them later.
+refused. Add as many tokens as you like and remove any of them later. Beside each one, **Copy the
+address with this token** copies the server's address with the token in it: a browser on another
+computer that opens it is signed in.
 
 Two things worth knowing:
 
 - **Connections from the machine itself skip the check**, so the desktop app
   keeps working normally. If you'd rather require a token even there, switch on
-  **Require a token even on localhost**: the window you switch it on in keeps one
+  **Require a token on this computer too**: the window you switch it on in keeps one
   of your tokens, so it stays signed in.
 - **The app itself always loads.** Tokens guard the API, not the page — so a
   browser can always reach JustWrite and sign in: on another computer the page

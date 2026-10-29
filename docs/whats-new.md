@@ -9,14 +9,24 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-29
 
-**Statuses you can read in the sidebar.** A status beside a chapter, scene or entry is now its name in
-plain text after a dot in the status's colour — the way the chapter bar shows **● Done** — because a
-light green or blue word was too faint to read. The sidebar's word counts are a shade darker for the same
-reason. See [Core concepts](core-concepts.md#statuses).
+**Statuses you can read.** A status is now its name in plain text after a dot in the status's colour —
+the way the chapter bar shows **● Done** — in the sidebar, the status pill and its list, the editor's
+scene pill and Home's resume line, because a light green or blue word was too faint to read. The
+sidebar's word counts are a shade darker for the same reason, the success buttons a deeper green, and
+the character sheet's **Need** label a touch darker. See [Core concepts](core-concepts.md#statuses).
 
-**Clearer with a screen reader.** The editor's toolbar buttons say what they do, the editor's text box
-and every field on a character's sheet say what they hold, and the Relations graph reads each name on it
-with its kind, as you see them.
+**Shortcut hints in your computer's keys.** The sidebar, the Command Palette and Search showed ⌘ on
+every computer; on Windows and Linux they read **Ctrl+F**, **Ctrl+Shift+F** and so on now.
+
+**Settings → Server and About, as in the family's other apps.** Each access token has **Copy the
+address with this token**: a browser on another computer that opens it is signed in. The page names the
+command that starts the server on its own and warns about a reverse proxy. **About** shows the version,
+the desktop runtime, the data folder and the source; its short shortcuts list is gone — Help's
+[Keyboard shortcuts](keyboard-shortcuts.md) has them all. See [Headless access](headless-access.md#access-tokens).
+
+**Clearer with a screen reader.** The editor's toolbar buttons say what they do, the editor's text box,
+every field on a character's sheet and every checkbox and switch say what they hold, and the Relations
+graph reads each name on it with its kind, as you see them.
 
 **The Events page shows where you are again.** Its path at the top had lost its first step — it reads
 **Character › Sable Coyne** again, and the first step takes you back to the list.
@@ -180,7 +190,7 @@ backup by linking to it.
 
 **Your access tokens stay with the server.** Resetting the workspace or restoring a backup keeps
 the server's tokens and its **Require a token even on localhost** switch, and a backup no longer
-contains them. See [API access](headless-access.md#api-access-bearer-tokens).
+contains them. See [API access](headless-access.md#access-tokens).
 
 **Copy works from another computer.** In a browser at a plain `http://` address — JustWrite on
 another computer on your network — the **Copy** buttons (the server address, Brainstorm, the
@@ -227,7 +237,7 @@ the computer wakes, not only when it starts.
 **Sign in from another computer.** When JustWrite's server asks for a token (Settings → Server →
 API access), a browser on another computer now gets a page asking for one, and keeps it once it's
 accepted; before, it said it couldn't reach the server. See
-[API access](headless-access.md#api-access-bearer-tokens).
+[API access](headless-access.md#access-tokens).
 
 **Draft from plan shows its progress where you write.** Its progress strip and **Context:** line
 now sit under the editor, as every other AI action's do, and the other AI actions wait until it

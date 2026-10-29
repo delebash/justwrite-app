@@ -42,9 +42,10 @@ STATE:  DECIDED — the user: "your rec all go", on these as shown (verbatim):
         → Open Anyway. Linux: make the AppImage runnable.
 OPEN:   A — at the family release, its last step (see "Before the family release" below). C — built 2026-10-29
         (the sidebar dot and counts, the Plot board, the checkboxes, the scroll areas; then, on sight, every page's
-        unnamed controls and the Events page's empty path step), and the check is `e2e/tests/a11y.test.js`. It stays
-        red until the kit's seven items (the kit's TASKS, FOUND (d)) and JustWrite's four look decisions below are
-        settled — facts in RESEARCH, "Accessibility: JustWrite against WCAG 2.2 AA".
+        unnamed controls and the Events page's empty path step), and the check is `e2e/tests/a11y.test.js`. The kit
+        built its seven (75d07f8) and JustWrite's four decisions are built (below): the check is down to 9 a theme,
+        all the kit's — its Breadcrumb's padded box "partially obscured" (22.3 px) and ConfigColumn's last unnamed
+        fields; sent to the kit's session 2026-10-29. Facts in RESEARCH, "Accessibility: JustWrite against WCAG 2.2 AA".
 GO:     given 2026-10-29.
 
 ## Every open item settled — the close-out list [2026-10-29]
@@ -98,10 +99,13 @@ GO:     given 2026-10-29 for 1–20, as above; 22 not decided.
 
 ## Now / near-term (JustWrite)
 
-- **Accessibility — four decisions owed** (found 2026-10-29 by the check; the user's word on each): the success
-  button's green and the character sheet's "Need" label to measured AA values; a status's colour off its word in
-  the status pill, the editor's scene pill and Settings → Statuses (the dot keeps it, as in the sidebar);
-  Settings → Server and About onto the kit's `ServerPanel` and `AboutPanel`. Facts in RESEARCH, "Accessibility".
+- **Accessibility — the four decisions, DECIDED 2026-10-29.** The user: *"i dont want to look, i want you to
+  decide you look you adversially think and take your recs"*; then, on the status words as described (each word
+  stays, its colour moves to the dot; Settings → Statuses' coloured preview goes): *"ok go"*. Taken: the success
+  fill to the template's `oklch(0.538 0.080 h)` and "Need" to L 0.53; a status's colour off its word in the pill,
+  its list, the scene pill and Home's resume line; Settings → Server and About on the kit's `ServerPanel` and
+  `AboutPanel` (About keeps "This workspace", drops its four-shortcut card). Found while doing it and fixed: every
+  shortcut hint wrote ⌘ on every computer (now `services/shortcutKeys.js`).
 
 - **Before the family release — its last step:** one docgen translation-and-review run on JustWrite
   (`es`), after the last English change: the strings added since the last run (96 on 2026-10-29) and

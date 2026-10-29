@@ -553,7 +553,9 @@ built UI and a copy of the user's data with the sample book (JUST_AI_HOME the co
   passes. — *measured, axe 4.14's source and a pixel diff in the page*.
 - **A `<label>` round a UiCheckbox and text names QCheckbox's hidden native input, not the focusable
   `role="checkbox"` box** (axe aria-toggle-field-name): 33 on the Writing AI tab and every "label + box +
-  words" row. A kit gap (filed). — *measured*.
+  words" row. The kit's answer (75d07f8): the call site passes `:aria-label`, which falls through to
+  QCheckbox's root — JustWrite's 18 such boxes carry the words beside them; a box with its own text inside
+  is named by it. — *measured; the kit's session*.
 - **A `data-tip` tooltip is no name** (CSS only): 43 icon-only toolbar buttons were nameless; the 10 with
   their own text (H1, the colour "A", Typewriter) keep it as their name, since a tip as the name would fail
   label-in-name. — *code + measured*.
@@ -586,6 +588,25 @@ built UI and a copy of the user's data with the sample book (JUST_AI_HOME the co
 - **The character sheet's "Need" label** (`--trait-need-ink` oklch(0.55 0.1 200) on its ground) reads 4.25:1
   (axe 4.23); L 0.53 reaches 4.60:1. Want 4.59, Lie 4.62, Truth 5.30; dark all 8.8+. — *measured, the
   scratchpad's trait-contrast.js*.
+
+## The kit's card walks on this box (2026-10-29)
+
+The kit's C34 (speed-truth plan §11.3/§11.9) and item 5 (aa2a725), on JustWrite's built app with the user's data
+(RTX 2070 SUPER 8 GB, 32 GB, b11960); the DB copied aside first, nothing restored. The log: the scratchpad's
+card-walks.log. Reads-wrong items went to the kit's session.
+
+- **A real Quick-setup Apply on a configured box re-applies the current default** (the wizard opens on "Already
+  set up"; Change model → the same pick): done in 5 s, then the first-run measure — Gemma 4 26B-A4B (QAT)
+  **12.1 tok/s**, the catalog chip "Fits · fine · 12.1 tok/s". The wizard's own chip shows no speed ("Fits ·
+  26B"). 12.1 against the plan's 26.6 (b10437) — unexplained; the embedding loading beside it is a guess.
+  — *measured*.
+- **The speed check** (under a temporary class override, then cleared): **26.93 GB/s** in ~36 s (pass A
+  2.744 ms/token, B 9.533; spreads 3.6 % / 5.3 %); 2026-09-19 read 29.18. A configured box is never offered
+  it (`offerSpeedCheck` runs on the confirm path only). — *measured*.
+- **The 12B (gemma-4-12b-qat) auto-tune**: `--fit` 18.3 tok/s; 40 GPU layers **20.5** (saved — a strict win);
+  38 17.1; 48 needs ~8,464 MB with 7,359 free (Windows holds ~830 MB), so 48's 41 tok/s can't happen on this
+  card; 46 "load timed out"; 44 and 42 refused. Its chip afterwards read 18.5 (the last trial), not 20.5.
+  — *measured*.
 
 ## The editor's colours in dark mode (2026-10-28)
 

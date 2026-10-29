@@ -215,5 +215,5 @@ that work project-less are AI Settings and Help, and both link back to Welcome.
 
 Each sidebar section has a **filter box** (type to narrow long lists), and items
 support **drag-to-reorder** — including parts and chapters, which reorders the
-manuscript itself. **Settings → About** shows your runtime, where images are
-stored, workspace statistics, and how many items sit in Trash.
+manuscript itself. **Settings → About** shows the version, the desktop runtime, where your data
+folder is and a link to the source, then your workspace's counts and how many items sit in Trash.

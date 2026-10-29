@@ -14,6 +14,7 @@
 
 import { ref, computed, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
+import { shortcutKeys } from "../services/shortcutKeys.js";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { useVersionsStore } from "../stores/versions.js";
@@ -127,11 +128,11 @@ const ACTION_ITEMS = computed(() => {
       run: () => { const id = project.addStrand(); router.push(`/strands/${id}?new=1`); } },
     { id: "act:newWorldbuilding", label: t("commandPalette.act.newArticle"), sublabel: t("commandPalette.action"), icon: "Plus",
       run: () => { const id = project.addWorldbuilding(); router.push(`/worldbuilding/${id}`); } },
-    { id: "act:findReplace", label: t("commandPalette.act.findReplace"), sublabel: t("commandPalette.actionKeys", { keys: "⌘⇧F" }), icon: "Replace", keywords: t("commandPalette.keywords.replace"),
+    { id: "act:findReplace", label: t("commandPalette.act.findReplace"), sublabel: t("commandPalette.actionKeys", { keys: shortcutKeys("mod+shift+F") }), icon: "Replace", keywords: t("commandPalette.keywords.replace"),
       run: () => ui.openProjectReplace() },
     // 2026-10-29: this page in a second window of the app (a tab in a browser); not on the phone
     ...(canOpenNewWindow()
-      ? [{ id: "act:newWindow", label: t("commandPalette.act.newWindow"), sublabel: t("commandPalette.actionKeys", { keys: "⌘⇧N" }), icon: "ExternalLink",
+      ? [{ id: "act:newWindow", label: t("commandPalette.act.newWindow"), sublabel: t("commandPalette.actionKeys", { keys: shortcutKeys("mod+shift+N") }), icon: "ExternalLink",
           run: () => openInNewWindow(router) }]
       : []),
     { id: "act:saveVersion", label: t("commandPalette.act.saveVersion"), sublabel: t("commandPalette.action"), icon: "History",
@@ -149,13 +150,13 @@ const ACTION_ITEMS = computed(() => {
           : t("commandPalette.toast.saved", { chapter });
         ui.showToast({ message });
       } },
-    { id: "act:toggleSidebar", label: t("commandPalette.act.toggleSidebar"), sublabel: t("commandPalette.actionKeys", { keys: "⌘\\" }), icon: "SidebarToggle",
+    { id: "act:toggleSidebar", label: t("commandPalette.act.toggleSidebar"), sublabel: t("commandPalette.actionKeys", { keys: shortcutKeys("mod+\\") }), icon: "SidebarToggle",
       run: () => ui.toggleSidebar() },
-    { id: "act:undo", label: t("common.undo"), sublabel: t("commandPalette.actionKeys", { keys: "⌘Z" }),  icon: "Refresh",
+    { id: "act:undo", label: t("common.undo"), sublabel: t("commandPalette.actionKeys", { keys: shortcutKeys("mod+Z") }),  icon: "Refresh",
       run: () => project.undoFor(router.currentRoute.value.meta.undoDomains || []) },
-    { id: "act:redo", label: t("commandPalette.act.redo"), sublabel: t("commandPalette.actionKeys", { keys: "⌘Y" }),  icon: "Refresh",
+    { id: "act:redo", label: t("commandPalette.act.redo"), sublabel: t("commandPalette.actionKeys", { keys: shortcutKeys("mod+Y") }),  icon: "Refresh",
       run: () => project.redoFor(router.currentRoute.value.meta.undoDomains || []) },
-    { id: "act:shortcuts", label: t("commandPalette.act.shortcuts"), sublabel: t("commandPalette.actionKeys", { keys: "⌘/" }), icon: "Help", keywords: t("commandPalette.keywords.shortcuts"),
+    { id: "act:shortcuts", label: t("commandPalette.act.shortcuts"), sublabel: t("commandPalette.actionKeys", { keys: shortcutKeys("mod+/") }), icon: "Help", keywords: t("commandPalette.keywords.shortcuts"),
       run: () => ui.openShortcuts() },
     { id: "act:help", label: t("commandPalette.act.help"), sublabel: t("commandPalette.action"), icon: "Help", keywords: t("commandPalette.keywords.help"),
       run: () => openHelp("") },

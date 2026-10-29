@@ -118,7 +118,7 @@ function apply() {
           </div>
           <label v-for="r in g.rows" :key="`${r.sceneId}:${r.field}:${r.id}`"
             class="lb-row" :class="{ dropped: !r.accept }">
-            <UiCheckbox v-model="r.accept" />
+            <UiCheckbox v-model="r.accept" :aria-label="sceneLabel(r)" />
             <span class="lb-scene">{{ sceneLabel(r) }}</span>
             <span v-if="r.matched !== r.entityName" class="lb-matched">{{ $t("linkBackfill.matchedAs", { name: r.matched }) }}</span>
           </label>

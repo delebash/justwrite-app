@@ -1774,11 +1774,6 @@
     "pickContinuation": "Elige una continuación para insertar",
     "pickVariation": "Elige una variación para aplicar",
     "pickLineEdit": "Elige una pasada de edición de línea para aplicar",
-    "keys": {
-      "ctrl": "Ctrl",
-      "shift": "Shift",
-      "alt": "Alt"
-    },
     "linkUrl": "URL del enlace",
     "printTitle": "Imprimir",
     "tip": {
@@ -2888,22 +2883,6 @@
     "language": {
       "hint": "Idioma de la interfaz de usuario. El formato de fecha y número sigue la misma configuración regional."
     },
-    "server": {
-      "headlessTitle": "Acceso sin interfaz",
-      "headlessHint": "Ejecuta el servidor de forma independiente y abre la aplicación en cualquier navegador; no es necesaria la instalación de escritorio. El servidor aloja la interfaz en:",
-      "copy": "Copiar",
-      "copied": "URL del servidor copiada",
-      "authTitle": "Acceso a la API (tokens de portador)",
-      "authHint": "Desactivado de forma predeterminada. Añade un token para requerir un encabezado Authorization: Bearer en cada llamada a la API /v1 — para cuando ejecutes el servidor expuesto fuera de esta máquina.",
-      "keepRunning": "Mantener el servidor en ejecución al cerrar la aplicación",
-      "keepRunningHint": "Con esto activado, al cerrar la ventana, JustWrite se ocultará en la bandeja del sistema y el servidor seguirá funcionando; haz clic izquierdo en el icono de la bandeja para volver a mostrar la ventana, o usa su menú para salir definitivamente.",
-      "requireLoopback": "Requerir un token incluso en localhost",
-      "noTokens": "Sin tokens: la API está abierta (adecuado para uso solo local).",
-      "tokenPlaceholder": "Pega o genera un token",
-      "generate": "Generar",
-      "addToken": "Añadir token",
-      "removeToken": "Eliminar token"
-    },
     "project": {
       "cardTitle": "Proyecto",
       "fieldTitle": "Título",
@@ -3212,17 +3191,8 @@
     "about": {
       "appCardTitle": "JustWrite",
       "workspaceCardTitle": "Este espacio de trabajo",
-      "shortcutsCardTitle": "Atajos de teclado",
       "tagline": "Un estudio de escritura local para novelas: capítulos, elenco y mundo, todo almacenado en tu máquina.",
-      "runtimeLabel": "Entorno de ejecución",
-      "runtimeDesktop": "Electron ({version})",
-      "runtimeBrowser": "Navegador",
-      "rendererLabel": "Renderizador",
-      "rendererValue": "Vue 3 + Pinia",
-      "imageStorageLabel": "Almacenamiento de imágenes",
-      "inTrashLabel": "En la papelera",
-      "shortcutFocusSearch": "Ir a la búsqueda",
-      "shortcutUndo": "Deshacer (fuera del editor enriquecido)"
+      "inTrashLabel": "En la papelera"
     }
   },
   "chapters": {
@@ -4218,5 +4188,10 @@
       "judge": "Evaluación y puntuación",
       "readerPanels": "Paneles de lectores"
     }
+  },
+  "keys": {
+    "ctrl": "Ctrl",
+    "shift": "Shift",
+    "alt": "Alt"
   }
 }

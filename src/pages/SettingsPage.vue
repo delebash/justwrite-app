@@ -5,7 +5,7 @@ import { useAiStore } from "../stores/ai.js";
 import { categoryLabelShown, statusLabelShown, useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
 import { saveImage, urlFor } from "../services/imageStore.js";
-import { promptDialog, confirmDialog, DataManagement, LogsPanel, SettingsShell, StoragePanel, UpdatesPanel, renderHelpMarkdown, get, put, serverUrl, pageFill, getServerToken, setServerToken } from "@delebash/ui";
+import { AboutPanel, promptDialog, confirmDialog, DataManagement, LogsPanel, ServerPanel, SettingsShell, StoragePanel, UpdatesPanel, renderHelpMarkdown, pageFill } from "@delebash/ui";
 import { loadDoc } from "../services/helpDocs.js";
 import { readSetting, writeSetting } from "../services/settings.js";
 import { exportProject, importProject, saveBackupBlob, canSaveFiles, canPickBooks } from "../services/bookTransfer.js";
@@ -91,15 +91,9 @@ const active = ref(normalizeSection(props.section) || "project");
 watch(() => props.section, (s) => { if (s) active.value = normalizeSection(s); });
 
 // ── Server: headless access + optional bearer-auth tokens ──────────
-// The server hosts the UI itself (StaticFiles at /), so `justwrite-server
-// serve` + a browser at this origin gives the full app headless. Bearer
-// tokens (the `auth` settings section the middleware reads) gate /v1/* when
-// the server runs exposed; off by default.
-const headlessUrl = computed(
-  // The kit resolves the base (2026-08-15) — services/serverApi.js is gone.
-  () => serverUrl("") || (typeof window !== "undefined" ? window.location.origin : ""),
-);
-const authTokens = ref([]);
+// Settings → Server is the kit's ServerPanel: the headless address, keep-running, the access tokens over
+// /v1/server-auth. The command that starts the server alone is the installed one.
+const SERVER_COMMAND = "justwrite-server serve";
 
 // The keep-running toggle writes the shell flag immediately AND persists in the
 // ui store (layouts/MainLayout.vue re-applies it every boot — the shell's flag resets per launch).
@@ -179,64 +173,6 @@ async function importAProject() {
     transferErr.value = err.message || String(err);
   } finally {
     transferBusy.value = "";
-  }
-}
-
-const requireLoopbackAuth = ref(false);
-const newToken = ref("");
-// The auth door is its OWN route since 2026-08-05 (/v1/server-auth — the family
-// lockout escape, docgen's shape; user ruling: the apps work the same). The
-// middleware exempts exactly this route + /v1/health for loopback, so this
-// section can ALWAYS fix a lost token; it stopped riding the settings doc
-// because exempting the whole settings API would gut requireForLoopback.
-async function loadAuthCfg() {
-  try {
-    const a = await get("/v1/server-auth");
-    authTokens.value = Array.isArray(a.tokens) ? a.tokens : [];
-    requireLoopbackAuth.value = !!a.requireForLoopback;
-  } catch { /* server down — the section shows empty; reopening reloads */ }
-}
-if (SECTION_IDS.includes("server")) loadAuthCfg();
-async function saveAuthCfg() {
-  try {
-    const a = await put("/v1/server-auth", {
-      tokens: authTokens.value, requireForLoopback: requireLoopbackAuth.value,
-    });
-    authTokens.value = a.tokens;
-    requireLoopbackAuth.value = !!a.requireForLoopback;
-    // a token required on this computer too: this window keeps one of them, or everything it asks next is
-    // refused (it would have no token to send) — the kit's ServerPanel; without it the window's every /v1
-    // call answered 401 and a reload opened on Welcome as if there were no books (2026-10-20)
-    if (requireLoopbackAuth.value && authTokens.value.length && !authTokens.value.includes(getServerToken())) setServerToken(authTokens.value[0]);
-  } catch (e) {
-    ui.showToast({ message: String(e?.message || e) });
-  }
-}
-function addToken() {
-  const t = newToken.value.trim();
-  newToken.value = "";
-  if (!t || authTokens.value.includes(t)) return;
-  authTokens.value = [...authTokens.value, t];
-  saveAuthCfg();
-}
-function removeToken(t) {
-  authTokens.value = authTokens.value.filter((x) => x !== t);
-  saveAuthCfg();
-}
-function setRequireLoopbackAuth(v) {
-  requireLoopbackAuth.value = !!v;
-  saveAuthCfg();
-}
-function generateToken() {
-  const bytes = crypto.getRandomValues(new Uint8Array(18));
-  newToken.value = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-}
-async function copyHeadlessUrl() {
-  try {
-    await copyToClipboard(headlessUrl.value);
-    ui.showToast({ message: t("settings.server.copied") });
-  } catch {
-    ui.showToast({ message: t("brainstorm.copyFailed") });
   }
 }
 
@@ -594,13 +530,10 @@ const lastAutosaveLabel = computed(() => {
 
 
 // ── About ──────────────────────────────────────────────────────────
-const platformLabel = computed(() =>
-  // The kit's one shell test answers "desktop or browser"; the shell names its
-  // own version (services/native.js).
-  hasShell()
-    ? t("settings.about.runtimeDesktop", { version: shellVersion() })
-    : t("settings.about.runtimeBrowser"),
-);
+// the desktop runtime's version (Electron's) for the kit's AboutPanel; "" in a browser
+const runtime = hasShell() ? shellVersion() : "";
+// the app's source, which getting-started.md also links
+const SOURCE_URL = "https://github.com/delebash/justwrite-app";
 
 const stats = computed(() => {
   const chapters = Object.keys(project.chapterBody || {}).length;
@@ -823,7 +756,6 @@ async function deleteCategory(c) {
                 </div>
                 <UiInput style="max-width:220px" :model-value="statusLabelShown(s)"
                   @update:model-value="(v) => renameStatus(s.id, v)" :placeholder="$t('settings.statuses.namePlaceholder')" />
-                <span :style="`font-size:11px;font-weight:600;text-transform:lowercase;color:${s.color}`">{{ statusLabelShown(s) }}</span>
                 <UiButton intent="ghost" size="small" style="margin-left:auto" v-tooltip.bottom="$t('settings.statuses.deleteConfirm')" @click="deleteStatus(s)">
                   <template #icon><Icon name="Trash" :size="13" /></template>
                 </UiButton>
@@ -1177,7 +1109,7 @@ async function deleteCategory(c) {
               <button v-for="p in FUNCTIONAL_PRESETS.success" :key="p.hue"
                 role="radio" :aria-checked="ap.successHue === p.hue" :aria-label="$t(p.labelKey)"
                 class="accent-swatch" :class="{ active: ap.successHue === p.hue }"
-                v-tooltip.bottom="$t(p.labelKey)" :style="`background: oklch(0.6 0.13 ${p.hue})`"
+                v-tooltip.bottom="$t(p.labelKey)" :style="`background: oklch(0.538 0.080 ${p.hue})`"
                 @click="setAp({ successHue: p.hue })">
                 <Icon v-if="ap.successHue === p.hue" name="Check" :size="12" />
               </button>
@@ -1189,7 +1121,7 @@ async function deleteCategory(c) {
               <button v-for="p in FUNCTIONAL_PRESETS.danger" :key="p.hue"
                 role="radio" :aria-checked="ap.dangerHue === p.hue" :aria-label="$t(p.labelKey)"
                 class="accent-swatch" :class="{ active: ap.dangerHue === p.hue }"
-                v-tooltip.bottom="$t(p.labelKey)" :style="`background: oklch(0.62 0.17 ${p.hue})`"
+                v-tooltip.bottom="$t(p.labelKey)" :style="`background: oklch(0.517 0.137 ${p.hue})`"
                 @click="setAp({ dangerHue: p.hue })">
                 <Icon v-if="ap.dangerHue === p.hue" name="Check" :size="12" />
               </button>
@@ -1307,7 +1239,7 @@ async function deleteCategory(c) {
             </div>
             <div class="inline-paper-row">
               <label>
-                <UiCheckbox :model-value="ap.inlinePaper"
+                <UiCheckbox :model-value="ap.inlinePaper" :aria-label="$t('settings.appearance.inlinePaperLabel')"
                   @update:model-value="(v) => setAp({ inlinePaper: v })" />
                 <span>{{ $t('settings.appearance.inlinePaperLabel') }}</span>
               </label>
@@ -1421,44 +1353,9 @@ async function deleteCategory(c) {
           <StoragePanel :data-dir="dataDir" :shell="storageShell" :saves="t('settings.storage.saves')" />
         </div>
 
-        <!-- ── SERVER (headless + API access) ─────────── -->
+        <!-- ── SERVER — the kit's ServerPanel (keep-running: the ui store keeps it and tells the shell) ── -->
         <div v-else-if="active === 'server'" style="display:flex;flex-direction:column;gap:14px">
-          <div class="card">
-            <div class="card-title">{{ $t('settings.server.headlessTitle') }}</div>
-            <p class="t-muted">{{ $t('settings.server.headlessHint') }}</p>
-            <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
-              <code style="flex:1;min-width:0;padding:8px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ headlessUrl }}</code>
-              <UiButton intent="secondary" size="small" @click="copyHeadlessUrl">{{ $t('settings.server.copy') }}</UiButton>
-            </div>
-            <!-- The family headless/tray ruling (2026-08-04, JV's donor): OFF ⇒
-                 closing the window stops everything; ON ⇒ hide to tray, server stays. -->
-            <label style="display:flex;align-items:center;gap:10px;margin:12px 0 0">
-              <UiToggle :model-value="ui.keepServerRunning" @update:model-value="setKeepRunning" />
-              <span>{{ $t('settings.server.keepRunning') }}</span>
-            </label>
-            <p class="t-muted" style="font-size:12.5px;margin:4px 0 0">{{ $t('settings.server.keepRunningHint') }}</p>
-          </div>
-
-          <div class="card">
-            <div class="card-title">{{ $t('settings.server.authTitle') }}</div>
-            <p class="t-muted">{{ $t('settings.server.authHint') }}</p>
-            <label style="display:flex;align-items:center;gap:10px;margin:10px 0">
-              <UiToggle :model-value="requireLoopbackAuth" @update:model-value="setRequireLoopbackAuth" />
-              <span>{{ $t('settings.server.requireLoopback') }}</span>
-            </label>
-            <div v-if="authTokens.length" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
-              <div v-for="tok in authTokens" :key="tok" style="display:flex;align-items:center;gap:8px">
-                <code style="flex:1;min-width:0;padding:6px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ tok }}</code>
-                <UiButton intent="ghost" size="small" :title="$t('settings.server.removeToken')" @click="removeToken(tok)"><Icon name="Close" :size="12" /></UiButton>
-              </div>
-            </div>
-            <p v-else class="t-muted"><em>{{ $t('settings.server.noTokens') }}</em></p>
-            <div style="display:flex;align-items:center;gap:8px">
-              <UiInput v-model="newToken" :placeholder="$t('settings.server.tokenPlaceholder')" style="flex:1" @keydown.enter="addToken" />
-              <UiButton intent="secondary" size="small" @click="generateToken">{{ $t('settings.server.generate') }}</UiButton>
-              <UiButton intent="primary" size="small" :disabled="!newToken.trim()" @click="addToken">{{ $t('settings.server.addToken') }}</UiButton>
-            </div>
-          </div>
+          <ServerPanel :server-command="SERVER_COMMAND" :keep-running="ui.keepServerRunning" @update:keep-running="setKeepRunning" />
         </div>
 
         <!-- ── SYNC (the kit's SyncPanel over server/src/sync.js) ─────── -->
@@ -1501,6 +1398,7 @@ async function deleteCategory(c) {
                 >
                   <UiCheckbox
                     :model-value="!!autosaveSelected[entry.key]"
+                    :aria-label="entry.title || $t('sidebar.projectSwitcher.untitled')"
                     @update:model-value="(v) => (autosaveSelected[entry.key] = v)"
                   />
                   <div style="flex:1;min-width:0">
@@ -1589,17 +1487,8 @@ async function deleteCategory(c) {
 
         <!-- ── ABOUT ─────────────────────────────────── -->
         <div v-else-if="active === 'about'" style="display:flex;flex-direction:column;gap:14px">
-          <div class="card">
-            <div class="card-title">{{ $t('settings.about.appCardTitle') }}</div>
-            <p style="font-size:13px;margin:0 0 12px;line-height:1.6">
-              {{ $t('settings.about.tagline') }}
-            </p>
-            <div style="display:grid;grid-template-columns:160px 1fr;gap:8px 14px;font-size:13px">
-              <span class="t-muted">{{ $t('settings.about.runtimeLabel') }}</span><span>{{ platformLabel }}</span>
-              <span class="t-muted">{{ $t('settings.about.rendererLabel') }}</span><span>{{ $t('settings.about.rendererValue') }}</span>
-              <span class="t-muted">{{ $t('settings.about.imageStorageLabel') }}</span><span>{{ $t('settings.coverImage.storedServer') }}</span>
-            </div>
-          </div>
+          <AboutPanel :app-name="$t('settings.about.appCardTitle')" :blurb="$t('settings.about.tagline')" :version="APP_VERSION"
+            :runtime="runtime" :data-dir="dataDir" :source-url="SOURCE_URL" />
 
           <div class="card">
             <div class="card-title">{{ $t('settings.about.workspaceCardTitle') }}</div>
@@ -1631,15 +1520,6 @@ async function deleteCategory(c) {
             </div>
           </div>
 
-          <div class="card">
-            <div class="card-title">{{ $t('settings.about.shortcutsCardTitle') }}</div>
-            <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 18px;font-size:12.5px">
-              <kbd class="kbd-pill">⌘F</kbd><span>{{ $t('settings.about.shortcutFocusSearch') }}</span>
-              <kbd class="kbd-pill">⌘\</kbd><span>{{ $t('sidebar.tooltips.toggleSidebar') }}</span>
-              <kbd class="kbd-pill">⌘Z</kbd><span>{{ $t('settings.about.shortcutUndo') }}</span>
-              <kbd class="kbd-pill">⌘⇧Z / ⌘Y</kbd><span>{{ $t('common.redo') }}</span>
-            </div>
-          </div>
         </div>
       </SettingsShell>
       </div>
@@ -1961,19 +1841,6 @@ async function deleteCategory(c) {
   color: var(--muted);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-}
-
-.kbd-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 5px;
-  background: var(--surface-3);
-  color: var(--ink-2);
-  border: 1px solid var(--border);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  white-space: nowrap;
 }
 
 .danger-card { border-color: var(--danger-line); }

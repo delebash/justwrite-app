@@ -215,7 +215,7 @@ const columns = computed(() => [
             @update:model-value="(v) => update('tags', v)" />
           <label class="chip" style="cursor:pointer;gap:6px;align-self:flex-start"
             v-tooltip.bottom="$t('common.excludeFromAiTooltip')">
-            <UiCheckbox :model-value="!!loc.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
+            <UiCheckbox :aria-label="$t('common.excludeFromAi')" :model-value="!!loc.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
             {{ $t("common.excludeFromAi") }}
           </label>
           <RichEditor

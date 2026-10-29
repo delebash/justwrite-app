@@ -221,7 +221,7 @@ const columns = computed(() => [
               @update:model-value="update('color', $event)" />
             <label class="chip" style="cursor:pointer;gap:6px;margin-left:auto"
               v-tooltip.bottom="$t('common.excludeFromAiTooltip')">
-              <UiCheckbox :model-value="!!g.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
+              <UiCheckbox :aria-label="$t('common.excludeFromAi')" :model-value="!!g.excludeFromAi" @update:model-value="(v) => update('excludeFromAi', v)" />
               {{ $t("common.excludeFromAi") }}
             </label>
           </div>

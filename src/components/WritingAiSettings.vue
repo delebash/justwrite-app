@@ -57,7 +57,7 @@ function setSharePercent(v) {
         <template #featuresPath><b>{{ $t("writingAi.featuresPath") }}</b></template>
       </i18n-t>
       <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
-        <UiCheckbox :model-value="ai.autoRebuildRagIndex"
+        <UiCheckbox :model-value="ai.autoRebuildRagIndex" :aria-label="$t('writingAi.autoRebuildLabel')"
           @update:model-value="ai.setAutoRebuildRagIndex" />
         <span style="color:var(--ink-2);font-size:12.5px;line-height:1.45">
           <b style="color:var(--ink)">{{ $t("writingAi.autoRebuildLabel") }}</b>
@@ -85,6 +85,7 @@ function setSharePercent(v) {
              :style="ui.showVariations ? 'background:var(--accent-soft)' : ''">
         <UiCheckbox
           :model-value="ui.showVariations"
+          :aria-label="$t('writingAi.variationsToggleLabel')"
           @update:model-value="ui.setShowVariations" />
         <span style="color:var(--ink-2);font-size:13px;line-height:1.45">
           <strong style="color:var(--ink)">{{ $t("writingAi.variationsToggleLabel") }}</strong><br />
@@ -115,6 +116,7 @@ function setSharePercent(v) {
                  :style="canonHas(c.id) ? 'background:var(--accent-soft)' : ''">
             <UiCheckbox
               :model-value="canonHas(c.id)"
+              :aria-label="`${$t('common.chapterShort', { num: c.num })} ${c.title || $t('writingAi.untitled')}`"
               @update:model-value="toggleCanon(c.id)" />
             <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);min-width:48px">{{ $t("common.chapterShort", { num: c.num }) }}</span>
             <span style="flex:1;color:var(--ink-2);font-size:13px">{{ c.title || $t("writingAi.untitled") }}</span>

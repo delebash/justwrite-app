@@ -345,7 +345,7 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
               <span>{{ $t("count.scene", { n: resumeCh.scenes }, resumeCh.scenes) }}</span>
               <template v-if="resumeStatus">
                 <span class="dot-sep">·</span>
-                <span :style="{ color: resumeStatus.color }">{{ resumeStatus.label }}</span>
+                <span class="resume-status"><span class="status-dot" :style="{ background: resumeStatus.color }" />{{ resumeStatus.label }}</span>
               </template>
               <template v-if="resumedToday">
                 <span class="dot-sep">·</span>
@@ -665,6 +665,9 @@ const strandCount = (id) => allCh.value.filter((c) => (c.strands || []).includes
 .gdow-lbls .lbl { flex: 1; text-align: center; font-family: var(--font-mono); font-size: 9.5px; color: var(--muted); }
 
 /* narrative strands — threads */
+/* a status as the sidebar shows it: its colour on the dot, its word in the line's ink */
+.resume-status { display: inline-flex; align-items: center; gap: 4px; }
+.resume-status .status-dot { width: 6px; height: 6px; }
 .gthreads { display: flex; flex-direction: column; }
 .gthread { display: grid; grid-template-columns: 160px 1fr 52px; align-items: center; gap: 16px; padding: 9px 0; }
 .gthread + .gthread { border-top: 1px solid var(--border-soft); }
