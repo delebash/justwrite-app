@@ -97,4 +97,7 @@ export const ADDED_COLUMNS = [
   ["projects", "style_flag_z", "FLOAT NOT NULL DEFAULT 1.0"],
   ["projects", "style_hot_measures", "INTEGER NOT NULL DEFAULT 2"],
   ["projects", "style_trend_z", "FLOAT NOT NULL DEFAULT 0.5"],
+  // 2026-10-29: the scene's POV character (the Links panel; the DO list's) — a character's id, null
+  // for none, which every scene made before it is.
+  ["scenes", "pov_character_id", "VARCHAR"],
 ];

@@ -17,3 +17,10 @@ export function povLabel(value) {
   const key = POV_OPTIONS.find((o) => o.value === value)?.labelKey;
   return key ? tEnglish(key) : "";
 }
+
+/** The scene's POV character (2026-10-29, the Links panel's POV character): the character among
+ *  `characters`, null when the scene has none or that character is gone. */
+export function povCharacterOf(scene, characters) {
+  const id = scene?.povCharacterId;
+  return (id && (characters || []).find((c) => c.id === id)) || null;
+}

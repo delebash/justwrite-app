@@ -8,7 +8,7 @@ import { Icon, AiTaskStrip, useAiTasksStore, useSurfaceTask, UiTable, UiSegmente
 import StatPill from "../components/StatPill.vue";
 import {
   statusCounts, strandDistribution, characterPresence,
-  scenesPerChapter, projectKpis, paceSeries,
+  scenesPerChapter, projectKpis, paceSeries, povBalance,
 } from "../services/analysis.js";
 import { bookMetrics, POV_LABEL_KEYS } from "../services/analysis/styleMetrics.js";
 import { computeVoiceDrift, deriveVoiceDriftContext, driftSensitivity, explainVoiceDrift, TRACKED_METRICS } from "../services/analysis/voiceDrift.js";
@@ -99,6 +99,10 @@ const paceShape = computed(() => {
 
 // Strand totals — for relative-width bars.
 const strandTotal = computed(() => strands.value.reduce((s, r) => s + r.words, 0) || 1);
+
+// POV balance (2026-10-29): the scenes' POV characters by words — hidden while no scene has one.
+const pov = computed(() => povBalance(allCh.value, (id) => project.scenesFor(id), project.characters));
+const povTotal = computed(() => pov.value.reduce((s, r) => s + r.words, 0) || 1);
 
 // Heatmap cell coloring.
 function cellStyle(weight) {
@@ -673,6 +677,22 @@ const milestoneState = computed(() => {
               </div>
               <div style="height:6px;background:var(--surface-3);border-radius:999px;overflow:hidden">
                 <div :style="`width:${(s.words / strandTotal) * 100}%;height:100%;background:${s.color};border-radius:999px`" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- POV balance (2026-10-29): words per scene POV character, the strands card's bars -->
+        <div v-if="pov.length" class="card">
+          <div class="card-title">{{ $t("analysisView.povBalance") }}</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">
+            <div v-for="r in pov" :key="r.characterId || 'none'">
+              <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px">
+                <span>{{ r.name }}</span>
+                <span class="t-muted t-num">{{ $t("analysisView.povMeta", { words: $n(r.words), scenes: $t("count.scene", { n: r.scenes }, r.scenes) }) }}</span>
+              </div>
+              <div style="height:6px;background:var(--surface-3);border-radius:999px;overflow:hidden">
+                <div :style="`width:${(r.words / povTotal) * 100}%;height:100%;background:${r.characterId ? 'var(--accent)' : 'var(--border-strong)'};border-radius:999px`" />
               </div>
             </div>
           </div>

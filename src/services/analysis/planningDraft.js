@@ -17,7 +17,7 @@
 
 import { runAiFeature } from "@delebash/ui";
 import { brainstormAction, brainstormPrompt, seedFor } from "../brainstorm.js";
-import { povLabel } from "../povOptions.js";
+import { povCharacterOf, povLabel } from "../povOptions.js";
 import { runJsonAnalysis } from "../runJson.js";
 import { composeSceneContext, storyBudgetFor } from "../storyContext.js";
 import { htmlToText, textToHtml } from "../text.js";
@@ -50,6 +50,8 @@ export function composeSceneSummaryInput(project, chapterId, sceneId) {
   lines.push(`Scene ${idx + 1}${scene.title ? ` "${scene.title}"` : ""}`);
   const pov = povLabel(scene.pov);
   if (pov) lines.push(`Narration: ${pov}`);
+  const povCharacter = povCharacterOf(scene, project.characters);
+  if (povCharacter) lines.push(`POV character: ${povCharacter.name}`);
   const who = namesOf(project.characters, scene.characters);
   if (who.length) lines.push(`Characters: ${who.join(", ")}`);
   const where = namesOf(project.locations, scene.locations);

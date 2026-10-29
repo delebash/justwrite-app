@@ -9,7 +9,7 @@ import { useProjectStore } from "../stores/project.js";
 import { promptDialog } from "@delebash/ui";
 import { Icon } from "@delebash/ui";
 import DateTimePicker from "./DateTimePicker.vue";
-import { UiButton } from "@delebash/ui";
+import { UiButton, UiSelect } from "@delebash/ui";
 import { POV_OPTIONS } from "../services/povOptions.js";
 import { UiTextarea, useSurfaceTask } from "@delebash/ui";
 import { PLANNING_FEATURE, summarizeScene } from "../services/analysis/planningDraft.js";
@@ -116,6 +116,24 @@ async function newStrand() {
 const mainCharacters      = computed(() => project.characters.filter((c) => c.main));
 const secondaryCharacters = computed(() => project.characters.filter((c) => !c.main));
 
+// ── POV character (2026-10-29): whose eyes the scene is seen through — main characters first, and
+// None. Picking one links them to the scene too (they're in it), in the same undo step. An id whose
+// character is gone (in Trash) reads as None until it's restored. None is "" in the select (Quasar's
+// QSelect shows a null model as empty) and null on the scene.
+const povCharacterOptions = computed(() => [
+  { value: "", label: t("common.none") },
+  ...[...mainCharacters.value, ...secondaryCharacters.value].map((c) => ({ value: c.id, label: c.name })),
+]);
+const povCharacterId = computed(() => {
+  const id = scene.value?.povCharacterId;
+  return id && project.characters.some((c) => c.id === id) ? id : "";
+});
+function setPovCharacter(id) {
+  const patch = { povCharacterId: id || null };
+  if (id && !getList("characters").includes(id)) patch.characters = [...getList("characters"), id];
+  update(patch);
+}
+
 function onBackdrop(e) {
   if (e.target === e.currentTarget) emit("close");
 }
@@ -156,6 +174,13 @@ function onBackdrop(e) {
               {{ t(opt.labelKey) }}
             </button>
           </div>
+        </section>
+
+        <!-- POV character -->
+        <section class="links-section">
+          <div class="links-section-label">{{ $t("sceneLinks.povCharacter") }}</div>
+          <UiSelect width="fit" :model-value="povCharacterId" :options="povCharacterOptions"
+            :aria-label="$t('sceneLinks.povCharacter')" @update:model-value="setPovCharacter" />
         </section>
 
         <!-- Characters -->

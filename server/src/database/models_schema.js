@@ -420,7 +420,7 @@ export const TABLES = [
   },
   {
     "name": "scenes",
-    "ddl": "CREATE TABLE scenes (\n\tproject_id VARCHAR NOT NULL, \n\tid VARCHAR NOT NULL, \n\tchapter_id VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\ttitle VARCHAR NOT NULL, \n\tbody TEXT NOT NULL, \n\tpov VARCHAR, \n\t\"when\" VARCHAR NOT NULL DEFAULT '', \n\tstatus VARCHAR NOT NULL DEFAULT '', \n\texclude_from_ai BOOLEAN NOT NULL DEFAULT 0, \n\tsummary TEXT NOT NULL DEFAULT '', \n\tPRIMARY KEY (project_id, id), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
+    "ddl": "CREATE TABLE scenes (\n\tproject_id VARCHAR NOT NULL, \n\tid VARCHAR NOT NULL, \n\tchapter_id VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\ttitle VARCHAR NOT NULL, \n\tbody TEXT NOT NULL, \n\tpov VARCHAR, \n\t\"when\" VARCHAR NOT NULL DEFAULT '', \n\tstatus VARCHAR NOT NULL DEFAULT '', \n\texclude_from_ai BOOLEAN NOT NULL DEFAULT 0, \n\tsummary TEXT NOT NULL DEFAULT '', \n\tpov_character_id VARCHAR, \n\tPRIMARY KEY (project_id, id), \n\tFOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE\n)",
     "indexes": [],
     "columns": {
       "project_id": {
@@ -475,6 +475,9 @@ export const TABLES = [
         "kind": "text",
         "notNull": true,
         "default": ""
+      },
+      "pov_character_id": {
+        "kind": "text"
       }
     }
   },

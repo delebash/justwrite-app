@@ -18,6 +18,7 @@ import * as autosaveApi from "../services/autosaveApi.js";
 import { replaceInHtml } from "../services/projectReplace.js";
 import { splitHtmlIntoScenes } from "../services/sceneSplit.js";
 import { nextColor, nextHue } from "../services/categoricalColors.js";
+import { wordCountFromHtml } from "../services/words.js";
 import { currentLocale, d as fmtDate, t } from "../i18n/index.js";
 
 // Multi-project storage (all server-side SQL — no kv, no IndexedDB):
@@ -39,11 +40,6 @@ function newCharacter(input = {}) {
   return { id: uid("c"), main: false, age: null, gender: "", pronouns: "", aliases: [], lifeStatus: "", oneLiner: "", role: "", name: t("defaults.character"), tags: [], ...input };
 }
 
-function wordCountFromHtml(html) {
-  if (!html) return 0;
-  const text = String(html).replace(/<[^>]+>/g, " ").trim();
-  return text ? text.split(/\s+/).length : 0;
-}
 
 // Book snapshots live in the server's `projects` table, reached via the domain
 // API (services/projectApi.js). The cache is populated by hydrateProjects()
@@ -1130,10 +1126,7 @@ export const useProjectStore = defineStore("project", {
     _recomputeChapterWords(chapterId) {
       const list = this.scenes[chapterId] || [];
       let words = 0;
-      for (const scn of list) {
-        const text = (scn.body || "").replace(/<[^>]+>/g, " ").trim();
-        if (text) words += text.split(/\s+/).length;
-      }
+      for (const scn of list) words += wordCountFromHtml(scn.body);
       this.parts = this.parts.map((p) => ({
         ...p,
         chapters: p.chapters.map((c) => c.id === chapterId ? { ...c, words } : c),

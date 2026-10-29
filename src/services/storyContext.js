@@ -17,7 +17,7 @@
 /* eslint-disable i18next/no-literal-string -- text the AI model reads stays English (ruled 2026-10-13) */
 import { useResolvedRoute } from "@delebash/ui";
 import { useAiStore } from "../stores/ai.js";
-import { povLabel } from "./povOptions.js";
+import { povCharacterOf, povLabel } from "./povOptions.js";
 import { buildEntityCards } from "./rag/cards.js";
 import { CHARS_PER_TOKEN } from "./rag/entityMatcher.js";
 import { htmlToText } from "./text.js";
@@ -107,8 +107,11 @@ function scenePieces(project, cards, chapterId, sceneId) {
   const { scene, idx, scenes } = found;
   const out = [];
 
-  const pov = povLabel(scene.pov);
-  if (pov) out.push(piece("POV", `Narration: ${pov}`, "pov"));
+  // the narration mode and the POV character (2026-10-29), one line; a character excluded from AI isn't named
+  const mode = povLabel(scene.pov);
+  const who = povCharacterOf(scene, project.characters);
+  const pov = [mode && `Narration: ${mode}`, who && !excluded(who) && `POV character: ${who.name}`].filter(Boolean).join(" · ");
+  if (pov) out.push(piece("POV", pov, "pov"));
 
   // The writer's plan for the scene (slice 3, 2026-10-16): short, so it comes before the cards.
   const summary = String(scene.summary || "").trim();

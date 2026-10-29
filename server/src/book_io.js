@@ -296,6 +296,7 @@ export function bookRows(projectId, snapIn) {
         status: s_(pyGet(scn, "status")), // a statuses id, "" when unset
         exclude_from_ai: truthy(pyGet(scn, "excludeFromAi")),
         summary: s_(pyGet(scn, "summary")),
+        pov_character_id: s_(pyGet(scn, "povCharacterId")) || null, // a character's id, or null when unset
       });
       for (const [plural, singular] of Object.entries(LINK_PLURAL)) {
         for (const [li, r] of pyIter(pyOr(pyGet(scn, plural), [])).entries()) {
@@ -623,6 +624,7 @@ export function assemble(h, projectId) {
     const s = {
       id: scn.id, title: scn.title, body: scn.body, pov: scn.pov ?? null, when: scn.when ?? "",
       status: scn.status ?? "", excludeFromAi: !!scn.exclude_from_ai, summary: scn.summary ?? "",
+      povCharacterId: scn.pov_character_id ?? null,
     };
     Object.assign(s, truthy(linksByScene[scn.id]) ? linksByScene[scn.id] : emptyLinks());
     setdefault(scenesByCh, scn.chapter_id, []).push(s);

@@ -205,6 +205,7 @@ Click **Links** on the scene strip to open a modal that records the connective t
 
 - **Summary** — what happens in the scene and what changes, in a sentence or two: your plan for it. The chapter's **Cards** show it in place of the prose's opening lines, and the AI writing actions read it with the scene. **Summarize this scene** drafts it from the scene's prose; you see the draft beside what's there, edit it, and **Apply** — nothing is saved before, and one Ctrl/⌘ + Z takes it back.
 - **POV perspective** — six options from first-person through omniscient
+- **POV character** — whose eyes the scene is seen through, or **None**. Picking a character also adds them to the scene's characters. The AI writing actions are told who it is, and Analysis' **POV balance** adds up each POV character's words
 - **Characters present** — main and secondary; you can create a new character right here without leaving the scene
 - **Locations** — same; inline-create supported
 - **Objects** — same

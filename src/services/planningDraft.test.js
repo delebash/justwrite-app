@@ -66,6 +66,14 @@ describe("a scene's Summary", () => {
     );
   });
 
+  it("names the POV character after the narration (2026-10-29)", () => {
+    const p = project();
+    const scene = p.scenesFor("ch1").find((s) => s.id === "s1");
+    scene.povCharacterId = scene.characters[0];
+    expect(composeSceneSummaryInput(p, "ch1", "s1").variables.user_content)
+      .toContain("Narration: Limited third person\nPOV character: Mira\nCharacters: Mira\n");
+  });
+
   it("cleans a reply to one clamped line", () => {
     expect(cleanSummary('Summary: "Mira finds\nthe ledger gone."')).toBe("Mira finds the ledger gone.");
     expect(cleanSummary("x".repeat(900))).toHaveLength(600);

@@ -73,6 +73,14 @@ A horizontal bar chart showing how many **words and chapters** each narrative st
 
 **Why a writer would care.** This is a structural diagnostic. If your main plot has 80% of the words and your B-story has 5%, your B-story is probably underweight. If a thematic strand has 60%, something is out of balance.
 
+### POV balance
+
+> *"It's meant to be her book and his book equally — but I have a feeling he's been hogging the page since the midpoint."*
+
+A bar per **POV character** — the one you pick for each scene in its **Links** panel ([Writing](writing.md#the-links-panel)) — with the words and scenes told through their eyes, most words first. Scenes without a POV character sit at the bottom as **No POV character**. The card appears once a scene has one.
+
+**Why a writer would care.** A dual- or multi-POV book promises the reader each voice its share. The balance shows whether you're keeping that promise, and which scenes still need a POV character set.
+
 ### Words per chapter
 
 > *"Some of my chapters feel enormous and some feel like nothing. I don't know if the variation is intentional or if I just lost control of the pacing."*

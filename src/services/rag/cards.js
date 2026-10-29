@@ -98,6 +98,8 @@ function appearanceLines(refs, selfId, nameOf) {
     if (company.length) bits.push(`with ${company.join(", ")}`);
     const pov = povLabel(ref.scene.pov);
     if (pov) bits.push(`POV: ${pov}`);
+    const povCharacter = ref.scene.povCharacterId ? nameOf.character(ref.scene.povCharacterId) : "";
+    if (povCharacter) bits.push(`POV character: ${povCharacter}`);
     lines.push(`- ${sceneLabel(ref)}${bits.length ? ` — ${bits.join(", ")}` : ""}`);
   }
   if (refs.length > MAX_APPEARANCE_LINES) {
@@ -411,6 +413,8 @@ export function sceneLinksLine(project, scene, nameOf = entityNameResolvers(proj
   if (objs.length) bits.push(`Objects: ${objs.join(", ")}`);
   const pov = povLabel(scene.pov);
   if (pov) bits.push(`POV: ${pov}`);
+  const povCharacter = scene.povCharacterId ? nameOf.character(scene.povCharacterId) : "";
+  if (povCharacter) bits.push(`POV character: ${povCharacter}`);
   return bits.join(" · ");
 }
 

@@ -8,6 +8,7 @@
 
 import { linearRegression } from "simple-statistics";
 import { tokenize } from "./search.js";
+import { wordCountFromHtml } from "./words.js";
 import { t } from "../i18n/index.js";
 
 /**
@@ -50,6 +51,29 @@ export function strandDistribution(strands, allChapters) {
   const rows = [...byId.values()].map((s) => ({ strandId: s.id, name: s.name, color: s.color, chapters: s.chapters, words: s.words }));
   if (unassigned.chapters) rows.push(unassigned);
   return rows.sort((a, b) => b.words - a.words);
+}
+
+/**
+ * POV balance (2026-10-29): each POV character's scenes and words across the book (a scene's
+ * POV character is set in its Links panel), most words first, then the scenes without one — or
+ * whose character is gone — as "No POV character". [] while no scene has a POV character.
+ *   [{ characterId, name, scenes, words }]
+ */
+export function povBalance(allChapters, scenesFor, characters) {
+  const byId = new Map();
+  const none = { characterId: null, name: t("analysisView.noPovCharacter"), scenes: 0, words: 0 };
+  for (const ch of allChapters) {
+    for (const s of scenesFor(ch.id) || []) {
+      const c = s.povCharacterId ? characters.find((x) => x.id === s.povCharacterId) : null;
+      const row = c ? byId.get(c.id) || byId.set(c.id, { characterId: c.id, name: c.name, scenes: 0, words: 0 }).get(c.id) : none;
+      row.scenes++;
+      row.words += wordCountFromHtml(s.body);
+    }
+  }
+  if (!byId.size) return [];
+  const rows = [...byId.values()].sort((a, b) => b.words - a.words);
+  if (none.scenes) rows.push(none);
+  return rows;
 }
 
 /**

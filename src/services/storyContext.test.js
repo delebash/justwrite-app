@@ -91,6 +91,21 @@ describe("composeSceneContext", () => {
     expect(r.names).toEqual(expect.arrayContaining(["POV", "Beats", "Scene notes", "Aria", "Bren", "Customs House", "The Ledger", "Previous scene"]));
   });
 
+  it("names the scene's POV character with its narration (2026-10-29), never one excluded from AI", () => {
+    const p = project();
+    const scene = p.scenesFor("ch1").find((s) => s.id === "s1");
+    scene.povCharacterId = "c_aria";
+    expect(composeSceneContext(p, { chapterId: "ch1", sceneId: "s1", budgetTokens: null }).text)
+      .toContain("Narration: Limited third person · POV character: Aria");
+    scene.pov = null;
+    expect(composeSceneContext(p, { chapterId: "ch1", sceneId: "s1", budgetTokens: null }).text).toContain("POV character: Aria");
+    // excluded from AI: the POV piece doesn't name them (another card's scene lines still may, as
+    // they name every character in a scene)
+    p.characters[0].excludeFromAi = true;
+    const povPiece = (r) => r.parts.find((x) => x.id === "pov");
+    expect(povPiece(composeSceneContext(p, { chapterId: "ch1", sceneId: "s1", budgetTokens: null }))).toBeUndefined();
+  });
+
   it("adds the scene's Summary right after its POV (slice 3), and nothing when it's empty", () => {
     const p = project();
     const scene = p.scenesFor("ch1").find((s) => s.id === "s1");

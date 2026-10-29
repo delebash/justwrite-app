@@ -6,6 +6,12 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-29
 
+**A POV character for each scene, and the POV balance.** A scene's **Links** panel has a **POV
+character** next to its point of view: whose eyes the scene is seen through. The AI writing actions are
+told who it is, and Analysis has a new **POV balance** card — each POV character's words and scenes —
+so a dual-POV book can see whether each voice gets its share. See [Writing](writing.md#the-links-panel)
+and [Analysis](analysis.md#pov-balance).
+
 **Repeated words, marked as you write.** Writing settings has a fourth highlight, **Highlight repeated
 words**: a word you use again within 50 words — your number — gets a green underline, the small common
 words and your story bible's names left out. See [Writing](writing.md#prose-highlights).

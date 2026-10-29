@@ -55,7 +55,8 @@ const log = getLogger("justwrite_server.sync");
 // `page_sizes` table is the app's, not a book's, and isn't synced.
 // 9 (2026-10-28): projects gained the voice drift's sensitivity (`style_flag_z`,
 // `style_hot_measures`, `style_trend_z`). Same reason as 2.
-export const SYNC_SCHEMA_VERSION = 9;
+// 10 (2026-10-29): scenes gained `pov_character_id` (the POV character). Same reason as 2.
+export const SYNC_SCHEMA_VERSION = 10;
 
 // ── scene text: merged edit by edit through Yjs, on the editor's own schema ──────────────
 

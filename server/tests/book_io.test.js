@@ -57,9 +57,10 @@ function canonicalBook() {
         // pov (a POV_OPTIONS slug, null when unset) + when (the story time, "" when unset): the
         // Links panel sets both — lost on every save until 2026-10-11. So were status (a statuses
         // id, "" when unset) and excludeFromAi, here and on the story-world entities below. The
-        // Summary (2026-10-16) is "" when unset, as are the sheets' fields below.
-        { id: "scn1", title: "The key", body: "<p>The key turned.</p>", pov: "limited-third", when: "1881-06-15T09:00", status: "draft", excludeFromAi: true, summary: "Elen finds the key.", characters: ["c1"], locations: ["l1"], objects: ["o1"], strands: ["s1"] },
-        { id: "scn2", title: "", body: "<p>Cedar and ash.</p>", pov: null, when: "", status: "", excludeFromAi: false, summary: "", characters: ["c1", "c2"], locations: [], objects: [], strands: ["s2"] },
+        // Summary (2026-10-16) is "" when unset, as are the sheets' fields below. povCharacterId (2026-10-29) is a
+        // character's id, null when unset.
+        { id: "scn1", title: "The key", body: "<p>The key turned.</p>", pov: "limited-third", when: "1881-06-15T09:00", status: "draft", excludeFromAi: true, summary: "Elen finds the key.", povCharacterId: "c1", characters: ["c1"], locations: ["l1"], objects: ["o1"], strands: ["s1"] },
+        { id: "scn2", title: "", body: "<p>Cedar and ash.</p>", pov: null, when: "", status: "", excludeFromAi: false, summary: "", povCharacterId: null, characters: ["c1", "c2"], locations: [], objects: [], strands: ["s2"] },
       ],
       ch2: [],
     },
