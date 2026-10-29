@@ -210,7 +210,7 @@ function onKeydown(e) {
   margin: 0; padding: 4px; list-style: none;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .14);
+  box-shadow: 0 8px 24px var(--shadow-medium);
   min-width: 160px; max-width: 280px;
   z-index: 40;
   max-height: 240px; overflow-y: auto;

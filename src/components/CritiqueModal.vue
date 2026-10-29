@@ -145,7 +145,7 @@ const SEVERITY_META = {
       </UiButton>
     </template>
 
-    <div v-if="critique?.generatedAt" class="ck-stamp">
+    <div v-if="critique?.generatedAt" class="ck-stamp result-stamp">
       <Icon name="Sparkle" :size="11" />
       {{ $t("critique.generatedStamp", { when: relativeTime(critique.generatedAt), model: critique.model || $t("critique.unknownModel") }) }}
     </div>
@@ -236,8 +236,6 @@ const SEVERITY_META = {
 <style scoped>
 .ck-stamp {
   display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em;
-  color: var(--muted);
   margin-top: -4px;
 }
 .ck-empty {

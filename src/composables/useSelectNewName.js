@@ -17,3 +17,14 @@ export function useSelectNewName(target) {
     });
   }, { immediate: true });
 }
+
+/** A new row named in place — a part, a scene in the outline, a worldbuilding category: once it has
+ *  rendered, focus and select its name field (`selector`), so creating one never asks for a name
+ *  first (the product rule: no naming popups). */
+export function selectNewRowName(selector) {
+  nextTick(() => {
+    const field = document.querySelector(selector);
+    field?.focus();
+    field?.select?.();
+  });
+}

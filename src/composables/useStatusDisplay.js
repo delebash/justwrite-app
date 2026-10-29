@@ -7,10 +7,8 @@
 //
 // This exists because ChaptersView needed them for its new index. Adding an
 // eighth copy is exactly the habit the EntityIndex extraction was about, so the
-// shared one is created FIRST and the new consumer uses it. The seven existing
-// copies are pre-existing duplication, filed with the whole-repo "extraction vs
-// copies" audit in docs/dev/TASKS.md — they are a drop-in swap for this composable
-// whenever that sweep runs.
+// shared one was created FIRST and the new consumer used it; the seven older
+// copies moved onto it in the copies audit (2026-10-28).
 import { useProjectStore } from "../stores/project.js";
 
 export function useStatusDisplay() {

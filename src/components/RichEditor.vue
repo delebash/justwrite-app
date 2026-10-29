@@ -1892,7 +1892,7 @@ defineExpose({
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .22);
+  box-shadow: 0 10px 30px var(--shadow-medium);
   padding: 10px;
   display: flex; flex-direction: column; gap: 8px;
 }
@@ -1935,7 +1935,7 @@ defineExpose({
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .22);
+  box-shadow: 0 10px 30px var(--shadow-medium);
   padding: 10px;
   display: flex; flex-direction: column; gap: 8px;
 }
@@ -1950,7 +1950,7 @@ defineExpose({
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .22);
+  box-shadow: 0 10px 30px var(--shadow-medium);
   padding: 6px;
   display: flex; flex-direction: column; gap: 1px;
 }
@@ -2052,7 +2052,7 @@ defineExpose({
 .mention-popup { position: fixed; z-index: 1000; }
 .mention-list {
   background: var(--surface); border: 1px solid var(--border); border-radius: 9px;
-  box-shadow: 0 8px 28px rgba(0,0,0,.18); min-width: 220px; max-width: 280px;
+  box-shadow: 0 8px 28px var(--shadow-medium); min-width: 220px; max-width: 280px;
   max-height: 264px; overflow: auto; padding: 4px;
 }
 .mention-item {
@@ -2086,7 +2086,7 @@ defineExpose({
   display: flex; gap: 6px; align-items: center;
   padding: 4px; border-radius: 8px;
   background: var(--surface); border: 1px solid var(--border);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, .14);
+  box-shadow: 0 6px 20px var(--shadow-medium);
   opacity: .35; transition: opacity .2s ease;
 }
 .focus-controls:hover { opacity: 1; }
@@ -2095,7 +2095,7 @@ defineExpose({
 .bubble-menu {
   display: flex; gap: 4px; padding: 4px; align-items: center;
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.16);
+  border-radius: 8px; box-shadow: 0 6px 20px var(--shadow-medium);
   max-width: min(720px, 92vw);
   flex-wrap: wrap;
 }
@@ -2145,7 +2145,7 @@ defineExpose({
   position: absolute; top: calc(100% + 4px); right: 0;
   width: 380px; max-width: 92vw;
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  border-radius: 8px; box-shadow: 0 8px 24px var(--shadow-medium);
   padding: 6px; z-index: 60;
   display: flex; flex-direction: column;
 }

@@ -139,7 +139,7 @@ if (!mapping.value) run();
     <AiTaskStrip v-if="running" :task="myTask" />
 
     <div v-else-if="!mapping && !error" class="bs-loading">
-      <span class="bs-spinner" />
+      <q-spinner class="bs-spinner" size="14px" />
       <span>{{ $t("beatSheet.mapping") }}</span>
     </div>
 
@@ -151,7 +151,7 @@ if (!mapping.value) run();
         <span v-if="mapping.missingCount" class="bs-pill bs-pill-missing">
           {{ $t("beatSheet.missingCount", { n: mapping.missingCount }) }}
         </span>
-        <span class="bs-meta">
+        <span class="result-stamp">
           {{ $t("beatSheet.generatedAgo", { when: relativeTime(mapping.generatedAt) }) }}
           <template v-if="mapping.model"> {{ $t("beatSheet.viaModel", { model: mapping.model }) }}</template>
         </span>
@@ -215,12 +215,7 @@ if (!mapping.value) run();
   font-size: 13px; color: var(--muted); font-style: italic;
   min-height: 100px;
 }
-.bs-spinner {
-  display: inline-block; width: 14px; height: 14px;
-  border: 2px solid var(--surface-3); border-top-color: var(--accent);
-  border-radius: 50%; animation: bs-spin 0.9s linear infinite;
-}
-@keyframes bs-spin { to { transform: rotate(360deg); } }
+.bs-spinner { color: var(--accent); }
 
 .bs-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
 .bs-pill {
@@ -229,7 +224,6 @@ if (!mapping.value) run();
 }
 .bs-pill-coverage { background: color-mix(in oklab, var(--status-done) 16%, transparent); color: var(--ink); }
 .bs-pill-missing  { background: color-mix(in oklab, var(--danger) 16%, transparent); color: var(--ink); }
-.bs-meta { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
 
 .bs-summary {
   margin: 0 0 22px; max-width: 78ch;

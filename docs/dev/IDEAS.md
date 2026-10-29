@@ -216,14 +216,20 @@ a near-copy search, not jscpd (which passes). 2026-10-28: the eight AI windows' 
 "ready to run" block (plot holes, reverse outline, character audit, marketing pack, foreshadowing,
 AI tells, sensory research, the idea list) and the Timeline's and Relations' hand-styled empty
 states moved onto the kit's `EmptyState`; findChrome and `useStatusDisplay` were already single.
-Still open: the loading lines (`.bs-loading`, `.va-loading`, `.mr-loading`) and the stamps
-(`.ck-stamp`, `.rk-stamp`); the Markers' and the events list's empty states, whose text carries
-markup (`<kbd>`, `<strong>`) that `EmptyState`'s `message` string can't — a message slot is a kit
-gap; the detail pages' bodies below the header. From the July polish list (I1, the archived
-big-batch queue): a `useEntityCrudView` for the detail pages' byte-identical focus-watches,
-`SettingsPage`'s `.set-desc strong` against the shared styles, the 24 hand-written `box-shadow`
-rgba values against the `--shadow-*` tokens (which have dark-mode values); and two whose context
-lives only in that queue — "gate ratchets" and a "hooks payload channel".
+2026-10-29: the eight "made … ago" lines (`.ck-stamp`, `.rk-stamp` and six `*-meta`) share app.scss's
+`.result-stamp`; the three hand-drawn spinners went (the beat sheet's is Quasar's `q-spinner`; the
+multi-reader's and the variations' sat under their own `AiTaskStrip`, which is the spinner); 20
+hand-written `box-shadow` colours are the `--shadow-*` tokens (the brand mark and the boot picture
+keep theirs — artwork); the seven pages' private `statusLabel`/`statusSeverity` are
+`useStatusDisplay`; and `composables/useEntityPage.js` (the deep audit's `useEntityCrudView`) holds
+what eight story-world pages each copied — open an entry, the status facet, Ask the book, the tag
+and kind lists. The July "byte-identical focus-watches" no longer exist.
+Still open: the 15 pages' intro lines (`.set-desc` and its fourteen twins: 14px, muted, bold terms
+in `--ink-2`) — the kit's `.page__lede` is a different look (ink-2, 32em) from its own window lede
+(`.ui-modal__lede`, muted), so the kit first (asked of its session); the Markers' and the events
+list's empty states, whose text carries markup (`<kbd>`, `<strong>`) that `EmptyState`'s `message`
+string can't — a message slot is a kit gap; the detail pages' bodies below the header; and two
+whose context lives only in the July queue — "gate ratchets" and a "hooks payload channel".
 
 ### Multi-model co-residency VRAM budgeting (was ledger §J2)
 
@@ -239,7 +245,7 @@ sleeping-child OOM incident on the user's box.
 These stay where they are; this list just points at them so nothing's lost:
 
 - **`docs/roadmap.md`** — the published user-facing roadmap (small concrete planned
-  items: per-feature token budgets, KFX export, print layout, style-metric thresholds, …).
+  items: per-feature token budgets, KFX export, print layout, pace-chart trend lines, …).
   Feeds the in-app `?` drawer + the docs index.
 - **`ai-features-roadmap.md`** (this folder — moved from `docs/` 2026-07-31) — the
   AI-features direction; now mostly a **shipped/won't-ship record** (~24 of 29

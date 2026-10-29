@@ -216,7 +216,7 @@ const TRAJECTORY_COLOURS = {
         <span class="ra-trajectory" :style="{ background: TRAJECTORY_COLOURS[arc.trajectory] }">
           {{ TRAJECTORY_LABEL_KEYS[arc.trajectory] ? t(TRAJECTORY_LABEL_KEYS[arc.trajectory]) : arc.trajectory }}
         </span>
-        <span class="ra-meta">
+        <span class="result-stamp">
           {{ $t("relationshipArc.meta", { chapters: $t("count.sharedChapter", { n: arc.chapters.length }, arc.chapters.length), scenes: $t("count.sharedScene", { n: arc.sharedScenes }, arc.sharedScenes), when: relativeTime(arc.generatedAt) }) }}
         </span>
       </div>
@@ -389,7 +389,6 @@ const TRAJECTORY_COLOURS = {
   padding: 4px 12px; border-radius: 999px;
   color: white; text-shadow: 0 1px 0 rgba(0,0,0,0.25);
 }
-.ra-meta { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
 
 .ra-summary {
   margin: 0 0 22px; max-width: 78ch;

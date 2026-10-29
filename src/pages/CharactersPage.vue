@@ -1,7 +1,9 @@
 <script setup>
 import { computed, ref, watch } from "vue";
+import { tagPoolOf, tagsIn, useEntityPage } from "../composables/useEntityPage.js";
 import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
+import { useStatusDisplay } from "../composables/useStatusDisplay.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import Avatar from "../components/Avatar.vue";
@@ -45,6 +47,8 @@ import { useSelectNewName } from "../composables/useSelectNewName.js";
 const props = defineProps({ id: { type: String, default: "" } });
 const { t } = useI18n({ useScope: "global" });
 const project = useProjectStore();
+const { statusLabel, statusSeverity } = useStatusDisplay();
+const { open, openFirst, onRowClick, statusOptions, askBook } = useEntityPage("characters");
 const ui = useUiStore();
 const router = useRouter();
 const sweepOpen = ref(false);
@@ -123,14 +127,11 @@ const header = ref(null);
 useSelectNewName(header);
 
 function addCharacter() {
-  const id = project.addCharacter();
-  ui.select("characters", id);
-  router.push(`/characters/${id}?new=1`);
+  open(project.addCharacter(), { isNew: true });
 }
 function deleteCharacter() {
   project.removeCharacter(ch.value.id);
-  const next = project.characters[0];
-  if (next) { ui.select("characters", next.id); router.push(`/characters/${next.id}`); } else router.push("/characters");
+  openFirst(project.characters);
 }
 function updateField(k, v) { project.updateCharacter(ch.value.id, { [k]: v }); }
 
@@ -140,11 +141,7 @@ function talkToCharacter() {
 }
 function askTheBook() {
   if (!ch.value) return;
-  ui.openChatPanelFor({
-    mode: "book",
-    question: t("common.tellMeAbout", { name: ch.value.name }),
-    sourceKey: `ask:character:${ch.value.id}`,
-  });
+  askBook(t("common.tellMeAbout", { name: ch.value.name }), `ask:character:${ch.value.id}`);
 }
 
 // ── Avatar / image drop ─────────────────────────────────────────────
@@ -222,11 +219,7 @@ const capabilitiesCount = computed(() => sectionCount(extras.value, "capabilitie
 const continuityCount = computed(() => sectionCount(extras.value, "continuity"));
 const depthCount = computed(() => sectionCount(extras.value, "depth"));
 
-const tagPool = computed(() => {
-  const out = [];
-  for (const c of project.characters) for (const t of (c.tags || [])) out.push(t);
-  return out;
-});
+const tagPool = computed(() => tagPoolOf(project.characters));
 const aliasPool = computed(() => {
   const out = [];
   for (const c of project.characters) for (const a of (c.aliases || [])) out.push(a);
@@ -245,19 +238,12 @@ const rows = computed(() =>
   }),
 );
 
-const statusOptions = computed(() =>
-  project.statusesShown.map((s) => ({ value: s.id, label: s.label })),
-);
 const allGenders = computed(() => {
   const set = new Set();
   for (const c of project.characters) if (c.gender) set.add(c.gender);
   return [...set].sort();
 });
-const allTags = computed(() => {
-  const set = new Set();
-  for (const c of project.characters) for (const t of (c.tags || [])) set.add(t);
-  return [...set].sort();
-});
+const allTags = computed(() => tagsIn(project.characters));
 
 // Declarative facets for the shared EntityIndex — the filtering, the chip markup
 // and the clear-all live there (components/EntityIndex.vue), not in a private copy
@@ -314,20 +300,6 @@ const columns = computed(() => [
   { accessorKey: "status",   header: t("characters.columns.status"),   sortable: true },
   { accessorKey: "main",     header: t("characters.columns.main"),     sortable: true },
 ]);
-
-function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
-function statusSeverity(id) {
-  if (id === "done")   return "success";
-  if (id === "revise") return "accent2";
-  if (id === "draft")  return "info";
-  if (id === "todo")   return "secondary";
-  return "secondary";
-}
-
-function onRowClick(event) {
-  const id = event?.data?.id;
-  if (id) { ui.select("characters", id); router.push(`/characters/${id}`); }
-}
 </script>
 
 <template>

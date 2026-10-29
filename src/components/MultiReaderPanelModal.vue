@@ -141,7 +141,6 @@ function cancel() {
     </UiBanner>
 
     <div v-else-if="running && !cached" class="mr-loading">
-      <span class="mr-spinner" />
       <span>
         {{ $t("multiReader.loadingPrefix") }}
         <template v-for="(state, key, i) in (liveColumns || {})" :key="key">
@@ -191,7 +190,7 @@ function cancel() {
       </article>
     </div>
 
-    <div v-if="cached" class="mr-meta-line">
+    <div v-if="cached" class="mr-meta-line result-stamp">
       {{ $t("multiReader.generatedAgo", { when: relativeTime(cached.generatedAt) }) }}
     </div>
 
@@ -212,6 +211,7 @@ function cancel() {
 </template>
 
 <style scoped>
+/* the strip above is the spinner; this line says which readers are done */
 .mr-loading {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   font-size: 12.5px; color: var(--muted); font-style: italic;
@@ -236,12 +236,6 @@ function cancel() {
 .mr-empty-text strong { color: var(--ink); font-weight: 600; }
 .mr-loading .done { color: var(--status-done); font-weight: 600; font-style: normal; }
 .mr-loading .err { color: var(--danger); font-style: normal; }
-.mr-spinner {
-  display: inline-block; width: 14px; height: 14px;
-  border: 2px solid var(--surface-3); border-top-color: var(--accent);
-  border-radius: 50%; animation: mr-spin 0.9s linear infinite;
-}
-@keyframes mr-spin { to { transform: rotate(360deg); } }
 
 .mr-grid {
   display: grid;
@@ -315,7 +309,6 @@ function cancel() {
 .mr-meta-line {
   margin-top: 14px;
   text-align: right;
-  font-family: var(--font-mono); font-size: 10.5px; color: var(--muted);
 }
 
 .mr-foot-spacer { flex: 1; }

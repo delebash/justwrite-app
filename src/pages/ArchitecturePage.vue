@@ -2,7 +2,7 @@
 import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
-import { useUiStore } from "../stores/ui.js";
+import { useStatusDisplay } from "../composables/useStatusDisplay.js";
 import RichEditor from "../components/RichEditor.vue";
 import { EDITOR_TOOLBAR_DOC } from "../services/editorToolbars.js";
 import { Icon, pageFill } from "@delebash/ui";
@@ -16,13 +16,15 @@ import { AiTaskStrip, UiBanner, useSurfaceTask } from "@delebash/ui";
 import { PLANNING_FEATURE, draftFromPremise } from "../services/analysis/planningDraft.js";
 import { tEnglish } from "../i18n/index.js";
 import { ARCH_DOCS } from "../services/architectureDocs.js";
+import { useEntityPage } from "../composables/useEntityPage.js";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
-const ui = useUiStore();
+const { statusLabel, statusSeverity } = useStatusDisplay();
+const { onRowClick, askBook } = useEntityPage("architecture");
 const router = useRouter();
 
 // The three foundation docs are a FIXED set (services/architectureDocs.js — shared with the
@@ -64,11 +66,7 @@ async function draftDoc() {
 function openEvents() { router.push("/architecture/setting/events"); }
 function askTheBook() {
   if (!doc.value) return;
-  ui.openChatPanelFor({
-    mode: "book",
-    question: t("architecture.askAbout", { doc: doc.value.id }),
-    sourceKey: `ask:arch:${doc.value.id}`,
-  });
+  askBook(t("architecture.askAbout", { doc: doc.value.id }), `ask:arch:${doc.value.id}`);
 }
 
 const rows = computed(() => Object.values(project.architecture).filter(Boolean));
@@ -78,20 +76,6 @@ const columns = computed(() => [
   { accessorKey: "description",  header: t("common.description"), sortable: false, headerStyle: "min-width: 260px" },
   { accessorKey: "status",      header: t("common.status"),      sortable: true,  headerStyle: "min-width: 120px" },
 ]);
-
-function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
-function statusSeverity(id) {
-  if (id === "done")   return "success";
-  if (id === "revise") return "accent2";
-  if (id === "draft")  return "info";
-  if (id === "todo")   return "secondary";
-  return "secondary";
-}
-
-function onRowClick(event) {
-  const id = event?.data?.id;
-  if (id) { ui.select("architecture", id); router.push(`/architecture/${id}`); }
-}
 </script>
 
 <template>

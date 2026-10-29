@@ -13,12 +13,14 @@ import RichEditor from "../components/RichEditor.vue";
 import { PaneHeader } from "@delebash/ui";
 import { parseFile } from "../services/import/index.js";
 import { useSelectNewName } from "../composables/useSelectNewName.js";
+import { useEntityPage } from "../composables/useEntityPage.js";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
+const { open, openFirst, onRowClick } = useEntityPage("notes");
 const ui = useUiStore();
 const router = useRouter();
 
@@ -71,7 +73,7 @@ const header = ref(null);
 useSelectNewName(header);
 
 function addNote() {
-  const id = project.addNote(); ui.select("notes", id); router.push(`/notes/${id}?new=1`);
+  open(project.addNote(), { isNew: true });
 }
 
 const fileInput = ref(null);
@@ -174,8 +176,7 @@ function anchorLabelFor(note) {
 function deleteNote() {
   if (!n.value) return;
   project.removeNote(n.value.id);
-  const next = project.notes[0];
-  if (next) { ui.select("notes", next.id); router.push(`/notes/${next.id}`); } else router.push("/notes");
+  openFirst(project.notes);
 }
 
 // ── List mode ────────────────────────────────────────────────────────
@@ -212,11 +213,6 @@ const columns = computed(() => [
   { accessorKey: "anchor",  header: t("notes.anchor"),  sortable: false, headerStyle: "min-width: 140px" },
   { accessorKey: "updated", header: t("notes.colUpdated"), sortable: true,  headerStyle: "min-width: 110px" },
 ]);
-
-function onRowClick(event) {
-  const id = event?.data?.id;
-  if (id) { ui.select("notes", id); router.push(`/notes/${id}`); }
-}
 </script>
 
 <template>
@@ -369,7 +365,7 @@ function onRowClick(event) {
   margin: 0; padding: 4px; list-style: none;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .14);
+  box-shadow: 0 8px 24px var(--shadow-medium);
   min-width: 140px; max-width: 240px;
   z-index: 40;
   max-height: 240px; overflow-y: auto;

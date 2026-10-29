@@ -145,7 +145,7 @@ const stripRows = computed(() => {
         <span class="ro-structure-chip" :data-structure="outline.structureName">
           {{ STRUCTURE_LABEL_KEYS[outline.structureName] ? t(STRUCTURE_LABEL_KEYS[outline.structureName]) : outline.structureName }}
         </span>
-        <span class="ro-meta">
+        <span class="result-stamp">
           {{ $t("reverseOutline.meta", { n: outline.totalChapters, when: relativeTime(outline.generatedAt) }, outline.totalChapters) }}
           <template v-if="outline.model"> {{ $t("reverseOutline.viaModel", { model: outline.model }) }}</template>
         </span>
@@ -220,7 +220,6 @@ const stripRows = computed(() => {
 }
 .ro-structure-chip[data-structure="5-act"] { background: color-mix(in oklab, var(--gold) 22%, transparent); }
 .ro-structure-chip[data-structure="loose"] { background: var(--surface-3); color: var(--muted); }
-.ro-meta { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
 
 .ro-summary {
   margin: 0 0 22px; max-width: 78ch;

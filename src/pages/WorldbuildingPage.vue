@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from "vue";
 import { categoryLabelShown, useProjectStore } from "../stores/project.js";
-import { useUiStore } from "../stores/ui.js";
+import { useStatusDisplay } from "../composables/useStatusDisplay.js";
 import { useRouter } from "vue-router";
 import { PaneHeader, pageFill } from "@delebash/ui";
 import { Icon } from "@delebash/ui";
@@ -20,6 +20,8 @@ import { UiCheckbox } from "@delebash/ui";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { AiTaskStrip, UiBanner, useSurfaceTask } from "@delebash/ui";
 import { draftArticle, STORY_WORLD_FEATURE } from "../services/analysis/sheetDraft.js";
+import { tagPoolOf, tagsIn, useEntityPage } from "../composables/useEntityPage.js";
+import { useSelectNewName } from "../composables/useSelectNewName.js";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
@@ -28,9 +30,14 @@ const props = defineProps({ id: { type: String, default: "" } });
 // A category saved without an icon of its own shows this one.
 const FALLBACK_CATEGORY_ICON = "Sparkle";
 const project = useProjectStore();
-const ui = useUiStore();
+const { statusLabel, statusSeverity } = useStatusDisplay();
+const { onRowClick, statusOptions, askBook } = useEntityPage("worldbuilding");
 const router = useRouter();
 const article = computed(() => props.id ? project.worldbuildingById(props.id) : null);
+
+// "+ article" in a sidebar category lands here with ?new=1: the title is selected, ready to type over.
+const header = ref(null);
+useSelectNewName(header);
 const cat = computed(() => article.value ? project.worldbuildingCategories.find((c) => c.id === article.value.category) : null);
 
 function update(k, v) { project.updateWorldbuilding(article.value.id, { [k]: v }); }
@@ -60,11 +67,7 @@ async function draftBody() {
 // Pool feeding the tag typeahead — every tag in use across every
 // worldbuilding article. TagEditor dedups and filters internally; we
 // just hand it the flat list.
-const tagPool = computed(() => {
-  const out = [];
-  for (const a of project.worldbuilding) for (const t of (a.tags || [])) out.push(t);
-  return out;
-});
+const tagPool = computed(() => tagPoolOf(project.worldbuilding));
 
 async function addArticle() {
   const M = NEW_ENTITY_META.worldbuilding;
@@ -89,11 +92,7 @@ async function addArticle() {
 
 function askTheBook() {
   if (!article.value) return;
-  ui.openChatPanelFor({
-    mode: "book",
-    question: t("common.tellMeAbout", { name: article.value.title }),
-    sourceKey: `ask:wb:${article.value.id}`,
-  });
+  askBook(t("common.tellMeAbout", { name: article.value.title }), `ask:wb:${article.value.id}`);
 }
 function deleteArticle() {
   if (!article.value) return;
@@ -118,14 +117,7 @@ const rows = computed(() =>
 const categoryOptions = computed(() =>
   project.categoriesShown.map((c) => ({ value: c.id, label: c.label })),
 );
-const statusOptions = computed(() =>
-  project.statusesShown.map((s) => ({ value: s.id, label: s.label })),
-);
-const allTags = computed(() => {
-  const set = new Set();
-  for (const a of project.worldbuilding) for (const t of (a.tags || [])) set.add(t);
-  return [...set].sort();
-});
+const allTags = computed(() => tagsIn(project.worldbuilding));
 
 // Declarative facets for the shared EntityIndex — Category and Status are
 // single-select, Tags is multi-select with ANY-match semantics. The filtering,
@@ -151,21 +143,6 @@ const columns = computed(() => [
   { accessorKey: "status",    header: t("common.status"),   sortable: true, headerStyle: "min-width: 120px" },
   { accessorKey: "words",     header: t("common.words"),    sortable: true, headerStyle: "min-width: 90px; text-align: right", cellStyle: "text-align: right" },
 ]);
-
-function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
-function statusSeverity(id) {
-  // Map status ids onto UiTag intents so colors track the editorial palette.
-  if (id === "done")    return "success";
-  if (id === "revise")  return "accent2";
-  if (id === "draft")   return "info";
-  if (id === "todo")    return "secondary";
-  return "secondary";
-}
-
-function onRowClick(event) {
-  const id = event?.data?.id;
-  if (id) { ui.select("worldbuilding", id); router.push(`/worldbuilding/${id}`); }
-}
 </script>
 
 <template>
@@ -231,7 +208,7 @@ function onRowClick(event) {
     </template>
 
     <template v-else>
-      <PaneHeader :crumbs="[{ label: (cat && categoryLabelShown(cat)) || $t('nav.worldbuilding'), to: '/worldbuilding' }]"
+      <PaneHeader ref="header" :crumbs="[{ label: (cat && categoryLabelShown(cat)) || $t('nav.worldbuilding'), to: '/worldbuilding' }]"
         editable :title="article.title" :placeholder="$t('worldbuilding.titlePlaceholder')"
         @update:title="(v) => update('title', v)">
         <UiButton v-if="bookIndexOn" intent="ghost" size="small" data-panel-toggle @click="askTheBook"

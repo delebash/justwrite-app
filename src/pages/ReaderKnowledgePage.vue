@@ -184,7 +184,7 @@ function jumpToChapter(chapterId) {
     <div class="rk-pane scrollarea">
       <PaneHeader variant="intro" :title="$t('readerKnowledge.title')" :sub="$t('readerKnowledge.sub')" help-key="reader-knowledge">
         <AiFeatureChip feature="readerKnowledge" :label="$t('readerKnowledge.title')" editable />
-        <span v-if="lastRunAt && !running" class="rk-stamp">{{ $t("readerKnowledge.lastRun", { when: relativeTime(lastRunAt) }) }}</span>
+        <span v-if="lastRunAt && !running" class="result-stamp">{{ $t("readerKnowledge.lastRun", { when: relativeTime(lastRunAt) }) }}</span>
         <UiButton v-if="hasAny && !running" intent="ghost" @click="clearAll"
                   v-tooltip.bottom="$t('readerKnowledge.clearTooltip')">
           {{ $t("common.clear") }}
@@ -337,7 +337,6 @@ function jumpToChapter(chapterId) {
   display: flex; flex-direction: column;
   gap: 22px;
 }
-.rk-stamp { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
 
 .rk-empty { padding: 22px 0; }
 

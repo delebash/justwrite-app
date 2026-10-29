@@ -86,7 +86,7 @@ Each category gets:
 - An icon (14 choices)
 - A colour (10 hues)
 
-Both flow through to the sidebar's Worldbuilding tree, so a long article list stays visually scannable.
+Both flow through to the sidebar's Worldbuilding tree, so a long article list stays visually scannable. In that tree, **+** on a category adds an article to it, which opens with its title selected, ready to type; **+** beside the Worldbuilding filter adds a category, its name ready to type over in place.
 
 ### The article list
 

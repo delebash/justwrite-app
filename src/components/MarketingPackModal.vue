@@ -148,7 +148,7 @@ function formatComps(comps) {
 
     <template v-else-if="pack">
       <div class="mp-head">
-        <span class="mp-meta">
+        <span class="result-stamp">
           {{ $t("marketingPack.meta", { chapters: pack.totalChapters, when: relativeTime(pack.generatedAt) }) }}
           <template v-if="pack.model"> {{ $t("marketingPack.viaModel", { model: pack.model }) }}</template>
         </span>
@@ -264,7 +264,6 @@ function formatComps(comps) {
 <style scoped>
 
 .mp-head { margin-bottom: 16px; }
-.mp-meta { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
 
 .mp-section + .mp-section { margin-top: 22px; }
 .mp-section-h {

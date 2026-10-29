@@ -165,10 +165,8 @@ onBeforeUnmount(cancelAll);
         </header>
 
         <div class="va-col-body">
-          <div v-if="colRunning(col) && !col.preview.value" class="va-loading">
-            <span class="va-spinner" />
-            <span>{{ $t("variations.streaming") }}</span>
-          </div>
+          <!-- the column's strip above is the spinner -->
+          <div v-if="colRunning(col) && !col.preview.value" class="va-loading">{{ $t("variations.streaming") }}</div>
 
           <p v-else-if="col.error.value" class="va-error">
             <Icon name="Alert" :size="12" /> {{ col.error.value }}
@@ -257,12 +255,6 @@ onBeforeUnmount(cancelAll);
   display: flex; align-items: center; gap: 10px;
   font-size: 12px; color: var(--muted); font-style: italic;
 }
-.va-spinner {
-  display: inline-block; width: 12px; height: 12px;
-  border: 2px solid var(--surface-3); border-top-color: var(--accent);
-  border-radius: 50%; animation: va-spin 0.9s linear infinite;
-}
-@keyframes va-spin { to { transform: rotate(360deg); } }
 .va-error {
   display: flex; align-items: center; gap: 6px;
   margin: 0;

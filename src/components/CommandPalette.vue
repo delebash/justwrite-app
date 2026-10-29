@@ -20,6 +20,7 @@ import { useVersionsStore } from "../stores/versions.js";
 import { promptDialog, openHelp } from "@delebash/ui";
 import { HELP_TOC } from "../services/helpDocs.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
+import { selectNewRowName } from "../composables/useSelectNewName.js";
 import { Icon } from "@delebash/ui";
 import { useI18n } from "vue-i18n";
 
@@ -111,10 +112,8 @@ const ACTION_ITEMS = computed(() => {
         router.push(`/chapters/${id}?new=1`);
       } },
     { id: "act:newPart", label: t("import.newPart"), sublabel: t("commandPalette.action"), icon: "Plus",
-      run: async () => {
-        const title = await promptDialog({ title: t("commandPalette.dialog.newPartTitle"), label: t("commandPalette.dialog.partTitle"), confirmLabel: t("commandPalette.dialog.createPart") });
-        if (title) project.addPart({ title });
-      } },
+      // named in place in the sidebar, as its own "+" does — no naming popup
+      run: () => { const id = project.addPart(); selectNewRowName(`.sidebar [data-part-id="${id}"]`); } },
     { id: "act:newCharacter", label: t("commandPalette.act.newCharacter"), sublabel: t("commandPalette.action"),       icon: "Plus",
       run: () => { const id = project.addCharacter(); router.push(`/characters/${id}?new=1`); } },
     { id: "act:newLocation", label: t("commandPalette.act.newLocation"), sublabel: t("commandPalette.action"),       icon: "Plus",
@@ -318,7 +317,7 @@ function pick(item) {
   background: var(--surface); color: var(--ink);
   border: 1px solid var(--border);
   border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, .28);
+  box-shadow: var(--shadow-window);
   display: flex; flex-direction: column;
   max-height: 70vh;
   overflow: hidden;

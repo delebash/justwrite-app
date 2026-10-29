@@ -173,7 +173,7 @@ function itemAttrs(p) {
   z-index: 40;
   min-width: 180px; padding: 4px;
   background: var(--surface); border: 1px solid var(--border-strong);
-  border-radius: 9px; box-shadow: 0 8px 28px rgba(0, 0, 0, .18);
+  border-radius: 9px; box-shadow: 0 8px 28px var(--shadow-medium);
 }
 .status-opt {
   appearance: none; cursor: pointer; width: 100%;

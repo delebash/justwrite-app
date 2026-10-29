@@ -209,7 +209,7 @@ function toggleChat() {
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: var(--r-md);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, .18);
+  box-shadow: 0 10px 28px var(--shadow-medium);
   display: flex; flex-direction: column;
 }
 .theme-menu button {

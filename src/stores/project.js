@@ -1070,7 +1070,7 @@ export const useProjectStore = defineStore("project", {
     //  - seed it with a single scene containing `afterHtml` + any scenes
     //    that followed the source scene in the original chapter.
     // One history entry; one undo reverses the whole split.
-    splitChapterAtScene(chapterId, sceneId, beforeHtml, afterHtml, newChapterTitle = "Untitled chapter") {
+    splitChapterAtScene(chapterId, sceneId, beforeHtml, afterHtml, newChapterTitle = "") { // untitled, as addChapter
       const sourceScenes = this.scenes[chapterId] || [];
       const splitIdx = sourceScenes.findIndex((s) => s.id === sceneId);
       if (splitIdx < 0) return null;

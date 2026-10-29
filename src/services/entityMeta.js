@@ -2,9 +2,9 @@
 // stays a popup. Its detail form has no category selector, so the popup is the
 // only place to choose an article's category (F6-WB); every other entity create
 // collapsed to DIRECT→FORM (create default-named → focus the name field on
-// arrival), so their popup copy was removed. Shared by the Worldbuilding page's
-// New button (WorldbuildingView → addArticle) and the sidebar's per-category
-// add button (Sidebar → addArticleInCat) so the two can't drift.
+// arrival), so their popup copy was removed. Used by the Worldbuilding page's
+// New button (addArticle); the sidebar's per-category add knows its category and
+// creates directly (2026-10-28).
 //
 // Pure data (no store dependency). The page still dispatches its own store
 // action; only the prompt's title/label/placeholder/confirmLabel live here.

@@ -685,7 +685,7 @@ function sceneBadge(beat) {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
-  box-shadow: 0 8px 28px -4px rgba(0,0,0,.18);
+  box-shadow: 0 8px 28px -4px var(--shadow-medium);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -981,7 +981,7 @@ function sceneBadge(beat) {
 }
 .beat-card:hover {
   background: var(--surface-3);
-  box-shadow: 0 1px 4px -1px rgba(0,0,0,.12);
+  box-shadow: 0 1px 4px -1px var(--shadow-soft);
 }
 .beat-card:active { cursor: grabbing; }
 

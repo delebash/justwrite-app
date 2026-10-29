@@ -196,7 +196,7 @@ const KIND_I18N = {
         <span v-if="dismissedCount" class="ph-pill muted">
           {{ $t("plotHoles.dismissedCount", { n: dismissedCount }) }}
         </span>
-        <span class="ph-meta">
+        <span class="result-stamp">
           {{ $t("plotHoles.generatedAgo", { when: relativeTime(audit.generatedAt) }) }}
           <template v-if="audit.model"> {{ $t("plotHoles.viaModel", { model: audit.model }) }}</template>
         </span>
@@ -283,7 +283,6 @@ const KIND_I18N = {
   background: var(--accent-soft); color: var(--accent-ink);
 }
 .ph-pill.muted { background: var(--surface-3); color: var(--muted); }
-.ph-meta { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
 
 .ph-summary {
   margin: 0 0 22px; max-width: 78ch;

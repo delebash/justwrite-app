@@ -35,6 +35,20 @@ export async function inStore(page, fn, arg) {
   }
 }
 
+/** Run `fn(ui, arg)` in the page against its ui store (the sidebar's open sections, the selections),
+ *  once the app has loaded and the store exists: Pinia creates a store on its first use, which can
+ *  come after the project has loaded — scene-link failed one run in four on it (2026-10-28). */
+export async function inUiStore(page, fn, arg) {
+  await inStore(page, () => true);
+  const store = await page.waitForFunction(() =>
+    document.querySelector("#q-app").__vue_app__.config.globalProperties.$pinia._s.get("ui") || null);
+  try {
+    return await store.evaluate(fn, arg);
+  } finally {
+    await store.dispose();
+  }
+}
+
 /** Go to `path` through the app's own router (as a click in the sidebar does), once it has loaded —
  *  a bare change of the URL's #part can lose the race with the app's first navigation. */
 export async function navigate(page, path) {

@@ -92,14 +92,14 @@ In Outline mode you can:
 - Inline-rename any Part, Chapter, or Scene by clicking on its title.
 - Reorder Parts with up/down controls.
 - Move a chapter from one Part to another with a dropdown.
-- Add a new Part, Chapter, or Scene with `+` buttons.
+- Add a new Part, Chapter, or Scene with `+` buttons — it appears at once with its name ready to type over (a scene's title is optional).
 - Click any chapter to open it in Edit mode.
 
 ### Splitting a chapter
 
 > *"This chapter ballooned to 8,000 words while I wasn't paying attention. I need to break it in two without losing the scenes."*
 
-If you imported a long single-blob document, or you wrote a chapter that is now too long, the editor has a **Split chapter** action. Place your cursor where you want the split, run the command, and JustWrite asks for a title for the new chapter that comes after. The split happens cleanly; both halves keep their scenes.
+If you imported a long single-blob document, or you wrote a chapter that is now too long, the editor has a **Split chapter** action. Place your cursor where you want the split and run the command: the new chapter that comes after opens with its title selected, ready to type. The split happens cleanly; both halves keep their scenes.
 
 ---
 

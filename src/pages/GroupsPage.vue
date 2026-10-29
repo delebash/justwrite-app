@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
+import { useStatusDisplay } from "../composables/useStatusDisplay.js";
 import { useUiStore } from "../stores/ui.js";
 import { useRouter } from "vue-router";
 import { Icon, pageFill } from "@delebash/ui";
@@ -27,12 +28,15 @@ import { UiColorPicker } from "@delebash/ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { useSelectNewName } from "../composables/useSelectNewName.js";
+import { useEntityPage } from "../composables/useEntityPage.js";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
+const { statusLabel, statusSeverity } = useStatusDisplay();
+const { open, openFirst, onRowClick, statusOptions, askBook } = useEntityPage("groups");
 const ui = useUiStore();
 const router = useRouter();
 
@@ -76,28 +80,19 @@ const header = ref(null);
 useSelectNewName(header);
 
 function addGroup() {
-  const id = project.addGroup(); ui.select("groups", id); router.push(`/groups/${id}?new=1`);
+  open(project.addGroup(), { isNew: true });
 }
 function askTheBook() {
   if (!g.value) return;
-  ui.openChatPanelFor({
-    mode: "book",
-    question: t("groups.askAbout", { name: g.value.name }),
-    sourceKey: `ask:group:${g.value.id}`,
-  });
+  askBook(t("groups.askAbout", { name: g.value.name }), `ask:group:${g.value.id}`);
 }
 function deleteGroup() {
   project.removeGroup(g.value.id);
-  const next = project.groups[0];
-  if (next) { ui.select("groups", next.id); router.push(`/groups/${next.id}`); } else router.push("/groups");
+  openFirst(project.groups);
 }
 
 // ── List mode: table + facets ────────────────────────────────────────
 const rows = computed(() => project.groups);
-
-const statusOptions = computed(() =>
-  project.statusesShown.map((s) => ({ value: s.id, label: s.label })),
-);
 
 // Declarative facets for the shared EntityIndex — the filtering, the chip markup
 // and the clear-all now live there (components/EntityIndex.vue), not in a private
@@ -111,20 +106,6 @@ const columns = computed(() => [
   { accessorKey: "members", header: t("groups.colMembers"), sortable: true,  headerStyle: "min-width: 100px; text-align: center" },
   { accessorKey: "status",  header: t("common.status"),  sortable: true,  headerStyle: "min-width: 120px" },
 ]);
-
-function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
-function statusSeverity(id) {
-  if (id === "done")   return "success";
-  if (id === "revise") return "accent2";
-  if (id === "draft")  return "info";
-  if (id === "todo")   return "secondary";
-  return "secondary";
-}
-
-function onRowClick(event) {
-  const id = event?.data?.id;
-  if (id) { ui.select("groups", id); router.push(`/groups/${id}`); }
-}
 </script>
 
 <template>

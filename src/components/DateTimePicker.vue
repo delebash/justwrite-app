@@ -297,7 +297,7 @@ onBeforeUnmount(tearDownPos);
   position: fixed; top: 0; left: 0; z-index: 250;
   width: 340px; padding: 12px;
   background: var(--surface); border: 1px solid var(--border-strong);
-  border-radius: 11px; box-shadow: 0 12px 36px rgba(0, 0, 0, .2);
+  border-radius: 11px; box-shadow: 0 12px 36px var(--shadow-medium);
   overflow: auto;
   overscroll-behavior: contain;
 }

@@ -4,15 +4,15 @@ import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useUiStore } from "../stores/ui.js";
 import { categoryLabelShown, useProjectStore } from "../stores/project.js";
-import { promptDialog, confirmDialog, relativeTime, useAiTasksNav } from "@delebash/ui";
+import { confirmDialog, relativeTime, useAiTasksNav } from "@delebash/ui";
 import { promptNewProject, openTutorialProject } from "../services/projectStart.js";
-import { NEW_ENTITY_META } from "../services/entityMeta.js";
 import { archDocTitle } from "../services/architectureDocs.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { Icon } from "@delebash/ui";
 import { UiButton } from "@delebash/ui";
 import { UiInput } from "@delebash/ui";
 import { useRovingTabindexMap } from "@renderer/composables/useRovingTabindexMap.js";
+import { selectNewRowName } from "@renderer/composables/useSelectNewName.js";
 
 // The layout's drawer (layouts/MainLayout.vue) mounts this twice: its default slot the full
 // sidebar, its #mini slot — Quasar's mini mode, the collapsed state on a computer — the 56px rail
@@ -294,16 +294,10 @@ function addItem(parentId) {
 // Chapters can't be added at the section level any more — every chapter
 // belongs to a part. The chapters filter row's `+` button now creates a
 // new part, and each part header reveals per-part actions on hover for
-// adding a chapter and deleting the part. Renaming is inline.
-async function addPart() {
-  const title = await promptDialog({
-    title: t("sidebar.actions.newPartTitle"),
-    label: t("sidebar.actions.newPartLabel"),
-    placeholder: t("sidebar.actions.newPartPlaceholder", { n: project.parts.length + 1 }),
-    confirmLabel: t("sidebar.actions.newPartConfirm"),
-  });
-  if (!title) return;
-  project.addPart({ title });
+// adding a chapter and deleting the part. Renaming is inline — a new part is named in place.
+function addPart() {
+  const id = project.addPart();
+  selectNewRowName(`.sidebar [data-part-id="${id}"]`);
 }
 function addChapterInPart(partId) {
   const id = project.addChapter({ partId });
@@ -718,24 +712,14 @@ function itemDropClass(section, id) {
 // collapse. Articles (like chapters) drag to reorder within a category
 // or move across categories. Article→category assignment is the flat
 // `worldbuilding[].category` field; display order follows array order.
-async function addWbCategory() {
-  const label = await promptDialog({
-    title: t("sidebar.actions.newWbCategoryTitle"),
-    label: t("sidebar.actions.newWbCategoryLabel"),
-    placeholder: t("sidebar.actions.newWbCategoryPlaceholder"),
-    confirmLabel: t("sidebar.actions.newWbCategoryConfirm"),
-  });
-  if (!label) return;
-  project.addWorldbuildingCategory({ label });
+// A new category is named in place; a new article in a category opens with its title selected.
+function addWbCategory() {
+  const id = project.addWorldbuildingCategory();
+  selectNewRowName(`.sidebar [data-wbcat-id="${id}"]`);
 }
-async function addArticleInCat(catId) {
-  const M = NEW_ENTITY_META.worldbuilding;
-  const title = await promptDialog({
-    title: t(M.titleKey), label: t(M.labelKey), placeholder: t(M.placeholderKey), confirmLabel: t(M.confirmLabelKey),
-  });
-  if (!title) return;
-  const id = project.addWorldbuilding({ title, category: catId });
-  if (id) { ui.select("worldbuilding", id); router.push(`/worldbuilding/${id}`); }
+function addArticleInCat(catId) {
+  const id = project.addWorldbuilding({ category: catId });
+  if (id) { ui.select("worldbuilding", id); router.push(`/worldbuilding/${id}?new=1`); }
 }
 function updateWbCatTitle(id, value) { project.updateWorldbuildingCategory(id, { label: value }); }
 async function deleteWbCat(catId, label) {
@@ -955,6 +939,7 @@ const authorInitials = computed(() => {
                     :value="g.group"
                     :title="$t('sidebar.tooltips.renamePart', { name: g.group })"
                     :placeholder="$t('sidebar.placeholders.untitledPart')"
+                    :data-part-id="g.partId"
                     @input="updatePartTitle(g.partId, $event.target.value)"
                     @mousedown.stop
                     @click.stop
@@ -1052,6 +1037,7 @@ const authorInitials = computed(() => {
                     :value="g.group"
                     :title="$t('sidebar.tooltips.renameCategory', { name: g.group })"
                     :placeholder="$t('sidebar.placeholders.untitledCategory')"
+                    :data-wbcat-id="g.subgroupId"
                     @input="updateWbCatTitle(g.subgroupId, $event.target.value)"
                     @mousedown.stop
                     @click.stop

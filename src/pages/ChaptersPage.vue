@@ -34,7 +34,7 @@ import { UiSelect } from "@delebash/ui";
 import { UiSegmented } from "@delebash/ui";
 import { UiTag } from "@delebash/ui";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
-import { useSelectNewName } from "../composables/useSelectNewName.js";
+import { selectNewRowName, useSelectNewName } from "../composables/useSelectNewName.js";
 import { proseStoryContext } from "../services/storyContext.js";
 
 const props = defineProps({
@@ -274,6 +274,9 @@ watch(() => [props.id, props.sceneId], ([_newId, newSceneId], [_oldId, oldSceneI
   }
   if (mode.value === "outline") mode.value = "edit";
 });
+// The same on arrival: a scene's route (a link, a search result) never shows the Outline, which has
+// no single scene — it showed the Outline when that was the page's last mode (2026-10-29).
+if (props.sceneId && mode.value === "outline") mode.value = "edit";
 
 // Record the scene the writer is viewing as their last-edited position, so
 // Home's Resume and the sidebar chapter-row landing return here (persisted via
@@ -642,14 +645,6 @@ async function splitChapterHere() {
     ui.showToast({ message: t("chapters.dialogs.splitCursorHint") });
     return;
   }
-  const title = await promptDialog({
-    title: t("chapters.dialogs.splitTitle"),
-    label: t("chapters.dialogs.splitLabel"),
-    placeholder: t("chapters.dialogs.splitPlaceholder"),
-    confirmLabel: t("chapters.dialogs.splitConfirm"),
-  });
-  if (!title) return;
-
   const { DOMSerializer } = await import("@tiptap/pm/model");
   const ser = DOMSerializer.fromSchema(editor.schema);
   const fragToHtml = (fragment) => {
@@ -660,10 +655,11 @@ async function splitChapterHere() {
   const before = fragToHtml(editor.state.doc.cut(0, pos).content);
   const after  = fragToHtml(editor.state.doc.cut(pos).content);
 
-  const newId = project.splitChapterAtScene(ch.value.id, activeScene.value.id, before, after, title);
+  // the new chapter opens with its name selected (?new=1), as "+ New chapter" does
+  const newId = project.splitChapterAtScene(ch.value.id, activeScene.value.id, before, after);
   if (newId) {
     ui.select("chapters", newId);
-    router.push(`/chapters/${newId}`);
+    router.push(`/chapters/${newId}?new=1`);
   }
 }
 
@@ -672,39 +668,20 @@ function updatePartTitle(id, v) { project.updatePart(id, { title: v }); }
 function moveChapterPart(chapterId, partId) { project.moveChapterToPart(chapterId, partId); }
 function movePart(id, dir) { project.movePart(id, dir); }
 
-async function addPart() {
-  const title = await promptDialog({
-    title: t("sidebar.actions.newPartTitle"),
-    label: t("sidebar.actions.newPartLabel"),
-    placeholder: t("sidebar.actions.newPartPlaceholder", { n: project.parts.length + 1 }),
-    confirmLabel: t("sidebar.actions.newPartConfirm"),
-  });
-  if (!title) return;
-  project.addPart({ title });
+// A new part is named in place, in its outline row.
+function addPart() {
+  const id = project.addPart();
+  selectNewRowName(`.ol-part-title[data-part-id="${id}"]`);
 }
 function addChapterToPart(partId) {
   const id = project.addChapter({ partId });
   if (id) { ui.select("chapters", id); router.push(`/chapters/${id}?new=1`); mode.value = "edit"; }
 }
-async function addSceneToChapter(chapterId) {
-  const values = await promptDialog({
-    title: t("sidebar.actions.newSceneTitle"),
-    confirmLabel: t("sidebar.actions.newSceneConfirm"),
-    fields: [{
-      key: "title",
-      label: t("sidebar.actions.newSceneLabel"),
-      placeholder: t("sidebar.actions.newScenePlaceholder"),
-      optional: true,
-    }],
-  });
-  if (!values) return;
-  // NOT `const t` — that shadowed the i18n `t` for the whole function scope,
-  // so the t() calls in the dialog above hit the temporal dead zone and adding
-  // a scene CRASHED. Caught by the slice-11 lint gate's first run.
-  const title = (values.title || "").trim();
-  const id = project.addScene(chapterId, title ? { title } : {});
+// The outline's "+ Add scene": the scene appears in place and its (optional) title takes the cursor.
+function addSceneToChapter(chapterId) {
+  const id = project.addScene(chapterId, {});
   ui.expandChapter(chapterId);
-  // Stay in outline mode so the user sees the new scene appear in place.
+  selectNewRowName(`.ol-scene-title[data-scene-id="${id}"]`);
 }
 
 async function deletePart(part) {
@@ -956,6 +933,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
             <input class="ol-part-title"
               :value="part.title"
               :placeholder="$t('sidebar.placeholders.untitledPart')"
+              :data-part-id="part.id"
               @input="updatePartTitle(part.id, $event.target.value)" />
             <div class="ol-row-actions">
               <UiButton intent="ghost" size="small"
@@ -1019,6 +997,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
                     :value="scn.title"
                     :placeholder="$t('chapters.outline.sceneN', { n: si + 1 })"
                     @click.stop
+                    :data-scene-id="scn.id"
                     @input="project.setSceneTitle(c.id, scn.id, $event.target.value)" />
                   <span v-if="project.notesForScene(scn.id).length"
                     class="ol-scene-notes"
@@ -1636,7 +1615,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   display: flex; flex-direction: column; gap: 8px;
   transition: box-shadow .15s ease, border-color .15s ease, opacity .15s ease;
 }
-.scene-card:hover { border-color: var(--border-strong); box-shadow: 0 6px 18px rgba(0, 0, 0, .08); }
+.scene-card:hover { border-color: var(--border-strong); box-shadow: 0 6px 18px var(--shadow-soft); }
 .scene-card.dragging { opacity: .45; }
 .scene-card-num { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .scene-card-title { font-family: var(--font-serif); font-weight: 600; font-size: 15px; color: var(--ink); }
@@ -2006,7 +1985,7 @@ watch(() => project.allChapters.map((c) => `${c.id}:${(project.scenesFor(c.id) |
   width: 380px; max-width: calc(100vw - 16px);
   max-height: 70vh;
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  border-radius: 8px; box-shadow: 0 8px 24px var(--shadow-medium);
   padding: 6px;
   display: flex; flex-direction: column;
 }

@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectStore } from "../stores/project.js";
+import { useStatusDisplay } from "../composables/useStatusDisplay.js";
 import { useUiStore } from "../stores/ui.js";
 import { PaneHeader, pageFill } from "@delebash/ui";
 import { Icon } from "@delebash/ui";
@@ -21,12 +22,15 @@ import { UiColorPicker } from "@delebash/ui";
 import { PRESET_COLORS } from "@renderer/services/categoricalColors.js";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { useSelectNewName } from "../composables/useSelectNewName.js";
+import { useEntityPage } from "../composables/useEntityPage.js";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
+const { statusLabel, statusSeverity } = useStatusDisplay();
+const { open, openFirst, onRowClick, statusOptions, askBook } = useEntityPage("strands");
 const ui = useUiStore();
 const router = useRouter();
 const modal = ref(null);
@@ -124,25 +128,16 @@ const header = ref(null);
 useSelectNewName(header);
 
 function addStrand() {
-  const id = project.addStrand();
-  ui.select("strands", id);
-  router.push(`/strands/${id}?new=1`);
+  open(project.addStrand(), { isNew: true });
 }
 
 function askTheBook() {
   if (!s.value) return;
-  ui.openChatPanelFor({
-    mode: "book",
-    question: t("strands.askAbout", { name: s.value.name }),
-    sourceKey: `ask:strand:${s.value.id}`,
-  });
+  askBook(t("strands.askAbout", { name: s.value.name }), `ask:strand:${s.value.id}`);
 }
 function deleteStrand() {
-  const removedId = s.value.id;
-  project.removeStrand(removedId);
-  const next = project.strands[0];
-  if (next) { ui.select("strands", next.id); router.push(`/strands/${next.id}`); }
-  else router.push("/strands");
+  project.removeStrand(s.value.id);
+  openFirst(project.strands);
 }
 
 async function addBeat() {
@@ -201,10 +196,6 @@ const sortedBeats = computed(() => {
 // ── List mode ────────────────────────────────────────────────────────
 const rows = computed(() => project.strands);
 
-const statusOptions = computed(() =>
-  project.statusesShown.map((s) => ({ value: s.id, label: s.label })),
-);
-
 // Declarative facets for the shared EntityIndex — the filtering, the chip markup
 // and the clear-all now live there (components/EntityIndex.vue), not in a private
 // copy per view.
@@ -228,20 +219,6 @@ const columns = computed(() => [
   { accessorKey: "scenes", header: t("common.scenes"), sortable: true, headerStyle: "min-width: 80px" },
   { accessorKey: "status", header: t("common.status"), sortable: true, headerStyle: "min-width: 120px" },
 ]);
-
-function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
-function statusSeverity(id) {
-  if (id === "done")   return "success";
-  if (id === "revise") return "accent2";
-  if (id === "draft")  return "info";
-  if (id === "todo")   return "secondary";
-  return "secondary";
-}
-
-function onRowClick(event) {
-  const id = event?.data?.id;
-  if (id) { ui.select("strands", id); router.push(`/strands/${id}`); }
-}
 
 const tableRows = computed(() =>
   rows.value.map((r) => ({

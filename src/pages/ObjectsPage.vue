@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from "vue";
 import { useProjectStore } from "../stores/project.js";
-import { useUiStore } from "../stores/ui.js";
+import { useStatusDisplay } from "../composables/useStatusDisplay.js";
 import { useRouter } from "vue-router";
 import { Icon, pageFill } from "@delebash/ui";
 import { UiInput } from "@delebash/ui";
@@ -29,13 +29,15 @@ import MentionRefList from "../components/MentionRefList.vue";
 import { PaneHeader } from "@delebash/ui";
 import { bookIndexOn } from "../services/rag/vectorStore.js";
 import { useSelectNewName } from "../composables/useSelectNewName.js";
+import { kindsIn, tagPoolOf, tagsIn, useEntityPage } from "../composables/useEntityPage.js";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
 const props = defineProps({ id: { type: String, default: "" } });
 const project = useProjectStore();
-const ui = useUiStore();
+const { statusLabel, statusSeverity } = useStatusDisplay();
+const { open, openFirst, onRowClick, statusOptions, askBook } = useEntityPage("objects");
 const router = useRouter();
 const sweepOpen = ref(false);
 
@@ -52,50 +54,30 @@ const modal = ref(null);
 
 function update(k, v) { project.updateObject(obj.value.id, { [k]: v }); }
 
-const tagPool = computed(() => {
-  const out = [];
-  for (const o of project.objects) for (const t of (o.tags || [])) out.push(t);
-  return out;
-});
+const tagPool = computed(() => tagPoolOf(project.objects));
 
 // "+ New" lands here with ?new=1: the header's name is selected, ready to type over.
 const header = ref(null);
 useSelectNewName(header);
 
 function addObject() {
-  const id = project.addObject(); ui.select("objects", id); router.push(`/objects/${id}?new=1`);
+  open(project.addObject(), { isNew: true });
 }
 function askTheBook() {
   if (!obj.value) return;
-  ui.openChatPanelFor({
-    mode: "book",
-    question: t("common.tellMeAbout", { name: obj.value.name }),
-    sourceKey: `ask:object:${obj.value.id}`,
-  });
+  askBook(t("common.tellMeAbout", { name: obj.value.name }), `ask:object:${obj.value.id}`);
 }
 function deleteObject() {
   project.removeObject(obj.value.id);
-  const next = project.objects[0];
-  if (next) { ui.select("objects", next.id); router.push(`/objects/${next.id}`); } else router.push("/objects");
+  openFirst(project.objects);
 }
 
 // ── List mode: table + facets ────────────────────────────────────────
 const rows = computed(() => project.objects);
 
-const statusOptions = computed(() =>
-  project.statusesShown.map((s) => ({ value: s.id, label: s.label })),
-);
 // Kind options derived from in-use kind values only.
-const allKinds = computed(() => {
-  const set = new Set();
-  for (const o of project.objects) if (o.kind) set.add(o.kind);
-  return [...set].sort();
-});
-const allTags = computed(() => {
-  const set = new Set();
-  for (const o of project.objects) for (const t of (o.tags || [])) set.add(t);
-  return [...set].sort();
-});
+const allKinds = computed(() => kindsIn(project.objects));
+const allTags = computed(() => tagsIn(project.objects));
 
 // Declarative facets for the shared EntityIndex — the filtering, the chip markup
 // and the clear-all now live there (components/EntityIndex.vue), not in a private
@@ -116,20 +98,6 @@ const columns = computed(() => [
   { accessorKey: "tags",   header: t("common.tags"),   sortable: false, headerStyle: "min-width: 160px", enableGlobalFilter: true },
   { accessorKey: "status", header: t("common.status"), sortable: true,  headerStyle: "min-width: 120px" },
 ]);
-
-function statusLabel(id) { return project.statusById(id)?.label || id || ""; }
-function statusSeverity(id) {
-  if (id === "done")   return "success";
-  if (id === "revise") return "accent2";
-  if (id === "draft")  return "info";
-  if (id === "todo")   return "secondary";
-  return "secondary";
-}
-
-function onRowClick(event) {
-  const id = event?.data?.id;
-  if (id) { ui.select("objects", id); router.push(`/objects/${id}`); }
-}
 </script>
 
 <template>
