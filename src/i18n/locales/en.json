@@ -2909,9 +2909,9 @@
   "settings": {
     "title": "Settings",
     "eyebrow": "Project",
-    "intro": "{settings} is divided into sections — {project} (metadata, goals, statuses, deadlines), {appearance} (themes, fonts, colours, density), {backups} (autosave, full backup / restore, and workspace reset), {sync} (your books on your other devices), and {server} (reach JustWrite from a browser, keep it running in the tray, access tokens). AI providers, routing, usage, and writing-AI settings live in the {ai} menu. Nothing here touches your manuscript prose.",
+    "intro": "{settings} is divided into sections — {project} (metadata, goals, statuses, deadlines), {appearance} (themes, fonts, colours, density), {backups} (autosave, full backup / restore, and workspace reset), {sync} (your books on your other devices), and {server} (reach JustWrite from a browser, keep it running in the tray, access tokens). AI providers, routing, usage, and writing-AI settings live on the {ai} page. Nothing here touches your manuscript prose.",
     "introTerms": {
-      "ai": "AI"
+      "ai": "AI Settings"
     },
     "sections": {
       "project": "Project",

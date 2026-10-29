@@ -986,10 +986,15 @@ Rules:
   - Write as plain prose paragraphs. No headings, no bullets, no markdown.
   - Do not greet the writer or thank them. Open in the middle of orientation.`;
 
-// ── BrainstormView.vue (feature "brainstorm") — two system variants ──────────
-const BRAINSTORM_SYSTEM = "You are a creative brainstorming partner for a novelist. The user is generating {{label}} ideas. Reply with 15–20 short suggestions, one per line, no numbering, no commentary, no explanations. Each suggestion stands alone — a name, a phrase, a title — never more than ~6 words. Do not repeat suggestions the user has already seen.";
+// ── Brainstorm (feature "brainstorm") — two system variants ──────────────────
+// The request (src/services/brainstorm.js brainstormPrompt) carries only data — Category, Seed, and
+// on a later round the "Liked" and "Already shown" lists; what to do with those lists is said here
+// (2026-10-28: it was English sentences in the client's request, out of reach of the Lab).
+const BRAINSTORM_BASE = "You are a creative brainstorming partner for a novelist. The user is generating {{label}} ideas. Reply with 15–20 short suggestions, one per line, no numbering, no commentary, no explanations. Each suggestion stands alone — a name, a phrase, a title — never more than ~6 words.";
+const BRAINSTORM_SYSTEM = `${BRAINSTORM_BASE} When the request lists ideas under "Liked", give new ones in the same direction — same vibe, sound, era, register. Never repeat an idea listed under "Liked" or "Already shown".`;
 
-const BRAINSTORM_PLOT_SYSTEM = "You are a story-craft brainstorming partner for a novelist. The user has described their current situation; you respond with 15-20 distinct {{kind}}, each on its own line. Each item is a single sentence (12-25 words) naming a specific, concrete move — not abstract advice. Mix close-to-obvious moves with wilder ones. No numbering, no commentary, no preface, no explanations. Do not repeat items the user has already seen.";
+const BRAINSTORM_PLOT_BASE = "You are a story-craft brainstorming partner for a novelist. The user has described their current situation; you respond with 15-20 distinct {{kind}}, each on its own line. Each item is a single sentence (12-25 words) naming a specific, concrete move — not abstract advice. Mix close-to-obvious moves with wilder ones. No numbering, no commentary, no preface, no explanations.";
+const BRAINSTORM_PLOT_SYSTEM = `${BRAINSTORM_PLOT_BASE} When the request lists items under "Liked", give new ones in the same direction. Never repeat an item listed under "Liked" or "Already shown".`;
 
 // writerAI — the selection-level editor actions (Rewrite/Expand/… + line-edit
 // rules + guided Continue). System == the client's old SYSTEM_BASE; `{{voiceCanon}}`
@@ -1592,6 +1597,9 @@ const PRE_STORY_WRITER_SYSTEM = (
 );
 
 export const FEATURE_PROMPT_HEALS = {
+    // Brainstorm, before the "Liked" / "Already shown" rule moved here from the client (2026-10-28).
+    "brainstorm": [`${BRAINSTORM_BASE} Do not repeat suggestions the user has already seen.`],
+    "brainstormPlot": [`${BRAINSTORM_PLOT_BASE} Do not repeat items the user has already seen.`],
     // Pre-slice-2 prose actions: before they carried the story context.
     "writerAI.rewrite": [PRE_STORY_WRITER_SYSTEM],
     "writerAI.expand": [PRE_STORY_WRITER_SYSTEM],

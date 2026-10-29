@@ -75,7 +75,6 @@ describe("the composed input", () => {
     expect(at("CHARACTER PROFILE")).toBeGreaterThan(at("BOOK CONTEXT"));
     expect(at("ALREADY IN THE CAST\n- Mira")).toBeGreaterThan(at("CHARACTER PROFILE"));
     expect(at("Category: Character names\nSeed: ")).toBeGreaterThan(at("ALREADY IN THE CAST"));
-    expect(u.endsWith("Output 15–20 fresh suggestions, one per line.")).toBe(true);
   });
 
   it("sends no book context for an empty book, and a More like these round carries the likes", () => {
@@ -86,8 +85,8 @@ describe("the composed input", () => {
     expect(u).not.toContain("BOOK CONTEXT");
     expect(u.startsWith("CHARACTER PROFILE")).toBe(true);
     expect(u).not.toMatch(/\{\{/);
-    expect(u).toContain("DO NOT repeat any of these:\n- Odo");
-    expect(u).toContain("already-seen suggestions:\n- Odo\n- Ren");
+    expect(u).toContain("Liked:\n- Odo");
+    expect(u).toContain("Already shown:\n- Odo\n- Ren");
   });
 
   it("leads with the writer's seed, the profile and the book after it (2026-10-28)", async () => {

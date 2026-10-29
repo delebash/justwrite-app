@@ -38,8 +38,8 @@ test("Next plot beats: the seed, Generate, More like these, Write this continues
   await dialog.getByRole("button", { name: "More like these" }).click();
   await expect(cards).toHaveCount(12);
   const second = asked.filter((b) => b.action === "brainstormPlot")[1].variables.user_content;
-  expect(second).toContain("The user liked these suggestions from a previous round");
-  expect(second).toContain("Round 1 idea 1");
+  // data only since 2026-10-28 — what to do with the list is the seeded system prompt's
+  expect(second).toContain("Liked:\n- Round 1 idea 1");
 
   const idea = (await cards.nth(7).locator(".bsr-text").innerText()).trim();
   await cards.nth(7).getByRole("button", { name: "Write this" }).click();

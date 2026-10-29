@@ -171,14 +171,14 @@ Only worth building if the in-modal notice proves insufficient.
 
 ---
 
-### Brainstorm's prompt text lives in code (noted 2026-10-11)
+### Brainstorm's category names live in code (noted 2026-10-11; its request wording moved 2026-10-28)
 
-Moving Brainstorm onto one service for Name ideas (`src/services/brainstorm.js`) kept the text the
-model is sent where it was: in code, in English — each category's `promptLabel` and plot `kind`,
-and the round's scaffolding ("The user liked these suggestions…", "Avoid repeating…", "Output 15–20
-fresh suggestions…"). The system prompts are seeded and editable in the Lab; these lines aren't.
-The house rule (nothing hardcoded) would put them in the seeded prompts — a template change for the
-`brainstorm` / `brainstormPlot` actions, its heal entry and the Lab sample. Not started.
+The round's scaffolding moved into the seeded system prompts on 2026-10-28 (the request is data
+only — Category, Seed, "Liked", "Already shown" — and the systems say what to do with each list;
+healed on unedited databases). Still in code, in English: each category's model-facing name
+(`promptLabel`, filling the system's `{{label}}`) and the plot categories' `kind`, beside the
+category list that wires the Brainstorm panels. Making those editable means a seeded category table
+with a place to edit it — a design of its own, not started.
 
 ## UI / UX
 

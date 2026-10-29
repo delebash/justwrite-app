@@ -33,19 +33,15 @@ export function brainstormAction(value) {
     : { action: "brainstorm", variables: { label: c.promptLabel } };
 }
 
-/** The round's request: the category and seed, then — on a "More like these" round — the liked
- *  ideas to lean toward, and every idea already shown, not to repeat. */
+/** The round's request — data only: the category and seed, then on a "More like these" round the
+ *  "Liked" ideas and every idea "Already shown". What the model does with each list — lean toward
+ *  the liked, repeat none — is the seeded system prompt's (server/src/seed_feature_prompts.js
+ *  BRAINSTORM_SYSTEM / BRAINSTORM_PLOT_SYSTEM), editable in the Lab (2026-10-28). */
 export function brainstormPrompt({ category, seed, liked = [], seen = [] }) {
+  const list = (items) => items.map((t) => `- ${t}`).join("\n");
   let msg = `Category: ${brainstormCategory(category).promptLabel}\nSeed: ${String(seed || "").trim()}`;
-  if (liked.length) {
-    msg += "\n\nThe user liked these suggestions from a previous round. Generate 15–20 new ones in the same direction — same vibe, sound, era, register — but DO NOT repeat any of these:\n";
-    msg += liked.map((t) => `- ${t}`).join("\n");
-  }
-  if (seen.length) {
-    msg += "\n\nAvoid repeating any of these already-seen suggestions:\n";
-    msg += seen.map((t) => `- ${t}`).join("\n");
-  }
-  msg += "\n\nOutput 15–20 fresh suggestions, one per line.";
+  if (liked.length) msg += `\n\nLiked:\n${list(liked)}`;
+  if (seen.length) msg += `\n\nAlready shown:\n${list(seen)}`;
   return msg;
 }
 

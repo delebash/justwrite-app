@@ -20,17 +20,15 @@ const {
 const { useBrainstorm } = await import("../composables/useBrainstorm.js");
 
 describe("the prompt", () => {
-  it("is the page's first-round prompt, unchanged", () => {
+  // Data only (2026-10-28): what the model does with each list is the seeded system prompt's.
+  it("is the category and the seed on a first round", () => {
     expect(brainstormPrompt({ category: "place_name", seed: "  harbor taverns  " })).toBe(
-      "Category: Place names\nSeed: harbor taverns\n\nOutput 15–20 fresh suggestions, one per line.");
+      "Category: Place names\nSeed: harbor taverns");
   });
 
   it("adds the liked ideas, then everything already shown, on a More like these round", () => {
     const p = brainstormPrompt({ category: "character_name", seed: "x", liked: ["Ada"], seen: ["Ada", "Bo"] });
-    expect(p).toBe("Category: Character names\nSeed: x"
-      + "\n\nThe user liked these suggestions from a previous round. Generate 15–20 new ones in the same direction — same vibe, sound, era, register — but DO NOT repeat any of these:\n- Ada"
-      + "\n\nAvoid repeating any of these already-seen suggestions:\n- Ada\n- Bo"
-      + "\n\nOutput 15–20 fresh suggestions, one per line.");
+    expect(p).toBe("Category: Character names\nSeed: x\n\nLiked:\n- Ada\n\nAlready shown:\n- Ada\n- Bo");
   });
 
   it("runs a plot category as brainstormPlot with its kind, the rest as brainstorm with its label", () => {

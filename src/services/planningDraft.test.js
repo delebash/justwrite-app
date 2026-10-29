@@ -163,7 +163,7 @@ describe("next beats and twists at the cursor", () => {
     expect(c).toContain("## Premise");
     expect(c).toContain("THE STORY SO FAR\nMira turns the key.");
     expect(c).toContain("Seed: next beats from where THE STORY SO FAR ends, fitting STORY CONTEXT");
-    expect(c).toContain("Avoid repeating any of these already-seen suggestions:\n- Old idea");
+    expect(c).toContain("Already shown:\n- Old idea");
   });
 
   it("a round for the Brainstorm panel (2026-10-28): the writer's seed leads, then the liked and the shown", async () => {
@@ -174,8 +174,8 @@ describe("next beats and twists at the cursor", () => {
     const c = r.variables.user_content;
     expect(r.action).toBe("brainstormPlot");
     expect(c).toContain("Seed: she lies — twists from where THE STORY SO FAR ends");
-    expect(c).toContain("The user liked these suggestions from a previous round");
-    expect(c).toContain("Avoid repeating any of these already-seen suggestions:\n- Old idea");
+    expect(c).toContain("Liked:\n- The archive floods");
+    expect(c).toContain("Already shown:\n- Old idea");
   });
 });
 

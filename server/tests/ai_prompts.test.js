@@ -265,3 +265,24 @@ test("every catalog key the AI page's seed names exists in the English catalog",
   expect(named.filter((k) => !en.has(k))).toEqual([]);
   expect(FEATURE_CATALOG.every((f) => f.labelKey && f.groupKey), "every feature names its label and group").toBe(true);
 });
+
+test("Brainstorm's request is data only; a database seeded before 2026-10-28 heals to the rule that reads it", async () => {
+  // The two systems as every database seeded before 2026-10-28 holds them, byte for byte.
+  const OLD = {
+    brainstorm: "You are a creative brainstorming partner for a novelist. The user is generating {{label}} ideas. Reply with 15–20 short suggestions, one per line, no numbering, no commentary, no explanations. Each suggestion stands alone — a name, a phrase, a title — never more than ~6 words. Do not repeat suggestions the user has already seen.",
+    brainstormPlot: "You are a story-craft brainstorming partner for a novelist. The user has described their current situation; you respond with 15-20 distinct {{kind}}, each on its own line. Each item is a single sentence (12-25 words) naming a specific, concrete move — not abstract advice. Mix close-to-obvious moves with wilder ones. No numbering, no commentary, no preface, no explanations. Do not repeat items the user has already seen.",
+  };
+  await client();
+  const h = state.handle;
+  for (const [key, old] of Object.entries(OLD)) {
+    const now = DEFAULT_FEATURE_PROMPTS[key].system;
+    expect(now, key).toContain('"Liked"');
+    expect(now, key).toContain('"Already shown"');
+    h.tx(() => h.update("feature_prompts", { system: old }, { key }));
+  }
+  h.tx(() => h.update("feature_prompts", { system: `${OLD.brainstormPlot} Mine.` }, { key: "brainstormPlot" }));
+  h.tx(() => seed.seedDefaultFeaturePrompts(h));
+  expect(h.get("feature_prompts", "brainstorm").system).toBe(DEFAULT_FEATURE_PROMPTS.brainstorm.system);
+  // a prompt the writer edited is never touched
+  expect(h.get("feature_prompts", "brainstormPlot").system).toBe(`${OLD.brainstormPlot} Mine.`);
+});

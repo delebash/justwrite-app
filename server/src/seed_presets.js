@@ -356,14 +356,13 @@ export const DEFAULT_TEST_SAMPLES = [
                               "was broken by her before she could stop herself. The house had " +
                               "been abandoned for years. Every window was boarded up.",
                    "voiceCanon": ""}},
-    // ── ideation (brainstorm/brainstormPlot: {{user_content}} is the
-    // BrainstormView buildUserPrompt shape — Category/Seed + the output line;
-    // {{label}}/{{kind}} are the client-filled SYSTEM variables) ──
+    // ── ideation (brainstorm/brainstormPlot: {{user_content}} is brainstorm.js brainstormPrompt's
+    // shape — Category/Seed, data only since 2026-10-28; {{label}}/{{kind}} are the client-filled
+    // SYSTEM variables) ──
     {"actions": ["brainstorm"], "label": "Brainstorm seed",
      "variables": {"user_content": "Category: Character names\n" +
                                    "Seed: coastal-archivist family names — weathered, bookish, " +
-                                   "northern harbor town\n\n" +
-                                   "Output 15–20 fresh suggestions, one per line.",
+                                   "northern harbor town",
                    "label": "character name"}},
     // brainstormPlot, one sample per way the app asks (2026-10-16; until then it shared the
     // character-names seed above): the Brainstorm page's Next plot beats (brainstorm.js
@@ -372,8 +371,7 @@ export const DEFAULT_TEST_SAMPLES = [
     {"actions": ["brainstormPlot"], "label": "Plot beats from a seed",
      "variables": {"user_content": "Category: Next plot beats\n" +
                                    "Seed: Mira has just found that someone who reads the old harbor script " +
-                                   "altered her father's ledger. Renn knows more than he says.\n\n" +
-                                   "Output 15–20 fresh suggestions, one per line.",
+                                   "altered her father's ledger. Renn knows more than he says.",
                    "kind": "next plot beats — possible moves, escalations, or scene-level developments"}},
     {"actions": ["brainstormPlot"], "label": "Next beats at the cursor",
      "variables": {"user_content": "STORY CONTEXT\n" +
@@ -387,8 +385,7 @@ export const DEFAULT_TEST_SAMPLES = [
                                    "THE STORY SO FAR\n" +
                                    `${SAMPLE_CHAPTER_PROSE}\n\n` +
                                    "Category: Next plot beats\n" +
-                                   "Seed: next beats from where THE STORY SO FAR ends, fitting STORY CONTEXT\n\n" +
-                                   "Output 15–20 fresh suggestions, one per line.",
+                                   "Seed: next beats from where THE STORY SO FAR ends, fitting STORY CONTEXT",
                    "kind": "next plot beats — possible moves, escalations, or scene-level developments"}},
     {"actions": ["brainstormPlot"], "label": "Next beats on a strand",
      "variables": {"user_content": "BOOK CONTEXT\n" +
@@ -402,8 +399,7 @@ export const DEFAULT_TEST_SAMPLES = [
                                    "- Mira finds the torn page — the ink changes mid-entry\n" +
                                    "- Renn names Old Harbek — the one who still reads the old script\n\n" +
                                    "Category: Next plot beats\n" +
-                                   "Seed: next beats for the strand in THE STRAND, after its last beat, fitting the book in BOOK CONTEXT\n\n" +
-                                   "Output 15–20 fresh suggestions, one per line.",
+                                   "Seed: next beats for the strand in THE STRAND, after its last beat, fitting the book in BOOK CONTEXT",
                    "kind": "next plot beats — possible moves, escalations, or scene-level developments"}},
     // ── judge.scored ──
     // critique / critiqueStructure / multiReader×4: {{chapter_label}} renders
