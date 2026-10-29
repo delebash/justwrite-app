@@ -200,11 +200,17 @@ const FEATURES = [
 /** Until the chat panel's newest answer is complete — a pending one shows "…" (ChatPanel.vue), and
  * a streaming one keeps its task's Cancel in the panel until the last token. */
 async function answered(page) {
+  // an answer, or the error the panel shows in its place — which ends the wait at once, with its words
+  // (2026-10-29: a model that failed to load kept the capture waiting its whole ten minutes)
   await page.waitForFunction(() => {
-    const bubbles = document.querySelectorAll(".chat-panel .cp-bubble-assistant");
-    const last = bubbles[bubbles.length - 1]?.textContent.trim();
-    return Boolean(last) && last !== "…";
+    const msgs = document.querySelectorAll(".chat-panel .cp-msg-assistant");
+    const last = msgs[msgs.length - 1];
+    if (last?.querySelector(".q-banner")) return true;
+    const text = last?.querySelector(".cp-bubble-assistant")?.textContent.trim();
+    return Boolean(text) && text !== "…";
   }, null, { timeout: AI_TIMEOUT });
+  const failed = page.locator(".chat-panel .cp-msg-assistant").last().locator(".q-banner");
+  if (await failed.count()) throw new Error(`the chat answered with an error: ${(await failed.textContent()).trim()}`);
   await page.locator(".chat-panel").getByRole("button", { name: "Cancel" }).waitFor({ state: "detached", timeout: AI_TIMEOUT });
 }
 
