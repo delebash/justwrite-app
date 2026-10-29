@@ -15,6 +15,7 @@
 //   OEBPS/title.xhtml
 //   OEBPS/p<i>.xhtml             (one per Part)
 //   OEBPS/ch<i>.xhtml            (one per Chapter)
+//   OEBPS/images/img-<i>.<ext>   (the scenes' pictures, each once)
 //
 // The mimetype file MUST be the first entry in the zip and stored
 // uncompressed for the file to validate as EPUB; JSZip's
@@ -22,6 +23,7 @@
 // ============================================================
 
 import { tBook } from "../../i18n/index.js";
+import { exportImageLoader } from "./exportImages.js";
 
 let jszipPromise = null;
 async function getJSZip() {
@@ -82,6 +84,25 @@ export async function exportEpub({ manuscript, onProgress } = {}) {
     }
   }
 
+  // The scenes' pictures, each packed once and listed in the manifest; a chapter page points at its
+  // file. One that can't be read is left out of the page.
+  const loadImage = exportImageLoader();
+  const imageHref = new Map();
+  for (const part of manuscript.parts) {
+    for (const ch of part.chapters) {
+      for (const b of ch.blocks) {
+        if (b.kind !== "image" || imageHref.has(b.src)) continue;
+        const img = await loadImage(b.src);
+        if (!img) { imageHref.set(b.src, null); continue; }
+        const n = manifest.filter((m) => m.id.startsWith("img-")).length + 1;
+        const href = `images/img-${n}.${img.ext}`;
+        zip.file(`OEBPS/${href}`, img.bytes);
+        manifest.push({ id: `img-${n}`, href, type: img.mime });
+        imageHref.set(b.src, href);
+      }
+    }
+  }
+
   // Title page.
   zip.file("OEBPS/title.xhtml", titlePageHtml(manuscript));
   manifest.push({ id: "title", href: "title.xhtml", type: "application/xhtml+xml" });
@@ -98,7 +119,7 @@ export async function exportEpub({ manuscript, onProgress } = {}) {
     part.chapters.forEach((ch) => {
       const chId = `ch-${ch.id}`;
       const chHref = `${chId}.xhtml`;
-      zip.file(`OEBPS/${chHref}`, chapterHtml(ch, manuscript.language));
+      zip.file(`OEBPS/${chHref}`, chapterHtml(ch, manuscript.language, imageHref));
       manifest.push({ id: chId, href: chHref, type: "application/xhtml+xml" });
       spine.push({ id: chId });
     });
@@ -184,19 +205,34 @@ function coverPageHtml(m, coverHref) {
 }
 /* eslint-enable i18next/no-literal-string */
 
-function chapterHtml(ch, lang) {
+// A block's runs as XHTML: each run's text escaped inside its formatting's elements, a line break <br/>.
+const RUN_TAGS = [["italic", "em"], ["bold", "strong"], ["underline", "u"], ["strike", "s"], ["sup", "sup"], ["sub", "sub"]];
+export function runsToXhtml(runs) {
+  return runs.map((r) => {
+    if (r.br) return "<br/>";
+    const tags = RUN_TAGS.filter(([k]) => r[k]).map(([, tag]) => tag);
+    return tags.reduceRight((inner, tag) => `<${tag}>${inner}</${tag}>`, xmlEscape(r.text));
+  }).join("");
+}
+const blockXhtml = (b) => (b.runs ? runsToXhtml(b.runs) : xmlEscape(b.text));
+
+function chapterHtml(ch, lang, imageHref = new Map()) {
   const body = [];
   body.push(`<section epub:type="chapter">`);
   body.push(`<p class="chapter-num">${xmlEscape(tBook(lang, "export.book.chapter", { num: ch.num }))}</p>`);
   body.push(`<h2 class="chapter-title">${xmlEscape(ch.title)}</h2>`);
   for (const b of ch.blocks) {
     if (b.kind === "h1") continue;
-    if (b.kind === "h2") body.push(`<h3>${xmlEscape(b.text)}</h3>`);
-    else if (b.kind === "blockquote") body.push(`<blockquote>${xmlEscape(b.text)}</blockquote>`);
+    if (b.kind === "h2") body.push(`<h3>${blockXhtml(b)}</h3>`);
+    else if (b.kind === "blockquote") body.push(`<blockquote>${blockXhtml(b)}</blockquote>`);
     else if (b.kind === "scene-break") body.push(`<p class="scene-break">* * *</p>`);
     else if (b.kind === "page-break") continue; // EPUB is reflowable — page breaks aren't meaningful
-    else if (b.kind === "ul-item") body.push(`<ul><li>${xmlEscape(b.text)}</li></ul>`);
-    else body.push(`<p>${xmlEscape(b.text)}</p>`);
+    else if (b.kind === "ul-item") body.push(`<ul><li>${blockXhtml(b)}</li></ul>`);
+    else if (b.kind === "image") {
+      const href = imageHref.get(b.src);
+      if (href) body.push(`<p class="image"><img src="${xmlEscape(href)}" alt="${xmlEscape(b.alt)}" /></p>`);
+    }
+    else body.push(`<p>${blockXhtml(b)}</p>`);
   }
   body.push(`</section>`);
   return htmlShell(tBook(lang, "common.chapterRefDash", { num: ch.num, title: ch.title }), body.join("\n"), lang);
@@ -242,6 +278,8 @@ p { text-indent: 1.2em; margin: 0 0 0.6em; text-align: justify; }
 p:first-of-type { text-indent: 0; }
 .scene-break { text-align: center; text-indent: 0; letter-spacing: 0.5em; color: #888; margin: 1.5em 0; }
 blockquote { font-style: italic; color: #555; margin: 1em 1.5em; }
+.image { text-align: center; text-indent: 0; margin: 1em 0; }
+.image img { max-width: 100%; height: auto; }
 h3 { font-size: 1.1em; margin: 1.2em 0 0.4em; }
 nav ol { list-style: none; padding-left: 1em; }
 nav > ol { padding-left: 0; }

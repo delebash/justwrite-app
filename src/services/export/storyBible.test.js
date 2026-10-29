@@ -2,8 +2,9 @@
 // The Story Bible's outline (2026-10-28): every filled field under the page's own label, empty ones
 // left out, an "Exclude from AI" entry left out when asked. jsdom: htmlToText reads rich text.
 import { createPinia, setActivePinia } from "pinia";
+import JSZip from "jszip";
 import { beforeEach, describe, expect, it } from "vitest";
-import { storyBibleOutline } from "./storyBible.js";
+import { storyBibleDocx, storyBibleOutline } from "./storyBible.js";
 
 // the catalog key as the word — the outline's labels are visibly the pages' own keys
 const t = (key, params) => (params ? `${key} ${JSON.stringify(params)}` : key);
@@ -16,7 +17,7 @@ function book() {
       { id: "c2", name: "Spoiler", excludeFromAi: true },
     ],
     characterExtras: { c1: { motivation: { want: "To owe nothing." }, backstory: "Struck off the fleet-rolls." } },
-    locations: [{ id: "l1", name: "The Saltreach", note: "<p>White crust.</p><p>Night crossings.</p>", atmosphere: "Glare", history: "", tags: [] }],
+    locations: [{ id: "l1", name: "The Saltreach", note: "<p>White <em>crust</em>.</p><p>Night crossings.</p>", atmosphere: "Glare", history: "", tags: [] }],
     objects: [],
     groups: [{ id: "g1", name: "The Guild", blurb: "", goals: "Tolls.", members: [{ kind: "character", id: "c1" }, { kind: "location", id: "gone" }] }],
     strands: [],
@@ -45,12 +46,23 @@ describe("the Story Bible outline", () => {
     expect(groups["characters.sections.depth.title"]).toEqual([{ label: "characters.detail.backstory", text: "Struck off the fleet-rolls." }]);
 
     const reach = o.sections[1].entries[0];
-    expect(reach.facts).toEqual([
+    expect(reach.facts.map(({ label, text }) => ({ label, text }))).toEqual([
       { label: "common.description", text: "White crust.\nNight crossings." },
       { label: "locations.fields.atmosphere.label", text: "Glare" },
     ]);
+    // a rich description carries its blocks, formatting and all (2026-10-29)
+    expect(reach.facts[0].blocks.map((b) => b.runs)).toEqual([
+      [{ text: "White " }, { text: "crust", italic: true }, { text: "." }], [{ text: "Night crossings." }],
+    ]);
     expect(o.sections[2].entries[0].facts.find((f) => f.label === "groups.colMembers").text).toBe("Sable");
     expect(o.sections[3].entries[0].facts[0]).toEqual({ label: "common.category", text: "History" });
+  });
+
+  it("the Word file keeps a description's italics", async () => {
+    const blob = await storyBibleDocx(storyBibleOutline(book(), t), { language: "en" });
+    const xml = await (await JSZip.loadAsync(await blob.arrayBuffer())).file("word/document.xml").async("string");
+    const run = xml.match(/<w:r>(?:(?!<\/w:r>).)*<w:t[^>]*>crust<\/w:t>/)?.[0] || "";
+    expect(run).toContain("<w:i/>");
   });
 
   it("leaves out an entry marked Exclude from AI when asked, and keeps it otherwise", () => {

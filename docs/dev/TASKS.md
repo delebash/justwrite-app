@@ -608,14 +608,6 @@ GO:     given 2026-10-08 — the tests and research ("your rec on all go do the 
 - **i18n key-naming style + the `|` plural pipes in `en.json` — your veto still open.** Trap to
   remember: `@` is vue-i18n's linked-message syntax — write `{'@'}` in messages; nothing in the
   toolchain catches it, so render-check any message containing `@ | {`.
-- **The release workflow on GitHub's latest action majors** (the user, 2026-10-29: "why dont we use
-  whatever latest is for gituhb", "i want this for all apps"): `release.yml` still pins
-  `actions/checkout`, `setup-node`, `upload-artifact` and `download-artifact` at `@v4` (they run on
-  Node 20; the build itself is Node 24). Latest today: checkout v7, setup-node v7, upload-artifact v7,
-  download-artifact v8. The build's `node-version` stays on the Node Electron carries (24 with
-  Electron 44) and moves with Electron — the server and tests run on that Node; no Dependabot (your
-  go on the rec, 2026-10-29). WAITS ON the kit's template `release.yml` (its session is moving it); JW
-  then copies its lines and proves them with a dry run (`publish=false`).
 - **Rotate the Gemini key that appeared in chat** — yours (the key itself is never printed).
 
 ## Your-box checks (only the Windows / 2070S machine can finish these)

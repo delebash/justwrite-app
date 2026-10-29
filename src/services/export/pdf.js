@@ -8,6 +8,7 @@
 // ============================================================
 
 import { tBook } from "../../i18n/index.js";
+import { exportImageLoader, toBase64 } from "./exportImages.js";
 
 // The font the docDefinition's defaultStyle asks for; pdfmake resolves "Roboto"
 // bold to this file. Asserting it is present turns a silent 0.2→0.3-style API
@@ -65,11 +66,7 @@ export async function exportPdf({ manuscript, page, onProgress } = {}) {
       // its data URL), then a data URL — never the server's address or a blob: URL
       const { readImageBytes } = await import("../imageStore.js");
       const img = await readImageBytes(manuscript.coverImage);
-      if (img) {
-        let binary = "";
-        for (let i = 0; i < img.bytes.length; i += 0x8000) binary += String.fromCharCode(...img.bytes.subarray(i, i + 0x8000));
-        coverDataUrl = `data:${img.mime};base64,${btoa(binary)}`;
-      }
+      if (img) coverDataUrl = `data:${img.mime};base64,${toBase64(img.bytes)}`;
     } catch { /* fall through to coverless PDF */ }
   }
 
@@ -102,6 +99,10 @@ export async function exportPdf({ manuscript, page, onProgress } = {}) {
   );
 
   // ── Body ────────────────────────────────────────────────
+  // a scene's pictures, each read once, fitted to the text's width and most of its height
+  const loadImage = exportImageLoader();
+  const [ml, mt, mr, mb] = page.pageMargins;
+  const imageFit = [page.pageSize.width - ml - mr, (page.pageSize.height - mt - mb) * 0.85];
   for (let pi = 0; pi < manuscript.parts.length; pi++) {
     const part = manuscript.parts[pi];
     content.push({
@@ -127,17 +128,21 @@ export async function exportPdf({ manuscript, page, onProgress } = {}) {
 
       for (const b of ch.blocks) {
         if (b.kind === "h1") continue; // chapter title already rendered
-        if (b.kind === "h2")          content.push({ text: b.text, style: "h2" });
+        if (b.kind === "h2")          content.push({ text: pdfText(b), style: "h2" });
         else if (b.kind === "blockquote")
-          content.push({ text: b.text, style: "blockquote" });
+          content.push({ text: pdfText(b), style: "blockquote" });
         else if (b.kind === "scene-break")
           content.push({ text: "* * *", style: "sceneBreak" });
         else if (b.kind === "page-break")
           content.push({ text: "", pageBreak: "after" });
         else if (b.kind === "ul-item")
-          content.push({ ul: [b.text], style: "p" });
+          content.push({ ul: [{ text: pdfText(b) }], style: "p" });
+        else if (b.kind === "image") {
+          const img = await loadImage(b.src);
+          if (img) content.push({ image: `data:${img.mime};base64,${toBase64(img.bytes)}`, fit: imageFit, alignment: "center", margin: [0, 8, 0, 8] });
+        }
         else
-          content.push({ text: b.text, style: "p" });
+          content.push({ text: pdfText(b), style: "p" });
       }
     }
   }
@@ -193,6 +198,26 @@ export async function exportPdf({ manuscript, page, onProgress } = {}) {
 
 /** Every JustWrite PDF's footer — "page / pages", small and centred: the manuscript's and the
  *  Story Bible's. */
+/**
+ * A block's runs as pdfmake's inline text: each run's formatting as pdfmake's (italics, bold,
+ * decorations, sup/sub), a line break "\n". A block without runs (a synthetic heading) is its text.
+ */
+export function pdfText(b) {
+  if (!b.runs) return b.text;
+  return b.runs.map((r) => {
+    if (r.br) return "\n";
+    const decoration = [r.underline && "underline", r.strike && "lineThrough"].filter(Boolean);
+    return {
+      text: r.text,
+      ...(r.italic && { italics: true }),
+      ...(r.bold && { bold: true }),
+      ...(decoration.length && { decoration }),
+      ...(r.sup && { sup: true }),
+      ...(r.sub && { sub: true }),
+    };
+  });
+}
+
 export function pageNumberFooter(currentPage, pageCount) {
   return { text: `${currentPage} / ${pageCount}`, alignment: "center", fontSize: 9, color: "#999", margin: [0, 0, 0, 24] };
 }

@@ -77,7 +77,7 @@ The **Add notes** mode applies two settings to every note in the batch:
 
 > *"I'm finally done with this draft. I need a file I can actually send — to an agent, an editor, or just my e-reader."*
 
-The **Export** view (Project section in the sidebar) produces a finished file in one of four formats.
+The **Export** view (Project section in the sidebar) produces a finished file in one of five formats.
 
 ### The format picker
 
@@ -88,6 +88,14 @@ The first three are **finished reading files** — one manuscript, typeset for a
 ### The book's language
 
 The reading files follow the **Book language** in **Settings → Project**, not the language of JustWrite's screens. Each one declares it — so an e-reader hyphenates and looks words up in the right language, and Word proofs the right one — and writes its own few words in it (**Contents**, **Chapter 3**, **by** *author*) when JustWrite speaks that language; otherwise those words stay English. A new book starts in the language of JustWrite's screens; every book from before the field existed is English.
+
+### What the reading files keep
+
+PDF, DOCX and EPUB keep your prose as you wrote it: **italics, bold, underline, strikethrough,
+superscript and subscript**, a line break inside a paragraph, and the **pictures** in your scenes (one
+that isn't a PNG or a JPEG goes in as a PNG). Your working marks stay behind — highlights, text
+colours, comments, the AI-text mark and font sizes — and a centred or right-aligned paragraph is set
+like the rest.
 
 ### PDF
 
@@ -182,6 +190,7 @@ Your characters, locations, objects, groups and worldbuilding articles as one do
 
 - **Leave out entries marked Exclude from AI** — the flag writers use for spoilers, so a document you hand someone doesn't give the twist away.
 - The labels are in the **book's language**, as the reading files' words are.
+- A description or an article keeps its **italics, bold** and lists; pictures in it stay on its page.
 - The PDF uses the page size set on the **PDF** card.
 
 **Filename:** your book's title and *story-bible* — `the-ninth-facet-story-bible.docx`.

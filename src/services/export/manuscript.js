@@ -8,8 +8,13 @@
 //     parts: [{ id, title, chapters: [{ id, num, title, blocks }] }],
 //   }
 //
-// Each block is `{ kind, text }` where kind is one of:
-//   "h1" | "h2" | "p" | "blockquote" | "scene-break" | "page-break" | "ul-item"
+// Each block is `{ kind, text, runs }` where kind is one of:
+//   "h1" | "h2" | "p" | "blockquote" | "scene-break" | "page-break" | "ul-item" | "image"
+// `text` is the block's plain text; `runs` is the same text with its inline formatting — each
+// `{ text, italic, bold, underline, strike, sup, sub }`, a line break `{ br: true }` — which the
+// exporters write as their own (2026-10-29: every export used to keep the plain text alone, so a
+// novel's italics, bold and line breaks were lost). An "image" block is `{ kind, src, alt }`: a
+// picture in a scene (exportImages.js loads it).
 //
 // Chapters with empty bodies get a synthetic h1 from the chapter title
 // so downstream renderers always have at least a heading to lay out.
@@ -73,22 +78,29 @@ function blocksFromHtml(html, fallbackTitle = "", { stripSceneStructure = false 
 
   // Ensure every chapter has a top-level heading.
   let sawHeading = false;
+  // A block with text: its runs, and the plain text they spell (a line break reads as a space).
+  const textBlock = (kind, el) => {
+    const runs = inlineRuns(el);
+    return { kind, text: plainText(runs), runs };
+  };
   for (const node of div.childNodes) {
     if (node.nodeType !== 1) continue;
     const tag = node.tagName.toLowerCase();
+    // a picture: the scene's own image node, or one inside a paragraph (pasted HTML)
+    if (tag === "img") { pushImage(blocks, node); continue; }
+    if (tag === "p" && node.querySelector("img")) for (const img of node.querySelectorAll("img")) pushImage(blocks, img);
     const text = node.textContent?.replace(/\s+/g, " ").trim();
     if (!text && tag !== "hr") continue;
 
-    if (tag === "h1") { blocks.push({ kind: "h1", text }); sawHeading = true; }
-    else if (tag === "h2") blocks.push({ kind: "h2", text });
-    else if (tag === "h3") blocks.push({ kind: "h2", text }); // promote h3 to h2
-    else if (tag === "blockquote") blocks.push({ kind: "blockquote", text });
+    if (tag === "h1") { blocks.push(textBlock("h1", node)); sawHeading = true; }
+    else if (tag === "h2") blocks.push(textBlock("h2", node));
+    else if (tag === "h3") blocks.push(textBlock("h2", node)); // promote h3 to h2
+    else if (tag === "blockquote") blocks.push(textBlock("blockquote", node));
     else if (tag === "hr") blocks.push({ kind: "scene-break", text: "" });
     else if (tag === "div" && node.classList.contains("page-break")) blocks.push({ kind: "page-break", text: "" });
     else if (tag === "ul" || tag === "ol") {
       for (const li of node.querySelectorAll("li")) {
-        const t = li.textContent?.replace(/\s+/g, " ").trim();
-        if (t) blocks.push({ kind: "ul-item", text: t });
+        if (li.textContent?.trim()) blocks.push(textBlock("ul-item", li));
       }
     }
     else if (tag === "p") {
@@ -97,10 +109,10 @@ function blocksFromHtml(html, fallbackTitle = "", { stripSceneStructure = false 
       if (node.classList.contains("scene-mark")) {
         blocks.push({ kind: "scene-break", text });
       } else {
-        blocks.push({ kind: "p", text });
+        blocks.push(textBlock("p", node));
       }
     }
-    else if (text) blocks.push({ kind: "p", text });
+    else if (text) blocks.push(textBlock("p", node));
   }
 
   if (!sawHeading && fallbackTitle) {
@@ -108,6 +120,64 @@ function blocksFromHtml(html, fallbackTitle = "", { stripSceneStructure = false 
   }
   return blocks;
 }
+
+// The inline formatting a run can carry, by the editor's tags (StarterKit's em/strong/s, Underline's u,
+// Subscript's sub, Superscript's sup; i/b/del/strike from pasted HTML).
+const FORMAT_BY_TAG = {
+  em: "italic", i: "italic", strong: "bold", b: "bold", u: "underline",
+  s: "strike", del: "strike", strike: "strike", sup: "sup", sub: "sub",
+};
+const FORMATS = ["italic", "bold", "underline", "strike", "sup", "sub"];
+
+/**
+ * An element's text as runs: `{ text, italic?, bold?, underline?, strike?, sup?, sub? }` and
+ * `{ br: true }` for a line break. Whitespace collapses as HTML does; neighbouring runs with the
+ * same formatting merge; the block's leading and trailing spaces go. Pictures aren't text.
+ */
+export function inlineRuns(el) {
+  const runs = [];
+  const walk = (node, fmt) => {
+    if (node.nodeType === 3) {
+      const text = node.nodeValue.replace(/\s+/g, " ");
+      if (!text) return;
+      const last = runs[runs.length - 1];
+      if (last && !last.br && FORMATS.every((k) => !!last[k] === !!fmt[k])) last.text += text;
+      else runs.push({ text, ...fmt });
+      return;
+    }
+    if (node.nodeType !== 1) return;
+    const tag = node.tagName.toLowerCase();
+    if (tag === "br") { runs.push({ br: true }); return; }
+    if (tag === "img") return;
+    const own = FORMAT_BY_TAG[tag];
+    const next = own ? { ...fmt, [own]: true } : fmt;
+    for (const child of node.childNodes) walk(child, next);
+  };
+  walk(el, {});
+  // one space between runs, none at either end of the block or around a line break
+  for (let i = 0; i < runs.length; i++) {
+    const r = runs[i];
+    if (r.br) continue;
+    const prev = runs[i - 1];
+    if (!prev || prev.br || prev.text.endsWith(" ")) r.text = r.text.replace(/^ +/, "");
+    const after = runs[i + 1];
+    if (!after || after.br) r.text = r.text.replace(/ +$/, "");
+  }
+  return runs.filter((r) => r.br || r.text);
+}
+
+/** The runs' plain text — a line break reads as a space. */
+export function plainText(runs) {
+  return runs.map((r) => (r.br ? " " : r.text)).join("").replace(/\s+/g, " ").trim();
+}
+
+function pushImage(blocks, img) {
+  const src = img.getAttribute("src");
+  if (src) blocks.push({ kind: "image", src, alt: (img.getAttribute("alt") || "").trim() });
+}
+
+/** A rich field's HTML (a description, an article) as blocks — a chapter's without its heading. */
+export const htmlBlocks = (html) => blocksFromHtml(html, "");
 
 /**
  * Convenience: yield every chapter across all parts as a flat array,

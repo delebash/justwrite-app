@@ -12,11 +12,15 @@ import { categoryLabelShown } from "../../stores/project.js";
 import { fieldLabelKeys, fieldValue, SHEET_SECTIONS } from "../characterSheet.js";
 import { sheetDescription, sheetFieldLabelKeys, sheetFields, sheetValue } from "../storyWorldSheet.js";
 import { htmlToText } from "../text.js";
-import { getDocx } from "./docx.js";
-import { getPdfMake, pageNumberFooter } from "./pdf.js";
+import { docxRuns, getDocx } from "./docx.js";
+import { htmlBlocks } from "./manuscript.js";
+import { getPdfMake, pageNumberFooter, pdfText } from "./pdf.js";
 
 const filled = (facts) => facts.filter((f) => String(f.text ?? "").trim());
 const plain = (html) => htmlToText(html || "", { blockNewlines: true, tidyLines: true });
+// A rich field (a description, an article): its plain text, and its blocks with their formatting for
+// the writers (2026-10-29 — they set it as plain lines, losing its italics and bold).
+const rich = (html) => ({ text: plain(html), blocks: htmlBlocks(html || "") });
 
 function characterEntry(project, c, t) {
   const extras = project.characterExtras?.[c.id] || {};
@@ -40,7 +44,7 @@ function characterEntry(project, c, t) {
 function sheetEntry(kind, entity, t, extra = []) {
   const description = sheetDescription(kind);
   const facts = filled([
-    { label: t(description.label), text: plain(entity[description.key]) },
+    { label: t(description.label), ...rich(entity[description.key]) },
     ...sheetFields(kind).map((key) => ({ label: t(sheetFieldLabelKeys(kind, key).label), text: sheetValue(entity, key) })),
     ...extra,
     { label: t("common.tags"), text: (entity.tags || []).join(", ") },
@@ -80,7 +84,7 @@ export function storyBibleOutline(project, t, { skipExcluded = false } = {}) {
         facts: filled([
           { label: t("common.category"), text: categoryOf(project, w.category) },
           { label: t("worldbuilding.summaryLabel"), text: w.summary },
-          { label: t("common.description"), text: plain(w.body) },
+          { label: t("common.description"), ...rich(w.body) },
           { label: t("common.tags"), text: (w.tags || []).join(", ") },
         ]),
         groups: [],
@@ -111,9 +115,18 @@ export async function storyBibleDocx(outline, { language, onProgress } = {}) {
   onProgress?.({ stage: "loading-docx" });
   const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = await getDocx();
   onProgress?.({ stage: "composing" });
+  // a rich field's text blocks with their formatting (a list item as a bullet); a picture or a scene
+  // mark in a description stays out; a plain field, line by line
+  const body = (f) => (f.blocks
+    ? f.blocks.filter((b) => b.runs).map((b) => new Paragraph({
+      spacing: { after: 80, line: 300 },
+      ...(b.kind === "ul-item" && { bullet: { level: 0 } }),
+      children: docxRuns(TextRun, b, b.kind === "h2" ? { bold: true } : b.kind === "blockquote" ? { italics: true } : {}),
+    }))
+    : linesOf(f.text).map((l) => new Paragraph({ spacing: { after: 80, line: 300 }, children: [new TextRun({ text: l })] })));
   const fact = (f) => [
     new Paragraph({ spacing: { before: 120, after: 40 }, children: [new TextRun({ text: f.label, bold: true, color: "555555", size: 20 })] }),
-    ...linesOf(f.text).map((l) => new Paragraph({ spacing: { after: 80, line: 300 }, children: [new TextRun({ text: l })] })),
+    ...body(f),
   ];
   const children = [
     new Paragraph({ heading: HeadingLevel.TITLE, alignment: AlignmentType.CENTER, children: [new TextRun({ text: outline.heading })] }),
@@ -147,7 +160,12 @@ export async function storyBiblePdf(outline, { language, page, onProgress } = {}
   onProgress?.({ stage: "loading-pdfmake" });
   const pdfMake = await getPdfMake();
   onProgress?.({ stage: "composing" });
-  const facts = (list) => list.flatMap((f) => [{ text: f.label, style: "label" }, ...linesOf(f.text).map((l) => ({ text: l, style: "text" }))]);
+  const body = (f) => (f.blocks
+    ? f.blocks.filter((b) => b.runs).map((b) => (b.kind === "ul-item"
+      ? { ul: [{ text: pdfText(b) }], style: "text" }
+      : { text: pdfText(b), style: "text", ...(b.kind === "h2" && { bold: true }), ...(b.kind === "blockquote" && { italics: true }) }))
+    : linesOf(f.text).map((l) => ({ text: l, style: "text" })));
+  const facts = (list) => list.flatMap((f) => [{ text: f.label, style: "label" }, ...body(f)]);
   const content = [{ text: outline.heading, style: "title" }];
   if (outline.byAuthor) content.push({ text: outline.byAuthor, style: "byline" });
   for (const s of outline.sections) {

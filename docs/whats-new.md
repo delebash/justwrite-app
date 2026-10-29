@@ -6,6 +6,10 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-29
 
+**Exports keep your italics, bold and pictures.** PDF, DOCX and EPUB used to set every paragraph as
+plain text: a novel's italics and bold, a line break inside a paragraph and the pictures in its scenes
+were lost. They come through now. See [Import and export](import-and-export.md#what-the-reading-files-keep).
+
 **Formatted answers in the chat.** In **Ask the book** and **Talk to a character**, an answer's bold,
 italics, lists and quotes now show as formatting instead of the model's asterisks. A model that writes
 HTML or a script into an answer gets it shown as plain text, never run. See [AI features](ai-features.md#chat).

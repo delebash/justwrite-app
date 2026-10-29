@@ -45,6 +45,7 @@
     "@tiptap/suggestion": "^3.31.4",
     "dompurify": "^3.4.17",
     "front-matter": "^4.0.2",
+    "image-size": "^2.0.4",
     "qrcode": "^1.5.4",
     "quasar": "^2.35.0"
   },

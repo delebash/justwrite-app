@@ -7,6 +7,7 @@
 // ============================================================
 
 import { tBook } from "../../i18n/index.js";
+import { exportImageLoader, fitSize } from "./exportImages.js";
 
 let docxPromise = null;
 export async function getDocx() {
@@ -14,12 +15,31 @@ export async function getDocx() {
   return docxPromise;
 }
 
+/**
+ * A block's runs as Word text runs (the `docx` library's TextRun): each run's formatting on top of the
+ * block's own (`base`), a line break a break. A block without runs (a synthetic heading) is its text.
+ */
+export function docxRuns(TextRun, b, base = {}) {
+  return (b.runs || [{ text: b.text }]).map((r) => (r.br
+    ? new TextRun({ ...base, break: 1 })
+    : new TextRun({
+      ...base,
+      text: r.text,
+      italics: base.italics || r.italic || undefined,
+      bold: base.bold || r.bold || undefined,
+      underline: r.underline ? {} : undefined,
+      strike: r.strike || undefined,
+      superScript: r.sup || undefined,
+      subScript: r.sub || undefined,
+    })));
+}
+
 export async function exportDocx({ manuscript, onProgress } = {}) {
   onProgress?.({ stage: "loading-docx" });
   const lib = await getDocx();
   const {
     Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType,
-    PageBreak, TableOfContents,
+    PageBreak, TableOfContents, ImageRun,
   } = lib;
 
   onProgress?.({ stage: "composing" });
@@ -41,21 +61,34 @@ export async function exportDocx({ manuscript, onProgress } = {}) {
     spacing: { before: 720, after: 120 },
     children: [new TextRun({ text, color: "888888", characterSpacing: 60 })],
   });
-  const para = (text, opts = {}) => new Paragraph({
+  const textRuns = (b, base = {}) => docxRuns(TextRun, b, base);
+  const para = (b, opts = {}) => new Paragraph({
     spacing: { after: 160, line: 320 },
     alignment: opts.alignment || AlignmentType.JUSTIFIED,
     indent: opts.indent ? { firstLine: 360 } : undefined,
-    children: [new TextRun({ text, italics: opts.italics, color: opts.color })],
+    children: textRuns(b, { italics: opts.italics, color: opts.color }),
+  });
+  // A picture fitted to the text's width on an A4 page with Word's 1-inch margins (6.27 in at 96 px).
+  const loadImage = exportImageLoader();
+  const picture = (img, alt) => new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 160, after: 160 },
+    children: [new ImageRun({
+      type: img.ext === "jpg" ? "jpg" : "png",
+      data: img.bytes,
+      transformation: fitSize(img, 600, 800),
+      altText: { name: alt || "image", description: alt, title: alt },
+    })],
   });
   const sceneBreak = () => new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: { before: 240, after: 240 },
     children: [new TextRun({ text: "* * *", color: "999999", characterSpacing: 120 })],
   });
-  const bullet = (text) => new Paragraph({
+  const bullet = (b) => new Paragraph({
     bullet: { level: 0 },
     spacing: { after: 80 },
-    children: [new TextRun({ text })],
+    children: textRuns(b),
   });
   const pageBreak = () => new Paragraph({ children: [new PageBreak()] });
 
@@ -113,18 +146,21 @@ export async function exportDocx({ manuscript, onProgress } = {}) {
           children.push(new Paragraph({
             heading: HeadingLevel.HEADING_3,
             spacing: { before: 320, after: 120 },
-            children: [new TextRun({ text: b.text, bold: true })],
+            children: textRuns(b, { bold: true }),
           }));
         } else if (b.kind === "blockquote") {
-          children.push(para(b.text, { italics: true, color: "555555", alignment: AlignmentType.LEFT }));
+          children.push(para(b, { italics: true, color: "555555", alignment: AlignmentType.LEFT }));
         } else if (b.kind === "scene-break") {
           children.push(sceneBreak());
         } else if (b.kind === "page-break") {
           children.push(pageBreak());
         } else if (b.kind === "ul-item") {
-          children.push(bullet(b.text));
+          children.push(bullet(b));
+        } else if (b.kind === "image") {
+          const img = await loadImage(b.src);
+          if (img) children.push(picture(img, b.alt));
         } else {
-          children.push(para(b.text, { indent: true }));
+          children.push(para(b, { indent: true }));
         }
       }
     }
