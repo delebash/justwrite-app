@@ -72,12 +72,10 @@ function goOwner(ev) { router.push(EVENTS_KIND_META[ev.ownerKind].detailUrl(ev.o
 
           <section v-else class="timeline">
             <article v-for="ev in allEvents" :key="`${ev.ownerId}:${ev.id}`" class="timeline-row">
-              <div class="timeline-when tl-when-click" role="button" tabindex="0"
-                :aria-label="$t('events.openAriaLabel', { title: ev.title || $t('events.fallbackName') })"
+              <!-- a mouse shortcut to the event; the keyboard's way is its title's button -->
+              <div class="timeline-when tl-when-click"
                 v-tooltip.bottom="$t('events.openAriaLabel', { title: ev.title || $t('events.fallbackName') })"
-                @click="goEvent(ev)"
-                @keydown.enter.prevent="goEvent(ev)"
-                @keydown.space.prevent="goEvent(ev)">
+                @click="goEvent(ev)">
                 <span class="when-weekday">{{ formatWhen(ev.when).weekday }}</span>
                 <span class="when-date">{{ formatWhen(ev.when).date }}</span>
                 <span class="when-time">{{ formatWhen(ev.when).time }}</span>

@@ -459,8 +459,10 @@ run in vanilla browser. The desktop harness gets all of them.
   `../../justwrite-website/public/screenshots/`. Add routes by appending to
   the array.
 - `cd e2e && npm test` — runs `tests/*.test.js` against the same app, on your
-  real data (7 tests, all passing on 2026-10-08). The theme test's clicks are
-  undone: the suite writes your `ui` settings section back when it ends.
+  real data, one file at a time: the smoke suite (7 tests, all passing on 2026-10-08) and
+  the accessibility test (`a11y.test.js`, 2026-10-29: axe-core against WCAG 2.2 AA on every
+  page `lib/pages.js` lists and each AI tab, light and dark). Each writes your `ui`
+  settings section back when it ends.
 - The harness drives whatever `dist/electron/UnPackaged/` was last built. If source has
   drifted, run `npm run build:unpacked` from the app root first.
 - Don't run with your own JustWrite open — both would start a server on :17495

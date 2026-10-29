@@ -114,7 +114,7 @@ If you ever want to force a backup to a file you can move or archive, open **Set
 
 Almost every item in JustWrite (chapters, scenes, characters, locations, articles, strands) carries a **status** — a coloured label that tells you, at a glance, where it stands. The default palette includes things like Draft, Revise, Done, To-do.
 
-You can edit the palette in **Settings → Project → Statuses**: add new statuses, rename them, recolour them, delete ones you don't use. The colours then appear throughout the sidebar, on chapter rows, on scene strips, and on the Home dashboard.
+You can edit the palette in **Settings → Project → Statuses**: add new statuses, rename them, recolour them, delete ones you don't use. The colours then appear throughout the sidebar (a dot beside the status's name), on chapter rows, on scene strips, and on the Home dashboard.
 
 Statuses are entirely yours. Use them for whatever workflow makes sense to you. A common scheme:
 

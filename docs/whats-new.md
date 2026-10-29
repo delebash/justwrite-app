@@ -9,6 +9,18 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-29
 
+**Statuses you can read in the sidebar.** A status beside a chapter, scene or entry is now its name in
+plain text after a dot in the status's colour — the way the chapter bar shows **● Done** — because a
+light green or blue word was too faint to read. The sidebar's word counts are a shade darker for the same
+reason. See [Core concepts](core-concepts.md#statuses).
+
+**Clearer with a screen reader.** The editor's toolbar buttons say what they do, the editor's text box
+and every field on a character's sheet say what they hold, and the Relations graph reads each name on it
+with its kind, as you see them.
+
+**The Events page shows where you are again.** Its path at the top had lost its first step — it reads
+**Character › Sable Coyne** again, and the first step takes you back to the list.
+
 **A second window.** Keep a character's sheet — or any page — open beside the manuscript: **Ctrl/⌘ +
 Shift + N**, or **Open this page in a new window** in the Command Palette. See
 [Writing](writing.md#a-second-window).

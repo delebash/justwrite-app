@@ -29,6 +29,16 @@ export const chromeLaunchOptions = () => kitChromeLaunchOptions({ env: "JW_CHROM
 
 export { isUp, sleep, waitReady };
 
+/** The app's top-level routes (hash) reachable with no required params — what the headless smoke
+ *  drives, and the start of the accessibility test's page list (e2e/lib/pages.js). */
+export const ROUTES = [
+  "#/", "#/chapters", "#/search", "#/characters", "#/locations", "#/objects",
+  "#/groups", "#/worldbuilding", "#/strands", "#/plot", "#/timeline", "#/notes",
+  "#/brainstorm", "#/markers", "#/relations", "#/analysis",
+  "#/reader-knowledge", "#/import", "#/export", "#/trash", "#/settings",
+  "#/help", "#/ai", "#/architecture", "#/welcome",
+];
+
 /** The app and the server a probe drives (tests/probes/), from JW_APP and JW_API — never a
  *  default. Probes write to the server they drive (presets, projects, even a data reset), and
  *  their old default was your running JustWrite (:1420 / :17495), your real library. */

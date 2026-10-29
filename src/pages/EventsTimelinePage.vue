@@ -23,7 +23,8 @@ const entity = computed(() => meta.value?.getEntity(project, props.entityId));
 const name   = computed(() => meta.value?.entityName(entity.value) || (meta.value?.i18n ? t(meta.value.i18n) : ""));
 
 const crumbs = computed(() => [
-  { label: meta.value?.label, to: meta.value?.sectionUrl() },
+  // the kind's word, as before i18n moved it from `label` to `i18n` (8851c314) and left this crumb empty
+  { label: meta.value?.i18n ? t(meta.value.i18n) : "", to: meta.value?.sectionUrl() },
   { label: name.value, to: meta.value?.detailUrl(props.entityId) },
 ]);
 

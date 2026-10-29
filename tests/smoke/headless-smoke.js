@@ -20,20 +20,12 @@ import { fileURLToPath } from "node:url";
 // findChrome/waitReady/sleep are SHARED (extracted 2026-07-19) — this script,
 // book-smoke, and the bench harness all launch Chromium the same way, and
 // CLAUDE.md forbids a hand-rolled/hardcoded browser path. One copy: scripts/lib.
-import { findChrome, sleep, waitReady } from "../lib/smoke-common.js";
+// ROUTES: the top-level routes with no required params, shared with the accessibility test.
+import { ROUTES, findChrome, sleep, waitReady } from "../lib/smoke-common.js";
 
 
 const APP = process.env.JW_APP || "http://localhost:1420";
 const SERVER = process.env.JW_SERVER || "http://127.0.0.1:17495";
-
-// Top-level routes (hash) reachable with no required params.
-const ROUTES = [
-  "#/", "#/chapters", "#/search", "#/characters", "#/locations", "#/objects",
-  "#/groups", "#/worldbuilding", "#/strands", "#/plot", "#/timeline", "#/notes",
-  "#/brainstorm", "#/markers", "#/relations", "#/analysis",
-  "#/reader-knowledge", "#/import", "#/export", "#/trash", "#/settings",
-  "#/help", "#/ai", "#/architecture", "#/welcome",
-];
 
 await waitReady(`${SERVER}/v1/health`, "server");
 await waitReady(APP, "vite");

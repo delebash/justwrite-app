@@ -475,7 +475,7 @@ onBeforeUnmount(() => {
         :viewBox="`0 0 ${CONTENT_W} ${CONTENT_H}`"
         preserveAspectRatio="xMidYMid meet"
         width="100%" height="100%"
-        role="img"
+        role="group"
         :aria-label="focusedNode ? t('relations.graphFocused', { name: focusedNode.label }) : t('relations.graph')"
         @wheel.prevent="onWheel"
         @pointerdown="onPointerDown"
@@ -502,7 +502,7 @@ onBeforeUnmount(() => {
             :transform="`translate(${n.x} ${n.y})`"
             role="button"
             tabindex="0"
-            :aria-label="t(pinnedId === n.id ? 'relations.nodeOpen' : 'relations.nodePin', { name: n.sub ? `${n.label}, ${n.sub}` : n.label, kind: t(`relations.${n.cls}`) })"
+            :aria-label="t(pinnedId === n.id ? 'relations.nodeOpen' : 'relations.nodePin', { name: n.label, kind: n.sub ? `${t(`relations.${n.cls}`)}, ${n.sub}` : t(`relations.${n.cls}`) })"
             :aria-pressed="pinnedId === n.id ? 'true' : 'false'"
             @click.stop="onNodeClick(n)"
             @keydown.enter.stop="onNodeClick(n)"
@@ -515,17 +515,20 @@ onBeforeUnmount(() => {
             <circle :r="n.r"
               :style="`fill: ${nodeFill(n)}; stroke: ${nodeStroke(n)}`"
               :stroke-width="pinnedId === n.id ? 3 : (n.main ? 2 : 1.5)" />
-            <text :y="nodeLabel(n).y" :font-size="nodeLabel(n).size"
+            <!-- One <text> per line, each ending in a space: the space keeps the words apart in the node's text
+                 (WCAG 2.5.3 compares it with the name; tspans joined "Coyne" and "Character" into one word) and,
+                 at a text's end, is never drawn (measured 2026-10-29: 0 pixels moved). -->
+            <text v-for="(line, i) in nodeLabel(n).lines" :key="i"
+              :y="nodeLabel(n).y + i * nodeLabel(n).lineHeight" :font-size="nodeLabel(n).size"
               text-anchor="middle"
-              style="fill: var(--ink); pointer-events: none; font-weight: 500;">
-              <tspan v-for="(line, i) in nodeLabel(n).lines" :key="i" x="0" :dy="i ? nodeLabel(n).lineHeight : 0"
-                :textLength="line.fit || undefined" :lengthAdjust="line.fit ? 'spacingAndGlyphs' : undefined">{{ line.text }}</tspan>
-            </text>
+              :textLength="line.fit || undefined" :lengthAdjust="line.fit ? 'spacingAndGlyphs' : undefined"
+              style="fill: var(--ink); pointer-events: none; font-weight: 500;">{{ `${line.text} ` }}</text>
             <text :y="nodeLabel(n).kindY" :font-size="n.r >= 50 ? 8.5 : 7.5"
               text-anchor="middle"
               class="relations-node-type"
+              aria-hidden="true"
               style="pointer-events: none;">
-              {{ n.cls.charAt(0).toUpperCase() + n.cls.slice(1) }}
+              {{ t(`relations.${n.cls}`) }}
             </text>
           </g>
         </g>
@@ -543,20 +546,20 @@ onBeforeUnmount(() => {
           <span>{{ $t("relations.legendType") }}</span>
           <span class="legend-head-count">{{ $t("relations.legendEdges") }}</span>
         </div>
-        <label :aria-label="$t('relations.showCharacters', { n: edgeCounts.character })">
-          <UiCheckbox v-model="showCharacters" />
+        <label>
+          <UiCheckbox v-model="showCharacters" :aria-label="$t('relations.showCharacters', { n: edgeCounts.character })" />
           <i class="dot character" aria-hidden="true" />
           <span class="legend-label">{{ $t("relations.character") }}</span>
           <span class="legend-count" aria-hidden="true">{{ edgeCounts.character }}</span>
         </label>
-        <label :aria-label="$t('relations.showLocations', { n: edgeCounts.location })">
-          <UiCheckbox v-model="showLocations" />
+        <label>
+          <UiCheckbox v-model="showLocations" :aria-label="$t('relations.showLocations', { n: edgeCounts.location })" />
           <i class="dot location" aria-hidden="true" />
           <span class="legend-label">{{ $t("relations.location") }}</span>
           <span class="legend-count" aria-hidden="true">{{ edgeCounts.location }}</span>
         </label>
-        <label :aria-label="$t('relations.showObjects', { n: edgeCounts.object })">
-          <UiCheckbox v-model="showObjects" />
+        <label>
+          <UiCheckbox v-model="showObjects" :aria-label="$t('relations.showObjects', { n: edgeCounts.object })" />
           <i class="dot object" aria-hidden="true" />
           <span class="legend-label">{{ $t("relations.object") }}</span>
           <span class="legend-count" aria-hidden="true">{{ edgeCounts.object }}</span>

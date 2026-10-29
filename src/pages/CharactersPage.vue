@@ -466,20 +466,20 @@ const columns = computed(() => [
               <div class="ch-hero-row">
                 <div class="ch-field">
                   <span class="ch-field-label">{{ $t("characters.detail.role") }}</span>
-                  <UiInput width="id" :model-value="ch.role" @update:model-value="updateField('role', $event)" />
+                  <UiInput width="id" :aria-label="$t('characters.detail.role')" :model-value="ch.role" @update:model-value="updateField('role', $event)" />
                 </div>
                 <div class="ch-field">
                   <span class="ch-field-label">{{ $t("characters.detail.gender") }}</span>
-                  <UiInput width="token" :model-value="ch.gender" @update:model-value="updateField('gender', $event)" />
+                  <UiInput width="token" :aria-label="$t('characters.detail.gender')" :model-value="ch.gender" @update:model-value="updateField('gender', $event)" />
                 </div>
                 <div class="ch-field">
                   <span class="ch-field-label">{{ $t("characters.detail.pronouns") }}</span>
-                  <UiInput width="token" :model-value="ch.pronouns" @update:model-value="updateField('pronouns', $event)" />
+                  <UiInput width="token" :aria-label="$t('characters.detail.pronouns')" :model-value="ch.pronouns" @update:model-value="updateField('pronouns', $event)" />
                 </div>
                 <div class="ch-field">
                   <span class="ch-field-label">{{ $t("characters.detail.age") }}</span>
                   <UiNumber width="num" :use-grouping="false"
-                    :model-value="ch.age ?? null" @update:model-value="updateField('age', $event ?? null)" />
+                    :aria-label="$t('characters.detail.age')" :model-value="ch.age ?? null" @update:model-value="updateField('age', $event ?? null)" />
                 </div>
                 <div class="ch-field">
                   <span class="ch-field-label">{{ $t("characters.detail.lifeStatus") }}</span>
@@ -504,7 +504,7 @@ const columns = computed(() => [
                   <span class="ch-field-hint">{{ $t("characters.detail.oneLinerHint") }}</span>
                 </span>
                 <UiTextarea rows="2" style="font-family:var(--font-serif);font-style:italic"
-                  :model-value="ch.oneLiner" @update:model-value="updateField('oneLiner', $event)" />
+                  :aria-label="$t('characters.detail.oneLiner')" :model-value="ch.oneLiner" @update:model-value="updateField('oneLiner', $event)" />
               </div>
             </div>
           </div>
@@ -541,7 +541,7 @@ const columns = computed(() => [
             <div class="ch-grid-2">
               <div v-for="f in IDENTITY_FIELDS" :key="f.k" class="ch-field">
                 <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
-                <UiInput :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+                <UiInput :aria-label="$t(`characters.fields.${f.group}.${f.k}.label`)" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               </div>
             </div>
             <div class="motivation-grid" style="display:grid;gap:10px;margin-top:16px">
@@ -550,14 +550,14 @@ const columns = computed(() => [
                 <div :style="`font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:${i.color};margin-bottom:2px`">{{ $t(`characters.fields.motivation.${i.k}.label`) }}</div>
                 <div class="ch-field-hint" style="margin-bottom:6px">{{ $t(`characters.fields.motivation.${i.k}.hint`) }}</div>
                 <UiTextarea rows="2" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14.5px;line-height:1.5"
-                  :model-value="extras?.motivation?.[i.k] || ''" @update:model-value="updateMotivation(i.k, $event)" />
+                  :aria-label="$t(`characters.fields.motivation.${i.k}.label`)" :model-value="extras?.motivation?.[i.k] || ''" @update:model-value="updateMotivation(i.k, $event)" />
               </div>
             </div>
             <div class="ch-fieldset">
               <div v-for="f in CORE_ENGINE_FIELDS" :key="f.k" class="ch-field">
                 <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
-                <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
-                <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+                <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :aria-label="$t(`characters.fields.${f.group}.${f.k}.label`)" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+                <UiInput v-else :aria-label="$t(`characters.fields.${f.group}.${f.k}.label`)" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               </div>
             </div>
           </SheetSection>
@@ -576,7 +576,7 @@ const columns = computed(() => [
                   </div>
                   <div class="ch-field-hint" style="margin-bottom:6px">{{ $t(`characters.fields.arc.${s.k}.hint`) }}</div>
                   <UiTextarea rows="3" style="background:transparent;border:0;font-family:var(--font-serif);font-size:14px;line-height:1.55"
-                    :model-value="extras?.arc?.[s.k] || ''" @update:model-value="updateArc(s.k, $event)" />
+                    :aria-label="$t(`characters.fields.arc.${s.k}.label`)" :model-value="extras?.arc?.[s.k] || ''" @update:model-value="updateArc(s.k, $event)" />
                 </div>
               </div>
             </div>
@@ -590,33 +590,33 @@ const columns = computed(() => [
               <div>
                 <div class="t-muted">{{ $t("characters.fields.voice.accent.label") }}</div>
                 <div class="ch-field-hint" style="margin:2px 0 4px">{{ $t("characters.fields.voice.accent.hint") }}</div>
-                <UiInput :model-value="extras?.voice?.accent || ''" @update:model-value="updateVoice('accent', $event)" />
+                <UiInput :aria-label="$t('characters.fields.voice.accent.label')" :model-value="extras?.voice?.accent || ''" @update:model-value="updateVoice('accent', $event)" />
               </div>
               <div>
                 <div class="t-muted">{{ $t("characters.fields.voice.vocabulary.label") }}</div>
                 <div class="ch-field-hint" style="margin:2px 0 4px">{{ $t("characters.fields.voice.vocabulary.hint") }}</div>
-                <UiInput :model-value="extras?.voice?.vocabulary || ''" @update:model-value="updateVoice('vocabulary', $event)" />
+                <UiInput :aria-label="$t('characters.fields.voice.vocabulary.label')" :model-value="extras?.voice?.vocabulary || ''" @update:model-value="updateVoice('vocabulary', $event)" />
               </div>
               <div style="grid-column:1/-1">
                 <div class="t-muted">{{ $t("characters.fields.voice.tic.label") }}</div>
                 <div class="ch-field-hint" style="margin:2px 0 4px">{{ $t("characters.fields.voice.tic.hint") }}</div>
-                <UiInput :model-value="extras?.voice?.tic || ''" @update:model-value="updateVoice('tic', $event)" />
+                <UiInput :aria-label="$t('characters.fields.voice.tic.label')" :model-value="extras?.voice?.tic || ''" @update:model-value="updateVoice('tic', $event)" />
               </div>
               <div style="grid-column:1/-1">
                 <div class="t-muted">{{ $t("characters.fields.voice.sample.label") }}</div>
                 <div class="ch-field-hint" style="margin:2px 0 4px">{{ $t("characters.fields.voice.sample.hint") }}</div>
-                <UiTextarea rows="2" :model-value="extras?.voice?.sample || ''" @update:model-value="updateVoice('sample', $event)" />
+                <UiTextarea rows="2" :aria-label="$t('characters.fields.voice.sample.label')" :model-value="extras?.voice?.sample || ''" @update:model-value="updateVoice('sample', $event)" />
               </div>
             </div>
             <div class="ch-fieldset">
               <div v-for="f in VOICE_FIELDS" :key="f.k" class="ch-field">
                 <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
-                <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
-                <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+                <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :aria-label="$t(`characters.fields.${f.group}.${f.k}.label`)" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+                <UiInput v-else :aria-label="$t(`characters.fields.${f.group}.${f.k}.label`)" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               </div>
               <div v-for="f in PRESENCE_FIELDS" :key="f.k" class="ch-field">
                 <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
-                <UiTextarea auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+                <UiTextarea auto-resize :rows="2" :aria-label="$t(`characters.fields.${f.group}.${f.k}.label`)" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               </div>
             </div>
           </SheetSection>
@@ -628,8 +628,8 @@ const columns = computed(() => [
             <div class="ch-fieldset">
               <div v-for="f in FUNCTION_FIELDS" :key="f.k" class="ch-field">
                 <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
-                <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
-                <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+                <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :aria-label="$t(`characters.fields.${f.group}.${f.k}.label`)" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+                <UiInput v-else :aria-label="$t(`characters.fields.${f.group}.${f.k}.label`)" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               </div>
             </div>
           </SheetSection>
@@ -641,8 +641,8 @@ const columns = computed(() => [
             <div class="ch-fieldset">
               <div v-for="f in CAPABILITY_FIELDS" :key="f.k" class="ch-field">
                 <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
-                <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
-                <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+                <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :aria-label="$t(`characters.fields.${f.group}.${f.k}.label`)" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+                <UiInput v-else :aria-label="$t(`characters.fields.${f.group}.${f.k}.label`)" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               </div>
             </div>
           </SheetSection>
@@ -654,8 +654,8 @@ const columns = computed(() => [
             <div class="ch-fieldset">
               <div v-for="f in CONTINUITY_FIELDS" :key="f.k" class="ch-field">
                 <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
-                <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
-                <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+                <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :aria-label="$t(`characters.fields.${f.group}.${f.k}.label`)" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+                <UiInput v-else :aria-label="$t(`characters.fields.${f.group}.${f.k}.label`)" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               </div>
             </div>
           </SheetSection>
@@ -667,13 +667,13 @@ const columns = computed(() => [
             <div class="ch-field">
               <span class="ch-field-label">{{ $t("characters.detail.backstory") }}<span class="ch-field-hint">{{ $t("characters.detail.backstoryHint") }}</span></span>
               <UiTextarea rows="5" style="font-family:var(--font-serif);font-size:15px;line-height:1.65"
-                :model-value="extras?.backstory || ''" @update:model-value="updateBackstory($event)" />
+                :aria-label="$t('characters.detail.backstory')" :model-value="extras?.backstory || ''" @update:model-value="updateBackstory($event)" />
             </div>
             <div class="ch-fieldset">
               <div v-for="f in DEPTH_FIELDS" :key="f.k" class="ch-field">
                 <span class="ch-field-label">{{ $t(`characters.fields.${f.group}.${f.k}.label`) }}<span class="ch-field-hint">{{ $t(`characters.fields.${f.group}.${f.k}.hint`) }}</span></span>
-                <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
-                <UiInput v-else :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+                <UiTextarea v-if="f.type === 'textarea'" auto-resize :rows="2" :aria-label="$t(`characters.fields.${f.group}.${f.k}.label`)" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
+                <UiInput v-else :aria-label="$t(`characters.fields.${f.group}.${f.k}.label`)" :model-value="extraVal(f.group, f.k)" @update:model-value="updateExtrasGroup(f.group, f.k, $event)" />
               </div>
             </div>
           </SheetSection>

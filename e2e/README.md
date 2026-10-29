@@ -42,8 +42,17 @@ settings, so later app launches keep the same theme until you switch again.
 
 ### `npm test`
 
-Runs the smoke suite (`tests/*.test.js`) via Node's built-in test runner. Launches the app once
-and shares it across the tests. Currently:
+Runs `tests/*.test.js` via Node's built-in test runner, one file at a time (each launches the app
+once and shares it across its tests; two at once would start two servers on one data folder).
+
+`a11y.test.js` checks every page against WCAG 2.2 AA with axe-core (`@axe-core/playwright`, the
+family template's test, app-structure §17), in the light theme and the dark one: every route,
+Settings section and open-book page `lib/pages.js` lists (the book's first entry of each kind — a
+kind your book has none of is skipped), and each tab of the AI page. It lists every failure with its
+page and element. The theme follows the system for the run; your `ui` settings section is written
+back after it.
+
+`smoke.test.js` is the smoke suite. Currently:
 
 | Test | What it asserts |
 | --- | --- |

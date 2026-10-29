@@ -297,7 +297,7 @@ html[data-theme="dark"] .titlebar {
 .nav-subgroup {
   font-size: 10px; font-weight: 600;
   letter-spacing: 0.06em; text-transform: uppercase;
-  color: var(--subtle);
+  color: var(--muted); /* WCAG AA on the sidebar (2026-10-29): --subtle read 2.4:1 */
   padding: 8px 8px 4px 8px;
 }
 .nav-child {
@@ -326,14 +326,18 @@ html[data-theme="dark"] .titlebar {
   min-width: 0;
 }
 .nav-child-sub {
-  font-size: 10.5px; color: var(--subtle);
+  font-size: 10.5px; color: var(--muted);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
+/* A status: its colour as a dot, its word in readable ink — a status colour is the writer's to pick, so as
+   text it couldn't be kept readable (WCAG AA, 2026-10-29); the chapter bar's "● Done" looks the same. */
 .nav-child-status {
-  font-size: 10px; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px;
+  font-size: 10px; font-weight: 600; color: var(--muted);
   text-align: right; white-space: nowrap;
 }
+.nav-child-status .status-dot { width: 6px; height: 6px; }
 .nav-child.sel {
   background: var(--accent-soft);
   color: var(--accent-ink);

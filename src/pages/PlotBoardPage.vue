@@ -206,10 +206,6 @@ function onCellKey(e, action, enabled) {
   if (!enabled) return;
   if (e.key === "Enter" || e.key === " ") { e.preventDefault(); action(); }
 }
-function onCardKey(e, strandId, beat) {
-  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleEditBeat(strandId, beat, e); }
-}
-
 async function handleRemoveBeat(strandId, beat, e) {
   e.stopPropagation();
   // QC-37 (toast law): the beat visibly leaves the board — no toast. (⌘Z
@@ -500,6 +496,7 @@ function sceneBadge(beat) {
                   <input
                     class="strand-name"
                     spellcheck="false"
+                    :aria-label="$t('plotBoard.dialog.strandName')"
                     :value="strand.name"
                     @blur="onStrandNameBlur(strand, $event)"
                     @keydown="onStrandNameKeydown"
@@ -545,18 +542,15 @@ function sceneBadge(beat) {
                   v-for="beat in beatsInCell(strand, null)"
                   :key="beat.id"
                   class="beat-card"
-                  tabindex="0"
-                  role="button"
-                  :aria-label="t('plotBoard.editBeatAria', { label: beat.label })"
                   :style="`border-left-color:${strand.color || 'var(--accent)'}`"
                   draggable="true"
                   v-tooltip.bottom="beat.note || beat.label"
                   @dragstart="onDragStart($event, strand.id, beat)"
                   @dragend="onDragEnd"
                   @click.stop="handleEditBeat(strand.id, beat, $event)"
-                  @keydown="onCardKey($event, strand.id, beat)"
                 >
-                  <span class="beat-label">{{ beat.label }}</span>
+                  <button type="button" class="beat-label" :aria-label="t('plotBoard.editBeatAria', { label: beat.label })"
+                    @click.stop="handleEditBeat(strand.id, beat, $event)">{{ beat.label }}</button>
                   <span v-if="sceneBadge(beat)" class="beat-scene" :title="t('plotBoard.pinnedTo', { scene: sceneBadge(beat) })">{{ sceneBadge(beat) }}</span>
                   <UiButton
                     intent="ghost"
@@ -602,18 +596,15 @@ function sceneBadge(beat) {
                   v-for="beat in beatsInCell(strand, ch.id)"
                   :key="beat.id"
                   class="beat-card"
-                  tabindex="0"
-                  role="button"
-                  :aria-label="t('plotBoard.editBeatAria', { label: beat.label })"
                   :style="`border-left-color:${strand.color || 'var(--accent)'}`"
                   draggable="true"
                   v-tooltip.bottom="beat.note || beat.label"
                   @dragstart="onDragStart($event, strand.id, beat)"
                   @dragend="onDragEnd"
                   @click.stop="handleEditBeat(strand.id, beat, $event)"
-                  @keydown="onCardKey($event, strand.id, beat)"
                 >
-                  <span class="beat-label">{{ beat.label }}</span>
+                  <button type="button" class="beat-label" :aria-label="t('plotBoard.editBeatAria', { label: beat.label })"
+                    @click.stop="handleEditBeat(strand.id, beat, $event)">{{ beat.label }}</button>
                   <span v-if="sceneBadge(beat)" class="beat-scene" :title="t('plotBoard.pinnedTo', { scene: sceneBadge(beat) })">{{ sceneBadge(beat) }}</span>
                   <UiButton
                     intent="ghost"
@@ -985,6 +976,8 @@ function sceneBadge(beat) {
 }
 .beat-card:active { cursor: grabbing; }
 
+/* The beat's label is its button (2026-10-29, WCAG AA): the card around it only drags, so no button sits
+   inside another; it keeps the card's look. */
 .beat-label {
   flex: 1 1 100%;
   min-width: 0;
@@ -992,7 +985,10 @@ function sceneBadge(beat) {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--ink);
+  appearance: none; background: none; border: 0; padding: 0; margin: 0;
+  font: inherit; text-align: left; cursor: inherit;
 }
+.beat-label:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
 .beat-scene {
   flex-shrink: 0;
   font-family: var(--font-mono);
@@ -1010,7 +1006,8 @@ function sceneBadge(beat) {
   opacity: 0;
   transition: opacity .12s;
 }
-.beat-card:hover .beat-del-btn { opacity: 1; }
+.beat-card:hover .beat-del-btn,
+.beat-card:focus-within .beat-del-btn { opacity: 1; }
 .beat-del-btn:hover { color: var(--danger-ink); }
 
 /* ── Add-beat button shown inside a populated cell ───────────────── */

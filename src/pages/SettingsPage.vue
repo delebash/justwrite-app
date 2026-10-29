@@ -782,14 +782,14 @@ async function deleteCategory(c) {
               <span class="t-muted" style="align-self:start;padding-top:8px">{{ $t('settings.goals.wordGoal') }}</span>
               <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0">
                 <UiNumber :min="0" :step="500" style="max-width:160px"
-                  :model-value="project.project.wordsGoal"
+                  :aria-label="$t('settings.goals.wordGoal')" :model-value="project.project.wordsGoal"
                   @update:model-value="(v) => setMetaNumber('wordsGoal', v)" />
                 <span class="t-muted" style="font-size:11.5px">{{ $t('settings.goals.wordGoalHint') }}</span>
               </div>
               <span class="t-muted" style="align-self:start;padding-top:8px">{{ $t('settings.goals.dailyTarget') }}</span>
               <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0">
                 <UiNumber :min="0" :step="50" style="max-width:160px"
-                  :model-value="project.project.dailyTarget ?? 1200"
+                  :aria-label="$t('settings.goals.dailyTarget')" :model-value="project.project.dailyTarget ?? 1200"
                   @update:model-value="(v) => setMetaNumber('dailyTarget', v)" />
                 <span class="t-muted" style="font-size:11.5px">{{ $t('settings.goals.dailyTargetHint') }}</span>
               </div>
@@ -1028,6 +1028,7 @@ async function deleteCategory(c) {
             <div class="settings-mode-grid" style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:10px" role="radiogroup" :aria-label="$t('settings.appearance.modeAriaLabel')">
               <button v-for="t in THEMES" :key="t.id"
                 role="radio" :aria-checked="ap.mode === t.id"
+                :data-testid="`theme-mode-${t.id}`"
                 class="theme-tile" :class="{ active: ap.mode === t.id }"
                 @click="setAp({ mode: t.id })">
                 <div class="theme-preview" :data-mode="t.id === 'system' ? 'split' : t.id">
@@ -1146,7 +1147,7 @@ async function deleteCategory(c) {
                 <Icon v-if="ap.accentHue === p.hue" name="Check" :size="12" />
               </button>
               <UiNumber :min="0" :max="360" style="width:74px"
-                :model-value="ap.accentHue" @update:model-value="(v) => setAp({ accentHue: clampHue(v) })" />
+                :aria-label="$t('settings.appearance.accentLabel')" :model-value="ap.accentHue" @update:model-value="(v) => setAp({ accentHue: clampHue(v) })" />
             </div>
             <div class="swatch-row" style="margin-top:8px" role="radiogroup" :aria-label="$t('settings.appearance.accent2Label')">
               <span class="swatch-label">{{ $t('settings.appearance.accent2Label') }}</span>
@@ -1158,7 +1159,7 @@ async function deleteCategory(c) {
                 <Icon v-if="ap.goldHue === p.hue" name="Check" :size="12" />
               </button>
               <UiNumber :min="0" :max="360" style="width:74px"
-                :model-value="ap.goldHue" @update:model-value="(v) => setAp({ goldHue: clampHue(v) })" />
+                :aria-label="$t('settings.appearance.accent2Label')" :model-value="ap.goldHue" @update:model-value="(v) => setAp({ goldHue: clampHue(v) })" />
             </div>
             <!-- Live preview — the button + tag both track the Accent 2 hue. -->
             <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-soft)">
@@ -1181,7 +1182,7 @@ async function deleteCategory(c) {
                 <Icon v-if="ap.successHue === p.hue" name="Check" :size="12" />
               </button>
               <UiNumber :min="0" :max="360" style="width:74px"
-                :model-value="ap.successHue" @update:model-value="(v) => setAp({ successHue: clampHue(v) })" />
+                :aria-label="$t('settings.appearance.successLabel')" :model-value="ap.successHue" @update:model-value="(v) => setAp({ successHue: clampHue(v) })" />
             </div>
             <div class="swatch-row" style="margin-top:8px" role="radiogroup" :aria-label="$t('settings.appearance.dangerLabel')">
               <span class="swatch-label">{{ $t('settings.appearance.dangerLabel') }}</span>
@@ -1193,7 +1194,7 @@ async function deleteCategory(c) {
                 <Icon v-if="ap.dangerHue === p.hue" name="Check" :size="12" />
               </button>
               <UiNumber :min="0" :max="360" style="width:74px"
-                :model-value="ap.dangerHue" @update:model-value="(v) => setAp({ dangerHue: clampHue(v) })" />
+                :aria-label="$t('settings.appearance.dangerLabel')" :model-value="ap.dangerHue" @update:model-value="(v) => setAp({ dangerHue: clampHue(v) })" />
             </div>
             <div class="swatch-row" style="margin-top:8px" role="radiogroup" :aria-label="$t('settings.appearance.infoLabel')">
               <span class="swatch-label">{{ $t('settings.appearance.infoLabel') }}</span>
@@ -1205,7 +1206,7 @@ async function deleteCategory(c) {
                 <Icon v-if="ap.infoHue === p.hue" name="Check" :size="12" />
               </button>
               <UiNumber :min="0" :max="360" style="width:74px"
-                :model-value="ap.infoHue" @update:model-value="(v) => setAp({ infoHue: clampHue(v) })" />
+                :aria-label="$t('settings.appearance.infoLabel')" :model-value="ap.infoHue" @update:model-value="(v) => setAp({ infoHue: clampHue(v) })" />
             </div>
             <!-- Live preview — buttons and tags re-skin from the hues above (banners + status chips use the same shades). -->
             <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--border-soft)">

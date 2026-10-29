@@ -40,7 +40,11 @@ STATE:  DECIDED — the user: "your rec all go", on these as shown (verbatim):
         JustWrite's own installer names (Windows JustWrite-Setup-<version>.exe, the macOS .dmg, Linux
         .AppImage or .deb): Windows: More info → Run anyway. macOS: System Settings → Privacy & Security
         → Open Anyway. Linux: make the AppImage runnable.
-OPEN:   A — at the family release, its last step (see "Before the family release" below); C — building.
+OPEN:   A — at the family release, its last step (see "Before the family release" below). C — built 2026-10-29
+        (the sidebar dot and counts, the Plot board, the checkboxes, the scroll areas; then, on sight, every page's
+        unnamed controls and the Events page's empty path step), and the check is `e2e/tests/a11y.test.js`. It stays
+        red until the kit's seven items (the kit's TASKS, FOUND (d)) and JustWrite's four look decisions below are
+        settled — facts in RESEARCH, "Accessibility: JustWrite against WCAG 2.2 AA".
 GO:     given 2026-10-29.
 
 ## Every open item settled — the close-out list [2026-10-29]
@@ -93,6 +97,11 @@ OPEN:   none — 22 decided (B in the A–D entry above). 20 DONE 2026-10-29: Up
 GO:     given 2026-10-29 for 1–20, as above; 22 not decided.
 
 ## Now / near-term (JustWrite)
+
+- **Accessibility — four decisions owed** (found 2026-10-29 by the check; the user's word on each): the success
+  button's green and the character sheet's "Need" label to measured AA values; a status's colour off its word in
+  the status pill, the editor's scene pill and Settings → Statuses (the dot keeps it, as in the sidebar);
+  Settings → Server and About onto the kit's `ServerPanel` and `AboutPanel`. Facts in RESEARCH, "Accessibility".
 
 - **Before the family release — its last step:** one docgen translation-and-review run on JustWrite
   (`es`), after the last English change: the strings added since the last run (96 on 2026-10-29) and

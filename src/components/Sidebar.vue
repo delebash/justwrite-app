@@ -977,7 +977,7 @@ const authorInitials = computed(() => {
                     <span class="nav-child-num">{{ c.num }}</span>
                     <span class="nav-child-label">{{ c.label }}</span>
                     <span class="nav-child-sub t-num">{{ c.words ? $n(c.words) : '' }}</span>
-                    <span class="nav-child-status" :style="c.statusColor ? { color: c.statusColor } : null">{{ c.statusLabel }}</span>
+                    <span class="nav-child-status"><span v-if="c.statusColor" class="status-dot" :style="{ background: c.statusColor }" />{{ c.statusLabel }}</span>
                     <UiButton intent="ghost" class="chapter-add-scene" v-tooltip.bottom="$t('sidebar.tooltips.addSceneToChapter')"
                       :aria-label="$t('sidebar.tooltips.addSceneToChapter')"
                       @click.stop="addSceneToChapter(c.id)">
@@ -1003,7 +1003,7 @@ const authorInitials = computed(() => {
                       <span class="scene-bullet">{{ si + 1 }}</span>
                       <span class="scene-label">{{ scn.title || $t("common.sceneN", { n: si + 1 }) }}</span>
                       <span class="nav-child-sub t-num">{{ scn.words ? $n(scn.words) : '' }}</span>
-                      <span class="nav-child-status" :style="navStatus(scn.status).statusColor ? { color: navStatus(scn.status).statusColor } : null">{{ navStatus(scn.status).statusLabel }}</span>
+                      <span class="nav-child-status"><span v-if="navStatus(scn.status).statusColor" class="status-dot" :style="{ background: navStatus(scn.status).statusColor }" />{{ navStatus(scn.status).statusLabel }}</span>
                     </div>
                   </template>
                 </template>
@@ -1072,7 +1072,7 @@ const authorInitials = computed(() => {
                     @drop="onWbDropArt(a.id, g.subgroupId)"
                     @dragend="onWbDragEnd">
                     <span class="nav-child-label">{{ a.label }}</span>
-                    <span v-if="a.statusLabel" class="nav-child-status" :style="{ color: a.statusColor }">{{ a.statusLabel }}</span>
+                    <span v-if="a.statusLabel" class="nav-child-status"><span v-if="a.statusColor" class="status-dot" :style="{ background: a.statusColor }" />{{ a.statusLabel }}</span>
                   </div>
                 </template>
               </template>
@@ -1100,7 +1100,7 @@ const authorInitials = computed(() => {
                   @dragend="!n.fixed && onItemDragEnd()">
                   <span v-if="c.color" class="nav-child-group-color" :style="{ background: c.color }" />
                   <span class="nav-child-label">{{ c.label }}</span>
-                  <span v-if="c.statusLabel" class="nav-child-status" :style="{ color: c.statusColor }">{{ c.statusLabel }}</span>
+                  <span v-if="c.statusLabel" class="nav-child-status"><span v-if="c.statusColor" class="status-dot" :style="{ background: c.statusColor }" />{{ c.statusLabel }}</span>
                   <span v-else-if="c.sub" class="nav-child-sub">{{ c.sub }}</span>
                 </div>
               </template>

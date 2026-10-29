@@ -588,7 +588,7 @@ const milestoneState = computed(() => {
             <div class="hm-dow">
               <span v-for="(d, i) in DOW_LETTERS" :key="i" class="hm-dow-lbl" :style="{ visibility: i % 2 ? 'visible' : 'hidden' }">{{ d }}</span>
             </div>
-            <div class="hm-weeks">
+            <div class="hm-weeks" role="region" tabindex="0" :aria-label="$t('analysis.year.title')">
               <div class="hm-month-row">
                 <span v-for="m in heatmap.monthLabels" :key="m.idx + m.label"
                   class="hm-month-lbl" :style="`grid-column-start: ${m.idx + 1}`">
@@ -1192,7 +1192,7 @@ const milestoneState = computed(() => {
   background: var(--surface-2); color: var(--muted);
   border: 1px solid var(--border-soft);
 }
-.ms-pip.on { background: color-mix(in oklab, var(--status-done) 18%, var(--surface)); color: var(--status-done); border-color: color-mix(in oklab, var(--status-done) 40%, transparent); }
+.ms-pip.on { background: var(--success-bg); color: var(--success-ink); border-color: color-mix(in oklab, var(--status-done) 40%, transparent); }
 .ms-pip.next { background: var(--accent-soft); color: var(--accent-ink); border-color: var(--accent-line); }
 .ms-streaks {
   margin-top: 14px; display: flex; flex-direction: column; gap: 5px;

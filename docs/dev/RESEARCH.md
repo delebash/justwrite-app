@@ -530,6 +530,63 @@ method), at every hue the appearance engine lets the user set (accent and danger
   theme's `--on-accent` (near-black) on accent and danger is 6.41:1 and 7.28:1 at worst;
   `--danger-ink` on its banner and `--info-ink` on `--info-bg` clear 4.5:1 in both themes.
 
+## Accessibility: JustWrite against WCAG 2.2 AA (2026-10-29)
+
+The family's standard is the kit's app-structure §17; its check is the template's `e2e/tests/a11y.test.js`
+(`@axe-core/playwright` 4.14.0, tags wcag2a/2aa/21a/21aa/22aa). JustWrite's is `e2e/tests/a11y.test.js` over
+`e2e/lib/pages.js` (every route, Settings section and open-book page, and the AI page's tabs). Measured on the
+built UI and a copy of the user's data with the sample book (JUST_AI_HOME the copy).
+
+- **The 25 top-level routes: 1,018 failing elements, light and dark.** The C round took them to 67
+  (66 Relations nodes, 1 button). **Every page (47) and the AI tabs: 587, then 141** after the editor,
+  character-page and Relations fixes. All 141 left are the kit's (filed in the kit's TASKS 2026-10-29,
+  seven with the one below: a `<label>` round UiCheckbox/UiToggle, Breadcrumb's 15.8 px targets, SyncPanel's
+  and ConfigColumn's unnamed fields, the console's log box, `--success` as text, the Usage tab's price
+  boxes), JustWrite's success fill and status words in two pills, and JustWrite's own Server
+  section. — *measured, the scratchpad's
+  a11y-probe.js*.
+- **axe joins an SVG node's `<text>` elements with no space** (`visibleVirtual` concatenates text nodes
+  with `""`; `aria-hidden` doesn't count, it measures what is on screen): "Sable Coyne" + "Character" read
+  "sable coynecharacter", so the name "Sable Coyne — Character, …" failed label-in-name (2.5.3). A space
+  inside a fitted line (`textLength`) is drawn: 10 of 66 text boxes moved. A space at the end of a `<text>`
+  is not: one `<text>` per line, each ending in a space, drew 0 differing pixels at 2× (1932×1350) and
+  passes. — *measured, axe 4.14's source and a pixel diff in the page*.
+- **A `<label>` round a UiCheckbox and text names QCheckbox's hidden native input, not the focusable
+  `role="checkbox"` box** (axe aria-toggle-field-name): 33 on the Writing AI tab and every "label + box +
+  words" row. A kit gap (filed). — *measured*.
+- **A `data-tip` tooltip is no name** (CSS only): 43 icon-only toolbar buttons were nameless; the 10 with
+  their own text (H1, the colour "A", Typewriter) keep it as their name, since a tip as the name would fail
+  label-in-name. — *code + measured*.
+- **The success fill** (white on `--success`, the success button), at every `--success-hue`, OKLCH → sRGB
+  with Chrome's per-channel clip: JustWrite's `oklch(0.6 0.13 h)` 3.57:1 at worst (hue 192), 3.73:1 at its
+  hue 150 (axe: #ffffff on #3b9555, the same number), out of sRGB at 112 hues; the template's
+  `oklch(0.538 0.080 h)` 4.89:1 at worst (hue 175), in gamut at every hue; `oklch(0.52 0.13 h)` 4.87:1 but
+  out of gamut at 160 hues. As text on the light grounds even the template's reads 4.29:1 at worst — text
+  takes `--success-ink`. JustWrite's value dates from 2026-06-02 ("ux updates"); the 2026-10-20 review moved
+  only the danger fill. — *measured, the scratchpad's success-contrast.js*.
+- **A status's colour as text can't be kept readable** — the writer picks it: the status pill's word 3.73:1
+  (green) and 3.08:1 (blue) on white, the editor's scene pill 3.33:1. Both already carry the colour as a dot
+  beside the word. — *measured*.
+- **JustWrite's Server and About sections are its own copies of the kit's `ServerPanel` and `AboutPanel`**
+  (the kit's since 2026-10-19, app-structure §Settings; docgen uses both). The kit's Server adds "Copy the
+  address with this token" (JustWrite's boot adopts `?token=` through the kit's `checkServer`), the server
+  command and the proxy warning, and names its controls. — *code*.
+- **JustWrite's boot warms the default local chat model** (`startWarmOnBoot`, `src/boot/jw.js`), so an e2e run
+  on the user's data loads the graphics card when that switch is on. — *code*.
+- **The user's real data shows what the sample copy doesn't**: the Usage tab's 12 price boxes (unnamed; they
+  render only with ledger rows, which a scratch JUST_AI_HOME has none of) and the Settings
+  pages' number boxes (Word goal, Daily target, the five hue boxes — `#/settings` reopens the last section). Toast
+  colours are right only once a toast has finished fading in (below). The
+  e2e on the built app is the check; the browser copy is the quick loop. — *measured, the e2e and a replay*.
+- **A kit toast's caption is at full opacity**: Quasar dims `.q-notification__caption` to 0.7, and the kit's
+  `quasar/theme.css:749` resets it for every `.ui-toast` (getComputedStyle on JustWrite's built CSS: 1). A
+  toast flagged by axe was measured mid fade-in (its 400 ms transition), so the e2e waits for finite animations
+  to end before each scan. (was: "the kit's theme keeps it; captions 3.6–4.3:1" until 2026-10-29 — theme.css
+  was read only to line 740.) — *measured, the scratchpad's caption-opacity.js; the kit's session's check*.
+- **The character sheet's "Need" label** (`--trait-need-ink` oklch(0.55 0.1 200) on its ground) reads 4.25:1
+  (axe 4.23); L 0.53 reaches 4.60:1. Want 4.59, Lie 4.62, Truth 5.30; dark all 8.8+. — *measured, the
+  scratchpad's trait-contrast.js*.
+
 ## The editor's colours in dark mode (2026-10-28)
 
 Measured with the same WCAG 2 method, on the dark paper `oklch(0.225 0.006 80)` with the dark ink
