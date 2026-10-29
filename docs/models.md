@@ -334,7 +334,10 @@ embedding model carries an **Embedding** badge. From here you can:
   (in its own capped area) — the load/measure progress and the **tok/s result stay in view
   below it**, no scrolling to find them. **Auto-tune** asks before it starts: the measured
   sweep can take **4 to 30 minutes depending on your hardware** (it usually gives the best
-  results for a model that hasn't been tuned yet, and you can cancel after any trial).
+  results for a model that hasn't been tuned yet, and you can cancel after any trial). For a model that isn't a
+  mixture of experts it also tries putting more of the model on your graphics card than the engine's own fit does,
+  one step at a time, and keeps the fastest setting that runs — the fit leaves about 1 GB free to be safe, which can
+  halve the speed on an 8 GB card.
   **The grid shows only the switches that are actually set** — the same simple editor as
   the two defaults libraries: each row is a switch name and a plain value box, with an
   **✕ to remove the row**. A removed switch simply isn't sent — the engine handles it its
