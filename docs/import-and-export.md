@@ -93,8 +93,9 @@ The reading files follow the **Book language** in **Settings → Project**, not 
 
 > *"My agent wants a clean read. I need something that looks like a real manuscript, not a Google Doc export."*
 
-A print-ready A4 document with:
+A typeset document at the page size you choose, with:
 
+- **Page size** — A4, US Letter, A5, or a novel's trim size: 5 × 8, 5.25 × 8, 5.5 × 8.5 or 6 × 9 inches. Each size comes with its own margins; change the **top**, **bottom** and **side** margins in the size's unit (millimetres for A sizes, inches for the rest), or leave one empty for the size's own. The book remembers its choice. A book starts on A4, the page every JustWrite PDF had.
 - Serif typesetting
 - A generated **Table of Contents**
 - Each chapter starting on a new page
@@ -108,6 +109,7 @@ A print-ready A4 document with:
 - Sending a draft to an agent or editor who wants a clean read.
 - Sharing with beta readers who don't have specific format preferences.
 - Printing a physical reading copy.
+- A proof of a paperback at its trim size. Two limits: left and right margins are the same on every page (there's no separate inside margin for the binding), so make the side margin wide enough for your printer's — the trim sizes start at 0.75 in, which KDP accepts up to 700 pages — and chapters don't start on a right-hand page. For a print-ready interior, a typesetting app such as Vellum or Atticus does what this doesn't.
 - Any time you want a single self-contained file that opens the same on every device.
 
 ### DOCX

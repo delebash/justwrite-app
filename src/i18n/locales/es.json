@@ -1154,7 +1154,6 @@
     "formatCardTitle": "Formato",
     "formatGroup": "Formato de exportación",
     "manuscriptCardTitle": "Manuscrito",
-    "pdfDesc": "PDF listo para imprimir — A4 con tipografía serif, un índice generado y un capítulo por página.",
     "docxDesc": "Documento de Word editable: conserva los encabezados de capítulo, los saltos de escena y las citas en bloque. Word te ofrecerá actualizar el índice la primera vez que lo abras.",
     "epubDesc": "EPUB 3: un archivo HTML por parte y capítulo, con un documento de navegación para que lectores como Apple Books, Kobo y Calibre muestren el contenido.",
     "statParts": "Partes",
@@ -1189,7 +1188,6 @@
       "saveFailed": "Error al guardar."
     },
     "formatSub": {
-      "pdf": "Manuscrito listo para imprimir con índice.",
       "docx": "Compatible con Word.",
       "epub": "Libro electrónico con reajuste de texto.",
       "zip": "El libro completo, para moverlo o compartirlo."

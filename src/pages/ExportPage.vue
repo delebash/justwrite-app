@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useProjectStore } from "../stores/project.js";
 import { useUiStore } from "../stores/ui.js";
@@ -13,13 +13,58 @@ import { exportProject } from "../services/bookTransfer.js";
 import { saveBlob } from "../services/download.js";
 import { UiButton } from "@delebash/ui";
 import { UiCheckbox } from "@delebash/ui";
+import { get, UiField, UiNumber, UiSelect } from "@delebash/ui";
+import { chosenSize, fromUnit, pdfPage, toUnit } from "../services/export/pageSetup.js";
 
 const project = useProjectStore();
 const ui = useUiStore();
-const { t } = useI18n({ useScope: "global" });
+const { t, te } = useI18n({ useScope: "global" });
 
 const fmt = ref("pdf");
 const stripSceneStructure = ref(false);
+
+// ── The PDF's page (2026-10-28, docs/plans/2026-10-28-four-feature-ideas.md §1) ──────────────
+// The seeded sizes (GET /v1/page-sizes); the book keeps its choice and its margins in points — a
+// margin it never set (null) is the size's own. Without the sizes there's no page to make a PDF on.
+const pageSizes = ref([]);
+const pageSizesFailed = ref(false);
+onMounted(async () => {
+  try {
+    pageSizes.value = (await get("/v1/page-sizes"))?.sizes || [];
+  } catch {
+    pageSizesFailed.value = true;
+  }
+});
+const pageSize = computed(() => (pageSizes.value.length ? chosenSize(project.project, pageSizes.value) : null));
+// a seeded size is named by its id in the catalog (a size someone added: its own label)
+const pageSizeOptions = computed(() => pageSizes.value.map((s) => ({
+  value: s.id,
+  label: te(`export.pageSizes.${s.id}`) ? t(`export.pageSizes.${s.id}`) : s.label,
+})));
+// A new size comes with its own margins.
+function setPageSize(id) {
+  project.updateProjectMeta({ pdfPageSize: id, pdfMarginTop: null, pdfMarginBottom: null, pdfMarginSide: null });
+}
+const MARGINS = [
+  { key: "pdfMarginTop", own: "marginTop", label: "export.marginTop" },
+  { key: "pdfMarginBottom", own: "marginBottom", label: "export.marginBottom" },
+  { key: "pdfMarginSide", own: "marginSide", label: "export.marginSide" },
+];
+// A margin is typed in its size's unit and kept in points, and it's committed when its box is left
+// or on Enter — one undo step per change, not one per key.
+const marginDrafts = reactive({});
+function marginShown(m) {
+  if (Object.hasOwn(marginDrafts, m.key)) return marginDrafts[m.key];
+  const v = project.project[m.key];
+  return v == null ? null : toUnit(v, pageSize.value.unit);
+}
+function commitMargin(m) {
+  if (!Object.hasOwn(marginDrafts, m.key)) return;
+  const v = marginDrafts[m.key];
+  delete marginDrafts[m.key];
+  const points = v == null ? null : fromUnit(v, pageSize.value.unit);
+  if (points !== project.project[m.key]) project.updateProjectMeta({ [m.key]: points });
+}
 
 // Four formats, two kinds. PDF / DOCX / EPUB are FINISHED READING FILES,
 // composed here in the renderer from the manuscript model. The .zip is the
@@ -32,7 +77,7 @@ const stripSceneStructure = ref(false);
 // one `exportProject()`. It lives here too because this is where a writer looks
 // for "get my book out".
 const FORMATS = [
-  { id: "pdf",  name: "PDF",            subKey: "export.formatSub.pdf",       icon: "Export",     ext: "pdf",  mime: "application/pdf" },
+  { id: "pdf",  name: "PDF",            subKey: "export.formatSub.pdfPage",       icon: "Export",     ext: "pdf",  mime: "application/pdf" },
   { id: "docx", name: "DOCX",           subKey: "export.formatSub.docx",                       icon: "Book",       ext: "docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
   { id: "epub", name: "EPUB",           subKey: "export.formatSub.epub",                     icon: "Book",       ext: "epub", mime: "application/epub+zip" },
   { id: "zip",  nameKey: "bookTransfer.bookFilter", subKey: "export.formatSub.zip",      icon: "Cube",       ext: "zip",  mime: "application/zip" },
@@ -96,8 +141,9 @@ async function exportManuscript(fmtId) {
     const onProgress = ({ stage }) => { exportStage.value = stage; };
 
     if (fmtId === "pdf") {
+      if (!pageSize.value) throw new Error(t("export.pageSizesFailed"));
       const { exportPdf } = await import("../services/export/pdf.js");
-      blob = await exportPdf({ manuscript, onProgress });
+      blob = await exportPdf({ manuscript, page: pdfPage(project.project, pageSizes.value), onProgress });
     } else if (fmtId === "docx") {
       const { exportDocx } = await import("../services/export/docx.js");
       blob = await exportDocx({ manuscript, onProgress });
@@ -237,7 +283,7 @@ async function exportBookZip() {
           <div class="card">
             <div class="card-title">{{ $t("export.manuscriptCardTitle") }}</div>
             <p class="t-muted" style="font-size:12.5px;margin:0 0 14px;line-height:1.55">
-              <template v-if="fmt === 'pdf'">{{ $t("export.pdfDesc") }}</template>
+              <template v-if="fmt === 'pdf'">{{ $t("export.pdfDescPage") }}</template>
               <template v-else-if="fmt === 'docx'">{{ $t("export.docxDesc") }}</template>
               <template v-else>{{ $t("export.epubDesc") }}</template>
             </p>
@@ -254,6 +300,26 @@ async function exportBookZip() {
                 <div class="t-muted" style="font-size:11px">{{ $t("export.statWords") }}</div>
                 <b class="t-num" style="font-size:18px;font-family:var(--font-serif)">{{ $n(manuscriptStats.words) }}</b>
               </div>
+            </div>
+
+            <!-- the PDF's page: its size and margins, kept with the book -->
+            <div v-if="fmt === 'pdf'" class="form pdf-page">
+              <p v-if="pageSizesFailed" class="pdf-page-hint">{{ $t("export.pageSizesFailed") }}</p>
+              <template v-else-if="pageSize">
+                <div class="form__row">
+                  <UiField layout="block" :label="$t('export.pageSize')" for="pdf-page-size">
+                    <UiSelect id="pdf-page-size" width="fit" :options="pageSizeOptions" :model-value="pageSize.id"
+                      @update:model-value="setPageSize" />
+                  </UiField>
+                  <UiField v-for="m in MARGINS" :key="m.key" layout="block"
+                    :label="$t(m.label, { unit: $t(`export.unit.${pageSize.unit}`) })" :for="m.key">
+                    <UiNumber :id="m.key" width="num" :min="0" :step="pageSize.unit === 'in' ? 0.05 : 1" :use-grouping="false"
+                      :placeholder="String(toUnit(pageSize[m.own], pageSize.unit))" :model-value="marginShown(m)"
+                      @update:model-value="(v) => (marginDrafts[m.key] = v)" @blur="commitMargin(m)" @keydown.enter="commitMargin(m)" />
+                  </UiField>
+                </div>
+                <span class="pdf-page-hint">{{ $t("export.marginsHint") }}</span>
+              </template>
             </div>
 
             <UiCheckbox v-model="stripSceneStructure" style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px;background:var(--surface-2);border-radius:8px;cursor:pointer">
@@ -326,4 +392,10 @@ code {
   border-radius: 4px;
   font-size: 10.5px;
 }
+/* the PDF's page: the kit's form row (app.css .form/.form__row), under the stats */
+.pdf-page { margin-top: 14px; gap: 6px; }
+/* no button on this row: the labels line up at the top (the kit's row aligns bottoms, for a button
+   beside inputs — and its select is a little shorter than its inputs) */
+.pdf-page .form__row { align-items: flex-start; }
+.pdf-page-hint { margin: 0; font-size: 11.5px; color: var(--muted); }
 </style>

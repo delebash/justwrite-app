@@ -1162,7 +1162,26 @@
     "formatCardTitle": "Format",
     "formatGroup": "Export format",
     "manuscriptCardTitle": "Manuscript",
-    "pdfDesc": "Print-ready PDF — A4 with serif typesetting, a generated table of contents, and a chapter per page.",
+    "pdfDescPage": "A typeset PDF at the page size you choose — serif type, a generated table of contents, each chapter on a new page.",
+    "pageSize": "Page size",
+    "marginTop": "Top margin ({unit})",
+    "marginBottom": "Bottom margin ({unit})",
+    "marginSide": "Side margins ({unit})",
+    "marginsHint": "Leave a margin empty for the size's own.",
+    "pageSizesFailed": "Couldn't load the page sizes, so the PDF can't be made. Reload the page and try again.",
+    "unit": {
+      "in": "in",
+      "mm": "mm"
+    },
+    "pageSizes": {
+      "a4": "A4",
+      "letter": "US Letter",
+      "a5": "A5",
+      "trim-5x8": "5 × 8 in",
+      "trim-5-25x8": "5.25 × 8 in",
+      "trim-5-5x8-5": "5.5 × 8.5 in",
+      "trim-6x9": "6 × 9 in"
+    },
     "docxDesc": "Editable Word document — keeps chapter headings, scene breaks, and block quotes. Word will offer to refresh the TOC on first open.",
     "epubDesc": "EPUB 3 — one HTML file per part and chapter, with a navigation document so readers like Apple Books, Kobo, and Calibre show the contents.",
     "statParts": "Parts",
@@ -1197,7 +1216,7 @@
       "saveFailed": "Save failed."
     },
     "formatSub": {
-      "pdf": "Print-ready manuscript with TOC.",
+      "pdfPage": "Typeset manuscript at your page size.",
       "docx": "Word-compatible.",
       "epub": "Reflowable e-book.",
       "zip": "The whole book, to move or share."

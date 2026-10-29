@@ -47,10 +47,12 @@ async function getPdfMake() {
 /**
  * Returns a Blob (`application/pdf`).
  *   manuscript : output of buildManuscript()
+ *   page       : the book's page — pageSetup.js pdfPage(): { pageSize: { width, height },
+ *                pageMargins: [left, top, right, bottom] }, in points
  *   onProgress : optional cb({ stage }) for UI status
  */
 /* eslint-disable i18next/no-literal-string -- markup, styles and file names; the book's words come from tBook, in the book's language (2026-10-18) */
-export async function exportPdf({ manuscript, onProgress } = {}) {
+export async function exportPdf({ manuscript, page, onProgress } = {}) {
   onProgress?.({ stage: "loading-pdfmake" });
   const pdfMake = await getPdfMake();
 
@@ -76,8 +78,11 @@ export async function exportPdf({ manuscript, onProgress } = {}) {
 
   // ── Cover ───────────────────────────────────────────────
   if (coverDataUrl) {
+    // the cover fills the page's text area, whatever its size (it was A4's, [435, 690], as numbers)
+    const [left, top, right, bottom] = page.pageMargins;
+    const fit = [page.pageSize.width - left - right, page.pageSize.height - top - bottom];
     content.push(
-      { image: coverDataUrl, fit: [435, 690], alignment: "center", margin: [0, 20, 0, 0] },
+      { image: coverDataUrl, fit, alignment: "center", margin: [0, 20, 0, 0] },
       { text: "", pageBreak: "after" },
     );
   }
@@ -145,8 +150,9 @@ export async function exportPdf({ manuscript, onProgress } = {}) {
     },
     // the book's language — the PDF's /Lang (pdfmake's Printer passes it as `lang`)
     language: manuscript.language,
-    pageSize: "A4",
-    pageMargins: [80, 70, 80, 80],
+    // the book's page size and margins (Export → PDF; the seeded sizes, server/src/database/page_sizes.js)
+    pageSize: page.pageSize,
+    pageMargins: page.pageMargins,
     content,
     styles: {
       coverTitle:    { font: "Roboto", fontSize: 36, bold: true, alignment: "center", margin: [0, 180, 0, 8] },

@@ -169,6 +169,9 @@ function i_(v, dflt = 0) {
 
 const optI = (v) => (v === null || v === undefined ? null : i_(v));
 
+/** A non-negative finite number, or null (a PDF margin the book never set: its size's own). */
+const optMargin = (v) => (typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : null);
+
 /** A non-empty id, or null (for nullable cross-entity refs). */
 function ref(v) {
   const s = s_(v);
@@ -217,6 +220,10 @@ export function bookRows(projectId, snapIn) {
     premise: s_(pyGet(proj, "premise")),
     ai_scene_drafting: truthy(pyGet(proj, "aiSceneDrafting")),
     language: s_(pyGet(proj, "language")) || "en",
+    pdf_page_size: s_(pyGet(proj, "pdfPageSize")) || "a4",
+    pdf_margin_top: optMargin(pyGet(proj, "pdfMarginTop")),
+    pdf_margin_bottom: optMargin(pyGet(proj, "pdfMarginBottom")),
+    pdf_margin_side: optMargin(pyGet(proj, "pdfMarginSide")),
     world_rules: s_(pyGet(snap, "worldRules")),
     cover_image: jsonOrNone(pyGet(proj, "coverImage")),
     updated_at: s_(pyGet(snap, "savedAt")),
@@ -795,6 +802,10 @@ export function assemble(h, projectId) {
     premise: proj.premise,
     aiSceneDrafting: !!proj.ai_scene_drafting,
     language: proj.language,
+    pdfPageSize: proj.pdf_page_size || "a4",
+    pdfMarginTop: optMargin(proj.pdf_margin_top),
+    pdfMarginBottom: optMargin(proj.pdf_margin_bottom),
+    pdfMarginSide: optMargin(proj.pdf_margin_side),
     coverImage: proj.cover_image ? pyLoads(proj.cover_image) : null,
   };
 

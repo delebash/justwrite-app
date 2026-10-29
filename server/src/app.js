@@ -34,6 +34,7 @@ import { router as bookTransferRouter } from "./api/book_transfer_api.js";
 import { router as chatRouter } from "./api/chat_api.js";
 import { router as healthRouter } from "./api/health_api.js";
 import { router as imagesRouter } from "./api/images_api.js";
+import { router as pageSizesRouter } from "./api/page_sizes_api.js";
 import { router as prefsRouter } from "./api/prefs_api.js";
 import { router as projectsRouter } from "./api/projects_api.js";
 import { router as ragRouter } from "./api/rag_api.js";
@@ -298,6 +299,7 @@ export async function createApp(dataDir = null) {
   app.route("/", chatRouter);
   app.route("/", settingsRouter);
   app.route("/", prefsRouter); // the family /v1/prefs door over the same document (P9)
+  app.route("/", pageSizesRouter); // the PDF's seeded page sizes (/v1/page-sizes)
   app.route("/", versionsRouter);
   app.route("/", getDataRouter({ gate })); // shared backup/restore/reset (/v1/data/*)
   app.route("/", makeLogsRouter("JustWrite")); // shared /v1/logs/*

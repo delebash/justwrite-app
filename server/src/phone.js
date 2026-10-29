@@ -26,6 +26,7 @@ import { router as autosaveRouter } from "#api/autosave_api";
 import { router as chatRouter } from "./api/chat_api.js";
 import { router as healthRouter } from "./api/health_api.js";
 import { router as imagesRouter } from "./api/images_api.js";
+import { router as pageSizesRouter } from "./api/page_sizes_api.js";
 import { router as projectsRouter } from "./api/projects_api.js";
 import { router as sessionsRouter } from "./api/sessions_api.js";
 import { router as settingsRouter } from "./api/settings_api.js";
@@ -34,6 +35,7 @@ import { router as versionsRouter } from "./api/versions_api.js";
 import { TYPE_BASE } from "./app_errors.js";
 import { AppState, setState } from "#app_state";
 import { seedAppSettings } from "./database/app_settings_seed.js";
+import { seedPageSizes } from "./database/page_sizes.js";
 import { ADDED_COLUMNS, TABLES } from "./database/models.js";
 import { state } from "./database/session.js";
 import { FEATURE_CATALOG } from "./feature_catalog.js";
@@ -96,6 +98,7 @@ export async function createPhoneApp({ handle, dataDir = PHONE_DATA_DIR, deviceI
   app.route("/", sessionsRouter);
   app.route("/", chatRouter);
   app.route("/", settingsRouter);
+  app.route("/", pageSizesRouter);
   app.route("/", versionsRouter);
   app.route("/", imagesRouter);
   syncRouter(app);
@@ -128,6 +131,11 @@ export async function createPhoneApp({ handle, dataDir = PHONE_DATA_DIR, deviceI
     loadFromConfigs(llmStores.getProviderStore().list());
   } catch (e) {
     log.warning(`AI seed failed: ${e?.message ?? e}`);
+  }
+  try {
+    handle.tx(() => seedPageSizes(handle)); // the PDF's page sizes, as seedWorkspace seeds them
+  } catch (e) {
+    log.warning(`page sizes seed failed: ${e?.message ?? e}`);
   }
   return app;
 }

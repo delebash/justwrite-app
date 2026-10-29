@@ -26,6 +26,10 @@ function canonicalBook() {
       premise: "A mapmaker's daughter inherits a ledger.",
       aiSceneDrafting: true,
       language: "es",
+      pdfPageSize: "trim-6x9",
+      pdfMarginTop: 54,
+      pdfMarginBottom: 63.5,
+      pdfMarginSide: 54,
       coverImage: null,
     },
     parts: [
@@ -234,6 +238,18 @@ test("a_book_without_a_language_is_english", async () => {
   delete book.project.language;
   await c.put("/v1/projects/prj1/book", { json: book });
   expect((await c.get("/v1/projects/prj1/book")).json().project.language).toBe("en");
+});
+
+// A book saved without a PDF page (one from before 2026-10-28) is A4 with the size's own margins —
+// the page every PDF had — and a margin left empty stays the size's.
+test("a_book_without_a_pdf_page_is_a4_with_the_sizes_margins", async () => {
+  const c = await client(tmpPath());
+  const book = canonicalBook();
+  for (const k of ["pdfPageSize", "pdfMarginTop", "pdfMarginBottom", "pdfMarginSide"]) delete book.project[k];
+  book.project.pdfMarginSide = -3; // not a margin: stored as none
+  await c.put("/v1/projects/prj1/book", { json: book });
+  const back = (await c.get("/v1/projects/prj1/book")).json().project;
+  expect([back.pdfPageSize, back.pdfMarginTop, back.pdfMarginBottom, back.pdfMarginSide]).toEqual(["a4", null, null, null]);
 });
 
 test("book_404_when_absent", async () => {

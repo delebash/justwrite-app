@@ -6,6 +6,11 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ## 2026-10-28
 
+**The PDF's page size.** **Export → PDF** lets you choose the page: A4, US Letter, A5, or a novel's
+trim size (5 × 8 up to 6 × 9 inches), each with its own margins, which you can change — top, bottom
+and sides, in the size's unit. The book remembers its choice; every book starts on A4, the page every
+PDF had. See [Import and export](import-and-export.md#pdf).
+
 **Brainstorm where you use it.** **Name ideas** (beside a character's, location's, object's or
 group's name), the new **Title ideas** (beside the book's title in **Settings → Project**, and the
 title in the editor's header — a scene's or a chapter's), and the plot ideas in the editor's AI menu

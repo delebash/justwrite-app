@@ -50,7 +50,10 @@ const log = getLogger("justwrite_server.sync");
 // spellchecker, removed — docs/plans/archive/2026-10-19-spelling.md). Kept at 7, not back to 6: a
 // device that synced at 7 must not have its changes refused as newer; the engine skips rows of a
 // table it doesn't know, so devices with and without the table sync as they are.
-export const SYNC_SCHEMA_VERSION = 7;
+// 8 (2026-10-28): projects gained the PDF's page size and margins (`pdf_page_size`,
+// `pdf_margin_top`, `pdf_margin_bottom`, `pdf_margin_side`). Same reason as 2. The seeded
+// `page_sizes` table is the app's, not a book's, and isn't synced.
+export const SYNC_SCHEMA_VERSION = 8;
 
 // ── scene text: merged edit by edit through Yjs, on the editor's own schema ──────────────
 

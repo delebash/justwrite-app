@@ -14,6 +14,7 @@
 import { loadFromConfigs, seedLlm, stores } from "@delebash/core/llm";
 import { getLogger } from "@delebash/core/platform/log";
 import { seedAppSettings } from "./app_settings_seed.js";
+import { seedPageSizes } from "./page_sizes.js";
 import { state } from "./session.js";
 
 const log = getLogger("justwrite_server.database.seed");
@@ -56,6 +57,11 @@ export function seedWorkspace(h = null) {
     seedAppSettings(h); // JustWrite's own seeded settings (the story-context share)
   } catch (e) {
     log.warning(`settings seed failed: ${e?.message ?? e}`);
+  }
+  try {
+    h.tx(() => seedPageSizes(h)); // the PDF's page sizes (facts, insert-if-missing)
+  } catch (e) {
+    log.warning(`page sizes seed failed: ${e?.message ?? e}`);
   }
   // After providers are committed, register them with the shared adapter registry.
   registerSeededProviders();

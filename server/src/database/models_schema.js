@@ -23,7 +23,7 @@ export const TABLES = [
   },
   {
     "name": "projects",
-    "ddl": "CREATE TABLE projects (\n\tid VARCHAR NOT NULL, \n\ttitle VARCHAR NOT NULL, \n\tauthor VARCHAR NOT NULL, \n\tsubtitle VARCHAR NOT NULL, \n\tgenre VARCHAR NOT NULL, \n\twords_goal INTEGER NOT NULL, \n\tdaily_target INTEGER NOT NULL, \n\twords_written INTEGER NOT NULL, \n\tstarted_on VARCHAR NOT NULL, \n\tdeadline VARCHAR NOT NULL, \n\tpremise TEXT NOT NULL, \n\tworld_rules TEXT NOT NULL, \n\tcover_image TEXT, \n\tupdated_at VARCHAR NOT NULL, \n\tdata TEXT NOT NULL, \n\tai_scene_drafting BOOLEAN NOT NULL DEFAULT 0, \n\tlanguage VARCHAR NOT NULL DEFAULT 'en', \n\tPRIMARY KEY (id)\n)",
+    "ddl": "CREATE TABLE projects (\n\tid VARCHAR NOT NULL, \n\ttitle VARCHAR NOT NULL, \n\tauthor VARCHAR NOT NULL, \n\tsubtitle VARCHAR NOT NULL, \n\tgenre VARCHAR NOT NULL, \n\twords_goal INTEGER NOT NULL, \n\tdaily_target INTEGER NOT NULL, \n\twords_written INTEGER NOT NULL, \n\tstarted_on VARCHAR NOT NULL, \n\tdeadline VARCHAR NOT NULL, \n\tpremise TEXT NOT NULL, \n\tworld_rules TEXT NOT NULL, \n\tcover_image TEXT, \n\tupdated_at VARCHAR NOT NULL, \n\tdata TEXT NOT NULL, \n\tai_scene_drafting BOOLEAN NOT NULL DEFAULT 0, \n\tlanguage VARCHAR NOT NULL DEFAULT 'en', \n\tpdf_page_size VARCHAR NOT NULL DEFAULT 'a4', \n\tpdf_margin_top FLOAT, \n\tpdf_margin_bottom FLOAT, \n\tpdf_margin_side FLOAT, \n\tPRIMARY KEY (id)\n)",
     "indexes": [],
     "columns": {
       "id": {
@@ -108,6 +108,72 @@ export const TABLES = [
         "kind": "text",
         "notNull": true,
         "default": "en"
+      },
+      "pdf_page_size": {
+        "kind": "text",
+        "notNull": true,
+        "default": "a4"
+      },
+      "pdf_margin_top": {
+        "kind": "float"
+      },
+      "pdf_margin_bottom": {
+        "kind": "float"
+      },
+      "pdf_margin_side": {
+        "kind": "float"
+      }
+    }
+  },
+  {
+    "name": "page_sizes",
+    "ddl": "CREATE TABLE page_sizes (\n\tid VARCHAR NOT NULL, \n\tposition INTEGER NOT NULL, \n\tlabel VARCHAR NOT NULL, \n\tunit VARCHAR NOT NULL, \n\twidth_pt FLOAT NOT NULL, \n\theight_pt FLOAT NOT NULL, \n\tmargin_top_pt FLOAT NOT NULL, \n\tmargin_bottom_pt FLOAT NOT NULL, \n\tmargin_side_pt FLOAT NOT NULL, \n\tPRIMARY KEY (id)\n)",
+    "indexes": [],
+    "columns": {
+      "id": {
+        "kind": "text",
+        "pk": true,
+        "notNull": true
+      },
+      "position": {
+        "kind": "int",
+        "notNull": true,
+        "default": 0
+      },
+      "label": {
+        "kind": "text",
+        "notNull": true,
+        "default": ""
+      },
+      "unit": {
+        "kind": "text",
+        "notNull": true,
+        "default": "mm"
+      },
+      "width_pt": {
+        "kind": "float",
+        "notNull": true,
+        "default": 0.0
+      },
+      "height_pt": {
+        "kind": "float",
+        "notNull": true,
+        "default": 0.0
+      },
+      "margin_top_pt": {
+        "kind": "float",
+        "notNull": true,
+        "default": 0.0
+      },
+      "margin_bottom_pt": {
+        "kind": "float",
+        "notNull": true,
+        "default": 0.0
+      },
+      "margin_side_pt": {
+        "kind": "float",
+        "notNull": true,
+        "default": 0.0
       }
     }
   },

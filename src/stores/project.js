@@ -534,6 +534,12 @@ const BLANK_PROJECT_META = {
   // The book's language (BCP-47): its exports and the editor follow it. A new book starts in the
   // interface's language (createProject); every book from before 2026-10-18 is English.
   language: "en",
+  // The PDF's page (Export → PDF, 2026-10-28): a seeded size's id, and margins in points — null is
+  // the size's own. Every book starts on A4 with its margins, the page every PDF had.
+  pdfPageSize: "a4",
+  pdfMarginTop: null,
+  pdfMarginBottom: null,
+  pdfMarginSide: null,
   coverImage: null,
 };
 

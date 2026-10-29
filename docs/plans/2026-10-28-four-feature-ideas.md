@@ -66,6 +66,15 @@ remembered per book.
 5. The words. Rec: "Page size", "Top and bottom margin", "Side margins"; the doc's "A print-ready A4
    document" becomes "A typeset PDF, at the page size you choose".
 
+**Built 2026-10-28, with one change found while building.** Decision 3 became three margins (top,
+bottom, sides), because two couldn't keep decision 2. Today's A4 has a 70 pt top and an 80 pt bottom,
+with the page number in the bottom margin, and one "top and bottom" value would have moved every
+existing PDF. The seeded ids have no dots (`trim-5-25x8`), because vue-i18n reads a dot in a key as
+nesting. Choosing a size resets the margins to the new size's own. A margin commits when its box is
+left or on Enter, so it's one undo step. The cover image now fits the chosen page's text area (it was
+A4's, as numbers). Checked: an exported 6 × 9 PDF of the sample book has every one of its 355 pages
+at `0 0 432 648`.
+
 **Blast radius.**
 `pdf.js` (pageSize, pageMargins) · `ExportPage.vue` (the PDF card) · `server/src/database/models.js`
 (new columns + the `page_sizes` table) · `server/src/database/seed.js` (the seeded rows) · `book_io.js`
