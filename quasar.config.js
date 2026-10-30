@@ -198,10 +198,13 @@ export default defineConfig((ctx) => {
           onlyLoadAppFromAsar: true,
           grantFileProtocolExtraPrivileges: false
         },
-        // macOS: one universal .dmg (Intel and Apple silicon), as the release has shipped
+        // macOS: universal (Intel and Apple silicon) — the .dmg people install, and the .zip, electron-builder's default
+        // pair: the zip is what electron-updater installs a Mac update from (MacUpdater). Today the kit only checks on a
+        // Mac, where an unsigned update can't install — the check reads latest-mac.yml, which the dmg writes too — so the
+        // zip is for a signed app (the family guard asks for it; 2026-10-29)
         mac: {
           category: 'public.app-category.productivity',
-          target: [ { target: 'dmg', arch: [ 'universal' ] } ],
+          target: [ { target: 'dmg', arch: [ 'universal' ] }, { target: 'zip', arch: [ 'universal' ] } ],
           // the native modules ship their binaries for every CPU and pick one as they load — koffi's two
           // macOS packages (@koromix/koffi-darwin-arm64 and -x64), better-sqlite3's prebuilds/ — so each
           // is the same file in both halves of the universal app: @electron/universal joins only files

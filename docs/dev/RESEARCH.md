@@ -109,6 +109,15 @@ The family's move, step 4 (2026-10-08). The plan is JustVoice's
   Linux (AppImage + `.deb`, which needs `homepage` and `linux.maintainer`) each start their window
   and their server on its own on one data folder; the AppImage opens on Ubuntu 24.04 with user
   namespaces restricted and no FUSE 2 (the static AppImage runtime, `toolsets.appimage` 1.0.3).
+- **A Mac's update check needs no zip; its install does.** electron-builder writes `latest-mac.yml`
+  from a dmg too (`dmg-builder/out/dmg.js`: a dmg with its blockmap is `isWriteUpdateInfo`), and
+  electron-updater's check reads only that (`AppUpdater.doCheckForUpdates`). Only
+  `MacUpdater.doDownloadUpdate` needs the zip ("ZIP file not provided"), and the kit never downloads
+  on a Mac (`shell/main.js`: `canInstall` false on darwin, its download refuses), so a dmg-only build
+  still told a Mac there was a new version. The zip went in 2026-10-29 (electron-builder's default
+  pair, the template's, the family guard's ask) for a signed app; the release's upload already
+  takes `*.zip` under `nullglob`. Not built on a Mac yet. — *code, electron-updater 6.8.9,
+  app-builder-lib 26.15.3, 2026-10-29.*
 - **CORS `*` let any web page read the server.** With no token set (the default), or with the
   loopback skip on, a page from another site read the answers: `GET /v1/data/backup` from
   `Origin: https://evil.example` answered 200 `application/zip` with
