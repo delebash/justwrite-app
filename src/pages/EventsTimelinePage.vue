@@ -54,7 +54,7 @@ function goAdd()         { router.push(meta.value.newUrl(props.entityId)); }
 <template>
   <q-page :style-fn="pageFill" class="main">
     <PaneHeader :crumbs="crumbs" :title="$t('common.events')"
-      help-key="plot-and-time#per-entity-events-biographies-and-place-histories" :help-label="$t('common.events')">
+      help-key="plot-and-time#per-entity-events--biographies-and-place-histories" :help-label="$t('common.events')">
       <UiButton intent="ghost" size="small" @click="goBack">
         <Icon name="ChevRight" :size="12" style="transform:rotate(180deg)" />
         {{ $t("events.backTo", { name: meta?.i18n ? $t(meta.i18n) : "" }) }}

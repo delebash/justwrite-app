@@ -368,7 +368,7 @@ function sceneBadge(beat) {
 
 <template>
   <q-page :style-fn="pageFill" class="main">
-    <PaneHeader :eyebrow="$t('panes.plotBoard.eyebrow')" :title="$t('panes.plotBoard.title')" help-key="plot-and-time#plot-board-the-wide-angle-view" />
+    <PaneHeader :eyebrow="$t('panes.plotBoard.eyebrow')" :title="$t('panes.plotBoard.title')" help-key="plot-and-time#plot-board--the-wide-angle-view" />
 
     <div class="pane-card">
 

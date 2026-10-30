@@ -58,7 +58,7 @@ function goOwner(ev) { router.push(EVENTS_KIND_META[ev.ownerKind].detailUrl(ev.o
 
 <template>
   <q-page :style-fn="pageFill" class="main">
-    <PaneHeader :eyebrow="$t('panes.timeline.eyebrow')" :title="$t('panes.timeline.title')" help-key="plot-and-time#the-timeline-view-your-worlds-history" />
+    <PaneHeader :eyebrow="$t('panes.timeline.eyebrow')" :title="$t('panes.timeline.title')" help-key="plot-and-time#the-timeline-view--your-worlds-history" />
     <div class="pane-card">
       <div class="scrollarea events-pane">
         <div class="events-content">
