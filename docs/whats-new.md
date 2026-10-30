@@ -107,7 +107,7 @@ how much movement counts as a trend. Every book starts at the values the analysi
 Project**, **By chapter** lists the chapters that have some, with each one's share of its chapter,
 and **Copy as text** puts the list on the clipboard — for a publisher's question about AI-generated
 text. It counts the words still marked; Mark as mine clears a mark. See
-[Writing](writing.md#ai-written-text-the-ais-words-marked).
+[Writing](writing.md#ai-written-text--the-ais-words-marked).
 
 **Settings → Project on a phone.** Each label now sits above its field, which gets the whole width;
 before, the labels took a column of their own and the fields a third of the screen.
@@ -130,7 +130,7 @@ and a Plot board strand's ✨ menu now open on Brainstorm's own panel: a **Seed 
 or leave empty, **Generate**, thumbs-up and **More like these**. Nothing runs until you press
 Generate, and **Use** — **Add as beat** on a strand (its window stays open for more), **Write this**
 in the editor — puts an idea in place, with no copying from the Brainstorm page. See
-[Brainstorm](brainstorm.md#name-and-title-ideas-where-you-use-them).
+[Brainstorm](brainstorm.md#name-and-title-ideas--where-you-use-them).
 
 **Dates without a time read as dates.** On the **Timeline** and an entity's **Events**, an event whose
 time was left at midnight — a date picked alone — no longer shows "12:00 AM".
@@ -279,12 +279,12 @@ set in Settings → Project (0 hides it); before, the target was stored and noth
 **Settings → Project**, write a scene's **Summary** in its Links panel, and **Draft from plan**
 drafts the scene — from an empty scene's button, or from the cursor in the AI dropdown — as an
 accept/reject change. It has its own row in Settings → AI, **Scene drafting**, so it can run on a
-bigger model. See [Draft from plan](writing.md#draft-from-plan-a-scene-from-its-summary).
+bigger model. See [Draft from plan](writing.md#draft-from-plan--a-scene-from-its-summary).
 
 **The AI's words are marked.** Text the AI writes keeps a violet ink once you accept it. The words
 you type are yours; **Mark as mine** clears the rest; **Writing settings → Highlight AI-written
 text** turns the colour off. Settings → Project counts the AI's words still in the book. See
-[AI-written text](writing.md#ai-written-text-the-ais-words-marked).
+[AI-written text](writing.md#ai-written-text--the-ais-words-marked).
 
 **No more English words on Spanish screens.** Import's chapter and note wording, the sidebar's
 **+** buttons, the confidence chips on comp titles, the marker categories, the Architecture
@@ -439,16 +439,16 @@ pending. Both now settle every change.
 direction… now also read the scene they work in — your premise and main cast, the characters,
 places and objects linked to the scene, its beats and notes, and how the previous scene ends — so
 Continue stops inventing who's in the room. A line under the progress strip names what was sent.
-Line edits don't change. See [Writing](writing.md#story-context-the-ai-knows-the-scene).
+Line edits don't change. See [Writing](writing.md#story-context--the-ai-knows-the-scene).
 
 **Save to sheet.** Under an answer in a **Talk to {Name}** chat, **Save to sheet** drafts the
 character's sheet from what they just said. You review every field before anything saves. See
-[Story bible](story-bible.md#talk-to-a-character-interview-them-in-their-voice).
+[Story bible](story-bible.md#talk-to-a-character--interview-them-in-their-voice).
 
 **Name ideas.** The ✨ beside a character's name lists names that fit the character and your
 book, and never one your cast already uses. Thumbs-up the ones you like and click **More like
 these**, as on Brainstorm; click a name to use it. See
-[Brainstorm](brainstorm.md#name-and-title-ideas-where-you-use-them). Brainstorm's categories are now
+[Brainstorm](brainstorm.md#name-and-title-ideas--where-you-use-them). Brainstorm's categories are now
 translated too.
 
 **Draft a character with AI.** On a character's page, describe them in the
@@ -468,7 +468,7 @@ past the edge on a phone.
 **Suggest characters.** **Suggest characters…** on the Characters list asks the
 AI for people your book doesn't have yet — say what you're looking for, or leave
 it blank. Tick the ones you want and add them to your story bible. See
-[Story bible](story-bible.md#suggest-characters-who-is-this-book-missing).
+[Story bible](story-bible.md#suggest-characters--who-is-this-book-missing).
 
 **Status and Exclude from AI are kept.** The status you pick for a scene, character, location,
 object or group, and the **Exclude from AI** box on those and on worldbuilding articles, were

@@ -350,7 +350,7 @@ Plain Rewrite decides for itself how to improve a passage. **Rewrite with direct
 
 Put the cursor where the exchange should start, choose **Write dialogue…** in the AI dropdown, and say what it's about — "Nettle presses Cael about the token; Cael deflects". Name who speaks if it matters. JustWrite writes the exchange from the cursor: mostly dialogue, with brief beats of action between the lines, in the tense and point of view of what came before. It lands as an accept/reject diff like Continue.
 
-**Who speaks, and how.** The voices come from the story context: the characters linked to the scene in its **Links** panel, with what their sheets say about how they talk — register, vocabulary, speech tics, sample lines. The more of a character's **Voice** section you've filled, the more they sound like themselves; a character who isn't linked to the scene isn't in the context, so link them first. See [Story context](#story-context-the-ai-knows-the-scene).
+**Who speaks, and how.** The voices come from the story context: the characters linked to the scene in its **Links** panel, with what their sheets say about how they talk — register, vocabulary, speech tics, sample lines. The more of a character's **Voice** section you've filled, the more they sound like themselves; a character who isn't linked to the scene isn't in the context, so link them first. See [Story context](#story-context--the-ai-knows-the-scene).
 
 ### Draft from plan — a scene from its Summary
 
@@ -520,7 +520,7 @@ That's it. Everything else in the app is in service of this loop.
   struck-through rejected text behind, this one item in the AI dropdown removes
   every strikethrough in the scene at once — no hunting.
 - **Clean up → Mark as mine.** Clears the AI-written mark from the selection, or
-  the whole scene — see [AI-written text](#ai-written-text-the-ais-words-marked).
+  the whole scene — see [AI-written text](#ai-written-text--the-ais-words-marked).
 - **The per-change diff stepper.** When an AI rewrite comes back as a diff, the
   stepper walks change-by-change — accept this one, reject that one — instead of
   the all-or-nothing buttons. The habit worth building: step through the first

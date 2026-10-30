@@ -16,7 +16,7 @@ while quick ones stay local. How routing, presets and providers work is
 - **Scene drafting** — **Draft from plan**: a scene drafted from its Summary and the
   story context, from the cursor to its end. Only in a book with **AI scene drafting**
   on (Settings → Project). Its own row, so it can run on a larger or online model.
-  See [Draft from plan](writing.md#draft-from-plan-a-scene-from-its-summary).
+  See [Draft from plan](writing.md#draft-from-plan--a-scene-from-its-summary).
 
 ## Drafting tools
 
@@ -114,7 +114,7 @@ world rules, the Setting document and the main cast. The editor's prose actions
 with direction…, Write dialogue… — read
 it too, plus the scene they work in: its Summary, what its Links panel ties to
 it, its beats and notes, and how the previous scene ends (see
-[Writing](writing.md#story-context-the-ai-knows-the-scene)). Only what's relevant
+[Writing](writing.md#story-context--the-ai-knows-the-scene)). Only what's relevant
 is sent, and never anything marked **Exclude from AI**. **Settings → AI → Writing
 AI → Story context** sets the most of the model's context window those notes may
 take (15% to start). On a model with a small window a lower share leaves more

@@ -830,6 +830,15 @@ Measured with the same WCAG 2 method, on the dark paper `oklch(0.225 0.006 80)` 
   sync library. `scripts/snapshot-db.js` drops both from the copy (server/tests/snapshot_db.test.js).
   The user's database has neither row today (read-only check), so no run has written outside.
   — *code and the database, 2026-10-29.*
+- **A Help section's id is GitHub's slug since 2026-10-29** (the kit's `slugifyHeading` is
+  github-slugger, just-core 78654914): each space is one `-`, never collapsed, so "Story context —
+  the AI knows the scene" is `story-context--the-ai-knows-the-scene`; an apostrophe drops ("AI's" →
+  `ais`). The same anchor then works in the app, on GitHub and on the website. The switch left 4 page
+  links (the core session fixed them, ef3a1cc0) and 16 links between help pages on the old single
+  dash; one of those (`brainstorm#name-ideas-at-the-name-itself`) was already dead, its heading renamed
+  in c3913736. `helpTargets.test.js` checked only the pages' `help-key`/`slug`; it checks every
+  section link in `docs/*.md` now, to another page's or its own (71 links). A scan of every quoted
+  `"page#section"` in `src/` `.js` files too found none broken. — *measured 2026-10-29.*
 
 ## Backups: what an autosave holds and restores (2026-10-29)
 

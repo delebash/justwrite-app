@@ -73,8 +73,29 @@ function helpTargets() {
   return found;
 }
 
+/** Every link from a help page to a section — `[…](other.md#section)` or `[…](#section)` — in docs/*.md. */
+function docLinks() {
+  const found = [];
+  for (const file of readdirSync(DOCS).filter((f) => f.endsWith(".md"))) {
+    const self = file.replace(/\.md$/, "");
+    readFileSync(join(DOCS, file), "utf8")
+      .split("\n")
+      .forEach((line, i) => {
+        for (const m of line.matchAll(/\]\(([\w-]*)(?:\.md)?#([^)\s]+)\)/g)) {
+          const doc = m[1] || self;
+          found.push({ target: `${doc === "README" ? "index" : doc}#${m[2]}`, where: `docs/${file}:${i + 1}` });
+        }
+      });
+  }
+  return found;
+}
+
 const HEADINGS = docHeadings();
 const TARGETS = helpTargets();
+// The links between help pages, which the kit's Help follows within the drawer — a heading renamed, or slugged
+// another way, leaves them dead just as quietly (2026-10-29: the kit took GitHub's slugger, where "A — B" is
+// `a--b`, and 16 of them still had the old single dash).
+const DOC_LINKS = docLinks();
 
 describe("in-app help targets", () => {
   it("finds the help affordances (guards the scraper itself)", () => {
@@ -87,6 +108,18 @@ describe("in-app help targets", () => {
     const [slug, anchor] = target.split("#");
     expect(Object.keys(HEADINGS)).toContain(slug);
     if (anchor) expect([...HEADINGS[slug]]).toContain(anchor);
+  });
+});
+
+describe("links between help pages", () => {
+  it("finds the section links (guards the scraper itself)", () => {
+    expect(DOC_LINKS.length).toBeGreaterThan(50);
+  });
+
+  it.each(DOC_LINKS)("$target resolves ($where)", ({ target }) => {
+    const [slug, anchor] = target.split("#");
+    expect(Object.keys(HEADINGS)).toContain(slug);
+    expect([...HEADINGS[slug]]).toContain(anchor);
   });
 });
 
