@@ -17,6 +17,19 @@ delete process.env.npm_config_allow_scripts
 
 const root = import.meta.dirname
 const kitUi = path.resolve(root, '../just-core/packages/ui')
+
+// The licence files the installer carries beside the app — MIT, Apache-2.0 §4(a) and BSD-3-Clause
+// cl. 2 ask for the licence texts and notices to travel with every copy (the template's, app-structure
+// §Q.2): the app's own LICENSE and NOTICE.md, and THIRD_PARTY_NOTICES.md, the licences of the packages
+// bundled into the renderer, which Vite writes into the renderer's build (`build.license`,
+// extendViteConf below; Quasar builds the desktop renderer into dist/electron/UnPackaged). Electron's
+// own (LICENSE.electron.txt, LICENSES.chromium.html) electron-builder adds itself, and the server's
+// packages keep their LICENSE files inside the app. `to` is the launcher's folder, per platform.
+const notices = (to) => [
+  { from: path.join(root, 'LICENSE'), to },
+  { from: path.join(root, 'NOTICE.md'), to },
+  { from: path.join(root, 'dist', 'electron', 'UnPackaged', 'THIRD_PARTY_NOTICES.md'), to }
+]
 // The package.json version, for the "What's new" modal's dismissal pin.
 const version = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8')).version
 
@@ -100,6 +113,10 @@ export default defineConfig((ctx) => {
         // The dev server reads the repo (docs/ for the Help viewer, node_modules/ for the bundled
         // fonts) and the sibling kit's UI, consumed from source.
         viteConf.server.fs = { ...(viteConf.server.fs || {}), allow: [ root, kitUi ] }
+        // The bundled packages' licences, one file beside index.html in every build — the installer
+        // carries it (`notices` above), the headless server and the phone app serve it with the page
+        // (vite.dev/config/build-options#build-license; the template's)
+        viteConf.build = { ...(viteConf.build || {}), license: { fileName: 'THIRD_PARTY_NOTICES.md' } }
         viteConf.define = { ...(viteConf.define || {}), 'import.meta.env.VITE_APP_VERSION': JSON.stringify(version) }
       },
     },
@@ -175,7 +192,7 @@ export default defineConfig((ctx) => {
         win: {
           target: 'nsis',
           executableName: 'justwrite',
-          extraResources: [ { from: path.join(root, 'build', 'launcher'), to: '..', filter: [ '*.cmd' ] } ]
+          extraResources: [ { from: path.join(root, 'build', 'launcher'), to: '..', filter: [ '*.cmd' ] }, ...notices('..') ]
         },
         nsis: {
           // no spaces: GitHub renames a spaced asset on upload (spaces → dots), and latest.yml names
@@ -210,7 +227,7 @@ export default defineConfig((ctx) => {
           // is the same file in both halves of the universal app: @electron/universal joins only files
           // that differ, and an identical one must be named here (the release dry runs, 2026-10-20)
           x64ArchFiles: '**/node_modules/{@koromix/koffi-darwin-*,better-sqlite3/prebuilds}/**',
-          extraResources: [ { from: path.join(root, 'build', 'launcher'), to: '.', filter: [ '!*.cmd' ] } ]
+          extraResources: [ { from: path.join(root, 'build', 'launcher'), to: '.', filter: [ '!*.cmd' ] }, ...notices('.') ]
         },
         linux: {
           target: [ 'AppImage', 'deb' ],
@@ -218,7 +235,7 @@ export default defineConfig((ctx) => {
           // the .deb's maintainer field, published in the package (electron-builder refuses a .deb
           // without one): the repository owner's GitHub no-reply address, never a real one
           maintainer: 'delebash <delebash@users.noreply.github.com>',
-          extraResources: [ { from: path.join(root, 'build', 'launcher'), to: '..', filter: [ '!*.cmd' ] } ]
+          extraResources: [ { from: path.join(root, 'build', 'launcher'), to: '..', filter: [ '!*.cmd' ] }, ...notices('..') ]
         },
         // the AppImage on the AppImage project's static runtime (type2-runtime): it needs no FUSE 2
         // library, which Ubuntu 24.04 doesn't install — the legacy toolset's AppImage stopped there with
