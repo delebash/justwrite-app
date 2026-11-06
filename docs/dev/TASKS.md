@@ -19,11 +19,11 @@
 
 ## Now / near-term (JustWrite)
 
-- **Before the family release — its last step:** a docgen run on JustWrite's Spanish for any English
-  that changes after 2026-10-29's run (none, if no later fix touches en.json). The user, verbatim: "do the
-  spanish run after all fixes in other apps like core ect", then "or if card is free you can do it now".
-  The run was done 2026-10-29 with docgen's own translate (3178/3178, check exit 0); the user: "i dont
-  want to spend a lot of my tokesn for claude on translation" — docgen translates, never Claude agents.
+- **Nothing open** — the user, 2026-11-06 (in JustVoice's session): "mark jw as clear". JustWrite's English
+  hasn't changed since the 2026-10-29 Spanish run (`git log -- src/i18n/locales/en.json`), so its Spanish
+  step had nothing to do. JustWrite releases in the "family release" session's release (the kit's TASKS);
+  if that work changes `en.json`, docgen re-translates it first — never Claude agents (the user: "i dont
+  want to spend a lot of my tokesn for claude on translation").
 
 
 ## Standing rulings (constraints, not tasks — they gate future work)
