@@ -111,6 +111,29 @@ Gemini through Google's OpenAI-compatible endpoint. LLM only. Long context windo
 
 **When to pick Gemini.** Two cases. **Cost-conscious general use** — Gemini 2.5 Pro is roughly a third the per-token price of Claude Sonnet 4.6 with prose scores nearly as good, so it's the strongest value play in the cloud tier. **Large-context tasks** where the whole manuscript needs to be in the prompt — reverse outline, plot-hole audit, full-book sweeps. Gemini's context window is generous compared to most peers.
 
+**Have Google AI Pro or Ultra?** Those plans include monthly Google Cloud credits that can pay for Gemini API use with a key.
+
+### Your Claude plan (through Claude Code)
+
+Runs JustWrite's AI on the Claude plan you already pay for (Pro or Max) instead of an API key, through the Claude Code program installed on this computer. LLM only; desktop only.
+
+1. Install Claude Code and sign in to it once in a terminal: `claude auth login`.
+2. Open the AI page's **Online** tab. When Claude Code is installed, a line there says so — **Claude Code is installed on this computer · Signed in** — with **Connect**. (Not signed in, it tells you the command; sign in, then **Look again**.) You can also use **Add provider → Preset: Your Claude plan (through Claude Code)**.
+3. **Connect.** The provider's row says **your Claude plan**, and after its first answer how much of this week's plan is used.
+4. Pick a model — `sonnet`, `opus`, `haiku` — or leave it blank for Claude Code's own default. **Test** says whether Claude Code is found and signed in.
+
+**What to know.** Each request starts Claude Code afresh, so the first word takes a few seconds. Calls count toward your plan's limits, which are meant for ordinary personal use — not for long batch jobs. Temperature and a reply-length limit don't apply. Your text goes to Anthropic, as with any online provider. Anthropic's terms allow your own subscription in the unmodified Claude Code; how they apply to apps that run it isn't settled, and any enforcement would fall on your account.
+
+### Sign in with ChatGPT (OpenAI)
+
+Uses your ChatGPT Plus or Pro plan instead of an API key — OpenAI's own sign-in for open-source apps like this one.
+
+1. **Add provider → Preset: OpenAI** and **Save provider** (no key needed).
+2. **Edit** it and click **Sign in with ChatGPT**. OpenAI's sign-in opens in your browser — the browser on this computer. Approve, and the form shows **Signed in with ChatGPT as** your email.
+3. **Fetch models**, pick one, **Save**.
+
+**What to know.** Requests count against your ChatGPT plan; in ChatGPT → Settings → Usage you can cap how much of it this app may use. Plan requests can't set temperature or a reply-length limit. **Sign out** goes back to the provider's API key, if it has one.
+
 ### DeepSeek (cloud)
 
 DeepSeek's native API speaks OpenAI shape. LLM only. Strong reasoning quality at a fraction of the cost of GPT-4-class models.
@@ -299,7 +322,7 @@ palette's **AI usage** opens it):
 - Breakdown by provider
 - A searchable log of recent calls with timestamps, models, and token counts
 
-Local providers always show $0. The cost figures for cloud providers come from a built-in price table — they're estimates, not invoices.
+Local providers always show $0. The cost figures for cloud providers come from a built-in price table — they're estimates, not invoices. Calls on your own plan (**Your Claude plan**, **Sign in with ChatGPT**) show $0 too: nothing is billed per call; their tokens still count.
 
 A **Reset ledger** button clears the log so you can start a fresh accounting period.
 

@@ -7,6 +7,14 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## 2026-11-07
+
+**Your Claude or ChatGPT plan instead of an API key.** When Claude Code is installed on this computer
+and signed in, the AI page's **Online** tab offers it: **Connect** runs JustWrite's AI on your own
+Claude plan, and the provider's row shows how much of this week's plan is used. An **OpenAI** provider
+has **Sign in with ChatGPT**, which uses your ChatGPT Plus or Pro plan. Calls on a plan show $0 under
+Usage. See [AI providers](ai-providers.md#your-claude-plan-through-claude-code).
+
 ## 2026-10-29
 
 **Restoring an autosave works again, and restores the right book.** Since June, **Restore** under
