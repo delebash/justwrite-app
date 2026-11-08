@@ -11,13 +11,13 @@ This page covers what each control does and when you'd want to change it.
 
 ## Theme presets
 
-The top of the Appearance section is a row of curated theme tiles. Click a tile to apply a complete bundle of settings — mode, fonts, accents, button shape — in one go. The live preview pane next to it updates instantly.
+Under the language picker, the Appearance section opens with a row of curated theme tiles. Click a tile to apply a complete bundle of settings — mode, fonts, accents, button shape — in one go. The **Preview** card just below updates instantly.
 
-New installs open in **Fine Press** — Fraunces display + Spline Sans UI, oxblood accent, neutral surfaces, full-width editor with paragraph indent. Other curated tiles: Studio (Geist + teal, white surfaces), Ivory Press (cream paper, italic display), Calm Modern (Geist + teal, neutral surfaces, justified paragraphs), Editorial (Newsreader + indigo, cool surfaces, mono headings).
+New installs open in **Fine Press** — Fraunces display + Spline Sans UI, oxblood accent, neutral surfaces, full-width editor with paragraph indent. Other curated tiles: Studio (Geist + teal, white surfaces), Ivory Press (ivory surfaces, cream paper, italic headings), Calm Modern (Geist + teal, neutral surfaces, paragraph indent), Editorial (Newsreader + indigo, cool surfaces, mono headings).
 
 You can save your own preset once you've tuned things to your liking. A **Save current…** tile appears whenever any individual knob is changed from a preset's baseline.
 
-If at any point things look wrong, the **Reset to defaults** button at the bottom of the page restores every Appearance setting (Fine Press) while keeping any saved custom presets.
+If at any point things look wrong, the **Reset to defaults** button beside the **Theme preset** title restores every Appearance setting (Fine Press) while keeping any saved custom presets.
 
 ---
 
@@ -37,7 +37,7 @@ These are the controls that most affect daily writing comfort.
 
 ### Font pairings
 
-Quick-select tiles that set the UI font and display font together. Each is a curated combination.
+Quick-select tiles that set the UI font and display font together (the editor body font follows the display font). Each is a curated combination.
 
 ### Individual fonts
 
@@ -47,13 +47,13 @@ If you don't want a pairing:
 - **Display font** — titles, headings, big numbers
 - **Editor body font** — your manuscript prose
 
-The Editor body font is the one you'll stare at for the most hours. Pick whatever you can read for a long session. Serif fonts (Lora, Source Serif, Merriweather) are easier on the eyes for long reading; sans-serif fonts (Inter, Source Sans) are crisper for short bursts.
+The Editor body font is the one you'll stare at for the most hours. Pick whatever you can read for a long session. Its list is all serif fonts (Fraunces, Source Serif 4, Newsreader, EB Garamond and more), which are easier on the eyes for long reading; for a crisper sans-serif, use the editor's own settings, below.
 
-The editor's own **Writing settings** (its gear) can set a different font on this device. Among them is **Atkinson Hyperlegible**, which the Braille Institute designed for readers with low vision: its letters are drawn to be hard to mistake for one another.
+The editor's own **Writing settings** (its gear) can set a different font over this one. Among them is **Atkinson Hyperlegible**, which the Braille Institute designed for readers with low vision: its letters are drawn to be hard to mistake for one another.
 
 ### UI scale
 
-A percentage slider that scales every label, control, and prose together. Useful for:
+The **Size** row — five steps from **Compact** (90%) to **Large** (110%) — scales every label, control, and prose together. Useful for:
 
 - High-DPI displays where defaults look small
 - Sharing your screen and wanting bigger text
@@ -91,7 +91,7 @@ A second accent for visual contrast. Drives:
 - Rules and peak markers in charts
 - The "accent2" button intent (used for things like the Resume CTA)
 
-A common pattern: pick a calm cool colour for Accent and a warm or bright colour for Accent 2. The two are visible side-by-side on Home (the goal ring is Accent 2, the active nav item is Accent).
+A common pattern: pick a calm cool colour for Accent and a warm or bright colour for Accent 2. The two are visible side-by-side on Home (the **Resume writing** button is Accent 2; the goal ring's progress and the active nav item are Accent).
 
 ---
 
@@ -115,10 +115,10 @@ You can break the convention — make Danger orange, make Success teal — but t
 
 These set the canvas the rest of the app sits on.
 
-- **App background tint** — the colour behind everything
-- **Sidebar background tint** — the colour behind the navigation
-- **Editor paper tint** — the colour of the manuscript page itself (try a slight off-white or cream for long reading)
-- **Text colour family** — the ink palette
+- **App** — the background tint behind everything
+- **Sidebar** — the background tint behind the navigation
+- **Editor paper** — the colour of the manuscript page itself (try a slight off-white or cream for long reading)
+- **Text** — the text-colour family (the ink palette)
 - **Apply editor paper to inline fields** — a checkbox that makes character / note / worldbuilding rich-text fields pick up the paper tint, so the whole app feels unified rather than two different surfaces
 
 Each tint has curated swatches plus a free colour picker.
@@ -134,7 +134,7 @@ The Editor paper tint is the one worth spending a minute on. A pure-white backgr
 Two options:
 
 - **Full width** — the editor takes the full width of the window edge-to-edge
-- **Page** — the editor is centred with margins, with a running head showing the book title and chapter
+- **Page** — the editor is centred with margins, with the book title as a running head and the chapter number at the foot of the page
 
 **Page** mimics a printed page and is what most writers prefer. **Full width** is useful on small windows or for users who want every pixel for prose.
 
@@ -144,14 +144,14 @@ Two options:
 
 > *"The lines feel crammed together and I can't tell where one paragraph ends and the next begins. I'm rereading the same sentence twice."*
 
-These are global defaults for the editor. Per-chapter overrides are available in the editor's writing-settings gear icon (which takes precedence over these).
+These are global defaults for the editor. The editor's **Writing settings** gear can override them — one choice for every chapter, which takes precedence over these (pick **theme** there to fall back to them).
 
 - **Font size** — Small (15px) / Medium (18px) / Big (21px)
-- **Line spacing** — 1.3 / 1.4 / 1.5 / 1.6 / 1.7 / 1.8 / 2.0
+- **Line spacing** — 1.3 / 1.4 / 1.5 / 1.6 / 1.7 / 1.8 / 2
 - **Paragraph spacing** — 0 / 0.3em / 0.5em / 0.8em / 1em
 - **First-line indent** — Indent / No indent
 
-These are the second-biggest comfort lever after font choice. Line spacing of 1.6–1.8 is easier to read than the tight default 1.3; a paragraph spacing of 0.3em makes prose breathe. First-line indent is a taste call — indented paragraphs feel like a book, no-indent feels like the web.
+These are the second-biggest comfort lever after font choice. Line spacing of 1.6–1.8 (the default is 1.7) is easier to read than a tight 1.3; a paragraph spacing of 0.3em makes prose breathe. First-line indent is a taste call — indented paragraphs feel like a book, no-indent feels like the web.
 
 ---
 
@@ -173,8 +173,8 @@ Three knobs that change the feel of every button in the app:
 
 ### Label casing
 
-- **Default** — sentence case
-- **Uppercase** — automatic uppercase with adjusted letter-spacing
+- **Sentence** — labels as written (sentence case)
+- **UPPERCASE** — automatic uppercase with adjusted letter-spacing
 
 These are cosmetic — they don't affect what buttons do, only how they look. Adjust to taste.
 
@@ -188,7 +188,7 @@ If you don't want to fiddle, the defaults are fine. If you do want to tune, a se
 2. **Font pairing** — pick one tile.
 3. **Editor paper tint** — try a cream or pale beige.
 4. **Editor body font** — choose what you can read for hours.
-5. **Editor writing settings** — bump line spacing to 1.6 or 1.7 if the default feels tight.
+5. **Editor writing** — line spacing is 1.7 by default; try 1.8 or 2 if it still feels tight.
 6. **Accent** — pick a colour you like seeing.
 7. **Save preset** so you don't have to redo it.
 

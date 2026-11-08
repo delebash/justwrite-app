@@ -8,7 +8,7 @@ most questions land), then pointers for everything else.
 
 ## AI providers and models
 
-**Test returns Offline.**
+**Test shows Failed.**
 
 - For cloud providers: usually an invalid API key, or a key with insufficient permissions. Verify on the provider's dashboard.
 - For local providers: the server isn't running. Start it from the terminal.
@@ -33,7 +33,7 @@ most questions land), then pointers for everything else.
 
 **OpenAI is charging me unexpectedly.**
 
-- Check **Settings → AI Usage** for the breakdown by feature.
+- Check the AI page's **Usage** tab for the breakdown by feature.
 - The biggest spenders are usually: critique on long chapters, and "Ask the book" if auto-rebuild RAG is on.
 - Pin expensive features to cheaper models or local ones.
 
@@ -41,8 +41,8 @@ most questions land), then pointers for everything else.
 
 - Open the **AI task panel** from the sparkle chip in the title bar (see [Watching AI calls](ai-providers.md#watching-ai-calls)).
 - A **live** (green) freshness dot means tokens are still arriving; trust the wait, especially for big analysis features.
-- A **stalling** (gold) dot means no tokens in a few seconds; usually still recoverable.
-- A **stuck** (red) dot means nothing has arrived in 10+ seconds. Hit Cancel and try a different model.
+- A **stalling** (gold) dot means no token for well past this model's usual pace — at least 8 seconds, or four times its average gap between tokens; usually still recoverable.
+- A **stuck** (red) dot means nothing has arrived for at least 25 seconds, or eight times that gap. Hit Cancel and try a different model.
 
 **A model refuses a thinking / reasoning request.**
 

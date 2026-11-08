@@ -22,4 +22,4 @@ A few things JustWrite **isn't** planning to add. Worth saying so:
 
 ## How to suggest something
 
-Open an issue on the JustWrite GitHub repository (link from the [main README](README.md)). Concrete, narrowly-scoped requests get traction faster than broad ones. "Tag filter on Characters" is easier to act on than "make Characters better."
+Open an issue on the [JustWrite GitHub repository](https://github.com/delebash/justwrite-app). Concrete, narrowly-scoped requests get traction faster than broad ones. "Tag filter on Characters" is easier to act on than "make Characters better."

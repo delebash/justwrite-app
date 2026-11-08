@@ -14,9 +14,10 @@ Files*), it falls back to your user data folder instead.
 You can see the current location under **Settings → Storage**.
 
 Running the server yourself (see [Headless access](headless-access.md)) follows
-the same rule — the `data` folder beside the app — and takes the same two
-overrides the desktop app respects: the `JUSTWRITE_DATA_DIR` environment
-variable, or `--data-dir <path>` on the command line. JustVoice behaves
+the same rule — the `data` folder beside the app, or the folder you moved it to
+with **Change folder…** — and respects the same `JUSTWRITE_DATA_DIR` environment
+variable the desktop app does; the server alone also takes `--data-dir <path>` on
+the command line. JustVoice behaves
 identically with its own `JUSTVOICE_DATA_DIR`, so the two apps never surprise
 you differently.
 
@@ -61,13 +62,13 @@ Two of those can be cleared right from the card:
   accumulate over time.
 
 The other rows are managed where they live: the **engine** itself is installed,
-updated, and removed on the AI page; the **server logs** have their own
-retention controls in **Settings → Logs**; and the **database** is your actual
+updated, and removed on the AI page; the **server logs** are deleted a day at
+a time, or all at once, in **Settings → Logs**; and the **database** is your actual
 work — it's never cleared from here.
 
 ### Log timestamps
 
-On screen — in **Settings → Logs** and in the **Server console** under AI — log
+On screen — in **Settings → Logs** and in the **AI engine console** tab of **AI Settings** — log
 times are shown in **your computer's own date and time format**, so a US machine
 reads `07/19/2026, 12:06:22 AM` and a European one reads its local convention.
 The day list you pick a stored log from follows the same format. Nothing to
@@ -84,11 +85,11 @@ differs.
 ## The local AI engine
 
 The bundled local models run on a small **llama.cpp engine**. Installing it is
-its own one-time step, separate from downloading a model: open **Settings → AI →
+its own one-time step, separate from downloading a model: open **AI Settings →
 Providers & models**, open the built-in provider, and use **Install engine**
 under *Local engine*. Once it's installed, downloading and loading a model just
-works — if a model won't load with an "install engine first" note, the engine
-step is what's missing.
+works — if a model won't load with a "The engine isn't installed — install it
+first" note, the engine step is what's missing.
 
 If a model ever fails to start, **View log** on that panel shows the engine's own
 output so you can see why (for example, a graphics-driver or out-of-memory error).

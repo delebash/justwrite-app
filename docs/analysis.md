@@ -5,7 +5,7 @@ lede: Pace, milestones, style metrics
 
 The **Analysis** view (Project section in the sidebar) is a dashboard of objective data about your manuscript — how much you've written, how fast, how the chapters are structured, and what your prose patterns look like.
 
-Most of it is calculated locally from the text. The AI-powered passes — story tension, reverse outline, beat sheet, plot-hole audit, marketing pack, and the Voice-drift explainer — are opt-in; nothing calls a provider until you ask.
+Most of it is calculated locally from the text. The AI-powered passes — story tension, reverse outline, beat sheet, plot-hole audit, marketing pack, entity sweep, and the Voice-drift explainer — are opt-in; nothing calls a provider until you ask.
 
 This page won't change anything about your writing. It is a mirror. What you do with what you see is up to you.
 
@@ -105,7 +105,7 @@ A per-chapter sortable table with book-level summary pills at the top. Columns:
 - **Filter words per 1,000 words** — distancing phrases like "she saw", "he felt"
 - **Adverbs per 1,000 words**
 - **Passive voice per 1,000 words**
-- **POV hint** — auto-detected as 1st person, 3rd person, or mixed
+- **POV hint** — auto-detected as 1st, 2nd or 3rd person, or mixed
 
 All metrics are calculated locally from the text — no AI call.
 
@@ -134,7 +134,7 @@ Once you have data:
 
 **Why a writer would care.** Story shape is one of the things you can't see from inside the draft. The classic "the middle sags" or "the climax doesn't land" complaints usually map to a tension curve that flattens at the wrong place, or peaks too early, or never peaks at all. Seeing the arc charted lets you point at the actual chapter that's dragging instead of vaguely revising the middle of the book.
 
-The structural analysis itself is routable as the **critique** feature in Settings → AI (it shares the pin with the per-chapter Critique modal). A long-context cloud model produces noticeably better structural reasoning than small local models — for this specific feature, the per-chapter cost is worth pinning to your strongest available model.
+The structural analysis itself is routable as **Critique** on the AI Settings page → Routing by feature (it shares the pin with the per-chapter Critique modal). A long-context cloud model produces noticeably better structural reasoning than small local models — for this specific feature, the per-chapter cost is worth pinning to your strongest available model.
 
 The Story tension section header also carries four structural-analysis buttons that open full-book LLM modals: **Reverse outline** (the act structure the book actually has), **Map to beat sheet** (mapped to Save the Cat / Hero's Journey / 7-Point), **Plot-hole audit** (see below), and **Marketing pack** (logline / blurbs / synopsis / pitch — see below). Each modal persists its result on the project so re-opening reads from cache.
 
@@ -153,7 +153,7 @@ The modal returns:
 
 **Why a writer would use it.** Pantsers (writers who draft without a detailed outline) often finish a draft and genuinely don't know what they've built. The reverse outline is the answer to "what shape is this?" — a structural editor's first-pass reading you can use as the foundation for your revision plan. It's also useful for plotters: comparing what you intended (your pre-draft outline) against what you actually wrote (the reverse outline) reveals where the book diverged from the plan.
 
-**Cost note.** This sends a digest of every chapter in one call. On long books the prompt can get large; pin to a long-context model. The model is told to be honest — if the book has structural problems (no clear inciting incident, climax that lands too early), the summary will say so plainly. Routable as the **reverseOutline** feature in Settings → AI. The result persists on the project so re-opening the modal reads from cache.
+**Cost note.** This sends a digest of every chapter in one call. On long books the prompt can get large; pin to a long-context model. The model is told to be honest — if the book has structural problems (no clear inciting incident, climax that lands too early), the summary will say so plainly. Routable as **Reverse outline** on the AI Settings page → Routing by feature. The result persists on the project so re-opening the modal reads from cache.
 
 ### Map to beat sheet — fit the draft to a named framework
 
@@ -173,7 +173,7 @@ For each beat the modal shows: the beat name, its canonical definition, which ch
 
 **Why a writer would use it.** During revision, after the reverse outline has shown you the structure you actually have. If your reverse outline says "loose / episodic" and you wanted a tight three-act structure, the beat-sheet overlay tells you exactly which beats you're missing. If you wrote to a beat sheet originally but feel the draft has drifted, the overlay tells you what fell out.
 
-**Cost note.** Same shape as Reverse outline — one LLM call over the whole-book digest. Routable as the **beatSheet** feature in Settings → AI.
+**Cost note.** Same shape as Reverse outline — one LLM call over the whole-book digest. Routable as **Beat sheet** on the AI Settings page → Routing by feature.
 
 ### Plot-hole / continuity audit
 
@@ -187,7 +187,7 @@ The audit returns findings categorised by kind:
 - **Timeline** — events happen in an order or pace the text can't support (a journey takes hours described as days; a year passed but characters reference it as days)
 - **Continuity** — small drift in a detail across chapters (eye colour, scar, weather, season)
 - **Character knowledge** — a character acts on information they couldn't yet have
-- **Object** — an object appears, disappears, or changes hands without explanation
+- **Object / detail** — an object appears, disappears, or changes hands without explanation
 - **Other** — anything else the model flags
 
 Each finding has a **severity** (Flag / Suggestion / Note), the **chapter numbers** whose content collides (clickable to jump), a verbatim **evidence** quote, and a one-line **cheapest fix** suggestion. Findings group by severity in the modal — Flags first, Suggestions second, Notes last.
@@ -196,7 +196,7 @@ Each finding has a **severity** (Flag / Suggestion / Note), the **chapter number
 
 **Why a writer would care.** Continuity drift is the kind of mistake nobody notices in their own draft because the *intent* of each scene was right at the time you wrote it. The audit catches the kind of thing a fresh beta reader would notice on first read — the things readers actually email you about three months after publication. The model is instructed to be selective and honest; a clean audit is meaningful, padded findings are noise. A draft that returns 0–3 findings is normal; 10+ is the signal you have real revision work to do.
 
-**Cost note.** One LLM call over the digest plus tails. The prompt is longer than Reverse outline because of the prose tails, so pin to a long-context model if you can. Routable as the **plotHoles** feature in Settings → AI.
+**Cost note.** One LLM call over the digest plus tails. The prompt is longer than Reverse outline because of the prose tails, so pin to a long-context model if you can. Routable as **Plot-hole audit** on the AI Settings page → Routing by feature.
 
 **World rules to enforce.** SFF writers can declare in-world constraints — magic-system rules, hard SF physics, technology limits, social structures — in a collapsible textarea on the modal ("World rules to enforce"). When non-empty, the audit checks each chapter against those rules in the same pass. *"Magic requires a physical cost — wounds, age, exhaustion. No magic is free."* If a chapter breaks a rule but the prose **earns the exception** (a cost paid, a workaround, a stated bypass), it's not flagged. The model is told to distinguish unearned violations from costed ones. Leave the field blank for non-SFF projects — the rest of the audit runs identically. The rules persist on the project, so the writer fills it in once and every subsequent scan picks it up.
 
@@ -220,7 +220,7 @@ Each artifact has a **Copy** button that drops it onto the clipboard with a conf
 
 **Why a writer would use it.** The blurbs and synopsis aren't your final marketing copy — they're a strong first draft you edit. The model has read your entire book; it knows what it's about. Most writers find it easier to react to and revise a generated pack than to write one cold. The three blurb angles in particular often surface the framing that *should* go on the back cover, even if the words need work.
 
-**The model is instructed to avoid AI-tell phrases**, but you should still run the result through the [Find AI tells](markers.md) scanner before sending anywhere. Routable as the **marketingPack** feature in Settings → AI.
+**The model is instructed to avoid AI-tell phrases**, but you should still run the result through the [Find AI tells](markers.md) scanner before sending anywhere. Routable as **Marketing pack** on the AI Settings page → Routing by feature.
 
 **Comp titles** ride along in the same modal. The pack returns 3–6 comparable titles — book + author + year + a one-sentence rationale naming the specific craft connection (structure, voice, register, subgenre, protagonist archetype). Each comp carries a **confidence label** (high / medium / low) that's the model's own self-assessment of whether the title-and-author combination is real. A red **verification warning** sits above the list because models confidently invent comp titles that don't exist or misattribute them — treat the suggestions as a *starting point for research*, not a finished list. Agents want comps from the last 5 years and prefer mid-list to bestsellers; a generated comp older than that or aimed at a mega-hit ("like Gone Girl") is a signal to find a more recent or more specific equivalent.
 
@@ -246,7 +246,7 @@ For any hot chapter, click **Explain** to send the outlier's prose plus a sample
 
 **Why a writer would care.** Voice drift isn't necessarily bad — sometimes it's deliberate (the climax SHOULD read differently from the opening). But unintended drift is the kind of thing readers notice without being able to name. Catching it during revision is much cheaper than catching it in a copyedit pass, and much cheaper still than catching it in reviews.
 
-The metric analysis is **pure deterministic** — no AI required. The Explain button is the only AI piece, and only fires when you click it. Routable as the **voiceDrift** feature in Settings → AI.
+The metric analysis is **pure deterministic** — no AI required. The Explain button is the only AI piece, and only fires when you click it. Routable as **Voice drift** on the AI Settings page → Routing by feature.
 
 ### Cast presence heatmap
 
@@ -260,7 +260,7 @@ A grid: every character along one axis, every chapter along the other. Each cell
 
 Hover a cell for the exact mention count. Click to open the chapter or the character's profile.
 
-Presence is fed by prose mentions (the `@` linking system) and explicit scene → character links.
+Presence is read from the prose: a cell lights up when the character's first name appears in that chapter, and turns full colour when it appears more than five times.
 
 **Why a writer would care.** This is the structural diagnostic for character distribution. Spot:
 
@@ -295,9 +295,10 @@ Almost nothing. Specifically:
 - **Pace chart, milestones, streak, heatmap** — all local
 - **Chapter status donut, strand distribution, words per chapter** — all local
 - **Style and pacing metrics, scenes per chapter** — all local
-- **Voice drift metrics + sparklines + hot-chapters list** — all local. The optional **Explain** button per hot chapter is one of two AI surfaces in the dashboard
-- **Story tension chart + per-chapter strip** — reads from data already on `chapter.critique.structure`. The **Analyse N chapters** button runs the structural pass on chapters that don't have one yet (the other AI surface in the dashboard)
-- **Cast presence heatmap** — all local. Built from the `@` mention layer and explicit scene → character links
+- **Voice drift metrics + sparklines + hot-chapters list** — all local. The optional **Explain** button per hot chapter calls the AI
+- **Story tension chart + per-chapter strip** — reads from data already on `chapter.critique.structure`. The **Analyse N chapters** button runs the structural pass on chapters that don't have one yet (one AI call per chapter)
+- **Reverse outline, Map to beat sheet, Plot-hole audit, Marketing pack, Entity sweep** — the Story tension header's AI buttons; each calls the AI only when you run it. **Link scenes** beside them is local
+- **Cast presence heatmap** — all local. Built from the characters' first names in the prose
 
 ---
 

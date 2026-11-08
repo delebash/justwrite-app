@@ -14,11 +14,11 @@ If this is your first time:
 
 1. **[Getting started](getting-started.md)** — install, open the app, find your bearings.
 2. **[Core concepts](core-concepts.md)** — the way JustWrite thinks about a book (Parts, Chapters, Scenes, the Story Bible, autosave, undo).
-3. **[Writing](writing.md)** — the editor itself: Home, Chapters, the four view modes, the scene-strip AI dropdown.
+3. **[Writing](writing.md)** — the editor itself: Home, Chapters, the three view modes, the scene-strip AI dropdown.
 
 If you have a draft already:
 
-- **[Import and export](import-and-export.md)** — pull in a `.docx`, `.epub`, or `.odt` and turn it into chapters.
+- **[Import and export](import-and-export.md)** — pull in a `.docx`, `.epub`, `.odt`, `.txt` or `.md` and turn it into chapters.
 
 If you want to plan first:
 
@@ -34,14 +34,16 @@ If you want to plan first:
 - **[Getting started](getting-started.md)** — install, first launch, the seed project, optional AI setup
 - **[Core concepts](core-concepts.md)** — Parts → Chapters → Scenes, the Story Bible, soft delete + undo, autosave
 - **[Writing](writing.md)** — Home, Chapters, the editor, Edit / Outline / Read modes (with the Cards corkboard inside Edit), the Links panel, AI rewrites, Version History
+- **[Markers](markers.md)** — in-prose pins for fix-laters, loose threads, weak prose, and AI-tell / dangling-thread scans
 
 ### Planning your story
 
 - **[Story bible](story-bible.md)** — Characters, Locations, Objects, Groups, Relations graph
+- **[Character sheet](character-sheet.md)** — every field of the character dossier, explained
 - **[Plot and time](plot-and-time.md)** — Narrative strands, Plot Board, project Timeline, per-entity Events
 - **[Worldbuilding](worldbuilding.md)** — Worldbuilding articles and the three Architecture documents (Premise, Fabula, Setting)
 - **[Notes and search](notes-and-search.md)** — the scratch-pad and full-text search across everything
-- **[Markers](markers.md)** — in-prose pins for fix-laters, loose threads, weak prose, and AI-tell / dangling-thread scans
+- **[Brainstorm](brainstorm.md)** — the name / title generator with thumbs-up steering
 
 ### Producing the book
 
@@ -52,10 +54,16 @@ If you want to plan first:
 ### Setup and configuration
 
 - **[AI providers](ai-providers.md)** — OpenAI, Anthropic Claude, Ollama, LM Studio, others
+- **[The AI features](ai-features.md)** — every AI feature, and where each one lives
+- **[Models](models.md)** — Quick Setup, downloading and tuning local models
+- **[Presets](presets.md)** — named engine configurations a feature runs on
 - **[Appearance](appearance.md)** — themes, fonts, accents, button shape, editor layout
 - **[Backups and data](backups-and-data.md)** — autosave, snapshots, restoring, reset
 - **[Sync](sync.md)** — your books on every device: a cloud folder, pairing, or a file by hand
+- **[Storage & engine](storage.md)** — where data lives, moving it, installing the local AI engine
+- **[Headless access](headless-access.md)** — run the server on its own and use JustWrite in a browser
 - **[Keyboard shortcuts](keyboard-shortcuts.md)** — the full reference
+- **[Troubleshooting](troubleshooting.md)** — provider tests, slow models, hung calls, data recovery
 
 ### What's coming
 
