@@ -1102,6 +1102,7 @@ function doPrint() {
   doc.open();
   // the highlights and text colours are theme variables; on paper they're the light ones
   const colors = editorColorVars("light").map(([name, value]) => `${name}:${value}`).join(";");
+  // eslint-disable-next-line i18next/no-literal-string -- the print window's markup; its title is t()
   doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>${t("richEditor.printTitle")}</title><style>
     :root{${colors}}
     body{font-family:Georgia,'Times New Roman',serif;font-size:12.5pt;line-height:1.7;color:#111;max-width:680px;margin:0 auto;padding:48px}

@@ -2,6 +2,8 @@
 import { computed, ref, onBeforeUnmount, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { shortcutKeys } from "../services/shortcutKeys.js";
+// the sidebar toggle's keys in this computer's own words: a key combination, never a word to translate
+const TOGGLE_SIDEBAR_KEYS = shortcutKeys("mod+\\");
 import { useI18n } from "vue-i18n";
 import { useUiStore } from "../stores/ui.js";
 import { categoryLabelShown, useProjectStore } from "../stores/project.js";
@@ -298,6 +300,7 @@ function addItem(parentId) {
 // adding a chapter and deleting the part. Renaming is inline — a new part is named in place.
 function addPart() {
   const id = project.addPart();
+  // eslint-disable-next-line i18next/no-literal-string -- a CSS selector
   selectNewRowName(`.sidebar [data-part-id="${id}"]`);
 }
 function addChapterInPart(partId) {
@@ -716,6 +719,7 @@ function itemDropClass(section, id) {
 // A new category is named in place; a new article in a category opens with its title selected.
 function addWbCategory() {
   const id = project.addWorldbuildingCategory();
+  // eslint-disable-next-line i18next/no-literal-string -- a CSS selector
   selectNewRowName(`.sidebar [data-wbcat-id="${id}"]`);
 }
 function addArticleInCat(catId) {
@@ -835,7 +839,7 @@ const authorInitials = computed(() => {
         <div class="brand-name">{{ $t("welcome.wordmark") }}</div>
         <div class="brand-sub">{{ $t("sidebar.brand.sub", { version: appVersion }) }}</div>
       </div>
-      <UiButton intent="ghost" v-tooltip.bottom="`${$t('sidebar.tooltips.toggleSidebar')} · ${shortcutKeys('mod+\\')}`" :aria-label="$t('sidebar.tooltips.toggleSidebar')" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></UiButton>
+      <UiButton intent="ghost" v-tooltip.bottom="`${$t('sidebar.tooltips.toggleSidebar')} · ${TOGGLE_SIDEBAR_KEYS}`" :aria-label="$t('sidebar.tooltips.toggleSidebar')" @click="ui.toggleSidebar"><Icon name="SidebarToggle" :size="14" /></UiButton>
     </div>
     <div class="project-switcher-wrap" ref="projectSwitcherEl">
       <button class="project-switcher" :class="{ open: projectMenuOpen }"

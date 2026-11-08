@@ -41,6 +41,7 @@ export const PAPER_TINTS = {
 // Dark: a highlight is its colour at the plain highlight's 35% over the paper (RichEditor's `mark`);
 // a text colour is the same Tailwind hue a step Tailwind uses on dark grounds (700 → 400, the greys
 // 900 → 100 and 500 → 400).
+// eslint-disable-next-line i18next/no-literal-string -- a CSS colour
 const darkHighlight = (light) => `color-mix(in oklch, ${light} 35%, transparent)`;
 export const HIGHLIGHT_COLORS = {
   yellow: { labelKey: "richEditor.color.yellow", light: "#ffe8a3", dark: darkHighlight("#ffe8a3") },

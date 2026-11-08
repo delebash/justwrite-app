@@ -230,6 +230,7 @@ function chapterHtml(ch, lang, imageHref = new Map()) {
     else if (b.kind === "ul-item") body.push(`<ul><li>${blockXhtml(b)}</li></ul>`);
     else if (b.kind === "image") {
       const href = imageHref.get(b.src);
+      // eslint-disable-next-line i18next/no-literal-string -- the EPUB's markup; the alt text is the book's
       if (href) body.push(`<p class="image"><img src="${xmlEscape(href)}" alt="${xmlEscape(b.alt)}" /></p>`);
     }
     else body.push(`<p>${blockXhtml(b)}</p>`);
