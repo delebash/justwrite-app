@@ -35,7 +35,7 @@ npm run test:server    # server vitest only (server/tests/, on Electron's Node)
 npm run test:flows     # click-through tests of the built UI, AI stubbed, 1280 + 390 px (tests/flows/)
 npm run eval           # every Lab sample on a real model (uses the GPU — ask JustVoice first)
 npm run i18n:report    # key coverage of the English catalogs — MISSING must always be zero
-node ../just-core/scripts/check-family.js   # the family guard — must pass before a commit
+node ../just-core/scripts/check-family.js   # the family guard — with the suites, once when the job's list is done (never before each commit)
 ```
 
 **Server code runs on Electron's own Node.** Every npm script that runs the server or its tests
