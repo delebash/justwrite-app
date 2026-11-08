@@ -100,7 +100,7 @@ A common pattern: pick a calm cool colour for Accent and a warm or bright colour
 Three colours that carry meaning in the UI:
 
 - **Success** — green by default, used for confirmation, "Done" statuses, success toasts
-- **Danger** — red by default, used for destructive actions, the Danger zone, error toasts
+- **Danger** — red by default, used for destructive actions, the reset row in Settings → Backups, error toasts
 - **Info** — blue by default, used for informational chips and tags
 
 Each has preset hues and a numeric picker. Re-tinting re-skins all matching buttons, tags, and status chips.
