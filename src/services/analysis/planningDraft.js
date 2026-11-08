@@ -24,7 +24,7 @@ import { htmlToText, textToHtml } from "../text.js";
 import { block, bookBlock, clamp, join } from "./draftInput.js";
 import { t } from "../../i18n/index.js";
 
-/** The feature slice 3's actions are routed under (Settings → AI → Routing by feature, "Planning"). */
+/** The feature slice 3's actions are routed under (the AI Settings page's routing by feature, "Planning"). */
 export const PLANNING_FEATURE = "planning";
 
 // A Summary is a sentence or three.

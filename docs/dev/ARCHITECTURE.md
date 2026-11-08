@@ -132,7 +132,7 @@ Phases were locked up front; built and shipped in order.
 - **Cross-cutting polish.** Command palette (⌘P), global find & replace
   (⌘⇧F), Writer Lab (its `/writer-lab` + `/debug/writer-lab` routes were later
   removed from the router — build-era note),
-  Settings → AI usage dashboard, auto-save indicator, AI marks stripped from
+  the AI Settings page's usage dashboard, auto-save indicator, AI marks stripped from
   read / export / TTS / search / analysis, per-change diff stepper.
 
 ### Known limits / deferred
@@ -256,7 +256,7 @@ Two-layer architecture:
    on `detectRunner(provider)`. Ollama → `/api/chat` (NDJSON, top-level
    `think` field honored). Everything else → `/v1/chat/completions`.
    Runner auto-detected from baseUrl (`:11434` or `ollama` in URL) or
-   explicit `provider.runner` field in Settings → AI providers.
+   explicit `provider.runner` field in the AI Settings page's providers.
 2. **Call-site opt-in.** `think: false` is passed explicitly at each
    structured-output call site rather than auto-injected. Future creative
    features (writer's block, brainstorming) will omit `think` and benefit

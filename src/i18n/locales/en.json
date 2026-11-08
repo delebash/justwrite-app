@@ -514,7 +514,7 @@
     "onThePage": "On the page:",
     "clearMapping": "Clear this mapping",
     "err": {
-      "noProvider": "Configure an AI provider in Settings → AI to map to a beat sheet.",
+      "noProvider": "Configure an AI provider on the AI Settings page to map to a beat sheet.",
       "failed": "Couldn't map to beat sheet."
     },
     "taskLabel": "Beat sheet mapping",
@@ -769,7 +769,7 @@
       "noScenes": "No scenes yet"
     },
     "err": {
-      "noProvider": "Configure an AI provider in Settings → AI to run the audit.",
+      "noProvider": "Configure an AI provider on the AI Settings page to run the audit.",
       "failed": "Couldn't complete the audit.",
       "noMain": "No main characters to audit. Mark a character as 'main' in their detail page first."
     },
@@ -800,7 +800,7 @@
     "discardRecap": "Discard recap",
     "err": {
       "nothingToday": "No writing recorded today yet — open a chapter and write a bit first.",
-      "noProvider": "Configure an AI provider in Settings → AI to generate the recap.",
+      "noProvider": "Configure an AI provider on the AI Settings page to generate the recap.",
       "failed": "Couldn't generate recap."
     },
     "taskLabel": "Session recap",
@@ -1286,7 +1286,7 @@
     "clearPanel": "Clear panel",
     "rerunPanel": "Re-run panel",
     "err": {
-      "noProvider": "Configure an AI provider in Settings → AI to run the multi-reader panel.",
+      "noProvider": "Configure an AI provider on the AI Settings page to run the multi-reader panel.",
       "failed": "Couldn't run the panel.",
       "noProse": "This chapter has no prose to read yet."
     },
@@ -1447,7 +1447,7 @@
     },
     "err": {
       "noChapters": "No chapters to scan.",
-      "noProvider": "Configure an AI provider in Settings → AI to run the scan.",
+      "noProvider": "Configure an AI provider on the AI Settings page to run the scan.",
       "failed": "Couldn't run scan."
     },
     "pinnedToast": "Pinned {n} loose thread. | Pinned {n} loose threads.",
@@ -1497,7 +1497,7 @@
       "other": "Other"
     },
     "err": {
-      "noProvider": "Configure an AI provider in Settings → AI to run the audit.",
+      "noProvider": "Configure an AI provider on the AI Settings page to run the audit.",
       "failed": "Couldn't run the audit."
     },
     "taskLabel": "Plot-hole / continuity audit",
@@ -1540,7 +1540,7 @@
     "confidenceLow": "low confidence",
     "clearPack": "Clear pack",
     "err": {
-      "noProvider": "Configure an AI provider in Settings → AI to generate the marketing pack.",
+      "noProvider": "Configure an AI provider on the AI Settings page to generate the marketing pack.",
       "failed": "Couldn't generate the marketing pack.",
       "copy": "Couldn't copy — your browser may have blocked the clipboard."
     },
@@ -1597,7 +1597,7 @@
     "newForPov": "New for the POV character",
     "noNewFacts": "No new facts this chapter.",
     "err": {
-      "noProvider": "Configure an AI provider in Settings → AI to run this analysis.",
+      "noProvider": "Configure an AI provider on the AI Settings page to run this analysis.",
       "failed": "Couldn't complete the analysis."
     },
     "taskLabel": "Reader knowledge",
@@ -1638,7 +1638,7 @@
     "analyse": "Analyse",
     "clearThisArc": "Clear this arc",
     "err": {
-      "noProvider": "Configure an AI provider in Settings → AI to track the relationship.",
+      "noProvider": "Configure an AI provider on the AI Settings page to track the relationship.",
       "failed": "Couldn't analyse the relationship.",
       "sameCharacter": "Pick two different characters."
     },
@@ -1931,7 +1931,7 @@
     "chapterTitled": "Chapter {num} — {title}",
     "briefingTaskLabel": "Previously on your novel",
     "err": {
-      "briefingNoProvider": "Configure an AI provider in Settings → AI to generate this briefing.",
+      "briefingNoProvider": "Configure an AI provider on the AI Settings page to generate this briefing.",
       "briefingFailed": "Couldn't generate briefing."
     },
     "manuscript": "Manuscript",
@@ -2112,9 +2112,9 @@
     "badgeClosed": "Closed",
     "badgeDeadEnd": "Dead-end",
     "err": {
-      "driftNoProvider": "Configure an AI provider in Settings → AI to explain voice drift.",
+      "driftNoProvider": "Configure an AI provider on the AI Settings page to explain voice drift.",
       "driftFailed": "Couldn't generate explanation.",
-      "tensionNoProvider": "Configure an AI provider in Settings → AI to run the tension sweep.",
+      "tensionNoProvider": "Configure an AI provider on the AI Settings page to run the tension sweep.",
       "tensionFailed": "Tension sweep failed."
     },
     "driftTaskLabel": "Voice drift explanation",
@@ -2202,7 +2202,7 @@
     "noBeat": "(no beat — chapter may be empty or new)",
     "clearOutline": "Clear outline",
     "err": {
-      "noProvider": "Configure an AI provider in Settings → AI to generate the reverse outline.",
+      "noProvider": "Configure an AI provider on the AI Settings page to generate the reverse outline.",
       "failed": "Couldn't build the outline."
     },
     "taskLabel": "Reverse outline",
@@ -2631,7 +2631,7 @@
     "insertTooltip": "Click to insert at end of selection",
     "phraseCount": "{n} phrase | {n} phrases",
     "err": {
-      "noProvider": "Configure an AI provider in Settings → AI to generate a sensory pack.",
+      "noProvider": "Configure an AI provider on the AI Settings page to generate a sensory pack.",
       "failed": "Couldn't generate the sensory pack.",
       "empty": "The model returned no usable phrases. Try regenerating with a more specific subject."
     },
@@ -2695,7 +2695,7 @@
       "timeframe": "Cut to a different moment — later, earlier, or somewhere else entirely."
     },
     "err": {
-      "noProvider": "Configure an AI provider in Settings → AI to generate Unstuck moves.",
+      "noProvider": "Configure an AI provider on the AI Settings page to generate Unstuck moves.",
       "failed": "Couldn't generate moves.",
       "empty": "The model didn't return any usable moves. Try regenerating."
     },

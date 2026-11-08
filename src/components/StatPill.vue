@@ -1,7 +1,7 @@
 <script setup>
 // Rollup pill — big serif number with a tiny mono uppercase label
 // underneath. Appears in clusters across Analysis (style metrics rollup),
-// Settings → AI usage, the import wizard preview summary, and likely
+// the AI Settings page's usage, the import wizard preview summary, and likely
 // future dashboards. Same DOM shape every time.
 //
 // Slot `default` lets callers swap the number for arbitrary content

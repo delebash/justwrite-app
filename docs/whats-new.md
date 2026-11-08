@@ -290,7 +290,7 @@ set in Settings → Project (0 hides it); before, the target was stored and noth
 **Draft from plan — a scene from its Summary.** Turn on **AI scene drafting** for a book in
 **Settings → Project**, write a scene's **Summary** in its Links panel, and **Draft from plan**
 drafts the scene — from an empty scene's button, or from the cursor in the AI dropdown — as an
-accept/reject change. It has its own row in Settings → AI, **Scene drafting**, so it can run on a
+accept/reject change. It has its own row on the **AI Settings** page, **Scene drafting**, so it can run on a
 bigger model. See [Draft from plan](writing.md#draft-from-plan--a-scene-from-its-summary).
 
 **The AI's words are marked.** Text the AI writes keeps a violet ink once you accept it. The words
@@ -345,7 +345,7 @@ if the page has none, from a line or two of yours and the book; you review each 
 **Name ideas** (✨ beside the name) now works on these pages too, **Suggest locations…** on the
 Locations list proposes places the book doesn't have yet, and a worldbuilding article's
 **Draft with AI** writes its body from the title and summary, as a change you accept or reject.
-They're routed under **Story-world sheets** in Settings → AI (the suggestions and names under
+They're routed under **Story-world sheets** on the **AI Settings** page (the suggestions and names under
 Brainstorm). See [Story bible](story-bible.md#locations) and
 [Worldbuilding](worldbuilding.md#the-article-editor).
 
@@ -355,7 +355,7 @@ first lines; the AI writing actions read it with the scene. On the **Plot board*
 menu offers **Fill this template for my story** (each template beat's note, for your book),
 **Suggest next beats** and **Plot twists** (new beat cards). Architecture's Fabula and Setting
 have **Draft from the premise**. All of it is reviewed before it's saved, and routed under
-**Planning** in Settings → AI. See [Writing → the Links panel](writing.md#the-links-panel),
+**Planning** on the **AI Settings** page. See [Writing → the Links panel](writing.md#the-links-panel),
 [Plot and time](plot-and-time.md#the-ai-on-a-strand) and
 [Worldbuilding and Architecture](worldbuilding.md#whats-in-each-document).
 
