@@ -15,6 +15,10 @@ Claude plan, and the provider's row shows how much of this week's plan is used. 
 has **Sign in with ChatGPT**, which uses your ChatGPT Plus or Pro plan. Calls on a plan show $0 under
 Usage. See [AI providers](ai-providers.md#your-claude-plan-through-claude-code).
 
+**Claude answers at its own temperature.** Anthropic's current API refuses a temperature, top-p or top-k on every
+Claude model, so a feature routed to Claude no longer sends its preset's; the other providers still take them. See
+[AI providers](ai-providers.md#anthropic-claude-cloud).
+
 ## 2026-10-29
 
 **Restoring an autosave works again, and restores the right book.** Since June, **Restore** under

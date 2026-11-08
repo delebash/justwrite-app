@@ -108,7 +108,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
-          node-version: 24 # the Node the app runs on (Electron 44 carries 24.22.1) — it moves with the Electron major
+          node-version: 24 # the Node the app runs on (Electron 45 carries 24.22.1) — it moves with the Electron major
           cache: npm
           cache-dependency-path: |
             app/package-lock.json
@@ -216,7 +216,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
-          node-version: 24 # the Node the app runs on (Electron 44 carries 24.22.1) — it moves with the Electron major
+          node-version: 24 # the Node the app runs on (Electron 45 carries 24.22.1) — it moves with the Electron major
 
       - name: The Linux build
         uses: actions/download-artifact@v8
@@ -266,7 +266,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
-          node-version: 24 # the Node the app runs on (Electron 44 carries 24.22.1) — it moves with the Electron major
+          node-version: 24 # the Node the app runs on (Electron 45 carries 24.22.1) — it moves with the Electron major
 
       - name: Every platform's files
         uses: actions/download-artifact@v8

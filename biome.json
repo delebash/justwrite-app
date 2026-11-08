@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.6.6/schema.json",
 	"files": {
 		"includes": [
 			"src/**/*.{js,vue}",
@@ -39,7 +39,7 @@
 			"includes": ["server/**", "src-electron/**"],
 			"linter": {
 				"rules": {
-					"recommended": false,
+					"preset": "none",
 					"correctness": {
 						"noUndeclaredVariables": "error",
 						"noUnusedImports": "error"

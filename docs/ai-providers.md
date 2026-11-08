@@ -97,6 +97,10 @@ Excellent for writing tasks — particularly critique and longer prose work. Jus
 4. The default model is `claude-haiku-4-5`. Step up to `claude-sonnet-4-6` (best price-per-quality for prose work) or `claude-opus-4-8` (top of class on coding and reasoning, ~1.7× Sonnet's input cost) for tougher tasks.
 5. **Test.** Save.
 
+**Temperature and samplers don't reach Claude.** Anthropic's current API refuses them on every Claude model, so a
+feature routed to Claude answers at Claude's own defaults; a preset's temperature, top-p and top-k still apply on the
+other providers.
+
 **When to pick Claude.** Long-form prose work, structural critique, anything where you want a model that handles nuance and length well. Claude tops the major creative-writing leaderboards in 2026 (EQ-Bench, Hemingway-bench), and many writers prefer it for critique even when they use OpenAI for everything else — set Claude as the routing for "Critique" in Settings. If budget matters more than that prose edge, see Gemini below — it scores nearly as well at roughly a third the per-token cost.
 
 ### Google Gemini (cloud)
