@@ -7,6 +7,12 @@ Recent changes worth noticing. Older entries fall off the bottom — see the [Ro
 
 ---
 
+## 2026-11-08
+
+**Cancel on the start screen no longer strands you.** When JustWrite loads your default model as it starts,
+cancelling that load left the start screen up with no button; **Continue without waiting** now stays, so you can
+go straight in.
+
 ## 2026-11-07
 
 **Your Claude or ChatGPT plan instead of an API key.** When Claude Code is installed on this computer
