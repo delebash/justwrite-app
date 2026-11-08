@@ -514,7 +514,7 @@
     "onThePage": "En la página:",
     "clearMapping": "Borrar este mapeo",
     "err": {
-      "noProvider": "Configura un proveedor de IA en Configuración → IA para mapear a una hoja de beats.",
+      "noProvider": "Configura un proveedor de IA en la página de Configuración de IA para vincularlo a una hoja de beats.",
       "failed": "No se pudo mapear a la hoja de beats."
     },
     "taskLabel": "Mapeo de la hoja de beats",
@@ -769,7 +769,7 @@
       "noScenes": "Aún no hay escenas"
     },
     "err": {
-      "noProvider": "Configura un proveedor de IA en Configuración → IA para ejecutar la auditoría.",
+      "noProvider": "Configura un proveedor de IA en la página de Configuración de IA para realizar la auditoría.",
       "failed": "No se pudo completar la auditoría.",
       "noMain": "No hay personajes principales para auditar. Primero marca un personaje como 'principal' en su página de detalles."
     },
@@ -800,7 +800,7 @@
     "discardRecap": "Descartar resumen",
     "err": {
       "nothingToday": "Aún no se ha registrado escritura hoy; abre un capítulo y escribe un poco primero.",
-      "noProvider": "Configura un proveedor de IA en Configuración → IA para generar el resumen.",
+      "noProvider": "Configura un proveedor de IA en la página de Configuración de IA para generar el resumen.",
       "failed": "No se pudo generar el resumen."
     },
     "taskLabel": "Resumen de la sesión",
@@ -1286,7 +1286,7 @@
     "clearPanel": "Borrar panel",
     "rerunPanel": "Volver a ejecutar panel",
     "err": {
-      "noProvider": "Configura un proveedor de IA en Configuración → IA para ejecutar el panel de múltiples lectores.",
+      "noProvider": "Configura un proveedor de IA en la página de Configuración de IA para ejecutar el panel de múltiples lectores.",
       "failed": "No se pudo ejecutar el panel.",
       "noProse": "Este capítulo aún no tiene prosa para leer."
     },
@@ -1447,7 +1447,7 @@
     },
     "err": {
       "noChapters": "No hay capítulos para escanear.",
-      "noProvider": "Configura un proveedor de IA en Configuración → IA para ejecutar el escaneo.",
+      "noProvider": "Configura un proveedor de IA en la página de Configuración de IA para realizar el escaneo.",
       "failed": "No se pudo ejecutar el escaneo."
     },
     "pinnedToast": "Se fijó {n} cabo suelto. | Se fijaron {n} cabos sueltos.",
@@ -1497,7 +1497,7 @@
       "other": "Otro"
     },
     "err": {
-      "noProvider": "Configura un proveedor de IA en Configuración → IA para ejecutar la auditoría.",
+      "noProvider": "Configura un proveedor de IA en la página de Configuración de IA para realizar la auditoría.",
       "failed": "No se pudo ejecutar la auditoría."
     },
     "taskLabel": "Auditoría de agujeros de guion / continuidad",
@@ -1540,7 +1540,7 @@
     "confidenceLow": "confianza baja",
     "clearPack": "Borrar paquete",
     "err": {
-      "noProvider": "Configura un proveedor de IA en Configuración → IA para generar el paquete de marketing.",
+      "noProvider": "Configura un proveedor de IA en la página de Configuración de IA para generar el paquete de marketing.",
       "failed": "No se pudo generar el paquete de marketing.",
       "copy": "No se pudo copiar; es posible que tu navegador haya bloqueado el portapapeles."
     },
@@ -1597,7 +1597,7 @@
     "newForPov": "Nuevo para el personaje del punto de vista",
     "noNewFacts": "No hay hechos nuevos en este capítulo.",
     "err": {
-      "noProvider": "Configura un proveedor de IA en Configuración → IA para ejecutar este análisis.",
+      "noProvider": "Configura un proveedor de IA en la página de Configuración de IA para realizar este análisis.",
       "failed": "No se pudo completar el análisis."
     },
     "taskLabel": "Conocimiento del lector",
@@ -1638,7 +1638,7 @@
     "analyse": "Analizar",
     "clearThisArc": "Borrar este arco",
     "err": {
-      "noProvider": "Configura un proveedor de IA en Configuración → IA para rastrear la relación.",
+      "noProvider": "Configura un proveedor de IA en la página de Configuración de IA para rastrear la relación.",
       "failed": "No se pudo analizar la relación.",
       "sameCharacter": "Elige dos personajes diferentes."
     },
@@ -1931,7 +1931,7 @@
     "chapterTitled": "Capítulo {num} — {title}",
     "briefingTaskLabel": "Anteriormente en tu novela",
     "err": {
-      "briefingNoProvider": "Configura un proveedor de IA en Configuración → IA para generar este resumen.",
+      "briefingNoProvider": "Configura un proveedor de IA en la página de Configuración de IA para generar este resumen.",
       "briefingFailed": "No se pudo generar el resumen."
     },
     "manuscript": "Manuscrito",
@@ -2112,9 +2112,9 @@
     "badgeClosed": "Cerrado",
     "badgeDeadEnd": "Callejón sin salida",
     "err": {
-      "driftNoProvider": "Configura un proveedor de IA en Configuración → IA para explicar la desviación de voz.",
+      "driftNoProvider": "Configura un proveedor de IA en la página de Configuración de IA para explicar la deriva de voz.",
       "driftFailed": "No se pudo generar la explicación.",
-      "tensionNoProvider": "Configura un proveedor de IA en Configuración → IA para ejecutar el barrido de tensión.",
+      "tensionNoProvider": "Configura un proveedor de IA en la página de Configuración de IA para realizar el barrido de tensión.",
       "tensionFailed": "Error en el barrido de tensión."
     },
     "driftTaskLabel": "Explicación de la desviación de voz",
@@ -2202,7 +2202,7 @@
     "noBeat": "(sin beat: el capítulo puede estar vacío o ser nuevo)",
     "clearOutline": "Borrar esquema",
     "err": {
-      "noProvider": "Configura un proveedor de IA en Configuración → IA para generar el esquema inverso.",
+      "noProvider": "Configura un proveedor de IA en la página de Configuración de IA para generar el esquema inverso.",
       "failed": "No se pudo crear el esquema."
     },
     "taskLabel": "Esquema inverso",
@@ -2631,7 +2631,7 @@
     "insertTooltip": "Haz clic para insertar al final de la selección",
     "phraseCount": "{n} frase | {n} frases",
     "err": {
-      "noProvider": "Configura un proveedor de IA en Configuración → IA para generar un paquete sensorial.",
+      "noProvider": "Configura un proveedor de IA en la página de Configuración de IA para generar un paquete sensorial.",
       "failed": "No se pudo generar el paquete sensorial.",
       "empty": "El modelo no devolvió frases útiles. Intenta regenerarlo con un tema más específico."
     },
@@ -2695,7 +2695,7 @@
       "timeframe": "Salta a un momento diferente: más tarde, más temprano o en un lugar completamente distinto."
     },
     "err": {
-      "noProvider": "Configura un proveedor de IA en Configuración → IA para generar movimientos de salida del estancamiento.",
+      "noProvider": "Configura un proveedor de IA en la página de Configuración de IA para generar movimientos para desbloquearte.",
       "failed": "No se pudieron generar movimientos.",
       "empty": "El modelo no devolvió movimientos útiles. Intenta regenerar."
     },

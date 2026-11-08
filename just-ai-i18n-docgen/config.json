@@ -4,7 +4,7 @@
   "targets": [
     "es"
   ],
-  "context": "JustWrite, a desktop and phone app where novelists write their books, keep a story bible and get AI help; write neutral Latin American Spanish and address the writer as tú. In Spanish, a plot beat stays \"beat\" (plural \"beats\"), a strand of the plot board is \"hilo\", and in a plural form the number comes before the noun (\"3 notas\").",
+  "context": "JustWrite, a desktop and phone app where novelists write their books, keep a story bible and get AI help; write neutral Latin American Spanish and address the writer as tú. In Spanish, a plot beat stays \"beat\" (plural \"beats\"), a strand of the plot board is \"hilo\", and in a plural form the number comes before the noun (\"3 notas\"). The app's own names keep their Spanish names: the AI Settings page is \"Configuración de IA\", the Unstuck feature is \"Desbloquear\" (its moves \"movimientos para desbloquearte\"), and a resume briefing is a \"resumen\".",
   "glossary": [
     "JustWrite",
     "JustVoice",
