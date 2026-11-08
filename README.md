@@ -30,21 +30,21 @@ Seven rooms, one house — organised by what part of the work you're in.
 
 - **TipTap-based rich-text editor.** Bold, italic, headings, lists, links, tables, images.
 - **Parts → Chapters → Scenes.** Write inside scenes; chapters and parts are containers.
-- **Three view modes per chapter.** Edit (single scene), Card view (scenes as a corkboard), Read (continuous prose, no scene titles).
+- **Three view modes per chapter.** Edit (scene by scene, or **Card view** — the scenes as a corkboard), Outline (every part, chapter and scene in order), Read (continuous prose, no scene titles).
 - **Continuous mode.** Stitch every scene in the chapter into one editable document with visible scene breaks.
 - **Whole-book mode.** Read or revise the entire manuscript as one continuous page.
 - **Focus mode.** Hide everything but the prose.
 - **Two page layouts.** Full-bleed or a traditional sheet with running head and folio.
 - **Markers.** Drop pins in the prose while drafting — fix-later, verify, weak passage, loose thread, TODO, idea — collected on their own manuscript-wide page with one-click jumps back.
 - **Resume briefings + end-of-session recaps.** Walk back into a chapter with a summary of where you left off and what's next.
-- **Find and replace** across the whole project, with snippet preview and one-click jump (⌘F).
+- **Find and replace** across the whole manuscript, with snippet preview and one-click jump (⌘⇧F); **Search** (⌘F) finds anything in the project.
 - **Smart quotes, em-dashes, smart ellipses** on the fly.
 - **Drag-to-reorder** for scenes, chapters, parts.
-- **`@`-mentions.** Type `@` to link characters, locations, objects, groups, or strands directly into the prose.
+- **`@`-mentions.** Type `@` to link characters, locations, objects, or groups directly into the prose.
 
 ### ✶ Story world — the world around the book
 
-- **Characters** with wants, needs, the lie they tell, the truth they deny, a three-act arc, voice + dialect notes, and an image.
+- **Characters** with wants, needs, the lie they believe, the truth they meet, a three-act arc, voice + dialect notes, and an image.
 - **Character consistency audit.** AI flags contradictions between the profile and what the prose actually does.
 - **Relationship arc tracker.** How each pair-bond evolves chapter by chapter.
 - **Locations** with kind, status, tags, and "appears in scenes" backlinks.
@@ -54,14 +54,14 @@ Seven rooms, one house — organised by what part of the work you're in.
 - **Worldbuilding wiki.** Free-form articles in six categories (Geography, History, Cultures, Languages, Factions, Lore & myth), tagged and cross-referenced.
 - **Notes** for anything that doesn't fit a structured surface.
 - **Per-entity event timelines** that link back to scenes.
-- **Relations graph.** A force-directed map of who is in what with whom — edges drawn automatically from shared scenes, groups, and mentions.
+- **Relations graph.** A force-directed map of who is in what with whom — edges drawn automatically from shared scenes, groups, and narrative strands.
 - **Find-new-entities sweep.** AI surfaces characters and places the prose mentions but the Story Bible hasn't met.
 
 ### ✶ Plot — the bones of the story
 
 - **Narrative strands** tracked across multi-beat arcs.
 - **Plot Board.** Strands × chapters grid. Drag beats, click empty cells to add, links back to scenes.
-- **Plot templates.** Three-Act, Save the Cat, Hero's Journey, Story Circle — scaffolded with one click.
+- **Plot templates.** Three-Act, Five-Act, Save the Cat, Hero's Journey, Story Circle — scaffolded with one click.
 - **Beat-sheet overlay.** Map your existing chapters onto any chosen structural framework.
 - **Plot-hole audit.** AI walks the manuscript looking for setups without payoffs, character actions out of profile, and optional world-rule breaks.
 - **Dangling-thread tracker.** Lists foreshadowing the book never came back to.
@@ -77,7 +77,7 @@ Seven rooms, one house — organised by what part of the work you're in.
 - **Talk to a character.** Converse with anyone in your cast in their own voice, with story-world knowledge — and **Save to sheet** turns an answer into fields on their sheet.
 - **Draft with AI on the story-world pages.** Describe a character, location, object or group in a line; the AI drafts the sheet and you keep the fields you want.
 - **Draft from plan.** With AI scene drafting on for a book, a scene's Summary becomes a drafted scene — and the AI's words keep a violet ink until you make them yours.
-- **In-editor bubble actions.** Rewrite, expand, tighten, continue from cursor — or generate three alternatives side by side.
+- **In-editor AI actions.** Rewrite, expand, tighten, continue from cursor — from the scene strip's **AI** menu or a right-click — or generate three alternatives side by side.
 - **Guided continue.** Continue the prose with a specific brief.
 - **Voice canon.** A "match my style" fingerprint sampled from chapters you choose, injected into every generation.
 - **Unstuck — five ways out.** A stuck-on-this-chapter diagnostic that offers five distinct ways forward.
@@ -92,7 +92,7 @@ Seven rooms, one house — organised by what part of the work you're in.
 ### ✶ Reflection — two views of the work
 
 - **Home dashboard.** Today's session, streak, fortnight, cadence — and a button that drops you back into the chapter you were last in.
-- **Analysis dashboard.** Project KPIs, 30-day pace chart, 53-week writing-year heatmap, milestones, status donuts, narrative-strand distribution, character-presence heatmap.
+- **Analysis dashboard.** Project KPIs, pace chart (14 / 30 / 90 days), 53-week writing-year heatmap, milestones, status donuts, narrative-strand distribution, character-presence heatmap.
 - **Story-tension timeline.** AI scores the rise and fall across chapters.
 - **Voice-drift report.** Flags chapters reading off-style, with per-chapter Explain.
 - **Reverse outline (StorySnap).** Summarises what each chapter actually does versus what you remember it doing.
@@ -113,7 +113,7 @@ Seven rooms, one house — organised by what part of the work you're in.
 - **Five theme presets.** Studio (Geist + teal), Fine Press (Fraunces + oxblood), Ivory Press (cream paper, italic headings), Calm Modern (clean defaults), Editorial (Newsreader + indigo).
 - **Light, dark, or follow the system.**
 - **Four font pairings** with per-surface overrides.
-- **Accent and gold hue sliders.** Tune the colour without leaving the app.
+- **Accent and Accent 2.** A row of swatches or any hue (0–360) for each — tune the colour without leaving the app.
 - **Surface tints, paper tints, ink palettes** (warm / cool / sepia / auto).
 - **Button knobs.** Radius (sharp · standard · rounded · pill), density (compact · comfy), label-case (sentence · uppercase).
 - **UI scale.**
@@ -162,7 +162,7 @@ Run from the repo root unless noted.
 | Script | What it does |
 |---|---|
 | `npm run dev` | The desktop app — Quasar's dev server on :1420 with hot reload, and the Electron window pointed at it; the window's server runs on the dev data folder `data/`. |
-| `npm run build` | The installer for the current OS (Quasar's Electron mode, electron-builder). Outputs to `dist/electron/Packaged/` — on Windows `JustWrite Setup <version>.exe`, with `win-unpacked/` beside it. |
+| `npm run build` | The installer for the current OS (Quasar's Electron mode, electron-builder). Outputs to `dist/electron/Packaged/` — on Windows `justwrite-Setup-<version>.exe`, with `win-unpacked/` beside it. |
 | `npm run dev:spa` | Renderer only, in a plain browser tab at `http://localhost:1420` — no desktop shell; data still flows through the server (start it yourself: `npm run server`). |
 | `npm run server` | The server alone (headless) on :17495, on the dev data folder `data/` (`--port`, `--host`, `--data-dir` after `--`). |
 | `npm run build:spa` | Renderer build only (`dist/spa/` — what the headless server serves). |
@@ -173,7 +173,7 @@ Run from the repo root unless noted.
 | `npm run release:windows` · `:macos` · `:linux` | Same as `release` but builds a single platform. |
 | `npm run screenshots` | Runs the e2e screenshot capture (same as `cd e2e && npm run capture`). Drives the desktop app on the built UI over a copy of your data, writes PNGs to `../justwrite-website/public/screenshots/`. Requires `npm run build` first. |
 | `npm test` | Runs the e2e smoke suite (delegates to `npm test --prefix e2e`). Drives the desktop app (the built UI, your real data) through the major routes and asserts each surface renders. Requires `npm run build` first. |
-| `npm run test:unit` · `test:server` · `test:fast` | vitest over the renderer · vitest over the server (`server/tests/`, on Electron's Node) · the quick gate chaining both plus `build:spa`. |
+| `npm run test:unit` · `test:server` · `test:fast` | vitest over the renderer · vitest over the server (`server/tests/`, on Electron's Node) · the quick gate chaining both plus `build:spa` and `i18n:docs` (each doc's `lede:` matches its key). |
 | `npm run i18n:lint` · `i18n:report` · `i18n:pseudo` | i18n-only eslint rules · locale coverage report (MISSING must stay zero) · pseudo-locale build. |
 | `npm run bench` (`:gpu`, `:cpu`) · `npm run smoke` · `npm run dup` | LLM bench harness · scripted smoke · jscpd duplicate scan. |
 
@@ -267,15 +267,14 @@ npm run release:windows      # or one
 
 What the workflow does (see `.github/workflows/release.yml`):
 
-1. Builds .dmg (macOS universal), .exe (Windows, NSIS), .AppImage + .deb (Linux) with Quasar's Electron mode (electron-builder) on per-platform runners — each checks out the kit (`delebash/just-core`) and the sync engine (`delebash/just-sqlite-sync`) beside the app, at the commits the app was tested with.
+1. Builds .dmg + .zip (macOS universal), .exe (Windows, NSIS), .AppImage + .deb (Linux) with Quasar's Electron mode (electron-builder) on per-platform runners — each checks out the kit (`delebash/just-core`) and the sync engine (`delebash/just-sqlite-sync`) beside the app, at the commits the app was tested with.
 2. Starts each packaged app as a user would, and its server on its own through `justwrite-server`; opens the AppImage on the current Ubuntu LTS (`scripts/start-packaged.js`, the family template's).
 3. Only when every check passed: creates / updates GitHub Release `v<version>` with the binaries and the update feed attached.
-4. Packs `docs/` into `docs.tar.gz` and attaches it to the release.
-5. Fires a `repository_dispatch` at the marketing-site repo so it rebuilds with the new docs.
+4. Packs `docs/` (its `*.md` and `toc.json`) into `docs.tar.gz` and attaches it to the release.
 
 Watch with `gh run watch` or open the workflow runs page. A full all-platform build is roughly 9-15 min wall time.
 
-> **`WEBSITE_DISPATCH_TOKEN`** secret in repo settings drives step 5. Without it, the workflow logs a skip and the marketing site won't refresh automatically — push a no-op commit to the marketing repo to trigger it manually.
+> The workflow doesn't rebuild the marketing site: it deploys only when you run `npm run deploy` in `justwrite-website`, which picks up the latest release's `docs.tar.gz`.
 
 ---
 
@@ -342,7 +341,7 @@ Outside the desktop app (a browser tab on `npm run dev:spa`, or the headless ser
 answers the browser's way — null or a no-op — and the renderer falls back to downloads and
 file inputs.
 
-A new shell command is added to the kit (its `COMMANDS` list in `server/src/shell/main.js` and
+A new shell command is added to the kit (its `COMMANDS` list in `packages/core/src/shell/main.js` and
 `preload.js`), then exported once from `native.js`.
 
 ---
@@ -401,7 +400,7 @@ A few patterns that work well here:
 
 ### Checking a change
 
-A change is done when the gates in `CLAUDE.md` pass: `npm run test:fast`, the headless smoke (`npm run smoke`) for anything the app shows, the click-through flows (`npm run test:flows`), and the family guard. Claude doesn't add linters, formatters, test runners or TypeScript configs without being asked.
+A change is done when the gates in `AGENTS.md` pass: `npm run test:fast`, the headless smoke (`npm run smoke`) for anything the app shows, the click-through flows (`npm run test:flows`), and the family guard. Claude doesn't add linters, formatters, test runners or TypeScript configs without being asked.
 
 ---
 
@@ -419,14 +418,14 @@ Four dev-only tools are wired into devDependencies for periodic cleanup. None ru
 ### Light audit — run by hand
 
 ```bash
-npx biome check src/        # lint findings (add --apply for safe auto-fixes)
+npx biome check src/        # lint findings (add --write for safe auto-fixes)
 npx depcheck                              # unused / missing deps
 npx jscpd src/               # writes a report to ./report/
 npx madge --circular src/    # circular deps only
 npx madge --orphans src/     # files not imported anywhere
 ```
 
-Read the output, fix what's obvious, skip what isn't. Biome's `--apply` is safe to run blind; the other three are read-only.
+Read the output, fix what's obvious, skip what isn't. Biome's `--write` is safe to run blind; the other three are read-only.
 
 ### Deep audit — hand it to Claude Code
 

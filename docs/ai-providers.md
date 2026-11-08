@@ -37,7 +37,7 @@ Open the **AI** page — the Sparkle icon in the sidebar (from Settings, the *"w
 - **Providers & models** — your built-in (local) provider at the top, then any providers you've added (where you add, edit, test, and remove), plus the **Quick setup** wizard, the **Model catalog**, and the hardware/tuning libraries. Each provider row shows a **Default** tag when it's your current default, with a **Set as default** button.
 - **Routing by feature** — the one routing surface. Every feature points at a **preset** (the saved engine config: model + temperature + samplers + the Reasoning dial); features with the same settings share one, so editing a preset retunes everything that uses it. The Lab under each feature is where presets are created, tuned, and put in production.
 - **Usage** — cost and call tracking (see *AI usage and cost tracking* below).
-- **Server console** — the built-in engine's live log, for troubleshooting.
+- **AI engine console** — the built-in engine's live log, for troubleshooting.
 
 ---
 
@@ -80,7 +80,7 @@ The full-fat option. LLM + embeddings, all in one provider. Pay-as-you-go.
 1. Sign up at **openai.com** and get an API key from the API keys page.
 2. In JustWrite, **Add provider → Preset: OpenAI**.
 3. Paste your API key.
-4. Click **Fetch models** to populate the chat-model dropdown — common picks: `gpt-5.4-mini` for routine work, `gpt-5.4` or `gpt-5.5` for harder reasoning.
+4. Click **Fetch** to populate the chat-model dropdown — common picks: `gpt-5.4-mini` for routine work, `gpt-5.4` or `gpt-5.5` for harder reasoning.
 5. **Test.** Save.
 
 You're now wired up for every JustWrite AI feature.
@@ -101,7 +101,7 @@ Excellent for writing tasks — particularly critique and longer prose work. Jus
 feature routed to Claude answers at Claude's own defaults; a preset's temperature, top-p and top-k still apply on the
 other providers.
 
-**When to pick Claude.** Long-form prose work, structural critique, anything where you want a model that handles nuance and length well. Claude tops the major creative-writing leaderboards in 2026 (EQ-Bench, Hemingway-bench), and many writers prefer it for critique even when they use OpenAI for everything else — set Claude as the routing for "Critique" in Settings. If budget matters more than that prose edge, see Gemini below — it scores nearly as well at roughly a third the per-token cost.
+**When to pick Claude.** Long-form prose work, structural critique, anything where you want a model that handles nuance and length well. Claude tops the major creative-writing leaderboards in 2026 (EQ-Bench, Hemingway-bench), and many writers prefer it for critique even when they use OpenAI for everything else — point **Critique** at Claude on the AI Settings page → Routing by feature. If budget matters more than that prose edge, see Gemini below — it scores nearly as well at roughly a third the per-token cost.
 
 ### Google Gemini (cloud)
 
@@ -134,7 +134,7 @@ Uses your ChatGPT Plus or Pro plan instead of an API key — OpenAI's own sign-i
 
 1. **Add provider → Preset: OpenAI** and **Save provider** (no key needed).
 2. **Edit** it and click **Sign in with ChatGPT**. OpenAI's sign-in opens in your browser — the browser on this computer. Approve, and the form shows **Signed in with ChatGPT as** your email.
-3. **Fetch models**, pick one, **Save**.
+3. **Fetch**, pick one, **Save**.
 
 **What to know.** Requests count against your ChatGPT plan; in ChatGPT → Settings → Usage you can cap how much of it this app may use. Plan requests can't set temperature or a reply-length limit. **Sign out** goes back to the provider's API key, if it has one.
 
@@ -157,7 +157,7 @@ One API key, OpenAI-shaped, routes to virtually every major model on the market 
 1. Get an API key from **openrouter.ai**.
 2. **Add provider → Preset: OpenRouter (aggregator)**.
 3. Paste your key.
-4. Click **Fetch models** — the live catalogue populates the dropdown. Model ids take the form `vendor/model-name`, e.g. `anthropic/claude-sonnet-4-6`, `google/gemini-2.5-pro`, `meta-llama/llama-3.1-70b-instruct`.
+4. Click **Fetch** — the live catalogue populates the dropdown. Model ids take the form `vendor/model-name`, e.g. `anthropic/claude-sonnet-4-6`, `google/gemini-2.5-pro`, `meta-llama/llama-3.1-70b-instruct`.
 5. Pick a chat model. **Test.** Save.
 
 **When to pick OpenRouter.** You want to compare several models side-by-side without managing five separate API keys and billing accounts. Or you want a model that doesn't ship with a built-in preset (Mistral, Together, Fireworks, …) — OpenRouter probably proxies it. Routing per feature (the **Routing by feature** tab) lets you point Critique at Claude, Writer actions at DeepSeek, and Entity sweep at Gemini, all through one key.
@@ -174,7 +174,7 @@ Runs entire LLMs on your own computer. No API key, no monthly bill, no data leav
 4. In JustWrite, **Add provider → Preset: Ollama (native)**.
 5. Base URL: `http://localhost:11434` (Ollama's default — no `/v1`; JustWrite speaks Ollama's native API).
 6. API key: leave blank.
-7. Click **Fetch models** — your pulled models appear.
+7. Click **Fetch** — your pulled models appear.
 8. Pick a chat model and an embedding model.
 9. **Test.** Save.
 
@@ -193,7 +193,7 @@ A graphical alternative to Ollama. Same engine family (llama.cpp under the hood)
 5. In JustWrite, **Add provider → Preset: OpenAI-compatible (local)**.
 6. Base URL: `http://localhost:1234/v1`.
 7. API key: leave blank.
-8. Click **Fetch models** — every model you've loaded in LM Studio appears.
+8. Click **Fetch** — every model you've loaded in LM Studio appears.
 9. **Test.** Save.
 
 **Embeddings.** LM Studio can serve an embedding model on the same endpoint. Download an embedding model (`nomic-embed-text-v1.5`, `bge-m3`, or `mxbai-embed-large` — see the table below), load it from the Developer tab alongside your chat model, and pick it in JustWrite's embedding-model dropdown for "Ask the book".
@@ -237,7 +237,7 @@ Older guidance (including earlier versions of this page) told 8 GB-card users th
 
 ### Embedding ("Ask the book" / RAG)
 
-**Built-in — no setup needed.** JustWrite's bundled llama.cpp engine now serves embeddings itself. The first time you **Build the manuscript index** (or ask a question in **Ask the book**), it downloads `qwen3-embedding-0.6b` (~0.6 GB) and keeps it loaded alongside your chat model. So local "Ask the book" works out of the box — you no longer need Ollama or LM Studio just to supply an embedding model. The picks below still apply if you'd rather point embeddings at a different provider (set it in **Settings → AI → Default embedding**).
+**Built-in — no setup needed.** JustWrite's bundled llama.cpp engine now serves embeddings itself. The first time you press **Build index** in the chat panel, it downloads `qwen3-embedding-0.6b` (~0.6 GB) and keeps it loaded alongside your chat model. So local "Ask the book" works out of the box — you no longer need Ollama or LM Studio just to supply an embedding model. The picks below still apply if you'd rather point embeddings at a different provider (its **Embedding model** on the provider's Edit form — see [Models](models.md)).
 
 Embedding models are tiny (sub-1 GB) and run alongside your chat model without meaningful VRAM impact. Solid picks:
 
@@ -273,25 +273,30 @@ The default model is convenient but limiting. Once you have two or more provider
 
 JustWrite routes AI with **one rule**: every feature points at a **preset** (the model plus all its settings), and a feature with no assignment falls to the **default preset**. Features that should run the same simply share a preset — the app ships with ten, grouped by the kind of work (prose generation, editing, judgment, extraction, chat, …).
 
-So the usual flow is: set your default provider, and on **Routing by feature** load a preset into the Lab to retune it (every feature sharing it follows) or **Use in production** to point one feature at a different preset. These are the twenty routable features:
+So the usual flow is: set your default provider, and on **Routing by feature** load a preset into the Lab to retune it (every feature sharing it follows) or **Use in production** to point one feature at a different preset. These are the twenty-five routable features:
 
 | Feature | What it does |
 |---|---|
-| **Manuscript chat** | "Ask the book" — natural-language questions about your manuscript |
-| **Critique** | The structural critique modal in the editor and chapter Versions menu |
+| **Ask the book** | The chat panel's "Ask the book" — natural-language questions about your manuscript |
+| **Critique** | The chapter bar's **Critique** modal — notes and the structure pass (Analysis' Story tension shares it) |
 | **Entity sweep** | The AI scan that proposes new characters, locations, and objects from chapter text |
-| **Writer actions** | The scene strip's **AI** dropdown — Rewrite, Expand, Tighten, Continue, Describe, plus all Line edits |
-| **Brainstorm** | The standalone Brainstorm workbench — ideation and short-form drafting |
+| **Writer actions** | The scene strip's **AI** dropdown — Rewrite, Expand, Tighten, Continue, Describe, Rewrite with direction…, Continue with direction…, Write dialogue…, plus all Line edits |
+| **Scene drafting** | **Draft from plan** — a scene drafted from its Summary, in a book with **AI scene drafting** on (Settings → Project) |
+| **Brainstorm** | The Brainstorm view, plus **Name ideas**, **Title ideas**, **Suggest characters…** / **Suggest locations…**, and the plot ideas in the editor's AI menu and on a strand |
+| **Planning** | **Summarize this scene**, **Fill this template for my story** on the Plot board, and **Draft from the premise** on the Fabula and Setting |
 | **Resume briefing** | The Home "Previously on your novel" card that orients you after a break |
 | **Session recap** | The Home "Wrap up session" end-of-day recap that summarises what you wrote and pins open threads |
 | **Foreshadowing scan** | The Markers view "Find dangling threads" scan that surfaces setups that may not have paid off |
 | **Reader knowledge** | The Reader knowledge view's per-chapter dramatic-irony analysis (reader vs. POV knowledge) |
-| **Voice drift explainer** | The Analysis dashboard "Explain" button that diagnoses why a hot chapter's voice differs from the baseline |
-| **Unstuck moves** | The AI dropdown's "Unstuck — five ways out" diagnostic that proposes goal shift / interrupt / setting change / reveal / time cut |
-| **Sensory research** | The AI dropdown's "Research feel…" modal — a structured sensory pack for the selected subject |
+| **Voice drift** | The Analysis dashboard "Explain" button that diagnoses why a hot chapter's voice differs from the baseline |
+| **Unstuck** | The AI dropdown's "Unstuck — five ways out" diagnostic that proposes goal shift / interrupt / setting change / reveal / time cut |
+| **Research feel** | The AI dropdown's "Research feel…" modal — a structured sensory pack for the selected subject |
 | **Character audit** | The Characters view "Audit consistency" sweep — flags actions inconsistent with each main character's established psychology |
+| **Character profile** | A character's profile fields drafted from their scenes (**Fill from book**), from your description, or a section at a time |
+| **Character voice** | How a character speaks, drafted from their dialogue or from your description |
+| **Story-world sheets** | A location's, object's or group's sheet from your description, and a worldbuilding article's body |
 | **Reverse outline** | The Analysis dashboard "Reverse outline" modal — reads the whole draft and produces the act structure the book actually has |
-| **Beat sheet overlay** | The Analysis dashboard "Map to beat sheet" modal — maps the draft to Save the Cat, Hero's Journey, or 7-Point Story Structure |
+| **Beat sheet** | The Analysis dashboard "Map to beat sheet" modal — maps the draft to Save the Cat, Hero's Journey, or 7-Point Story Structure |
 | **Plot-hole audit** | The Analysis dashboard "Plot-hole audit" modal — flags contradictions, timeline issues, continuity drift, and character-knowledge errors across the manuscript |
 | **Character chat** | The chat panel's "Talk to a character" mode — first-person, in-voice answers from your cast, grounded in the manuscript |
 | **Relationship arc** | The Characters view "Relationship arc" modal — chapter-by-chapter warmth / tension / power tracking for a pair of characters |
@@ -306,7 +311,7 @@ A feature with no assigned preset follows the default preset.
 - **Critique**: its preset points at Claude (better at structural reasoning)
 - **Entity sweep**: on its own preset pointing at `gpt-5.4-mini` (cheap and reliable for this specific job)
 - **Writer actions**: inherits default (Ollama)
-- **Manuscript chat**: inherits default
+- **Ask the book**: inherits default
 - **Resume briefing**: inherits default (a fast local model is fine here — it's a short, structured task)
 - **Session recap**: inherits default (same reasoning — short structured output, no need for the heavy provider)
 - **Foreshadowing scan**: its preset points at Claude (long-context structural reasoning helps catch subtler setups; runs once per chapter so the per-call cost adds up — pick your battle)
@@ -334,10 +339,11 @@ A **Reset ledger** button clears the log so you can start a fresh accounting per
 
 ## Engine parameters and advanced settings
 
-When editing a provider, you can:
-
-- **Add a custom system prompt** — overrides JustWrite's default system message for that provider. Advanced.
-- **Adjust temperature and other generation parameters** through the engine parameters block.
+A provider holds no generation settings of its own. Temperature, top-p, samplers and the
+Reasoning dial live on the feature's **preset**, and each feature's prompt in its Lab — both under
+**Routing by feature** (see [Presets](presets.md)). When editing a provider you set its connection
+— address, key, **Default chat model**, **Embedding model**, **Timeout (seconds)** — and, under
+**Reasoning levels…**, what each Reasoning level asks that provider for.
 
 These are optional refinements. The defaults are reasonable for almost every case.
 
@@ -365,9 +371,9 @@ Change either value, then click **Save**; the new limits apply the next time a m
 
 Every AI page has a small chip in its header showing the current **provider · model** for that feature. Critique, Brainstorm, every analysis modal, Reader knowledge, the chat panel — same chip in each. In the chapter editor, the chip sits at the **top of each scene's AI dropdown**, so writer actions (Rewrite, Expand, Tighten, Continue, Line edits) show their routing right above the menu items they apply to.
 
-On most surfaces the chip is **read-only** — a "runs on" indicator; **clicking it opens the AI page**, where **Routing by feature** is the routing editor. The two chat chips (Ask the book / Talk to character) go one further: clicking them opens a small **edit popover** where you can change that feature's model and Reasoning level in place — the popover names the preset it edits and how many features share it before you save.
+Clicking a chip opens a small **edit popover** where you can change that feature's model and Reasoning level in place — the popover names the preset it edits and how many features share it before you save. **Routing by feature** on the AI page is the full routing editor.
 
-**Analysis modals wait for you.** When you open Multi-reader, Entity sweep, Foreshadowing, Plot-hole audit, Reverse outline, Marketing pack, Character audit, Sensory research, Session recap, Stuck diagnostic, or AI-tell scan, the modal opens to an empty-state with a primary "Run" button instead of firing the AI call immediately. That gives you a chance to check the routing chip first — and change it on the AI page if you want a different model — before spending tokens. Click the Run button when you're ready.
+**Analysis modals wait for you.** When you open Multi-reader, Entity sweep, Foreshadowing, Plot-hole audit, Reverse outline, Marketing pack, Character audit, Sensory research, Session recap, Stuck diagnostic, or AI-tell scan, the modal opens to an empty-state with a primary "Run" button instead of firing the AI call immediately. That gives you a chance to check the routing chip first — and change it there if you want a different model — before spending tokens. Click the Run button when you're ready.
 
 ---
 

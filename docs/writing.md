@@ -38,7 +38,7 @@ When you open Home, JustWrite generates a 150–250 word **briefing** addressed 
 
 **How it behaves:**
 
-- **It only runs when there's something to brief on.** A brand-new project with no writing yet, or no AI provider configured, doesn't show the card.
+- **It only runs when there's something to brief on.** A brand-new project with no writing yet doesn't show the card. With no AI provider configured, the card says so instead of writing a briefing.
 - **It caches for the day.** The first time you open Home, the briefing is generated and saved. Same-day reloads reuse the cached prose — no repeat AI charges. The cache refreshes automatically the next day, or whenever you write in a different chapter.
 - **Dismiss hides it until tomorrow.** Click the **×** in the top-right corner if you don't want the card today. It comes back the next day.
 - **Regenerate** asks for a fresh briefing right now — useful if the first one missed the mark or if you've made progress since.
@@ -46,7 +46,7 @@ When you open Home, JustWrite generates a 150–250 word **briefing** addressed 
 
 **Why a writer would use it.** Most writers re-orient by scrolling back and re-reading the last chapter, which is slow and easy to skip on a busy day. A two-paragraph briefing closes the gap in about 20 seconds and explicitly names what's at stake and what's open — including the threads you'd planted and forgotten about. It also catches your own **Loose thread** pins from previous sessions, so the markers you dropped in the heat of drafting actually come back to you when you sit down to write.
 
-The model used is whichever provider you've assigned to **briefing** on the AI Settings page → Routing by feature (or the default preset if none is assigned). The footer of the card names it.
+The model used is whichever provider you've assigned to **Resume briefing** on the AI Settings page → Routing by feature (or the default preset if none is assigned). The footer of the card names it.
 
 ### "Wrap up session" — end-of-day recap
 
@@ -54,7 +54,7 @@ The model used is whichever provider you've assigned to **briefing** on the AI S
 
 The mirror image of the resume briefing. Where "Previously on your novel" looks back at where you left off, **Wrap up session** looks at what you just did and helps you hand it off cleanly to tomorrow.
 
-Click **Wrap up session** on the **Today's session** card. JustWrite generates a 150–300 word AI recap of today's writing addressed to you ("You wrapped up the rooftop confrontation. Elena chose to keep the locket secret…") and a list of **open threads** — verbatim snippets from today's prose that look like setup-without-payoff.
+Click **Wrap up session** on the **Today's session** card, then **Generate session recap** (the dialog waits, so you can change the model in its chip first). JustWrite generates a 150–300 word AI recap of today's writing addressed to you ("You wrapped up the rooftop confrontation. Elena chose to keep the locket secret…") and a list of **open threads** — verbatim snippets from today's prose that look like setup-without-payoff.
 
 **For each open thread you can click "Pin"** to drop a **Loose thread** marker directly into the chapter at the exact phrase the AI quoted. The phrase becomes a coloured dotted underline; clicking it later opens the marker popover for editing or resolving. **Pin all** drops markers on every unmarked thread at once. Threads whose snippet can't be located in current prose (because you've since edited that passage) show **Not found** instead of a button.
 
@@ -66,7 +66,7 @@ The recap also persists. Tomorrow's **Previously on your novel** card folds your
 - **Caches for the day.** Once generated, today's recap is saved on the project. Re-opening the modal reads from cache; **Regenerate** asks for a fresh pass.
 - **Persists across sessions.** Recaps are stored per-day and don't roll back when you undo prose changes — they're append-only by design.
 - **Discard recap** in the footer wipes today's saved recap if it missed the mark or you don't want it folded into tomorrow's briefing.
-- **Routable** as the **recap** feature on the AI Settings page → Routing by feature. A small, fast local model is plenty here.
+- **Routable** as **Session recap** on the AI Settings page → Routing by feature. A small, fast local model is plenty here.
 
 **Why a writer would use it.** The pieces you forget overnight are exactly the ones you should remember — the throwaway line that's actually a setup, the decision you almost-made-but-deferred, the character moment that didn't get its reaction. The recap catches these and converts them into manuscript-anchored markers so tomorrow's draft inherits the throughline you built today, rather than restarting from scratch.
 
@@ -80,8 +80,8 @@ The **Chapters** view is the main writing surface. Open it from the sidebar, or 
 
 A segmented toggle at the top of the page switches between three modes. They show the same chapter; only the lens changes.
 
-- **Edit** — the writing surface. The default. Inside Edit, a style toggle switches between the continuous prose editor and **Cards** — a corkboard where each scene appears as a card with its **Summary** (or, without one, a small prose excerpt); drag cards to reorder scenes within the chapter without committing to a new layout.
-- **Outline** — a tree view of every Part, Chapter, and Scene in your manuscript. Inline-editable titles. Drag to reorder. Click any chapter to open it in Edit mode.
+- **Edit** — the writing surface. The default. Inside Edit, with no scene open, the **Card view** button switches the scene-by-scene editor to a corkboard where each scene appears as a card with its **Summary** (or, without one, a small prose excerpt); drag cards to reorder scenes within the chapter. **List view** switches back.
+- **Outline** — a tree view of every Part, Chapter, and Scene in your manuscript. Inline-editable titles. Move parts with the row arrows. Click any chapter to open it in Edit mode.
 - **Read** — a clean read-only view, no editor chrome. Two sub-scopes: **Chapter** (one chapter at a time with Previous/Next) and **Whole book** (the entire manuscript in one continuous scroll, with the sidebar tracking what scene is visible).
 
 **Why a writer would care.** Outline is your planning lens — sketch chapter and scene titles before you write anything. The Cards style inside Edit is your restructuring lens — physically arrange the order of scenes inside a chapter. Read is your reviewing lens — see what your prose actually sounds like without the formatting clutter. Most writers default to Edit and dip into the others as needed.
@@ -102,7 +102,7 @@ In Outline mode you can:
 
 > *"This chapter ballooned to 8,000 words while I wasn't paying attention. I need to break it in two without losing the scenes."*
 
-If you imported a long single-blob document, or you wrote a chapter that is now too long, the editor has a **Split chapter** action. Place your cursor where you want the split and run the command: the new chapter that comes after opens with its title selected, ready to type. The split happens cleanly; both halves keep their scenes.
+If you imported a long single-blob document, or you wrote a chapter that is now too long, the scene strip has a **Split here** button. Place your cursor where you want the split and click it: the new chapter that comes after opens with its title selected, ready to type. The split happens cleanly; both halves keep their scenes.
 
 ---
 
@@ -112,31 +112,32 @@ When you click into a chapter, you see the editor: a TipTap-powered rich-text wr
 
 ### Toolbar buttons
 
-From left to right (approximate; some buttons collapse into menus on narrower windows):
+From left to right (on a narrow window the toolbar wraps onto more rows):
 
-- **Bold, Italic, Underline, Strikethrough, Subscript, Superscript**
-- **Heading levels** (H1 / H2 / H3) — for non-chapter headings inside your prose
-- **Font size** — decrease/increase, with the live size shown
-- **Blockquote, Bullet list, Ordered list, Task list**
-- **New scene boundary** (only visible in continuous-chapter mode) — inserts a divider between scenes
-- **Alignment** — left / centre / right / justify
+- **Undo / Redo**
+- **Copy / Cut / Paste** — in a browser at a plain `http://` address (another computer on your network), the browser won't let the **Paste** button read the clipboard; it says so, and **Ctrl+V** (**⌘V** on a Mac) pastes as always. A paste keeps its formatting, except black text (a Google Doc's or Word's), which takes the page's ink, so it shows in dark mode too
+- **Bold, Italic, Underline, Strikethrough, Superscript, Subscript**
 - **Highlight** — multi-colour text highlighting
 - **Text colour** — each highlight and text colour has a light and a dark version, so it reads in either mode
+- **Font size** — decrease / increase (**A−** / **A+**)
+- **Clear formatting**
+- **Blockquote, Bullet list, Numbered list, Checklist**
+- **Alignment** — left / centre / right / justify
+- **Heading levels** (H1 / H2 / H3) — for non-chapter headings inside your prose
 - **Link**
 - **Image insert** — embed an image inline
 - **Table**
-- **Clear formatting**
-- **Copy / Cut / Paste** — in a browser at a plain `http://` address (another computer on your network), the browser won't let the **Paste** button read the clipboard; it says so, and **Ctrl+V** (**⌘V** on a Mac) pastes as always. A paste keeps its formatting, except black text (a Google Doc's or Word's), which takes the page's ink, so it shows in dark mode too
-- **Print**
-- **Inline comment** — attach a private note to selected text; the marked text is visually distinguished and clicking it shows the note in a popover
+- **New scene boundary** (only visible in continuous-chapter mode) — inserts a divider between scenes
+- **Inline comment** — attach a private note to selected text; the marked text is visually distinguished and clicking it shows the note in a popover. The arrows beside it step to the previous / next comment
+- **Drop marker** (the pin) — see **Dropping markers while you write** below; its arrows step between markers
 - **Find / Replace bar** — search within this chapter
 - **Focus mode** — distraction-free full-screen writing
-- **Writing settings** (the gear) — on this device: font, size, indent, line and paragraph spacing, spell check, and what the editor highlights (see **Prose highlights** below)
-- **Undo / Redo**
+- **Writing settings** (the gear) — for every book: font, size, indent, line and paragraph spacing, spell check, and what the editor highlights (see **Prose highlights** below)
+- **Print**
 
 ### The bubble menu
 
-Select any text and a small floating menu appears next to your selection with the formatting palette — bold, italic, underline, text colour, font size, link, comment. The bubble is formatting only; the AI actions live in the scene strip's **AI** dropdown (see below) so they're one click away even when you don't have a selection yet.
+Select any text and a small floating menu appears next to your selection with the formatting palette — bold, italic, underline, text colour, font size, link, comment. The bubble is formatting only; the AI actions live in the scene strip's **AI** dropdown (see below) and the editor's right-click menu, so they're one click away even when you don't have a selection yet.
 
 ### Prose highlights
 
@@ -160,7 +161,7 @@ To talk instead of type, use your computer's own dictation: it types into the ed
 
 > *"I typed a character's name in chapter 12. Three chapters later I've forgotten whether I spelled it consistently — and I can't find all the places she appears."*
 
-Type **`@`** anywhere in the editor and a picker appears. Search across your entire Story Bible — characters, locations, objects, groups, strands. Pick one to insert a linked mention.
+Type **`@`** anywhere in the editor and a picker appears. Search across your entire Story Bible — characters, locations, objects, groups. Pick one to insert a linked mention.
 
 A mention is more than text: it tells the rest of the app that this entity appears in this scene. Open the character's page later and you'll see every scene they were mentioned in, with the surrounding prose as a snippet.
 
@@ -193,12 +194,12 @@ Above the editor, a thin bar shows scene-level controls. From left to right:
 - **[AI]** — opens the AI dropdown (Rewrite, Expand, Tighten, Continue, Line edits — see below)
 - **Status** select — the scene's status (To-do / Draft / Revise / Done, or whatever you've configured)
 - **Split here** — splits the chapter at the cursor; the active scene stays with the original chapter and the rest becomes a new chapter
-- **Notes** — opens a scene-focused notes view (just this scene's pinned notes; for the whole-chapter list use the chapter-level Notes button below)
+- **Notes** — opens a scene-focused notes view (just this scene's pinned notes; for the whole-chapter list use the chapter bar's Notes button, described below)
 - **Links** — see below
 - **+ New scene** — adds a scene to the current chapter (the primary action)
 - **Delete scene** — only enabled if there's more than one scene in the chapter
 
-A second toolbar sits just below for chapter-level controls when no scene is focused: previous/next chapter, the chapter's Status, **Versions**, **Critique**, chapter **Notes**, **New chapter**, and **Delete chapter**.
+The chapter bar above it holds the chapter-level controls: the **Continuous** toggle and previous/next chapter always, and when no scene is open, **Card view**, the chapter's Status, **Versions**, **Critique**, **Multi-reader panel**, chapter **Notes**, **New chapter**, and **Delete chapter**.
 
 ### The Links panel
 
@@ -282,7 +283,7 @@ Set it on the **AI Settings page → Writing AI tab → Voice canon**. The picke
 
 The dropdown groups actions by what they operate on, so you can tell at a glance whether you need to highlight text first:
 
-- **Selection only** — Rewrite, Rewrite with direction…, Expand, and Describe. Greyed out until you select text in the editor.
+- **Selection only** — Rewrite, Rewrite with direction…, Expand, Describe, and Research feel…. Greyed out until you select text in the editor.
 - **Selection or whole scene** — Tighten. Runs on the selection if you have one, on the entire scene otherwise.
 - **From the cursor** — Draft from plan (in a book with AI scene drafting on), Continue, Continue with direction…, Write dialogue…, Unstuck, Next plot beats, and Plot twists. Generate the next paragraphs from wherever the cursor sits; the last three offer ideas to pick from first.
 - **Line edits** — surgical, single-issue revisions (Show don't tell, Filter words, Dialogue tags, Sensory grounding, etc.) that run on the selection, or on the whole scene if nothing is selected.
@@ -299,7 +300,7 @@ The dropdown groups actions by what they operate on, so you can tell at a glance
 - **Continue with direction…** — same as Continue, but you give it a one-line instruction first. See below.
 - **Write dialogue…** — an exchange at the cursor between the scene's characters, in their voices. See below.
 - **Unstuck — five ways out** — opens a diagnostic modal with five distinct moves the scene could take from here. See below.
-- **Next plot beats** and **Plot twists** — Brainstorm's plot ideas from where your prose ends, read with your book and this scene (its Summary, who and what it links, how the previous scene ends). They open on Brainstorm's panel: type a seed prompt to steer them, or leave it empty, and press **Generate**. **Write this** on one drafts the next 2–4 paragraphs in that direction, as Unstuck's does; **More like these** asks for more like the ones you thumbed up. They run on **Brainstorm** in Settings → AI.
+- **Next plot beats** and **Plot twists** — Brainstorm's plot ideas from where your prose ends, read with your book and this scene (its Summary, who and what it links, how the previous scene ends). They open on Brainstorm's panel: type a seed prompt to steer them, or leave it empty, and press **Generate**. **Write this** on one drafts the next 2–4 paragraphs in that direction, as Unstuck's does; **More like these** asks for more like the ones you thumbed up. They run on **Brainstorm** on the AI Settings page → Routing by feature.
 
 ### Research feel — sensory research pack
 
@@ -324,7 +325,7 @@ Each entry is a short concrete phrase, not a finished sentence. Click any phrase
 
 **The trick is to highlight a SPECIFIC subject**, not a vague one. "The market" produces generic results; "the fish market on a hot July afternoon" produces ones you'd actually want to use. Include the period or modifier in your selection.
 
-**Routable** as the **sensory** feature in Settings → AI. Doesn't need a heavy model — the task is research, not reasoning. A fast local model is usually fine.
+**Routable** as **Research feel** on the AI Settings page → Routing by feature. Doesn't need a heavy model — the task is research, not reasoning. A fast local model is usually fine.
 
 ### Continue with direction
 
@@ -336,7 +337,7 @@ Click **Continue with direction…** in the AI dropdown. A small prompt asks for
 
 **Why a writer would use it.** This is the single most-used AI feature in working tools like Sudowrite and NovelCrafter because it sits in the sweet spot between dictation (too constrained) and improvisation (too unmoored). You stay the author — the instruction is yours — but you don't have to sit through the friction of actually typing the paragraph. Use it as a momentum tool: type a direction, accept what comes back as a starting point, revise on top of it.
 
-**Routes through the same engine as Unstuck's Write-this buttons** (guidedContinue under the hood). The model used is whichever provider you've pinned for **Writer actions** in Settings → AI.
+**Routes through the same engine as Unstuck's Write-this buttons** (guidedContinue under the hood). The model used is whichever provider you've pinned for **Writer actions** on the AI Settings page → Routing by feature.
 
 ### Rewrite with direction
 
@@ -358,7 +359,7 @@ Put the cursor where the exchange should start, choose **Write dialogue…** in 
 
 **Draft from plan** writes a scene from its plan: the **Summary** in the scene's **Links** panel, read with the story context (the book, the scene's characters, places and objects, how the previous scene ends). In an empty scene a **Draft from plan** button sits above the page; in a scene you've started, it's the first item under **From the cursor** in the AI dropdown and drafts from the cursor to the scene's end, matching the voice, tense and POV of what came before. Without a Summary there's no plan — the item says so. It lands as an accept/reject diff like Continue; shift-click (or the variations switch) gives three drafts to pick from.
 
-**It's off until you turn it on, per book:** **Settings → Project → AI scene drafting**. One book can stay entirely yours while another uses drafting. It runs on its own row in Settings → AI → Routing by feature, **Scene drafting**, so you can send it to a larger or online model while the other writer actions stay local.
+**It's off until you turn it on, per book:** **Settings → Project → AI scene drafting**. One book can stay entirely yours while another uses drafting. It runs on its own row on the AI Settings page → Routing by feature, **Scene drafting**, so you can send it to a larger or online model while the other writer actions stay local.
 
 ### AI-written text — the AI's words, marked
 
@@ -366,7 +367,7 @@ Text the AI writes — Draft from plan, Continue, Continue with direction…, Wr
 
 - **It stays true as you revise.** Words you type — inside an AI passage too — are yours and lose the colour; the AI's words around them keep it. Deleting AI words removes them; copying and pasting AI text keeps its mark; Undo brings it back.
 - **Mark as mine** (AI dropdown → **Clean up**) clears the mark from the selection, or from the whole scene when nothing is selected — for passages you've made your own without retyping them.
-- **Highlight AI-written text** in the editor's **Writing settings** turns the colour off on this device; the marks stay.
+- **Highlight AI-written text** in the editor's **Writing settings** turns the colour off; the marks stay.
 - **Settings → Project** shows how many of the book's words the AI wrote and are still there — the record you'll want if a publisher asks. **By chapter** under it lists each chapter that has some, with its share of the chapter, and **Copy as text** puts that list on the clipboard to paste into a form. It counts what is still marked, not a history: Mark as mine clears a mark. Read mode and every export show plain text.
 
 ### Unstuck — five ways out
@@ -391,7 +392,7 @@ The model returns five cards — one per category — each with a short headline
 
 **Why a writer would use it.** The hard part of being stuck isn't picking between known options — it's that you can't see what the options ARE. The five-category constraint is the whole point: it stops the model from giving you five flavours of "they keep arguing" and forces it to surface moves you might not have considered. The interrupt option might be the wrong one, but seeing all five at once is often what unlocks the next sentence.
 
-**Routable** as the **unstuck** feature in Settings → AI. The diagnostic itself doesn't need a heavy model — a fast local model is usually fine. The actual prose drafting (the Write-this click) goes through **Writer actions** like any other Continue.
+**Routable** as **Unstuck** on the AI Settings page → Routing by feature. The diagnostic itself doesn't need a heavy model — a fast local model is usually fine. The actual prose drafting (the Write-this click) goes through **Writer actions** like any other Continue.
 
 ### Line edits
 
@@ -418,7 +419,7 @@ The standard **Critique** button gives one editorial pass. The **Multi-reader pa
 - **Genre-savvy reader** — encountering the chapter cold, reading for the things this genre does well. Cares about hook strength, genre-promise delivery, where they'd put this book on the shelf.
 - **Literary critic** — reading for prose craft. Cares about voice, image, sentence rhythm, the work the sentences are doing.
 - **Agent's intern** — deciding whether to flag this for their boss. Cares about hook strength, voice that distinguishes the writer, comp-title legibility, clear stakes.
-- **Book-club reader** — deciding what they'll discuss next month. Cares about character, emotional truth, the choices people make and what those choices reveal.
+- **Book club reader** — deciding what they'll discuss next month. Cares about character, emotional truth, the choices people make and what those choices reveal.
 
 The four personas run in parallel — one LLM call each, fired concurrently. Each returns 2–3 paragraphs of first-person reaction (in their voice as that reader) plus 1–3 short, concrete suggestions. Each persona is instructed to **stay in their lane** so the four columns read as four perspectives rather than four variants of the same model bias.
 
@@ -426,7 +427,7 @@ The modal renders the four columns side-by-side with a coloured left border dist
 
 **Why a writer would use it.** Critique partners have biases. Yours might be brilliant on prose and useless on plot, or vice versa. The panel guarantees four different lenses, every time. The biggest value is often in seeing where the personas **disagree** — when the literary critic loves the chapter and the agent's intern would set it aside, you've learned something about the chapter's market position that no single reader would have told you.
 
-**Cost note.** Four LLM calls per panel run. The system prompts are short and the chapter is the bulk of the input, so the cost is ~4× a standard critique. Routable as the **multiReader** feature in Settings → AI.
+**Cost note.** Four LLM calls per panel run. The system prompts are short and the chapter is the bulk of the input, so the cost is ~4× a standard critique. Routable as **Multi-reader panel** on the AI Settings page → Routing by feature.
 
 ### Critique and structural analysis
 
@@ -456,7 +457,7 @@ The **Characters**, **Locations**, and **Objects** views each have an **Entity s
 Click **Versions** in the chapter editor toolbar to save a named snapshot of the current chapter. The dialog shows every snapshot you've ever taken, and you can:
 
 - **Restore** any previous snapshot, replacing the current version.
-- **Diff** any two snapshots side-by-side (or compare a snapshot against the current live version).
+- **Compare** a snapshot against the current draft, or pick any two with **Compare two saved versions…**.
 
 The diff uses the same red/green visual language as the AI tools, so what's been removed and what's been added is immediately clear.
 
@@ -468,8 +469,8 @@ The diff uses the same red/green visual language as the AI tools, so what's been
 
 The header has a breadcrumb (**Part → Chapter → Scene**) with clickable segments and Previous / Next chapter buttons. Inside the editor:
 
-- **Arrow Left / Right** (in Read mode) — previous/next chapter
-- **Esc** (in Whole-book Read mode) — exit back to Edit
+- **Arrow Left / Right** (in Read mode, Chapter scope) — previous/next chapter
+- **Esc** (in Read mode) — exit back to Edit
 - **Tab / Shift + Tab** (in lists and paragraphs) — indent / outdent
 
 ### A second window
@@ -491,7 +492,7 @@ A practical rhythm:
 3. Write. The editor's word count climbs in real time; you don't have to save anything.
 4. When you finish a scene, fill in the **Links** panel (characters, location, strand). Five seconds.
 5. Open **Outline** to see how this chapter is shaped, or flip Edit into its **Cards** style to drag scenes into a better order.
-6. Optional: select a passage you're unhappy with, hit **Tighten** or **Show, don't tell** from the scene strip's **AI** dropdown, and see what comes back.
+6. Optional: select a passage you're unhappy with, hit **Tighten** or **Show don't tell** from the scene strip's **AI** dropdown, and see what comes back.
 7. End the day. Tomorrow, JustWrite remembers exactly where you stopped.
 
 That's it. Everything else in the app is in service of this loop.
@@ -514,11 +515,10 @@ That's it. Everything else in the app is in service of this loop.
   typing vertically centred — the page scrolls under your cursor instead of your
   eyes chasing the cursor down the screen. Long drafting sessions feel
   noticeably calmer with it on.
-- **Page break.** A hard page-break node for the rare place you need one (a part
-  opening, a letter inside the story). Export honours it.
-- **Clean up → Clear strikethroughs.** After an AI diff session leaves
-  struck-through rejected text behind, this one item in the AI dropdown removes
-  every strikethrough in the scene at once — no hunting.
+- **Clean up → Clear all strikethroughs.** Accepting an AI change keeps your
+  original as a strikethrough (Writing settings → **Keep original as
+  strikethrough when accepting an AI change**); this one item in the AI dropdown
+  removes every strikethrough in the scene at once — no hunting.
 - **Clean up → Mark as mine.** Clears the AI-written mark from the selection, or
   the whole scene — see [AI-written text](#ai-written-text--the-ais-words-marked).
 - **The per-change diff stepper.** When an AI rewrite comes back as a diff, the
@@ -532,15 +532,15 @@ The whole-book sweep is built for the realistic case: a 40-chapter book, a local
 model, and an interruption at chapter 23. Progress persists **per chapter** on
 the server as it goes — close the app, come back tomorrow, reopen the sweep and
 it resumes, re-running only chapters that are pending, failed, or whose text
-changed since. Online providers run four chapters at a time; a local model runs
-one (it is the bottleneck anyway); a per-call watchdog means one wedged chapter
+changed since. The built-in engine runs one chapter at a time (it is the
+bottleneck anyway); any other provider runs four; a per-call watchdog means one wedged chapter
 becomes a "failed, retry me" row rather than a hung modal. **Start over** wipes
 the draft when you'd rather re-sweep clean.
 
 ## Scene notes — the docked panel
 
 Notes about a scene live in a panel docked beside the editor (never an overlay
-covering your prose). Click a note to edit in place; the scope toggle switches
-between this scene's notes and the whole chapter's. It's deliberately a side
+covering your prose). Click a note to edit in place. The scene strip's **Notes**
+opens this scene's notes; the chapter bar's **Notes** the whole chapter's. It's deliberately a side
 surface — for "fix the timeline here" and "she still has the locket" reminders —
 with one exit, **Manage all notes ↗**, when a reminder grows into a real Note.

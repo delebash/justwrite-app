@@ -139,9 +139,9 @@ Tags suggest existing values as you type, so you don't end up with "Antagonist",
 
 > *"I keep referring to the same character in fifty different scenes and I have no way of knowing which scenes she actually appears in without reading the whole thing."*
 
-When you are writing in the editor, type **`@`** to bring up a small picker. Start typing a name and JustWrite shows matches from your entire Story Bible — characters, locations, objects, groups, strands. Pick one and it gets inserted as a linked mention.
+When you are writing in the editor, type **`@`** to bring up a small picker. Start typing a name and JustWrite shows matches from your entire Story Bible — characters, locations, objects, groups. Pick one and it gets inserted as a linked mention.
 
-This is the single most useful keystroke in the app. A mention makes the entity findable: open the character's page, and you see a list of every scene they're mentioned in, with a snippet of the surrounding prose. Search finds them. The Relations graph uses them.
+This is the single most useful keystroke in the app. A mention makes the entity findable: open the character's page, and you see a list of every scene they're mentioned in, with a snippet of the surrounding prose. Search finds them. (The Relations graph draws on the scene's **Links** panel instead — see [Story bible](story-bible.md#relations).)
 
 Use `@` liberally. It costs you nothing and it makes the entire Story Bible come alive.
 
@@ -176,7 +176,7 @@ Trash groups deleted items by kind — all twelve of them (chapters, scenes,
 characters, locations, objects, groups, notes, strands, worldbuilding articles,
 events, statuses, tag vocabularies) — each with its own restore. A restored scene goes back
 into its chapter, a chapter back into its part. **Empty trash** (and the per-item
-permanent delete inside Trash) is destructive — as is Settings → Backups → Reset workspace — and every
+permanent delete inside Trash) is destructive — as is Settings → Backups → **Reset JustWrite** — and every
 destructive act confirms first; everything else is undoable.
 
 ## Curated tag vocabularies

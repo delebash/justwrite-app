@@ -51,7 +51,7 @@ The flow is the same regardless of category:
 
 1. **Pick a category** (see above). The panel updates with a one-line description of what the category is for and an example seed in the input placeholder.
 2. **Write a seed.** This is the description the model uses to decide *what kind* of suggestions to make. Be specific — "Norse-sounding female warrior names, sharp consonants, two syllables" gives you much more useful output than "warrior names". The more flavour you give about era, register, sound, mood, language, the less generic the result.
-3. **Hit Generate.** The model streams 15–20 suggestions into the panel, one per row. Each row has a 👍 button and a copy button.
+3. **Hit Generate.** The model returns 15–20 suggestions into the panel, one per row. Each row has a 👍 button and a copy button.
 4. **Thumbs-up the ones you like.** The thumbs-up is a preference signal, not a save — it tells the model which direction you want it to lean next. You can thumb as many as you like.
 5. **Click "More like these".** The model gets your liked items as a steering signal and a list of everything you've already seen, then generates 15–20 fresh suggestions that don't repeat any of them. The new results append to the panel (the old ones stay) so you can keep thumbing across rounds.
 6. **Use the winners.** Click the copy button on a row to copy that text to the clipboard. Paste it into your character's name field, your location title, your manuscript — wherever it belongs.
@@ -81,7 +81,7 @@ It uses the same model as Brainstorm (below), and like the panel it keeps nothin
 
 - **It's not a notes feature.** Nothing persists between sessions; close the panel and the suggestions are gone. If you want to keep a brainstorm session for later, copy the suggestions you care about into a Note (or directly into a character/location/etc.).
 - **It's not a name *committer*.** Brainstorm doesn't write to your project. The copy button copies to the clipboard — you decide where the result lands. (Where it's used — Name ideas and Title ideas, the editor's and the Plot board's plot ideas — what you pick goes in place.)
-- **It's not deterministic.** Temperature is high (0.9) — generating the same seed twice will give different results, and that's the point. You're after divergent options, not the "right" answer.
+- **It's not deterministic.** Temperature is high (1.0 on its **Ideation** preset) — generating the same seed twice will give different results, and that's the point. You're after divergent options, not the "right" answer.
 
 ---
 
@@ -101,13 +101,13 @@ If you don't like the direction the new batch went, untick some of your likes (j
 
 ## Picking a model
 
-Brainstorm uses the AI provider you've configured for the **brainstorm** feature in **Settings → AI providers**. If you haven't set one explicitly, it falls back to your default chat provider.
+Brainstorm uses the model on its **Brainstorm** row on the AI Settings page → Routing by feature — out of the box, the **Ideation** preset (see [Presets](presets.md)). The chip beside the page's title shows it and lets you change it.
 
 A few observations:
 
 - **Short outputs benefit from creative models.** Brainstorm produces tiny chunks of text (a name, a phrase), so the cost per round is small even on cloud providers. Don't be afraid to use Claude or GPT-4-class models for this — the per-round cost is fractions of a cent.
 - **Local models work well for names.** Ollama models like Llama 3.2 or Qwen 2.5 do a fine job on character / place names. Less reliable for titles, which need a stronger sense of register.
-- **Temperature is fixed at 0.9.** No setting for this — variety is the whole point.
+- **Temperature starts at 1.0.** It's the **Ideation** preset's, which you can tune in the Lab like any preset — but variety is the whole point.
 
 ---
 

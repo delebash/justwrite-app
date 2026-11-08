@@ -197,7 +197,7 @@ export default defineConfig((ctx) => {
         nsis: {
           // no spaces: GitHub renames a spaced asset on upload (spaces → dots), and latest.yml names
           // electron-builder's dashed form — the updater would download a file that isn't there.
-          // "-Setup-" kept: the website's download button finds the installer by `-setup.exe`
+          // "-Setup-" kept: the website's download button finds the installer by `-setup-<version>.exe`
           // (justwrite-website src/components/Hero.astro)
           // biome-ignore lint/suspicious/noTemplateCurlyInString: electron-builder's own ${…} macros
           artifactName: '${name}-Setup-${version}.${ext}',

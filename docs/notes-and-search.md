@@ -118,7 +118,7 @@ Every text surface in the project:
 ### What you see
 
 - A **search bar** that auto-focuses when you open the view. Partial words work, and the search is case-insensitive.
-- **Kind filter chips** — one chip per content type (Chapters, Characters, Locations, Objects, Notes, Groups, Strands, Worldbuilding, Architecture). Each chip shows a live result count for the current query. Chips with no matches are dimmed. Selecting chips narrows results to those types (multi-select). "All" resets.
+- **Kind filter chips** — one chip per content type (Chapters, Characters, Locations, Objects, Notes, Groups, Narrative strands, Worldbuilding, Architecture). Each chip shows a live result count for the current query. Chips with no matches are dimmed. Selecting chips narrows results to those types (multi-select). "All" resets.
 - **Grouped results** — matches are grouped by content type, in a canonical order, with a count per group.
 - **Result rows** — each shows the document title, an optional sub-label (e.g. part + chapter), and a snippet of the matching prose with the matched terms highlighted in your accent colour. Click any row to navigate to that document.
 - **Result count** in the header ("N results").
@@ -160,7 +160,7 @@ Both the keyboard shortcut and the sidebar item **toggle** the panel — press o
 
 The answers know your **story bible**, not just your prose. Every character, location, object, group, worldbuilding article, note, plot strand, and architecture doc is part of the searchable index as a "Story Bible" entry. Name an entity in your question — *"who is Maren?"* — and her entry is pinned into the answer's sources (marked **pinned** in the citations), so the model always sees your own notes about her, not just a guess from scenes; follow-ups like *"what does she want?"* keep the pin. Clicking a Story Bible citation opens that entity's page; scene citations open the chapter. Scene excerpts also carry their linked characters, location, objects, and point of view, so the answer stays grounded even in scenes where the prose never names them — which is also why keeping scene links tidy pays off (the **Link scenes** button on the Analysis page proposes any missing ones from your prose, no AI involved).
 
-Ask the book requires an AI provider and an embedding model. See [AI providers](ai-providers.md) for setup.
+Ask the book requires an AI provider. To search and quote your scenes it also needs an embedding model and a built index; until then it answers from your story bible only, and says so. See [AI providers](ai-providers.md) for setup.
 
 ---
 
@@ -207,9 +207,10 @@ storage only — they don't change what a question costs.
 
 ## The manuscript index
 
-Ask-the-book reads from an index of your prose and story bible. **Build / Refresh
-index** (in the chat panel) shows per-scene rows and offers an incremental update
-(only changed scenes re-embed) or a full rebuild, plus **Clear index**.
+Ask-the-book reads from an index of your prose and story bible. **Build index**
+(in the chat panel) shows per-scene rows; once there is an index, **Update**
+re-embeds only the scenes added or changed since, **Rebuild** re-embeds
+everything, and the build dialog has **Clear index**.
 **Auto-rebuild** (AI Settings → Writing AI) quietly re-embeds about a minute
 after your last edit — it only starts working after your first manual build, and
 it fails silently by design (no toast spam mid-writing). Changing the embedding
@@ -219,8 +220,10 @@ index.
 
 ## The command palette (⌘P)
 
-Not just search — three kinds of results: **navigation** (over twenty
+Not just search — four kinds of results: **navigation** (over twenty
 destinations), **your entities** (chapters, characters, locations, objects,
-groups, notes, worldbuilding, strands — jump straight to one), and **actions**
+groups, notes, worldbuilding, strands — jump straight to one), **actions**
 (New chapter/part/character/location/object/note/strand/article, Find & replace,
-Save chapter version, Toggle sidebar, Undo/Redo, Shortcuts, Help).
+Open this page in a new window, Save chapter version, Toggle sidebar, Undo/Redo,
+Shortcuts, Help), and **Help pages** (every page of this guide, opened in the Help
+drawer).

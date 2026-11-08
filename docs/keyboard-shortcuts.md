@@ -13,7 +13,7 @@ These work from anywhere in the app.
 
 | Shortcut | Action |
 |---|---|
-| **Ctrl/⌘ + F** | Open Search and focus the search box |
+| **Ctrl/⌘ + F** | Open Search and focus the search box (inside a rich-text editor — a scene, a note, an article — it opens that editor's own Find / Replace bar instead) |
 | **Ctrl/⌘ + Shift + F** | Open project-wide Find & Replace |
 | **Ctrl/⌘ + P** | Open the Command Palette |
 | **Ctrl/⌘ + J** | Toggle the "Ask the book" chat panel |
@@ -26,7 +26,7 @@ These work from anywhere in the app.
 
 ### Closing panels
 
-Every slide-in panel — "Ask the book", AI tasks, and the Help drawer — closes the same three ways: press **Esc**, click anywhere outside it, or click the same nav entry / trigger button again. Clicking a *different* Help "?" while the drawer is open switches it to that article rather than closing it. Dialogs are deliberately different: they stay put until you use their own buttons, so an accidental click can't lose your edits.
+Every slide-in panel — "Ask the book", AI tasks, and the Help drawer — closes the same three ways: press **Esc**, click anywhere outside it, or click the same nav entry / trigger button again. Clicking a *different* Help "?" while the drawer is open switches it to that article rather than closing it. Dialogs are deliberately different: a click outside leaves them open — close one with **Esc** or its own buttons — so an accidental click can't lose your edits.
 
 Undo and redo are disabled when the focus is inside the rich manuscript editor — the editor has its own undo history (`Ctrl/⌘ + Z` inside the editor undoes typing).
 
@@ -56,6 +56,7 @@ When the cursor is inside the manuscript editor.
 | **Ctrl/⌘ + I** | Italic |
 | **Ctrl/⌘ + U** | Underline |
 | **Ctrl/⌘ + K** | Insert link |
+| **Ctrl/⌘ + F** | Open the Find / Replace bar for this chapter |
 | **Alt + M** | Drop a marker on the selection (or edit the marker at the cursor) |
 | **Tab** | Indent paragraph (or sink list item) |
 | **Shift + Tab** | Outdent paragraph (or lift list item) |
@@ -68,8 +69,8 @@ When the cursor is inside the manuscript editor.
 
 | Shortcut | Action |
 |---|---|
-| **←** | Previous chapter |
-| **→** | Next chapter |
+| **←** | Previous chapter (Chapter scope) |
+| **→** | Next chapter (Chapter scope) |
 | **Esc** | Exit Read mode and return to Edit |
 
 ---

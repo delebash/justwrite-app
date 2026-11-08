@@ -29,10 +29,10 @@ The **Characters** view is your central file for every person (or creature) in y
 - **Avatar photo** — a 96 px circle. Drag any image file onto it to set or replace.
 - **Status pill** — a colour-coded label drawn from your project palette (Settings → Project → Statuses).
 - **Tags** — freeform labels with project-wide typeahead.
-- **Motivation panel** — four colour-coded boxes: **Wants**, **Needs**, **Lie they believe**, **Truth they meet**.
+- **Motivation panel** (in **Identity & core engine**) — four colour-coded boxes: **Wants**, **Needs**, **Lie they believe**, **Truth they meet**.
 - **Arc panel** — three columns: **Beginning**, **Midpoint**, **End**.
-- **Voice & dialect** — four fields: Accent, Vocabulary, Speech tic, Sample line.
-- **Backstory** — a free-text block for private history that never appears in the manuscript.
+- **Voice & presence** — Accent, Vocabulary, Speech tic and **Sample line — calm** at the top, then the rest of how they sound and move.
+- **Backstory** (in **Backstory & depth**) — a free-text block for private history that never appears in the manuscript.
 - **Images modal** — a multi-image gallery for reference photos.
 - **Groups modal** — toggle the character into or out of any group.
 - **Events button** — opens this character's personal event timeline.
@@ -69,7 +69,7 @@ If you write multiple POVs, or you ever have to hand a chapter to an editor or c
 
 > *"I have a whole history for this character in my head and nowhere to keep it where it won't end up in the exported book."*
 
-Private notes that never get exported. Use this for "I know they used to be a soldier, but the reader doesn't" details — the stuff that shapes how you write them but isn't for the reader's eyes. The Description fields on Locations and Objects *do* export; the Character Backstory field deliberately does not.
+Private notes that never appear in the manuscript or its PDF, DOCX and EPUB exports. Use this for "I know they used to be a soldier, but the reader doesn't" details — the stuff that shapes how you write them but isn't for the reader's eyes. The **Story bible** export — a document of the bible itself, for an editor or illustrator — does include it, as it includes every filled field.
 
 ### Talk to a character — interview them in their voice
 
@@ -97,7 +97,7 @@ JustWrite builds the character's system prompt from everything you've put in the
 
 **Why a writer would use it.** Character-as-oracle is genuinely useful when you can't think your way to a scene. Ask them what they'd do, why they hesitated, what they want from another character, what they'd never tell anyone. The answers reveal contradictions in your own characterisation as often as they unblock the next scene — the model patterns-matches against the profile you've built and surfaces psychological tensions you didn't see while drafting. Treat answers as discovery prompts, not gospel.
 
-**Cost note.** Uses the same vector store and embedding provider as Ask-the-book — if you've already built an index for one, the other works immediately. Routable as the **characterChat** feature in Settings → AI (separately from **chat** so you can pin a more conversational/in-character model here while keeping factual Q&A pinned to a tighter one).
+**Cost note.** Uses the same vector store and embedding provider as Ask-the-book — if you've already built an index for one, the other works immediately. Routable as **Character chat** on the AI Settings page → Routing by feature (separately from **Ask the book** so you can pin a more conversational/in-character model here while keeping factual Q&A pinned to a tighter one).
 
 ### Relationship arc — how does this pair move across the book?
 
@@ -124,7 +124,7 @@ The result lands as:
 
 **Requires scenes with both characters linked.** The model is only shown chapters where both characters are linked to the same scene via the Links panel. If they share zero scenes, the modal surfaces a clear error telling you to link them first.
 
-**Cost note.** One LLM call per relationship pair. Routable as the **relationshipArc** feature in Settings → AI.
+**Cost note.** One LLM call per relationship pair. Routable as **Relationship arc** on the AI Settings page → Routing by feature.
 
 ### Audit consistency — does this character act like themselves?
 
@@ -150,7 +150,7 @@ The model gets the full profile (name, role, one-liner, voice, arc, motivation, 
 
 **The model is instructed to be honest, not flag-happy.** A character that's genuinely consistent across their scenes returns zero concerns and the **Consistent** verdict — no false flags to pad the output. Character growth and change that's *earned* on the page is ignored unless the scene gives no reason for the shift; the **Why** field is explicit about distinguishing "uncosted change" from "unearned change". You should still treat findings as a second opinion, not gospel — the model is reading without the wider context of your manuscript that informs your decisions.
 
-**Routable** as the **characterAudit** feature in Settings → AI. This is one of the most reasoning-heavy LLM tasks in JustWrite — long context windows and strong text comprehension help materially. Pin to your strongest cloud model if you can; the per-character cost is real but the value-per-call is high.
+**Routable** as **Character audit** on the AI Settings page → Routing by feature. This is one of the most reasoning-heavy LLM tasks in JustWrite — long context windows and strong text comprehension help materially. Pin to your strongest cloud model if you can; the per-character cost is real but the value-per-call is high.
 
 ### Suggest characters — who is this book missing?
 
@@ -160,7 +160,7 @@ A cast grows from what the story needs: a rival, a mentor, the one person who kn
 
 **Suggest characters…** on the Characters header asks the AI for people your book doesn't have yet. You can say what you're looking for — a role, a gap, a relationship — or leave it blank. The AI reads your premise, genre, world rules, setting and main cast, plus the names already in your cast so it doesn't offer them again, and proposes characters with a name, a role and a one-line description each; while it works, **Cancel** in the window stops it. They open in the same review list as the entity sweep: tick the ones you want, edit any field, and **Add {n} to story bible** adds them. Nothing is added until you confirm, and one Ctrl/⌘ + Z takes the whole batch back out. To flesh one out, open their page and use **Draft with AI**.
 
-**Routable** as the **brainstorm** feature in Settings → AI.
+**Routable** as **Brainstorm** on the AI Settings page → Routing by feature.
 
 ---
 
@@ -185,11 +185,11 @@ Reference sheets for every place in your story.
 
 **The sheet folds while it's empty.** Each of these fields (on Locations, Objects and Groups alike) is a row you open with a click; an empty one stays folded so a new entry isn't a wall of boxes, and a filled one opens. Each row's hint gives an example. What you write there goes to the AI with the entry — Ask the book and the writer actions in a scene see a location's atmosphere or where an object is now — unless the entry is ticked **Exclude from AI**.
 
-**Draft with AI.** While every sheet field is empty, **Describe this location** (object, group) sits at the top of the page: type what it is in a line or a paragraph and press **Draft**. Once the sheet has something in it, the box folds to one line; **Draft with AI → From a description** in the header opens it again. The AI reads your description, the entry's name, kind and description, whatever its sheet already says, and your book (premise, genre, world rules, Setting, main cast), and proposes each field — and, while the page has no Description (a group's Blurb), one for that too. They open in a review window beside what's there now: empty fields come ticked, ones you've written don't, so nothing overwrites your work unless you tick it; edit any proposal, then **Apply**. One Ctrl/⌘ + Z takes the whole draft back out. Routable as **Story-world sheets** in Settings → AI, with its own row for locations, objects and groups.
+**Draft with AI.** While every sheet field is empty, **Describe this location** (object, group) sits at the top of the page: type what it is in a line or a paragraph and press **Draft**. Once the sheet has something in it, the box folds to one line; **Draft with AI → From a description** in the header opens it again. The AI reads your description, the entry's name, kind and description, whatever its sheet already says, and your book (premise, genre, world rules, Setting, main cast), and proposes each field — and, while the page has no Description (a group's Blurb), one for that too. They open in a review window beside what's there now: empty fields come ticked, ones you've written don't, so nothing overwrites your work unless you tick it; edit any proposal, then **Apply**. One Ctrl/⌘ + Z takes the whole draft back out. Routable as **Story-world sheets** on the AI Settings page → Routing by feature, with its own row for locations, objects and groups.
 
 **Name ideas** — beside the name: Brainstorm for names that fit the entry and your book (place names for a location, object names for an object), with a seed prompt you can fill or leave empty; **Use** on one makes it the name. See [Brainstorm](brainstorm.md#name-and-title-ideas--where-you-use-them).
 
-**Suggest locations…** on the Locations list asks the AI for places your book doesn't have yet — say what you're looking for or leave it blank. It reads your premise, genre, world rules, setting and main cast, plus the locations you have so it doesn't repeat them, and proposes each with a name, a kind and a line on what a scene there brings. They open in the entity sweep's review list: tick, edit, and **Add {n} to story bible**; one Ctrl/⌘ + Z takes the batch back out. Routable as the **brainstorm** feature.
+**Suggest locations…** on the Locations list asks the AI for places your book doesn't have yet — say what you're looking for or leave it blank. It reads your premise, genre, world rules, setting and main cast, plus the locations you have so it doesn't repeat them, and proposes each with a name, a kind and a line on what a scene there brings. They open in the entity sweep's review list: tick, edit, and **Add {n} to story bible**; one Ctrl/⌘ + Z takes the batch back out. Routable as **Brainstorm**.
 
 A location entry is worth it when the place will appear in more than one scene and you want to keep sensory details, history, or floor plans consistent. For a single throwaway location ("a dusty bar in town"), a tag on the scene is enough — don't fill the bible with one-shot rooms.
 
@@ -296,7 +296,7 @@ No manual edges. Edges always reflect data you entered elsewhere.
 
 Most writers don't fill the whole Story Bible up front. A realistic progression:
 
-1. **Add characters as they appear in the writing.** When you write a new character's name in a chapter, type `@`, hit "create new character", and you have a stub. Fill in details later when you have a sense of who they are.
+1. **Add characters as they appear in the writing.** When you write a new character's name in a chapter, open the scene's **Links** panel and click **new main character** (or **new secondary character**) — you have a stub, already linked to the scene. Fill in details later when you have a sense of who they are.
 2. **Add locations the same way.** A new place gets a stub on first appearance.
 3. **Reach for Groups once you have five or so connected characters.** Group them by faction, family, or crew so the Relations graph becomes meaningful.
 4. **Fill in Motivation and Arc when you reach a hard scene.** When you're stuck on what your protagonist would do here, sit down and complete the Motivation panel. It often solves the problem.
@@ -321,8 +321,8 @@ The batch modal runs Fill from book across your cast in four phases: **pick**
 (main characters pre-checked; anyone with zero linked scenes is disabled — there
 is nothing to fill from), **run** (sequential on purpose — one model, live
 per-character progress), **review** (every proposed profile and voice side by
-side), **done**. The **auto-apply empty only** toggle is the safe default: it
-fills blank fields and never overwrites something you wrote. The cost line above
-the run button tells you what you're about to spend — profile + voice is two
-calls per character. Failed characters get a **Retry failed** without re-running
-the successes.
+side), **done**. Review is the default; **Apply automatically — empty fields only
+(skip review)** instead fills blank fields as each character finishes, and never
+overwrites something you wrote. The cost line above the run button tells you what
+you're about to spend — profile + voice is two calls per character. Failed
+characters get a **Retry {n} failed** without re-running the successes.

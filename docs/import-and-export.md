@@ -14,7 +14,7 @@ JustWrite reads and writes the formats writers actually use:
 
 > *"I have a half-finished novel in Word. I don't want to retype it — I just want to keep writing it here."*
 
-The **Import** view (Project section in the sidebar) brings a manuscript file — or a stack of note files — into JustWrite.
+The **Import** view (the **Import manuscript** button on Home, or **Import** in the Command Palette) brings a manuscript file — or a stack of note files — into JustWrite.
 
 ### Three import modes
 
@@ -28,7 +28,7 @@ When you start an import, you choose what to do with the result:
 
 ### How to import
 
-1. Open **Import** from the sidebar.
+1. Open **Import** — **Import manuscript** on Home, **Import from file** above the Chapters list, or the Command Palette (**Ctrl/⌘ + P**).
 2. Choose your mode.
 3. **Drop a file onto the page** (or several, for **Add notes**) or use the file picker. Supported formats: `.docx`, `.epub`, `.odt`, `.md`, `.txt`.
 4. JustWrite parses the file(s) and shows a **preview** with every detected section.
@@ -58,7 +58,7 @@ The **Add notes** mode applies two settings to every note in the batch:
 ### Optional cleanups
 
 - **Text normalization** (on by default) — converts curly quotes, em-dashes, ellipses, and whitespace to consistent Unicode. Turn it off if you want to preserve the original character encoding exactly.
-- **Entity sweep** (offered after import) — an AI scan of the new chapters that proposes characters, locations, and objects to add to your Story Bible. You review every proposal individually; nothing is added without your click. Requires an AI provider.
+- **Entity sweep** (the **After import** checkbox, ticked before you confirm) — an AI scan of the new chapters that proposes characters, locations, and objects to add to your Story Bible. You review every proposal individually; nothing is added without your click. Requires an AI provider.
 - **Images** embedded in DOCX, EPUB, and ODT files are extracted and stored alongside the project.
 - **Lists** — bulleted and numbered lists (including nested ones) are preserved on import, from DOCX, EPUB, and ODT alike.
 
@@ -70,7 +70,7 @@ The **Add notes** mode applies two settings to every note in the batch:
 
 ### Tips
 
-- **Chapter detection** relies on heading structure (`Heading 1`, `Heading 2`, etc., or `#` and `##` in Markdown). A document with no headings will come in as a single chapter; you can split it later using the editor's **Split chapter** action.
+- **Chapter detection** relies on heading structure (`Heading 1`, `Heading 2`, etc., or `#` and `##` in Markdown). A document with no headings will come in as a single chapter; you can split it later with the scene strip's **Split here** button.
 - The preview lets you catch parser mistakes **before** anything changes in your project. If the chapter split looks wrong, drop chapters from the list or rerun the import after fixing the source file.
 - Scrivener exports `.epub` cleanly. Word exports `.docx`. Google Docs can save as `.docx` or `.epub`.
 

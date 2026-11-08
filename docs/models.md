@@ -3,7 +3,7 @@ lede: Quick Setup, downloading + tuning local models
 ---
 # Models
 
-Local models live under the **Providers & models** tab (in **Settings → AI**). Two things
+Local models live under the **Providers & models** tab (on the **AI Settings** page). Two things
 run the show: **Quick Setup**, which picks and wires the right model for your machine in
 one click, and the **model catalog** on the built-in engine, where you download, add, and
 tune models yourself.
@@ -159,7 +159,7 @@ ever starts on its own**. A machine with its **own saved tune** keeps it (a **Re
 button asks before overwriting). A machine matching a **built-in PC class** — a memory
 *range* that includes a machine the config was measured on — starts pre-tuned with
 no sweep. A machine with neither runs on the engine's automatic memory fitting and gets two
-optional measured passes: **Quick optimize (~2 min)**, which tries the most likely settings
+optional measured passes: **2-minute optimize**, which tries the most likely settings
 within a time box and keeps the best it finds (and says so honestly when it finds nothing
 faster — the full sweep or the model's Tune dialog go deeper), and **Full optimize**
 (10 minutes or more), which keeps measuring. Either pass saves its result only if it
@@ -557,13 +557,12 @@ edit) re-embeds the whole book with the new wording.
 > Skip, even while the engine is still winding a trial down.
 
 > **Where a feature's model shows up in the app.** Writing surfaces (Ask the book, the
-> scene editor's AI menu, the analysis tools) carry a small read-only **"runs on"** chip
+> scene editor's AI menu, the analysis tools) carry a small **"runs on"** chip
 > naming the provider + model that feature's preset uses right now — resolved by the server
-> exactly the way a run resolves it, so the chip can never disagree with reality. On most
-> surfaces the chip is provenance: clicking it takes you to AI settings, where
-> **Routing by feature** is the only place routing is edited. The two chat chips
-> (Ask the book / Talk to character) go one further — clicking them opens an **edit doorway**
-> naming the preset and how many features share it. (The old per-surface
+> exactly the way a run resolves it, so the chip can never disagree with reality. Clicking
+> any of them opens an **edit doorway** — the model and Reasoning level of that feature's
+> preset — naming the preset and how many features share it; **Routing by feature** on the
+> AI page is the full routing editor. (The old per-surface
 > provider/model dropdowns are gone; they edited a side channel that the preset
 > overrode anyway.)
 

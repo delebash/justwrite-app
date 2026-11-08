@@ -5,7 +5,7 @@ with a Node (Hono + SQLite) server** — plain JavaScript since 2026-10-08 (the 
 Tauri and Python, then onto Quasar the same day: the kit's `docs/app-structure.md` §Q is the
 layout, `../just-core/template/` the reference app). Persistence is server-owned SQLite — the renderer
 holds no durable data. The whole AI/LLM stack is shared with the sibling apps: `just-core`
-(its JavaScript package `server/`, `@delebash/core`, beside this repo) + `@delebash/ui`
+(its JavaScript package `packages/core`, `@delebash/core`, beside this repo) + `@delebash/ui`
 (Vue).
 
 **Writing only.** All audio — Studio, TTS, audiobook export, speaker analysis, voice casting — lives
@@ -109,8 +109,8 @@ bundled into the app's Help by the glob and packed into the public `docs.tar.gz`
 
 **Biome** (`biome.json`) is the linter — `"formatter": { "enabled": false }`, so it does not format;
 match each file's existing style and never bulk-reformat unrelated code. The config is the
-family's one `biome.json` (byte-identical in every app): `src/`, `scripts/`, `electron/`, `server/src/`
-and `server/tests/`. i18n linting is a separate
+family's one `biome.json` (byte-identical in every app): `src/`, `scripts/`, `quasar.config.js`,
+`src-electron/`, `server/src/`, `server/tests/` and `server/scripts/`. i18n linting is a separate
 `eslint.i18n.config.js` carrying i18n rules only.
 
 ---
@@ -288,8 +288,9 @@ naturally.
 
 Esc-to-close still uses a `keydown` listener (that one is rock-solid).
 
-**Reference shipper:** `AiFeatureChip.vue` (the chip + popover for
-provider/model routing).
+**Reference shipper:** the editor's right-click menu in `RichEditor.vue`
+(`.ctx-backdrop` + `.ctx-menu`). (`AiFeatureChip.vue` no longer has a popover of
+its own: it wraps the kit's `LuFeatureChip`, whose popover is Quasar's `QMenu`.)
 
 **Scope: this rule governs DROPDOWNS and POPOVERS, not slide-in PANELS.**
 (Narrowed 2026-07-19 — it previously read as universal, and named `ChatPanel.vue`

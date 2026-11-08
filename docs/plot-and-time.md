@@ -38,7 +38,7 @@ The **Strands** view (Manuscript section in the sidebar) is the dedicated notebo
 
 - **Strand name** — inline-editable header.
 - **Blurb** — a one-or-two-sentence italic summary. Useful as a quick reminder of what the strand is about without opening the full notes.
-- **Colour swatch picker** — ten preset colours. The chosen colour flows through to the strand's row label on the Plot Board and to the left-border accent on every beat card.
+- **Colour swatch picker** — twelve preset colours. The chosen colour flows through to the strand's row label on the Plot Board and to the left-border accent on every beat card.
 - **Status** — same status palette used everywhere else (Draft, Revise, Done…).
 - **Rich-text notes body** — a full prose editor. Write as much as you want: a synopsis for this thread, notes on each character involved, decisions you've made and why. This is your long-form planning document for the strand.
 - **Beats** — labelled turning-point markers pinned to specific chapters or scenes. Each beat has a label (e.g. "Midpoint"), an optional note, and a scene assignment. Beats are sorted automatically in story order. Preset autocomplete suggestions on the label field: Inciting, First turn, Midpoint, Crisis, Climax, Resolution, Setup, Reveal, Setback, Refusal.
@@ -77,7 +77,7 @@ Each beat appears as a small card at the strand × chapter intersection, with th
 - **Drag a beat** to move it across chapters or strands. (If you drop into a different chapter, the scene pin is cleared, since scenes belong to chapters.)
 - **Drag a strand label** to reorder the rows.
 - **Rename a strand** inline by clicking its name in the row header.
-- **Delete a beat** with the X that appears on hover (with an undo toast).
+- **Delete a beat** with the X that appears on hover — it leaves the board at once; **Ctrl/⌘ + Z** brings it back.
 
 ### Plot structure templates
 
@@ -100,7 +100,7 @@ The ✨ beside a strand's name opens its AI menu:
 - **Fill this template for my story** — on a strand applied from a template. The AI writes each beat's note for your book — the event, who drives it, what it changes — from your premise, genre, world rules, Setting and main cast. They open in a review window beside what's there now: a note that still gives the template's general advice comes ticked, one you've written doesn't; edit any, then **Apply**. One Ctrl/⌘ + Z takes the whole fill back.
 - **Suggest next beats** and **Plot twists** — Brainstorm's plot ideas for this strand, from your book and the strand's beats so far, never one the strand already has. They open on Brainstorm's panel: type a seed prompt to steer them, or leave it empty, and press **Generate**; **Add as beat** puts an idea on the strand as a beat card in the **Unassigned** column. The window stays open, so you can add several; each added idea reads **Added**.
 
-Routable as **Planning → Fill this template for my story** and **Brainstorm** in Settings → AI.
+Routable as **Planning → Fill this template for my story** and **Brainstorm** on the AI Settings page → Routing by feature.
 
 ### How to use it
 

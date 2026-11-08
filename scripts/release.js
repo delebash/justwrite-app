@@ -117,7 +117,7 @@ console.log("This will:");
 console.log(`  - Build ${ARTIFACTS[platform]}`);
 console.log(`  - Create / update GitHub Release '${tag}' with the binaries attached`);
 console.log("  - Pack docs/ into docs.tar.gz and attach to the release");
-console.log("  - Fire a repository_dispatch to justwrite-website so it rebuilds with the new docs");
+console.log("  - The website is not touched: publish it after the release with its own `npm run deploy`");
 console.log("");
 
 const rl = createInterface({ input: stdin, output: stdout });

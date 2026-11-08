@@ -13,7 +13,7 @@ JustWrite is a desktop app. Download the installer for your operating system fro
 
 The installers aren't signed with a publisher's certificate, so the first time:
 
-- **Windows** (`JustWrite-Setup-<version>.exe`) says "Windows protected your PC": press **More info**, then
+- **Windows** (`justwrite-Setup-<version>.exe`) says "Windows protected your PC": press **More info**, then
   **Run anyway**.
 - **macOS** (the `.dmg`, for Intel and Apple silicon Macs) says the app can't be opened. On macOS 15 and later:
   open **System Settings → Privacy & Security**, go to **Security** and press **Open Anyway** (it's there for about
@@ -32,12 +32,14 @@ The first launch may take a few seconds longer than usual while the app sets up 
 
 ## Your first project
 
-The very first time you open JustWrite, a **welcome screen** greets you. It sums up what the app does — chapters & scenes, the story bible, plot strands & timeline, AI assistance, goals & pace, export — and offers the two ways to begin:
+The very first time you open JustWrite, a **welcome screen** greets you. It sums up what the app does — chapters & scenes, the story bible, plot & strands, timeline & events, AI assistance, goals & pace, search & replace, notes & brainstorm, export — and offers the two ways to begin:
 
 - **Start a new project** — give it a title and (optionally) an author, and you're writing.
 - **Try the tutorial project** — opens *The Ninth Facet*, a complete sample novel (more below).
 
-The same screen introduces the optional AI features: **Run Quick Setup** installs a free local model that runs privately on your own PC, **Connect an online provider** points JustWrite at any OpenAI-compatible service, and you can skip both — everything is available later in AI settings. The welcome screen shows once; you can reopen it any time from the **Help** page (sidebar → Help → "Show welcome screen"). When your first project opens, JustWrite offers the AI setup once more — unless an AI provider is already your default.
+If your books are already on another device, **Sync them here** under the buttons brings them over (see [Sync](sync.md)).
+
+The AI features are optional. When your first project opens, JustWrite offers to set them up, once: **Run Quick Setup** installs a free local model that runs privately on your own PC, **Connect an online provider** points JustWrite at any OpenAI-compatible service, and you can skip both — everything is available later on the AI Settings page. (It doesn't ask if an AI provider is already your default.) The welcome screen shows until you pick one of its buttons.
 
 A fresh workspace has **no projects yet** — the welcome screen is where the first one is born, and it stays your home screen until one exists. Once you have projects, the sidebar's project switcher at the top of the left rail is where you rename them, create more, and move between them.
 
@@ -49,12 +51,12 @@ If you'd rather explore with a complete example first, the project switcher has 
 
 ## A quick tour
 
-The sidebar on the left is the main map. It is grouped into five sections:
+The sidebar on the left is the main map. It is grouped into four sections:
 
 - **Manuscript** — Search, Home, Architecture, Strands, Chapters, Ask the book
 - **Story world** — Characters, Locations, Objects, Groups, Worldbuilding
-- **Planning** — Plot board, Timeline, Notes, Relations
-- **Project** — Analysis, Export, Trash, Settings
+- **Planning** — Plot board, Timeline, Notes, Brainstorm, Markers, Relations
+- **Project** — Analysis, Reader knowledge, Export, Trash, App Settings, AI Settings, AI tasks, Help
 
 Hover any item to see its name. Click to open it. Drag the right edge of the sidebar to resize it; press **Ctrl/⌘ + \\** to hide it entirely (and again to bring it back).
 
@@ -80,7 +82,7 @@ JustWrite creates a fresh blank project and switches to it. Switch back at any t
 
 If you already have a manuscript in Word, Markdown, EPUB, or LibreOffice, you do not need to retype it.
 
-Open **Import** from the sidebar's Project section, drag your file onto the page (or use the file picker), and let the parser detect your chapters. You can review and rename them before they are added. See [Import and export](import-and-export.md) for the full walkthrough.
+Open **Import** — the **Import manuscript** button on Home, or **Import** in the Command Palette (**Ctrl/⌘ + P**) — drag your file onto the page (or use the file picker), and let the parser detect your chapters. You can review and rename them before they are added. See [Import and export](import-and-export.md) for the full walkthrough.
 
 ---
 
@@ -90,7 +92,7 @@ JustWrite's writing tools, "Ask the book" chat, critique, and entity extraction 
 
 The choice is yours, and you can have several at once. Common options:
 
-- **OpenAI** (paid, cloud) — writing. Excellent quality. Add your API key in Settings.
+- **OpenAI** (paid, cloud) — writing. Excellent quality. Add your API key on the AI Settings page.
 - **Anthropic Claude** (paid, cloud) — writing only. Excellent quality, particularly for critique and longer prose work. Add your `sk-ant-…` key.
 - **The built-in local engine** (free, private) — writing only. Runs entirely on your machine: the **Quick Setup** wizard on the AI page checks your graphics card, downloads the best catalog model that fits it, and sets it as the model every AI feature uses — one click, nothing else to install. Prefer running your own server? **Ollama, LM Studio and any OpenAI-compatible endpoint** are supported as providers too.
 
@@ -134,15 +136,20 @@ If you want to run from source instead of using a packaged installer:
 ```bash
 git clone https://github.com/delebash/just-core.git
 (cd just-core/packages/core && npm install)
+(cd just-core/packages/ui && npm install)
+git clone https://github.com/delebash/just-sqlite-sync.git
+(cd just-sqlite-sync && npm install)
 git clone https://github.com/delebash/justwrite-app.git
 cd justwrite-app
 npm install
+(cd src-electron && npm install)
 npm run dev
 ```
 
 You will need **[Node.js](https://nodejs.org/) 24 or newer** — nothing else. JustWrite is plain
 JavaScript: a desktop window (Electron), the Vue 3 interface, and a small local server that keeps
-your books. The shared AI kit (`just-core`) sits beside the app's folder, as above.
+your books. The shared AI kit (`just-core`) and the sync engine (`just-sqlite-sync`) sit beside the
+app's folder, as above.
 
 Running from source keeps its data in the `data` folder inside the checkout.
 
@@ -154,13 +161,13 @@ Running from source keeps its data in the `data` folder inside the checkout.
 | `npm run dev:spa` | The interface only, in a plain browser tab (no desktop window — start the server with `npm run server`) |
 | `npm run server` | The server alone, with no window (see [Headless access](headless-access.md)) |
 | `npm run build:spa` | The interface build only, for the browser (`dist/spa`) |
-| `npm run bump <version>` | Update the version number in `package.json` |
+| `npm run bump <version>` | Update the version number in `package.json`, `server/package.json` and `package-lock.json` |
 | `npm run release` | Trigger the GitHub Actions cross-platform release build (manual only) |
 | `npm run release:windows` | Same, but build Windows only — useful for iteration before going full release |
 | `npm run release:macos` | Same, macOS only |
 | `npm run release:linux` | Same, Linux only |
 
-The architecture and contribution notes live in the repo's `CLAUDE.md` and `README.md`.
+The architecture and contribution notes live in the repo's `AGENTS.md` and `README.md`.
 
 ### Releasing
 
@@ -169,7 +176,7 @@ The release pipeline is **manual on purpose** — no build runs on push, PR, or 
 The typical flow:
 
 ```bash
-npm run bump 0.2.0                                  # updates package.json's version (no commit)
+npm run bump 0.2.0                                  # updates the version in package.json, server/ and the lock (no commit)
 git commit -am "release: v0.2.0"
 git tag v0.2.0
 git push && git push --tags
@@ -209,7 +216,7 @@ A dry run builds and checks everything without publishing: `gh workflow run rele
 ## Before a project exists
 
 With no project loaded, the **Welcome** screen is home — the only other surfaces
-that work project-less are AI Settings and Help, and both link back to Welcome.
+that work project-less are AI Settings, Help and Sync, and they link back to Welcome.
 
 ## Sidebar tricks worth knowing
 

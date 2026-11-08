@@ -79,7 +79,7 @@ At the top of the view is a horizontal strip that represents your whole manuscri
 The strip is the differentiator. You see at a glance:
 
 - Where your problem markers cluster. Fourteen "weak prose" ticks in the second half of chapter seven means that's where your revision pass starts.
-- Whether you've left "verify" pins scattered through the book (yellow ticks every few chapters) or concentrated in one section (clumped together).
+- Whether you've left "verify" pins scattered through the book (blue ticks every few chapters) or concentrated in one section (clumped together).
 - Whether your "loose thread" pins are evenly distributed (you've been good about tracking them throughout) or all in the back half (the front of the book is now suspiciously fine).
 
 Click any tick to jump straight to that marker in the editor.
@@ -127,7 +127,7 @@ For each setup it captures a verbatim phrase from the chapter and a short "key t
 
 **Already-pinned threads are filtered out.** The scan checks your existing Loose-thread and TODO markers and skips proposals that overlap with them — so a re-scan doesn't surface the same threads you've already noted.
 
-**Routable** as the **foreshadowing** feature in Settings → AI. Long-context structural reasoning is helpful here, so a stronger cloud model often produces better setup-spotting than a small local model. The scan runs once per chapter, so per-call costs add up on long books — pick a model accordingly.
+**Routable** as **Foreshadowing scan** on the AI Settings page → Routing by feature. Long-context structural reasoning is helpful here, so a stronger cloud model often produces better setup-spotting than a small local model. The scan runs once per chapter, so per-call costs add up on long books — pick a model accordingly.
 
 ---
 

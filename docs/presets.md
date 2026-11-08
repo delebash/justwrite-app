@@ -10,7 +10,7 @@ should run with the same settings simply share one — edit the preset once and 
 using it follows. **The preset is the one source of truth for engine settings**
 (2026-07-15): nothing else in the app stores a tunable.
 
-There is no separate presets page — everything lives on **Settings → AI → Routing by
+There is no separate presets page — everything lives on the **AI Settings** page → **Routing by
 feature**, on the preset bar above each feature's Lab.
 
 ## The preset bar
@@ -22,7 +22,7 @@ The bar is the whole workflow:
   (model, temperature, samplers, reasoning) before committing to anything.
 - **Use in production** — makes the loaded preset the one this feature runs. It appears
   whenever the loaded preset isn't the live one.
-- **Update** — writes your tuned values back into the loaded preset. Every feature
+- **Save** — writes your tuned values back into the loaded preset. Every feature
   sharing that preset follows; that's the point of sharing.
 - **＋ Save as preset** — saves the column as a new preset (name it, Enter). It appears
   in every feature's dropdown immediately; renaming is save-under-a-new-name + delete
@@ -46,6 +46,7 @@ per-provider mapping is an editable table on the provider's form.
 ## Reset
 
 - **Reset to default** (in a feature's header, when it has its own assignment) — the
-  feature goes back to the default preset and its form reloads.
+  feature's preset (model, params, reasoning) and its prompt go back to the shipped
+  defaults, and its form reloads.
 - **↺ Reset presets to defaults** (bottom of the feature list) — restores the built-in
   presets and every feature assignment to the shipped defaults. Custom presets survive.

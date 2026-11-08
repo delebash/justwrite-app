@@ -4,7 +4,7 @@ lede: Every AI feature, and where each one lives
 # The AI features
 
 Everything the AI does in JustWrite, in one place. Every feature below is a row
-under **Settings → AI → Routing by feature** with its own engine preset — one
+on the **AI Settings** page → **Routing by feature** with its own engine preset — one
 model can serve all of them, or a heavy feature can point at a stronger model
 while quick ones stay local. How routing, presets and providers work is
 **[AI providers](ai-providers.md)**; this page is what the features *are*.
@@ -12,7 +12,8 @@ while quick ones stay local. How routing, presets and providers work is
 ## Writing
 
 - **Writer actions** — the AI menu in each scene's strip: Rewrite, Expand,
-  Tighten, Continue, Describe, plus all Line edits.
+  Tighten, Continue, Describe, Rewrite with direction…, Continue with
+  direction…, Write dialogue…, plus all Line edits.
 - **Scene drafting** — **Draft from plan**: a scene drafted from its Summary and the
   story context, from the cursor to its end. Only in a book with **AI scene drafting**
   on (Settings → Project). Its own row, so it can run on a larger or online model.
@@ -115,14 +116,14 @@ with direction…, Write dialogue… — read
 it too, plus the scene they work in: its Summary, what its Links panel ties to
 it, its beats and notes, and how the previous scene ends (see
 [Writing](writing.md#story-context--the-ai-knows-the-scene)). Only what's relevant
-is sent, and never anything marked **Exclude from AI**. **Settings → AI → Writing
+is sent, and never anything marked **Exclude from AI**. **AI Settings → Writing
 AI → Story context** sets the most of the model's context window those notes may
 take (15% to start). On a model with a small window a lower share leaves more
 room for the reply; on a large one it rarely matters.
 
 ## Where each one runs
 
-**Settings → AI → Routing by feature** shows every row above with the preset it
+**AI Settings → Routing by feature** shows every row above with the preset it
 resolves to right now. Open a row to read and edit its prompt, test it in the
 Lab, and point it at a different preset — the mechanics are covered in
 [AI providers](ai-providers.md#routing-features-to-specific-providers).

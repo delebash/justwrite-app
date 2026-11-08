@@ -41,7 +41,7 @@ Each Architecture document has:
 
 The Setting document also has an **Events** button that opens the world-level chronological event log (see [Plot and time](plot-and-time.md) for how events work).
 
-The Fabula and the Setting have **Draft from the premise** in their header: the AI drafts the document from your book's premise — with its genre, world rules, main cast and what the document already says. The draft arrives in the editor as one change, the old text struck through and the new text marked, with **Accept all** / **Reject all** above it; nothing replaces your text until you accept. Routable as **Planning → Draft from the premise** in Settings → AI.
+The Fabula and the Setting have **Draft from the premise** in their header: the AI drafts the document from your book's premise — with its genre, world rules, main cast and what the document already says. The draft arrives in the editor as one change, the old text struck through and the new text marked, with **Accept all** / **Reject all** above it; nothing replaces your text until you accept. Routable as **Planning → Draft from the premise** on the AI Settings page → Routing by feature.
 
 ### Why a writer would use it
 
@@ -82,14 +82,14 @@ If you find yourself wanting to write *about* something rather than describe one
 
 > *"I have thirty-odd worldbuilding articles and scrolling the list to find the magic ones is getting old. I need to group them somehow."*
 
-Articles are organised into **categories** — buckets that you control. The defaults include things like Geography, Politics, History, Magic, Religion. You can add, rename, recolour, and delete categories in **Settings → Project → Worldbuilding categories**.
+Articles are organised into **categories** — buckets that you control. The defaults are Geography, History, Cultures, Languages, Factions, and Lore & myth. You can add, rename, recolour, and delete categories in **Settings → Project → Worldbuilding categories**.
 
 Each category gets:
 
-- An icon (14 choices)
-- A colour (10 hues)
+- An icon (the six defaults each have their own; a category you add gets the sparkle)
+- A colour (pick one of the colour picker's twelve presets)
 
-Both flow through to the sidebar's Worldbuilding tree, so a long article list stays visually scannable. In that tree, **+** on a category adds an article to it, which opens with its title selected, ready to type; **+** beside the Worldbuilding filter adds a category, its name ready to type over in place.
+Both show on the category's chip in the article list, so a long article list stays visually scannable. In the sidebar's Worldbuilding tree, **+** on a category adds an article to it, which opens with its title selected, ready to type; **+** beside the Worldbuilding filter adds a category, its name ready to type over in place.
 
 ### The article list
 
@@ -114,7 +114,7 @@ The result count badge shows "**N of total**" so you always know how many articl
 - **Tag editor** — multi-tag with typeahead from all tags in use across worldbuilding.
 - **Rich-text body** — the full editor toolbar (headings, bold, italic, lists, images, tables, links).
 - **Ask the book** button in the header — opens the chat panel with the question prefilled ("Tell me about {title}") so you can interrogate the manuscript about this article without re-typing it.
-- **Draft with AI** in the header — the AI writes the article's body from its title, its summary and your book (premise, genre, world rules, Setting, main cast), building on what the body already says. The draft arrives in the editor as one change: the old text struck through, the new text marked, with **Accept all** / **Reject all** in the bar above — nothing replaces your text until you accept. A summary gives it more to go on. Routable as **Story-world sheets → Worldbuilding** in Settings → AI.
+- **Draft with AI** in the header — the AI writes the article's body from its title, its summary and your book (premise, genre, world rules, Setting, main cast), building on what the body already says. The draft arrives in the editor as one change: the old text struck through, the new text marked, with **Accept all** / **Reject all** in the bar above — nothing replaces your text until you accept. A summary gives it more to go on. Routable as **Story-world sheets → Worldbuilding** on the AI Settings page → Routing by feature.
 
 ### How to use the category system
 
@@ -122,7 +122,7 @@ The result count badge shows "**N of total**" so you always know how many articl
 
 Categories pay off when you have many articles. With 5 articles you don't need them; with 50 you can't navigate without them.
 
-A useful first split is **Setting, Magic, Politics, History, Culture, Other**. You can refine from there. Each category gets an icon and a colour so the sidebar tree stays readable even with dozens of articles.
+A useful first split is **Setting, Magic, Politics, History, Culture, Other**. You can refine from there. Each category gets an icon and a colour so the article list stays readable even with dozens of articles.
 
 The combination of categories + tags + status gives you three independent ways to slice: "show me all draft-status magic articles tagged 'act three'." That kind of cross-cut is the reason both systems exist.
 

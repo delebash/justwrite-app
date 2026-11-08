@@ -126,7 +126,7 @@ and reachable.
 
 ## Good to know
 
-- **Resetting the workspace** starts a new library on this device — pair your other devices with it
+- **Resetting JustWrite** (Settings → Backups → **Reset JustWrite**) starts a new library on this device — pair your other devices with it
   again.
 - **Restoring a backup** puts this device back where the backup was, and the backup keeps its own
   age: the next sync brings back what was changed, made or deleted since — on your other devices,

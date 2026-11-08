@@ -39,7 +39,7 @@ to Electron and Node, 2026-10-08 — a port with the same routes and database).
 The pieces that implement it, so a reader can verify rather than trust this page:
 
 - **`app.js`** — after every `/v1/*` router is registered, the UI locator finds
-  the built UI (`dist/spa`; the app folder when packaged) and the kit's `serveStatic` serves it (GET only). The static mount is LAST so API
+  the built UI (`dist/spa`; the app folder when packaged) and the kit's `serveUi` serves it (GET only). The static mount is LAST so API
   routes always win. `JUSTWRITE_UI_DIR` overrides the
   search; without a built UI the server logs a warning and the API still runs.
   The renderer reaches it because the base URL is origin-aware — it targets
@@ -55,7 +55,7 @@ The pieces that implement it, so a reader can verify rather than trust this page
 - **`auth.js`** (the kit's `BearerAuthMiddleware`) — bearer-token middleware for running exposed. Off when no
   tokens are set; loopback bypasses unless `requireForLoopback`. Gates `/v1`
   only, so the UI and its assets always load and a browser can reach the app.
-  Surfaced in **Settings → Server** (`SettingsView.vue`; the section was keyed
+  Surfaced in **Settings → Server** (`SettingsPage.vue`; the section was keyed
   "general" until the 2026-08-06 parity batch), documented for users
   in [`docs/headless-access.md`](../headless-access.md).
 - **The CSRF guard** (the kit's `CsrfOriginMiddleware`) — same-origin mutations are allowed precisely because the
@@ -69,7 +69,7 @@ Decided with the user 2026-06-18, still the standing pre-release policy `AGENTS.
 enforces: every datum is a real SQL resource behind a typed `/v1/*` API — no
 IndexedDB, no localStorage shim, no generic blob store. Schema changes ship by
 DROP-AND-RESEED, never migrations; additive-only changes need no reset because
-`create_all` picks up new tables on boot. (The migration-era plan that produced
+the kit's `createTables` picks up new tables, and the `ADDED_COLUMNS` columns, on boot. (The migration-era plan that produced
 this ruling is history: `docs/plans/archive/2026-06-18-unified-storage-no-idb.md`.)
 
 ### What this rules out
@@ -139,14 +139,14 @@ Phases were locked up front; built and shipped in order.
 
 - ~~Multi-turn RAG chat~~ *Shipped since (2026-08-04 correction):* `rag/chat.js`
   carries the last 8 messages with a stated truncation policy, and chat SESSIONS
-  persist server-side (`api/chat_api.py`) — list/rename/delete, auto-titled.
+  persist server-side (`server/src/api/chat_api.js`) — list/rename/delete, auto-titled.
 - ~~**Auto-rebuild RAG index.**~~ *Shipped since (2026-08-04 correction):*
   `services/rag/autoIndex.js` silently re-embeds a minute after the last edit,
   gated on the `ai.autoRebuildRagIndex` setting — the "burning tokens silently"
   concern became an opt-in.
 - ~~**Hybrid keyword + semantic RAG.**~~ *Shipped since (2026-08-04 correction):*
   BM25 rides beside cosine (`rag/{chunker,vectorStore,cards,chat}.js` +
-  `server …/api/rag_api.py`); exact-string queries no longer depend on the embedding
+  `server/src/api/rag_api.js`); exact-string queries no longer depend on the embedding
   preserving surface form.
 - ~~EPUB/ODT import strips images~~ *Corrected 2026-08-04:* `rewriteImageSrcs`
   (`services/import/index.js`) carries images into `imageStore` now. The old
@@ -156,9 +156,11 @@ Phases were locked up front; built and shipped in order.
 - **Scene-move detection in version diff.** ID-preserving moves work fine
   (matched by id). When ids change between versions (rare) it shows as full
   del + full ins. Would need fuzzy content matching.
-- **Whole-book entity sweep is sequential.** One LLM call per chapter — for
-  a 60-chapter book on a slow local model this can take a while. Could
-  parallelize with a concurrency limit.
+- ~~**Whole-book entity sweep is sequential.**~~ *Shipped since:* the sweep is a
+  bounded-concurrency, provider-aware pool (`services/analysis/entitySweep.js`
+  `resolvePoolSize`: one chapter at a time on the built-in local runner, four on any
+  other provider) with a per-chapter resume draft on the server
+  (`server/src/api/sweep_draft_api.js`).
 - **Layout sanity at narrow widths.** Not visually QA'd at <1100px; some
   grids assume desktop.
 
@@ -194,10 +196,10 @@ registers the task, threads its `AbortSignal` automatically, and
 finishes/fails it at the end. Caller `signals` and `onDelta` still work —
 they're chained, not replaced.
 
-**Per-call loading state** should derive from
-`aiTasks.runningTasks.find(t => t.feature === 'X' && t.meta?.kind === scope)`
-rather than local refs — that's what fixes the stuck-button bug and lets
-state survive remounts.
+**Per-call loading state** should derive from the kit's
+`useSurfaceTask('X', { kind: scope })` (`@delebash/ui` — the running task whose
+feature and meta match, read from `aiTasks.runningTasks`) rather than local refs —
+that's what fixes the stuck-button bug and lets state survive remounts.
 
 Inline progress strip: the kit's `AiTaskStrip`, mounted per surface — never
 copied. (`StudioTaskStrip.vue`, which this line used to point at, no longer
@@ -338,14 +340,14 @@ presets. Research playground, not on the path to production.
 ## Marketing site & docs flow
 
 There is a separate Astro marketing website at `../justwrite-website/` —
-NOT inside this repo. Stack: Astro 6.x, plain JS, dark default with light
-toggle, deploys to GitHub Pages.
+NOT inside this repo. Stack: Astro 7.x (+ Starlight for the docs), plain JS, light
+default with a dark toggle, deploys to GitHub Pages.
 
 **Structure:** three destinations, top nav in `Base.astro` with active-link
 detection.
 
-- `/` Overview — Hero · Yours · Sketches · Colophon · Find it
-- `/features` Features — Features · Inside · FAQ
+- `/` Overview — Hero · Features · Inside · FAQ · ClaudeStory
+- `/features` Features — Yours · Screenshots · Footer
 - `/docs/` Docs — built from `justwrite-app/docs/*.md` via
   `scripts/sync-docs.js` at prebuild
 
@@ -355,8 +357,8 @@ User documentation lives in `justwrite-app/docs/*.md` and is the **source
 of truth**. Two consumers:
 
 1. **The app itself** — bundles docs at build time via
-   `services/helpDocs.js` and renders them in-app via `HelpView.vue` (route
-   `/help/:slug?`). The in-app "Open on the web" button jumps to the
+   `services/helpDocs.js` and renders them in-app via `HelpPage.vue` (route
+   `/help/:slug?`) and the kit's Help drawer. The in-app "Open on the web" button jumps to the
    marketing-site copy. `HELP_WEB_BASE` in `services/helpDocs.js` is the
    in-app link target.
 2. **The marketing site** — publishes the **latest released version's**
@@ -379,12 +381,13 @@ tag — only via `npm run release` (which calls
 
 **Why manual:** a cross-platform build is expensive (three runners in parallel),
 so kicking it manually keeps cost and noise minimal.
-Docs sync to the marketing site is the only "automatic" step, and it only
-fires after a release completes.
+Nothing downstream fires on its own either: the marketing site picks up a
+release's docs only when it is deployed by hand (see Workflow pipeline below).
 
 ### Walkthrough
 
-1. `npm run bump <ver>` — bumps `package.json` (the one place the version lives).
+1. `npm run bump <ver>` — bumps `package.json`, `server/package.json` (the server answers
+   with it) and `package-lock.json` together.
 2. Manual commit + tag + push.
 3. `npm run release` — dispatches the workflow against the tag.
    - Optional `--platform <windows|macos|linux>` (or `npm run
@@ -415,9 +418,12 @@ other workflows". The `notify-website` job and its `docs-updated` repository\_di
 
 - Code signing (macOS Gatekeeper + Windows SmartScreen warnings expected;
   cost of certs not yet justified)
-- Auto-update — *still true as of 2026-08-04, with a nuance: Settings mounts the
-  kit `UpdatesPanel`, which is DISPLAY-ONLY (current version + release notes from
-  whats-new.md); there is no check/download/install machinery.*
+- ~~Auto-update~~ — *shipped since (2026-10-09): the kit's shell runs electron-updater
+  (`packages/core/src/shell/main.js`) — a check at start-up, a download when the user
+  presses Download in the kit `UpdatesPanel` (Settings → Updates, wired through
+  `native.js` `desktopUpdater()`), the install when the app quits or on "Restart now";
+  the release attaches the update feed (`latest*.yml`). A Mac, unsigned, only checks
+  and links to the release.*
 - Per-push CI checks — *stale as written (2026-08-04 correction): the repo now has
   `.github/workflows/release.yml`, biome (`biome.json`), and a 55-file vitest suite
   (`npm run test:unit`); what remains true is that none of it is per-push CI — the
@@ -464,7 +470,8 @@ run in vanilla browser. The desktop harness gets all of them.
   page `lib/pages.js` lists and each AI tab, light and dark). Each writes your `ui`
   settings section back when it ends.
 - The harness drives whatever `dist/electron/UnPackaged/` was last built. If source has
-  drifted, run `npm run build:unpacked` from the app root first.
+  drifted, run `npm run build` from the app root first (`build:unpacked` doesn't install
+  the server package there, so the app would find no server to start).
 - Don't run with your own JustWrite open — both would start a server on :17495
   over the same data folder.
 
@@ -484,7 +491,7 @@ decisions, made deliberately:
 - **Defaults: empty.** No starter vocabulary ships. Tags are opinionated by
   genre/style; defaults would be irrelevant for most projects.
 - **Storage: per-project.** Lives in `project.tagVocabularies` (state slice
-  + `HISTORY_SLICES`). Sci-fi novel's vocab differs from a memoir's;
+  + the `tagVocab` undo domain in `DOMAIN_SLICES`). Sci-fi novel's vocab differs from a memoir's;
   project-scoped fits that.
 - **Visual: distinct.** Curated chips and suggestions get a subtle
   `var(--accent)` dot via `::before` (rather than `border-color`, which
