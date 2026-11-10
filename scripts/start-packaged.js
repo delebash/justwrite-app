@@ -6,9 +6,9 @@
 // (`xvfb-run -a node scripts/start-packaged.js` — the release workflow does).
 // The port and the data folder's variable are read from src-electron/electron-main.js (runDesktopApp's
 // `port` and `dataDirEnv`), the version from package.json. Paths given as arguments are asked after
-// /v1/health answers and must answer 2xx too — an app's own checks (just-house-paint: its part
-// finder's runtime loads, `node scripts/start-packaged.js v1/segment/runtime`; written without the
-// leading slash, which Git Bash on Windows turns into a file path). `--appimage` (Linux)
+// /v1/health answers and must answer 2xx too — an app's own checks (just-house-paint: the part finder's
+// engine — the kit's ONNX runtime — runs here, `node scripts/start-packaged.js v1/ai/runtimes/onnx/engine/check`;
+// written without the leading slash, which Git Bash on Windows turns into a file path). `--appimage` (Linux)
 // runs the .AppImage file itself with no flags, as a user opens it — the sandbox and FUSE as they are on
 // that machine — instead of the unpacked folder. `--headless` starts the server on its own through the
 // app's launcher instead (build/launcher: `<name>-server.cmd` beside the Windows exe, `<name>-server`
@@ -16,7 +16,10 @@
 // help says) — no window, no display: it must answer with its version and serve the UI at `/`.
 // `--default-data` names no data folder: the app's own default is used and printed ("data folder
 // used: …"), and on macOS and Linux it must lie outside the app (the release compares the window's
-// and the launcher's). The build is started from a copy in the system's temp folder, never inside the checkout:
+// and the launcher's). `--data-dir <folder>` starts it on that data folder — your real one (the checkout's data/, which
+// `npm run dev` and `npm run server` use): the acceptance start on real data, which writes no test data and NEVER
+// removes the folder (docgen's ask, 2026-10-29; stop the app on that folder first — one server per data folder).
+// The build is started from a copy in the system's temp folder, never inside the checkout:
 // there Node's package lookup walks up out of app.asar into the repo's own node_modules and finds a package the
 // build left out — JustWrite's server lacked a package on every installed computer, and only the AppImage (mounted
 // under /tmp) failed the check (2026-10-20). Exit 0 = it answered; 1 = it didn't.
@@ -38,10 +41,16 @@ const headless = process.argv.includes("--headless");
 // no data folder named: the app's own default, which the health answer names (printed as "data folder used:"),
 // never inside a Mac app's bundle or an AppImage's folder (the kit's data_paths bundledInstall)
 const defaultData = process.argv.includes("--default-data");
-const launcherName = `${pkg.name}-server`;
+// a data folder named: started on it, never removed (`--data-dir <folder>`)
+const dataDirAt = process.argv.indexOf("--data-dir");
+const givenData = dataDirAt > 0 ? path.resolve(process.argv[dataDirAt + 1] || "") : null;
+if (givenData && !existsSync(givenData)) throw new Error(`--data-dir ${givenData}: no such folder`);
+// the headless launcher is named for the server package (build/launcher: `<server package>.cmd`) — the root's name
+// isn't always its stem (docgen: just_ai_i18n_docgen / just-ai-i18n-docgen-server)
+const launcherName = JSON.parse(readFileSync(path.join(root, "server", "package.json"), "utf8")).name;
 const extraPaths = process.argv
   .slice(2)
-  .filter((a) => !a.startsWith("--"))
+  .filter((a, i, all) => !a.startsWith("--") && all[i - 1] !== "--data-dir")
   .map((a) => `/${a.replace(/^\/+/, "")}`);
 
 /** electron-builder's unpacked folder for this platform, by name (`mac-arm64`, `win-unpacked`, `linux-unpacked`). */
@@ -61,11 +70,24 @@ function copyUnpacked(into) {
 }
 
 /** A data folder inside the copy, said where it is in the build itself (each start runs its own copy, and Windows'
- *  and the unpacked Linux build's default is beside the executable): the window's and the launcher's compare. */
-function inBuild(dir, copy) {
-  if (!copy) return dir;
-  const rel = path.relative(copy, realpathSync.native(dir));
-  return rel && !rel.startsWith("..") && !path.isAbsolute(rel) ? path.join(out, rel) : dir;
+ *  and the unpacked Linux build's default is beside the executable), and one inside the start's own home folder
+ *  said under "~": the window's and the launcher's compare. */
+function inBuild(dir, copy, home) {
+  let real = dir;
+  try {
+    real = realpathSync.native(dir);
+  } catch {
+    // not there (any more): compared as the app named it
+  }
+  const under = (root) => {
+    if (!root) return null;
+    const rel = path.relative(root, real);
+    return rel && !rel.startsWith("..") && !path.isAbsolute(rel) ? rel : null;
+  };
+  const inCopy = under(copy);
+  if (inCopy) return path.join(out, inCopy);
+  const inHome = under(home);
+  return inHome ? `~/${inHome.split(path.sep).join("/")}` : dir;
 }
 
 /** The packaged app's own executable in electron-builder's unpacked folder for this platform. */
@@ -77,11 +99,19 @@ function findExecutable(dir = out, platform = process.platform) {
     return path.join(at, app, "Contents", "MacOS", app.slice(0, -4));
   }
   if (platform === "win32") {
-    const exe = readdirSync(at).find((f) => f.endsWith(".exe") && !/^uninstall/i.test(f));
-    if (!exe) throw new Error(`no .exe in ${at}`);
-    return path.join(at, exe);
+    // the .exe the app's own headless launcher runs (build/launcher/<server package>.cmd names it) — never another
+    // program the build ships beside it: "the first .exe" started JustVoice's audiocpp_dsp.exe in its release dry run
+    // and waited 120 s for an app that never ran (2026-11-10)
+    const cmd = path.join(root, "build", "launcher", `${launcherName}.cmd`);
+    const named = readFileSync(cmd, "utf8").match(/%~dp0([^"\\\s]+\.exe)/i)?.[1];
+    if (!named) throw new Error(`${cmd} names no .exe`);
+    if (!existsSync(path.join(at, named))) throw new Error(`no ${named} in ${at}`);
+    return path.join(at, named);
   }
-  // Linux: the one executable file that isn't Chromium's helpers, a library or a script (the headless launcher)
+  // Linux: the executable the launcher's shell script runs — `$here/<its own name without "-server">` — when the build
+  // has it; otherwise the one executable file that isn't Chromium's helpers, a library or a script (the launcher)
+  const own = path.join(at, launcherName.replace(/-server$/, ""));
+  if (existsSync(own) && statSync(own).isFile()) return own;
   const helpers = new Set(["chrome-sandbox", "chrome_crashpad_handler"]);
   const isScript = (f) => readFileSync(path.join(at, f)).subarray(0, 2).toString() === "#!";
   const exe = readdirSync(at).find((f) => !helpers.has(f) && !f.includes(".") && statSync(path.join(at, f)).isFile() && statSync(path.join(at, f)).mode & 0o111 && !isScript(f));
@@ -132,12 +162,41 @@ function headlessLauncher(appImage, scratch, copy) {
 
 async function run() {
   if (await health()) throw new Error(`something already answers on port ${port} — stop it first`);
+  // every temp folder made before the start's own try/finally is removed if a step before it fails (a missing
+  // launcher, a copy that fails) — it was left behind (the eighteenth review)
+  const made = [];
+  const temp = (prefix) => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), prefix));
+    made.push(dir);
+    return dir;
+  };
+  try {
+    return await started(temp);
+  } catch (e) {
+    // each folder alone, and the start's own failure kept: a folder still held (EPERM) replaced the real reason
+    for (const dir of made) {
+      try {
+        rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 500 });
+      } catch (gone) {
+        console.warn(`the folder ${dir} stays (${gone.code || gone.message})`);
+      }
+    }
+    throw e;
+  }
+}
+
+/** The start itself: `temp(prefix)` makes a temp folder the caller removes should this throw before its own cleanup. */
+async function started(temp) {
   const appImage = asUser ? readdirSync(out).find((f) => f.endsWith(".AppImage")) : null;
   if (asUser && !appImage) throw new Error(`no .AppImage in ${out}`);
-  const dataDir = defaultData ? null : mkdtempSync(path.join(os.tmpdir(), "start-packaged-"));
-  const scratch = headless && appImage ? mkdtempSync(path.join(os.tmpdir(), "start-packaged-appimage-")) : null;
+  const dataDir = givenData ?? (defaultData ? null : temp("start-packaged-"));
+  // the app's own default on macOS and Linux is under the home folder (Application Support, ~/.local/share): the
+  // start gets a home of its own in the temp folder, so a check run on a developer's computer never touches their
+  // real data folder (Windows' default is beside the executable — in the copy)
+  const home = defaultData && process.platform !== "win32" ? realpathSync.native(temp("start-packaged-home-")) : null;
+  const scratch = headless && appImage ? temp("start-packaged-appimage-") : null;
   // the unpacked build runs from a copy outside the checkout (the AppImage mounts or extracts outside it already)
-  const copy = appImage ? null : copyUnpacked(mkdtempSync(path.join(os.tmpdir(), "start-packaged-app-")));
+  const copy = appImage ? null : copyUnpacked(temp("start-packaged-app-"));
   const exe = headless ? headlessLauncher(appImage, scratch, copy) : appImage ? path.join(out, appImage) : findExecutable(copy);
   // the unpacked folder on Linux: chrome-sandbox isn't setuid there, so Chromium's sandbox can't start;
   // the AppImage runs exactly as a user's double-click runs it; the launcher takes the server's own command
@@ -147,6 +206,10 @@ async function run() {
   const env = { ...process.env };
   if (dataDir) env[dataDirEnv] = dataDir;
   else delete env[dataDirEnv];
+  if (home) {
+    env.HOME = home;
+    delete env.XDG_DATA_HOME;
+  }
   // started from the temp folder, not the checkout: the server's UI fallback (a dist/spa beside the working
   // folder) must not stand in for the packaged UI
   const options = { env, cwd: os.tmpdir(), stdio: ["ignore", "pipe", "inherit"], detached: process.platform !== "win32" };
@@ -189,7 +252,7 @@ async function run() {
           const app = exe.includes(".app/Contents/") ? exe.slice(0, exe.indexOf(".app/Contents/") + 4) : path.dirname(exe);
           const rel = path.relative(app, h.dataDir);
           if (bundle && (!rel.startsWith("..") || /\/\.mount_/.test(h.dataDir))) throw new Error(`its data folder ${h.dataDir} is inside the app (${app})`);
-          console.log(`data folder used: ${inBuild(h.dataDir, copy)}`);
+          console.log(`data folder used: ${inBuild(h.dataDir, copy, home)}`);
         }
         if (headless) {
           // the whole app with no window: the server serves its UI too
@@ -201,13 +264,14 @@ async function run() {
           const script = await fetch(new URL(src, `http://127.0.0.1:${port}/`), { signal: AbortSignal.timeout(10_000) });
           if (!script.ok || !/javascript/.test(script.headers.get("content-type") || "")) throw new Error(`the page's script ${src} answered ${script.status} ${script.headers.get("content-type")}`);
           console.log(`/: ${page.status} ${page.headers.get("content-type")}; its script ${script.status}`);
-          // what the app's own engines say of this runner (an app with none answers 404 — nothing to say): read inside
-          // the packaged server, the system versions they go by (the AppImage's glibc — the thirteenth review)
-          for (const engine of ["aiphoto", "segment"]) {
-            const st = await fetch(`http://127.0.0.1:${port}/v1/${engine}/status`, { signal: AbortSignal.timeout(10_000) }).catch(() => null);
-            if (st?.ok) {
-              const j = await st.json();
-              console.log(`${engine} status: ${JSON.stringify({ available: j.available, backend: j.backend, need: j.need, runtime: j.runtime })}`);
+          // what the kit's engines say of this runner (an app with none answers 404 — nothing to say): read inside
+          // the packaged server, the system versions they go by (the AppImage's glibc — the thirteenth review). The
+          // kit's runtimes route since the engines moved into the kit (house-paint 8b6b0da, 2026-10-28; this copy asked
+          // house-paint's old /v1/aiphoto and /v1/segment status until 2026-11-10)
+          const rts = await fetch(`http://127.0.0.1:${port}/v1/ai/runtimes`, { signal: AbortSignal.timeout(30_000) }).catch(() => null);
+          if (rts?.ok) {
+            for (const j of (await rts.json()).runtimes || []) {
+              console.log(`${j.id} status: ${JSON.stringify({ installed: j.installed, platform: j.platform, gpu: j.gpu, need: j.need })}`);
             }
           }
         }
@@ -225,7 +289,8 @@ async function run() {
   } finally {
     stop(child);
     await new Promise((r) => setTimeout(r, 1500)); // let the files go before the folder is removed
-    for (const dir of [dataDir, scratch, copy].filter(Boolean)) {
+    // the folders this start made — never a data folder it was given
+    for (const dir of [dataDir === givenData ? null : dataDir, scratch, copy, home].filter(Boolean)) {
       try {
         rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 500 });
       } catch (e) {
